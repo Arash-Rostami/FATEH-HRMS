@@ -1,0 +1,150 @@
+:root {
+  --md-sys-color-primary: #00639b;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #cce5ff;
+  --md-sys-color-on-primary-container: #001d32;
+  --md-sys-color-secondary: #535f70;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #d7e3f7;
+  --md-sys-color-on-secondary-container: #101c2b;
+  --md-sys-color-tertiary: #6b5778;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #f2daff;
+  --md-sys-color-on-tertiary-container: #251431;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-background: #fdfcff;
+  --md-sys-color-on-background: #1a1c1e;
+  --md-sys-color-surface: #fdfcff;
+  --md-sys-color-on-surface: #1a1c1e;
+  --md-sys-color-surface-variant: #dfe2eb;
+  --md-sys-color-on-surface-variant: #43474e;
+  --md-sys-color-outline: #73777f;
+  --md-sys-color-outline-variant: #c3c7cf;
+  --md-sys-elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+  --md-sys-typescale-display-large: 57px;
+  --md-sys-typescale-display-medium: 45px;
+  --md-sys-typescale-display-small: 36px;
+  --md-sys-typescale-headline-large: 32px;
+  --md-sys-typescale-headline-medium: 28px;
+  --md-sys-typescale-headline-small: 24px;
+  --md-sys-typescale-title-large: 22px;
+  --md-sys-typescale-title-medium: 16px;
+  --md-sys-typescale-title-small: 14px;
+  --md-sys-typescale-label-large: 14px;
+  --md-sys-typescale-label-medium: 12px;
+  --md-sys-typescale-label-small: 11px;
+  --md-sys-typescale-body-large: 16px;
+  --md-sys-typescale-body-medium: 14px;
+  --md-sys-typescale-body-small: 12px;
+}
+[data-theme='ocean'] {
+  --md-sys-color-primary: #00668b;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #c2e8ff;
+  --md-sys-color-on-primary-container: #001e2d;
+  --md-sys-color-secondary: #4d616c;
+  --md-sys-color-secondary-container: #d0e6f2;
+}
+[data-theme='forest'] {
+  --md-sys-color-primary: #2d6b2f;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #b0f4ab;
+  --md-sys-color-on-primary-container: #002203;
+  --md-sys-color-secondary: #53634f;
+  --md-sys-color-secondary-container: #d6e8ce;
+}
+[data-theme='sunset'] {
+  --md-sys-color-primary: #9c4146;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffdad9;
+  --md-sys-color-on-primary-container: #410009;
+  --md-sys-color-secondary: #775657;
+  --md-sys-color-secondary-container: #ffdadb;
+}
+.md3-btn {
+  @apply relative overflow-hidden inline-flex items-center justify-center gap-2 px-6 h-10 rounded-full font-medium transition-all duration-200 ease-out active:scale-95 shadow-sm hover:shadow-md disabled:opacity-50 disabled:pointer-events-none;
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-family: 'Yekan', sans-serif;
+  font-size: var(--md-sys-typescale-label-large);
+}
+.md3-btn:hover::before {
+  content: '';
+  @apply absolute inset-0 bg-white opacity-10;
+}
+.md3-btn-outlined {
+  @apply relative overflow-hidden inline-flex items-center justify-center gap-2 px-6 h-10 rounded-full font-medium transition-all duration-200 ease-out active:scale-95 border border-[var(--md-sys-color-outline)];
+  color: var(--md-sys-color-primary);
+  font-family: 'Yekan', sans-serif;
+  font-size: var(--md-sys-typescale-label-large);
+}
+.md3-btn-outlined:hover {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 92%);
+}
+.md3-btn-text {
+  @apply relative overflow-hidden inline-flex items-center justify-center gap-2 px-4 h-10 rounded-full font-medium transition-all duration-200 ease-out;
+  color: var(--md-sys-color-primary);
+  font-family: 'Yekan', sans-serif;
+  font-size: var(--md-sys-typescale-label-large);
+}
+.md3-btn-text:hover {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 90%);
+}
+.md3-input-group {
+  @apply relative mt-2;
+}
+.md3-input {
+  @apply block w-full rounded-[4px] border border-[var(--md-sys-color-outline)] bg-transparent px-4 pb-2.5 pt-4 text-[var(--md-sys-color-on-surface)] appearance-none focus:outline-none focus:ring-0;
+  font-family: 'Yekan', sans-serif;
+  transition: border-color 0.2s;
+}
+.md3-input:focus {
+  border-color: var(--md-sys-color-primary);
+  border-width: 2px;
+}
+.md3-input.has-error {
+  border-color: var(--md-sys-color-error);
+}
+.md3-label {
+  @apply absolute right-3 top-2 z-10 origin-[100%_0] -translate-y-4 scale-75 transform px-2 text-sm text-[var(--md-sys-color-on-surface-variant)] duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)];
+  font-family: 'Yekan', sans-serif;
+}
+.md3-input.has-error ~ .md3-label {
+  color: var(--md-sys-color-error);
+}
+.md3-card {
+  @apply rounded-[var(--md-sys-shape-corner-medium)] bg-[var(--md-sys-color-surface)] p-6;
+  box-shadow: var(--md-sys-elevation-1);
+}
+.md3-switch {
+  @apply relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:ring-offset-2;
+  background-color: var(--md-sys-color-surface-variant);
+}
+.md3-switch[aria-checked="true"] {
+  background-color: var(--md-sys-color-primary);
+}
+.md3-switch-thumb {
+  @apply inline-block h-6 w-6 transform rounded-full bg-white transition duration-200 ease-in-out translate-x-1;
+}
+.md3-switch[aria-checked="true"] .md3-switch-thumb {
+    @apply translate-x-7;
+}
+.md3-switch-icon {
+    @apply absolute inset-0 flex items-center justify-center text-[var(--md-sys-color-on-primary-container)];
+}
+html[dir="rtl"] .md3-label {
+    transform-origin: 100% 0;
+    right: 0.75rem;
+    left: auto;
+}
