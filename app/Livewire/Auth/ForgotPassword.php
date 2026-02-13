@@ -3,21 +3,27 @@ namespace App\Livewire\Auth;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Password;
+use App\Traits\AuthValidationRules;
 
 class ForgotPassword extends Component
 {
-    public string $email = '';
+    use AuthValidationRules;
 
-    protected $rules = ['email' => 'required|email'];
+    public string $email = '';
 
     public function send()
     {
-        $this->validate();
+        $this->validate(
+            [
+                'email' => $this->emailRules(),
+            ],
+            $this->validationMessages()
+        );
 
         $status = Password::sendResetLink(['email' => $this->email]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            session()->flash('status','We sent a password reset link to your email.');
+            session()->flash('status', 'لینک بازیابی رمز عبور به ایمیل شما ارسال شد.');
         } else {
             $this->addError('email', trans($status));
         }
