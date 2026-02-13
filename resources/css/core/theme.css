@@ -213,10 +213,22 @@
     }
 }
 
+.container-scrollbar.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+}
 
-html.dark .dark-contrast {
-    transition: filter .35s ease-in-out, transform .35s ease-in-out;
-    mix-blend-mode: multiply !important;
-    filter: brightness(.45) contrast(1.3) saturate(1.1);
+.container-scrollbar.custom-scrollbar::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px grey;
+    border-radius: 7px;
+}
+
+.container-scrollbar.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-primary);
+    border-radius: 7px;
+}
+
+.container-scrollbar.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-primary);
 }
 

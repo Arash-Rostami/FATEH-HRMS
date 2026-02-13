@@ -9,9 +9,7 @@ use App\Livewire\Auth\VerifyNotice;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/dashboard', fn() => view('components.dashboard.home'))->name('dashboard');
 
 
 Route::middleware('guest')->group(function () {

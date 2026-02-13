@@ -6,12 +6,8 @@
 
     @livewireStyles
 </head>
-<body class="antialiased min-h-screen bg-gray-50 text-gray-800">
-
-
-{{ $slot }}
-
-
+<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-gray-50 text-gray-800">
+@yield('content')
 @livewireScripts
 </body>
 </html>
