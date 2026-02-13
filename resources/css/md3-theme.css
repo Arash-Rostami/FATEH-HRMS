@@ -146,6 +146,17 @@
         background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 92%);
     }
 
+    .md3-btn-text {
+        @apply relative inline-flex items-center justify-center gap-2 px-4 h-10 rounded-full font-medium transition-colors;
+        color: var(--md-sys-color-primary);
+        background-color: transparent;
+        font-family: var(--font-sans);
+    }
+
+    .md3-btn-text:hover {
+        background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 92%);
+    }
+
     .md3-input-group { @apply relative mt-1; }
 
     .md3-input {

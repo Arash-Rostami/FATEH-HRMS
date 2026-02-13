@@ -85,10 +85,5 @@
         "secure-http": false
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [{
-        "name": "packagist",
-        "type": "composer",
-        "url": "http://mirror.chabokan.net/repository/composer-proxy/"
-    }]
+    "prefer-stable": true
 }

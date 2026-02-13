@@ -5,11 +5,12 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
+use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 });
 
 
@@ -22,5 +23,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');
-    // add protected routes here (dashboard etc.)
+    Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/home', function () {
+        return redirect()->route('dashboard');
+    });
 });
