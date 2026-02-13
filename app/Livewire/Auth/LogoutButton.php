@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Auth;
 
 class LogoutButton extends Component
 {
+    public $iconOnly = false;
+
     public function logout()
     {
         Auth::logout();
