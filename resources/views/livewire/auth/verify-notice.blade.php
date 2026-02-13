@@ -1,10 +1,16 @@
 <div class="flex items-center justify-center min-h-[calc(100vh-6rem)] w-full px-4 py-8">
+    <!-- Main Card -->
     <div class="glass-panel w-full max-w-[520px] p-10 md:p-12 rounded-[2.5rem] relative overflow-hidden isolate shadow-2xl ring-1 ring-white/10">
+        <!-- Stylistic Shapes -->
+        <x-dashboard.floating-shapes/>
 
+        <!-- Ambient Background Glows -->
         <div class="absolute -top-40 -right-40 w-80 h-80 bg-[var(--md-sys-color-primary)]/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen opacity-50"></div>
         <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--md-sys-color-tertiary)]/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen opacity-50"></div>
 
+        <!-- Header -->
         <div class="relative mb-10 text-center flex flex-col items-center gap-6">
+            <!-- Icon Badge -->
             <div class="relative group">
                 <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <div class="relative w-24 h-24 bg-gradient-to-br from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-surface)] rounded-[2rem] flex items-center justify-center shadow-xl ring-1 ring-white/20 transition-transform duration-500 group-hover:rotate-6">
@@ -15,6 +21,7 @@
                 </div>
             </div>
 
+            <!-- Status Badge -->
             <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-[var(--md-sys-color-surface-variant)]/40 border border-[var(--md-sys-color-outline-variant)]/20 backdrop-blur-xl shadow-lg shadow-black/5 mt-2">
                 <span class="relative flex h-2.5 w-2.5">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--md-sys-color-primary)] opacity-75"></span>
@@ -23,6 +30,7 @@
                 <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface-variant)] tracking-[0.25em] uppercase font-mono">Email Verification</span>
             </div>
 
+            <!-- Title & Description -->
             <div class="space-y-2">
                 <h1 class="text-3xl md:text-4xl font-bold text-[var(--md-sys-color-on-surface)] tracking-tight font-display drop-shadow-sm">
                     تایید آدرس ایمیل
@@ -33,6 +41,7 @@
             </div>
         </div>
 
+        <!-- Success Message -->
         @if (session('status') == 'verification-link-sent')
             <div class="mb-8 p-4 rounded-2xl bg-[var(--md-sys-color-primary-container)]/30 border border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)] text-sm flex items-start gap-4 shadow-lg backdrop-blur-md animate-slide-up ring-1 ring-[var(--md-sys-color-primary)]/10">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--md-sys-color-primary)]/20 flex items-center justify-center text-[var(--md-sys-color-primary)]">
@@ -45,14 +54,16 @@
             </div>
         @endif
 
+        <!-- Action Buttons -->
         <div class="space-y-6 relative z-10">
-            <button wire:click="sendVerification"
-                    class="md3-btn w-full h-14 text-lg shadow-xl shadow-[var(--md-sys-color-primary)]/20 hover:shadow-[var(--md-sys-color-primary)]/40 hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-300 group overflow-hidden"
-                    wire:loading.attr="disabled"
-                    wire:target="sendVerification">
+
+            <!-- Resend Verification -->
+            <button wire:click="sendVerification" wire:loading.attr="disabled" wire:target="sendVerification"
+                    class="md3-btn w-full h-14 text-lg shadow-xl shadow-[var(--md-sys-color-primary)]/20 hover:shadow-[var(--md-sys-color-primary)]/40 hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-300 group overflow-hidden">
                 <div class="relative flex items-center justify-center gap-3 w-full z-10">
                     <span class="material-symbols-rounded text-[24px] transition-transform group-hover:scale-110" wire:loading.remove wire:target="sendVerification">forward_to_inbox</span>
 
+                    <!-- Loading Spinner -->
                     <svg class="animate-spin h-6 w-6 text-white absolute left-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" wire:loading wire:target="sendVerification">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -64,12 +75,14 @@
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
             </button>
 
+            <!-- Divider -->
             <div class="relative flex py-2 items-center">
                 <div class="flex-grow border-t-2 border-[var(--md-sys-color-outline-variant)]/20"></div>
                 <span class="flex-shrink-0 mx-6 text-xs font-bold text-[var(--md-sys-color-outline)] uppercase tracking-[0.2em] opacity-70">گزینه‌ها</span>
                 <div class="flex-grow border-t-2 border-[var(--md-sys-color-outline-variant)]/20"></div>
             </div>
 
+            <!-- Logout -->
             <button wire:click="logout"
                     class="md3-btn-outlined w-full h-14 text-lg border-2 border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error)]/10 hover:border-[var(--md-sys-color-error)] transition-all duration-300">
                 <span class="material-symbols-rounded text-[24px] rtl:rotate-180">logout</span>
@@ -77,6 +90,7 @@
             </button>
         </div>
 
+        <!-- Help Tips -->
         <div class="mt-10 pt-6 border-t border-[var(--md-sys-color-outline-variant)]/20">
             <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-3 text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-80 bg-[var(--md-sys-color-surface-variant)]/20 p-3 rounded-xl">

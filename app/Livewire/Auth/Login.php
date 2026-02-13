@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class Login extends Component
 {
@@ -15,13 +16,20 @@ class Login extends Component
         'password' => 'required|string|min:8',
     ];
 
+    protected $messages = [
+        'email.required' => 'ایمیل لازم است.',
+        'email.email' => 'ایمیل نامعتبر است.',
+        'password.required' => 'رمز لازم است.',
+        'password.min' => 'رمز حداقل 8 حرف باشد.',
+    ];
+
     public function login()
     {
         $this->validate();
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            $this->addError('email','Invalid credentials.');
-            return;
+        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            $this->addError('email', 'ایمیل یا رمز اشتباه است.');
+            return null;
         }
 
         session()->regenerate();

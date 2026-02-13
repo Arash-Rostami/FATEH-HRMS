@@ -2,11 +2,11 @@
 
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Livewire\Component;
 
 class ResetPassword extends Component
 {
@@ -20,12 +20,19 @@ class ResetPassword extends Component
         'password' => 'required|confirmed|min:8',
     ];
 
+    protected $messages = [
+        'email.required' => 'ایمیل لازم است.',
+        'email.email'    => 'ایمیل نامعتبر است.',
+        'password.required' => 'رمز لازم است.',
+        'password.min'      => 'رمز حداقل 8 حرف باشد.',
+        'password.confirmed'=> 'رمزها مطابقت ندارند.',
+    ];
+
     public function mount($token)
     {
         $this->token = $token;
     }
 
-    // Renamed action method to avoid conflict with Livewire's reset(...$properties)
     public function submitReset()
     {
         $this->validate();
@@ -49,11 +56,11 @@ class ResetPassword extends Component
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            session()->flash('status', 'Password reset successfully. You may sign in.');
+            session()->flash('status', 'رمز با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.');
             return redirect()->route('login');
         }
 
-        $this->addError('email', trans($status));
+        $this->addError('email', 'ایمیل یا توکن نامعتبر است.');
     }
 
     public function render()

@@ -1,7 +1,9 @@
+/*@import 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200';*/
 @import 'material-symbols/rounded.css';
 @import 'tailwindcss';
-@import './md3-theme.css';
+@import './core/theme.css';
 
+@variant dark (&:where(.dark, .dark *));
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';

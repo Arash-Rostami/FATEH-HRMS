@@ -16,7 +16,18 @@ class Register extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'email' => 'required|email|unique:users,email',
-        'password' => 'required|confirmed|min:8',
+        'password' => 'required|confirmed|min:7',
+    ];
+
+    protected $messages = [
+        'name.required' => 'نام لازم است.',
+        'name.max'      => 'نام طولانی است.',
+        'email.required' => 'ایمیل لازم است.',
+        'email.email'    => 'ایمیل نامعتبر است.',
+        'email.unique'   => 'ایمیل قبلا ثبت شده.',
+        'password.required' => 'رمز لازم است.',
+        'password.min'      => 'رمز حداقل 7 حرف باشد.',
+        'password.confirmed'=> 'رمزها مطابقت ندارند.',
     ];
 
     public function register()

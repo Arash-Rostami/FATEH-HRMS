@@ -63,6 +63,7 @@
         --md-sys-color-primary-container: #d1e4ff;
         --md-sys-color-on-primary-container: #001d36;
     }
+
     [data-theme='blue'].dark {
         --md-sys-color-primary: #a1c9ff;
         --md-sys-color-primary-container: #00497d;
@@ -76,6 +77,7 @@
         --md-sys-color-primary-container: #bee9ff;
         --md-sys-color-on-primary-container: #001f2a;
     }
+
     [data-theme='ocean'].dark {
         --md-sys-color-primary: #5fd4fd;
         --md-sys-color-primary-container: #004d62;
@@ -89,6 +91,7 @@
         --md-sys-color-primary-container: #9ef88b;
         --md-sys-color-on-primary-container: #002204;
     }
+
     [data-theme='forest'].dark {
         --md-sys-color-primary: #82db72;
         --md-sys-color-primary-container: #005313;
@@ -102,6 +105,7 @@
         --md-sys-color-primary-container: #ffdad5;
         --md-sys-color-on-primary-container: #410001;
     }
+
     [data-theme='sunset'].dark {
         --md-sys-color-primary: #ffb4a9;
         --md-sys-color-primary-container: #93000d;
@@ -131,8 +135,13 @@
         transition: opacity var(--md-sys-motion-fast);
     }
 
-    .md3-btn:hover { opacity: 0.9; }
-    .md3-btn:active { opacity: 0.8; }
+    .md3-btn:hover {
+        opacity: 0.9;
+    }
+
+    .md3-btn:active {
+        opacity: 0.8;
+    }
 
     .md3-btn-outlined {
         @apply relative inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full font-medium border;
@@ -146,7 +155,9 @@
         background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 92%);
     }
 
-    .md3-input-group { @apply relative mt-1; }
+    .md3-input-group {
+        @apply relative mt-1;
+    }
 
     .md3-input {
         @apply block w-full rounded-t-lg border-b px-4 pb-2.5 pt-5 appearance-none focus:outline-none focus:ring-0;
@@ -201,3 +212,11 @@
         transform: translateX(26px);
     }
 }
+
+
+html.dark .dark-contrast {
+    transition: filter .35s ease-in-out, transform .35s ease-in-out;
+    mix-blend-mode: multiply !important;
+    filter: brightness(.45) contrast(1.3) saturate(1.1);
+}
+

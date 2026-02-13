@@ -25,12 +25,20 @@ export default class ThemeManager {
     }
 
     static toggleMode() {
-        if (document.documentElement.classList.contains('dark')) {
+        const isDark = document.documentElement.classList.contains('dark');
+
+        if (isDark) {
             document.documentElement.classList.remove('dark');
             localStorage.setItem('user-mode', 'light');
         } else {
             document.documentElement.classList.add('dark');
             localStorage.setItem('user-mode', 'dark');
         }
+
+        window.dispatchEvent(new CustomEvent('theme-mode-changed', {
+            detail: {
+                dark: document.documentElement.classList.contains('dark')
+            }
+        }));
     }
 }
