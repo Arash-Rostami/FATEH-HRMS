@@ -1,7 +1,24 @@
+@font-face {
+    font-family: 'Yekan';
+    src: url('../../assets/fonts/Yekan.woff2') format('woff2'),
+    url('../../assets/fonts/Yekan.woff') format('woff'),
+    url('../../assets/fonts/Yekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@theme {
+    --font-sans: 'Yekan', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
 @layer base {
     :root {
-        --md-sys-motion-fast: 150ms ease-out;
+        --md-sys-motion-fast: 200ms cubic-bezier(0.2, 0.0, 0, 1.0); /* Smoother, majestic motion */
 
+        /* ----------------------------------------------------------------- */
+        /* DEFAULT THEME (BRAND BOOK - PRESERVED) */
+        /* ----------------------------------------------------------------- */
         --md-sys-color-primary: #4e5f66;
         --md-sys-color-on-primary: #ffffff;
         --md-sys-color-primary-container: #d1e7ef;
@@ -11,25 +28,28 @@
         --md-sys-color-on-secondary: #ffffff;
         --md-sys-color-secondary-container: #d7e3f7;
         --md-sys-color-on-secondary-container: #101c2b;
+
         --md-sys-color-tertiary: #6b5778;
         --md-sys-color-on-tertiary: #ffffff;
         --md-sys-color-tertiary-container: #f2daff;
         --md-sys-color-on-tertiary-container: #251431;
+
         --md-sys-color-error: #ba1a1a;
         --md-sys-color-on-error: #ffffff;
         --md-sys-color-background: #fdfcff;
         --md-sys-color-on-background: #1a1c1e;
-        --md-sys-color-surface: #fdfcff;
+        --md-sys-color-surface: #f9f9fc; /* Slightly tinted surface for depth */
         --md-sys-color-on-surface: #1a1c1e;
         --md-sys-color-surface-variant: #e1e2ec;
         --md-sys-color-on-surface-variant: #44474f;
         --md-sys-color-outline: #74777f;
         --md-sys-color-outline-variant: #c4c6cf;
 
-        --md-sys-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --md-sys-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     :root.dark {
+        /* DEFAULT THEME DARK (PRESERVED) */
         --md-sys-color-primary: #b5cbd2;
         --md-sys-color-on-primary: #1f3238;
         --md-sys-color-primary-container: #37474d;
@@ -50,7 +70,7 @@
 
         --md-sys-color-background: #191c1d;
         --md-sys-color-on-background: #e1e3e4;
-        --md-sys-color-surface: #191c1d;
+        --md-sys-color-surface: #101416; /* Deepened for OLED feel */
         --md-sys-color-on-surface: #e1e3e4;
         --md-sys-color-surface-variant: #40484b;
         --md-sys-color-on-surface-variant: #bfc8cc;
@@ -58,142 +78,209 @@
         --md-sys-color-outline-variant: #40484b;
     }
 
+    /* ----------------------------------------------------------------- */
+    /* THEME: CORPORATE BLUE (Trust, Professional, Crisp) */
+    /* Replaces standard blue with a deeper, slightly desaturated Royal Blue */
+    /* ----------------------------------------------------------------- */
     [data-theme='blue'] {
-        --md-sys-color-primary: #0061a4;
-        --md-sys-color-primary-container: #d1e4ff;
-        --md-sys-color-on-primary-container: #001d36;
+        --md-sys-color-primary: #375E90; /* Professional Deep Blue */
+        --md-sys-color-on-primary: #FFFFFF;
+        --md-sys-color-primary-container: #D5E3FF;
+        --md-sys-color-on-primary-container: #001B3D;
+        --md-sys-color-surface: #F8F9FF; /* Very subtle blue tint */
+        --md-sys-color-surface-variant: #E0E2EC;
     }
 
     [data-theme='blue'].dark {
-        --md-sys-color-primary: #a1c9ff;
-        --md-sys-color-primary-container: #00497d;
-        --md-sys-color-on-primary-container: #d1e4ff;
-        --md-sys-color-background: #111318;
-        --md-sys-color-surface: #111318;
+        --md-sys-color-primary: #A8C7FF; /* Soft Cornflower Blue */
+        --md-sys-color-on-primary: #002F65;
+        --md-sys-color-primary-container: #1C4677;
+        --md-sys-color-on-primary-container: #D5E3FF;
+        --md-sys-color-background: #0B0E15;
+        --md-sys-color-surface: #0B0E15;
+        --md-sys-color-surface-variant: #44474F;
     }
 
+    /* ----------------------------------------------------------------- */
+    /* THEME: TEAL OCEAN (Modern, Tech-Forward, Clean) */
+    /* Replaces Ocean with a deep Turquoise/Cyan mix */
+    /* ----------------------------------------------------------------- */
     [data-theme='ocean'] {
-        --md-sys-color-primary: #006782;
-        --md-sys-color-primary-container: #bee9ff;
-        --md-sys-color-on-primary-container: #001f2a;
+        --md-sys-color-primary: #006874; /* Deep Teal */
+        --md-sys-color-on-primary: #FFFFFF;
+        --md-sys-color-primary-container: #97F0FF;
+        --md-sys-color-on-primary-container: #001F24;
+        --md-sys-color-surface: #F2FBFC;
+        --md-sys-color-surface-variant: #DBE4E6;
     }
 
     [data-theme='ocean'].dark {
-        --md-sys-color-primary: #5fd4fd;
-        --md-sys-color-primary-container: #004d62;
-        --md-sys-color-on-primary-container: #bee9ff;
-        --md-sys-color-background: #0b1418;
-        --md-sys-color-surface: #0b1418;
+        --md-sys-color-primary: #4FD8EB; /* Electric Cyan */
+        --md-sys-color-on-primary: #00363D;
+        --md-sys-color-primary-container: #004F58;
+        --md-sys-color-on-primary-container: #97F0FF;
+        --md-sys-color-background: #091315;
+        --md-sys-color-surface: #091315;
+        --md-sys-color-surface-variant: #3F484A;
     }
 
+    /* ----------------------------------------------------------------- */
+    /* THEME: MOSS FOREST (Organic, Calming, Growth) */
+    /* Replaces radioactive green with a sophisticated Olive/Emerald */
+    /* ----------------------------------------------------------------- */
     [data-theme='forest'] {
-        --md-sys-color-primary: #006e1c;
-        --md-sys-color-primary-container: #9ef88b;
-        --md-sys-color-on-primary-container: #002204;
+        --md-sys-color-primary: #416916; /* Deep Olive Green */
+        --md-sys-color-on-primary: #FFFFFF;
+        --md-sys-color-primary-container: #C1F18F;
+        --md-sys-color-on-primary-container: #102000;
+        --md-sys-color-surface: #F7F9F1;
+        --md-sys-color-surface-variant: #E2E4DA;
     }
 
     [data-theme='forest'].dark {
-        --md-sys-color-primary: #82db72;
-        --md-sys-color-primary-container: #005313;
-        --md-sys-color-on-primary-container: #9ef88b;
-        --md-sys-color-background: #0d150c;
-        --md-sys-color-surface: #0d150c;
+        --md-sys-color-primary: #A6D476; /* Soft Sage */
+        --md-sys-color-on-primary: #1D3700;
+        --md-sys-color-primary-container: #2C4F00;
+        --md-sys-color-on-primary-container: #C1F18F;
+        --md-sys-color-background: #11150E;
+        --md-sys-color-surface: #11150E;
+        --md-sys-color-surface-variant: #45483F;
     }
 
+    /* ----------------------------------------------------------------- */
+    /* THEME: IMPERIAL SUNSET (Majestic, Warm, Creative) */
+    /* Replaces harsh red with a rich Burgundy/Rose color */
+    /* ----------------------------------------------------------------- */
     [data-theme='sunset'] {
-        --md-sys-color-primary: #c00016;
-        --md-sys-color-primary-container: #ffdad5;
-        --md-sys-color-on-primary-container: #410001;
+        --md-sys-color-primary: #9B4050; /* Deep Burgundy/Rose */
+        --md-sys-color-on-primary: #FFFFFF;
+        --md-sys-color-primary-container: #FFD9DE;
+        --md-sys-color-on-primary-container: #400013;
+        --md-sys-color-surface: #FFF8F8;
+        --md-sys-color-surface-variant: #F3DDDF;
     }
 
     [data-theme='sunset'].dark {
-        --md-sys-color-primary: #ffb4a9;
-        --md-sys-color-primary-container: #93000d;
-        --md-sys-color-on-primary-container: #ffdad5;
-        --md-sys-color-background: #1a1110;
-        --md-sys-color-surface: #1a1110;
+        --md-sys-color-primary: #FFB2BC; /* Pastel Rose */
+        --md-sys-color-on-primary: #5F1125;
+        --md-sys-color-primary-container: #7D293B;
+        --md-sys-color-on-primary-container: #FFD9DE;
+        --md-sys-color-background: #191113;
+        --md-sys-color-surface: #191113;
+        --md-sys-color-surface-variant: #524345;
     }
 }
 
 @layer components {
+    /* Updated Glass Panel to be more subtle and modern */
     .glass-panel {
-        background-color: var(--md-sys-color-surface);
-        border: 1px solid var(--md-sys-color-outline-variant);
-        box-shadow: var(--md-sys-elevation-1);
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
     .dark .glass-panel {
-        background-color: color-mix(in srgb, var(--md-sys-color-surface), white 2%);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: rgba(30, 30, 35, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
     .md3-btn {
-        @apply relative inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full font-medium overflow-hidden;
+        @apply relative inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full font-medium overflow-hidden;
         background-color: var(--md-sys-color-primary);
         color: var(--md-sys-color-on-primary);
         font-family: var(--font-sans);
-        transition: opacity var(--md-sys-motion-fast);
+        font-size: 0.925rem;
+        letter-spacing: 0.01em;
+        transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.12);
     }
 
     .md3-btn:hover {
-        opacity: 0.9;
+        opacity: 1;
+        filter: brightness(108%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     .md3-btn:active {
-        opacity: 0.8;
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        filter: brightness(95%);
     }
 
     .md3-btn-outlined {
-        @apply relative inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full font-medium border;
+        @apply relative inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full font-medium border;
         color: var(--md-sys-color-primary);
         border-color: var(--md-sys-color-outline);
         background-color: transparent;
-        transition: background-color var(--md-sys-motion-fast);
+        font-size: 0.925rem;
+        transition: background-color var(--md-sys-motion-fast), border-color var(--md-sys-motion-fast);
     }
 
     .md3-btn-outlined:hover {
-        background-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 92%);
+        background-color: var(--md-sys-color-primary-container);
+        border-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary-container);
     }
 
     .md3-input-group {
-        @apply relative mt-1;
+        @apply relative mt-2;
     }
 
+    /* More refined input style */
     .md3-input {
-        @apply block w-full rounded-t-lg border-b px-4 pb-2.5 pt-5 appearance-none focus:outline-none focus:ring-0;
-        background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 80%);
+        @apply block w-full rounded-t-lg border-b px-4 pb-2.5 pt-6 appearance-none focus:outline-none focus:ring-0;
+        background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 92%);
         color: var(--md-sys-color-on-surface);
-        border-color: var(--md-sys-color-outline-variant);
+        border-color: var(--md-sys-color-outline);
         border-width: 0 0 1px 0;
         font-family: var(--font-sans);
+        transition: all 0.2s ease;
     }
 
     .dark .md3-input {
+        background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 90%);
+        border-color: var(--md-sys-color-outline-variant);
+    }
+
+    .md3-input:hover {
         background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 85%);
     }
 
     .md3-input:focus {
         border-bottom-color: var(--md-sys-color-primary);
         border-bottom-width: 2px;
-        background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 70%);
+        background-color: color-mix(in srgb, var(--md-sys-color-surface-variant), transparent 85%);
     }
 
     .md3-label {
         @apply absolute right-4 top-4 z-10 origin-top-right text-sm pointer-events-none;
         color: var(--md-sys-color-on-surface-variant);
         font-family: var(--font-sans);
-        transform: translateY(-0.75rem) scale(0.75);
-        transition: transform var(--md-sys-motion-fast), color var(--md-sys-motion-fast);
+        transform: translateY(-0.85rem) scale(0.75);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
     }
 
     .md3-input:placeholder-shown:not(:focus) ~ .md3-label {
         transform: translateY(0) scale(1);
+        color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .md3-input:focus ~ .md3-label {
+        color: var(--md-sys-color-primary);
     }
 
     .md3-switch {
-        @apply relative inline-flex h-8 w-14 items-center rounded-full cursor-pointer;
+        @apply relative inline-flex h-8 w-14 items-center rounded-full cursor-pointer border-2 border-transparent;
         background-color: var(--md-sys-color-surface-variant);
-        transition: background-color var(--md-sys-motion-fast);
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .md3-switch:hover {
+        background-color: color-mix(in srgb, var(--md-sys-color-on-surface), transparent 85%);
     }
 
     .md3-switch[aria-checked="true"] {
@@ -201,10 +288,10 @@
     }
 
     .md3-switch-thumb {
-        @apply inline-block h-6 w-6 transform rounded-full;
+        @apply inline-block h-6 w-6 transform rounded-full shadow-sm;
         background-color: var(--md-sys-color-outline);
-        transform: translateX(4px);
-        transition: transform var(--md-sys-motion-fast);
+        transform: translateX(2px);
+        transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.2s;
     }
 
     .md3-switch[aria-checked="true"] .md3-switch-thumb {
@@ -213,22 +300,21 @@
     }
 }
 
+/* More subtle, modernized scrollbar */
 .container-scrollbar.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
 }
 
 .container-scrollbar.custom-scrollbar::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 5px grey;
-    border-radius: 7px;
+    background: transparent;
 }
 
 .container-scrollbar.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--md-sys-color-primary);
-    border-radius: 7px;
+    background: color-mix(in srgb, var(--md-sys-color-outline), transparent 60%);
+    border-radius: 10px;
 }
 
 .container-scrollbar.custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--md-sys-color-primary);
 }
-

@@ -5,21 +5,10 @@
 @import './core/animation.css';
 
 @variant dark (&:where(.dark, .dark *));
+@variant rtl (&:where([dir="rtl"], [dir="rtl"] *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@font-face {
-    font-family: 'Yekan';
-    src: url('../assets/fonts/Yekan.woff2') format('woff2'),
-    url('../assets/fonts/Yekan.woff') format('woff'),
-    url('../assets/fonts/Yekan.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-@theme {
-    --font-sans: 'Yekan', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-}

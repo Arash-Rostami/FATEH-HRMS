@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <x-dashboard.meta-tags/>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @livewireStyles
