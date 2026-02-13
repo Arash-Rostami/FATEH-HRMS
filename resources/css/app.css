@@ -1,15 +1,22 @@
-@import '@fortawesome/fontawesome-free/css/fontawesome.css';
-@import '@fortawesome/fontawesome-free/css/solid.css';
-@import '@fortawesome/fontawesome-free/css/brands.css';
-
+@import 'material-symbols/rounded.css';
 @import 'tailwindcss';
+@import './md3-theme.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@font-face {
+    font-family: 'Yekan';
+    src: url('../assets/fonts/Yekan.woff2') format('woff2'),
+    url('../assets/fonts/Yekan.woff') format('woff'),
+    url('../assets/fonts/Yekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Yekan', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
