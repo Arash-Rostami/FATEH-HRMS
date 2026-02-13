@@ -3,28 +3,29 @@ namespace App\Livewire\Auth;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Support\Facades\URL;
 
 class VerifyNotice extends Component
 {
-    public function resend()
+    public function sendVerification()
     {
-        auth()->user()->sendEmailVerificationNotification();
-        session()->flash('status','Verification link sent.');
+        if (Auth::user()->hasVerifiedEmail()) {
+            return redirect()->intended(config('fortify.home', '/dashboard'));
+        }
+
+        Auth::user()->sendEmailVerificationNotification();
+        session()->flash('status', 'verification-link-sent');
     }
 
     public function logout()
     {
         Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
-        return redirect('/');
+        session()->invalidate();
+        session()->regenerateToken();
+        return redirect()->route('login');
     }
 
     public function render()
     {
-        return view('livewire.auth.verify-notice')
-            ->layout('layouts.auth');
+        return view('livewire.auth.verify-notice')->layout('layouts.auth');
     }
 }

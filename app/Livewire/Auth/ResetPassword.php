@@ -7,28 +7,33 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
+use App\Traits\AuthValidationRules;
 
 class ResetPassword extends Component
 {
+    use AuthValidationRules;
+
     public string $token;
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
 
-    protected $rules = [
-        'email' => 'required|email',
-        'password' => 'required|confirmed|min:8',
-    ];
-
     public function mount($token)
     {
         $this->token = $token;
+        $this->email = request()->query('email', '');
     }
 
-    // Renamed action method to avoid conflict with Livewire's reset(...$properties)
     public function submitReset()
     {
-        $this->validate();
+        $this->validate(
+            [
+                'token' => 'required',
+                'email' => $this->emailRules(),
+                'password' => $this->passwordRules(true),
+            ],
+            $this->validationMessages()
+        );
 
         $status = Password::reset(
             [
@@ -49,7 +54,7 @@ class ResetPassword extends Component
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            session()->flash('status', 'Password reset successfully. You may sign in.');
+            session()->flash('status', 'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.');
             return redirect()->route('login');
         }
 
