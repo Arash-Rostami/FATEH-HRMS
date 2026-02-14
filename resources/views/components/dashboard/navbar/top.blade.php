@@ -1,196 +1,150 @@
-<nav x-data="{ menuOpen: false }"
-     class="bg-[var(--md-sys-color-primary)] text-white/95 px-4 lg:px-8 flex justify-between items-center h-[48px] shadow-sm border-b border-white/5 shrink-0 relative z-50">
-
-    {{-- Left Section --}}
-    <div class="flex items-center gap-4">
-        <button class="relative p-2 rounded-full hover:bg-white/10 transition-all duration-200 active:scale-95">
+<nav x-cloak x-data="menu()" @resize.window="updatePerPage"
+     class="bg-[var(--md-sys-color-primary)] text-white/95 px-4 lg:px-8 flex justify-between items-center h-12 border-b border-white/5 shrink-0 relative z-50">
+    <div class="flex items-center gap-3">
+        <button
+            class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center">
             <span class="material-symbols-rounded text-[20px]">notifications</span>
-            <span class="absolute top-2 right-2.5 w-2 h-2 bg-[#FF7F6E] rounded-full border-2 border-[var(--md-sys-color-primary)]"></span>
+            <span
+                class="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--md-sys-color-error)] rounded-full ring-2 ring-[var(--md-sys-color-primary)]"></span>
         </button>
-
-        <div class="hidden lg:flex items-center gap-3 text-[12px] font-medium">
-            <span class="bg-white/10 px-3 py-1 rounded-full border border-white/5">Wednesday</span>
-            <div class="flex items-center gap-2 opacity-80">
-                <span>1404.11.19</span>
-                <span class="w-1 h-1 bg-white/30 rounded-full"></span>
-                <span>14.02.2026</span>
-            </div>
-        </div>
     </div>
 
-    {{-- Center Time --}}
     <div class="hidden lg:block absolute left-1/2 -translate-x-1/2">
-        <div class="flex items-center gap-2 bg-black/10 px-4 py-1.5 rounded-xl border border-white/5 tracking-wider font-semibold text-[13px]">
-            <span class="material-symbols-rounded text-[16px] opacity-70">schedule</span>
+        <div
+            class="flex items-center gap-2 bg-black/10 px-4 py-1.5 rounded-xl border border-white/10 tracking-wider font-semibold text-[13px]">
+            <span class="material-symbols-rounded text-[17px] opacity-80">schedule</span>
             01:26 PM
         </div>
     </div>
 
-    {{-- Right Section --}}
-    <div class="flex items-center gap-4">
-        <div class="hidden lg:flex items-center gap-1.5">
-            <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium">
+    <div class="flex items-center gap-3">
+        <div class="hidden lg:flex items-center gap-2">
+            <div
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium">
                 <span class="material-symbols-rounded text-[18px] text-amber-300">wb_sunny</span>
                 8 °C
             </div>
-
-            <div class="flex items-center gap-3 px-3 py-1 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium">
-                <span class="flex items-center gap-1">
-                    <span class="material-symbols-rounded text-[16px] opacity-70">home</span>
-                    344
-                </span>
-                <span class="w-[1px] h-3 bg-white/20"></span>
-                <span class="flex items-center gap-1">
-                    <span class="material-symbols-rounded text-[16px] opacity-70">play_circle</span>
-                    2987
-                </span>
-            </div>
         </div>
 
-        <div class="hidden lg:block w-[1px] h-6 bg-white/10 mx-1"></div>
+        <div class="hidden lg:block w-px h-6 bg-white/15 mx-1"></div>
 
-        <div class="relative">
-            <button
-                @click="menuOpen = !menuOpen"
-                class="p-1.5 rounded-lg hover:bg-white/15 transition-all duration-200 active:scale-95"
-                :class="menuOpen && 'bg-white/10'">
-                <span class="material-symbols-rounded text-[26px] transition-transform duration-300"
-                      :class="menuOpen && 'rotate-180'"
-                      x-text="menuOpen ? 'close' : 'menu'">
-                </span>
-            </button>
-
-            {{-- Dropdown Menu --}}
-            <div
-                x-show="menuOpen"
-                @click.away="menuOpen = false"
-                {{--
-                    PERFORMANCE NOTE:
-                    'will-change-[opacity,transform]' is added here.
-                    It prepares the GPU before the animation starts.
-                --}}
-                x-transition:enter="transition ease-[cubic-bezier(0.16,1,0.3,1)] duration-200 origin-top-right will-change-[opacity,transform]"
-                x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-150 origin-top-right will-change-[opacity,transform]"
-                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                {{--
-                    CREATIVE TRICKS ADDED:
-                    1. backdrop-saturate-150: Makes colors behind the blur more vivid (Premium Glass).
-                    2. ring-1 ring-inset ring-white/10: Adds an inner light reflection edge (Chamfered Edge).
-                --}}
-                class="absolute right-0 mt-3 w-72 bg-[var(--md-sys-color-surface-container-highest)]/90 backdrop-blur-xl backdrop-saturate-150 ring-1 ring-inset ring-white/10 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[var(--md-sys-color-outline-variant)]/10 overflow-hidden"
-                style="display: none;">
-
-                {{-- Header --}}
-                <div class="px-4 py-3 bg-gradient-to-b from-[var(--md-sys-color-surface-container-high)] to-transparent border-b border-[var(--md-sys-color-outline-variant)]/10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary)] flex items-center justify-center">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary)]">account_circle</span>
-                        </div>
-                        <div class="flex-1 text-right">
-                            <div class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">کاربر سیستم</div>
-                            <div class="text-xs text-[var(--md-sys-color-on-surface-variant)]">user@example.com</div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Settings Section --}}
-                <div class="p-2">
-                    <div class="px-3 py-2 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-[0.1em] text-right">
-                        تنظیمات
-                    </div>
-
-                    <a href="{{ url('/settings/profile') }}"
-                       class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] relative overflow-hidden hover:bg-[var(--md-sys-color-primary-container)]">
-                        <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div class="flex-1 text-right relative z-10">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">پروفایل کاربری</span>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-primary)]/10 flex items-center justify-center group-hover:bg-[var(--md-sys-color-primary)] transition-all duration-200 relative z-10">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)] transition-colors">person</span>
-                        </div>
-                    </a>
-
-                    <a href="{{ url('/settings/preferences') }}"
-                       class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] relative overflow-hidden hover:bg-[var(--md-sys-color-primary-container)]">
-                        <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div class="flex-1 text-right relative z-10">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">تنظیمات سیستم</span>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-primary)]/10 flex items-center justify-center group-hover:bg-[var(--md-sys-color-primary)] transition-all duration-200 relative z-10">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)] transition-colors">tune</span>
-                        </div>
-                    </a>
-                </div>
-
-                {{-- Divider --}}
-                <div class="px-4 py-1">
-                    <div class="h-[1px] bg-gradient-to-r from-transparent via-[var(--md-sys-color-outline-variant)]/30 to-transparent"></div>
-                </div>
-
-                {{-- Tools Section --}}
-                <div class="p-2">
-                    <div class="px-3 py-2 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-[0.1em] text-right">
-                        ابزارها
-                    </div>
-
-                    <a href="{{ url('/tools/export') }}"
-                       class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] relative overflow-hidden hover:bg-[var(--md-sys-color-primary-container)]">
-                        <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div class="flex-1 text-right relative z-10">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">دریافت خروجی</span>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-primary)]/10 flex items-center justify-center group-hover:bg-[var(--md-sys-color-primary)] transition-all duration-200 relative z-10">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)] transition-colors">download</span>
-                        </div>
-                    </a>
-
-                    <a href="{{ url('/tools/import') }}"
-                       class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] relative overflow-hidden hover:bg-[var(--md-sys-color-primary-container)]">
-                        <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div class="flex-1 text-right relative z-10">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">بارگذاری فایل</span>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-primary)]/10 flex items-center justify-center group-hover:bg-[var(--md-sys-color-primary)] transition-all duration-200 relative z-10">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)] transition-colors">upload</span>
-                        </div>
-                    </a>
-                </div>
-
-                {{-- Divider --}}
-                <div class="px-4 py-1">
-                    <div class="h-[1px] bg-gradient-to-r from-transparent via-[var(--md-sys-color-outline-variant)]/30 to-transparent"></div>
-                </div>
-
-                {{-- Account Section --}}
-                <div class="p-2 pb-3">
-                    <a href="{{ url('/logout') }}"
-                       class="group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] relative overflow-hidden hover:bg-[var(--md-sys-color-error-container)]">
-                        <div class="absolute inset-0 bg-[var(--md-sys-color-error)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div class="flex-1 text-right relative z-10">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-error)] group-hover:text-[var(--md-sys-color-on-error-container)] transition-colors">خروج از حساب</span>
-                        </div>
-                        <div class="w-9 h-9 rounded-lg bg-[var(--md-sys-color-error)]/10 flex items-center justify-center group-hover:bg-[var(--md-sys-color-error)] transition-all duration-200 relative z-10">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-error)] group-hover:text-[var(--md-sys-color-on-error)] transition-colors">logout</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
+        <button @click="toggleMenu" :aria-expanded="menuOpen.toString()" aria-label="Toggle menu"
+                class="w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center"
+                :class="menuOpen && 'bg-white/12'">
+            <span class="material-symbols-rounded text-[24px]" x-text="menuOpen ? 'close' : 'menu'"></span>
+        </button>
     </div>
 
-    {{-- Mobile Backdrop --}}
-    <div
-        x-show="menuOpen"
-        @click="menuOpen = false"
-        x-transition:enter="transition-opacity duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition-opacity duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/20 backdrop-blur-sm -z-10"
-        style="display: none;"></div>
+    <div x-show="menuOpen" @click="closeMenu" x-transition:enter="transition-opacity duration-200"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity duration-150" x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+         style="display: none;"></div>
+
+    <template x-if="menuOpen">
+        <div @keydown.window.escape="closeMenu" x-transition:enter="transition-all duration-300 ease-out"
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition-all duration-200 ease-in" x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="fixed inset-0 z-50 flex items-start justify-center pt-2 px-2 pb-0 sm:items-center sm:p-6"
+             role="dialog" aria-modal="true">
+            <div
+                class="w-full h-full sm:h-auto sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+
+                <div dir="rtl" class="flex flex-col h-full">
+                    <div class="relative px-5 py-5 bg-[var(--md-sys-color-primary)] border-b border-white/5 shrink-0">
+                        <button @click="closeMenu"
+                                class="absolute left-4 top-4 w-10 h-10 flex items-center justify-center rounded-xl bg-white/95 hover:bg-white active:scale-95 shadow-lg hover:shadow-xl transition-all duration-200"
+                                aria-label="بستن منو">
+                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-surface)]">close</span>
+                        </button>
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-[var(--md-sys-color-primary-container)] flex items-center justify-center shadow-md">
+                                <span
+                                    class="material-symbols-rounded text-[26px] text-[var(--md-sys-color-on-primary-container)]">account_circle</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold text-white mb-0.5">کاربر سیستم</div>
+                                <div class="text-sm text-white/80">user@example.com</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar">
+                        <div class="p-4 sm:p-6 pb-24 sm:pb-6 flex flex-col justify-center min-h-full">
+                            <div class="w-full max-w-4xl mx-auto">
+                                <div class="overflow-hidden rounded-xl">
+                                    <div class="flex transition-transform duration-300 ease-out w-full"
+                                         :style="`transform: translateX(-${current * 100}%)`">
+                                        <template x-for="p in pages" :key="p">
+                                            <div class="w-full flex-shrink-0 px-0.5">
+                                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+                                                    <template x-for="item in pageItems(p-1)" :key="item.href">
+                                                        <a :href="item.href" @click="closeMenu"
+                                                           class="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] active:scale-[0.96] transition-all duration-200 h-[110px] sm:h-[130px] justify-center border border-transparent hover:border-[var(--md-sys-color-outline-variant)]/20">
+                                                            <div
+                                                                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+                                                                <span
+                                                                    class="material-symbols-rounded text-[22px] sm:text-[24px] text-[var(--md-sys-color-primary)]"
+                                                                    x-text="item.icon"></span>
+                                                            </div>
+                                                            <div class="text-center w-full">
+                                                                <div
+                                                                    class="text-[11px] sm:text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-0.5 truncate px-1"
+                                                                    x-text="item.title"></div>
+                                                                <div
+                                                                    class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:block leading-tight truncate px-1 opacity-80"
+                                                                    x-text="item.sub"></div>
+                                                            </div>
+                                                        </a>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6"
+                                     x-show="pages > 1">
+                                    <button @click="next" :disabled="current >= pages - 1"
+                                            class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-surface-container)] hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md border border-[var(--md-sys-color-outline-variant)]/20">
+                                        <span
+                                            class="material-symbols-rounded text-xl sm:text-2xl text-[var(--md-sys-color-on-surface)] rtl:-scale-x-100">chevron_left</span>
+                                    </button>
+
+                                    <div class="flex gap-2 sm:gap-2.5">
+                                        <template x-for="p in pages" :key="p">
+                                            <button @click="current = p-1"
+                                                    class="rounded-full transition-all duration-300"
+                                                    :class="current === p-1 ? 'w-7 sm:w-8 h-2 sm:h-2.5 bg-[var(--md-sys-color-primary)] shadow-md' : 'w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--md-sys-color-outline-variant)]/40 hover:bg-[var(--md-sys-color-outline-variant)]/70 hover:w-4 sm:hover:w-5'"></button>
+                                        </template>
+                                    </div>
+
+                                    <button @click="prev" :disabled="current === 0"
+                                            class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-surface-container)] hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md border border-[var(--md-sys-color-outline-variant)]/20">
+                                        <span
+                                            class="material-symbols-rounded text-xl sm:text-2xl text-[var(--md-sys-color-on-surface)] rtl:-scale-x-100">chevron_right</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="px-6 py-3 border-t border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container-lowest)] shrink-0 hidden sm:block">
+                        <div
+                            class="flex items-center justify-between text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                            <div class="font-medium">نسخه سیستم: 1.0.0</div>
+                            <div
+                                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[12px] font-medium">
+                                <span class="material-symbols-rounded text-[16px] text-amber-500">wb_sunny</span>
+                                8 °C
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </nav>

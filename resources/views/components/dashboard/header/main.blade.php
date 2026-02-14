@@ -11,9 +11,10 @@
         </div>
     </div>
     <div class="flex flex-col items-end justify-center space-y-0.5">
-                <span class="hidden sm:block text-[15px] font-bold tracking-tight text-white/95" dir="rtl">
+                <h1 class="hidden sm:block font-bold tracking-widest text-white/95 "
+                    dir="rtl">
                     اینترا، <span class="text-[#FF7F6E]">خانه دیجیتال ما</span>
-                </span>
+                </h1>
         <div class="flex items-center gap-2 py-1 px-3 rounded-full bg-white/5 border border-white/10"
              dir="rtl">
             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
