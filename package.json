@@ -16,6 +16,7 @@
         "vite-plugin-static-copy": "^3.2.0"
     },
     "dependencies": {
-        "material-symbols": "^0.40.2"
+        "material-symbols": "^0.40.2",
+        "three": "^0.182.0"
     }
 }
