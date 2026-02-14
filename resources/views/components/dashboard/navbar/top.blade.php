@@ -19,11 +19,7 @@
 
     <div class="flex items-center gap-3">
         <div class="hidden lg:flex items-center gap-2">
-            <div
-                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium">
-                <span class="material-symbols-rounded text-[18px] text-amber-300">wb_sunny</span>
-                8 °C
-            </div>
+            <livewire:dashboard.header.weather />
         </div>
 
         <div class="hidden lg:block w-px h-6 bg-white/15 mx-1"></div>
