@@ -1,6 +1,7 @@
 export default (Alpine) => {
     Alpine.store('theme', {
         current: 'default',
+        mode: 'light',
         colors: [
             {name: 'default', color: '#4e5f66', title: 'پیش‌فرض'},
             {name: 'blue', color: '#0061a4', title: 'آبی'},
@@ -10,22 +11,44 @@ export default (Alpine) => {
         ],
 
         init() {
-            const saved = localStorage.getItem('app-theme');
-            if (saved) {
-                this.set(saved);
+            this.current = localStorage.getItem('user-theme') || 'default';
+            this.mode = localStorage.getItem('user-mode') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+            this.set(this.current);
+
+            if (this.mode === 'dark') {
+                document.documentElement.classList.add('dark');
             } else {
-                this.set(this.current);
+                document.documentElement.classList.remove('dark');
             }
         },
 
         set(theme) {
             this.current = theme;
-            localStorage.setItem('app-theme', theme);
+            localStorage.setItem('user-theme', theme);
 
-            if (window.ThemeManager && typeof window.ThemeManager.setTheme === 'function') {
-                window.ThemeManager.setTheme(theme);
+            if (theme === 'default') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
             }
-            document.documentElement.setAttribute('data-theme', theme);
+        },
+
+        toggleMode() {
+            this.mode = this.mode === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('user-mode', this.mode);
+
+            if (this.mode === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            window.dispatchEvent(new CustomEvent('theme-mode-changed', {
+                detail: {
+                    dark: this.mode === 'dark'
+                }
+            }));
         }
     });
 };

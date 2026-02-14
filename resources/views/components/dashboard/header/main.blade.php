@@ -1,6 +1,6 @@
 <header
-    class="sticky top-0 z-50 bg-black backdrop-blur-md px-4 lg:px-8 flex justify-between items-center h-[60px] lg:h-[80px] transition-all duration-300 shrink-0
-    border-b-4 border-orange-400">
+    class="sticky top-0 z-50 bg-[var(--header-bg)] backdrop-blur-md px-4 lg:px-8 flex justify-between items-center h-[60px] lg:h-[80px] transition-all duration-300 shrink-0
+    border-b-4 border-[var(--header-border-color)]">
     <div class="flex items-center gap-4">
         <div class="relative group">
             <div

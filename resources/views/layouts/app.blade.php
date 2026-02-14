@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      x-data
+      class="h-full antialiased">
 <head>
     <x-dashboard.meta-tags/>
 
@@ -7,7 +9,7 @@
 
     @livewireStyles
 </head>
-<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-gray-50 text-gray-800">
+<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
 @yield('content')
 @livewireScripts
 </body>
