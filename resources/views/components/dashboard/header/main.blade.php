@@ -1,6 +1,6 @@
 <header
-    class="sticky top-0 z-50 bg-black backdrop-blur-md px-4 lg:px-8 flex justify-between items-center h-[60px] lg:h-[80px] transition-all duration-300 shrink-0
-    border-b-4 border-orange-400">
+    class="sticky top-0 z-50 bg-[var(--header-bg)] backdrop-blur-md px-4 lg:px-8 flex justify-between items-center h-[60px] lg:h-[80px] transition-all duration-300 shrink-0
+    border-b-4 border-[var(--header-border-color)]">
     <div class="flex items-center gap-4">
         <div class="relative group">
             <div
@@ -11,10 +11,10 @@
         </div>
     </div>
     <div class="flex flex-col items-end justify-center space-y-0.5">
-                <h1 class="hidden sm:block font-bold tracking-widest text-white/95 "
-                    dir="rtl">
-                    اینترا، <span class="text-[#FF7F6E]">خانه دیجیتال ما</span>
-                </h1>
+        <h1 class="hidden sm:block font-bold tracking-widest text-white/95 "
+            dir="rtl">
+            اینترا، <span class="text-[#FF7F6E]">خانه دیجیتال ما</span>
+        </h1>
         <div class="flex items-center gap-2 py-1 px-3 rounded-full bg-white/5 border border-white/10"
              dir="rtl">
             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>

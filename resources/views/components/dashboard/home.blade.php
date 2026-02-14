@@ -1,7 +1,8 @@
 @extends('layouts.app')
 @section('content')
 
-    <div class="flex flex-col h-screen overflow-hidden bg-[#FFFEFB]">
+
+    <div class="flex flex-col h-screen overflow-hidden bg-[var(--md-sys-color-background)] transition-colors duration-500">
         <x-dashboard.header.main/>
         <x-dashboard.navbar.top/>
         <x-dashboard.navbar.left/>

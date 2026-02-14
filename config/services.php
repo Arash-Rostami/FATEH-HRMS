@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'openweather' => [
+        'keys' => env('OPENWEATHER_API_KEYS'),
+        'url' => env('OPENWEATHER_API_URL', 'http://api.openweathermap.org/data/2.5/weather'),
+        'city' => env('OPENWEATHER_CITY', 'Tehran'),
+    ],
 ];
