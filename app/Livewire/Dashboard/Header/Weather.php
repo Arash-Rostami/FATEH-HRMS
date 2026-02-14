@@ -19,15 +19,19 @@ class Weather extends Component
     public function getWeather()
     {
         return Cache::remember('weather.tehran', now()->addMinutes(240), function () {
-            $apiKey = Config::get('services.openweather.key');
+            $keys = explode(',', Config::get('services.openweather.keys'));
+            $urlBase = Config::get('services.openweather.url', 'http://api.openweathermap.org/data/2.5/weather');
+            $city = Config::get('services.openweather.city', 'Tehran');
 
             $defaultWeather = ['weather' => '', 'temperature' => 'N/A', 'description' => ''];
 
-            if (!$apiKey) {
+            if (empty($keys) || !$keys[0]) {
                 return $defaultWeather;
             }
 
-            $url = "http://api.openweathermap.org/data/2.5/weather?q=Tehran&appid=$apiKey&units=metric";
+            $apiKey = trim($keys[array_rand($keys)]);
+
+            $url = "{$urlBase}?q={$city}&appid={$apiKey}&units=metric";
 
             try {
                 $client = new Client(['timeout' => 5, 'connect_timeout' => 3]);
