@@ -3,6 +3,7 @@ import registerThemeStore from './stores/theme.js'
 import password from "./data/password.js";
 import menu from "./data/menu.js";
 import floatingShapes from "./data/floatingShapes.js";
+import timer from "./data/timer.js";
 
 
 export default function initAlpine() {
@@ -24,6 +25,7 @@ export default function initAlpine() {
         Alpine.data('password', password)
         Alpine.data('menu', menu)
         Alpine.data('floatingShapes', floatingShapes)
+        Alpine.data('timer', timer)
 
     })
 }

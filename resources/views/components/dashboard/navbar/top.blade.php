@@ -1,32 +1,57 @@
-<nav x-cloak x-data="menu()" @resize.window="updatePerPage"
-     class="bg-[var(--md-sys-color-primary)] text-white/95 px-4 lg:px-8 flex justify-between items-center h-12 border-b border-white/5 shrink-0 relative z-50">
-    <div class="flex items-center gap-3">
-        <button
-            class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center">
-            <span class="material-symbols-rounded text-[20px]">notifications</span>
-            <span
-                class="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--md-sys-color-error)] rounded-full ring-2 ring-[var(--md-sys-color-primary)]"></span>
+<nav class="sticky top-0 w-full h-16 bg-[var(--md-sys-color-surface-container)]/80 backdrop-blur-md border-b border-[var(--md-sys-color-outline-variant)]/20 px-4 md:px-6 flex items-center justify-between z-30 transition-all duration-300 shadow-sm"
+     x-data="menu">
+
+    <div class="flex items-center gap-2 md:gap-4">
+        <button @click="$store.app.toggleSidebar()"
+                class="hidden lg:flex w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)]">
+            <span class="material-symbols-rounded text-[24px]">menu_open</span>
+        </button>
+
+        <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 group">
+            <div class="relative w-8 h-8 md:w-9 md:h-9 overflow-hidden rounded-xl bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] flex items-center justify-center shadow-lg shadow-[var(--md-sys-color-primary)]/20 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                <span class="material-symbols-rounded text-white text-[20px]">diamond</span>
+                <div class="absolute inset-0 bg-white/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+            <span class="text-base md:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--md-sys-color-on-surface)] to-[var(--md-sys-color-on-surface-variant)] hidden sm:block">
+                اینتــرا
+            </span>
+        </a>
+    </div>
+
+    <!-- Creative Timer (Center) -->
+    <div class="hidden lg:block absolute left-1/2 -translate-x-1/2" x-data="timer" x-cloak>
+        <button @click="toggleMode()"
+                class="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-high)]/50 border border-[var(--md-sys-color-outline-variant)]/20 backdrop-blur-md shadow-sm transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container-high)] hover:shadow-[var(--md-sys-color-primary)]/10 hover:scale-[1.02] active:scale-95 cursor-pointer overflow-hidden">
+
+            <!-- Animated Background Glow -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[var(--md-sys-color-primary)]/0 via-[var(--md-sys-color-primary)]/5 to-[var(--md-sys-color-primary)]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+            <div class="flex items-center gap-2 relative z-10">
+                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)] transition-transform duration-300 group-hover:rotate-12" x-text="mode === 'fa' ? 'schedule' : 'public'"></span>
+
+                <div class="flex items-baseline gap-1.5" :dir="mode === 'fa' ? 'rtl' : 'ltr'">
+                     <span class="text-[13px] font-bold tracking-wide text-[var(--md-sys-color-on-surface)] font-mono tabular-nums" x-text="time"></span>
+                     <span class="w-px h-3 bg-[var(--md-sys-color-outline-variant)]"></span>
+                     <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide opacity-90" x-text="date"></span>
+                </div>
+            </div>
         </button>
     </div>
 
-    <div class="hidden lg:block absolute left-1/2 -translate-x-1/2">
-        <div
-            class="flex items-center gap-2 bg-black/10 px-4 py-1.5 rounded-xl border border-white/10 tracking-wider font-semibold text-[13px]">
-            <span class="material-symbols-rounded text-[17px] opacity-80">schedule</span>
-            01:26 PM
-        </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-        <div class="hidden lg:flex items-center gap-2">
-            <livewire:dashboard.header.weather />
+    <div class="flex items-center gap-2 md:gap-3">
+        <div class="hidden md:flex items-center gap-1 bg-[var(--md-sys-color-surface-container-low)] rounded-full px-1 py-1 border border-[var(--md-sys-color-outline-variant)]/20">
+            <button @click="$store.theme.toggleMode()"
+                    class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-90"
+                    :class="$store.theme.isDark ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)]'">
+                <span class="material-symbols-rounded text-[18px]" x-text="$store.theme.isDark ? 'dark_mode' : 'light_mode'"></span>
+            </button>
         </div>
 
-        <div class="hidden lg:block w-px h-6 bg-white/15 mx-1"></div>
+        <div class="hidden lg:block w-px h-6 bg-[var(--md-sys-color-outline-variant)]/20 mx-1"></div>
 
         <button @click="toggleMenu" :aria-expanded="menuOpen.toString()" aria-label="Toggle menu"
-                class="w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center"
-                :class="menuOpen && 'bg-white/12'">
+                class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center text-[var(--md-sys-color-on-surface)]"
+                :class="menuOpen && 'bg-[var(--md-sys-color-surface-container-high)]'">
             <span class="material-symbols-rounded text-[24px]" x-text="menuOpen ? 'close' : 'menu'"></span>
         </button>
     </div>
