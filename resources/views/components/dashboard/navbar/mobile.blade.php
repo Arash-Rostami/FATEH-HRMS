@@ -1,30 +1,78 @@
-<aside class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] z-50">
-    <div class="bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-2xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-2xl shadow-2xl shadow-[var(--md-sys-color-primary)]/10 p-2 flex justify-between items-center px-6">
-        <a href="{{ url('/') }}"
-           class="p-2 text-[var(--md-sys-color-primary)] bg-transparent hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] rounded-xl transition-all duration-200 active:scale-95">
-            <span class="material-symbols-rounded text-[24px]">home</span>
-        </a>
+@props(['activeTab', 'tabs'])
 
-        <a href="{{ url('/tasks') }}"
-           class="p-2 text-[var(--md-sys-color-primary)] bg-transparent hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] rounded-xl transition-all duration-200 active:scale-95">
-            <span class="material-symbols-rounded text-[24px]">dashboard</span>
-        </a>
+@php
+    $count = count($tabs);
+    // Dynamic Density: 4 items if many, 2 if few.
+    $perPage = $count > 4 ? 4 : 2;
 
-        <div class="relative -top-6">
-            <button
-                class="w-14 h-14 bg-[var(--md-sys-color-primary)] rounded-full flex items-center justify-center shadow-lg shadow-[var(--md-sys-color-primary)]/40 text-[var(--md-sys-color-on-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:scale-105 active:scale-95 transition-all duration-200">
-                <span class="material-symbols-rounded text-[28px]">add</span>
-            </button>
-        </div>
+    $chunks = array_chunk($tabs, $perPage, true);
+    $pageOne = $chunks[0] ?? [];
+    $pageTwo = $chunks[1] ?? [];
+@endphp
 
-        <a href="{{ url('/documents') }}"
-           class="p-2 text-[var(--md-sys-color-primary)] bg-transparent hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] rounded-xl transition-all duration-200 active:scale-95">
-            <span class="material-symbols-rounded text-[24px]">folder</span>
-        </a>
+<aside x-data="{
+            page: 0,
+            toggle() { this.page = this.page === 0 ? 1 : 0 }
+        }"
+       class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px]">
 
-        <a href="{{ url('/profile') }}"
-           class="p-2 text-[var(--md-sys-color-primary)] bg-transparent hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] rounded-xl transition-all duration-200 active:scale-95">
-            <span class="material-symbols-rounded text-[24px]">person</span>
-        </a>
+    {{-- 1. PAGINATION BUTTON (Floating on Top Edge) --}}
+    {{-- We place this BEFORE the bar so z-indexing works naturally, or use z-50 --}}
+    <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-50">
+        <button @click="toggle()"
+                class="w-10 h-10 rounded-xl flex items-center justify-center
+                       bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
+                       shadow-lg shadow-[var(--md-sys-color-primary)]/30
+                       border-[3px] border-[var(--md-sys-color-surface)]
+                       transition-all duration-500 hover:scale-110 active:scale-95 group">
+
+            <span class="material-symbols-rounded text-[20px] transition-transform duration-500"
+                  :class="page === 0 ? 'rotate-0' : '-rotate-180'">
+                swap_horiz
+            </span>
+        </button>
     </div>
+
+    {{-- 2. THE CONTAINER BAR --}}
+    <div class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-3xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
+
+        {{-- SLIDING TRACK --}}
+        <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+             :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">
+
+            {{-- PAGE 1 --}}
+            {{-- Removed pr-[76px] so items use full width --}}
+            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
+                @foreach($pageOne as $key => $tab)
+                    <button wire:click="setTab('{{ $key }}')"
+                            class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
+                                   {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
+                        <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
+                    </button>
+                @endforeach
+                {{-- Spacers to keep grid alignment --}}
+                @for($i = count($pageOne); $i < $perPage; $i++)
+                    <div class="flex-1"></div>
+                @endfor
+            </div>
+
+            {{-- PAGE 2 --}}
+            {{-- Removed pl-[76px] so items use full width --}}
+            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
+                @foreach($pageTwo as $key => $tab)
+                    <button wire:click="setTab('{{ $key }}')"
+                            class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
+                                   {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
+                        <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
+                    </button>
+                @endforeach
+                {{-- Spacers to keep grid alignment --}}
+                @for($i = count($pageTwo); $i < $perPage; $i++)
+                    <div class="flex-1"></div>
+                @endfor
+            </div>
+
+        </div>
+    </div>
+
 </aside>

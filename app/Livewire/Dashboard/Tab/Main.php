@@ -6,24 +6,23 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 
-#[Layout('layouts.app')]
+//#[Layout('layouts.app')]
 class Main extends Component
 {
     public $activeTab = 'overview';
-    public $direction = 'up'; // 'up' or 'down'
+    public $direction = 'up';
 
-    // Define tabs configuration
     public function getTabsProperty()
     {
         return [
             'overview' => [
                 'component' => Overview::class,
                 'label' => 'Overview',
-                'icon' => 'home', // Using 'home' icon for Overview/Home
-                'bg' => 'bg-surface-variant' // Example dynamic background
+                'icon' => 'home',
+                'bg' => 'bg-surface-variant'
             ],
             'dashboard' => [
-                'component' => Overview::class, // Or a separate Dashboard component if intended
+                'component' => Overview::class,
                 'label' => 'Dashboard',
                 'icon' => 'grid_view',
                 'bg' => 'bg-secondary-container'
@@ -72,7 +71,7 @@ class Main extends Component
         return view('livewire.dashboard.tab.main', [
             'currentTab' => $this->getTabsProperty()[$this->activeTab] ?? null,
             'tabs' => $this->getTabsProperty()
-        ]);
+        ])->extends('layouts.app')->section('content');
     }
 
     public function setTab($tabId)

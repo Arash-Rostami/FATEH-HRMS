@@ -33,7 +33,7 @@
             x-transition:enter="transition-all duration-500 delay-200"
             x-transition:enter-start="opacity-0 scale-0"
             x-transition:enter-end="opacity-100 scale-100"
-            class="lg:hidden absolute left-0 top-1/2 -translate-y-1/2 w-8 h-16 rounded-r-2xl flex items-center justify-end pr-1.5 cursor-pointer shadow-[4px_0_20px_var(--md-sys-color-primary)]/10 border-y border-r border-[var(--md-sys-color-outline-variant)]/30 active:scale-95 transition-all duration-200 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]/80 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+            class="lg:hidden absolute left-0 top-1/2 -translate-y-1/2 w-8 h-16 rounded-r-xl flex items-center justify-end pr-1.5 cursor-pointer shadow-[4px_0_20px_var(--md-sys-color-primary)]/10 border-y border-r border-[var(--md-sys-color-outline-variant)]/30 active:scale-95 transition-all duration-200 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]/80 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
             <span class="material-symbols-rounded text-base animate-pulse" style="animation-duration: 2s;">chevron_right</span>
         </div>
 

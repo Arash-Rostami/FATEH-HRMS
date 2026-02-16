@@ -10,7 +10,10 @@ use App\Livewire\Dashboard\Tab\Main;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/dashboard', fn() => view('components.dashboard.home'))->name('dashboard');
+
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
 
 
 Route::middleware('guest')->group(function () {
@@ -23,7 +26,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');
-//    Route::get('/dashboard', Main::class)->name('dashboard');
+    Route::get('/dashboard', Main::class)->name('dashboard');
 });
 
 

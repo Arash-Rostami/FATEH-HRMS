@@ -10,7 +10,7 @@ class StatusSwitcher extends Component
 {
     public string $status = 'onsite';
 
-    const STATUSES = ['onsite', 'busy', 'offline', 'mission'];
+    const STATUSES = ['onsite', 'busy', 'remote', 'mission'];
 
     public function mount(): void
     {
