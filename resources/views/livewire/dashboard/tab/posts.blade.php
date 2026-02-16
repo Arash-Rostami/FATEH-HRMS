@@ -1,7 +1,7 @@
 <div class="h-full w-full relative overflow-hidden flex flex-col lg:flex-row gap-6 p-4 md:p-6"
      x-data="{
          panelOpen: false,
-         shareModalOpen: false,
+         sharePopoverOpen: false,
          shareText: '',
          shareTitle: '',
          init() {
@@ -16,17 +16,16 @@
          openShare(title, body) {
              this.shareTitle = title;
              this.shareText = body;
-             this.shareModalOpen = true;
+             this.sharePopoverOpen = !this.sharePopoverOpen;
          },
          copyToClipboard() {
              navigator.clipboard.writeText(this.shareTitle + '\n\n' + this.shareText).then(() => {
-                 // You might want to show a toast here
-                 this.shareModalOpen = false;
+                 this.sharePopoverOpen = false;
              });
          },
          sendEmail() {
              window.location.href = 'mailto:?subject=' + encodeURIComponent(this.shareTitle) + '&body=' + encodeURIComponent(this.shareText);
-             this.shareModalOpen = false;
+             this.sharePopoverOpen = false;
          }
      }"
      @open-post-panel.window="panelOpen = true">
@@ -102,52 +101,55 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
             {{-- Island for Feed --}}
             @island(name: 'feed')
-                @foreach($this->posts as $post)
-                    <article class="group relative flex flex-col bg-[var(--md-sys-color-surface-container-low)] rounded-[24px] overflow-hidden border border-[var(--md-sys-color-outline-variant)]/30 transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container)] hover:shadow-lg hover:-translate-y-1"
-                             wire:key="post-{{ $post->id }}">
 
-                        {{-- Image --}}
-                        <div class="relative h-48 overflow-hidden cursor-pointer" wire:click="selectPost({{ $post->id }})">
-                            <img src="{{ $post->image }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="{{ $post->title }}">
-                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
-                        </div>
+                @if($this->posts->isNotEmpty())
+                    @foreach($this->posts as $post)
+                        <article class="group relative flex flex-col bg-[var(--md-sys-color-surface-container-low)] rounded-[24px] overflow-hidden border border-[var(--md-sys-color-outline-variant)]/30 transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container)] hover:shadow-lg hover:-translate-y-1"
+                                 wire:key="post-{{ $post->id }}">
 
-                        {{-- Body --}}
-                        <div class="p-5 flex flex-col flex-grow">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-[10px] font-bold px-2 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] tracking-wide">
-                                    اخبار
-                                </span>
-                                <span class="text-[11px] text-[var(--md-sys-color-outline)] font-mono dir-ltr">
-                                    {{ $post->created_at->diffForHumans() }}
-                                </span>
+                            {{-- Image --}}
+                            <div class="relative h-48 overflow-hidden cursor-pointer" wire:click="selectPost({{ $post->id }})">
+                                <img src="{{ $post->image }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="{{ $post->title }}">
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                             </div>
 
-                            <h4 class="text-lg font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-1 cursor-pointer hover:text-[var(--md-sys-color-primary)] transition-colors"
-                                wire:click="selectPost({{ $post->id }})">
-                                {{ $post->title }}
-                            </h4>
+                            {{-- Body --}}
+                            <div class="p-5 flex flex-col flex-grow">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] tracking-wide">
+                                        اخبار
+                                    </span>
+                                    <span class="text-[11px] text-[var(--md-sys-color-outline)] font-mono dir-ltr">
+                                        {{ $post->created_at->diffForHumans() }}
+                                    </span>
+                                </div>
 
-                            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 mb-5 flex-grow leading-relaxed">
-                                {!! Str::limit(strip_tags($post->body), 100) !!}
-                            </p>
+                                <h4 class="text-lg font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-1 cursor-pointer hover:text-[var(--md-sys-color-primary)] transition-colors"
+                                    wire:click="selectPost({{ $post->id }})">
+                                    {{ $post->title }}
+                                </h4>
 
-                            <div class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
-                                <button wire:click="selectPost({{ $post->id }})"
-                                        class="text-xs font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5 hover:gap-2.5 transition-all bg-[var(--md-sys-color-surface)]/50 hover:bg-[var(--md-sys-color-secondary-container)]/30 px-3 py-1.5 rounded-full">
-                                    <span>ادامه مطلب</span>
-                                    <span class="material-symbols-rounded text-[16px] flip-rtl">arrow_right_alt</span>
-                                </button>
+                                <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 mb-5 flex-grow leading-relaxed">
+                                    {!! Str::limit(strip_tags($post->body), 100) !!}
+                                </p>
 
-                                <button @click.stop="openShare('{{ addslashes($post->title) }}', '{{ addslashes(strip_tags($post->body)) }}')"
-                                        class="w-8 h-8 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-secondary-container)] hover:text-[var(--md-sys-color-on-secondary-container)] transition-colors"
-                                        title="اشتراک گذاری">
-                                    <span class="material-symbols-rounded text-[18px]">share</span>
-                                </button>
+                                <div class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
+                                    <button wire:click="selectPost({{ $post->id }})"
+                                            class="text-xs font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5 hover:gap-2.5 transition-all bg-[var(--md-sys-color-surface)]/50 hover:bg-[var(--md-sys-color-secondary-container)]/30 px-3 py-1.5 rounded-full">
+                                        <span>ادامه مطلب</span>
+                                        <span class="material-symbols-rounded text-[16px] flip-rtl">arrow_right_alt</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </article>
-                @endforeach
+                        </article>
+                    @endforeach
+                @else
+                    {{-- Debug/Empty State --}}
+                    <div class="col-span-full text-center p-8 bg-[var(--md-sys-color-surface-container)] rounded-xl">
+                        <span class="text-[var(--md-sys-color-outline)]">هیچ پستی یافت نشد.</span>
+                    </div>
+                @endif
+
             @endisland
         </div>
 
@@ -232,12 +234,37 @@
                 </div>
 
                 {{-- Footer Actions --}}
-                <div class="p-5 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] flex justify-between items-center shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
-                    <button @click="openShare('{{ addslashes($selectedPost->title) }}', '{{ addslashes(strip_tags($selectedPost->body)) }}')"
-                            class="flex items-center gap-2 px-5 py-2.5 rounded-xl hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-secondary-container)] transition-colors font-bold text-sm group">
-                        <span class="material-symbols-rounded group-hover:scale-110 transition-transform">share</span>
-                        <span>اشتراک‌گذاری</span>
-                    </button>
+                <div class="p-5 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] flex justify-between items-center shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative">
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button @click="open = !open; openShare('{{ addslashes($selectedPost->title) }}', '{{ addslashes(strip_tags($selectedPost->body)) }}')"
+                                class="flex items-center gap-2 px-5 py-2.5 rounded-xl hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-secondary-container)] transition-colors font-bold text-sm group">
+                            <span class="material-symbols-rounded group-hover:scale-110 transition-transform">share</span>
+                            <span>اشتراک‌گذاری</span>
+                        </button>
+
+                        {{-- Share Popover (Quick Settings Style) --}}
+                        <div class="absolute bottom-full left-0 mb-2 w-48 bg-[var(--md-sys-color-surface-container-high)] rounded-xl shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden transform origin-bottom-left transition-all duration-200"
+                             x-show="open"
+                             x-transition:enter="ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave="ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                             style="display: none;">
+                            <div class="flex flex-col py-1">
+                                <button @click="copyToClipboard(); open = false" class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right">
+                                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
+                                    <span>کپی متن</span>
+                                </button>
+                                <button @click="sendEmail(); open = false" class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right border-t border-[var(--md-sys-color-outline-variant)]/20">
+                                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">mail</span>
+                                    <span>ایمیل</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                      <button @click="panelOpen = false"
                              class="px-8 py-2.5 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm shadow-md hover:shadow-xl hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:-translate-y-0.5 transition-all active:scale-95 active:shadow-sm">
                         بستن
@@ -250,67 +277,6 @@
                 </div>
             @endif
 
-        </div>
-    </div>
-
-    {{-- Share Modal (Material 3 Dialog) --}}
-    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4"
-         x-show="shareModalOpen"
-         x-cloak
-         style="display: none;">
-
-        {{-- Backdrop --}}
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
-             x-show="shareModalOpen"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             @click="shareModalOpen = false"></div>
-
-        {{-- Dialog --}}
-        <div class="relative w-full max-w-sm bg-[var(--md-sys-color-surface-container-high)] rounded-[28px] shadow-2xl overflow-hidden transform transition-all duration-300"
-             x-show="shareModalOpen"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-90 translate-y-4"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-90 translate-y-4">
-
-            <div class="p-6 flex flex-col items-center text-center">
-                <div class="w-12 h-12 rounded-full bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center mb-4">
-                    <span class="material-symbols-rounded text-[24px]">share</span>
-                </div>
-
-                <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2">اشتراک‌گذاری</h3>
-                <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mb-6">
-                    نحوه اشتراک‌گذاری این مطلب را انتخاب کنید
-                </p>
-
-                <div class="w-full flex flex-col gap-2">
-                    <button @click="copyToClipboard()"
-                            class="w-full py-3 px-4 rounded-full border border-[var(--md-sys-color-outline)]/20 hover:bg-[var(--md-sys-color-surface-container-highest)] flex items-center justify-center gap-3 transition-colors text-[var(--md-sys-color-on-surface)] font-medium">
-                        <span class="material-symbols-rounded text-[20px]">content_copy</span>
-                        <span>کپی متن</span>
-                    </button>
-
-                    <button @click="sendEmail()"
-                            class="w-full py-3 px-4 rounded-full border border-[var(--md-sys-color-outline)]/20 hover:bg-[var(--md-sys-color-surface-container-highest)] flex items-center justify-center gap-3 transition-colors text-[var(--md-sys-color-on-surface)] font-medium">
-                        <span class="material-symbols-rounded text-[20px]">mail</span>
-                        <span>ارسال با ایمیل</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-2 flex justify-end">
-                 <button @click="shareModalOpen = false"
-                         class="w-full py-3 text-[var(--md-sys-color-primary)] font-bold text-sm hover:bg-[var(--md-sys-color-primary)]/10 rounded-full transition-colors">
-                     لغو
-                 </button>
-            </div>
         </div>
     </div>
 </div>
