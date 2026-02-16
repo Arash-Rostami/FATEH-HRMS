@@ -1,5 +1,5 @@
-<div x-data="{ open: false }" class="relative">
-    <button @click="open = !open"
+<div x-data="statusSwitcher" class="relative">
+    <button @click="toggle()"
             class="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300 bg-[var(--md-sys-color-surface-container)]/50 hover:bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/10 active:scale-95 group relative overflow-hidden">
 
         <span class="material-symbols-rounded text-[20px] transition-colors duration-300"
@@ -41,7 +41,7 @@
 
         <div class="text-[10px] uppercase tracking-wider opacity-40 font-bold px-3 py-2 mb-1">تغییر وضعیت</div>
 
-        <button wire:click="changeStatus('onsite'); open = false"
+        <button @click="select('onsite')"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right">
             <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">apartment</span>
@@ -52,7 +52,7 @@
             </div>
         </button>
 
-        <button wire:click="changeStatus('remote'); open = false"
+        <button @click="select('remote')"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right mt-1">
             <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 group-hover:bg-sky-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">laptop_chromebook</span>
@@ -63,7 +63,7 @@
             </div>
         </button>
 
-        <button wire:click="changeStatus('mission'); open = false"
+        <button @click="select('mission')"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right mt-1">
             <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">flight_takeoff</span>
@@ -74,7 +74,7 @@
             </div>
         </button>
 
-        <button wire:click="changeStatus('busy'); open = false"
+        <button @click="select('busy')"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right mt-1">
             <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">do_not_disturb_on</span>

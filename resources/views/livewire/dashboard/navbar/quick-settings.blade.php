@@ -1,33 +1,4 @@
-<div x-data="{
-        open: false,
-        focusMode: false,
-        backgroundEnabled: localStorage.getItem('backgroundEnabled') === 'true',
-
-        toggleBackground() {
-            this.backgroundEnabled = !this.backgroundEnabled;
-            localStorage.setItem('backgroundEnabled', this.backgroundEnabled);
-            window.dispatchEvent(new CustomEvent('background-toggled', { detail: this.backgroundEnabled }));
-        },
-
-        toggleFocus() {
-            this.focusMode = !this.focusMode;
-
-            if (this.focusMode) {
-                document.documentElement.requestFullscreen().catch(() => {});
-                $wire.enableFocusMode();
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-                $wire.disableFocusMode();
-            }
-        },
-
-        resetApp() {
-            localStorage.clear();
-            location.reload();
-        }
-     }"
-     class="relative">
-
+<div x-data="quickSettings" class="relative">
     <button @click="open = !open"
             class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/50 active:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center relative"
             :class="focusMode ? 'bg-indigo-500/20 text-indigo-400 animate-pulse' : 'opacity-70'">
@@ -87,7 +58,7 @@
 
         <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
-        <button @click="if(confirm('آیا مطمئن هستید؟ تمام تنظیمات ظاهری به حالت پیش‌فرض باز می‌گردد.')) resetApp()"
+        <button @click="resetApp()"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-rose-500/10 group text-right">
             <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">restart_alt</span>

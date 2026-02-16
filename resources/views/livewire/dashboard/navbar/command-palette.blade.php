@@ -1,14 +1,4 @@
-<div x-data="{
-        open: false,
-        selectedIndex: 0,
-        toggle() {
-            this.open = !this.open;
-            if(this.open) {
-                this.selectedIndex = 0;
-                $nextTick(() => $refs.searchInput.focus());
-            }
-        }
-     }"
+<div x-data="commandPalette"
      @keydown.window.prevent.ctrl.k="toggle()"
      @keydown.window.prevent.cmd.k="toggle()"
      @keydown.escape.window="open = false"
@@ -59,9 +49,9 @@
                        type="text"
                        placeholder="جستجو در بخش‌های مختلف سیستم..."
                        class="w-full bg-transparent border-none outline-none text-current placeholder-current/30 text-lg font-medium h-10"
-                       @keydown.down.prevent="selectedIndex = Math.min(selectedIndex + 1, $wire.results.length - 1)"
-                       @keydown.up.prevent="selectedIndex = Math.max(selectedIndex - 1, 0)"
-                       @keydown.enter.prevent="if($wire.results.length > 0) { alert('Action: ' + $wire.results[selectedIndex].action); open = false; }">
+                       @keydown.down.prevent="next()"
+                       @keydown.up.prevent="prev()"
+                       @keydown.enter.prevent="select()">
                 <button @click="open = false" class="opacity-30 hover:opacity-100 px-2 py-1 bg-[var(--md-sys-color-surface-container)] rounded text-xs">ESC</button>
             </div>
 
