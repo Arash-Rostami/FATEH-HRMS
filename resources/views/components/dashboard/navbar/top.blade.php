@@ -45,25 +45,25 @@
         <div class="hidden xl:block w-px h-6 bg-white/15 mx-1"></div>
 
         @auth
-            <!-- Stats Group (Birthday & Work) -->
             <div class="hidden xl:flex items-center gap-1">
                 <!-- Birthday -->
-                <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="روز تا تولد">
+                <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="تعداد روزهای باقی مانده به تولد">
                     <span class="material-symbols-rounded text-[20px] text-pink-300 group-hover:animate-bounce">cake</span>
                     <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-pink-500 text-[9px] font-bold flex items-center justify-center shadow-sm">
-                    {{ auth()->user()->profile?->countNumberOfDaysTo(auth()->user()->profile->birthdate) ?? '-' }}
-                </span>
+                {{ auth()->user()->profile?->daysUntil(auth()->user()->profile->birthdate) ?? '-' }}
+            </span>
                 </div>
 
                 <!-- Work Anniversary -->
-                <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="روز کارکرد">
+                <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="تعداد روزهای سپری شده از آغاز کار در شرکت">
                     <span class="material-symbols-rounded text-[20px] text-emerald-300">work_history</span>
                     <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-emerald-500 text-[9px] font-bold flex items-center justify-center shadow-sm">
-                    {{ auth()->user()->profile?->countDaysPassedSince(auth()->user()->profile->start_date) ?? '-' }}
-                </span>
+                {{ auth()->user()->profile?->daysPassed(auth()->user()->profile->start_date) ?? '-' }}
+            </span>
                 </div>
             </div>
         @endauth
+
 
         <!-- Fullscreen Toggle -->
         <button x-data="{ isFullscreen: false, toggle() {

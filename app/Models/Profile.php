@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
+use App\Models\Traits\HasDateHelpers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Cache;
 
 class Profile extends Model
 {
+    use HasDateHelpers;
 
     protected $fillable = [
         'personnel_id',
@@ -48,27 +48,6 @@ class Profile extends Model
         return $this->birthdate?->age;
     }
 
-    public function countDaysPassedSince($date)
-    {
-        if (!$date) return null;
-
-        return Cache::remember('days_passed_work_' . $this->id, now()->addHours(12), function () use ($date) {
-            return Carbon::parse($date)->diffInDays(now()) . ' روز';
-        });
-    }
-
-    public function countNumberOfDaysTo($date)
-    {
-        if (!$date) return null;
-
-        return Cache::remember('days_to_birthday_' . $this->id, now()->addHours(12), function () use ($date) {
-            $birthday = Carbon::parse($date)->year(now()->year);
-            if ($birthday->isPast()) {
-                $birthday->addYear();
-            }
-            return $birthday->diffInDays(now()) . ' روز';
-        });
-    }
 
     public function department(): BelongsTo
     {
