@@ -1,21 +1,7 @@
-<div x-data="{
-    isExpanded: false,
-    activeTab: window.location.pathname,
-    touchStartX: 0,
-    touchStartY: 0,
-    isDragging: false
-}"
-     @touchstart="touchStartX = $event.changedTouches[0].screenX; touchStartY = $event.changedTouches[0].screenY; isDragging = true"
-     @touchmove="if (isDragging && Math.abs($event.changedTouches[0].screenY - touchStartY) < 30) $event.preventDefault()"
-     @touchend="
-    isDragging = false;
-    const deltaX = $event.changedTouches[0].screenX - touchStartX;
-    const deltaY = Math.abs($event.changedTouches[0].screenY - touchStartY);
-    if (deltaY < 50) {
-        if (deltaX > 80) isExpanded = true;
-        else if (deltaX < -80) isExpanded = false;
-    }
-"
+<div x-data="sidebar"
+     @touchstart="handleTouchStart"
+     @touchmove="handleTouchMove"
+     @touchend="handleTouchEnd"
      class="relative">
 
     <aside
@@ -24,11 +10,11 @@
             'w-[8px] md:w-[12px] lg:w-[52px]': !isExpanded
         }"
         class="flex flex-col gap-2 md:gap-3 pt-8 md:pt-10 shrink-0 z-50 fixed top-1/2 -translate-y-1/2 left-0 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        @mouseenter="!isExpanded && window.innerWidth >= 1024 && (isExpanded = true)"
-        @mouseleave="isExpanded && window.innerWidth >= 1024 && (isExpanded = false)">
+        @mouseenter="expand"
+        @mouseleave="collapse">
 
         <div
-            @click="isExpanded = !isExpanded"
+            @click="toggleExpand"
             x-show="!isExpanded"
             x-transition:enter="transition-all duration-500 delay-200"
             x-transition:enter-start="opacity-0 scale-0"
@@ -38,9 +24,8 @@
         </div>
 
         <a href="{{ url('/tasks') }}"
-           x-data="{ hover: false }"
-           @mouseenter="hover = true"
-           @mouseleave="hover = false"
+           @mouseenter="setHover('tasks')"
+           @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
                   rounded-r-2xl rounded-l-none
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
@@ -59,26 +44,26 @@
                'translate-x-0': isExpanded,
                'hover:translate-x-2 lg:hover:translate-x-1': true
            }"
-           :style="`transition-delay: ${isExpanded ? '100ms' : '0ms'}`">
+           :style="'transition-delay: ' + getTransitionDelay(0)">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
-                      'scale-110 rotate-[8deg]': hover,
-                      'scale-100': !hover
+                      'scale-110 rotate-[8deg]': isHovered('tasks'),
+                      'scale-100': !isHovered('tasks')
                   }"
-                  :style="activeTab.includes('tasks') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">dashboard</span>
+                  :style="isActive('tasks') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">dashboard</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
                 برد وظایف
             </span>
 
-            <div x-show="activeTab.includes('tasks')"
+            <div x-show="isActive('tasks')"
                  x-transition:enter="transition-all duration-500 ease-out"
                  x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
                  x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
 
-            <div x-show="hover && !activeTab.includes('tasks')"
+            <div x-show="isHovered('tasks') && !isActive('tasks')"
                  x-transition:enter="transition-opacity duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
@@ -86,9 +71,8 @@
         </a>
 
         <a href="{{ url('/documents') }}"
-           x-data="{ hover: false }"
-           @mouseenter="hover = true"
-           @mouseleave="hover = false"
+           @mouseenter="setHover('documents')"
+           @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
                   rounded-r-2xl rounded-l-none
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
@@ -107,26 +91,26 @@
                'translate-x-0': isExpanded,
                'hover:translate-x-2 lg:hover:translate-x-1': true
            }"
-           :style="`transition-delay: ${isExpanded ? '150ms' : '0ms'}`">
+           :style="'transition-delay: ' + getTransitionDelay(1)">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
-                      'scale-110 rotate-[8deg]': hover,
-                      'scale-100': !hover
+                      'scale-110 rotate-[8deg]': isHovered('documents'),
+                      'scale-100': !isHovered('documents')
                   }"
-                  :style="activeTab.includes('documents') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_managed</span>
+                  :style="isActive('documents') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_managed</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
                 مدیریت مستندات
             </span>
 
-            <div x-show="activeTab.includes('documents')"
+            <div x-show="isActive('documents')"
                  x-transition:enter="transition-all duration-500 ease-out"
                  x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
                  x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
 
-            <div x-show="hover && !activeTab.includes('documents')"
+            <div x-show="isHovered('documents') && !isActive('documents')"
                  x-transition:enter="transition-opacity duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
@@ -134,9 +118,8 @@
         </a>
 
         <a href="{{ url('/suggestions') }}"
-           x-data="{ hover: false }"
-           @mouseenter="hover = true"
-           @mouseleave="hover = false"
+           @mouseenter="setHover('suggestions')"
+           @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
                   rounded-r-2xl rounded-l-none
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
@@ -155,26 +138,26 @@
                'translate-x-0': isExpanded,
                'hover:translate-x-2 lg:hover:translate-x-1': true
            }"
-           :style="`transition-delay: ${isExpanded ? '200ms' : '0ms'}`">
+           :style="'transition-delay: ' + getTransitionDelay(2)">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
-                      'scale-110 rotate-[8deg]': hover,
-                      'scale-100': !hover
+                      'scale-110 rotate-[8deg]': isHovered('suggestions'),
+                      'scale-100': !isHovered('suggestions')
                   }"
-                  :style="activeTab.includes('suggestions') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">lightbulb</span>
+                  :style="isActive('suggestions') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">lightbulb</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
                 پیشنهادات
             </span>
 
-            <div x-show="activeTab.includes('suggestions')"
+            <div x-show="isActive('suggestions')"
                  x-transition:enter="transition-all duration-500 ease-out"
                  x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
                  x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
 
-            <div x-show="hover && !activeTab.includes('suggestions')"
+            <div x-show="isHovered('suggestions') && !isActive('suggestions')"
                  x-transition:enter="transition-opacity duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
@@ -184,7 +167,7 @@
 
     <div
         x-show="isExpanded"
-        @click="isExpanded = false"
+        @click="toggleExpand"
         x-transition:enter="transition-all duration-400"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
