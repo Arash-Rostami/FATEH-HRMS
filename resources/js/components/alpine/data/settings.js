@@ -7,8 +7,16 @@ export default function settings() {
             return Alpine.store('background').enabled;
         },
 
+        get patternEnabled() {
+            return Alpine.store('background').patternEnabled;
+        },
+
         toggleBackground() {
             Alpine.store('background').toggle(!this.backgroundEnabled);
+        },
+
+        togglePattern() {
+            Alpine.store('background').togglePattern(!this.patternEnabled);
         },
 
         toggleFocus() {
@@ -16,11 +24,11 @@ export default function settings() {
             if (this.focusMode) {
                 document.documentElement.requestFullscreen().catch(() => {
                 });
-                this.$wire.enableFocusMode();
+                this..enableFocusMode();
             } else {
                 if (document.exitFullscreen) document.exitFullscreen().catch(() => {
                 });
-                this.$wire.disableFocusMode();
+                this..disableFocusMode();
             }
         },
 
