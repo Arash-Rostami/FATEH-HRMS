@@ -21,7 +21,7 @@ class User extends Authenticatable
         'maximum',
         'type',
         'role',
-        'status',
+        'statusSwitcher',
         'presence',
         'booking',
         'last_seen',
@@ -66,7 +66,7 @@ class User extends Authenticatable
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('statusSwitcher', 'active');
     }
 
 

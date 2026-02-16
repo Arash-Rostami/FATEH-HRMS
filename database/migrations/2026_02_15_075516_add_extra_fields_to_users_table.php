@@ -15,8 +15,8 @@ return new class extends Migration
             $table->mediumInteger('maximum')->default(12)->after('password');
             $table->string('type')->default('employee')->after('maximum');
             $table->string('role')->default('user')->after('type');
-            $table->string('status')->default('active')->after('role');
-            $table->string('presence')->default('on-leave')->after('status');
+            $table->string('statusSwitcher')->default('active')->after('role');
+            $table->string('presence')->default('on-leave')->after('statusSwitcher');
             $table->string('booking')->default('all')->after('presence');
             $table->timestamp('last_seen')->nullable()->after('booking');
             $table->json('extra')->nullable()->after('last_seen');
@@ -33,7 +33,7 @@ return new class extends Migration
                 'maximum',
                 'type',
                 'role',
-                'status',
+                'statusSwitcher',
                 'presence',
                 'booking',
                 'last_seen',

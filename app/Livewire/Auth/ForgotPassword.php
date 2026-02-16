@@ -23,7 +23,7 @@ class ForgotPassword extends Component
         $status = Password::sendResetLink(['email' => $this->email]);
 
         if ($status === Password::RESET_LINK_SENT) {
-            session()->flash('status', 'لینک بازیابی رمز عبور به ایمیل شما ارسال شد.');
+            session()->flash('statusSwitcher', 'لینک بازیابی رمز عبور به ایمیل شما ارسال شد.');
         } else {
             $this->addError('email', 'ایمیل یافت نشد.');
         }

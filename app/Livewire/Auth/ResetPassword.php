@@ -54,7 +54,7 @@ class ResetPassword extends Component
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            session()->flash('status', 'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.');
+            session()->flash('statusSwitcher', 'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.');
             return redirect()->route('login');
         }
 

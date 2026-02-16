@@ -13,7 +13,7 @@ class VerifyNotice extends Component
         }
 
         Auth::user()->sendEmailVerificationNotification();
-        session()->flash('status', 'verification-link-sent');
+        session()->flash('statusSwitcher', 'verification-link-sent');
     }
 
     public function logout()

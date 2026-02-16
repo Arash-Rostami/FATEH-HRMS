@@ -1,8 +1,8 @@
 <x-auth.card title="بازیابی رمز عبور" description="جهت دریافت لینک تغییر رمز، ایمیل سازمانی خود را وارد نمایید.">
-    @if (session('status'))
+    @if (session('statusSwitcher'))
         <div class="mb-6 p-4 rounded-xl bg-[var(--md-sys-color-primary-container)]/30 border border-[var(--md-sys-color-primary)]/20 text-[var(--md-sys-color-on-primary-container)] text-sm flex items-start gap-3 shadow-sm backdrop-blur-sm animate-slide-up">
             <span class="material-symbols-rounded text-[20px] mt-0.5">check_circle</span>
-            <div class="leading-relaxed font-medium">{{ session('status') }}</div>
+            <div class="leading-relaxed font-medium">{{ session('statusSwitcher') }}</div>
         </div>
     @endif
 

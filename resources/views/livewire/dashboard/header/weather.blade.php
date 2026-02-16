@@ -1,4 +1,4 @@
-<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium"
+<div class="flex items-center gap-2 text-[12px] font-medium"
      title="{{ $weatherData['description'] ?? '' }}">
 
     @php
