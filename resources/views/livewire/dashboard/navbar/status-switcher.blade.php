@@ -1,6 +1,6 @@
-<div x-data="{ open: false }" class="relative">
+<div x-data="{ open: false }" class="relative w-full h-full flex items-center justify-center">
     <button @click="open = !open"
-            class="flex items-center gap-2 transition-all duration-300 bg-[var(--md-sys-color-surface-container)]/50 hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 group relative overflow-hidden">
+            class="flex items-center gap-2 w-full h-full justify-center outline-none group">
 
         <span class="material-symbols-rounded text-[20px] transition-colors duration-300"
               :class="{
@@ -17,14 +17,14 @@
               }[$wire.status] ?? 'help'">
         </span>
 
-        <div class="hidden md:block text-xs font-medium tracking-wide uppercase opacity-90">
+        <div class="hidden md:block text-xs font-medium tracking-wide uppercase opacity-90 transition-opacity group-hover:opacity-100">
             <span x-show="$wire.status === 'onsite'">در دفتر</span>
             <span x-show="$wire.status === 'remote'">دورکار</span>
             <span x-show="$wire.status === 'busy'">مشغول</span>
             <span x-show="$wire.status === 'mission'">ماموریت</span>
         </div>
 
-        <span class="material-symbols-rounded text-[18px] opacity-50 transition-transform duration-300"
+        <span class="material-symbols-rounded text-[18px] opacity-50 transition-transform duration-300 group-hover:opacity-80"
               :class="open ? 'rotate-180' : ''">expand_more</span>
     </button>
 
@@ -36,7 +36,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-         class="absolute top-full mt-2 w-48 right-0 p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] backdrop-blur-xl border border-[var(--md-sys-color-outline-variant)]/10 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)]"
+         class="absolute top-[calc(100%+12px)] right-0 p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] backdrop-blur-xl border border-[var(--md-sys-color-outline-variant)]/10 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)] min-w-[200px]"
          style="display: none;">
 
         <div class="text-[10px] uppercase tracking-wider opacity-40 font-bold px-3 py-2 mb-1">تغییر وضعیت</div>
