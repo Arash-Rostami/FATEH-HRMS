@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
-use App\Services\CachedDashBoardData;
+use App\Models\Post;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -17,15 +17,20 @@ class Posts extends Component
     #[Computed]
     public function pins()
     {
-        return CachedDashBoardData::getPins();
+        return Post::where('pinned', 1)->latest()->take(1)->get();
     }
 
     #[Computed]
     public function posts()
     {
-        // We use the service which calls simplePaginate(2, ..., page)
-        // This ensures we respect the existing caching logic
-        return CachedDashBoardData::getPosts($this->page);
+        // Calculate offset based on current page
+        $offset = ($this->page - 1) * 2;
+
+        return Post::where('pinned', '<>', 1)
+            ->orderByDesc('created_at')
+            ->skip($offset)
+            ->take(2)
+            ->get();
     }
 
     public function loadMore()
@@ -35,9 +40,7 @@ class Posts extends Component
 
     public function selectPost($postId)
     {
-        // We don't have a service for single post, so we fetch directly or add to service.
-        // For now, direct fetch is fine for detail view.
-        $this->selectedPost = \App\Models\Post::find($postId);
+        $this->selectedPost = Post::find($postId);
         $this->dispatch('open-post-panel');
     }
 
