@@ -2,22 +2,10 @@
      @keydown.window.prevent.ctrl.k="toggle()"
      @keydown.window.prevent.cmd.k="toggle()"
      @keydown.escape.window="open = false"
+     @open-command-palette.window="toggle()"
      class="relative z-[200]">
 
-    <button @click="toggle()"
-            class="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-container-high)]/50 border border-[var(--md-sys-color-outline-variant)]/20 hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
-        <span class="material-symbols-rounded text-[20px] opacity-50 group-hover:opacity-100 transition-opacity">search</span>
-        <span class="text-xs opacity-30 group-hover:opacity-50 transition-opacity">جستجو...</span>
-        <div class="flex items-center gap-1 mr-4">
-            <span class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface)]/20 border border-[var(--md-sys-color-outline-variant)]/20 text-[10px] opacity-30 font-mono">Ctrl</span>
-            <span class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface)]/20 border border-[var(--md-sys-color-outline-variant)]/20 text-[10px] opacity-30 font-mono">K</span>
-        </div>
-    </button>
-
-    <button @click="toggle()"
-            class="md:hidden w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] active:bg-[var(--md-sys-color-surface-container-highest)] flex items-center justify-center opacity-70">
-        <span class="material-symbols-rounded text-[22px]">search</span>
-    </button>
+    <!-- Trigger removed; handled by parent layout via events -->
 
     <div x-show="open"
          x-transition:enter="ease-out duration-300"

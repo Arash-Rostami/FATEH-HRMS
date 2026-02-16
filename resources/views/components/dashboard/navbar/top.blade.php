@@ -14,7 +14,25 @@
     <div class="h-[64px] grid grid-cols-4 items-center w-full px-6">
         <!-- Command Palette (left) -->
         <div class="flex justify-start">
-            <div class="mr-2">
+            <div class="mr-2 relative">
+                <div
+                    class="flex items-center justify-center h-[40px] min-w-[176px] gap-3 px-4
+                           rounded-[12px]
+                           bg-[var(--md-sys-color-on-primary)]/5
+                           border border-[var(--md-sys-color-on-primary)]/10
+                           backdrop-blur-sm transition-all duration-300
+                           hover:bg-[var(--md-sys-color-on-primary)]/10
+                           shadow-sm cursor-pointer group"
+                    @click="$dispatch('open-command-palette')">
+
+                    <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100 transition-opacity">search</span>
+                    <span class="text-xs opacity-60 group-hover:opacity-80 transition-opacity font-medium">جستجو...</span>
+                    <div class="flex items-center gap-1 mr-auto">
+                        <span class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-on-primary)]/10 border border-[var(--md-sys-color-on-primary)]/10 text-[10px] opacity-60 font-mono">Ctrl</span>
+                        <span class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-on-primary)]/10 border border-[var(--md-sys-color-on-primary)]/10 text-[10px] opacity-60 font-mono">K</span>
+                    </div>
+                </div>
+                <!-- Logic component handles the modal -->
                 <livewire:dashboard.navbar.command-palette/>
             </div>
         </div>
