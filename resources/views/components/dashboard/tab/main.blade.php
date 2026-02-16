@@ -34,7 +34,7 @@
 
     </div>
 
-    <x-dashboard.loader wire:loading/>
+    <x-dashboard.loader.bar wire:loading/>
 
 
 </main>

@@ -52,15 +52,18 @@
                                 alt="{{ superClean($pin->title, 200) }}"
                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             >
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-                            <div class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 backdrop-blur-md text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
+                            <div
+                                class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 backdrop-blur-md text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
                                 مهم
                             </div>
                         </div>
 
                         {{-- Content --}}
-                        <div class="absolute bottom-0 inset-x-0 p-6 lg:p-8 text-white flex flex-col gap-3 bg-gradient-to-t from-black/80 to-transparent pt-24">
+                        <div
+                            class="absolute bottom-0 inset-x-0 p-6 lg:p-8 text-white flex flex-col gap-3 bg-gradient-to-t from-black/80 to-transparent pt-24">
                             <h2 class="text-2xl lg:text-3xl font-bold leading-tight drop-shadow-md">
                                 {{ superClean($pin->title, 100) }}
                             </h2>
@@ -80,14 +83,18 @@
                         </div>
 
                         {{-- Hover Glow --}}
-                        <div class="absolute inset-0 rounded-[32px] ring-1 ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none"></div>
+                        <div
+                            class="absolute inset-0 rounded-[32px] ring-1 ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none"></div>
                     </div>
                 @endforeach
             @else
                 {{-- Empty State --}}
-                <div class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
-                    <div class="w-20 h-20 rounded-full bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center mb-4 shadow-sm animate-pulse-slow">
-                        <span class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-on-secondary-container)]">campaign</span>
+                <div
+                    class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
+                    <div
+                        class="w-20 h-20 rounded-full bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center mb-4 shadow-sm animate-pulse-slow">
+                        <span
+                            class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-on-secondary-container)]">campaign</span>
                     </div>
                     <h4 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2">خوش آمدید</h4>
                     <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm max-w-xs leading-relaxed">
@@ -118,20 +125,23 @@
                         wire:key="post-{{ $post->id }}"
                     >
                         {{-- Image --}}
-                        <div class="relative h-48 overflow-hidden cursor-pointer" wire:click="selectPost({{ $post->id }})">
+                        <div class="relative h-48 overflow-hidden cursor-pointer"
+                             wire:click="selectPost({{ $post->id }})">
                             <img
                                 src="{{ $post->image }}"
                                 alt="{{ superClean($post->title, 200) }}"
                                 loading="lazy"
                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             >
-                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                            <div
+                                class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                         </div>
 
                         {{-- Body --}}
                         <div class="p-5 flex flex-col flex-grow">
                             <div class="flex items-center justify-between mb-3">
-                                    <span class="text-[10px] font-bold px-2 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] tracking-wide">
+                                    <span
+                                        class="text-[10px] font-bold px-2 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] tracking-wide">
                                         اخبار
                                     </span>
                                 <span class="text-[11px] text-[var(--md-sys-color-outline)] font-mono dir-ltr">
@@ -151,7 +161,8 @@
                             </p>
 
                             {{-- Actions --}}
-                            <div class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
+                            <div
+                                class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
                                 <button
                                     @click="$dispatch('select-post', { id: {{ $post->id }} })"
                                     class="text-xs font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5 hover:gap-2.5 transition-all bg-[var(--md-sys-color-surface)]/50 hover:bg-[var(--md-sys-color-secondary-container)]/30 px-3 py-1.5 rounded-full"
@@ -180,8 +191,11 @@
                 class="group px-6 py-2.5 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)] font-bold text-sm border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-surface-container-highest)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
             >
                 <span>نمایش بیشتر</span>
-                <span class="material-symbols-rounded text-[20px] group-hover:translate-y-0.5 transition-transform" wire:loading.remove target="loadMore">expand_more</span>
-                <span class="w-4 h-4 border-2 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin" wire:loading target="loadMore"></span>
+                <span class="material-symbols-rounded text-[20px] group-hover:translate-y-0.5 transition-transform"
+                      wire:loading.remove target="loadMore">expand_more</span>
+                <span
+                    class="w-4 h-4 border-2 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin"
+                    wire:loading target="loadMore"></span>
             </button>
         </div>
     </section>
@@ -230,10 +244,12 @@
                         <span class="material-symbols-rounded font-bold">close</span>
                     </button>
 
-                    <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-black/20 to-transparent"></div>
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-black/20 to-transparent"></div>
 
                     <div class="absolute bottom-6 right-8 left-8 text-[var(--md-sys-color-on-surface)] z-10">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--md-sys-color-secondary-container)]/80 backdrop-blur-sm text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold mb-3 shadow-sm">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--md-sys-color-secondary-container)]/80 backdrop-blur-sm text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold mb-3 shadow-sm">
                             <span class="material-symbols-rounded text-[14px]">new_releases</span>
                             <span>خبر</span>
                         </div>
@@ -245,31 +261,38 @@
 
                 {{-- Scrollable Body --}}
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-8 sm:p-10 bg-[var(--md-sys-color-surface)]">
-                    <div class="flex items-center gap-6 text-sm text-[var(--md-sys-color-on-surface-variant)] mb-8 pb-6 border-b border-[var(--md-sys-color-outline-variant)]/20">
-                        <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
+                    <div
+                        class="flex items-center gap-6 text-sm text-[var(--md-sys-color-on-surface-variant)] mb-8 pb-6 border-b border-[var(--md-sys-color-outline-variant)]/20">
+                        <div
+                            class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
                             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">calendar_month</span>
                             <span class="font-medium">{{ $selectedPost->created_at->format('Y/m/d H:i') }}</span>
                         </div>
-                        <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
-                            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">person</span>
+                        <div
+                            class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
+                            <span
+                                class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">person</span>
                             <span class="font-medium">ادمین سیستم</span>
                         </div>
                     </div>
 
                     {{-- Content --}}
-                    <div class="prose prose-lg prose-p:text-[var(--md-sys-color-on-surface)] prose-headings:text-[var(--md-sys-color-on-surface)] max-w-none leading-relaxed [&_*]:!bg-transparent [&_*]:!text-inherit">
+                    <div
+                        class="prose prose-lg prose-p:text-[var(--md-sys-color-on-surface)] prose-headings:text-[var(--md-sys-color-on-surface)] max-w-none leading-relaxed [&_*]:!bg-transparent [&_*]:!text-inherit">
                         {!! $selectedPost->body !!}
                     </div>
                 </div>
 
                 {{-- Footer Actions --}}
-                <div class="p-5 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] flex justify-between items-center shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative">
+                <div
+                    class="p-5 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] flex justify-between items-center shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button
                             @click="open = !open; openShare('{{ addslashes(superClean($selectedPost->title, 200)) }}', '{{ addslashes(superClean($selectedPost->body, 300)) }}')"
                             class="flex items-center gap-2 px-5 py-2.5 rounded-xl hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-secondary-container)] transition-colors font-bold text-sm group"
                         >
-                            <span class="material-symbols-rounded group-hover:scale-110 transition-transform">share</span>
+                            <span
+                                class="material-symbols-rounded group-hover:scale-110 transition-transform">share</span>
                             <span>اشتراک‌گذاری</span>
                         </button>
 
@@ -290,14 +313,16 @@
                                     @click="copyToClipboard(); open = false"
                                     class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right"
                                 >
-                                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
+                                    <span
+                                        class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
                                     <span>کپی متن</span>
                                 </button>
                                 <button
                                     @click="sendEmail(); open = false"
                                     class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right border-t border-[var(--md-sys-color-outline-variant)]/20"
                                 >
-                                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">mail</span>
+                                    <span
+                                        class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">mail</span>
                                     <span>ایمیل</span>
                                 </button>
                             </div>
@@ -312,11 +337,7 @@
                     </button>
                 </div>
             @else
-                {{-- Loading State --}}
-                <div class="flex-1 flex flex-col items-center justify-center gap-4 text-[var(--md-sys-color-outline)]">
-                    <span class="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50"></span>
-                    <span class="animate-pulse text-sm font-medium">در حال بارگذاری محتوا...</span>
-                </div>
+                <x-dashboard.loader.spinner/>
             @endif
         </div>
     </div>
