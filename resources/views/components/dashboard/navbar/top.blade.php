@@ -1,65 +1,69 @@
-<nav class="sticky top-0 w-full h-16 bg-[var(--md-sys-color-surface-container)]/80 backdrop-blur-md border-b border-[var(--md-sys-color-outline-variant)]/20 px-4 md:px-6 flex items-center justify-between z-30 transition-all duration-300 shadow-sm"
-     x-data="menu">
+<nav x-cloak
+     x-data="menu()"
+     @resize.window="updatePerPage"
+     class="bg-[var(--md-sys-color-primary)] text-white/95 px-4 lg:px-8 flex justify-between items-center h-12 border-b border-white/5 shrink-0 relative z-50 transition-colors duration-300">
 
-    <!-- LEFT SECTION (RTL: Right) -->
-    <div class="flex items-center gap-2 md:gap-4">
+    <!-- RIGHT SECTION (RTL Order) -->
+    <div class="flex items-center gap-3">
         <!-- Sidebar Toggle -->
         <button @click="$store.app.toggleSidebar()"
-                class="hidden lg:flex w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)]">
+                class="hidden lg:flex w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 items-center justify-center">
             <span class="material-symbols-rounded text-[24px]">menu_open</span>
         </button>
 
-        <!-- Brand/Logo -->
-        <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 group">
-            <div class="relative w-8 h-8 md:w-9 md:h-9 overflow-hidden rounded-xl bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] flex items-center justify-center shadow-lg shadow-[var(--md-sys-color-primary)]/20 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
-                <span class="material-symbols-rounded text-white text-[20px]">diamond</span>
-                <div class="absolute inset-0 bg-white/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-            <span class="text-base md:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--md-sys-color-on-surface)] to-[var(--md-sys-color-on-surface-variant)] hidden sm:block">
-                اینتــرا
-            </span>
-        </a>
+        <!-- Weather Widget -->
+        <div class="hidden lg:flex items-center gap-2 text-sm font-medium">
+            <livewire:dashboard.header.weather/>
+        </div>
+
+        <div class="hidden lg:block w-px h-6 bg-white/15 mx-1"></div>
+
+        <!-- Mobile Menu Toggle -->
+        <button @click="toggleMenu" :aria-expanded="menuOpen.toString()" aria-label="Toggle menu"
+                class="lg:hidden w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center"
+                :class="menuOpen && 'bg-white/12'">
+            <span class="material-symbols-rounded text-[24px]" x-text="menuOpen ? 'close' : 'menu'"></span>
+        </button>
     </div>
 
     <!-- CENTER SECTION: Creative Timer -->
-    <div class="hidden xl:block absolute left-1/2 -translate-x-1/2" x-data="timer" x-cloak>
+    <div class="hidden lg:block absolute left-1/2 -translate-x-1/2" x-data="timer" x-cloak>
         <button @click="toggleMode()"
-                class="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-container-high)]/50 border border-[var(--md-sys-color-outline-variant)]/20 backdrop-blur-md shadow-sm transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container-high)] hover:shadow-[var(--md-sys-color-primary)]/10 hover:scale-[1.02] active:scale-95 cursor-pointer overflow-hidden">
+                class="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/5 text-[12px] font-medium text-white backdrop-blur-sm transition-colors duration-300 hover:bg-white/20 cursor-pointer overflow-hidden relative">
 
-            <!-- Animated Background Glow -->
-            <div class="absolute inset-0 bg-gradient-to-r from-[var(--md-sys-color-primary)]/0 via-[var(--md-sys-color-primary)]/5 to-[var(--md-sys-color-primary)]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+            <!-- Animated Glow -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
 
-            <div class="flex items-center gap-2 relative z-10">
-                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)] transition-transform duration-300 group-hover:rotate-12" x-text="mode === 'fa' ? 'schedule' : 'public'"></span>
+            <span class="material-symbols-rounded text-[18px] text-teal-300 transition-transform duration-300 group-hover:rotate-180 relative z-10"
+                  x-text="mode === 'fa' ? 'schedule' : 'public'">
+            </span>
 
-                <div class="flex items-baseline gap-1.5" :dir="mode === 'fa' ? 'rtl' : 'ltr'">
-                     <span class="text-[13px] font-bold tracking-wide text-[var(--md-sys-color-on-surface)] font-mono tabular-nums" x-text="time"></span>
-                     <span class="w-px h-3 bg-[var(--md-sys-color-outline-variant)]"></span>
-                     <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wide opacity-90" x-text="date"></span>
-                </div>
+            <div class="flex items-baseline gap-2 relative z-10" :dir="mode === 'fa' ? 'rtl' : 'ltr'">
+                <span class="tracking-wide font-mono" x-text="time"></span>
+                <span class="text-white/20">|</span>
+                <span class="text-white/80" x-text="date"></span>
             </div>
         </button>
     </div>
 
-    <!-- RIGHT SECTION (RTL: Left) -->
-    <div class="flex items-center gap-2 md:gap-3">
+    <!-- LEFT SECTION (RTL Order) -->
+    <div class="flex items-center gap-3">
 
         @auth
-        <!-- Stats Pill (Birthday & Work Anniversary) -->
-        <div class="hidden md:flex items-center bg-[var(--md-sys-color-surface-container-low)] rounded-xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden shadow-sm h-9">
-
+        <!-- Stats Group (Birthday & Work) -->
+        <div class="hidden xl:flex items-center gap-1">
             <!-- Birthday -->
-            <div class="flex items-center gap-1.5 px-3 py-1 h-full hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors duration-200 cursor-help group border-l border-[var(--md-sys-color-outline-variant)]/10" title="روز تا تولد">
-                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-tertiary)] group-hover:animate-bounce">cake</span>
-                <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
+            <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="روز تا تولد">
+                <span class="material-symbols-rounded text-[20px] text-pink-300 group-hover:animate-bounce">cake</span>
+                <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-pink-500 text-[9px] font-bold flex items-center justify-center shadow-sm">
                     {{ auth()->user()->profile?->countNumberOfDaysTo(auth()->user()->profile->birthdate) ?? '-' }}
                 </span>
             </div>
 
             <!-- Work Anniversary -->
-            <div class="flex items-center gap-1.5 px-3 py-1 h-full hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors duration-200 cursor-help group" title="روز کارکرد">
-                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-secondary)]">work_history</span>
-                <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
+            <div class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 flex items-center justify-center cursor-help group" title="روز کارکرد">
+                <span class="material-symbols-rounded text-[20px] text-emerald-300">work_history</span>
+                <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-emerald-500 text-[9px] font-bold flex items-center justify-center shadow-sm">
                     {{ auth()->user()->profile?->countDaysPassedSince(auth()->user()->profile->start_date) ?? '-' }}
                 </span>
             </div>
@@ -77,48 +81,39 @@
                     }
                 }}"
                 @click="toggle()"
-                class="hidden sm:flex w-9 h-9 rounded-xl items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-surface-container-high)] transition-all active:scale-95"
+                class="hidden sm:flex w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 items-center justify-center"
                 title="تمام صفحه">
-            <span class="material-symbols-rounded text-[20px]" x-text="isFullscreen ? 'close_fullscreen' : 'fullscreen'"></span>
+            <span class="material-symbols-rounded text-[22px]" x-text="isFullscreen ? 'close_fullscreen' : 'fullscreen'"></span>
         </button>
 
-        <!-- Theme Toggle -->
-        <button @click="$store.theme.toggleMode()"
-                class="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-90"
-                :class="$store.theme.isDark ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)]'"
-                title="تغییر تم">
-            <span class="material-symbols-rounded text-[20px]" x-text="$store.theme.isDark ? 'dark_mode' : 'light_mode'"></span>
+        <!-- Notifications (Restored) -->
+        <button class="relative w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center">
+            <span class="material-symbols-rounded text-[22px]">notifications</span>
+            <span class="absolute top-2 right-2 w-2 h-2 bg-[var(--md-sys-color-error)] rounded-full ring-2 ring-[var(--md-sys-color-primary)]"></span>
         </button>
 
-        <div class="hidden lg:block w-px h-6 bg-[var(--md-sys-color-outline-variant)]/20 mx-1"></div>
+        <div class="w-px h-6 bg-white/15 mx-1"></div>
 
-        <!-- User Profile & Menu -->
+        <!-- User Profile Dropdown -->
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open"
-                    class="flex items-center gap-2 p-1 pl-3 rounded-full hover:bg-[var(--md-sys-color-surface-container-high)] transition-all active:scale-95 group border border-transparent hover:border-[var(--md-sys-color-outline-variant)]/20">
+                    class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-white/10 active:bg-white/15 transition-all duration-200 group">
 
                 <!-- Avatar -->
-                <div class="relative w-8 h-8 rounded-full overflow-hidden border border-[var(--md-sys-color-outline-variant)]/20 group-hover:border-[var(--md-sys-color-primary)]/50 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
                     @if(auth()->check() && auth()->user()->avatar)
                         <img src="{{ auth()->user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
                     @else
-                        <div class="w-full h-full bg-gradient-to-br from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-tertiary-container)] flex items-center justify-center text-[var(--md-sys-color-on-primary-container)] font-bold text-xs">
-                            {{ substr(auth()->user()->name ?? 'Guest', 0, 1) }}
-                        </div>
+                        <span class="text-xs font-bold">{{ substr(auth()->user()->name ?? 'G', 0, 1) }}</span>
                     @endif
                 </div>
 
-                <!-- Name (Desktop) -->
-                <div class="hidden md:flex flex-col items-start leading-none gap-0.5">
-                    <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
-                        {{ auth()->user()->name ?? 'مهمان' }}
-                    </span>
-                    <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] truncate max-w-[80px]">
-                        {{ auth()->user()->role ?? 'کاربر' }}
-                    </span>
+                <!-- Name -->
+                <div class="hidden md:block text-right leading-tight">
+                    <div class="text-[12px] font-bold truncate max-w-[100px]">{{ auth()->user()->name ?? 'مهمان' }}</div>
                 </div>
 
-                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] group-hover:rotate-180 transition-transform duration-300">expand_more</span>
+                <span class="material-symbols-rounded text-[18px] opacity-70 group-hover:opacity-100 transition-opacity">expand_more</span>
             </button>
 
             <!-- Dropdown Menu -->
@@ -126,41 +121,31 @@
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 class="absolute left-0 mt-2 w-48 bg-[var(--md-sys-color-surface-container)] rounded-2xl shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-50 origin-top-left"
+                 class="absolute left-0 mt-2 w-48 bg-[var(--md-sys-color-surface)] rounded-xl shadow-xl border border-[var(--md-sys-color-outline-variant)]/10 overflow-hidden z-50 text-[var(--md-sys-color-on-surface)]"
                  style="display: none;">
 
-                <div class="p-2 space-y-1">
-                    <a href="{{ url('/profile') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] transition-colors">
+                <div class="p-1.5 space-y-0.5">
+                    <a href="{{ url('/profile') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] transition-colors">
                         <span class="material-symbols-rounded text-[20px]">person</span>
                         پروفایل کاربری
                     </a>
-                    <a href="{{ url('/settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] transition-colors">
+                    <a href="{{ url('/settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] transition-colors">
                         <span class="material-symbols-rounded text-[20px]">settings</span>
                         تنظیمات
                     </a>
-                    <div class="h-px bg-[var(--md-sys-color-outline-variant)]/20 my-1"></div>
+                    <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
                     <!-- Logout -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors text-right">
+                        <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors text-right">
                             <span class="material-symbols-rounded text-[20px]">logout</span>
-                            خروج از حساب
+                            خروج
                         </button>
                     </form>
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Menu Toggle (Legacy) -->
-        <button @click="toggleMenu" :aria-expanded="menuOpen.toString()" aria-label="Toggle menu"
-                class="lg:hidden w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center text-[var(--md-sys-color-on-surface)]"
-                :class="menuOpen && 'bg-[var(--md-sys-color-surface-container-high)]'">
-            <span class="material-symbols-rounded text-[24px]" x-text="menuOpen ? 'close' : 'menu'"></span>
-        </button>
     </div>
 
     <!-- Mobile Menu Overlay (Existing Logic) -->
@@ -179,7 +164,7 @@
              role="dialog" aria-modal="true">
             <div
                 class="w-full h-full sm:h-auto sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-                <!-- Legacy Menu Content (Unchanged) -->
+
                 <div dir="rtl" class="flex flex-col h-full">
                     <div class="relative px-5 py-5 bg-[var(--md-sys-color-primary)] border-b border-white/5 shrink-0">
                         <button @click="closeMenu"
@@ -267,7 +252,7 @@
                             <div class="font-medium">نسخه سیستم: 1.0.0</div>
                             <div
                                 class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[12px] font-medium">
-                                <livewire:dashboard.header.weather />
+                                <livewire:dashboard.header.weather/>
                             </div>
                         </div>
                     </div>
