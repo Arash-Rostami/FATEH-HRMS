@@ -6,12 +6,6 @@
 
     <!-- RIGHT SECTION (RTL Order) -->
     <div class="flex items-center gap-3">
-        <!-- Sidebar Toggle -->
-        <button @click="$store.app.toggleSidebar()"
-                class="hidden lg:flex w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 items-center justify-center">
-            <span class="material-symbols-rounded text-[24px]">menu_open</span>
-        </button>
-
         <!-- Menu Toggle (Hamburger) -->
         <button @click="toggleMenu" :aria-expanded="menuOpen.toString()" aria-label="Toggle menu"
                 class="w-10 h-10 rounded-xl hover:bg-white/10 active:bg-white/15 active:scale-95 transition-all duration-200 flex items-center justify-center"
@@ -43,7 +37,7 @@
     <!-- LEFT SECTION (RTL Order) -->
     <div class="flex items-center gap-3">
 
-        <!-- Weather Widget (Moved Here) -->
+        <!-- Weather Widget -->
         <div class="hidden xl:flex items-center gap-2 text-sm font-medium">
             <livewire:dashboard.header.weather/>
         </div>
@@ -142,9 +136,14 @@
                     @endif
                 </div>
 
-                <!-- Name -->
-                <div class="hidden md:block text-right leading-tight">
+                <!-- Name & Personnel ID -->
+                <div class="hidden md:flex flex-col items-start text-right leading-none gap-0.5">
                     <div class="text-[12px] font-bold truncate max-w-[100px]">{{ auth()->user()->name ?? 'مهمان' }}</div>
+                    @auth
+                    <div class="text-[10px] text-white/70 font-mono tracking-wider">
+                        {{ auth()->user()->profile?->personnel_id ?? '' }}
+                    </div>
+                    @endauth
                 </div>
 
                 <span class="material-symbols-rounded text-[18px] opacity-70 group-hover:opacity-100 transition-opacity">expand_more</span>
@@ -165,14 +164,10 @@
                     </a>
                     <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
-                    <!-- Logout -->
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-colors text-right">
-                            <span class="material-symbols-rounded text-[20px]">logout</span>
-                            خروج
-                        </button>
-                    </form>
+                    <!-- Logout Livewire Component -->
+                    <div class="px-3 py-2">
+                        <livewire:auth.logout-button />
+                    </div>
                 </div>
             </div>
         </div>
