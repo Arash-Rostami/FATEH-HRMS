@@ -10,8 +10,9 @@
         logout
     </span>
     @unless($iconOnly)
-        <span class="font-semibold">خروج از سیستم</span>
+        <span class="relative bottom-3">خروج </span>
     @endunless
+
     <div class="absolute inset-0 bg-[var(--md-sys-color-error)] opacity-0 transition-opacity duration-200"
          :class="{ 'opacity-[0.08]': hover }"></div>
 </button>

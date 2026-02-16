@@ -115,4 +115,4 @@
             </div>
         </div>
     </div>
-</x-auth-card>
+</x-auth.card>

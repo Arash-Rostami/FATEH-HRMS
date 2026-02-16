@@ -1,7 +1,7 @@
 <div
     class="absolute inset-0 -z-10 overflow-hidden"
     x-show="open"
-    x-data="floatingShapes()"
+    x-data="shapes()"
 >
     <template x-for="shape in shapes" :key="`${shape.type}-${shape.color}-${shape.position.top}-${shape.position.left}`">
         <div

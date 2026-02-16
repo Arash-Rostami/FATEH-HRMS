@@ -1,4 +1,4 @@
-export default function floatingShapes() {
+export default function shapes() {
     return {
         shapes: [],
         isDark: false,

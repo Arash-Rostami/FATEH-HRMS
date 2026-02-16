@@ -448,3 +448,6 @@
 .container-scrollbar.custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--md-sys-color-primary);
 }
+
+[x-cloak] { display: none !important; }
+

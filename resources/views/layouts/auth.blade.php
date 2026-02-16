@@ -10,89 +10,89 @@
     @livewireStyles
 </head>
 
-<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500 overflow-x-hidden selection:bg-[var(--md-sys-color-primary)]/30 selection:text-[var(--md-sys-color-on-surface)]">
+<body class="antialiased min-h-screen bg-[var(--md-sys-color-background)] text-gray-900 dark:text-white selection:bg-[var(--md-sys-color-primary)]/30 selection:text-[var(--md-sys-color-primary)] overflow-hidden transition-colors duration-500">
 
-<!-- Ambient Background -->
-<div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[var(--md-sys-color-primary-container)] opacity-30 blur-[120px] transition-colors duration-700"></div>
-    <div class="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[var(--md-sys-color-tertiary-container)] opacity-30 blur-[100px] transition-colors duration-700"></div>
-    <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIgb3BhY2l0eT0iMC40Ii8+PC9zdmc+')]"></div>
-</div>
+<div class="flex min-h-screen w-full flex-col lg:flex-row relative">
 
-<!-- Main Layout -->
-<div class="relative min-h-screen flex flex-col lg:flex-row z-10">
+    <div class="relative hidden lg:block lg:w-[40%] h-full min-h-screen overflow-hidden order-1 group">
 
-    <!-- Form Panel -->
-    <div class="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-12 xl:p-24 relative">
-        {{ $slot }}
-    </div>
+        <div class="absolute inset-0 z-0 bg-[var(--md-sys-color-surface-container)]">
+            <div class="absolute inset-0 w-full h-full block dark:hidden transition-transform duration-[40s] hover:scale-110 ease-linear brightness-100 mix-blend-multiply opacity-90">
+                <img src="{{ Vite::asset('resources/assets/img/mining.jpg') }}"
+                     alt="Mining Operations Light"
+                     class="animate-fade w-full h-full object-cover transition-transform duration-700 hover:scale-[1.02]"/>
+            </div>
 
-    <!-- Illustration Panel (Desktop Only) -->
-    <div class="hidden lg:flex lg:w-1/2 h-screen sticky top-0 bg-[var(--md-sys-color-surface-container-high)] border-r border-[var(--md-sys-color-outline-variant)]/40 items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 w-full h-full hidden dark:block transition-transform duration-[40s] hover:scale-110 ease-linear brightness-100 mix-blend-luminosity opacity-60">
+                <img src="{{ Vite::asset('resources/assets/img/mining.svg') }}"
+                     alt="Mining Operations Dark"
+                     class="w-full h-full object-cover drop-shadow-2xl transition-transform duration-700 hover:scale-[1.02]"/>
+            </div>
 
-        <!-- Ambient Glow Behind Image -->
-        <div class="absolute w-[80%] h-[80%] rounded-full bg-[var(--md-sys-color-surface-container-highest)]/50 blur-3xl"></div>
-
-        <!-- Light Mode Image -->
-        <div class="relative w-full max-w-[80%] p-8 z-10 dark:hidden rounded-2xl">
-            <img src="{{ Vite::asset('resources/assets/img/mining.jpg') }}"
-                 alt="Mining Operations Light"
-                 class="animate-fade w-full h-auto object-contain rounded-[2.5rem] drop-shadow-2xl transition-transform duration-700 hover:scale-[1.02]"/>
+            <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/10 mix-blend-overlay transition-colors duration-500"></div>
+            <div class="absolute inset-0 hidden dark:block bg-gradient-to-t from-[var(--md-sys-color-background)] via-transparent to-black/40 mix-blend-multiply transition-opacity duration-500"></div>
+            <div class="absolute inset-0 hidden dark:block bg-blue-900/10 mix-blend-overlay transition-opacity duration-500"></div>
         </div>
 
-        <!-- Dark Mode Image -->
-        <div class="relative w-full max-w-[85%] p-8 z-10 hidden dark:block">
-            <img src="{{ Vite::asset('resources/assets/img/mining.svg') }}"
-                 alt="Mining Operations Dark"
-                 class="w-full h-auto object-contain rounded-2xl drop-shadow-2xl transition-transform duration-700 hover:scale-[1.02]"/>
+        <div class="absolute bottom-0 inset-x-0 h-[40%] z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col justify-end px-12 pb-16 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
+            <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                <h1 class="text-5xl font-black text-white mb-3 drop-shadow-lg tracking-tight">
+                    اینـتـرا
+                </h1>
+                <h2 class="text-2xl font-bold text-[var(--md-sys-color-primary)] mb-2">
+                    خـانـه دیجیتـال مـا
+                </h2>
+                <p class="text-gray-300 text-sm font-medium leading-relaxed max-w-md">
+                    ابـزاری کـه شمـا در دفتـر کـار بـه آن نیـاز داریـد
+                </p>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- Theme Controls -->
-<div class="fixed top-6 left-6 z-50 flex flex-col gap-3 text-[--md-sys-color-primary]" x-data="{ open: false }">
-
-    <!-- Main Toggle Panel -->
-    <div class="glass-panel rounded-2xl p-1.5 flex flex-col gap-2 transition-all duration-300 shadow-xl bg-[var(--md-sys-color-surface)]/80 backdrop-blur-xl border border-[var(--md-sys-color-outline-variant)]">
-
-        <!-- Dark Mode Toggle -->
-        <button @click="window.ThemeManager.toggleMode(); isDark = !isDark"
-                class="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer hover:bg-[var(--md-sys-color-secondary-container)] hover:text-[var(--md-sys-color-on-secondary-container)] active:scale-90 text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-[24px] transition-transform duration-500 rotate-0 dark:rotate-180"
-                      x-text="isDark ? 'dark_mode' : 'light_mode'"></span>
-        </button>
-
-        <div class="w-full h-[1px] bg-[var(--md-sys-color-outline-variant)]/50"></div>
-
-        <!-- Color Palette Toggle -->
-        <button @click="open = !open"
-                class="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:bg-[var(--md-sys-color-secondary-container)] hover:text-[var(--md-sys-color-on-secondary-container)] active:scale-90"
-                :class="{ 'text-[var(--md-sys-color-primary)]': open, 'text-[var(--md-sys-color-on-surface-variant)]': !open }">
-            <span class="material-symbols-rounded text-[24px]">palette</span>
-        </button>
+        <div class="absolute inset-0 z-10 opacity-10 dark:opacity-20 pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjEiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')] [mask-image:linear-gradient(to_bottom,transparent,black)]"></div>
     </div>
 
-    <!-- Color Picker Dropdown -->
-    <div x-show="open" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 -translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 -translate-y-2"
-         class="absolute left-14 top-0 p-2.5 rounded-2xl flex flex-col gap-2 bg-[var(--md-sys-color-surface)]/90 backdrop-blur-xl border border-[var(--md-sys-color-outline-variant)] shadow-xl">
-        <template x-for="color in $store.theme.colors" :key="color.name">
-            <button :title="color.title"
-                    @click="$store.theme.set(color.name)"
-                    class="w-8 h-8 rounded-full border border-[var(--md-sys-color-outline)]/20 cursor-pointer hover:scale-110 transition-transform shadow-sm relative group"
-                    :style="`background: ${color.color}`">
-                <!-- Active Indicator -->
-                <div x-show="$store.theme.current === color.name"
-                     class="absolute inset-0 flex items-center justify-center">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white shadow-sm"></span>
+    <div class="w-full lg:w-[60%] flex flex-col justify-center items-center p-8 lg:p-16 xl:p-24 bg-[var(--md-sys-color-surface)] dark:bg-[#0F1218] z-20 order-2 transition-colors duration-500 relative">
+
+        <div class="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-[var(--md-sys-color-primary-container)]/30 rounded-full blur-[120px] pointer-events-none opacity-50 dark:opacity-100 transition-opacity duration-500"></div>
+        <div class="absolute bottom-[-10%] left-[-20%] w-[500px] h-[500px] bg-[var(--md-sys-color-tertiary-container)]/20 rounded-full blur-[120px] pointer-events-none opacity-50 dark:opacity-100 transition-opacity duration-500"></div>
+
+        <div class="w-full max-w-[650px] relative z-30">
+            <div class="group">
+                {{ $slot }}
+            </div>
+        </div>
+
+        <div class="fixed bottom-8 left-8 z-50 flex items-center gap-2" x-cloak>
+            <div class="glass-panel p-1.5 rounded-full flex gap-1 bg-white/80 dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-xl transition-all hover:bg-white hover:dark:bg-white/10">
+                <button @click="window.ThemeManager.toggleMode(); isDark = !isDark"
+                        class="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100 hover:dark:bg-white/10 transition-all"
+                        :title="isDark ? 'Switch to Light' : 'Switch to Dark'">
+                    <span class="material-symbols-rounded text-[20px]" x-text="isDark ? 'dark_mode' : 'light_mode'"></span>
+                </button>
+
+                <div class="w-[1px] h-4 bg-gray-300 dark:bg-white/10 my-auto"></div>
+
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                            class="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100 hover:dark:bg-white/10 transition-all">
+                        <span class="material-symbols-rounded text-[20px]">palette</span>
+                    </button>
+
+                    <div x-show="open" @click.outside="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute bottom-12 left-0 p-2 rounded-xl bg-white dark:bg-[#1A1F2B] border border-gray-200 dark:border-white/10 shadow-2xl flex flex-col gap-2 min-w-[40px]">
+                        <template x-for="color in $store.theme.colors" :key="color.name">
+                            <button @click="$store.theme.set(color.name); open = false"
+                                    class="w-6 h-6 rounded-full border border-gray-200 dark:border-white/10 hover:scale-110 transition-transform"
+                                    :style="'background: ' + color.color"></button>
+                        </template>
+                    </div>
                 </div>
-            </button>
-        </template>
+            </div>
+        </div>
+
     </div>
 </div>
 

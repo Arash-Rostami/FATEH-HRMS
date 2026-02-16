@@ -51,7 +51,7 @@
                         </label>
                         <span
                             class="material-symbols-rounded absolute top-[18px] rtl:right-4 ltr:left-4 text-[22px] text-[var(--md-sys-color-on-surface-variant)] transition-colors duration-200 peer-focus:text-[var(--md-sys-color-primary)] pointer-events-none">
-                            fingerprint
+                            key
                         </span>
                         <button type="button"
                                 @click="showPassword = !showPassword"

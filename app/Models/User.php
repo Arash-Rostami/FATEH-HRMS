@@ -3,14 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Arr;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +18,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'maximum',
+        'type',
+        'role',
+        'status',
+        'presence',
+        'booking',
+        'last_seen',
+        'extra',
     ];
 
     /**
@@ -33,16 +38,72 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function getExtraValue(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->extra ?? [], $key, $default);
+    }
+
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOnline(int $minutes = 5): bool
+    {
+        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+
+    public function scopeOfType($query, string $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    public function scopeOnline($query, int $minutes = 5)
+    {
+        return $query->where('last_seen', '>=', now()->subMinutes($minutes));
+    }
+
+    public function scopeWithRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    public function setExtraValue(string $key, mixed $value): void
+    {
+        $extra = $this->extra ?? [];
+        Arr::set($extra, $key, $value);
+        $this->extra = $extra;
+    }
+
+    public function touchLastSeen(): void
+    {
+        $this->update(['last_seen' => now()]);
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_seen' => 'datetime',
+            'extra' => 'array',
         ];
     }
 }
