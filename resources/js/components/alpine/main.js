@@ -1,5 +1,6 @@
 import registerAppStore from './stores/app.js'
 import registerThemeStore from './stores/theme.js'
+import registerBackgroundStore from './stores/background.js'
 import password from "./data/password.js";
 import menu from "./data/menu.js";
 import shapes from "./data/shapes.js";
@@ -22,6 +23,7 @@ export default function initAlpine() {
          */
         registerAppStore(Alpine)
         registerThemeStore(Alpine)
+registerBackgroundStore(Alpine)
 
         /*
          |--------------------------------------------------------------------------
