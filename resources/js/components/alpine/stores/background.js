@@ -11,6 +11,7 @@ import bg8 from '../../../../assets/img/bg/backdrop8.png';
 export default (Alpine) => {
     Alpine.store('background', {
         enabled: localStorage.getItem('backgroundEnabled') === 'true',
+        patternEnabled: localStorage.getItem('patternEnabled') === 'true',
 
         images: [
             bg1,
@@ -36,13 +37,33 @@ export default (Alpine) => {
 
         toggle(value) {
             this.enabled = value;
+            if (value) {
+                this.patternEnabled = false;
+                localStorage.setItem('patternEnabled', 'false');
+            }
             localStorage.setItem('backgroundEnabled', value);
             window.dispatchEvent(new CustomEvent('background-toggled', {detail: value}));
+        },
+
+        togglePattern(value) {
+            this.patternEnabled = value;
+            if (value) {
+                this.enabled = false;
+                localStorage.setItem('backgroundEnabled', 'false');
+            }
+            localStorage.setItem('patternEnabled', value);
+            window.dispatchEvent(new CustomEvent('pattern-toggled', {detail: value}));
         },
 
         init() {
             window.addEventListener('background-toggled', (e) => {
                 this.enabled = e.detail;
+                if (this.enabled) this.patternEnabled = false;
+            });
+
+            window.addEventListener('pattern-toggled', (e) => {
+                this.patternEnabled = e.detail;
+                if (this.patternEnabled) this.enabled = false;
             });
         }
     })
