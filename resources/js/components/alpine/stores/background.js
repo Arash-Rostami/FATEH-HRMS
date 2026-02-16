@@ -1,17 +1,16 @@
 export default (Alpine) => {
+    // Glob import for static analysis by Vite
+    const bgImages = import.meta.glob('/resources/assets/img/bg/*.png', { eager: true, as: 'url' });
+
+    // Convert object to array sorted by filename
+    const images = Object.keys(bgImages)
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+        .map(key => bgImages[key]);
+
     Alpine.store('background', {
         enabled: localStorage.getItem('backgroundEnabled') === 'true',
 
-        images: [
-            '/assets/img/bg/backdrop1.png',
-            '/assets/img/bg/backdrop2.png',
-            '/assets/img/bg/backdrop3.png',
-            '/assets/img/bg/backdrop4.png',
-            '/assets/img/bg/backdrop5.png',
-            '/assets/img/bg/backdrop6.png',
-            '/assets/img/bg/backdrop7.png',
-            '/assets/img/bg/backdrop8.png'
-        ],
+        images: images,
 
         tabsOrder: [
             'overview',
@@ -27,12 +26,10 @@ export default (Alpine) => {
         toggle(value) {
             this.enabled = value;
             localStorage.setItem('backgroundEnabled', value);
-            // Dispatch event for components that might listen directly
             window.dispatchEvent(new CustomEvent('background-toggled', { detail: value }));
         },
 
         init() {
-            // Sync with potential external changes if needed
             window.addEventListener('background-toggled', (e) => {
                 this.enabled = e.detail;
             });
