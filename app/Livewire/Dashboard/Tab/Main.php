@@ -2,11 +2,9 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 
-//#[Layout('layouts.app')]
 class Main extends Component
 {
     public $activeTab = 'overview';
@@ -21,7 +19,7 @@ class Main extends Component
                 'icon' => 'home',
                 'bg' => 'bg-surface-variant'
             ],
-            'dashboard' => [
+            'post' => [
                 'component' => Posts::class,
                 'label' => 'پست',
                 'icon' => 'newspaper',
@@ -66,6 +64,20 @@ class Main extends Component
         ];
     }
 
+    public function navigateTab(int $step)
+    {
+        $keys = array_keys($this->getTabsProperty());
+        $currentIndex = array_search($this->activeTab, $keys);
+
+        if ($currentIndex === false) return;
+
+        $count = count($keys);
+
+        $newIndex = ($currentIndex + $step + $count) % $count;
+
+        $this->setTab($keys[$newIndex]);
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.main', [
@@ -84,9 +96,7 @@ class Main extends Component
         $currentIndex = array_search($this->activeTab, $tabsKeys);
         $newIndex = array_search($tabId, $tabsKeys);
 
-        // Determine direction
-        // If moving down the list (index increases), content slides UP (new comes from bottom)
-        // If moving up the list (index decreases), content slides DOWN (new comes from top)
+
         $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
 
         $this->activeTab = $tabId;

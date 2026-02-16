@@ -1,5 +1,7 @@
 import registerAppStore from './stores/app.js'
 import registerThemeStore from './stores/theme.js'
+import registerBackgroundStore from './stores/background.js'
+
 import password from "./data/password.js";
 import menu from "./data/menu.js";
 import shapes from "./data/shapes.js";
@@ -8,6 +10,8 @@ import settings from "./data/settings.js";
 import palette from "./data/palette.js";
 import fullscreen from "./data/fullscreen.js";
 import sidebar from "./data/sidebar.js";
+import share from "./data/share.js";
+import background from "./data/background.js";
 
 
 export default function initAlpine() {
@@ -20,6 +24,7 @@ export default function initAlpine() {
          */
         registerAppStore(Alpine)
         registerThemeStore(Alpine)
+        registerBackgroundStore(Alpine)
 
         /*
          |--------------------------------------------------------------------------
@@ -34,5 +39,7 @@ export default function initAlpine() {
         Alpine.data('palette', palette)
         Alpine.data('fullscreen', fullscreen)
         Alpine.data('sidebar', sidebar)
+        Alpine.data('share', share)
+        Alpine.data('background', background)
     })
 }

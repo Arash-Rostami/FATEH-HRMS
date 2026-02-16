@@ -2,17 +2,13 @@ export default function settings() {
     return {
         open: false,
         focusMode: false,
-        backgroundEnabled: localStorage.getItem('backgroundEnabled') === 'true',
 
-        init() {
-            this.$watch('backgroundEnabled', value => {
-                localStorage.setItem('backgroundEnabled', value);
-                window.dispatchEvent(new CustomEvent('background-toggled', {detail: value}));
-            });
+        get backgroundEnabled() {
+            return Alpine.store('background').enabled;
         },
 
         toggleBackground() {
-            this.backgroundEnabled = !this.backgroundEnabled;
+            Alpine.store('background').toggle(!this.backgroundEnabled);
         },
 
         toggleFocus() {

@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Post;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -21,7 +22,7 @@ class Posts extends Component
         $this->page++;
     }
 
-    #[Computed]
+    #[Computed(seconds: 3600, cache: true, key: 'dashboard.posts.pins')]
     public function pins()
     {
         return Post::where('pinned', 1)
@@ -30,21 +31,17 @@ class Posts extends Component
             ->get();
     }
 
-    public function placeholder()
-    {
-        return view('livewire.dashboard.tab.placeholder');
-    }
-
     #[Computed]
     public function posts()
     {
-        $offset = ($this->page - 1) * 2;
-
-        return Post::where('pinned', '<>', 1)
-            ->orderByDesc('created_at')
-            ->skip($offset)
-            ->take(3)
-            ->get();
+        return Cache::remember('dashboard.posts.feed.page.' . $this->page, 3600, function () {
+            return Post::query()
+                ->where('pinned', '<>', 1)
+                ->orderByDesc('created_at')
+                ->skip(($this->page - 1) * 3)
+                ->take(3)
+                ->get();
+        });
     }
 
     public function render()
@@ -54,7 +51,9 @@ class Posts extends Component
 
     public function selectPost($id)
     {
-        $this->selectedPost = Post::find($id);
+        $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, function () use ($id) {
+            return Post::find($id);
+        });
         $this->dispatch('open-post-panel');
     }
 }

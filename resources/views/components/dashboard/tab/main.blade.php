@@ -1,4 +1,4 @@
-{{--@props(['activeTab', 'direction' => 'up', 'currentTab'])--}}
+@props(['activeTab', 'direction' => 'up', 'currentTab'])
 
 <main class="flex-1 flex flex-col lg:flex-row relative overflow-hidden"
       x-data="{
@@ -31,10 +31,5 @@
             :key="$activeTab"
             lazy
         />
-
     </div>
-
-    <x-dashboard.loader.bar wire:loading/>
-
-
 </main>

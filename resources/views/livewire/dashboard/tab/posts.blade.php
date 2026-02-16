@@ -1,35 +1,10 @@
 <div
     class="h-full w-full relative overflow-hidden flex flex-col lg:flex-row gap-6 p-4 md:p-6"
     dir="rtl"
-    x-data="{
-        panelOpen: false,
-        sharePopoverOpen: false,
-        shareText: '',
-        shareTitle: '',
-        init() {
-            $watch('panelOpen', value => {
-                document.body.style.overflow = value ? 'hidden' : '';
-            });
-        },
-        openShare(title, body) {
-            this.shareTitle = title;
-            this.shareText = body;
-            this.sharePopoverOpen = !this.sharePopoverOpen;
-        },
-        copyToClipboard() {
-            navigator.clipboard.writeText(this.shareTitle + '\n\n' + this.shareText)
-                .then(() => this.sharePopoverOpen = false);
-        },
-        sendEmail() {
-            window.location.href = 'mailto:?subject=' + encodeURIComponent(this.shareTitle)
-                + '&body=' + encodeURIComponent(this.shareText);
-            this.sharePopoverOpen = false;
-        }
-    }"
+    x-data="share"
     @open-post-panel.window="panelOpen = true"
 >
 
-    {{-- Left Column: Sticky Pinned Post --}}
     <aside class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 flex flex-col gap-4">
         <div class="sticky top-0 z-10 h-full flex flex-col">
 
@@ -231,14 +206,14 @@
             x-transition:leave-start="translate-x-0"
             x-transition:leave-end="translate-x-full rtl:-translate-x-full"
         >
-            @if($selectedPost)
+            @if($this->selectedPost)
                 {{-- Header Image --}}
                 <div class="relative h-72 sm:h-96 w-full shrink-0 group">
                     <img src="{{ $selectedPost->image }}" class="w-full h-full object-cover">
 
                     {{-- Close Button --}}
                     <button
-                        @click="panelOpen = false"
+                        @click="togglePanel()"
                         class="absolute top-6 left-6 w-10 h-10 rounded-full bg-black/40 text-white/90 backdrop-blur-md flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
                     >
                         <span class="material-symbols-rounded font-bold">close</span>
@@ -310,7 +285,7 @@
                         >
                             <div class="flex flex-col py-1">
                                 <button
-                                    @click="copyToClipboard(); open = false"
+                                    @click="copyToClipboard();"
                                     class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right"
                                 >
                                     <span
@@ -330,7 +305,7 @@
                     </div>
 
                     <button
-                        @click="panelOpen = false"
+                        @click="togglePanel()"
                         class="px-8 py-2.5 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm shadow-md hover:shadow-xl hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:-translate-y-0.5 transition-all active:scale-95 active:shadow-sm"
                     >
                         بستن

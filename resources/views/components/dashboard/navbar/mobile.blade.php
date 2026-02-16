@@ -9,11 +9,12 @@
     $pageTwo = $chunks[1] ?? [];
 @endphp
 
-<aside x-data="{
+<aside
+    x-data="{
             page: 0,
             toggle() { this.page = this.page === 0 ? 1 : 0 }
         }"
-       class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px]">
+    class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px]">
 
     <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-50">
         <button @click="toggle()"
@@ -30,17 +31,21 @@
         </button>
     </div>
 
-    <div class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-3xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
+    <div
+        class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-3xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
 
         <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
              :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">
             {{-- PAGE 1 --}}
-            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
+            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2"
+                 wire:keydown.window.arrow-right.prevent="navigateTab(1)"
+                 wire:keydown.window.arrow-left.prevent="navigateTab(-1)">
                 @foreach($pageOne as $key => $tab)
                     <button wire:click="setTab('{{ $key }}')"
                             class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
                                    {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
-                        <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
+                        <span
+                            class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
                 @for($i = count($pageOne); $i < $perPage; $i++)
@@ -53,7 +58,8 @@
                     <button wire:click="setTab('{{ $key }}')"
                             class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
                                    {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
-                        <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
+                        <span
+                            class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
                 @for($i = count($pageTwo); $i < $perPage; $i++)
