@@ -7,6 +7,7 @@ import timer from "./data/timer.js";
 import settings from "./data/settings.js";
 import palette from "./data/palette.js";
 import fullscreen from "./data/fullscreen.js";
+import sidebar from "./data/sidebar.js";
 
 
 export default function initAlpine() {
@@ -32,5 +33,6 @@ export default function initAlpine() {
         Alpine.data('settings', settings)
         Alpine.data('palette', palette)
         Alpine.data('fullscreen', fullscreen)
+        Alpine.data('sidebar', sidebar)
     })
 }

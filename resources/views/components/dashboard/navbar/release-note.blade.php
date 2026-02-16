@@ -1,5 +1,4 @@
 <div x-data="{ open: false }" class="relative" @keydown.window.escape="open = false">
-    <!-- Trigger Button -->
     <button @click="open = true"
             class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/10 active:bg-[var(--md-sys-color-surface-container-high)]/15 active:scale-95 transition-all duration-200 flex items-center justify-center relative group touch-manipulation"
             title="تغییرات و به‌روزرسانی‌ها">

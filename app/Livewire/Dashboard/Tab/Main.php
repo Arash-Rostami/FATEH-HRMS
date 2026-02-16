@@ -22,9 +22,9 @@ class Main extends Component
                 'bg' => 'bg-surface-variant'
             ],
             'dashboard' => [
-                'component' => Overview::class,
-                'label' => 'Dashboard',
-                'icon' => 'grid_view',
+                'component' => Posts::class,
+                'label' => 'پست',
+                'icon' => 'newspaper',
                 'bg' => 'bg-secondary-container'
             ],
             'calendar' => [

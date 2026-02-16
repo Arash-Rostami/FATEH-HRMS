@@ -2,16 +2,7 @@
     <x-dashboard.header.main/>
     <x-dashboard.navbar.top/>
     <x-dashboard.navbar.left/>
-hi
-    <!-- Main Content Area with Dynamic Component -->
-    <x-dashboard.tab.main :activeTab="$activeTab" :direction="$direction" :currentTab="$currentTab" />
-
-    <!-- Right Navbar with active tab prop -->
-    <x-dashboard.navbar.right :activeTab="$activeTab" :tabs="$tabs" />
-    <x-dashboard.navbar.mobile :activeTab="$activeTab" :tabs="$tabs" />
-
-    <!-- Animation Styles -->
-    <style>
-
-    </style>
+    <x-dashboard.tab.main :activeTab="$activeTab" :direction="$direction" :currentTab="$currentTab"/>
+    <x-dashboard.navbar.right :activeTab="$activeTab" :tabs="$tabs"/>
+    <x-dashboard.navbar.mobile :activeTab="$activeTab" :tabs="$tabs"/>
 </div>

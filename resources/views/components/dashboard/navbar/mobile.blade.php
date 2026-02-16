@@ -2,7 +2,6 @@
 
 @php
     $count = count($tabs);
-    // Dynamic Density: 4 items if many, 2 if few.
     $perPage = $count > 4 ? 4 : 2;
 
     $chunks = array_chunk($tabs, $perPage, true);
@@ -16,8 +15,6 @@
         }"
        class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px]">
 
-    {{-- 1. PAGINATION BUTTON (Floating on Top Edge) --}}
-    {{-- We place this BEFORE the bar so z-indexing works naturally, or use z-50 --}}
     <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-50">
         <button @click="toggle()"
                 class="w-10 h-10 rounded-xl flex items-center justify-center
@@ -33,15 +30,11 @@
         </button>
     </div>
 
-    {{-- 2. THE CONTAINER BAR --}}
     <div class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-3xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
 
-        {{-- SLIDING TRACK --}}
         <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
              :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">
-
             {{-- PAGE 1 --}}
-            {{-- Removed pr-[76px] so items use full width --}}
             <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
                 @foreach($pageOne as $key => $tab)
                     <button wire:click="setTab('{{ $key }}')"
@@ -50,14 +43,11 @@
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
-                {{-- Spacers to keep grid alignment --}}
                 @for($i = count($pageOne); $i < $perPage; $i++)
                     <div class="flex-1"></div>
                 @endfor
             </div>
-
             {{-- PAGE 2 --}}
-            {{-- Removed pl-[76px] so items use full width --}}
             <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
                 @foreach($pageTwo as $key => $tab)
                     <button wire:click="setTab('{{ $key }}')"
@@ -66,12 +56,10 @@
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
-                {{-- Spacers to keep grid alignment --}}
                 @for($i = count($pageTwo); $i < $perPage; $i++)
                     <div class="flex-1"></div>
                 @endfor
             </div>
-
         </div>
     </div>
 

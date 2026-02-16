@@ -2,7 +2,7 @@
      x-data="menu()"
      dir="rtl"
      @resize.window="updatePerPage"
-     class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0 relative z-50 transition-colors duration-300">
+     class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0 relative z-[100] transition-colors duration-300">
 
     {{--  Menu  --}}
     <div class="flex items-center gap-2 lg:gap-3">
