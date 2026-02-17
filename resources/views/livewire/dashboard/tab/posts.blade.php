@@ -81,7 +81,7 @@
         </div>
     </aside>
 
-    {{-- Right Column: Scrollable Feed --}}
+    {{-- Right Column: Scrollable feeds --}}
     <section class="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar pr-1 pl-1 pb-20">
 
         {{-- Header --}}
@@ -92,7 +92,7 @@
 
         {{-- Posts Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-            @island(name: 'feed')
+            @island(name: 'feeds')
             @if($this->posts->isNotEmpty())
                 @foreach($this->posts as $post)
                     <article

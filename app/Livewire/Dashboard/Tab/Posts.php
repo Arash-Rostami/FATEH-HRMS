@@ -34,7 +34,7 @@ class Posts extends Component
     #[Computed]
     public function posts()
     {
-        return Cache::remember('dashboard.posts.feed.page.' . $this->page, 3600, function () {
+        return Cache::remember('dashboard.posts.feeds.page.' . $this->page, 3600, function () {
             return Post::query()
                 ->where('pinned', '<>', 1)
                 ->orderByDesc('created_at')

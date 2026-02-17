@@ -25,6 +25,12 @@ class Main extends Component
                 'icon' => 'newspaper',
                 'bg' => 'bg-secondary-container'
             ],
+            'feed' => [
+                'component' => Feeds::class,
+                'label' => 'اخبار',
+                'icon' => 'rss_feed',
+                'bg' => 'bg-tertiary-container'
+            ],
             'calendar' => [
                 'component' => Calendar::class,
                 'label' => 'Calendar',
