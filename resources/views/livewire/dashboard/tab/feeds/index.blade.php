@@ -5,12 +5,14 @@
          @scroll.debounce.50ms="checkScroll"
          class="h-full w-full flex flex-col md:flex-row md:overflow-x-auto md:snap-x md:snap-mandatory gap-6 p-4 scrollbar-hide items-center md:px-[20%]">
 
-        @foreach($feeds as $feed)
-            <div wire:key="feed-{{ $feed->id }}"
-                 class="feed-item w-full md:w-[400px] shrink-0 transition-all duration-500 ease-out transform opacity-0 scale-90 blur-sm md:snap-center">
-                @include('livewire.dashboard.tab.feeds.item')
-            </div>
-        @endforeach
+        @if($feeds->count())
+            @foreach($feeds as $feed)
+                <div wire:key="feed-{{ $feed->id }}"
+                     class="feed-item w-full md:w-[400px] shrink-0 transition-all duration-500 ease-out transform opacity-0 scale-90 blur-sm md:snap-center">
+                    @include('livewire.dashboard.tab.feeds.item')
+                </div>
+            @endforeach
+        @endif
 
         @if($hasMorePages)
             <div class="w-full md:w-[400px] shrink-0 flex items-center justify-center p-8 md:snap-center">
