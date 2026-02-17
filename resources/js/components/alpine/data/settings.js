@@ -7,20 +7,30 @@ export default function settings() {
             return Alpine.store('background').enabled;
         },
 
+        get patternEnabled() {
+            return Alpine.store('background').patternEnabled;
+        },
+
         toggleBackground() {
             Alpine.store('background').toggle(!this.backgroundEnabled);
+        },
+
+        togglePattern() {
+            Alpine.store('background').togglePattern(!this.patternEnabled);
         },
 
         toggleFocus() {
             this.focusMode = !this.focusMode;
             if (this.focusMode) {
-                document.documentElement.requestFullscreen().catch(() => {
-                });
-                this.$wire.enableFocusMode();
+                document.documentElement.requestFullscreen().catch(() => {});
+                Alpine.store('background').patternEnabled = false;
+                Alpine.store('background').enabled = false;
+                this.$wire.call('enableFocusMode');
             } else {
                 if (document.exitFullscreen) document.exitFullscreen().catch(() => {
                 });
-                this.$wire.disableFocusMode();
+                Alpine.store('background').enabled = true;
+                this.$wire.call('disableFocusMode');
             }
         },
 

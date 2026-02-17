@@ -4,19 +4,13 @@ namespace App\Livewire\Dashboard\Navbar;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class StatusSwitcher extends Component
 {
-    public string $status = 'onsite';
-
     const STATUSES = ['onsite', 'busy', 'remote', 'mission'];
-
-    public function mount(): void
-    {
-        $current = Auth::user()->presence;
-        $this->status = in_array($current, self::STATUSES) ? $current : 'onsite';
-    }
+    public string $status = 'onsite';
 
     public function changeStatus(string $val): void
     {
@@ -37,5 +31,17 @@ class StatusSwitcher extends Component
         $this->status = $val;
 
         $this->dispatch('statusSwitcher-updated', status: $val);
+    }
+
+    public function mount(): void
+    {
+        $current = Auth::user()->presence;
+        $this->status = in_array($current, self::STATUSES) ? $current : 'onsite';
+    }
+
+    #[On('statusSwitcher-updated')]
+    public function updatedFromEvent(string $status): void
+    {
+        $this->status = $status;
     }
 }
