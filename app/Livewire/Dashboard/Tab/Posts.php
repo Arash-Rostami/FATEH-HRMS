@@ -34,12 +34,14 @@ class Posts extends Component
     #[Computed]
     public function posts()
     {
-        return Cache::remember('dashboard.posts.feeds.page.' . $this->page, 3600, function () {
+        return Cache::remember('dashboard.posts.feeds.cumulative.' . $this->page, 300, function () {
             return Post::query()
-                ->where('pinned', '<>', 1)
+                ->where(function($query) {
+                    $query->where('pinned', '<>', 1)
+                        ->orWhereNull('pinned');
+                })
                 ->orderByDesc('created_at')
-                ->skip(($this->page - 1) * 3)
-                ->take(3)
+                ->take($this->page * 3)
                 ->get();
         });
     }

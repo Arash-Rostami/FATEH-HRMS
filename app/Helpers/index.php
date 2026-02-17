@@ -1,7 +1,9 @@
 <?php
 
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Morilog\Jalali\Jalalian;
 
 if (!function_exists('superClean')) {
 
@@ -17,5 +19,16 @@ if (!function_exists('superClean')) {
         $text = Str::limit(trim($text), $limit);
 
         return $nl2br ? nl2br(e($text), false) : $text;
+    }
+}
+
+
+if (!function_exists('jdate')) {
+    function jdate($date = null)
+    {
+        if (!$date) return Jalalian::now();
+
+        $instance = $date instanceof Carbon ? $date : Carbon::parse($date);
+        return Jalalian::fromCarbon($instance);
     }
 }

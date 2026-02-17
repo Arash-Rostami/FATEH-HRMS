@@ -1,28 +1,9 @@
-<div class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-[32px] overflow-hidden shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 relative group">
-    <div class="p-5 flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container-low)] z-10">
-        <div class="flex items-center gap-3">
-            <div class="relative w-12 h-12 rounded-2xl overflow-hidden shadow-sm">
-                <img src="{{ $feed?->user?->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($feed?->user?->name ?? 'U') }}"
-                     class="w-full h-full object-cover"
-                     alt="Avatar">
-                @if($feed?->user?->is_online)
-                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--md-sys-color-surface)] rounded-full"></div>
-                @endif
-            </div>
-            <div class="flex flex-col">
-                <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
-                    {!! superClean($feed?->user?->name) ?? 'کاربر' !!}
-                </span>
-                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1">
-                    <span class="material-symbols-rounded text-xs">history</span>
-                    {{ $feed?->created_at?->diffForHumans() ?? '' }}
-                </span>
-            </div>
-        </div>
-        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] transition-colors">
-            <span class="material-symbols-rounded text-xl">more_vert</span>
-        </button>
-    </div>
+<div
+    :class="{'!bg-[var(--md-sys-color-primary-container)]': activeId == {{ $feed->id }}}"
+    class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-[32px] overflow-hidden shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 relative group">
+
+    @include('livewire.dashboard.tab.feeds.header', ['feed' => $feed])
+
 
     <div class="flex-1 overflow-y-auto feed-scrollbar p-5 space-y-6 pb-24">
         @if(!empty($feed?->content))

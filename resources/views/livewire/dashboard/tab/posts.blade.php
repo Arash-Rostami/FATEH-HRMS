@@ -5,8 +5,8 @@
     @open-post-panel.window="panelOpen = true"
 >
 
-    <aside class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 flex flex-col gap-4">
-        <div class="sticky top-0 z-10 h-full flex flex-col">
+    <aside class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 max-h-[70vh] flex flex-col overflow-hidden">
+        <div class="sticky top-0  z-10 h-full flex flex-col">
 
             {{-- Header --}}
             <div class="flex items-center gap-2 mb-3 px-1 shrink-0">
@@ -92,7 +92,6 @@
 
         {{-- Posts Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-            @island(name: 'feeds')
             @if($this->posts->isNotEmpty())
                 @foreach($this->posts as $post)
                     <article
@@ -155,14 +154,12 @@
                     <span class="text-[var(--md-sys-color-outline)]">هیچ پستی یافت نشد.</span>
                 </div>
             @endif
-            @endisland
         </div>
 
         {{-- Load More Button --}}
         <div class="mt-8 mb-12 flex justify-center">
             <button
-                wire:click="loadMore; $refresh"
-                wire:island.append="feed"
+                wire:click="loadMore;"
                 class="group px-6 py-2.5 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)] font-bold text-sm border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-surface-container-highest)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
             >
                 <span>نمایش بیشتر</span>

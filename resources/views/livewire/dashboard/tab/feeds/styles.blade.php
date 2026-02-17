@@ -1,12 +1,4 @@
 <style>
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
     .snap-center {
         scroll-snap-align: center;
     }
@@ -22,7 +14,7 @@
         align-items: center;
         justify-content: center;
         color: var(--md-sys-color-primary);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         cursor: pointer;
         z-index: 50;
         border: 1px solid rgba(var(--md-sys-color-outline-variant), 0.2);
@@ -52,8 +44,14 @@
     }
 
     @keyframes pulse-node {
-        0% { box-shadow: 0 0 0 0 rgba(var(--md-sys-color-primary), 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(var(--md-sys-color-primary), 0); }
-        100% { box-shadow: 0 0 0 0 rgba(var(--md-sys-color-primary), 0); }
+        0% {
+            box-shadow: 0 0 0 0 rgba(var(--md-sys-color-primary), 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(var(--md-sys-color-primary), 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(var(--md-sys-color-primary), 0);
+        }
     }
 </style>
