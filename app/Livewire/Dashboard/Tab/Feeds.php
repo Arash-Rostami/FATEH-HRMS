@@ -20,58 +20,22 @@ class Feeds extends Component
     public ?int $selectedFeedId = null;
 
     public array $newComments = [];
+    public array $replyComments = [];
 
     public ?int $editingCommentId = null;
     public string $editingContent = '';
 
-    public int $perPage = 10;
+    public int $perPage = 3;
     public bool $hasMorePages = true;
 
-    public function addComment($feedId)
+    public function mount()
     {
-        $this->validate([
-            'newComments.' . $feedId => 'required|string|max:1000',
-        ]);
-
-        $content = $this->newComments[$feedId];
-
-        Comment::create([
-            'feed_id' => $feedId,
-            'user_id' => auth()->id(),
-            'content' => $content,
-        ]);
-
-        $this->newComments[$feedId] = '';
-
-        // Dispatch event to refresh UI if needed or show toast
-        $this->dispatch('comment-added', feedId: $feedId);
-    }
-
-    public function deleteComment($commentId)
-    {
-        $comment = Comment::find($commentId);
-
-        if ($comment && $comment->user_id === auth()->id()) {
-            $comment->delete();
-        }
-    }
-
-    #[Computed]
-    public function feeds()
-    {
-        if (empty($this->feedIds)) return collect();
-
-        return Feed::with(['user', 'comments.user', 'reactions', 'reactions.user'])
-            ->whereIn('id', $this->feedIds)
-            ->orderByRaw('FIELD(id, ' . implode(',', $this->feedIds) . ')')
-            ->get();
+        $this->loadInitialFeeds();
     }
 
     public function loadInitialFeeds()
     {
-        $query = Feed::latest();
-
-        $feeds = $query->take($this->perPage)->get();
+        $feeds = Feed::latest()->take($this->perPage)->get();
 
         $this->feedIds = $feeds->pluck('id')->toArray();
         $this->hasMorePages = $feeds->count() >= $this->perPage;
@@ -103,14 +67,62 @@ class Feeds extends Component
         $this->feedIds = array_merge($this->feedIds, $newFeeds);
     }
 
-    public function mount()
+    #[Computed]
+    public function feeds()
     {
-        $this->loadInitialFeeds();
+        if (empty($this->feedIds)) return collect();
+
+        // Optimized Eager Loading with Nested Comments
+        return Feed::with([
+            'user',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->latest();
+            },
+            'comments.user',
+            'comments.children.user', // Load 1 level of replies
+            'reactions',
+            'reactions.user'
+        ])
+            ->whereIn('id', $this->feedIds)
+            ->orderByRaw('FIELD(id, ' . implode(',', $this->feedIds) . ')')
+            ->get();
     }
 
-    public function render()
+    public function addComment($feedId, $parentId = null)
     {
-        return view('livewire.dashboard.tab.feeds.index');
+        if ($parentId) {
+            $this->validate([
+                'replyComments.' . $parentId => 'required|string|max:1000',
+            ]);
+            $content = $this->replyComments[$parentId];
+        } else {
+            $this->validate([
+                'newComments.' . $feedId => 'required|string|max:1000',
+            ]);
+            $content = $this->newComments[$feedId];
+        }
+
+        Comment::create([
+            'feed_id' => $feedId,
+            'user_id' => auth()->id(),
+            'content' => $content,
+            'parent_id' => $parentId
+        ]);
+
+        if ($parentId) {
+            $this->replyComments[$parentId] = '';
+        } else {
+            $this->newComments[$feedId] = '';
+        }
+    }
+
+    public function deleteComment($commentId)
+    {
+        $comment = Comment::find($commentId);
+
+        if ($comment && $comment->user_id === auth()->id()) {
+            $comment->delete();
+        }
     }
 
     public function startEditing($commentId)
@@ -123,6 +135,26 @@ class Feeds extends Component
 
         $this->editingCommentId = $commentId;
         $this->editingContent = $comment->content;
+    }
+
+    public function updateComment()
+    {
+        if (!$this->editingCommentId) return;
+
+        $this->validate([
+            'editingContent' => 'required|string|max:1000',
+        ]);
+
+        $comment = Comment::find($this->editingCommentId);
+
+        if ($comment && $comment->user_id === auth()->id()) {
+            $comment->update([
+                'content' => $this->editingContent,
+            ]);
+        }
+
+        $this->editingCommentId = null;
+        $this->editingContent = '';
     }
 
     public function toggleReaction($feedId, $emoji)
@@ -151,23 +183,8 @@ class Feeds extends Component
         });
     }
 
-    public function updateComment()
+    public function render()
     {
-        if (!$this->editingCommentId) return;
-
-        $this->validate([
-            'editingContent' => 'required|string|max:1000',
-        ]);
-
-        $comment = Comment::find($this->editingCommentId);
-
-        if ($comment && $comment->user_id === auth()->id()) {
-            $comment->update([
-                'content' => $this->editingContent,
-            ]);
-        }
-
-        $this->editingCommentId = null;
-        $this->editingContent = '';
+        return view('livewire.dashboard.tab.feeds.index');
     }
 }
