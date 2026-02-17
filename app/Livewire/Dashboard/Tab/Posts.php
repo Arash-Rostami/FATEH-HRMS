@@ -23,7 +23,6 @@ class Posts extends Component
 
     public function mount()
     {
-        // Initial Load (pinned + first page of posts)
         $this->loadInitialPosts();
     }
 
@@ -43,11 +42,6 @@ class Posts extends Component
     public function loadMore()
     {
         if (!$this->hasMorePages) return;
-
-        // Fetch IDs AFTER the current set
-        // Simplest way is skip count($postIds) if we assume no new posts inserted at top constantly,
-        // or adhere to pagination by timestamp if strict.
-        // For simplicity and matching Feed logic: skip(count) works fine for append-only view.
 
         $newIds = Post::where('pinned', '<>', 1)
             ->latest()
@@ -83,15 +77,12 @@ class Posts extends Component
 
         $query = Post::whereIn('id', $this->postIds);
 
-        // Simple conditional for ordering based on driver
         if (DB::connection()->getDriverName() === 'sqlite') {
-             // SQLite fallback: retrieve and sort in PHP to mimic FIELD() behavior
              return $query->get()->sortBy(function($model) {
                 return array_search($model->id, $this->postIds);
             });
         }
 
-        // MySQL/MariaDB FIELD() ordering
         return $query->orderByRaw("FIELD(id, $idsString)")->get();
     }
 
@@ -102,12 +93,9 @@ class Posts extends Component
 
     public function selectPost($id)
     {
-        // Cache detailed post view if needed, or just fetch
         $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, function () use ($id) {
             return Post::find($id);
         });
-
-        // Dispatch browser event to open panel
         $this->dispatch('open-post-panel');
     }
 }

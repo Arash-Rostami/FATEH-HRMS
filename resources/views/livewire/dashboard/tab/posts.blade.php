@@ -1,5 +1,6 @@
 <div
-    class="relative w-full h-full flex flex-col overflow-hidden"
+    class="relative w-full flex flex-col lg:flex-row gap-6 p-4 md:p-6"
+    dir="rtl"
     x-data="{
         panelOpen: false,
         openShare(title, text) {
@@ -10,7 +11,7 @@
                     url: window.location.href,
                 });
             } else {
-               // Fallback or custom share modal logic handled inline
+               // Fallback
             }
         },
         copyToClipboard() {
@@ -25,42 +26,162 @@
     }"
     @open-post-panel.window="panelOpen = true"
 >
-    {{-- Header / Pinned Post Area (Optional) --}}
-    @if($this->pins->isNotEmpty())
-        <section class="shrink-0 px-4 pt-4 pb-2">
-            @foreach($this->pins as $pin)
-                 <div wire:click="selectPost({{ $pin->id }})" class="cursor-pointer bg-[var(--md-sys-color-primary-container)] rounded-2xl p-4 shadow-md hover:shadow-lg transition-all">
-                    <h3 class="font-bold text-[var(--md-sys-color-on-primary-container)]">{{ $pin->title }}</h3>
-                 </div>
-            @endforeach
-        </section>
-    @endif
 
-    {{-- Main Feed List --}}
-    <section class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-20 space-y-4">
+    {{-- Left Sidebar: Sticky --}}
+    <aside class="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0 flex flex-col gap-4 relative">
+        <div class="sticky top-[100px] z-10 flex flex-col gap-4">
 
-        {{-- Standard Livewire Loop --}}
-        @foreach($this->posts as $post)
-            <div
-                wire:key="post-{{ $post->id }}"
-                wire:click="selectPost({{ $post->id }})"
-                class="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-4 shadow-sm hover:scale-[1.01] transition-transform cursor-pointer"
-            >
-                @if($post->image)
-                    <img src="{{ $post->image }}" class="w-full h-48 object-cover rounded-xl mb-3">
-                @endif
-                <h4 class="font-bold text-lg text-[var(--md-sys-color-on-surface)] mb-2">{{ $post->title }}</h4>
-                <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] line-clamp-3">{{ Str::limit(strip_tags($post->body), 150) }}</p>
-                <div class="mt-3 flex justify-between items-center text-xs text-[var(--md-sys-color-outline)]">
-                    <span>{{ $post->created_at->diffForHumans() }}</span>
-                    <span>ادمین</span>
-                </div>
+            {{-- Header --}}
+            <div class="flex items-center gap-2 mb-3 px-1 shrink-0">
+                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">keep</span>
+                <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">ویژه</h3>
             </div>
-        @endforeach
 
-        {{-- Load More Button / Trigger --}}
+            @if($this->pins->isNotEmpty())
+                @foreach($this->pins as $pin)
+                    <div
+                        class="relative group cursor-pointer rounded-[32px] overflow-hidden bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] flex-grow flex flex-col"
+                        wire:click="selectPost({{ $pin->id }})"
+                    >
+                        {{-- Image with Overlay --}}
+                        <div class="relative h-64 lg:h-80 xl:h-96 w-full overflow-hidden shrink-0">
+                            <img
+                                src="{{ $pin->image }}"
+                                alt="{{ superClean($pin->title, 200) }}"
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            >
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+
+                            <div
+                                class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 backdrop-blur-md text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
+                                مهم
+                            </div>
+                        </div>
+
+                        {{-- Content --}}
+                        <div
+                            class="absolute bottom-0 inset-x-0 p-6 lg:p-8 text-white flex flex-col gap-3 bg-gradient-to-t from-black/80 to-transparent pt-24">
+                            <h2 class="text-2xl lg:text-3xl font-bold leading-tight drop-shadow-md">
+                                {{ superClean($pin->title, 100) }}
+                            </h2>
+                            <p class="text-white/90 text-sm lg:text-base line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 transform translate-y-2 group-hover:translate-y-0">
+                                {{ superClean($pin->body, 150) }}
+                            </p>
+                            <div class="flex items-center gap-3 text-white/80 text-xs font-medium mt-1">
+                                <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                                    <span class="material-symbols-rounded text-[16px]">calendar_today</span>
+                                    <span>{{ $pin->created_at->format('Y/m/d') }}</span>
+                                </div>
+                                <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                                    <span class="material-symbols-rounded text-[16px]">person</span>
+                                    <span>ادمین</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Hover Glow --}}
+                        <div
+                            class="absolute inset-0 rounded-[32px] ring-1 ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none"></div>
+                    </div>
+                @endforeach
+            @else
+                {{-- Empty State --}}
+                <div
+                    class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner min-h-[300px]">
+                    <div
+                        class="w-20 h-20 rounded-full bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center mb-4 shadow-sm animate-pulse-slow">
+                        <span
+                            class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-on-secondary-container)]">campaign</span>
+                    </div>
+                    <h4 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2">خوش آمدید</h4>
+                    <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm max-w-xs leading-relaxed">
+                        در حال حاضر اعلان مهمی پین نشده است.<br>
+                        اخبار جدید را در بخش تازه‌ترین‌ها دنبال کنید.
+                    </p>
+                </div>
+            @endif
+        </div>
+    </aside>
+
+    {{-- Right Column: Main Feed --}}
+    <section class="flex-1 min-w-0 flex flex-col pr-1 pl-1 pb-20">
+
+        {{-- Header --}}
+        <div class="flex items-center gap-2 mb-3 px-1 sticky top-[80px] z-10 bg-[var(--md-sys-color-background)] py-2">
+            <span class="material-symbols-rounded text-[var(--md-sys-color-secondary)]">feed</span>
+            <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">تازه ترین‌ها</h3>
+        </div>
+
+        {{-- Posts Grid --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+            @if($this->posts->isNotEmpty())
+                @foreach($this->posts as $post)
+                    <article
+                        class="group relative flex flex-col bg-[var(--md-sys-color-surface-container-low)] rounded-[24px] overflow-hidden border border-[var(--md-sys-color-outline-variant)]/30 transition-all duration-300 hover:bg-[var(--md-sys-color-surface-container)] hover:shadow-lg hover:-translate-y-1 h-full"
+                        wire:key="post-{{ $post->id }}"
+                    >
+                        {{-- Image --}}
+                        <div class="relative h-48 overflow-hidden cursor-pointer shrink-0"
+                             wire:click="selectPost({{ $post->id }})">
+                            <img
+                                src="{{ $post->image }}"
+                                alt="{{ superClean($post->title, 200) }}"
+                                loading="lazy"
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            >
+                            <div
+                                class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                        </div>
+
+                        {{-- Body --}}
+                        <div class="p-5 flex flex-col flex-grow">
+                            <div class="flex items-center justify-between mb-3">
+                                    <span
+                                        class="text-[10px] font-bold px-2 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] tracking-wide">
+                                        اخبار
+                                    </span>
+                                <span class="text-[11px] text-[var(--md-sys-color-outline)] font-mono dir-ltr">
+                                        {{ $post->created_at->diffForHumans() }}
+                                    </span>
+                            </div>
+
+                            <h4
+                                class="text-lg font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-2 cursor-pointer hover:text-[var(--md-sys-color-primary)] transition-colors h-[3.5rem]"
+                                wire:click="selectPost({{ $post->id }})"
+                            >
+                                {{ superClean($post->title, 100) }}
+                            </h4>
+
+                            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 mb-5 flex-grow leading-relaxed">
+                                {{ superClean($post->body, 100) }}
+                            </p>
+
+                            {{-- Actions --}}
+                            <div
+                                class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
+                                <button
+                                    @click="$dispatch('select-post', { id: {{ $post->id }} })"
+                                    class="text-xs font-bold text-[var(--md-sys-color-primary)] flex items-center gap-1.5 hover:gap-2.5 transition-all bg-[var(--md-sys-color-surface)]/50 hover:bg-[var(--md-sys-color-secondary-container)]/30 px-3 py-1.5 rounded-full"
+                                >
+                                    <span>ادامه مطلب</span>
+                                    <span class="material-symbols-rounded text-[16px] flip-rtl">arrow_left_alt</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            @else
+                {{-- Empty State --}}
+                <div class="col-span-full text-center p-8 bg-[var(--md-sys-color-surface-container)] rounded-xl h-[300px] flex items-center justify-center">
+                    <span class="text-[var(--md-sys-color-outline)]">هیچ پستی یافت نشد.</span>
+                </div>
+            @endif
+        </div>
+
+        {{-- Load More Button --}}
         @if($hasMorePages)
-            <div class="py-6 flex justify-center">
+            <div class="mt-8 mb-12 flex justify-center">
                 <button
                     wire:click="loadMore"
                     class="group px-6 py-2.5 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)] font-bold text-sm border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-surface-container-highest)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
