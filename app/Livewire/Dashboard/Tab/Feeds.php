@@ -8,12 +8,18 @@ use App\Models\Reaction;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Feeds extends Component
 {
     #[Locked]
     public array $feedIds = [];
+
+    #[Url]
+    public ?int $selectedFeedId = null;
+
+    public bool $assetsLoaded = false;
 
     public array $newComments = [];
     public array $replyComments = [];
@@ -26,17 +32,32 @@ class Feeds extends Component
 
     public function mount()
     {
+        $this->loadInitialFeeds();
+        $this->assetsLoaded = true;
+    }
+
+    public function loadInitialFeeds()
+    {
         $feeds = Feed::latest()->take($this->perPage)->get();
+
         $this->feedIds = $feeds->pluck('id')->toArray();
         $this->hasMorePages = $feeds->count() >= $this->perPage;
+
+        if ($feeds->isNotEmpty() && !$this->selectedFeedId) {
+            $this->selectedFeedId = $feeds->first()->id;
+        }
+
+        unset($this->feeds);
     }
 
     public function loadMore()
     {
         if (!$this->hasMorePages) return;
 
+        $existingCount = count($this->feedIds);
+
         $newFeeds = Feed::latest()
-            ->skip(count($this->feedIds))
+            ->skip($existingCount)
             ->take($this->perPage)
             ->pluck('id')
             ->toArray();
@@ -47,7 +68,9 @@ class Feeds extends Component
         }
 
         $this->feedIds = array_merge($this->feedIds, $newFeeds);
+
         unset($this->feeds);
+
         $this->dispatch('feeds-extended');
     }
 
@@ -109,7 +132,9 @@ class Feeds extends Component
     {
         $comment = Comment::find($commentId);
 
-        if (!$comment || $comment->user_id !== auth()->id()) return;
+        if (!$comment || $comment->user_id !== auth()->id()) {
+            return;
+        }
 
         $this->editingCommentId = $commentId;
         $this->editingContent = $comment->content;
@@ -126,7 +151,9 @@ class Feeds extends Component
         $comment = Comment::find($this->editingCommentId);
 
         if ($comment && $comment->user_id === auth()->id()) {
-            $comment->update(['content' => $this->editingContent]);
+            $comment->update([
+                'content' => $this->editingContent,
+            ]);
             unset($this->feeds);
         }
 
@@ -139,7 +166,11 @@ class Feeds extends Component
         if (!auth()->check()) return;
 
         DB::transaction(function () use ($feedId, $emoji) {
-            $attrs = ['feed_id' => $feedId, 'user_id' => auth()->id()];
+            $attrs = [
+                'feed_id' => $feedId,
+                'user_id' => auth()->id()
+            ];
+
             $existingReaction = Reaction::where($attrs)->first();
 
             if ($existingReaction) {
