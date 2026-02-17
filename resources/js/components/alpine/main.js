@@ -12,6 +12,7 @@ import fullscreen from "./data/fullscreen.js";
 import sidebar from "./data/sidebar.js";
 import share from "./data/share.js";
 import background from "./data/background.js";
+import feedTab from "../../tabs/feeds/scripts.js";
 
 
 export default function initAlpine() {
@@ -41,5 +42,6 @@ export default function initAlpine() {
         Alpine.data('sidebar', sidebar)
         Alpine.data('share', share)
         Alpine.data('background', background)
+        Alpine.data('feedTab', feedTab)
     })
 }

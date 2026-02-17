@@ -54,30 +54,28 @@ class Feeds extends Component
     {
         if (!$this->hasMorePages) return;
 
-        $existingCount = count($this->feedIds);
-
-        $newFeeds = Feed::latest()
-            ->skip($existingCount)
+        $newIds = Feed::latest()
+            ->skip(count($this->feedIds))
             ->take($this->perPage)
             ->pluck('id')
             ->toArray();
 
-        if (empty($newFeeds)) {
+        if (empty($newIds)) {
             $this->hasMorePages = false;
             return;
         }
 
-        $this->feedIds = array_merge($this->feedIds, $newFeeds);
-
+        $this->feedIds = array_merge($this->feedIds, $newIds);
         unset($this->feeds);
-
-        $this->dispatch('feeds-extended');
     }
 
     #[Computed(persist: true, seconds: 7200)]
     public function feeds()
     {
         if (empty($this->feedIds)) return collect();
+
+        // Ensure we maintain the order of IDs
+        $idsString = implode(',', $this->feedIds);
 
         return Feed::with([
             'user',
@@ -88,7 +86,7 @@ class Feeds extends Component
             'reactions.user'
         ])
             ->whereIn('id', $this->feedIds)
-            ->orderByRaw('FIELD(id, ' . implode(',', $this->feedIds) . ')')
+            ->orderByRaw("FIELD(id, $idsString)")
             ->get();
     }
 

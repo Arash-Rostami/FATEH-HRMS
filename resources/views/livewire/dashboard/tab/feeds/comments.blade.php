@@ -1,32 +1,25 @@
-@php
-    $isNestedView = isset($isNested);
-@endphp
+@props(['comments', 'feed', 'isNested' => false])
 
-<div
-        class="{{ $isNestedView ? 'mt-4 mr-6 space-y-4 border-r-2 border-[var(--md-sys-color-outline-variant)]/20 pr-4' : 'mt-4' }}"
-        x-data="{ replyingTo: null }"
->
-    {{-- Comments List --}}
-    <div class="{{ $isNestedView ? '' : 'space-y-4 max-h-[40vh] overflow-y-auto feed-scrollbar px-1' }}">
-        @forelse($comments ?? [] as $comment)
+<div class="space-y-4 {{ $isNested ? 'mr-4 mt-3 pl-2 border-r border-[var(--md-sys-color-outline-variant)]/20' : '' }}"
+     x-data="{ replyingTo: null }">
+
+    <div class="space-y-4">
+        @forelse($comments as $comment)
             @php
-                $commentUser = $comment?->user;
-                $hasProfilePhoto = !empty($commentUser?->profile?->profile_photo_url);
+                $commentUser = $comment->user;
                 $isUserOnline = $commentUser?->isOnline() ?? false;
+                $userPhoto = $commentUser?->profile?->profile_photo_url;
+                $hasPhoto = !empty($userPhoto);
             @endphp
 
-            <div class="flex flex-col gap-2 group" wire:key="comment-{{ $comment?->id ?? 'unknown' }}">
-                <div class="flex gap-3">
-                    {{-- Avatar with Online Indicator --}}
-                    <div class="relative shrink-0">
-                        @if($hasProfilePhoto)
-                            <img
-                                    src="{{ $commentUser->profile->profile_photo_url }}"
-                                    class="w-8 h-8 rounded-full border border-[var(--md-sys-color-outline-variant)]/30 object-cover shadow-sm"
-                                    alt="{{ $commentUser?->name ?? 'کاربر' }}"
-                            >
+            <div class="group flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500" wire:key="comment-{{ $comment->id }}">
+                {{-- User Avatar --}}
+                <div class="flex-shrink-0">
+                    <div class="relative w-8 h-8 rounded-2xl overflow-hidden shadow-sm transition-transform hover:scale-110">
+                        @if($hasPhoto)
+                            <img src="{{ $userPhoto }}" class="w-full h-full object-cover" alt="{{ $commentUser?->name ?? 'User' }}">
                         @else
-                            <div class="w-8 h-8 rounded-full border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] flex items-center justify-center shadow-sm">
+                            <div class="w-full h-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center">
                                 <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-surface-variant)]">person</span>
                             </div>
                         @endif
@@ -97,7 +90,7 @@
                                         ویرایش
                                     </button>
                                     <button
-                                            wire:click="deleteComment({{ $comment?->id ?? 'null' }})"
+                                            @click.prevent="confirmDelete({{ $comment?->id ?? 'null' }})"
                                             class="text-[var(--md-sys-color-error)]"
                                     >
                                         حذف
