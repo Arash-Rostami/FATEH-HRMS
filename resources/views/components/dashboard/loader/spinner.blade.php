@@ -1,8 +1,3 @@
-<div class="flex-1 flex items-center justify-center">
-    <span
-        class="material-symbols-rounded text-md md:text-xl ml-3 md:ml-4 animate-spin text-[var(--md-sys-color-outline)]">
-        hourglass_empty
-    </span>
-    <br>
-    <span class="animate-pulse ">در حال بارگذاری</span>
+<div class="flex items-center justify-center p-4">
+    <div class="w-8 h-8 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin"></div>
 </div>
