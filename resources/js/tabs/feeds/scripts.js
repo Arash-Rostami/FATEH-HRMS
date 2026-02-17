@@ -1,8 +1,6 @@
 export default () => ({
     activeId: null,
     loading: false,
-    deleteModalOpen: false,
-    commentIdToDelete: null,
     observer: null,
 
     init() {
@@ -82,17 +80,10 @@ export default () => ({
 
             if (isDesktop) {
                 // Horizontal Layout (RTL)
-                // We want the item whose center is closest to the container's center?
-                // OR "First item appears on RIGHT. The currently focused (right-most visible snap item)".
-                // In RTL, scroll starts at Right. The "Start" edge is Right.
-                // Snap alignment is typically 'start' (Right in RTL).
-                // So we check distance between Item's Right edge and Container's Right edge.
-
                 // Distance from Right edge of container
                 distance = Math.abs(containerRect.right - rect.right);
             } else {
                 // Vertical Layout (Mobile)
-                // Center alignment is usually best for mobile feed snap
                 // Distance from center of container
                 const containerCenter = containerRect.top + (containerRect.height / 2);
                 const itemCenter = rect.top + (rect.height / 2);
@@ -120,26 +111,5 @@ export default () => ({
         } finally {
             this.loading = false;
         }
-    },
-
-    // Modal Actions
-    confirmDelete(commentId) {
-        this.commentIdToDelete = commentId;
-        this.deleteModalOpen = true;
-    },
-
-    cancelDelete() {
-        this.deleteModalOpen = false;
-        setTimeout(() => {
-            this.commentIdToDelete = null;
-        }, 300); // Wait for transition
-    },
-
-    deleteComment() {
-        if (!this.commentIdToDelete) return;
-
-        this.$wire.deleteComment(this.commentIdToDelete).then(() => {
-            this.cancelDelete();
-        });
     }
 })
