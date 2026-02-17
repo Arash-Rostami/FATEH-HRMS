@@ -13,26 +13,22 @@
                     centeredSlides: true,
                     initialSlide: 0,
                     slidesPerView: 'auto',
-                    speed: 500,
+                    speed: 400, // Faster transitions
+                    observer: true,
+                    observeParents: true,
                     cardsEffect: {
-                        perSlideOffset: 12, // Increased spacing for better depth
-                        perSlideRotate: 3,  // Subtle rotation
-                        rotate: true,
-                        slideShadows: true,
+                        perSlideOffset: 8,  // Reduced spacing
+                        perSlideRotate: 2,  // Reduced rotation for performance
+                        rotate: false,      // Disabled 3D rotation
+                        slideShadows: false, // Disabled expensive shadows
                     },
                     navigation: {
                         nextEl: '.swiper-nav-next',
                         prevEl: '.swiper-nav-prev',
                     },
-                    keyboard: {
-                        enabled: true,
-                        onlyInViewport: true,
-                    },
-                    mousewheel: {
-                        forceToAxis: true,
-                        sensitivity: 1,
-                    },
-                    touchStartPreventDefault: false, // Important for scrolling inside slides
+                    // Keyboard/Mousewheel removed to focus on touch performance
+                    touchStartPreventDefault: false,
+                    threshold: 5, // Prevent accidental swipes
                     on: {
                         reachEnd: () => {
                             if (this.$wire.hasMorePages) {
@@ -48,6 +44,7 @@
         if (typeof Swiper === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+            script.defer = true;
             script.onload = () => initSwiper();
             document.head.appendChild(script);
 
@@ -62,14 +59,7 @@
         Livewire.on('feeds-loaded', () => {
             if (this.swiper) {
                 this.swiper.update();
-                // Optionally maintain slide index or scroll to new position
             }
-        });
-
-        Livewire.hook('morph.updated', ({ el, component }) => {
-           if (el.classList.contains('swiper-wrapper') && this.swiper) {
-               this.swiper.update();
-           }
         });
     "
     class="relative w-full h-full flex items-center justify-center bg-[var(--md-sys-color-background)] overflow-hidden"
@@ -78,24 +68,20 @@
     <!-- Inject Custom Styles -->
     @include('livewire.dashboard.tab.feed.styles')
 
-    <!-- Ambient Background Lighting -->
-    <div class="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[var(--md-sys-color-primary)] opacity-[0.08] blur-[120px] pointer-events-none animate-pulse"></div>
-    <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--md-sys-color-secondary)] opacity-[0.08] blur-[100px] pointer-events-none"></div>
-
     <!-- Main Swiper Container -->
-    <div class="swiper swiper-feed w-full max-w-md h-[80vh] rounded-3xl" wire:ignore>
+    <div class="swiper swiper-feed w-full max-w-md h-[80vh] rounded-2xl" wire:ignore>
         <div class="swiper-wrapper">
             @foreach($this->feeds as $feed)
-                <div class="swiper-slide w-full h-full rounded-3xl bg-[var(--md-sys-color-surface)] shadow-xl overflow-hidden flex flex-col relative border border-[var(--md-sys-color-outline-variant)]/30 backdrop-blur-3xl" wire:key="feed-{{$feed->id}}">
+                <div class="swiper-slide w-full h-full rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md overflow-hidden flex flex-col relative border border-[var(--md-sys-color-outline-variant)]/30" wire:key="feed-{{$feed->id}}">
                     @include('livewire.dashboard.tab.feed.item', ['feed' => $feed])
                 </div>
             @endforeach
 
             @if($hasMorePages)
-                <div class="swiper-slide w-full h-full flex items-center justify-center bg-[var(--md-sys-color-surface-container-low)] rounded-3xl backdrop-blur-sm" wire:key="loader">
-                    <div class="flex flex-col items-center gap-4 text-[var(--md-sys-color-on-surface-variant)] animate-pulse">
-                        <div class="w-12 h-12 rounded-full border-4 border-[var(--md-sys-color-primary)] border-t-transparent animate-spin shadow-lg shadow-[var(--md-sys-color-primary)]/20"></div>
-                        <span class="font-bold text-sm tracking-wide">در حال بارگذاری...</span>
+                <div class="swiper-slide w-full h-full flex items-center justify-center bg-[var(--md-sys-color-surface-container-low)] rounded-2xl" wire:key="loader">
+                    <div class="flex flex-col items-center gap-4 text-[var(--md-sys-color-on-surface-variant)]">
+                        <div class="w-10 h-10 rounded-full border-2 border-[var(--md-sys-color-primary)] border-t-transparent animate-spin"></div>
+                        <span class="font-medium text-sm">در حال بارگذاری...</span>
                     </div>
                 </div>
             @endif
