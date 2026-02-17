@@ -1,112 +1,93 @@
 <div
-    x-data="{
-        swiper: null,
-        initSwiper() {
-            if (this.swiper && !this.swiper.destroyed) this.swiper.destroy(true, true);
+        x-data="{
+        scrollNext() {
+            this.$refs.timeline.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+        },
+        scrollPrev() {
+            this.$refs.timeline.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+        },
+        handleScroll() {
+            const el = this.$refs.timeline;
+            const scrollLeft = Math.abs(el.scrollLeft);
+            const maxScroll = el.scrollWidth - el.clientWidth;
 
-            // Wait for DOM to be fully ready
-            this.$nextTick(() => {
-                this.swiper = new Swiper('.swiper-feed', {
-                    effect: 'cards',
-                    grabCursor: true,
-                    loop: false,
-                    centeredSlides: true,
-                    initialSlide: 0,
-                    slidesPerView: 'auto',
-                    speed: 500,
-                    cardsEffect: {
-                        perSlideOffset: 12, // Increased spacing for better depth
-                        perSlideRotate: 3,  // Subtle rotation
-                        rotate: true,
-                        slideShadows: true,
-                    },
-                    navigation: {
-                        nextEl: '.swiper-nav-next',
-                        prevEl: '.swiper-nav-prev',
-                    },
-                    keyboard: {
-                        enabled: true,
-                        onlyInViewport: true,
-                    },
-                    mousewheel: {
-                        forceToAxis: true,
-                        sensitivity: 1,
-                    },
-                    touchStartPreventDefault: false, // Important for scrolling inside slides
-                    on: {
-                        reachEnd: () => {
-                            if (this.$wire.hasMorePages) {
-                                this.$wire.loadMore();
-                            }
-                        }
-                    }
-                });
-            });
+            // Increased sensitivity to 500px as you requested
+            if (scrollLeft >= maxScroll - 500 && @js($hasMorePages)) {
+                $wire.loadMore();
+            }
         }
     }"
-    x-init="
-        if (typeof Swiper === 'undefined') {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-            script.onload = () => initSwiper();
-            document.head.appendChild(script);
-
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
-            document.head.appendChild(link);
-        } else {
-            initSwiper();
-        }
-
-        Livewire.on('feeds-loaded', () => {
-            if (this.swiper) {
-                this.swiper.update();
-                // Optionally maintain slide index or scroll to new position
-            }
-        });
-
-        Livewire.hook('morph.updated', ({ el, component }) => {
-           if (el.classList.contains('swiper-wrapper') && this.swiper) {
-               this.swiper.update();
-           }
-        });
-    "
-    class="relative w-full h-full flex items-center justify-center bg-[var(--md-sys-color-background)] overflow-hidden"
-    dir="rtl"
+        class="relative w-full h-full flex flex-col items-center justify-center bg-[var(--md-sys-color-background)] overflow-hidden"
+        dir="rtl"
 >
-    <!-- Inject Custom Styles -->
-    @include('livewire.dashboard.tab.feeds.styles')
+    @if($assetsLoaded)
+        @include('livewire.dashboard.tab.feeds.styles')
+    @endif
 
-    <!-- Ambient Background Lighting -->
-    <div class="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[var(--md-sys-color-primary)] opacity-[0.08] blur-[120px] pointer-events-none animate-pulse"></div>
-    <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--md-sys-color-secondary)] opacity-[0.08] blur-[100px] pointer-events-none"></div>
+    {{-- The Timeline Track --}}
+    <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden sm:block"></div>
 
-    <!-- Main Swiper Container -->
-    <div class="swiper swiper-feed w-full max-w-md h-[80vh] rounded-3xl" wire:ignore>
-        <div class="swiper-wrapper">
-            @foreach($this->feeds as $feed)
-                <div class="swiper-slide w-full h-full rounded-3xl bg-[var(--md-sys-color-surface)] shadow-xl overflow-hidden flex flex-col relative border border-[var(--md-sys-color-outline-variant)]/30 backdrop-blur-3xl" wire:key="feed-{{$feed->id}}">
-                    @include('livewire.dashboard.tab.feeds.item', ['feed' => $feed])
-                </div>
-            @endforeach
+    <div
+            x-ref="timeline"
+            @scroll.debounce.100ms="handleScroll"
+            class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-8 px-[10%] sm:px-[20%] z-10"
+            style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
+    >
+        @foreach($this->feeds as $feed)
+            <div class="flex-shrink-0 w-full max-w-md h-[70vh] snap-center flex flex-col justify-center relative group"
+                 wire:key="timeline-card-{{ $feed->id }}"
+            >
+                {{-- Timeline Node Container --}}
+                <div class="absolute top-1/2 -right-4 z-20 hidden sm:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2">
 
-            @if($hasMorePages)
-                <div class="swiper-slide w-full h-full flex items-center justify-center bg-[var(--md-sys-color-surface-container-low)] rounded-3xl backdrop-blur-sm" wire:key="loader">
-                    <div class="flex flex-col items-center gap-4 text-[var(--md-sys-color-on-surface-variant)] animate-pulse">
-                        <div class="w-12 h-12 rounded-full border-4 border-[var(--md-sys-color-primary)] border-t-transparent animate-spin shadow-lg shadow-[var(--md-sys-color-primary)]/20"></div>
-                        <span class="font-bold text-sm tracking-wide">در حال بارگذاری...</span>
+                    {{-- NEW: Time Label (Floating Above Dot) --}}
+                    <div class="absolute bottom-8 whitespace-nowrap px-2 py-1 rounded-md bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
+                            {{ $feed->created_at->format('H:i') }}
+                        </span>
+                        {{-- Little triangle pointing down --}}
+                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-container-high)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"></div>
+                    </div>
+
+                    {{-- The Dot --}}
+                    <div class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-container-high)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center">
+                        <div class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]"></div>
+                    </div>
+
+                    {{-- Optional: Date Label (Floating Below Dot) --}}
+                    <div class="absolute top-8 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                        <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
+                            {{ $feed->created_at->diffForHumans() }}
+                        </span>
                     </div>
                 </div>
-            @endif
-        </div>
 
-        <!-- Custom Navigation Buttons (Desktop only via CSS) -->
-        <div class="swiper-nav-btn swiper-nav-prev hidden sm:flex">
-            <span class="material-symbols-rounded text-3xl">chevron_right</span>
-        </div>
-        <div class="swiper-nav-btn swiper-nav-next hidden sm:flex">
-            <span class="material-symbols-rounded text-3xl">chevron_left</span>
-        </div>
+                @include('livewire.dashboard.tab.feeds.item', ['feed' => $feed])
+            </div>
+        @endforeach
+
+        {{-- FIXED: Loader Container --}}
+        @if($hasMorePages)
+            <div class="flex-shrink-0 w-full max-w-md h-[70vh] snap-center flex items-center justify-center" wire:key="timeline-loader">
+                <x-dashboard.loader.spinner />
+            </div>
+        @endif
     </div>
+
+    {{-- Navigation Buttons --}}
+    <button
+            @click="scrollPrev"
+            class="timeline-nav-btn right-4 sm:right-8"
+            aria-label="Previous"
+    >
+        <span class="material-symbols-rounded text-3xl">chevron_right</span>
+    </button>
+
+    <button
+            @click="scrollNext"
+            class="timeline-nav-btn left-4 sm:left-8"
+            aria-label="Next"
+    >
+        <span class="material-symbols-rounded text-3xl">chevron_left</span>
+    </button>
 </div>
