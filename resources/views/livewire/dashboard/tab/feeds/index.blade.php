@@ -15,8 +15,14 @@
         @endif
 
         @if($hasMorePages)
-            <div class="w-full md:w-[400px] shrink-0 flex items-center justify-center p-8 md:snap-center">
-                <div class="w-8 h-8 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-full md:w-[400px] shrink-0 flex items-center justify-center p-8 md:snap-center transition-all duration-300">
+                <button wire:click="loadMore"
+                        class="group flex flex-col items-center gap-3 p-6 rounded-3xl bg-[var(--md-sys-color-surface-container)] hover:bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)] shadow-md hover:shadow-lg transition-all active:scale-95 border border-[var(--md-sys-color-outline-variant)]/20">
+                    <div class="w-12 h-12 rounded-full bg-[var(--md-sys-color-primary-container)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-rounded text-2xl">add</span>
+                    </div>
+                    <span class="font-bold text-sm">نمایش بیشتر</span>
+                </button>
             </div>
         @endif
 
