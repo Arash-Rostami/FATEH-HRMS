@@ -26,10 +26,47 @@ class Calendar extends Component
     public string $eventDescription = '';
     public string $eventDate = '';
     public string $eventTime = '12:00';
+    public string $eventIcon = 'event';
+    public string $eventColor = '#4e5f66';
     public bool $eventPrivate = false;
 
     public ?int $editingEventId = null;
     public ?int $deletingEventId = null;
+
+    #[Locked]
+    public array $availableIcons = [
+        'event' => 'پیش‌فرض',
+        'cake' => 'تولد',
+        'celebration' => 'جشن',
+        'work' => 'کاری',
+        'meeting_room' => 'جلسه',
+        'flight' => 'سفر',
+        'restaurant' => 'غذا',
+        'fitness_center' => 'ورزش',
+        'school' => 'آموزش',
+        'schedule' => 'مهلت',
+        'payments' => 'پرداخت',
+        'medical_services' => 'پزشکی'
+    ];
+
+    #[Locked]
+    public array $availableColors = [
+        '#4e5f66' => 'Slate',
+        '#ef4444' => 'Red',
+        '#f97316' => 'Orange',
+        '#f59e0b' => 'Amber',
+        '#84cc16' => 'Lime',
+        '#22c55e' => 'Green',
+        '#10b981' => 'Emerald',
+        '#14b8a6' => 'Teal',
+        '#06b6d4' => 'Cyan',
+        '#3b82f6' => 'Blue',
+        '#6366f1' => 'Indigo',
+        '#8b5cf6' => 'Violet',
+        '#d946ef' => 'Fuchsia',
+        '#ec4899' => 'Pink',
+        '#f43f5e' => 'Rose'
+    ];
 
     public function mount()
     {
@@ -75,14 +112,18 @@ class Calendar extends Component
             $dateString = $currentDateJalali->format('Y-m-d');
 
             // Check events
-            $hasEvent = $monthEvents->has($dateString);
+            $hasEvents = $monthEvents->has($dateString);
+
+            // Count events logic or preview dots logic could go here
+            $eventCount = $hasEvents ? $monthEvents[$dateString]->count() : 0;
 
             $days[] = [
                 'day' => $day,
                 'date' => $dateString,
                 'isToday' => $dateString === Jalalian::now()->format('Y-m-d'),
                 'isSelected' => $dateString === $this->selectedDate,
-                'hasEvents' => $hasEvent,
+                'hasEvents' => $hasEvents,
+                'eventCount' => $eventCount
             ];
         }
 
@@ -121,6 +162,8 @@ class Calendar extends Component
                     'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
                     'is_owner' => $event->user_id === Auth::id(),
                     'private' => $event->private,
+                    'icon' => $event->icon ?? 'event',
+                    'color' => $event->color ?? '#4e5f66',
                 ];
             });
 
@@ -139,7 +182,9 @@ class Calendar extends Component
                     'time' => '00:00',
                     'is_owner' => false,
                     'private' => false,
-                    'image' => $profile->image
+                    'image' => $profile->image,
+                    'icon' => 'cake',
+                    'color' => '#ec4899', // Pink for birthday
                 ];
             });
 
@@ -194,6 +239,8 @@ class Calendar extends Component
         $this->eventDescription = $event->description ?? '';
         $this->eventDate = Jalalian::fromCarbon($event->date)->format('Y-m-d');
         $this->eventTime = $event->date->format('H:i');
+        $this->eventIcon = $event->icon ?? 'event';
+        $this->eventColor = $event->color ?? '#4e5f66';
         $this->eventPrivate = (bool) $event->private;
 
         $this->isCreateModalOpen = true;
@@ -205,6 +252,8 @@ class Calendar extends Component
             'eventTitle' => 'required|string|max:255',
             'eventDate' => 'required|date_format:Y-m-d',
             'eventTime' => 'required',
+            'eventIcon' => 'required|string',
+            'eventColor' => 'required|string',
         ]);
 
         try {
@@ -219,24 +268,23 @@ class Calendar extends Component
             return;
         }
 
+        $data = [
+            'title' => $this->eventTitle,
+            'description' => $this->eventDescription,
+            'date' => $gregorianDate,
+            'private' => $this->eventPrivate,
+            'icon' => $this->eventIcon,
+            'color' => $this->eventColor,
+        ];
+
         if ($this->editingEventId) {
             $event = Event::find($this->editingEventId);
             if ($event && $event->user_id === Auth::id()) {
-                $event->update([
-                    'title' => $this->eventTitle,
-                    'description' => $this->eventDescription,
-                    'date' => $gregorianDate,
-                    'private' => $this->eventPrivate,
-                ]);
+                $event->update($data);
             }
         } else {
-            Event::create([
-                'user_id' => Auth::id(),
-                'title' => $this->eventTitle,
-                'description' => $this->eventDescription,
-                'date' => $gregorianDate,
-                'private' => $this->eventPrivate,
-            ]);
+            $data['user_id'] = Auth::id();
+            Event::create($data);
         }
 
         $this->isCreateModalOpen = false;
@@ -269,6 +317,8 @@ class Calendar extends Component
         $this->eventDescription = '';
         $this->eventDate = $this->selectedDate;
         $this->eventTime = '12:00';
+        $this->eventIcon = 'event';
+        $this->eventColor = '#4e5f66';
         $this->eventPrivate = false;
     }
 

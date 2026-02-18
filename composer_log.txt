@@ -142,3 +142,23 @@ Package operations: 119 installs, 0 updates, 0 removals
   76/119 [=================>----------]  63%
   80/119 [==================>---------]  67%
   84/119 [===================>--------]  70%
+  88/119 [====================>-------]  73%
+  92/119 [=====================>------]  77%
+  96/119 [======================>-----]  80%
+  97/119 [======================>-----]  81%
+ 100/119 [=======================>----]  84%
+ 104/119 [========================>---]  87%
+ 107/119 [=========================>--]  89%
+ 108/119 [=========================>--]  90%
+ 109/119 [=========================>--]  91%
+ 112/119 [==========================>-]  94%
+ 116/119 [===========================>]  97%
+ 119/119 [============================] 100%
+In CurlDownloader.php line 398:
+
+  curl error 28 while downloading https://mirror.chabokan.net/repository/comp
+  oser-proxy/dasprid/enum/1.0.7/dasprid-enum-1.0.7.zip: Failed to connect to
+  mirror.chabokan.net port 443 after 12007 ms: Timeout was reached
+
+
+install [--prefer-source] [--prefer-dist] [--prefer-install PREFER-INSTALL] [--dry-run] [--download-only] [--dev] [--no-suggest] [--no-dev] [--no-security-blocking] [--no-autoloader] [--no-progress] [--no-install] [--audit] [--audit-format AUDIT-FORMAT] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authoritative] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<packages>...]

@@ -7,15 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
-    protected  = [
+    protected $fillable = [
         'user_id',
         'title',
         'description',
         'date',
-        'private'
+        'private',
+        'icon',
+        'color'
     ];
 
-    protected  = [
+    protected $casts = [
         'date' => 'datetime',
         'private' => 'boolean',
     ];
