@@ -12,9 +12,7 @@ class Event extends Model
         'title',
         'description',
         'date',
-        'private',
-        'icon',
-        'color'
+        'private'
     ];
 
     protected $casts = [

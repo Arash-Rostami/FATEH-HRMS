@@ -26,46 +26,35 @@ class Calendar extends Component
     public string $eventDescription = '';
     public string $eventDate = '';
     public string $eventTime = '12:00';
-    public string $eventIcon = 'event';
-    public string $eventColor = '#4e5f66';
     public bool $eventPrivate = false;
 
     public ?int $editingEventId = null;
     public ?int $deletingEventId = null;
 
     #[Locked]
-    public array $availableIcons = [
-        'event' => 'پیش‌فرض',
-        'cake' => 'تولد',
-        'celebration' => 'جشن',
-        'work' => 'کاری',
-        'meeting_room' => 'جلسه',
-        'flight' => 'سفر',
-        'restaurant' => 'غذا',
-        'fitness_center' => 'ورزش',
-        'school' => 'آموزش',
-        'schedule' => 'مهلت',
-        'payments' => 'پرداخت',
-        'medical_services' => 'پزشکی'
-    ];
-
-    #[Locked]
-    public array $availableColors = [
-        '#4e5f66' => 'Slate',
-        '#ef4444' => 'Red',
-        '#f97316' => 'Orange',
-        '#f59e0b' => 'Amber',
-        '#84cc16' => 'Lime',
-        '#22c55e' => 'Green',
-        '#10b981' => 'Emerald',
-        '#14b8a6' => 'Teal',
-        '#06b6d4' => 'Cyan',
-        '#3b82f6' => 'Blue',
-        '#6366f1' => 'Indigo',
-        '#8b5cf6' => 'Violet',
-        '#d946ef' => 'Fuchsia',
-        '#ec4899' => 'Pink',
-        '#f43f5e' => 'Rose'
+    public array $styleMap = [
+        'تولد' => ['icon' => 'cake', 'color' => '#ec4899'], // Pink
+        'جشن' => ['icon' => 'celebration', 'color' => '#f59e0b'], // Amber
+        'مهمانی' => ['icon' => 'celebration', 'color' => '#f59e0b'], // Amber
+        'جلسه' => ['icon' => 'meeting_room', 'color' => '#3b82f6'], // Blue
+        'نشست' => ['icon' => 'groups', 'color' => '#3b82f6'], // Blue
+        'کار' => ['icon' => 'work', 'color' => '#4e5f66'], // Slate
+        'پروژه' => ['icon' => 'rocket_launch', 'color' => '#6366f1'], // Indigo
+        'ددلاین' => ['icon' => 'schedule', 'color' => '#ef4444'], // Red
+        'مهلت' => ['icon' => 'hourglass_empty', 'color' => '#ef4444'], // Red
+        'ورزش' => ['icon' => 'fitness_center', 'color' => '#22c55e'], // Green
+        'باشگاه' => ['icon' => 'fitness_center', 'color' => '#22c55e'], // Green
+        'پزشک' => ['icon' => 'medical_services', 'color' => '#06b6d4'], // Cyan
+        'دکتر' => ['icon' => 'medical_services', 'color' => '#06b6d4'], // Cyan
+        'سفر' => ['icon' => 'flight', 'color' => '#8b5cf6'], // Violet
+        'مسافرت' => ['icon' => 'flight', 'color' => '#8b5cf6'], // Violet
+        'پرداخت' => ['icon' => 'payments', 'color' => '#10b981'], // Emerald
+        'قسط' => ['icon' => 'credit_card', 'color' => '#10b981'], // Emerald
+        'آموزش' => ['icon' => 'school', 'color' => '#d946ef'], // Fuchsia
+        'کلاس' => ['icon' => 'school', 'color' => '#d946ef'], // Fuchsia
+        'غذا' => ['icon' => 'restaurant', 'color' => '#f97316'], // Orange
+        'ناهار' => ['icon' => 'restaurant', 'color' => '#f97316'], // Orange
+        'شام' => ['icon' => 'restaurant', 'color' => '#f97316'], // Orange
     ];
 
     public function mount()
@@ -113,8 +102,6 @@ class Calendar extends Component
 
             // Check events
             $hasEvents = $monthEvents->has($dateString);
-
-            // Count events logic or preview dots logic could go here
             $eventCount = $hasEvents ? $monthEvents[$dateString]->count() : 0;
 
             $days[] = [
@@ -154,6 +141,7 @@ class Calendar extends Component
             ->latest('date')
             ->get()
             ->map(function ($event) {
+                $style = $this->getEventStyle($event->title);
                 return [
                     'id' => $event->id,
                     'type' => 'event',
@@ -162,8 +150,8 @@ class Calendar extends Component
                     'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
                     'is_owner' => $event->user_id === Auth::id(),
                     'private' => $event->private,
-                    'icon' => $event->icon ?? 'event',
-                    'color' => $event->color ?? '#4e5f66',
+                    'icon' => $style['icon'],
+                    'color' => $style['color'],
                 ];
             });
 
@@ -184,11 +172,22 @@ class Calendar extends Component
                     'private' => false,
                     'image' => $profile->image,
                     'icon' => 'cake',
-                    'color' => '#ec4899', // Pink for birthday
+                    'color' => '#ec4899', // Pink
                 ];
             });
 
         return $events->concat($birthdays);
+    }
+
+    private function getEventStyle(string $title): array
+    {
+        foreach ($this->styleMap as $keyword => $style) {
+            if (str_contains($title, $keyword)) {
+                return $style;
+            }
+        }
+
+        return ['icon' => 'event', 'color' => '#4e5f66']; // Default Slate
     }
 
     public function selectDate($date)
@@ -239,8 +238,6 @@ class Calendar extends Component
         $this->eventDescription = $event->description ?? '';
         $this->eventDate = Jalalian::fromCarbon($event->date)->format('Y-m-d');
         $this->eventTime = $event->date->format('H:i');
-        $this->eventIcon = $event->icon ?? 'event';
-        $this->eventColor = $event->color ?? '#4e5f66';
         $this->eventPrivate = (bool) $event->private;
 
         $this->isCreateModalOpen = true;
@@ -252,8 +249,6 @@ class Calendar extends Component
             'eventTitle' => 'required|string|max:255',
             'eventDate' => 'required|date_format:Y-m-d',
             'eventTime' => 'required',
-            'eventIcon' => 'required|string',
-            'eventColor' => 'required|string',
         ]);
 
         try {
@@ -273,8 +268,6 @@ class Calendar extends Component
             'description' => $this->eventDescription,
             'date' => $gregorianDate,
             'private' => $this->eventPrivate,
-            'icon' => $this->eventIcon,
-            'color' => $this->eventColor,
         ];
 
         if ($this->editingEventId) {
@@ -317,8 +310,6 @@ class Calendar extends Component
         $this->eventDescription = '';
         $this->eventDate = $this->selectedDate;
         $this->eventTime = '12:00';
-        $this->eventIcon = 'event';
-        $this->eventColor = '#4e5f66';
         $this->eventPrivate = false;
     }
 
