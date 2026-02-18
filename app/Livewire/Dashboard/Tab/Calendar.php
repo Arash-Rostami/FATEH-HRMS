@@ -28,6 +28,10 @@ class Calendar extends Component
     public string $eventTime = '12:00';
     public bool $eventPrivate = false;
 
+    // Icon/Color will be derived
+    public ?string $eventIcon = null;
+    public ?string $eventColor = null;
+
     public ?int $editingEventId = null;
     public ?int $deletingEventId = null;
 
@@ -141,7 +145,16 @@ class Calendar extends Component
             ->latest('date')
             ->get()
             ->map(function ($event) {
-                $style = $this->getEventStyle($event->title);
+                // Determine icon/color: DB value > Dynamic Style > Default
+                $icon = $event->icon;
+                $color = $event->color;
+
+                if (!$icon || !$color) {
+                    $dynamicStyle = $this->getEventStyle($event->title);
+                    $icon = $icon ?: $dynamicStyle['icon'];
+                    $color = $color ?: $dynamicStyle['color'];
+                }
+
                 return [
                     'id' => $event->id,
                     'type' => 'event',
@@ -150,8 +163,8 @@ class Calendar extends Component
                     'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
                     'is_owner' => $event->user_id === Auth::id(),
                     'private' => $event->private,
-                    'icon' => $style['icon'],
-                    'color' => $style['color'],
+                    'icon' => $icon,
+                    'color' => $color,
                 ];
             });
 
@@ -239,6 +252,8 @@ class Calendar extends Component
         $this->eventDate = Jalalian::fromCarbon($event->date)->format('Y-m-d');
         $this->eventTime = $event->date->format('H:i');
         $this->eventPrivate = (bool) $event->private;
+        $this->eventIcon = $event->icon;
+        $this->eventColor = $event->color;
 
         $this->isCreateModalOpen = true;
     }
@@ -263,12 +278,33 @@ class Calendar extends Component
             return;
         }
 
+        // Calculate Icon/Color dynamically if not set (or always?)
+        // If we want to persist the dynamic choice:
+        $style = $this->getEventStyle($this->eventTitle);
+
+        // We set it to null in DB if we want to rely on dynamic logic later?
+        // Or we save it explicitly. The user said "null default".
+        // Let's save NULL unless we have a specific reason to override.
+        // BUT if we save NULL, we can always change the dynamic logic later without migration.
+        // However, usually "columns" imply we want to save specific values.
+        // Let's save NULL for now (default behavior), meaning "use dynamic".
+        // If the user *edits* and *changes* it later (via a future picker), we would save a value.
+        // For now, let's keep it null in DB so dynamic logic applies.
+
         $data = [
             'title' => $this->eventTitle,
             'description' => $this->eventDescription,
             'date' => $gregorianDate,
             'private' => $this->eventPrivate,
+            // 'icon' => null, // Default
+            // 'color' => null, // Default
         ];
+
+        // If we were to save the dynamic values:
+        // $data['icon'] = $style['icon'];
+        // $data['color'] = $style['color'];
+
+        // Let's stick to null default as requested.
 
         if ($this->editingEventId) {
             $event = Event::find($this->editingEventId);
@@ -311,6 +347,8 @@ class Calendar extends Component
         $this->eventDate = $this->selectedDate;
         $this->eventTime = '12:00';
         $this->eventPrivate = false;
+        $this->eventIcon = null;
+        $this->eventColor = null;
     }
 
     public function render()
