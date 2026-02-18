@@ -2,7 +2,7 @@
     :class="{'!bg-[var(--md-sys-color-primary-container)]': activeId == {{ $feed->id }}}"
     class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-[32px] overflow-hidden shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 relative group">
 
-    @include('livewire.dashboard.tab.feeds.header', ['feed' => $feed])
+    @include('livewire.dashboard.tab.feeds.partials.header', ['feed' => $feed])
 
 
     <div class="flex-1 overflow-y-auto feed-scrollbar p-5 space-y-6 pb-24">
@@ -13,8 +13,9 @@
         @endif
 
         @if(!empty($feed?->media_paths))
-            <div class="rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-black shadow-lg">
-                @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_paths])
+            <div
+                class="rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-black shadow-lg">
+                @include('livewire.dashboard.tab.feeds.partials.media', ['media' => $feed->media_paths])
             </div>
         @endif
 
@@ -41,12 +42,13 @@
             </button>
 
             <div x-show="open" x-collapse>
-                @include('livewire.dashboard.tab.feeds.comments', ['comments' => $feed?->comments, 'feed' => $feed])
+                @include('livewire.dashboard.tab.feeds.partials.comments', ['comments' => $feed?->comments, 'feed' => $feed])
             </div>
         </div>
     </div>
 
-    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-[var(--md-sys-color-surface)]/95 to-transparent pt-8">
-        @include('livewire.dashboard.tab.feeds.actions', ['feed' => $feed])
+    <div
+        class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-[var(--md-sys-color-surface)]/95 to-transparent pt-8">
+        @include('livewire.dashboard.tab.feeds.partials.actions', ['feed' => $feed])
     </div>
 </div>

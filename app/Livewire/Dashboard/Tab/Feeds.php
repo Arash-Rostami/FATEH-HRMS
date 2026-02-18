@@ -8,7 +8,6 @@ use App\Models\Reaction;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Feeds extends Component
@@ -16,7 +15,6 @@ class Feeds extends Component
     #[Locked]
     public array $feedIds = [];
 
-    #[Url]
     public ?int $selectedFeedId = null;
 
     public bool $assetsLoaded = false;

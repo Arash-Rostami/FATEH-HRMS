@@ -3,11 +3,12 @@
 @endphp
 
 <div
-        class="{{ $isNestedView ? 'mt-3 mr-5 space-y-3 border-r-2 border-[var(--md-sys-color-primary)]/20 pr-3' : 'mt-2 flex flex-col h-full' }}"
-        x-data="{ replyingTo: null }"
+    class="{{ $isNestedView ? 'mt-3 mr-5 space-y-3 border-r-2 border-[var(--md-sys-color-primary)]/20 pr-3' : 'mt-2 flex flex-col h-full' }}"
+    x-data="{ replyingTo: null }"
 >
     {{-- Comments List --}}
-    <div class="{{ $isNestedView ? 'space-y-3' : 'space-y-3 flex-1 overflow-y-auto feed-scrollbar px-2 py-1 min-h-0' }}">
+    <div
+        class="{{ $isNestedView ? 'space-y-3' : 'space-y-3 flex-1 overflow-y-auto feed-scrollbar px-2 py-1 min-h-0' }}">
         @forelse($comments ?? [] as $comment)
             @php
                 $commentUser = $comment?->user;
@@ -21,17 +22,20 @@
                     <div class="relative shrink-0 mt-0.5">
                         @if($hasProfilePhoto)
                             <img
-                                    src="{{ $commentUser->profile->profile_photo_url }}"
-                                    class="w-7 h-7 rounded-full border-2 border-[var(--md-sys-color-primary)]/20 object-cover"
-                                    alt="{{ $commentUser?->name ?? 'کاربر' }}"
+                                src="{{ $commentUser->profile->profile_photo_url }}"
+                                class="w-7 h-7 rounded-full border-2 border-[var(--md-sys-color-primary)]/20 object-cover"
+                                alt="{{ $commentUser?->name ?? 'کاربر' }}"
                             >
                         @else
-                            <div class="w-7 h-7 rounded-full border-2 border-[var(--md-sys-color-primary)]/20 bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
-                                <span class="material-symbols-rounded text-xs text-[var(--md-sys-color-on-primary-container)]">person</span>
+                            <div
+                                class="w-7 h-7 rounded-full border-2 border-[var(--md-sys-color-primary)]/20 bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
+                                <span
+                                    class="material-symbols-rounded text-xs text-[var(--md-sys-color-on-primary-container)]">person</span>
                             </div>
                         @endif
                         @if($isUserOnline)
-                            <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-[var(--md-sys-color-surface)] rounded-full"></div>
+                            <div
+                                class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-[var(--md-sys-color-surface)] rounded-full"></div>
                         @endif
                     </div>
 
@@ -62,9 +66,9 @@
                             @if($editingCommentId === ($comment?->id ?? null))
                                 <div class="flex flex-col gap-2 py-1">
                                     <textarea
-                                            wire:model="editingContent"
-                                            class="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-primary)]/30 rounded-xl p-2 text-xs focus:ring-1 focus:ring-[var(--md-sys-color-primary)] outline-none resize-none"
-                                            rows="2"
+                                        wire:model="editingContent"
+                                        class="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-primary)]/30 rounded-xl p-2 text-xs focus:ring-1 focus:ring-[var(--md-sys-color-primary)] outline-none resize-none"
+                                        rows="2"
                                     ></textarea>
                                     <div class="flex justify-end gap-2">
                                         <button wire:click="updateComment"
@@ -84,32 +88,33 @@
                             @endif
 
                             {{-- Actions --}}
-                            <div class="mt-2 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                            <div
+                                class="mt-2 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
                                 <button
-                                        @click="replyingTo = replyingTo === {{ $comment->id }} ? null : {{ $comment->id }}"
-                                        class="flex items-center gap-1 px-2 py-1 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-full transition-colors text-[10px] font-medium"
-                                        title="پاسخ"
+                                    @click="replyingTo = replyingTo === {{ $comment->id }} ? null : {{ $comment->id }}"
+                                    class="flex items-center gap-1 px-2 py-1 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-full transition-colors text-[10px] font-medium"
+                                    title="پاسخ"
                                 >
                                     <span class="material-symbols-rounded !text-[12px]">reply</span>
                                     <span>پاسخ</span>
                                 </button>
                                 @if(auth()->id() === $comment->user_id)
                                     <button
-                                            wire:click="startEditing({{ $comment->id }})"
-                                            class="p-1.5 text-[var(--md-sys-color-secondary)] hover:bg-[var(--md-sys-color-secondary-container)] rounded-full transition-colors"
-                                            title="ویرایش"
+                                        wire:click="startEditing({{ $comment->id }})"
+                                        class="p-1.5 text-[var(--md-sys-color-secondary)] hover:bg-[var(--md-sys-color-secondary-container)] rounded-full transition-colors"
+                                        title="ویرایش"
                                     >
                                         <span class="material-symbols-rounded !text-[12px]">edit</span>
                                     </button>
                                     <button
-                                            @click="$dispatch('open-confirmation', {
+                                        @click="$dispatch('open-confirmation', {
                                             title: 'حذف نظر',
                                             message: 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.',
                                             method: 'deleteComment',
                                             params: {{ $comment->id }}
                                         })"
-                                            class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
-                                            title="حذف"
+                                        class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
+                                        title="حذف"
                                     >
                                         <span class="material-symbols-rounded !text-[12px]">delete</span>
                                     </button>
@@ -119,23 +124,25 @@
 
                         {{-- Reply Input --}}
                         <div
-                                x-show="replyingTo === {{ $comment?->id ?? 'null' }}"
-                                x-collapse
-                                class="mt-2"
-                                style="display: none;"
+                            x-show="replyingTo === {{ $comment?->id ?? 'null' }}"
+                            x-collapse
+                            class="mt-2"
+                            style="display: none;"
                         >
-                            <div class="flex items-center gap-2 bg-[var(--md-sys-color-primary-container)]/40 border border-[var(--md-sys-color-primary)]/30 rounded-2xl px-3 py-2">
-                                <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-primary)] shrink-0">subdirectory_arrow_left</span>
+                            <div
+                                class="flex items-center gap-2 bg-[var(--md-sys-color-primary-container)]/40 border border-[var(--md-sys-color-primary)]/30 rounded-2xl px-3 py-2">
+                                <span
+                                    class="material-symbols-rounded text-sm text-[var(--md-sys-color-primary)] shrink-0">subdirectory_arrow_left</span>
                                 <input
-                                        type="text"
-                                        wire:model="replyComments.{{ $comment?->id ?? 'null' }}"
-                                        wire:keydown.enter="addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
-                                        placeholder="پاسخ به {!! superClean($commentUser?->name) ?? 'کاربر' !!}..."
-                                        class="flex-1 bg-transparent border-none text-xs focus:ring-0 outline-none placeholder:text-[var(--md-sys-color-primary)]/50 text-[var(--md-sys-color-on-surface)]"
+                                    type="text"
+                                    wire:model="replyComments.{{ $comment?->id ?? 'null' }}"
+                                    wire:keydown.enter="addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
+                                    placeholder="پاسخ به {!! superClean($commentUser?->name) ?? 'کاربر' !!}..."
+                                    class="flex-1 bg-transparent border-none text-xs focus:ring-0 outline-none placeholder:text-[var(--md-sys-color-primary)]/50 text-[var(--md-sys-color-on-surface)]"
                                 >
                                 <button
-                                        wire:click="addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
-                                        class="w-7 h-7 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center shrink-0 hover:brightness-110 active:scale-90 transition-all"
+                                    wire:click="addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
+                                    class="w-7 h-7 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center shrink-0 hover:brightness-110 active:scale-90 transition-all"
                                 >
                                     <span class="material-symbols-rounded text-sm rotate-180">send</span>
                                 </button>
@@ -144,7 +151,7 @@
 
                         {{-- Nested Replies --}}
                         @if($comment?->children?->isNotEmpty())
-                            @include('livewire.dashboard.tab.feeds.comments', [
+                            @include('livewire.dashboard.tab.feeds.partials.comments', [
                                 'comments' => $comment->children,
                                 'feed' => $feed,
                                 'isNested' => true
@@ -156,7 +163,8 @@
         @empty
             @if(!$isNestedView)
                 <div class="py-8 text-center opacity-40 flex flex-col items-center gap-2">
-                    <div class="w-12 h-12 rounded-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center">
+                    <div
+                        class="w-12 h-12 rounded-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center">
                         <span class="material-symbols-rounded text-2xl">chat_bubble</span>
                     </div>
                     <p class="text-xs">اولین نظر را شما بنویسید</p>
@@ -197,28 +205,31 @@
                     <div class="relative shrink-0">
                         @if($authHasPhoto)
                             <img
-                                    src="{{ $authUser->profile->profile_photo_url }}"
-                                    class="w-8 h-8 rounded-full object-cover border-2 border-[var(--md-sys-color-primary)]/30 shadow-sm"
-                                    alt="{{ $authUser?->name ?? 'کاربر' }}"
+                                src="{{ $authUser->profile->profile_photo_url }}"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-[var(--md-sys-color-primary)]/30 shadow-sm"
+                                alt="{{ $authUser?->name ?? 'کاربر' }}"
                             >
                         @else
-                            <div class="w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] border-2 border-[var(--md-sys-color-primary)]/30 flex items-center justify-center shadow-sm">
-                                <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary-container)]">person</span>
+                            <div
+                                class="w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] border-2 border-[var(--md-sys-color-primary)]/30 flex items-center justify-center shadow-sm">
+                                <span
+                                    class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary-container)]">person</span>
                             </div>
                         @endif
                         @if($authUser?->isOnline() ?? false)
-                            <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[var(--md-sys-color-surface)] rounded-full"></div>
+                            <div
+                                class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[var(--md-sys-color-surface)] rounded-full"></div>
                         @endif
                     </div>
 
                     {{-- Input --}}
                     <div class="flex-1 relative">
                         <input
-                                type="text"
-                                wire:model="newComments.{{ $feed?->id ?? 'null' }}"
-                                wire:keydown.enter="addComment({{ $feed?->id ?? 'null' }})"
-                                placeholder="نظرت رو بنویس..."
-                                class="
+                            type="text"
+                            wire:model="newComments.{{ $feed?->id ?? 'null' }}"
+                            wire:keydown.enter="addComment({{ $feed?->id ?? 'null' }})"
+                            placeholder="نظرت رو بنویس..."
+                            class="
                                 w-full
                                 bg-[var(--md-sys-color-surface)]
                                 border border-[var(--md-sys-color-outline-variant)]/50
@@ -238,8 +249,8 @@
 
                     {{-- Send Button --}}
                     <button
-                            wire:click="addComment({{ $feed?->id ?? 'null' }})"
-                            class="
+                        wire:click="addComment({{ $feed?->id ?? 'null' }})"
+                        class="
                             shrink-0
                             w-9 h-9
                             flex items-center justify-center
@@ -251,15 +262,17 @@
                             active:scale-90
                             transition-all duration-200
                         "
-                            title="ارسال"
+                        title="ارسال"
                     >
                         <span class="material-symbols-rounded text-base rotate-180">send</span>
                     </button>
                 </div>
             </div>
         @else
-            <div class="mt-3 mx-1 p-3 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border-2 border-dashed border-[var(--md-sys-color-primary)]/30 text-center">
-                <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]/50 block mb-1">login</span>
+            <div
+                class="mt-3 mx-1 p-3 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border-2 border-dashed border-[var(--md-sys-color-primary)]/30 text-center">
+                <span
+                    class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]/50 block mb-1">login</span>
                 <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">برای ثبت نظر وارد شوید</p>
             </div>
         @endauth
