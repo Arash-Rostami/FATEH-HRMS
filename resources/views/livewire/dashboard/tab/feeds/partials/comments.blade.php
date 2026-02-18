@@ -144,7 +144,7 @@
 
                         {{-- Nested Replies --}}
                         @if($comment?->children?->isNotEmpty())
-                            @include('livewire.dashboard.tab.feeds.comments', [
+                            @include('livewire.dashboard.tab.feeds.partials.comments', [
                                 'comments' => $comment->children,
                                 'feed' => $feed,
                                 'isNested' => true

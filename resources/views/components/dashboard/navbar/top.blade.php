@@ -129,5 +129,5 @@
         </div>
     </div>
 
-    <x-dashboard.release-modal/>
+    <x-dashboard.modal.release/>
 </nav>
