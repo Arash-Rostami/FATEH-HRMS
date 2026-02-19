@@ -86,13 +86,13 @@ class Feeds extends Component
 
     public function loadInitialFeeds()
     {
-        $feedIds = Feed::latest()->take($this->perPage)->pluck('id');
+        $feeds = Feed::latest()->take($this->perPage)->get();
 
-        $this->feedIds = $feedIds->toArray();
-        $this->hasMorePages = $feedIds->count() >= $this->perPage;
+        $this->feedIds = $feeds->pluck('id')->toArray();
+        $this->hasMorePages = $feeds->count() >= $this->perPage;
 
-        if (!empty($this->feedIds) && !$this->selectedFeedId) {
-            $this->selectedFeedId = $this->feedIds[0];
+        if ($feeds->isNotEmpty() && !$this->selectedFeedId) {
+            $this->selectedFeedId = $feeds->first()->id;
         }
 
         unset($this->feeds);
