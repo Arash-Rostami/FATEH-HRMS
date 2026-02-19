@@ -1,9 +1,13 @@
 <div x-data="background"
-     :class="($store.background.enabled || $store.background.patternEnabled) ? 'bg-transparent' : 'bg-[var(--md-sys-color-background)]'"
+     class="fixed inset-0 w-full h-full pointer-events-none transition-colors duration-500 overflow-hidden"
+     :class="{
+         'bg-transparent': $store.background.enabled || $store.background.patternEnabled,
+         'bg-[var(--md-sys-color-background)]': !($store.background.enabled || $store.background.patternEnabled)
+     }"
+     style="z-index: -1;"
 >
     <!-- 1. Dynamic Background Layer -->
     <div
-        x-cloak
         class="absolute inset-0 -z-10 pointer-events-none overflow-hidden"
         x-show="$store.background.enabled"
         x-transition:enter="transition ease-out duration-1000"
