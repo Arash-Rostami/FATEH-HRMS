@@ -3,24 +3,21 @@ import { Fancybox } from "@fancyapps/ui";
 export default () => ({
     activeId: null,
     loading: false,
-    observer: null,
+    loadMoreObserver: null,
+    activeItemObserver: null,
 
     init() {
         this.$nextTick(() => {
-            this.setupScrollListener();
-            this.setupIntersectionObserver();
-            this.updateActiveItem();
+            this.setupLoadMoreObserver();
+            this.setupActiveItemObserver();
             this.initFancybox();
         });
 
         Livewire.hook('morph.updated', ({ component, el }) => {
             if (component.id === this.$wire.__instance.id) {
                 this.$nextTick(() => {
-                    this.updateActiveItem();
-                    if (this.$refs.loadTrigger && this.observer) {
-                        this.observer.disconnect();
-                        this.observer.observe(this.$refs.loadTrigger);
-                    }
+                    this.refreshActiveItemObserver();
+                    this.refreshLoadMoreObserver();
                 });
             }
         });
@@ -60,34 +57,22 @@ export default () => ({
     },
 
     scrollNext() {
-        this.$refs.galleryContainer.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+        const container = this.$refs.galleryContainer;
+        if (container) {
+             container.scrollBy({ left: -container.offsetWidth / 2, behavior: 'smooth' });
+        }
     },
     scrollPrev() {
-        this.$refs.galleryContainer.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+         const container = this.$refs.galleryContainer;
+        if (container) {
+             container.scrollBy({ left: container.offsetWidth / 2, behavior: 'smooth' });
+        }
     },
 
-    handleScroll() {
-        // Optional: Add logic if needed
-    },
+    setupLoadMoreObserver() {
+        if (this.loadMoreObserver) this.loadMoreObserver.disconnect();
 
-    setupScrollListener() {
-        const container = this.$refs.galleryContainer;
-        if (!container) return;
-
-        let timeout;
-        container.addEventListener('scroll', () => {
-            if (timeout) return;
-            timeout = setTimeout(() => {
-                this.updateActiveItem();
-                timeout = null;
-            }, 50); // 50ms throttle
-        }, { passive: true });
-    },
-
-    setupIntersectionObserver() {
-        if (this.observer) this.observer.disconnect();
-
-        this.observer = new IntersectionObserver((entries) => {
+        this.loadMoreObserver = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting && !this.loading && this.$wire.hasMorePages) {
                 this.loadMore();
             }
@@ -97,47 +82,42 @@ export default () => ({
             rootMargin: '0px 0px 200px 0px'
         });
 
+        this.refreshLoadMoreObserver();
+    },
+
+    refreshLoadMoreObserver() {
+        if (!this.loadMoreObserver) return;
+        this.loadMoreObserver.disconnect();
+
         if (this.$refs.loadTrigger) {
-            this.observer.observe(this.$refs.loadTrigger);
+            this.loadMoreObserver.observe(this.$refs.loadTrigger);
         }
     },
 
-    updateActiveItem() {
-        const container = this.$refs.galleryContainer;
-        if (!container) return;
+    setupActiveItemObserver() {
+        if (this.activeItemObserver) this.activeItemObserver.disconnect();
 
-        const containerRect = container.getBoundingClientRect();
-        const isDesktop = window.innerWidth >= 768;
-
-        let closestId = null;
-        let minDistance = Infinity;
-
-        // Find all photo items
-        const items = container.querySelectorAll('[data-photo-id]');
-
-        items.forEach(item => {
-            const rect = item.getBoundingClientRect();
-            let distance;
-
-            if (isDesktop) {
-                // Horizontal Layout (RTL)
-                // Distance from Right edge of container
-                distance = Math.abs(containerRect.right - rect.right);
-            } else {
-                const containerCenter = containerRect.top + (containerRect.height / 2);
-                const itemCenter = rect.top + (rect.height / 2);
-                distance = Math.abs(containerCenter - itemCenter);
-            }
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestId = item.dataset.photoId;
-            }
+        this.activeItemObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.activeId = entry.target.dataset.photoId;
+                }
+            });
+        }, {
+            root: this.$refs.galleryContainer,
+            threshold: 0.6,
         });
 
-        if (closestId) {
-            this.activeId = closestId;
-        }
+        this.refreshActiveItemObserver();
+    },
+
+    refreshActiveItemObserver() {
+        if (!this.activeItemObserver) return;
+
+        this.activeItemObserver.disconnect();
+
+        const items = this.$refs.galleryContainer.querySelectorAll('[data-photo-id]');
+        items.forEach(item => this.activeItemObserver.observe(item));
     },
 
     async loadMore() {

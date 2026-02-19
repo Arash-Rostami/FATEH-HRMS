@@ -1,8 +1,6 @@
 <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden sm:block"></div>
 
 <div
-    x-ref="timeline"
-    @scroll.debounce.100ms="handleScroll"
     class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-8 px-[5%] md:pr-[10%] md:pl-4 z-10"
     style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
 >
@@ -14,7 +12,7 @@
             <div
                 wire:key="photo-{{ $photo->id }}"
                 data-photo-id="{{ $photo->id }}"
-                class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative"
+                class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-transform duration-300 ease-out relative will-change-transform"
                 :class="{
                         'z-30 scale-105': activeId == {{ $photo->id }},
                         'z-10 scale-95 opacity-80': activeId != {{ $photo->id }}
