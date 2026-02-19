@@ -3,26 +3,21 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Link;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Links extends Component
 {
-    #[Computed]
+    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.internal')]
     public function internalLinks()
     {
-        return Cache::remember('dashboard.links.internal', 7200, function () {
-            return Link::internal()->orderBy('sequence')->get();
-        });
+        return Link::internal()->orderBy('sequence')->get();
     }
 
-    #[Computed]
+    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.external')]
     public function externalLinks()
     {
-        return Cache::remember('dashboard.links.external', 7200, function () {
-            return Link::external()->orderBy('sequence')->get();
-        });
+        return Link::external()->orderBy('sequence')->get();
     }
 
     public function render()
