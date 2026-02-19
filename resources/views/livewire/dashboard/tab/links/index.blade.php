@@ -1,23 +1,7 @@
 <div class="flex flex-col gap-10 p-4 md:p-8 w-full h-full overflow-y-auto custom-scrollbar" dir="rtl">
 
-    {{-- Internal Links Section --}}
     @if($this->internalLinks->isNotEmpty())
-        <section x-data="{
-             init() { this.checkScroll() },
-             scrollLeft() { this.$refs.container.scrollBy({ left: -300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
-             scrollRight() { this.$refs.container.scrollBy({ left: 300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
-             checkScroll() {
-                 const el = this.$refs.container;
-                 this.canScrollLeft = el.scrollLeft > 0; // RTL logic might reverse this, need careful check. standard browser scrollLeft is usually negative or 0 in RTL depending on implementation. Let's rely on scrollWidth vs clientWidth + scrollLeft.
-                 // In RTL, scrollLeft is often negative or starts at max.
-                 // Simplest: show arrows if scrollWidth > clientWidth.
-                 this.hasOverflow = el.scrollWidth > el.clientWidth;
-             },
-             hasOverflow: false
-         }"
-         class="relative group/section"
-         @resize.window="checkScroll"
-        >
+        <section x-data="links" class="relative group/section" @resize.window="checkScroll">
             <div class="flex items-center justify-between mb-6 px-2">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
@@ -51,7 +35,6 @@
                     >
                         <div class="relative w-full aspect-[4/3] rounded-[28px] bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden shadow-sm group-hover/card:shadow-xl group-hover/card:scale-[1.02] group-hover/card:-translate-y-1 transition-all duration-300 ease-out">
 
-                            {{-- Image/Icon Container --}}
                             <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-low)]">
                                 @if($link->image_description)
                                     <img src="{{ $link->image_description }}"
@@ -61,18 +44,15 @@
                                     >
                                 @endif
 
-                                {{-- Fallback Icon --}}
                                 <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-primary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
                                     <div class="p-4 rounded-full bg-[var(--md-sys-color-primary-container)]/30 backdrop-blur-sm">
                                         <span class="material-symbols-rounded text-4xl md:text-5xl">{{ $link->icon_description ?: 'link' }}</span>
                                     </div>
                                 </div>
 
-                                {{-- Overlay Gradient --}}
                                 <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container-highest)]/80 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"></div>
                             </div>
 
-                            {{-- Hover Action Indicator --}}
                             <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 backdrop-blur-md rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
                                 <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">arrow_outward</span>
                             </div>
@@ -89,21 +69,8 @@
         </section>
     @endif
 
-    {{-- External Links Section --}}
     @if($this->externalLinks->isNotEmpty())
-        <section x-data="{
-             init() { this.checkScroll() },
-             scrollLeft() { this.$refs.container.scrollBy({ left: -300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
-             scrollRight() { this.$refs.container.scrollBy({ left: 300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
-             checkScroll() {
-                 const el = this.$refs.container;
-                 this.hasOverflow = el.scrollWidth > el.clientWidth;
-             },
-             hasOverflow: false
-         }"
-         class="relative group/section"
-         @resize.window="checkScroll"
-        >
+        <section x-data="links" class="relative group/section" @resize.window="checkScroll">
              <div class="flex items-center justify-between mb-6 px-2">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
