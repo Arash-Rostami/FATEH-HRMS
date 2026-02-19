@@ -19,7 +19,11 @@
         x-init="
             $watch('show', value => {
                 if (value) {
-                    setTimeout(() => active = true, 50);
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            active = true;
+                        });
+                    });
                 } else {
                     active = false;
                 }

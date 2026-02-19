@@ -5,7 +5,14 @@
     x-init="
         $watch('show', value => {
             if (value) {
-                setTimeout(() => active = true, 50);
+                // Use double requestAnimationFrame to ensure the element is painted
+                // in the DOM (display: block, width: 0) before we add the active class.
+                // This forces the browser to register the initial state and then transition.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        active = true;
+                    });
+                });
             } else {
                 active = false;
             }
@@ -18,8 +25,13 @@
     x-transition:enter="transition duration-0"
     x-transition:leave="transition duration-1000 delay-1000"
 >
-    <div class="modal-close-icon" @click="show = false"></div>
+    <!-- Close Icon -->
+    <div
+        class="modal-close-icon"
+        @click="show = false"
+    ></div>
 
+    <!-- Content -->
     <div class="custom-modal-content">
         @if($title)
             <h3 class="modal-title">{{ $title }}</h3>
