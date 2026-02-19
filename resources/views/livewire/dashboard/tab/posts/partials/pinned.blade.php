@@ -19,7 +19,7 @@
                         >
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-                        <div class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 backdrop-blur-md text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
+                        <div class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90  text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
                             مهم
                         </div>
                     </div>
@@ -32,11 +32,11 @@
                             {{ superClean($pin->body, 150) }}
                         </p>
                         <div class="flex items-center gap-3 text-white/80 text-xs font-medium mt-1">
-                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md ">
                                 <span class="material-symbols-rounded text-[16px]">calendar_today</span>
                                 <span>{{ $pin->created_at->format('Y/m/d') }}</span>
                             </div>
-                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md ">
                                 <span class="material-symbols-rounded text-[16px]">person</span>
                                 <span>ادمین</span>
                             </div>

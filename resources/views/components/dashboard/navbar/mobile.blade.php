@@ -32,7 +32,7 @@
     </div>
 
     <div
-        class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] backdrop-blur-3xl border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
+        class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)]  border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
 
         <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
              :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">

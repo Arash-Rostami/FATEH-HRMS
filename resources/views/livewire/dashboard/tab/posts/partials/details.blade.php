@@ -5,7 +5,7 @@
 
             <button
                 @click="togglePanel()"
-                class="absolute top-6 left-6 w-10 h-10 rounded-full bg-black/40 text-white/90 backdrop-blur-md flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
+                class="absolute top-6 left-6 w-10 h-10 rounded-full bg-black/40 text-white/90  flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
             >
                 <span class="material-symbols-rounded font-bold">close</span>
             </button>
@@ -15,7 +15,7 @@
 
             <div class="absolute bottom-6 right-8 left-8 text-[var(--md-sys-color-on-surface)] z-10">
                 <div
-                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--md-sys-color-secondary-container)]/80 backdrop-blur-sm text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold mb-3 shadow-sm">
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--md-sys-color-secondary-container)]/80  text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold mb-3 shadow-sm">
                     <span class="material-symbols-rounded text-[14px]">new_releases</span>
                     <span>خبر</span>
                 </div>

@@ -3,7 +3,7 @@
 <aside
     wire:keydown.window.arrow-down.prevent="navigateTab(1)"
     wire:keydown.window.arrow-up.prevent="navigateTab(-1)"
-    class="hidden lg:flex w-[70px] flex-col items-center gap-2 pt-10 backdrop-blur-sm my-auto shrink-0 z-10 fixed top-1/5 right-1"
+    class="hidden lg:flex w-[70px] flex-col items-center gap-2 pt-10  my-auto shrink-0 z-10 fixed top-1/5 right-1"
 >
     @foreach($tabs as $key => $tab)
         <button

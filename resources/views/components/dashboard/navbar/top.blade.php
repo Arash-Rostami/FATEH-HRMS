@@ -14,7 +14,7 @@
     <div class="w-3/5 md:w-full flex justify-center max-w-xs md:max-w-md mx-2 md:mx-4">
         <div class="relative w-full">
             <div
-                class="flex items-center justify-center h-[40px] w-full gap-2 md:gap-3 px-3 md:px-4 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 backdrop-blur-sm transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm cursor-pointer group"
+                class="flex items-center justify-center h-[40px] w-full gap-2 md:gap-3 px-3 md:px-4 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm cursor-pointer group"
                 @click="$dispatch('open-command-palette')"
                 title="جستجو (Ctrl+K)">
                 <span
@@ -36,19 +36,19 @@
     <div class="hidden xl:flex justify-start items-center gap-1.5 lg:gap-2 mr-auto">
         <div class="hidden 2xl:flex items-center gap-2">
             <div
-                class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 backdrop-blur-sm transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
+                class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
                 <livewire:dashboard.header.weather/>
             </div>
         </div>
 
         <div class="flex items-center gap-2">
             <div x-data="timer" x-cloak
-                 class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 backdrop-blur-sm transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
+                 class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
                 <x-dashboard.navbar.timer/>
             </div>
 
             <div
-                class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 backdrop-blur-sm transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm"
+                class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm"
                 title="وضعیت حضور">
                 <livewire:dashboard.navbar.status-switcher/>
             </div>

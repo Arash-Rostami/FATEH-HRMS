@@ -19,7 +19,7 @@
         z-index: 50;
         border: 1px solid rgba(var(--md-sys-color-outline-variant), 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-blur: 10px;
+
     }
 
     .timeline-nav-btn:hover {

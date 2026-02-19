@@ -7,7 +7,7 @@
 
         <!-- Right Panel: Branding/Image (Desktop Only) -->
         <div
-            class="hidden lg:flex w-1/4 h-full relative overflow-hidden bg-gradient-to-br from-[var(--md-sys-color-primary-container)]/20 via-[var(--md-sys-color-surface)]/10 to-[var(--md-sys-color-tertiary-container)]/20 backdrop-blur-3xl items-center justify-center group">
+            class="hidden lg:flex w-1/4 h-full relative overflow-hidden bg-gradient-to-br from-[var(--md-sys-color-primary-container)]/20 via-[var(--md-sys-color-surface)]/10 to-[var(--md-sys-color-tertiary-container)]/20  items-center justify-center group">
 
             <!-- Noise Texture -->
             <div
@@ -30,7 +30,7 @@
                     <div
                         class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 blur-2xl rounded-full"></div>
                     <div
-                        class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
+                        class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5  border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
                         <span
                             class="material-symbols-rounded text-[80px] text-[var(--md-sys-color-on-surface)] drop-shadow-2xl">fingerprint</span>
                     </div>
@@ -53,14 +53,14 @@
         </div>
 
         <!-- Left Panel: Form Content -->
-        <div class="w-full lg:w-3/4 h-full flex flex-col relative bg-[var(--md-sys-color-surface)]/40 backdrop-blur-xl">
+        <div class="w-full lg:w-3/4 h-full flex flex-col relative bg-[var(--md-sys-color-surface)]/40 ">
 
             <!-- Mobile Header (Visible only on small screens) -->
             <div class="lg:hidden pt-8 px-6 pb-2 text-center flex flex-col items-center gap-4">
                 <div
                     class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 blur-2xl rounded-full"></div>
                 <div
-                    class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
+                    class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5  border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
                     <span
                         class="material-symbols-rounded text-[80px] text-[var(--md-sys-color-on-surface)] drop-shadow-2xl">fingerprint</span>
                 </div>

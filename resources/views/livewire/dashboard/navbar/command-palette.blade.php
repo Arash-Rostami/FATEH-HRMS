@@ -12,7 +12,7 @@
          x-transition:leave="ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+         class="fixed inset-0 bg-black/60 "
          @click="open = false"
          style="display: none;"></div>
 

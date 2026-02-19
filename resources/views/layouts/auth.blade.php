@@ -63,7 +63,7 @@
         </div>
 
         <div class="fixed bottom-8 left-8 z-50 flex items-center gap-2" x-cloak>
-            <div class="glass-panel p-1.5 rounded-full flex gap-1 bg-white/80 dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-xl transition-all hover:bg-white hover:dark:bg-white/10">
+            <div class="glass-panel p-1.5 rounded-full flex gap-1 bg-white/80 dark:bg-white/5  border border-gray-200 dark:border-white/10 shadow-xl transition-all hover:bg-white hover:dark:bg-white/10">
                 <button @click="window.ThemeManager.toggleMode(); isDark = !isDark"
                         class="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100 hover:dark:bg-white/10 transition-all"
                         :title="isDark ? 'Switch to Light' : 'Switch to Dark'">

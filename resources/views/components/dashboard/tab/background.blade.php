@@ -24,7 +24,7 @@
                 :style="{ backgroundImage: 'url(' + $store.background.images[i - 1] + ')' }">
             </div>
         </template>
-        <div class="absolute inset-0 bg-[var(--md-sys-color-background)]/85 backdrop-blur-[1px]"></div>
+        <div class="absolute inset-0 bg-[var(--md-sys-color-background)]/85 [1px]"></div>
     </div>
 
     <!-- 2. Pattern Background Layer -->

@@ -183,3 +183,11 @@
     font-size: 1.5rem;
     transition: opacity 0.3s ease;
 }
+
+.custom-modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}

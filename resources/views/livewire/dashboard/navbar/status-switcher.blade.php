@@ -36,7 +36,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-         class="absolute top-[calc(100%+12px)] right-0 p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] backdrop-blur-xl border border-[var(--md-sys-color-outline-variant)]/10 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)] min-w-[200px]"
+         class="absolute top-[calc(100%+12px)] right-0 p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)]  border border-[var(--md-sys-color-outline-variant)]/10 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)] min-w-[200px]"
          style="display: none;">
 
         <div class="text-[10px] uppercase tracking-wider opacity-40 font-bold px-3 py-2 mb-1">تغییر وضعیت</div>
