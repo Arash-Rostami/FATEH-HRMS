@@ -12,3 +12,4 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@import './components/modal.css';
