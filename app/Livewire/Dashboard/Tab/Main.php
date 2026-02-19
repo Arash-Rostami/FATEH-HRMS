@@ -67,6 +67,12 @@ class Main extends Component
                 'icon' => 'help',
                 'bg' => 'bg-info-container'
             ],
+            'links' => [
+                'component' => Links::class,
+                'label' => 'پیوندها',
+                'icon' => 'link',
+                'bg' => 'bg-surface-container-high'
+            ],
         ];
     }
 
