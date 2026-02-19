@@ -1,4 +1,5 @@
-<div class="flex flex-col gap-10 p-4 md:p-8 w-full h-full overflow-y-auto custom-scrollbar" dir="rtl">
+<div class="flex flex-col gap-10 p-4 md:p-8 w-full h-full overflow-y-auto custom-scrollbar p-4 md:p-8"
+     dir="rtl">
 
     @if($this->internalLinks->isNotEmpty())
         <section x-data="links" class="relative group/section" @resize.window="checkScroll">
@@ -45,7 +46,7 @@
                                 @endif
 
                                 <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-primary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
-                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-primary-container)]/30 backdrop-blur-sm">
+                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-primary-container)]/30 ">
                                         <span class="material-symbols-rounded text-4xl md:text-5xl">{{ $link->icon_description ?: 'link' }}</span>
                                     </div>
                                 </div>
@@ -53,7 +54,7 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container-highest)]/80 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"></div>
                             </div>
 
-                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 backdrop-blur-md rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
+                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
                                 <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">arrow_outward</span>
                             </div>
                         </div>
@@ -114,7 +115,7 @@
                                 @endif
 
                                 <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-secondary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
-                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-secondary-container)]/30 backdrop-blur-sm">
+                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-secondary-container)]/30 ">
                                         <span class="material-symbols-rounded text-4xl md:text-5xl">{{ $link->icon_description ?: 'open_in_new' }}</span>
                                     </div>
                                 </div>
@@ -122,7 +123,7 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container-highest)]/80 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"></div>
                             </div>
 
-                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 backdrop-blur-md rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
+                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80  rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
                                 <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-secondary)]">arrow_outward</span>
                             </div>
                         </div>

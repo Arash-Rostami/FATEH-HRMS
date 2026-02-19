@@ -1,5 +1,5 @@
 <div class="w-full max-w-[50rem] mx-auto font-sans">
-    <div class="relative overflow-hidden bg-[var(--md-sys-color-surface-container)] rounded-[1.75rem] p-3 shadow-xl ring-1 ring-[var(--md-sys-color-outline-variant)]/40 backdrop-blur-xl transition-all duration-300">
+    <div class="relative overflow-hidden bg-[var(--md-sys-color-surface-container)] rounded-[1.75rem] p-3 shadow-xl ring-1 ring-[var(--md-sys-color-outline-variant)]/40 transition-all duration-300">
 
         <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex flex-col">

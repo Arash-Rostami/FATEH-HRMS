@@ -124,7 +124,7 @@
     {{-- Content Section (Scrollable) --}}
     <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar relative bg-[var(--md-sys-color-surface-container-lowest)]">
         {{-- Loading Indicator Overlay --}}
-        <div wire:loading.delay class="absolute inset-0 bg-[var(--md-sys-color-surface-container-lowest)]/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
+        <div wire:loading.delay class="absolute inset-0 bg-[var(--md-sys-color-surface-container-lowest)]/50  z-50 flex items-center justify-center">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
         </div>
 

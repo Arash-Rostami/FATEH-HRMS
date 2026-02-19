@@ -4,7 +4,6 @@ namespace App\Livewire\Dashboard\Tab;
 
 use Livewire\Component;
 
-
 class Main extends Component
 {
     public $activeTab = 'overview';
@@ -15,7 +14,7 @@ class Main extends Component
         return [
             'overview' => [
                 'component' => Overview::class,
-                'label' => 'Overview',
+                'label' => 'مروری',
                 'icon' => 'home',
                 'bg' => 'bg-surface-variant'
             ],
@@ -33,37 +32,37 @@ class Main extends Component
             ],
             'calendar' => [
                 'component' => Calendar::class,
-                'label' => 'Calendar',
+                'label' => 'تقویم',
                 'icon' => 'calendar_month',
                 'bg' => 'bg-tertiary-container'
             ],
             'gallery' => [
                 'component' => Gallery::class,
-                'label' => 'Gallery',
+                'label' => 'گالری',
                 'icon' => 'image',
                 'bg' => 'bg-surface-container-high'
             ],
             'share' => [
                 'component' => Share::class,
-                'label' => 'Share',
+                'label' => 'اشتراک‌گذاری',
                 'icon' => 'share',
                 'bg' => 'bg-primary-container'
             ],
             'links' => [
                 'component' => Links::class,
-                'label' => 'پیوندها',
-                'icon' => 'link',
+                'label' => 'لینک‌ها',
+                'icon' => 'open_in_new',
                 'bg' => 'bg-surface-container-high'
             ],
             'profile' => [
                 'component' => Profile::class,
-                'label' => 'Profile',
+                'label' => 'پروفایل',
                 'icon' => 'person',
                 'bg' => 'bg-surface-dim'
             ],
             'faqs' => [
                 'component' => Faqs::class,
-                'label' => 'Faqs',
+                'label' => 'پرسش‌های متداول',
                 'icon' => 'help',
                 'bg' => 'bg-info-container'
             ],
@@ -101,7 +100,6 @@ class Main extends Component
         $tabsKeys = array_keys($this->getTabsProperty());
         $currentIndex = array_search($this->activeTab, $tabsKeys);
         $newIndex = array_search($tabId, $tabsKeys);
-
 
         $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
 

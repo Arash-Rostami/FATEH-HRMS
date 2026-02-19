@@ -77,16 +77,16 @@
                 </div>
 
                 @if($event['is_owner'])
-                    <div class="absolute top-3 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
                         <button
                             wire:click="editEvent({{ $event['id'] }})"
-                            class="p-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-full text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors"
+                            class="px-2 py-1 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors"
                         >
                             <span class="material-symbols-rounded text-[16px]">edit</span>
                         </button>
                         <button
                             wire:click="confirmDelete({{ $event['id'] }})"
-                            class="p-2 bg-[var(--md-sys-color-error-container)] rounded-full text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors"
+                            class="px-2 py-1 bg-[var(--md-sys-color-error-container)] rounded-xl text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors"
                         >
                             <span class="material-symbols-rounded text-[16px]">delete</span>
                         </button>

@@ -1,7 +1,7 @@
 <div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
             title="حساب کاربری"
-            class="flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 group backdrop-blur-sm shadow-sm outline-none">
+            class="flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 group  shadow-sm outline-none">
 
         <div
             class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">

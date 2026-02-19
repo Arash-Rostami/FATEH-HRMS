@@ -19,12 +19,14 @@
                         >
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-                        <div class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 backdrop-blur-md text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
+                        <div
+                            class="absolute top-4 right-4 bg-[var(--md-sys-color-tertiary)]/90 text-[var(--md-sys-color-on-tertiary)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-white/20">
                             مهم
                         </div>
                     </div>
 
-                    <div class="absolute bottom-0 inset-x-0 p-6 lg:p-8 text-white flex flex-col gap-3 bg-gradient-to-t from-black/80 to-transparent pt-24">
+                    <div
+                        class="absolute bottom-0 inset-x-0 p-6 lg:p-8 text-white flex flex-col gap-3 bg-gradient-to-t from-black/80 to-transparent pt-24">
                         <h2 class="text-2xl lg:text-3xl font-bold leading-tight drop-shadow-md">
                             {{ superClean($pin->title, 100) }}
                         </h2>
@@ -32,24 +34,28 @@
                             {{ superClean($pin->body, 150) }}
                         </p>
                         <div class="flex items-center gap-3 text-white/80 text-xs font-medium mt-1">
-                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md ">
                                 <span class="material-symbols-rounded text-[16px]">calendar_today</span>
                                 <span>{{ $pin->created_at->format('Y/m/d') }}</span>
                             </div>
-                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">
+                            <div class="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md ">
                                 <span class="material-symbols-rounded text-[16px]">person</span>
                                 <span>ادمین</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="absolute inset-0 rounded-[32px] ring-1 ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none"></div>
+                    <div
+                        class="absolute inset-0 rounded-[32px] ring-1 ring-white/0 group-hover:ring-white/20 transition-all duration-500 pointer-events-none"></div>
                 </div>
             @endforeach
         @else
-            <div class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
-                <div class="w-20 h-20 rounded-full bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center mb-4 shadow-sm animate-pulse-slow">
-                    <span class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-on-secondary-container)]">campaign</span>
+            <div
+                class="flex-grow flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-[var(--md-sys-color-surface-container)] to-[var(--md-sys-color-surface-container-low)] rounded-[32px] border border-[var(--md-sys-color-outline-variant)]/40 shadow-inner">
+                <div
+                    class="w-20 h-20 rounded-full bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center mb-4 shadow-sm animate-pulse-slow">
+                    <span
+                        class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-on-secondary-container)]">campaign</span>
                 </div>
                 <h4 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2">خوش آمدید</h4>
                 <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm max-w-xs leading-relaxed">

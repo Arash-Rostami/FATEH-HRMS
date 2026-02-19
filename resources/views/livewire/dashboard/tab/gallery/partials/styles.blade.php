@@ -16,7 +16,7 @@
         color: var(--md-sys-color-primary);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         cursor: pointer;
-        z-index: 50;
+        z-index: 48;
         border: 1px solid rgba(var(--md-sys-color-outline-variant), 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }

@@ -10,7 +10,7 @@
     </div>
 
     <div
-        class="relative flex flex-col items-center p-12 rounded-3xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface)]/10 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-[var(--md-sys-color-outline-variant)]/50 hover:bg-[var(--md-sys-color-surface)]/20 hover:shadow-[0_0_40px_-10px_rgba(0,0,0,0.2)]">
+        class="relative flex flex-col items-center p-12 rounded-3xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface)]/10 shadow-2xl transition-all duration-500 hover:border-[var(--md-sys-color-outline-variant)]/50 hover:bg-[var(--md-sys-color-surface)]/20 hover:shadow-[0_0_40px_-10px_rgba(0,0,0,0.2)]">
 
         <div class="flex flex-col items-center gap-2 z-10">
 

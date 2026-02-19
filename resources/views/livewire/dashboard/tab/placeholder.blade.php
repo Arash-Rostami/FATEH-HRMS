@@ -44,7 +44,7 @@
     </aside>
 
     <main class="relative flex flex-1 flex-col overflow-hidden">
-        <header class="sticky top-0 z-10 flex h-20 w-full items-center justify-between border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]/80 px-8 backdrop-blur-md">
+        <header class="sticky top-0 z-10 flex h-20 w-full items-center justify-between border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]/80 px-8 ">
             <div class="flex flex-col gap-2">
                 <div class="h-6 w-48 animate-pulse rounded bg-[var(--md-sys-color-on-surface)] opacity-10"></div>
                 <div class="h-3 w-24 animate-pulse rounded bg-[var(--md-sys-color-on-surface)] opacity-10"></div>

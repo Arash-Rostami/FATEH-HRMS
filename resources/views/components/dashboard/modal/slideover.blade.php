@@ -7,7 +7,7 @@
     style="display: none;"
 >
     <div
-        class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500"
+        class="absolute inset-0 bg-black/40  transition-opacity duration-500"
         x-show="{{ $show }}"
         x-transition:enter="ease-out duration-500"
         x-transition:enter-start="opacity-0"

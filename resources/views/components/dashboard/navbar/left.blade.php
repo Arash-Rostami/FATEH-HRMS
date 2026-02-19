@@ -174,6 +174,6 @@
         x-transition:leave="transition-all duration-300"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="lg:hidden fixed inset-0 bg-gradient-to-r from-black/30 via-black/20 to-transparent backdrop-blur-[2px] z-40 touch-manipulation"></div>
+        class="lg:hidden fixed inset-0 bg-gradient-to-r from-black/30 via-black/20 to-transparent z-40 touch-manipulation"></div>
 
 </div>

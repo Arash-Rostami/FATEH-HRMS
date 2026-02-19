@@ -14,7 +14,7 @@
             <span class="font-bold text-base md:text-lg">رویداد جدید</span>
         </button>
 
-        <div class="flex-1 bg-[var(--md-sys-color-surface-container-low)]/60 backdrop-blur-2xl border border-[var(--md-sys-color-outline-variant)]/40 rounded-[2rem] flex flex-col overflow-hidden shadow-sm">
+        <div class="flex-1 bg-[var(--md-sys-color-surface-container-low)]/60  border border-[var(--md-sys-color-outline-variant)]/40 rounded-[2rem] flex flex-col overflow-hidden shadow-sm">
             <div class="flex-1 overflow-y-auto">
                 @include('livewire.dashboard.tab.calendar.partials.events')
             </div>

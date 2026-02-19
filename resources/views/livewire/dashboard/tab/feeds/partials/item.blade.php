@@ -1,6 +1,6 @@
 <div
     :class="{'!bg-[var(--md-sys-color-primary-container)]': activeId == {{ $feed->id }}}"
-    class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-[32px] overflow-hidden shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 relative group">
+    class="bg-[var(--md-sys-color-surface)] flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-[32px] overflow-hidden shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 relative group">
 
     @include('livewire.dashboard.tab.feeds.partials.header', ['feed' => $feed])
 

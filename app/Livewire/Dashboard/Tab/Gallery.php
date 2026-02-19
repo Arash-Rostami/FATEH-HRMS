@@ -2,12 +2,92 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Models\Photo;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class Gallery extends Component
 {
+    #[Locked]
+    public array $photoIds = [];
+
+    public ?int $selectedPhotoId = null;
+
+    public bool $assetsLoaded = false;
+    public int $perPage = 5;
+    public bool $hasMorePages = true;
+
+    #[Computed]
+    public function photos()
+    {
+        if (empty($this->photoIds)) {
+            return collect();
+        }
+
+        $idsString = implode(',', $this->photoIds);
+
+        return Photo::whereIn('id', $this->photoIds)
+            ->orderByRaw("FIELD(id, {$idsString})")
+            ->get();
+    }
+
+    public function loadInitialPhotos(): void
+    {
+        $this->photoIds = $this->getBaseQuery()->take($this->perPage)->pluck('id')->toArray();
+
+        $this->hasMorePages = count($this->photoIds) >= $this->perPage;
+
+        if (!empty($this->photoIds) && !$this->selectedPhotoId) {
+            $this->selectedPhotoId = $this->photoIds[0];
+        }
+
+        unset($this->photos);
+    }
+
+    public function loadMore(): void
+    {
+        if (!$this->hasMorePages) {
+            return;
+        }
+
+        $newIds = $this->getBaseQuery()
+            ->skip(count($this->photoIds))
+            ->take($this->perPage)
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($newIds)) {
+            $this->hasMorePages = false;
+            return;
+        }
+
+        $this->photoIds = array_merge($this->photoIds, $newIds);
+        unset($this->photos);
+    }
+
+    public function mount(): void
+    {
+        $this->loadInitialPhotos();
+        $this->assetsLoaded = true;
+    }
+
     public function render()
     {
-        return view('livewire.dashboard.tab.gallery');
+        return view('livewire.dashboard.tab.gallery.index');
+    }
+
+    private function getBaseQuery(): Builder
+    {
+        $dept = Auth::user()->profile->department ?? null;
+
+        return Photo::query()
+            ->orderByDesc('event_date')
+            ->where(fn($q) => $q->whereNull('department')
+                ->orWhere('department', '')
+                ->orWhere('department', $dept)
+            );
     }
 }
