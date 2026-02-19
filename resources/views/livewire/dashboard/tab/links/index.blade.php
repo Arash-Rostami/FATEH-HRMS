@@ -1,33 +1,88 @@
-<div class="flex flex-col gap-8 p-4 md:p-8 w-full h-full overflow-y-auto custom-scrollbar" dir="rtl">
+<div class="flex flex-col gap-10 p-4 md:p-8 w-full h-full overflow-y-auto custom-scrollbar" dir="rtl">
+
     {{-- Internal Links Section --}}
     @if($this->internalLinks->isNotEmpty())
-        <section>
-            <div class="flex items-center gap-2 mb-4 px-1">
-                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">apps</span>
-                <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">سامانه‌های داخلی</h3>
+        <section x-data="{
+             init() { this.checkScroll() },
+             scrollLeft() { this.$refs.container.scrollBy({ left: -300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
+             scrollRight() { this.$refs.container.scrollBy({ left: 300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
+             checkScroll() {
+                 const el = this.$refs.container;
+                 this.canScrollLeft = el.scrollLeft > 0; // RTL logic might reverse this, need careful check. standard browser scrollLeft is usually negative or 0 in RTL depending on implementation. Let's rely on scrollWidth vs clientWidth + scrollLeft.
+                 // In RTL, scrollLeft is often negative or starts at max.
+                 // Simplest: show arrows if scrollWidth > clientWidth.
+                 this.hasOverflow = el.scrollWidth > el.clientWidth;
+             },
+             hasOverflow: false
+         }"
+         class="relative group/section"
+         @resize.window="checkScroll"
+        >
+            <div class="flex items-center justify-between mb-6 px-2">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                        <span class="material-symbols-rounded text-2xl">apps</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)]">سامانه‌های داخلی</h3>
+                        <p class="text-xs text-[var(--md-sys-color-outline)] mt-0.5">دسترسی سریع به ابزارهای سازمانی</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300" x-show="hasOverflow">
+                    <button @click="scrollRight" class="p-2 rounded-full bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface)] transition-colors shadow-sm">
+                        <span class="material-symbols-rounded">chevron_right</span>
+                    </button>
+                    <button @click="scrollLeft" class="p-2 rounded-full bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface)] transition-colors shadow-sm">
+                        <span class="material-symbols-rounded">chevron_left</span>
+                    </button>
+                </div>
             </div>
-            <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide px-1" style="-webkit-overflow-scrolling: touch;">
+
+            <div x-ref="container"
+                 class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 scrollbar-hide px-2 pt-2"
+                 style="-webkit-overflow-scrolling: touch;"
+                 @scroll.debounce.100ms="checkScroll"
+            >
                 @foreach($this->internalLinks as $link)
                     <a href="{{ $link->internal_url ?: $link->url }}"
                        target="{{ $link->internal_url ? '_self' : '_blank' }}"
-                       class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center gap-2 group cursor-pointer transition-transform hover:-translate-y-1"
+                       class="snap-start shrink-0 w-40 md:w-48 group/card cursor-pointer focus:outline-none"
                     >
-                        <div class="w-full aspect-square rounded-[24px] bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 overflow-hidden relative shadow-sm group-hover:shadow-md transition-all">
-                            {{-- Image Logic: Check if it looks like a URL/path --}}
-                            @if($link->image_description)
-                                <img src="{{ $link->image_description }}"
-                                     alt="{{ $link->url_title }}"
-                                     class="w-full h-full object-cover p-4 group-hover:scale-110 transition-transform duration-500"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                >
-                            @endif
-                            <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-high)] {{ $link->image_description ? 'hidden' : 'flex' }}">
-                                <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-primary)]">{{ $link->icon_description ?: 'link' }}</span>
+                        <div class="relative w-full aspect-[4/3] rounded-[28px] bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden shadow-sm group-hover/card:shadow-xl group-hover/card:scale-[1.02] group-hover/card:-translate-y-1 transition-all duration-300 ease-out">
+
+                            {{-- Image/Icon Container --}}
+                            <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container-low)]">
+                                @if($link->image_description)
+                                    <img src="{{ $link->image_description }}"
+                                         alt="{{ $link->url_title }}"
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                    >
+                                @endif
+
+                                {{-- Fallback Icon --}}
+                                <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-primary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
+                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-primary-container)]/30 backdrop-blur-sm">
+                                        <span class="material-symbols-rounded text-4xl md:text-5xl">{{ $link->icon_description ?: 'link' }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Overlay Gradient --}}
+                                <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container-highest)]/80 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            {{-- Hover Action Indicator --}}
+                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 backdrop-blur-md rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
+                                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">arrow_outward</span>
                             </div>
                         </div>
-                        <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] text-center line-clamp-2 group-hover:text-[var(--md-sys-color-primary)] transition-colors">
-                            {{ $link->url_title }}
-                        </span>
+
+                        <div class="mt-3 text-center px-1">
+                            <h4 class="text-sm md:text-base font-bold text-[var(--md-sys-color-on-surface)] group-hover/card:text-[var(--md-sys-color-primary)] transition-colors line-clamp-1">
+                                {{ $link->url_title }}
+                            </h4>
+                        </div>
                     </a>
                 @endforeach
             </div>
@@ -36,32 +91,80 @@
 
     {{-- External Links Section --}}
     @if($this->externalLinks->isNotEmpty())
-        <section>
-             <div class="flex items-center gap-2 mb-4 px-1">
-                <span class="material-symbols-rounded text-[var(--md-sys-color-secondary)]">public</span>
-                <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">پیوندهای خارجی</h3>
+        <section x-data="{
+             init() { this.checkScroll() },
+             scrollLeft() { this.$refs.container.scrollBy({ left: -300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
+             scrollRight() { this.$refs.container.scrollBy({ left: 300, behavior: 'smooth' }); setTimeout(() => this.checkScroll(), 300); },
+             checkScroll() {
+                 const el = this.$refs.container;
+                 this.hasOverflow = el.scrollWidth > el.clientWidth;
+             },
+             hasOverflow: false
+         }"
+         class="relative group/section"
+         @resize.window="checkScroll"
+        >
+             <div class="flex items-center justify-between mb-6 px-2">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                        <span class="material-symbols-rounded text-2xl">public</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)]">پیوندهای خارجی</h3>
+                        <p class="text-xs text-[var(--md-sys-color-outline)] mt-0.5">وب‌سایت‌ها و منابع اینترنتی</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300" x-show="hasOverflow">
+                    <button @click="scrollRight" class="p-2 rounded-full bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface)] transition-colors shadow-sm">
+                        <span class="material-symbols-rounded">chevron_right</span>
+                    </button>
+                    <button @click="scrollLeft" class="p-2 rounded-full bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface)] transition-colors shadow-sm">
+                        <span class="material-symbols-rounded">chevron_left</span>
+                    </button>
+                </div>
             </div>
-            <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide px-1" style="-webkit-overflow-scrolling: touch;">
+
+            <div x-ref="container"
+                 class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 scrollbar-hide px-2 pt-2"
+                 style="-webkit-overflow-scrolling: touch;"
+                 @scroll.debounce.100ms="checkScroll"
+            >
                 @foreach($this->externalLinks as $link)
                     <a href="{{ $link->url }}"
                        target="_blank"
-                       class="snap-center shrink-0 w-32 md:w-40 flex flex-col items-center gap-2 group cursor-pointer transition-transform hover:-translate-y-1"
+                       class="snap-start shrink-0 w-40 md:w-48 group/card cursor-pointer focus:outline-none"
                     >
-                        <div class="w-full aspect-square rounded-[24px] bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)]/50 overflow-hidden relative shadow-sm group-hover:shadow-md transition-all">
-                             @if($link->image_description)
-                                <img src="{{ $link->image_description }}"
-                                     alt="{{ $link->url_title }}"
-                                     class="w-full h-full object-cover p-4 group-hover:scale-110 transition-transform duration-500"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                >
-                            @endif
-                            <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container)] {{ $link->image_description ? 'hidden' : 'flex' }}">
-                                <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-secondary)]">{{ $link->icon_description ?: 'open_in_new' }}</span>
+                        <div class="relative w-full aspect-[4/3] rounded-[28px] bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden shadow-sm group-hover/card:shadow-xl group-hover/card:scale-[1.02] group-hover/card:-translate-y-1 transition-all duration-300 ease-out">
+
+                            <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-container)]">
+                                 @if($link->image_description)
+                                    <img src="{{ $link->image_description }}"
+                                         alt="{{ $link->url_title }}"
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                    >
+                                @endif
+
+                                <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-secondary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
+                                    <div class="p-4 rounded-full bg-[var(--md-sys-color-secondary-container)]/30 backdrop-blur-sm">
+                                        <span class="material-symbols-rounded text-4xl md:text-5xl">{{ $link->icon_description ?: 'open_in_new' }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container-highest)]/80 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            <div class="absolute top-3 left-3 bg-[var(--md-sys-color-surface)]/80 backdrop-blur-md rounded-full p-1.5 opacity-0 group-hover/card:opacity-100 translate-y-2 group-hover/card:translate-y-0 transition-all duration-300 shadow-sm">
+                                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-secondary)]">arrow_outward</span>
                             </div>
                         </div>
-                        <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)] text-center line-clamp-2 group-hover:text-[var(--md-sys-color-secondary)] transition-colors">
-                            {{ $link->url_title }}
-                        </span>
+
+                        <div class="mt-3 text-center px-1">
+                            <h4 class="text-sm md:text-base font-bold text-[var(--md-sys-color-on-surface)] group-hover/card:text-[var(--md-sys-color-secondary)] transition-colors line-clamp-1">
+                                {{ $link->url_title }}
+                            </h4>
+                        </div>
                     </a>
                 @endforeach
             </div>
