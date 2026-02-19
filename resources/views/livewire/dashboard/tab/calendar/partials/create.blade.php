@@ -3,7 +3,6 @@
     class="fixed inset-0 z-[60] flex items-center justify-center p-4"
     style="display: none;"
 >
-    {{-- Backdrop --}}
     <div
         x-show="$wire.isCreateModalOpen"
         x-transition:enter="ease-out duration-300"
@@ -16,7 +15,6 @@
         class="absolute inset-0 bg-black/40 backdrop-blur-md"
     ></div>
 
-    {{-- Modal Card --}}
     <div
         x-show="$wire.isCreateModalOpen"
         x-transition:enter="ease-out duration-300"
@@ -27,7 +25,6 @@
         x-transition:leave-end="opacity-0 scale-95 translate-y-4"
         class="bg-[var(--md-sys-color-surface)] w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative z-10 border border-[var(--md-sys-color-outline-variant)]/20"
     >
-        {{-- Header --}}
         <div class="px-8 py-6 bg-[var(--md-sys-color-surface-container)] flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] rounded-xl">
@@ -45,10 +42,8 @@
             </button>
         </div>
 
-        {{-- Form Scrollable Area --}}
         <div class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
 
-            {{-- Title Input (MD3 Filled Style) --}}
             <div class="group relative">
                 <input
                     type="text"
@@ -62,7 +57,6 @@
                 @error('eventTitle') <span class="text-xs text-[var(--md-sys-color-error)] mt-1 block">{{ $message }}</span> @enderror
             </div>
 
-            {{-- Date & Time Grid --}}
             <div class="grid grid-cols-2 gap-4">
                 <div class="group relative">
                     <input
@@ -90,7 +84,6 @@
                 </div>
             </div>
 
-            {{-- Description --}}
             <div class="group relative">
                 <textarea
                     wire:model="eventDescription"
@@ -103,7 +96,6 @@
                 </label>
             </div>
 
-            {{-- Toggle Switch --}}
             <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20">
                 <div class="flex items-center gap-3 text-[var(--md-sys-color-on-surface)]">
                     <div class="p-2 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] rounded-lg">
@@ -121,7 +113,6 @@
             </div>
         </div>
 
-        {{-- Actions --}}
         <div class="p-6 border-t border-[var(--md-sys-color-outline-variant)]/20 flex justify-end gap-3 bg-[var(--md-sys-color-surface-container)]/50">
             <button
                 wire:click="$set('isCreateModalOpen', false)"

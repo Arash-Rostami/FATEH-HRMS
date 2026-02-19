@@ -1,5 +1,4 @@
 <div class="h-full flex flex-col p-4 md:p-6 overflow-hidden">
-    {{-- Header --}}
     <div class="flex items-center justify-between mb-5 shrink-0">
         <h3 class="text-lg md:text-xl font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">event_note</span>
@@ -10,7 +9,6 @@
         </span>
     </div>
 
-    {{-- Events List --}}
     <div class="flex-1 overflow-y-auto space-y-3 pr-1 -mr-2 scrollbar-hide hover:scrollbar-default">
         @forelse($this->selectedDayEvents as $event)
             <div
@@ -18,11 +16,9 @@
                 class="group relative bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] rounded-[1.25rem] p-4 transition-all duration-200 border border-[var(--md-sys-color-outline-variant)]/30 hover:shadow-md hover:border-[var(--md-sys-color-primary)]/30"
             >
                 <div class="flex gap-4">
-                    {{-- Icon Box --}}
                     <div class="shrink-0 relative">
                         @if(!empty($event['avatar']))
                             <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[var(--md-sys-color-surface-variant)]">
-                            {{-- Small Type Indicator Badge --}}
                             @if(($event['type'] ?? '') === 'birthday')
                                 <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center border border-white shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">cake</span>
@@ -52,7 +48,6 @@
                         @endif
                     </div>
 
-                    {{-- Content --}}
                     <div class="flex-1 min-w-0 pt-0.5">
                         <div class="flex justify-between items-start mb-1">
                             <h4 class="font-bold text-[var(--md-sys-color-on-surface)] truncate text-sm md:text-base">
@@ -67,7 +62,6 @@
                             {{ $event['description'] }}
                         </p>
 
-                        {{-- Footer Metadata --}}
                         <div class="flex items-center gap-3 mt-3">
                             <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded-md">
                                 @if($event['private'])
@@ -82,7 +76,6 @@
                     </div>
                 </div>
 
-                {{-- Hover Actions (Owner Only) --}}
                 @if($event['is_owner'])
                     <div class="absolute top-3 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
                         <button
@@ -101,7 +94,6 @@
                 @endif
             </div>
         @empty
-            {{-- Elegant Empty State --}}
             <div class="h-full flex flex-col items-center justify-center text-center opacity-60 pb-10">
                 <div class="w-20 h-20 bg-[var(--md-sys-color-surface-variant)]/30 rounded-[2rem] flex items-center justify-center mb-4 rotate-3 shadow-inner">
                     <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-outline)]">calendar_today</span>

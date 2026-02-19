@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Comment;
 use App\Models\Feed;
 use App\Models\Reaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -30,36 +31,26 @@ class Feeds extends Component
 
     public function addComment($feedId, $parentId = null)
     {
-        $target = $parentId ? 'replyComments.' . $parentId : 'newComments.' . $feedId;
+        $target = $parentId ? "replyComments.{$parentId}" : "newComments.{$feedId}";
 
         $this->validate([
             $target => 'required|string|max:1000',
         ]);
 
-        $content = $parentId ? $this->replyComments[$parentId] : $this->newComments[$feedId];
-
         Comment::create([
             'feed_id' => $feedId,
-            'user_id' => auth()->id(),
-            'content' => $content,
+            'user_id' => Auth::id(),
+            'content' => $parentId ? $this->replyComments[$parentId] : $this->newComments[$feedId],
             'parent_id' => $parentId
         ]);
 
-        if ($parentId) {
-            $this->replyComments[$parentId] = '';
-        } else {
-            $this->newComments[$feedId] = '';
-        }
-
+        $this->reset([$target]);
         unset($this->feeds);
     }
 
     public function deleteComment($commentId)
     {
-        $comment = Comment::find($commentId);
-
-        if ($comment && $comment->user_id === auth()->id()) {
-            $comment->delete();
+        if (Comment::where('user_id', Auth::id())->where('id', $commentId)->delete()) {
             unset($this->feeds);
         }
     }
@@ -80,16 +71,14 @@ class Feeds extends Component
             'reactions.user'
         ])
             ->whereIn('id', $this->feedIds)
-            ->orderByRaw("FIELD(id, $idsString)")
+            ->orderByRaw("FIELD(id, {$idsString})")
             ->get();
     }
 
     public function loadInitialFeeds()
     {
-        $feedIds = Feed::latest()->take($this->perPage)->pluck('id');
-
-        $this->feedIds = $feedIds->toArray();
-        $this->hasMorePages = $feedIds->count() >= $this->perPage;
+        $this->feedIds = Feed::latest()->take($this->perPage)->pluck('id')->toArray();
+        $this->hasMorePages = count($this->feedIds) >= $this->perPage;
 
         if (!empty($this->feedIds) && !$this->selectedFeedId) {
             $this->selectedFeedId = $this->feedIds[0];
@@ -130,36 +119,31 @@ class Feeds extends Component
 
     public function startEditing($commentId)
     {
-        $comment = Comment::find($commentId);
+        $comment = Comment::where('user_id', Auth::id())->find($commentId);
 
-        if (!$comment || $comment->user_id !== auth()->id()) {
-            return;
+        if ($comment) {
+            $this->editingCommentId = $commentId;
+            $this->editingContent = $comment->content;
         }
-
-        $this->editingCommentId = $commentId;
-        $this->editingContent = $comment->content;
     }
 
     public function toggleReaction($feedId, $emoji)
     {
-        if (!auth()->check()) return;
+        if (!Auth::check()) return;
 
         DB::transaction(function () use ($feedId, $emoji) {
-            $attrs = [
-                'feed_id' => $feedId,
-                'user_id' => auth()->id()
-            ];
+            $reaction = Reaction::where('feed_id', $feedId)
+                ->where('user_id', Auth::id())
+                ->first();
 
-            $existingReaction = Reaction::where($attrs)->first();
-
-            if ($existingReaction) {
-                if ($existingReaction->emoji === $emoji) {
-                    $existingReaction->delete();
-                } else {
-                    $existingReaction->update(['emoji' => $emoji]);
-                }
+            if ($reaction) {
+                $reaction->emoji === $emoji ? $reaction->delete() : $reaction->update(['emoji' => $emoji]);
             } else {
-                Reaction::create(array_merge($attrs, ['emoji' => $emoji]));
+                Reaction::create([
+                    'feed_id' => $feedId,
+                    'user_id' => Auth::id(),
+                    'emoji' => $emoji
+                ]);
             }
         });
 
@@ -174,16 +158,14 @@ class Feeds extends Component
             'editingContent' => 'required|string|max:1000',
         ]);
 
-        $comment = Comment::find($this->editingCommentId);
+        $updated = Comment::where('user_id', Auth::id())
+            ->where('id', $this->editingCommentId)
+            ->update(['content' => $this->editingContent]);
 
-        if ($comment && $comment->user_id === auth()->id()) {
-            $comment->update([
-                'content' => $this->editingContent,
-            ]);
+        if ($updated) {
             unset($this->feeds);
         }
 
-        $this->editingCommentId = null;
-        $this->editingContent = '';
+        $this->reset(['editingCommentId', 'editingContent']);
     }
 }

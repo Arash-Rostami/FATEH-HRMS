@@ -49,11 +49,11 @@ class Main extends Component
                 'icon' => 'share',
                 'bg' => 'bg-primary-container'
             ],
-            'analytics' => [
-                'component' => Analytics::class,
-                'label' => 'Analytics',
-                'icon' => 'analytics',
-                'bg' => 'bg-error-container'
+            'links' => [
+                'component' => Links::class,
+                'label' => 'پیوندها',
+                'icon' => 'link',
+                'bg' => 'bg-surface-container-high'
             ],
             'profile' => [
                 'component' => Profile::class,

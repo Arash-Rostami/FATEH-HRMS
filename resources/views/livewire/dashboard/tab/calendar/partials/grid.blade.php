@@ -1,7 +1,6 @@
 <div class="w-full max-w-[50rem] mx-auto font-sans">
     <div class="relative overflow-hidden bg-[var(--md-sys-color-surface-container)] rounded-[1.75rem] p-3 shadow-xl ring-1 ring-[var(--md-sys-color-outline-variant)]/40 backdrop-blur-xl transition-all duration-300">
 
-        {{-- Header --}}
         <div class="flex items-center justify-between mb-3 px-1">
             <div class="flex flex-col">
                 <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] tracking-widest uppercase opacity-80">
@@ -28,7 +27,6 @@
             </div>
         </div>
 
-        {{-- Days Header --}}
         <div class="grid grid-cols-7 gap-1 mb-1">
             @foreach(['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'] as $dayName)
                 <div class="flex items-center justify-center py-1.5">
@@ -39,13 +37,13 @@
             @endforeach
         </div>
 
-        {{-- Calendar Grid --}}
         <div class="grid grid-cols-7 gap-1">
-            @foreach($this->calendarDays as $day)
+            @foreach($this->calendarDays as $index => $day)
                 @if($day === null)
-                    <div class="aspect-square bg-[var(--md-sys-color-surface-container-highest)]/20 rounded-[12px] opacity-20"></div>
+                    <div wire:key="empty-{{ $index }}" class="aspect-square bg-[var(--md-sys-color-surface-container-highest)]/20 rounded-[12px] opacity-20"></div>
                 @else
                     <button
+                        wire:key="day-{{ $day['date'] }}"
                         wire:click="selectDate('{{ $day['date'] }}')"
                         class="group relative aspect-square w-full rounded-[14px] shadow-sm transition-all duration-300 ease-out flex flex-col items-center justify-start pt-1 gap-0.5 overflow-hidden isolate outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]
                         {{ $day['isSelected']
@@ -55,34 +53,28 @@
                         {{ $day['isToday'] && !$day['isSelected'] ? 'ring-1 ring-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-highest)]/60' : '' }}
                         "
                     >
-                        {{-- Day Number --}}
                         <span class="text-xs font-bold z-10 transition-colors {{ $day['isToday'] && !$day['isSelected'] ? 'text-[var(--md-sys-color-primary)]' : '' }}">
                             {{ $day['day'] }}
                         </span>
 
-                        {{-- Event Indicators --}}
                         <div class="flex items-center justify-center mt-0.5 min-h-[16px]">
                             @if($day['hasBirthday'])
                                 <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-pink-500' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">cake</span>
                             @elseif($day['hasAnniversary'])
                                 <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-amber-500' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">celebration</span>
                             @elseif($day['hasEvents'])
-                                {{-- Specific Icon for General Events (Calendar Icon) --}}
                                 <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-[var(--md-sys-color-primary)]' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">event</span>
                             @endif
 
-                            {{-- Extra Counter --}}
                             @if($day['eventCount'] > 1)
                                 <span class="text-[7px] font-bold leading-none ml-0.5 {{ $day['isSelected'] ? 'text-white' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ $day['eventCount'] - 1 }}</span>
                             @endif
                         </div>
 
-                        {{-- Today Indicator (if no event or birthday to avoid clutter) --}}
                         @if($day['isToday'] && !$day['isSelected'] && !$day['hasBirthday'] && !$day['hasAnniversary'] && !$day['hasEvents'])
                             <div class="absolute bottom-1.5 w-1 h-1 rounded-full bg-[var(--md-sys-color-primary)] opacity-50"></div>
                         @endif
 
-                        {{-- Selection Overlay --}}
                         @if($day['isSelected'])
                             <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none mix-blend-overlay rounded-[inherit]"></div>
                         @endif
@@ -91,7 +83,6 @@
             @endforeach
         </div>
 
-        {{-- Footer Legend --}}
         <div class="flex items-center justify-between px-2 pt-3 mt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-1">
