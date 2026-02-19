@@ -19,15 +19,32 @@
             >
                 <div class="flex gap-4">
                     {{-- Icon Box --}}
-                    <div class="shrink-0">
+                    <div class="shrink-0 relative">
                         @if(!empty($event['avatar']))
                             <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[var(--md-sys-color-surface-variant)]">
+                            {{-- Small Type Indicator Badge --}}
+                            @if(($event['type'] ?? '') === 'birthday')
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center border border-white shadow-sm">
+                                    <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">cake</span>
+                                </div>
+                            @elseif(($event['type'] ?? '') === 'anniversary')
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center border border-white shadow-sm">
+                                    <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">celebration</span>
+                                </div>
+                            @endif
                         @else
-                            <div class="w-12 h-12 rounded-[1rem] bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center text-[var(--md-sys-color-on-secondary-container)]">
+                            @php
+                                $typeStyles = match($event['type'] ?? '') {
+                                    'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
+                                    'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
+                                    default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+                                };
+                            @endphp
+                            <div class="w-12 h-12 rounded-[1rem] {{ $typeStyles }} flex items-center justify-center transition-colors">
                                 @if(($event['type'] ?? '') === 'birthday')
-                                    <span class="material-symbols-rounded">cake</span>
+                                    <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 @elseif(($event['type'] ?? '') === 'anniversary')
-                                    <span class="material-symbols-rounded">celebration</span>
+                                    <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">celebration</span>
                                 @else
                                     <span class="material-symbols-rounded">event</span>
                                 @endif
@@ -41,7 +58,7 @@
                             <h4 class="font-bold text-[var(--md-sys-color-on-surface)] truncate text-sm md:text-base">
                                 {{ $event['title'] }}
                             </h4>
-                            <span class="text-[10px] font-bold font-mono text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg">
+                            <span class="text-[10px] font-bold font-mono text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0 ml-2">
                                 {{ $event['time'] }}
                             </span>
                         </div>
@@ -86,7 +103,7 @@
         @empty
             {{-- Elegant Empty State --}}
             <div class="h-full flex flex-col items-center justify-center text-center opacity-60 pb-10">
-                <div class="w-20 h-20 bg-[var(--md-sys-color-surface-variant)]/30 rounded-[2rem] flex items-center justify-center mb-4 rotate-3">
+                <div class="w-20 h-20 bg-[var(--md-sys-color-surface-variant)]/30 rounded-[2rem] flex items-center justify-center mb-4 rotate-3 shadow-inner">
                     <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-outline)]">calendar_today</span>
                 </div>
                 <p class="text-[var(--md-sys-color-on-surface)] font-bold text-lg">رویدادی یافت نشد</p>

@@ -8,36 +8,32 @@
                     {{ $this->currentYear }}
                 </span>
                 <h2 class="text-xl font-black text-[var(--md-sys-color-on-surface)] tracking-tight">
-                    {{ $this->currentMonth }}
+                    {{ $this->currentMonthName }}
                 </h2>
             </div>
 
             <div class="flex items-center gap-1">
                 <button
-                    wire:click="previousMonth"
+                    wire:click="prevMonth"
                     class="group flex items-center justify-center w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <span class="material-symbols-rounded text-sm">chevron_right</span>
                 </button>
                 <button
                     wire:click="nextMonth"
-                    class="group flex items-center justify-center w-8 h-8 rounded-full bg-[var()] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
+                    class="group flex items-center justify-center w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <span class="material-symbols-rounded text-sm">chevron_left</span>
                 </button>
             </div>
         </div>
 
         {{-- Days Header --}}
         <div class="grid grid-cols-7 gap-1 mb-1">
-            @foreach(['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'] as $dayName)
+            @foreach(['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'] as $dayName)
                 <div class="flex items-center justify-center py-1.5">
-                    <span class="text-[9px] font-black text-[var(--md-sys-color-on-surface-variant)] opacity-60 tracking-wide">
-                        {{ substr($dayName, 0, 2) }}
+                    <span class="text-[10px] font-black text-[var(--md-sys-color-on-surface-variant)] opacity-60 tracking-wide">
+                        {{ $dayName }}
                     </span>
                 </div>
             @endforeach
@@ -64,29 +60,26 @@
                             {{ $day['day'] }}
                         </span>
 
-                        {{-- Event Indicators (Your Logic: Max 2 + Counter) --}}
-                        @if($day['hasEvents'] ?? false)
-                            <div class="flex gap-0.5 items-center justify-center w-full px-0.5 mt-0.5">
-                                {{-- Loop for first 2 dots --}}
-                                @for($i = 0; $i < min(2, $day['eventCount'] ?? 0); $i++)
-                                    <div class="w-1 h-1 rounded-full shadow-sm transition-colors
-                                        {{ $day['isSelected'] ? 'bg-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-tertiary)]' }}">
-                                    </div>
-                                @endfor
+                        {{-- Event Indicators --}}
+                        <div class="flex items-center justify-center mt-0.5 min-h-[16px]">
+                            @if($day['hasBirthday'])
+                                <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-pink-500' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">cake</span>
+                            @elseif($day['hasAnniversary'])
+                                <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-amber-500' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">celebration</span>
+                            @elseif($day['hasEvents'])
+                                {{-- Specific Icon for General Events (Calendar Icon) --}}
+                                <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-[var(--md-sys-color-primary)]' }} drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">event</span>
+                            @endif
 
-                                {{-- Counter if more than 2 --}}
-                                @if(($day['eventCount'] ?? 0) > 2)
-                                    <span class="text-[7px] font-black leading-none
-                                        {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)] opacity-90' : 'text-[var(--md-sys-color-tertiary)] opacity-80' }}">
-                                        +{{ ($day['eventCount'] ?? 0) - 2 }}
-                                    </span>
-                                @endif
-                            </div>
-                        @endif
+                            {{-- Extra Counter --}}
+                            @if($day['eventCount'] > 1)
+                                <span class="text-[7px] font-bold leading-none ml-0.5 {{ $day['isSelected'] ? 'text-white' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ $day['eventCount'] - 1 }}</span>
+                            @endif
+                        </div>
 
-                        {{-- Today Dot --}}
-                        @if($day['isToday'] && !$day['isSelected'])
-                            <div class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-primary)] shadow-[0_0_6px_var(--md-sys-color-primary)] animate-pulse"></div>
+                        {{-- Today Indicator (if no event or birthday to avoid clutter) --}}
+                        @if($day['isToday'] && !$day['isSelected'] && !$day['hasBirthday'] && !$day['hasAnniversary'] && !$day['hasEvents'])
+                            <div class="absolute bottom-1.5 w-1 h-1 rounded-full bg-[var(--md-sys-color-primary)] opacity-50"></div>
                         @endif
 
                         {{-- Selection Overlay --}}
@@ -98,23 +91,27 @@
             @endforeach
         </div>
 
-        {{-- Footer (Your Specific Footer) --}}
-        <div class="flex items-center justify-between px-1 pt-3 mt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
+        {{-- Footer Legend --}}
+        <div class="flex items-center justify-between px-2 pt-3 mt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5">
-                    <div class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)]"></div>
-                    <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold">Today</span>
+                <div class="flex items-center gap-1">
+                    <span class="material-symbols-rounded text-[12px] text-pink-500" style="font-variation-settings: 'FILL' 1;">cake</span>
+                    <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">تولد</span>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <div class="w-2 h-2 rounded-full bg-[var(--md-sys-color-tertiary)]"></div>
-                    <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold">Events</span>
+                <div class="flex items-center gap-1">
+                    <span class="material-symbols-rounded text-[12px] text-amber-500" style="font-variation-settings: 'FILL' 1;">celebration</span>
+                    <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">سالگرد</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-primary)]" style="font-variation-settings: 'FILL' 1;">event</span>
+                    <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">رویداد</span>
                 </div>
             </div>
             <button
-                wire:click="resetToToday"
+                wire:click="goToToday"
                 class="text-[10px] font-bold text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] bg-[var(--md-sys-color-primary)]/10 hover:bg-[var(--md-sys-color-primary)] transition-all px-3 py-1.5 rounded-lg"
             >
-                Today
+                امروز
             </button>
         </div>
 

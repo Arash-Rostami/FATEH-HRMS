@@ -61,9 +61,9 @@ class Main extends Component
                 'icon' => 'person',
                 'bg' => 'bg-surface-dim'
             ],
-            'help' => [
-                'component' => Help::class,
-                'label' => 'Help',
+            'faqs' => [
+                'component' => Faqs::class,
+                'label' => 'Faqs',
                 'icon' => 'help',
                 'bg' => 'bg-info-container'
             ],

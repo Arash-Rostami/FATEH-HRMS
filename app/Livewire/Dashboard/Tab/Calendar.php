@@ -40,17 +40,31 @@ class Calendar extends Component
     }
 
     #[Computed]
+    public function currentMonthName(): string
+    {
+        try {
+            return (new Jalalian($this->currentYear, $this->currentMonth, 1))->format('F Y');
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
+    #[Computed]
     public function calendarDays(): array
     {
         $days = [];
 
-        // 1. Calculate Date Range
-        $firstDayJalali = new Jalalian($this->currentYear, $this->currentMonth, 1);
-        $daysInMonth = $firstDayJalali->getMonthDays();
-        $startDayOfWeek = $firstDayJalali->getDayOfWeek(); // 0 (Sat) to 6 (Fri)
+        try {
+            // 1. Calculate Date Range
+            $firstDayJalali = new Jalalian($this->currentYear, $this->currentMonth, 1);
+            $daysInMonth = $firstDayJalali->getMonthDays();
+            $startDayOfWeek = $firstDayJalali->getDayOfWeek(); // 0 (Sat) to 6 (Fri)
 
-        $startDateGregorian = $firstDayJalali->toCarbon()->startOfDay();
-        $endDateGregorian = (new Jalalian($this->currentYear, $this->currentMonth, $daysInMonth))->toCarbon()->endOfDay();
+            $startDateGregorian = $firstDayJalali->toCarbon()->startOfDay();
+            $endDateGregorian = (new Jalalian($this->currentYear, $this->currentMonth, $daysInMonth))->toCarbon()->endOfDay();
+        } catch (\Exception $e) {
+            return [];
+        }
 
         // 2. Fetch All Events for this Month (Batch Query)
         $monthEvents = Event::query()
@@ -64,6 +78,12 @@ class Calendar extends Component
                 return Jalalian::fromCarbon($event->date)->format('Y-m-d');
             });
 
+        // 3. Fetch Profiles for Birthdays and Anniversaries
+        // Optimization: Fetch all profiles once and filter in memory since user count is manageable
+        $profiles = Profile::select('id', 'user_id', 'birthdate', 'start_date', 'image')
+            ->with('user:id,name')
+            ->get();
+
         // Previous month padding
         for ($i = 0; $i < $startDayOfWeek; $i++) {
             $days[] = null;
@@ -71,19 +91,60 @@ class Calendar extends Component
 
         // Days of current month
         for ($day = 1; $day <= $daysInMonth; $day++) {
-            $currentDateJalali = new Jalalian($this->currentYear, $this->currentMonth, $day);
-            $dateString = $currentDateJalali->format('Y-m-d');
+            try {
+                $currentDateJalali = new Jalalian($this->currentYear, $this->currentMonth, $day);
+                $dateString = $currentDateJalali->format('Y-m-d');
+                $gregorianDate = $currentDateJalali->toCarbon();
 
-            // Check events
-            $hasEvent = $monthEvents->has($dateString);
+                // For comparisons, we only care about month and day for recurring events
+                $currentJalaliMonth = $this->currentMonth;
+                $currentJalaliDay = $day;
 
-            $days[] = [
-                'day' => $day,
-                'date' => $dateString,
-                'isToday' => $dateString === Jalalian::now()->format('Y-m-d'),
-                'isSelected' => $dateString === $this->selectedDate,
-                'hasEvents' => $hasEvent,
-            ];
+                // However, profiles store Gregorian dates. We need to check if the Gregorian date of this Jalali day matches the Gregorian month/day of the birthdate/anniversary.
+                // This is complex due to leap years. A simpler approach is to convert the profile dates to Jalali and compare month/day.
+                // Let's stick to Gregorian month/day comparison for simplicity as it handles most cases well enough, though strictly speaking Jalali birthdays should follow Jalali calendar.
+                // Given the library usage, let's convert the profile date to Jalali to check month/day if that's the requirement, OR stick to Gregorian match.
+                // Most systems match Gregorian M/D. Let's stick to Gregorian M/D match for now as Profile stores Gregorian.
+
+                $gregorianMonth = $gregorianDate->month;
+                $gregorianDay = $gregorianDate->day;
+
+                // Check events
+                $dailyEvents = $monthEvents->get($dateString, collect());
+                $hasEvent = $dailyEvents->isNotEmpty();
+                $eventCount = $dailyEvents->count();
+
+                // Check Birthdays (Ignore Year)
+                $hasBirthday = $profiles->contains(function ($profile) use ($gregorianMonth, $gregorianDay) {
+                    return $profile->birthdate &&
+                        $profile->birthdate->month === $gregorianMonth &&
+                        $profile->birthdate->day === $gregorianDay;
+                });
+
+                // Check Anniversaries (Ignore Year)
+                $hasAnniversary = $profiles->contains(function ($profile) use ($gregorianMonth, $gregorianDay) {
+                    return $profile->start_date &&
+                        $profile->start_date->month === $gregorianMonth &&
+                        $profile->start_date->day === $gregorianDay;
+                });
+
+                if ($hasBirthday) $eventCount++;
+                if ($hasAnniversary) $eventCount++;
+
+                $days[] = [
+                    'day' => $day,
+                    'date' => $dateString,
+                    'isToday' => $dateString === Jalalian::now()->format('Y-m-d'),
+                    'isSelected' => $dateString === $this->selectedDate,
+                    'hasEvents' => $hasEvent,
+                    'hasBirthday' => $hasBirthday,
+                    'hasAnniversary' => $hasAnniversary,
+                    'eventCount' => $eventCount,
+                ];
+            } catch (\Exception $e) {
+                // Skip invalid dates
+                $days[] = null;
+            }
         }
 
         return $days;
@@ -99,6 +160,9 @@ class Calendar extends Component
             $gregorianDate = $jalaliDate->toCarbon();
             $startOfDay = $gregorianDate->copy()->startOfDay();
             $endOfDay = $gregorianDate->copy()->endOfDay();
+
+            $gregorianMonth = $gregorianDate->month;
+            $gregorianDay = $gregorianDate->day;
         } catch (\Exception $e) {
             return collect();
         }
@@ -124,10 +188,10 @@ class Calendar extends Component
                 ];
             });
 
-        // 2. Profiles (Birthdays)
+        // 2. Profiles (Birthdays - Ignore Year)
         $birthdays = Profile::query()
-            ->whereMonth('birthdate', $gregorianDate->month)
-            ->whereDay('birthdate', $gregorianDate->day)
+            ->whereMonth('birthdate', $gregorianMonth)
+            ->whereDay('birthdate', $gregorianDay)
             ->with('user')
             ->get()
             ->map(function ($profile) {
@@ -139,11 +203,33 @@ class Calendar extends Component
                     'time' => '00:00',
                     'is_owner' => false,
                     'private' => false,
-                    'image' => $profile->image
+                    'image' => $profile->image,
+                    'avatar' => $profile->image,
                 ];
             });
 
-        return $events->concat($birthdays);
+        // 3. Profiles (Anniversaries - Ignore Year)
+        $anniversaries = Profile::query()
+            ->whereMonth('start_date', $gregorianMonth)
+            ->whereDay('start_date', $gregorianDay)
+            ->with('user')
+            ->get()
+            ->map(function ($profile) use ($gregorianDate) {
+                $years = $profile->start_date->diffInYears($gregorianDate);
+                return [
+                    'id' => 'anniversary-' . $profile->id,
+                    'type' => 'anniversary',
+                    'title' => ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($profile->user->name ?? 'کاربر'),
+                    'description' => 'سالگرد همکاری مبارک!',
+                    'time' => '00:00',
+                    'is_owner' => false,
+                    'private' => false,
+                    'image' => $profile->image,
+                    'avatar' => $profile->image,
+                ];
+            });
+
+        return $events->concat($birthdays)->concat($anniversaries);
     }
 
     public function selectDate($date)

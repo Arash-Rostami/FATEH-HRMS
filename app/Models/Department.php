@@ -12,6 +12,10 @@ class Department extends Model
     protected $primaryKey = 'code';
     protected $keyType = 'string';
 
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(FAQ::class);
+    }
     public function profiles(): HasMany
     {
         return $this->hasMany(Profile::class, 'department', 'code');
