@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Report extends Model
 {
@@ -16,7 +18,8 @@ class Report extends Model
         'description',
         'department_id',
         'file_path',
-        'active'
+        'active',
+        'cover_image',
     ];
 
     protected function casts(): array
@@ -54,5 +57,34 @@ class Report extends Model
     public function scopeByDepartment($query, string $departmentId)
     {
         return $query->where('department_id', $departmentId);
+    }
+
+    public function getThumbnailAttribute()
+    {
+        if ($this->cover_image && Storage::exists($this->cover_image)) {
+            return Storage::url($this->cover_image);
+        }
+
+        // Determine file type from extension
+        if (!$this->file_path) {
+            return asset('assets/images/default-report.png');
+        }
+
+        $extension = strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
+
+        // Return a default placeholder based on file type
+        return match ($extension) {
+            'pdf' => asset('assets/images/pdf-placeholder.png'),
+            'docx', 'doc' => asset('assets/images/doc-placeholder.png'),
+            default => asset('assets/images/default-report.png'),
+        };
+    }
+
+    public function getFileTypeAttribute()
+    {
+         if (!$this->file_path) {
+             return 'unknown';
+         }
+         return strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
     }
 }
