@@ -1,6 +1,8 @@
-export default function report() {
+export default function report(view) {
     return {
+        view: view,
         activeId: null,
+        activeReport: null, // Ensure this exists for the modal
         loading: false,
         observer: null,
 
@@ -26,16 +28,18 @@ export default function report() {
 
         scrollNext() {
             if (this.$refs.reportContainer) {
-                // RTL: Scroll left (negative) to see next items (assuming standard RTL)
                 this.$refs.reportContainer.scrollBy({ left: -300, behavior: 'smooth' });
             }
         },
 
         scrollPrev() {
             if (this.$refs.reportContainer) {
-                // RTL: Scroll right (positive) to see previous items
                 this.$refs.reportContainer.scrollBy({ left: 300, behavior: 'smooth' });
             }
+        },
+
+        handleScroll() {
+             // Placeholder for active item tracking
         },
 
         setupIntersectionObserver() {
@@ -43,16 +47,13 @@ export default function report() {
                 this.observer.disconnect();
             }
 
-            // Using null (viewport) as root for list view, and container for card view
-            // NOTE: For infinite scroll sentinel to work inside overflow container, root MUST be null or the container.
             const options = {
-                root: null, // Often safer to use viewport unless very specific container clipping needed
+                root: this.view === 'card' ? this.$refs.reportContainer : null,
                 rootMargin: '200px',
                 threshold: 0.1
             };
 
             this.observer = new IntersectionObserver((entries) => {
-                // Ensure we only trigger if intersecting AND not currently loading
                 if (entries[0].isIntersecting && !this.loading) {
                     this.loadMore();
                 }

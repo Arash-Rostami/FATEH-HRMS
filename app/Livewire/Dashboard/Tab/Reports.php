@@ -12,6 +12,7 @@ class Reports extends Component
 {
     public $perPage = 10;
     public $view = 'card';
+    public $showModal = false; // Added for modal visibility
     public $activeReportId = null;
 
     public function mount()
