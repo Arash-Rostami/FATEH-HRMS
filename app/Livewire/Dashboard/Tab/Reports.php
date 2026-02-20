@@ -3,16 +3,16 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Report;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class Reports extends Component
 {
-    use WithPagination;
-
     public $perPage = 10;
     public $view = 'card';
+    public $activeReportId = null;
 
     public function mount()
     {
@@ -44,32 +44,43 @@ class Reports extends Component
             return Storage::download($report->file_path);
         }
 
-        // Fallback check for direct path if Storage facade fails or using local driver differently
         $localPath = storage_path('app/' . $report->file_path);
         if (file_exists($localPath)) {
             return response()->download($localPath);
         }
 
-        // If file is public asset (legacy support)
         if (file_exists(public_path($report->file_path))) {
              return response()->download(public_path($report->file_path));
         }
 
-        session()->flash('error', 'File not found.');
+        $this->dispatch('toast', message: 'File not found.', type: 'error');
     }
 
-    public function getReportsProperty()
+    #[Computed]
+    public function reports()
     {
+        // Simple pagination via take() for infinite scroll
+        // Caching active report IDs to avoid heavy queries if needed,
+        // but for now relying on standard Eloquent + DB query cache if enabled.
         return Report::active()
             ->with(['department', 'user'])
             ->latest()
-            ->paginate($this->perPage);
+            ->take($this->perPage)
+            ->get();
+    }
+
+    #[Computed]
+    public function hasMorePages()
+    {
+        // Check if total count > currently loaded
+        // We cache the total count for a short duration to avoid hitting DB on every poll/render if frequent
+        return Cache::remember('reports.active.count', 60, function () {
+            return Report::active()->count();
+        }) > $this->perPage;
     }
 
     public function render()
     {
-        return view('livewire.dashboard.tab.reports.index', [
-            'reports' => $this->reports
-        ]);
+        return view('livewire.dashboard.tab.reports.index');
     }
 }
