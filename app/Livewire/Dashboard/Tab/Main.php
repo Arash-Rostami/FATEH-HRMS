@@ -30,6 +30,12 @@ class Main extends Component
                 'icon' => 'rss_feed',
                 'bg' => 'bg-tertiary-container'
             ],
+            'reports' => [
+                'component' => Reports::class,
+                'label' => 'گزارش‌ها',
+                'icon' => 'description',
+                'bg' => 'bg-secondary-container'
+            ],
             'calendar' => [
                 'component' => Calendar::class,
                 'label' => 'تقویم',
