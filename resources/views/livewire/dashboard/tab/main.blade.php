@@ -12,3 +12,4 @@
     <x-dashboard.navbar.mobile :activeTab="$activeTab" :tabs="$tabs"/>
 
 </div>
+    <livewire:dashboard.modal.release-note/>
