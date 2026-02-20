@@ -1,4 +1,4 @@
-<div x-data="palette"
+<div x-data="palette" ax-load="idle"
      @keydown.window.prevent.ctrl.k="toggle()"
      @keydown.window.prevent.cmd.k="toggle()"
      @keydown.escape.window="open = false"
