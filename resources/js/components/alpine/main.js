@@ -5,6 +5,13 @@ import registerBackgroundStore from './stores/background.js'
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
+        // Ensure we are working with the correct Alpine instance (usually window.Alpine with Livewire v3)
+        const Alpine = window.Alpine;
+
+        if (!Alpine) {
+            console.error('Alpine is not defined!');
+            return;
+        }
 
         AsyncAlpine.init(Alpine);
 
