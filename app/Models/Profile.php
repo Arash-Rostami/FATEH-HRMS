@@ -30,7 +30,7 @@ class Profile extends Model
         'zip_code',
         'address',
         'accessibility',
-        'department',
+        'department_id',
         'position',
         'insurance',
         'emergency_phone',
@@ -51,7 +51,7 @@ class Profile extends Model
 
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class, 'department', 'code');
+        return $this->belongsTo(Department::class, 'department_id', 'code');
     }
 
     public function isMarried(): bool

@@ -15,6 +15,8 @@ import background from "./data/background.js";
 import feed from "./data/feed.js";
 import links from "./data/links.js";
 import gallery from "./data/gallery.js";
+import report from "./data/report.js";
+
 
 
 export default function initAlpine() {
@@ -47,5 +49,6 @@ export default function initAlpine() {
         Alpine.data('feed', feed)
         Alpine.data('links', links)
         Alpine.data('gallery', gallery)
+        Alpine.data('report', report)
     })
 }

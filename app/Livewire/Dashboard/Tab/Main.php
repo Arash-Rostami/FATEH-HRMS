@@ -42,11 +42,11 @@ class Main extends Component
                 'icon' => 'image',
                 'bg' => 'bg-surface-container-high'
             ],
-            'share' => [
-                'component' => Share::class,
-                'label' => 'اشتراک‌گذاری',
-                'icon' => 'share',
-                'bg' => 'bg-primary-container'
+            'reports' => [
+                'component' => Reports::class,
+                'label' => 'گزارش‌ها',
+                'icon' => 'description',
+                'bg' => 'bg-secondary-container'
             ],
             'links' => [
                 'component' => Links::class,

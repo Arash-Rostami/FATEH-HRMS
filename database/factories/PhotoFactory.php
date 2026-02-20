@@ -18,7 +18,7 @@ class PhotoFactory extends Factory
                 'photos/event3.jpg'
             ], $this->faker->numberBetween(1, 5)),
             'title' => $this->faker->sentence(3),
-            'department' => $this->faker->randomElement(['HR', 'IT', 'Sales', 'Marketing']),
+            'department_id' => $this->faker->randomElement(['HR', 'IT', 'Sales', 'Marketing']),
             'description' => $this->faker->paragraph(),
             'event_date' => $this->faker->date(),
         ];

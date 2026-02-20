@@ -18,10 +18,13 @@ class Feed extends Model
         'poll_options',
     ];
 
-    protected $casts = [
-        'media_paths' => 'array',
-        'poll_options' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'media_paths' => 'array',
+            'poll_options' => 'array',
+        ];
+    }
 
     public static function boot()
     {

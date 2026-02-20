@@ -16,6 +16,7 @@ class Department extends Model
     {
         return $this->hasMany(FAQ::class);
     }
+
     public function profiles(): HasMany
     {
         return $this->hasMany(Profile::class, 'department', 'code');

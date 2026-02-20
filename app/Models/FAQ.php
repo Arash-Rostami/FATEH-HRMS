@@ -22,7 +22,7 @@ class FAQ extends Model
 
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Department::class, 'department_id', 'code');
     }
 
     public function user(): BelongsTo
