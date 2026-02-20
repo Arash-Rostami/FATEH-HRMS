@@ -1,5 +1,5 @@
 <nav x-cloak
-     x-data="menu()" ax-load="idle"
+     x-data="menu()"
      dir="rtl"
      @resize.window="updatePerPage"
      class="sticky top-[60px] lg:top-[80px] z-[51] bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0 transition-colors duration-300">
@@ -42,7 +42,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <div x-data="timer" ax-load="idle" x-cloak
+            <div x-data="timer" x-cloak
                  class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
                 <x-dashboard.navbar.timer/>
             </div>

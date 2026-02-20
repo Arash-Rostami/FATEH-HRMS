@@ -1,5 +1,5 @@
 <div
-    x-data="gallery" ax-load="visible"
+    x-data="gallery"
     class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8"
     dir="rtl"
 >

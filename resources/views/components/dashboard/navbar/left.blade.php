@@ -1,4 +1,4 @@
-<div x-data="sidebar" ax-load="idle"
+<div x-data="sidebar"
      @touchstart="handleTouchStart"
      @touchmove="handleTouchMove"
      @touchend="handleTouchEnd"

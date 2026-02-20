@@ -17,7 +17,6 @@
     },
     "dependencies": {
         "@fancyapps/ui": "^6.1.11",
-        "async-alpine": "^2.0.3",
         "material-symbols": "^0.40.2"
     }
 }

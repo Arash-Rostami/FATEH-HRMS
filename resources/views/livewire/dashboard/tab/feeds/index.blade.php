@@ -1,5 +1,5 @@
 <div
-    x-data="feed" ax-load="visible"
+    x-data="feed"
     class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8"
     dir="rtl"
 >

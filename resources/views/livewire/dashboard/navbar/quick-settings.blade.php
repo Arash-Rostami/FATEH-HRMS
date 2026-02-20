@@ -1,4 +1,4 @@
-<div x-data="settings" ax-load="idle"
+<div x-data="settings"
      class="relative">
 
     <button @click="open = !open"
