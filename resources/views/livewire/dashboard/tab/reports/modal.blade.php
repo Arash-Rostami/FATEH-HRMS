@@ -1,11 +1,17 @@
-<!-- Modal using Base Component -->
-<x-dashboard.modal.base wire:model.live="showModal" title="">
+<!-- Slideover using existing Component -->
+<x-dashboard.modal.slideover show="showModal">
     <template x-if="activeReport">
-         <div>
+         <div class="h-full flex flex-col">
             <!-- Hero Image -->
-            <div class="h-64 md:h-80 w-full relative rounded-t-2xl overflow-hidden -mx-6 -mt-6 mb-6">
+            <div class="h-64 md:h-80 w-full relative shrink-0">
                 <img :src="activeReport.thumbnail" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container)] to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] to-transparent"></div>
+
+                <!-- Close Button Overlay -->
+                <button @click="showModal = false" class="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-md border border-white/10">
+                    <span class="material-symbols-rounded text-xl">close</span>
+                </button>
+
                 <div class="absolute bottom-6 right-6 left-6" dir="rtl">
                      <h2 class="text-2xl md:text-3xl font-bold text-[var(--md-sys-color-on-surface)] drop-shadow-sm" x-text="activeReport.title"></h2>
                      <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm mt-2 font-mono opacity-80" x-text="activeReport.created_at_formatted"></p>
@@ -13,7 +19,7 @@
             </div>
 
             <!-- Content -->
-            <div class="space-y-6 text-right" dir="rtl">
+            <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 text-right" dir="rtl">
                 <div class="prose prose-lg max-w-none text-[var(--md-sys-color-on-surface)] leading-relaxed text-justify" x-html="activeReport.description"></div>
 
                 <div class="flex justify-center pt-6 border-t border-[var(--md-sys-color-outline-variant)]">
@@ -26,4 +32,4 @@
             </div>
          </div>
      </template>
-</x-dashboard.modal.base>
+</x-dashboard.modal.slideover>

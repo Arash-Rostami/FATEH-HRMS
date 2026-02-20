@@ -1,5 +1,5 @@
 <div
-    x-data="report(@entangle('view'))"
+    x-data="report(@entangle('view'), @entangle('showModal'))"
     class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8 flex flex-col gap-4"
     dir="rtl"
 >
@@ -36,17 +36,16 @@
              class="w-full h-full relative">
 
             <!-- Navigation Arrows (Absolute) -->
-            <button @click="scrollPrev" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all translate-x-1/2 md:translate-x-0">
+            <button @click="scrollPrev" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 disabled:opacity-0 translate-x-1/2 md:translate-x-0">
                 <span class="material-symbols-rounded text-3xl">chevron_right</span>
             </button>
 
-            <button @click="scrollNext" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all -translate-x-1/2 md:translate-x-0">
+            <button @click="scrollNext" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 disabled:opacity-0 -translate-x-1/2 md:translate-x-0">
                 <span class="material-symbols-rounded text-3xl">chevron_left</span>
             </button>
 
             <!-- Scroll Container -->
             <div x-ref="reportContainer"
-                 @scroll.debounce.100ms="handleScroll"
                  class="flex overflow-x-auto overflow-y-hidden space-x-6 space-x-reverse pb-8 snap-x snap-mandatory scrollbar-hide h-full items-center px-4 md:px-12 relative"
                  dir="rtl">
 
@@ -54,7 +53,7 @@
                     <div wire:key="report-{{ $report->id }}"
                          data-report-id="{{ $report->id }}"
                          class="shrink-0 w-full max-w-sm md:w-[400px] h-[70vh] md:h-[80vh] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-lg border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl"
-                         @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; $wire.set('showModal', true)">
+                         @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
                         <!-- Image -->
                         <div class="w-full h-full relative">
@@ -121,7 +120,7 @@
                 @foreach ($this->reports as $report)
                     <div wire:key="report-list-{{ $report->id }}"
                          class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-2xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
-                         @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; $wire.set('showModal', true)">
+                         @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
                         <!-- Left: Thumbnail -->
                         <div class="w-full md:w-32 h-48 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0 bg-[var(--md-sys-color-surface-variant)]">
@@ -164,14 +163,4 @@
 
     <!-- Toast Component -->
     <x-dashboard.modal.toast />
-
-    <!-- Alpine Data Init Helper for ActiveReport since it's used in Modal but set in Child scopes -->
-    <!-- We can simply use x-data="{ activeReport: null }" at the top, which I did. -->
-    <!-- The only issue is if 'report()' is overwriting activeReport in its return object. -->
-    <!-- I set 'activeReport: null' in report.js? No, I set 'activeId'. -->
-    <!-- I should ensure report.js does not conflict or I should merge. -->
-    <!-- report.js returns { view: ..., activeId: ..., loading: ..., observer: ..., ... } -->
-    <!-- It DOES NOT return activeReport. So 'activeReport' variable is NOT defined in report() scope unless I add it or use x-data="{ ...report(...), activeReport: null }" -->
-    <!-- I will inject it into the x-data attribute logic or update report.js to include it. -->
-    <!-- Updating report.js is cleaner. -->
 </div>

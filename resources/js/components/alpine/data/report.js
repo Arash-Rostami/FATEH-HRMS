@@ -1,8 +1,9 @@
-export default function report(view) {
+export default function report(view, showModal) {
     return {
         view: view,
+        showModal: showModal, // Entangled state for modal/slideover
         activeId: null,
-        activeReport: null, // Ensure this exists for the modal
+        activeReport: null,
         loading: false,
         observer: null,
 
@@ -39,7 +40,7 @@ export default function report(view) {
         },
 
         handleScroll() {
-             // Placeholder for active item tracking
+             // Placeholder
         },
 
         setupIntersectionObserver() {
