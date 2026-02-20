@@ -1,15 +1,5 @@
 <div
-    x-data="{
-        view: @entangle('view'),
-        showModal: false,
-        activeReport: null,
-        init() {
-            // Re-initialize any observers if needed when view changes
-            this.$watch('view', value => {
-                // Logic to reset scroll position or re-bind observers could go here
-            })
-        }
-    }"
+    x-data="report()"
     class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8 flex flex-col gap-4"
     dir="rtl"
 >
@@ -36,21 +26,32 @@
     </div>
 
     <!-- Content Area -->
-    <div class="relative w-full h-full overflow-hidden flex-1">
+    <div class="relative w-full h-full overflow-hidden flex-1 group/container">
 
         <!-- Card View (Horizontal Scroll) -->
         <div x-show="view === 'card'"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
-             class="w-full h-full">
+             class="w-full h-full relative">
+
+            <!-- Navigation Arrows (Absolute) -->
+            <button @click="scrollPrev" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 disabled:opacity-0 translate-x-1/2 md:translate-x-0">
+                <span class="material-symbols-rounded text-3xl">chevron_right</span>
+            </button>
+
+            <button @click="scrollNext" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 disabled:opacity-0 -translate-x-1/2 md:translate-x-0">
+                <span class="material-symbols-rounded text-3xl">chevron_left</span>
+            </button>
 
             <!-- Scroll Container -->
-            <div class="flex overflow-x-auto overflow-y-hidden space-x-6 space-x-reverse pb-8 snap-x snap-mandatory scrollbar-hide h-full items-center px-2"
+            <div x-ref="reportContainer"
+                 class="flex overflow-x-auto overflow-y-hidden space-x-6 space-x-reverse pb-8 snap-x snap-mandatory scrollbar-hide h-full items-center px-4 md:px-12 relative"
                  dir="rtl">
 
                 @foreach ($this->reports as $report)
                     <div wire:key="report-{{ $report->id }}"
+                         data-report-id="{{ $report->id }}"
                          class="shrink-0 w-full max-w-sm md:w-[400px] h-[70vh] md:h-[80vh] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-lg border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] transition-all duration-500 transform hover:-translate-y-2 hover:shadow-xl"
                          @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
@@ -92,20 +93,13 @@
                                      </div>
                                 </div>
                             </div>
-
-                            <!-- Initial glimpse of date/meta when not hovered -->
-                             <div class="group-hover:hidden transition-opacity duration-300 text-[var(--md-sys-color-on-surface-variant)] text-xs mt-1 flex items-center gap-2 opacity-80">
-                                <span>{{ jdate($report->created_at)->format('Y/m/d') }}</span>
-                                <span>•</span>
-                                <span>{{ $report->department->name ?? 'عمومی' }}</span>
-                             </div>
                         </div>
                     </div>
                 @endforeach
 
                 <!-- Load More Trigger (Sentinel) -->
                 @if($this->hasMorePages)
-                     <div x-intersect.threshold.10="$wire.loadMore()" class="shrink-0 w-24 h-full flex items-center justify-center snap-center">
+                     <div x-ref="loadTrigger" class="shrink-0 w-24 h-full flex items-center justify-center snap-center">
                          <div class="w-10 h-10 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin"></div>
                      </div>
                 @endif
@@ -120,7 +114,7 @@
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="w-full h-full overflow-y-auto pb-20 px-2 md:px-0 scrollbar-hide">
+             class="w-full h-full overflow-y-auto pb-20 px-2 md:px-0 scrollbar-hide relative">
 
             <div class="space-y-4 max-w-4xl mx-auto">
                 @foreach ($this->reports as $report)
@@ -164,58 +158,7 @@
 
     </div>
 
-    <!-- Modal for Full Details -->
-    <div x-show="showModal"
-         class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[var(--md-sys-color-scrim)]/60 backdrop-blur-sm"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         style="display: none;"
-         @click.self="showModal = false">
+    <!-- Reusable Modal Partial -->
+    @include('livewire.dashboard.tab.reports.modal')
 
-        <div class="bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative shadow-2xl"
-             x-show="showModal"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-95 translate-y-4">
-
-             <!-- Close Button -->
-             <button @click="showModal = false" class="absolute top-4 right-4 z-20 p-2 rounded-full bg-[var(--md-sys-color-surface-dim)]/50 hover:bg-[var(--md-sys-color-surface-dim)] text-[var(--md-sys-color-on-surface)] transition-colors backdrop-blur-md border border-[var(--md-sys-color-outline-variant)]">
-                <span class="material-symbols-rounded text-xl">close</span>
-             </button>
-
-             <template x-if="activeReport">
-                 <div>
-                    <!-- Hero Image -->
-                    <div class="h-64 md:h-80 w-full relative">
-                        <img :src="activeReport.thumbnail" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface-container)] to-transparent"></div>
-                        <div class="absolute bottom-6 right-6 left-6" dir="rtl">
-                             <h2 class="text-2xl md:text-3xl font-bold text-[var(--md-sys-color-on-surface)] drop-shadow-sm" x-text="activeReport.title"></h2>
-                             <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm mt-2 font-mono opacity-80" x-text="activeReport.created_at_formatted"></p>
-                        </div>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="p-6 md:p-8 space-y-6" dir="rtl">
-                        <div class="prose prose-lg max-w-none text-[var(--md-sys-color-on-surface)] leading-relaxed text-justify" x-html="activeReport.description"></div>
-
-                        <div class="flex justify-center pt-6 border-t border-[var(--md-sys-color-outline-variant)]">
-                            <button @click="$wire.download(activeReport.id)"
-                                    class="flex items-center gap-2 bg-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] text-[var(--md-sys-color-on-primary)] px-8 py-3 rounded-2xl font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1">
-                                <span class="material-symbols-rounded text-xl">download</span>
-                                <span>دانلود فایل کامل</span>
-                            </button>
-                        </div>
-                    </div>
-                 </div>
-             </template>
-        </div>
-    </div>
 </div>

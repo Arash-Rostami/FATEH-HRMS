@@ -22,6 +22,8 @@ class Reports extends Component
     public function loadMore()
     {
         $this->perPage += 10;
+        unset($this->reports);
+        unset($this->hasMorePages);
     }
 
     public function toggleView($view)
@@ -56,27 +58,27 @@ class Reports extends Component
         $this->dispatch('toast', message: 'File not found.', type: 'error');
     }
 
-    #[Computed]
+    #[Computed(seconds: 14400, cache: true)]
     public function reports()
     {
-        // Simple pagination via take() for infinite scroll
-        // Caching active report IDs to avoid heavy queries if needed,
-        // but for now relying on standard Eloquent + DB query cache if enabled.
-        return Report::active()
-            ->with(['department', 'user'])
-            ->latest()
-            ->take($this->perPage)
-            ->get();
+        $key = 'dashboard.reports.' . $this->perPage;
+        return Cache::remember($key, 14400, function () {
+            return Report::active()
+                ->with(['department', 'user'])
+                ->latest()
+                ->take($this->perPage)
+                ->get();
+        });
     }
 
-    #[Computed]
+    #[Computed(seconds: 14400, cache: true)]
     public function hasMorePages()
     {
-        // Check if total count > currently loaded
-        // We cache the total count for a short duration to avoid hitting DB on every poll/render if frequent
-        return Cache::remember('reports.active.count', 60, function () {
+        $count = Cache::remember('dashboard.reports.count', 300, function () {
             return Report::active()->count();
-        }) > $this->perPage;
+        });
+
+        return $count > $this->perPage;
     }
 
     public function render()
