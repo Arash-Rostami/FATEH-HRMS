@@ -1,24 +1,12 @@
+import AsyncAlpine from 'async-alpine';
 import registerAppStore from './stores/app.js'
 import registerThemeStore from './stores/theme.js'
 import registerBackgroundStore from './stores/background.js'
 
-import password from "./data/password.js";
-import menu from "./data/menu.js";
-import shapes from "./data/shapes.js";
-import timer from "./data/timer.js";
-import settings from "./data/settings.js";
-import palette from "./data/palette.js";
-import fullscreen from "./data/fullscreen.js";
-import sidebar from "./data/sidebar.js";
-import share from "./data/share.js";
-import background from "./data/background.js";
-import feed from "./data/feed.js";
-import links from "./data/links.js";
-import gallery from "./data/gallery.js";
-
-
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
+
+        AsyncAlpine.init(Alpine);
 
         /*
          |--------------------------------------------------------------------------
@@ -31,21 +19,23 @@ export default function initAlpine() {
 
         /*
          |--------------------------------------------------------------------------
-         | Register Components
+         | Register Components (Lazy Loaded)
          |--------------------------------------------------------------------------
          */
-        Alpine.data('password', password)
-        Alpine.data('menu', menu)
-        Alpine.data('shapes', shapes)
-        Alpine.data('timer', timer)
-        Alpine.data('settings', settings)
-        Alpine.data('palette', palette)
-        Alpine.data('fullscreen', fullscreen)
-        Alpine.data('sidebar', sidebar)
-        Alpine.data('share', share)
-        Alpine.data('background', background)
-        Alpine.data('feed', feed)
-        Alpine.data('links', links)
-        Alpine.data('gallery', gallery)
+        AsyncAlpine.data('password', () => import('./data/password.js'))
+        AsyncAlpine.data('menu', () => import('./data/menu.js'))
+        AsyncAlpine.data('shapes', () => import('./data/shapes.js'))
+        AsyncAlpine.data('timer', () => import('./data/timer.js'))
+        AsyncAlpine.data('settings', () => import('./data/settings.js'))
+        AsyncAlpine.data('palette', () => import('./data/palette.js'))
+        AsyncAlpine.data('fullscreen', () => import('./data/fullscreen.js'))
+        AsyncAlpine.data('sidebar', () => import('./data/sidebar.js'))
+        AsyncAlpine.data('share', () => import('./data/share.js'))
+        AsyncAlpine.data('background', () => import('./data/background.js'))
+        AsyncAlpine.data('feed', () => import('./data/feed.js'))
+        AsyncAlpine.data('links', () => import('./data/links.js'))
+        AsyncAlpine.data('gallery', () => import('./data/gallery.js'))
+
+        AsyncAlpine.start();
     })
 }

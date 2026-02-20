@@ -1,4 +1,4 @@
-<div x-data="background"
+<div x-data="background" ax-load="idle"
      class="fixed inset-0 w-full h-full pointer-events-none transition-colors duration-500 overflow-hidden"
      :class="{
          'bg-transparent': $store.background.enabled || $store.background.patternEnabled,
