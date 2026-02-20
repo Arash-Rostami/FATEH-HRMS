@@ -46,6 +46,12 @@ class Link extends Model
     {
         return $query->where('link', 'internal');
     }
+
+
+    public function scopeSorted($query)
+    {
+        return $query->orderBy('sequence');
+    }
 }
 
 

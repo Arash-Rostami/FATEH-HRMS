@@ -18,6 +18,11 @@ class Post extends Model
         'user_id'
     ];
 
+    public function scopePinned($query)
+    {
+        return $query->where('pinned', true);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

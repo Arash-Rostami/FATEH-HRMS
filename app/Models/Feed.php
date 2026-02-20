@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Feed extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'category',
@@ -17,14 +18,6 @@ class Feed extends Model
         'media_paths',
         'poll_options',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'media_paths' => 'array',
-            'poll_options' => 'array',
-        ];
-    }
 
     public static function boot()
     {
@@ -51,8 +44,21 @@ class Feed extends Model
         return $this->hasMany(Reaction::class);
     }
 
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'media_paths' => 'array',
+            'poll_options' => 'array',
+        ];
     }
 }

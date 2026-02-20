@@ -85,9 +85,9 @@ class Gallery extends Component
 
         return Photo::query()
             ->orderByDesc('event_date')
-            ->where(fn($q) => $q->whereNull('department')
-                ->orWhere('department', '')
-                ->orWhere('department', $dept)
+            ->where(fn($q) => $q->whereNull('department_id')
+                ->orWhere('department_id', '')
+                ->orWhere('department_id', $dept)
             );
     }
 }

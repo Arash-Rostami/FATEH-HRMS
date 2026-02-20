@@ -26,7 +26,7 @@ return new class extends Migration {
             $table->string('zip_code')->nullable();
             $table->text('address')->nullable();
             $table->text('accessibility')->nullable();
-            $table->string('department');
+            $table->string('department_id')->nullable();
             $table->string('position');
             $table->string('insurance')->nullable();
             $table->string('emergency_phone')->nullable();

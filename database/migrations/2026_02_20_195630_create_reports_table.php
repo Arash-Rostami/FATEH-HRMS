@@ -17,6 +17,7 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
+            $table->string('cover_image')->nullable();
             $table->string('department_id')->nullable();
             $table->string('file_path');
             $table->boolean('active')->default(true)->index();

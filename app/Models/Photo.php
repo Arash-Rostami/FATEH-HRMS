@@ -15,16 +15,21 @@ class Photo extends Model
         'event_date',
     ];
 
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id', 'code');
+    }
+
+    public function scopeByDepartment($query, string $departmentCode)
+    {
+        return $query->where('department_id', $departmentCode);
+    }
+
     protected function casts(): array
     {
         return [
             'event_date' => 'date',
             'path' => 'array',
         ];
-    }
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id', 'code');
     }
 }

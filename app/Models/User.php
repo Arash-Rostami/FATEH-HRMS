@@ -10,7 +10,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 
 
-
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -22,7 +21,7 @@ class User extends Authenticatable
         'maximum',
         'type',
         'role',
-        'statusSwitcher',
+        'status',
         'presence',
         'booking',
         'last_seen',
@@ -35,14 +34,14 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function getExtraValue(string $key, mixed $default = null): mixed
+    public function comments(): HasMany
     {
-        return Arr::get($this->extra ?? [], $key, $default);
+        return $this->hasMany(Comment::class);
     }
 
-    public function profile()
+    public function events(): HasMany
     {
-        return $this->hasOne(Profile::class);
+        return $this->hasMany(Event::class);
     }
 
     public function faqs(): HasMany
@@ -50,6 +49,15 @@ class User extends Authenticatable
         return $this->hasMany(FAQ::class);
     }
 
+    public function feeds(): HasMany
+    {
+        return $this->hasMany(Feed::class);
+    }
+
+    public function getExtraValue(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->extra ?? [], $key, $default);
+    }
 
     public function isActive(): bool
     {
@@ -66,11 +74,30 @@ class User extends Authenticatable
         return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
     }
 
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(Reaction::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('statusSwitcher', 'active');
     }
-
 
     public function scopeOfType($query, string $type)
     {
