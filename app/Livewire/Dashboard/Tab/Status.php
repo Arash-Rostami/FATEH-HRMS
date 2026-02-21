@@ -24,9 +24,10 @@ class Status extends Component
             $message = "Your status has been updated.";
             $smsService->send($user->sms_number, $message);
 
-            $this->dispatch('toast-message', message: 'پیامک با موفقیت ارسال شد', type: 'success');
+            // Dispatch event to window for Alpine listener
+            $this->dispatch('toast', message: 'پیامک با موفقیت ارسال شد', type: 'success');
         } else {
-            $this->dispatch('toast-message', message: 'شماره تلفن همراه یافت نشد', type: 'error');
+            $this->dispatch('toast', message: 'شماره تلفن همراه یافت نشد', type: 'error');
         }
     }
 
