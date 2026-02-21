@@ -2,7 +2,7 @@
         open: false,
         currentStatus: @entangle('status'),
         statuses: {
-            @foreach(\App\Enums\PresenceStatus::cases() as $status)
+            @foreach(presenceCases() as $status)
             '{{ $status->value }}': {
                 icon: '{{ $status->icon() }}',
                 label: '{{ $status->label() }}',
@@ -60,7 +60,7 @@
             تغییر وضعیت
         </div>
 
-        @foreach(\App\Enums\PresenceStatus::cases() as $status)
+        @foreach(presenceCases() as $status)
             <button @click="setStatus('{{ $status->value }}')"
                     class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                            hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right mb-1 last:mb-0">

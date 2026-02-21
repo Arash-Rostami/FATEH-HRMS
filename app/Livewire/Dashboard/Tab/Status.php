@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\User;
 use App\Services\SmsService;
+use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -58,12 +59,18 @@ class Status extends Component
     #[Computed]
     public function stats()
     {
-        $counts = User::query()
+        $results = User::query()
             ->where('status', 'active')
             ->selectRaw('presence, count(*) as count')
             ->groupBy('presence')
-            ->pluck('count', 'presence')
-            ->toArray();
+            ->get();
+
+        $counts = [];
+        foreach ($results as $row) {
+            // The presence attribute is cast to Enum, so get its value
+            $key = $row->presence instanceof PresenceStatus ? $row->presence->value : $row->presence;
+            $counts[$key] = $row->count;
+        }
 
         return [
             'onsite' => $counts['onsite'] ?? 0,

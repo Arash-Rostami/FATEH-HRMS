@@ -35,8 +35,8 @@
                 <span
                     class="px-1.5 py-0.5 text-[11px] font-semibold rounded-md transition-colors"
                     :class="activeFilter === '{{ $status->value }}'
-                        ? 'bg-white/25 text-white'
-                        : 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]'"
+                        ? 'bg-white text-{{ $status->color() }}-500'
+                        : 'bg-{{ $status->color() }}-500 text-white'"
                     x-text="$wire.stats['{{ $status->value }}'] ?? 0"
                 ></span>
             </button>
