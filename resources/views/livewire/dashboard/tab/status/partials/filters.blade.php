@@ -3,18 +3,16 @@
     {{-- Status Filters --}}
     <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto p-1">
         @foreach([
-            'onsite' => ['icon' => 'apartment', 'bg' => 'var(--md-sys-color-success-container)', 'text' => 'var(--md-sys-color-on-success-container)', 'label' => 'حاضر'],
-            'remote' => ['icon' => 'laptop_chromebook', 'bg' => 'var(--md-sys-color-primary-container)', 'text' => 'var(--md-sys-color-on-primary-container)', 'label' => 'دورکار'],
-            'busy' => ['icon' => 'do_not_disturb_on', 'bg' => 'var(--md-sys-color-error-container)', 'text' => 'var(--md-sys-color-on-error-container)', 'label' => 'مشغول'],
-            'mission' => ['icon' => 'flight_takeoff', 'bg' => 'var(--md-sys-color-tertiary-container)', 'text' => 'var(--md-sys-color-on-tertiary-container)', 'label' => 'مأموریت']
+            'onsite' => ['icon' => 'apartment', 'active_class' => 'bg-emerald-500 text-white shadow-emerald-500/30', 'inactive_class' => 'text-emerald-400 hover:bg-emerald-500/10', 'label' => 'حاضر'],
+            'remote' => ['icon' => 'laptop_chromebook', 'active_class' => 'bg-sky-500 text-white shadow-sky-500/30', 'inactive_class' => 'text-sky-400 hover:bg-sky-500/10', 'label' => 'دورکار'],
+            'busy' => ['icon' => 'do_not_disturb_on', 'active_class' => 'bg-rose-500 text-white shadow-rose-500/30', 'inactive_class' => 'text-rose-400 hover:bg-rose-500/10', 'label' => 'مشغول'],
+            'mission' => ['icon' => 'flight_takeoff', 'active_class' => 'bg-amber-500 text-white shadow-amber-500/30', 'inactive_class' => 'text-amber-400 hover:bg-amber-500/10', 'label' => 'مأموریت']
         ] as $key => $meta)
             <button
                 @click="setFilter('{{ $key }}')"
-                :style="activeFilter === '{{ $key }}' ? 'background-color: {{ $meta['bg'] }}; color: {{ $meta['text'] }};' : ''"
-                :class="{
-                    'shadow-md scale-105 ring-1 ring-white/20': activeFilter === '{{ $key }}',
-                    'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:scale-105': activeFilter !== '{{ $key }}'
-                }"
+                :class="activeFilter === '{{ $key }}'
+                    ? '{{ $meta['active_class'] }} shadow-lg scale-105 ring-1 ring-white/20'
+                    : 'bg-[var(--md-sys-color-surface-container-high)] {{ $meta['inactive_class'] }} hover:scale-105'"
                 class="relative group flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] select-none whitespace-nowrap"
             >
                 <span class="material-symbols-rounded text-[20px]">{{ $meta['icon'] }}</span>
@@ -22,7 +20,8 @@
 
                 {{-- Count Badge --}}
                 <span
-                    class="ml-1 px-2 py-0.5 text-xs rounded-full bg-black/10 dark:bg-white/20 backdrop-blur-sm"
+                    class="ml-1 px-2 py-0.5 text-xs rounded-full backdrop-blur-sm transition-colors"
+                    :class="activeFilter === '{{ $key }}' ? 'bg-white/20 text-white' : 'bg-black/5 dark:bg-white/10 text-[var(--md-sys-color-on-surface-variant)]'"
                     x-text="$wire.stats['{{ $key }}']"
                 ></span>
             </button>
