@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -38,6 +39,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function getSmsNumberAttribute(): ?string
+    {
+        return $this->profile?->cellphone;
+    }
+
+    public function getTodaysDeskExtension(): ?string
+    {
+        return null;
+    }
+
 
     public function events(): HasMany
     {
@@ -133,6 +145,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_seen' => 'datetime',
             'extra' => 'array',
+            'presence' => PresenceStatus::class,
         ];
     }
 }

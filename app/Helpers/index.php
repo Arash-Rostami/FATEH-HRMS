@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Enums\PresenceStatus;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Morilog\Jalali\Jalalian;
@@ -30,5 +31,22 @@ if (!function_exists('jdate')) {
 
         $instance = $date instanceof Carbon ? $date : Carbon::parse($date);
         return Jalalian::fromCarbon($instance);
+    }
+}
+
+
+if (!function_exists('presence')) {
+    function presence(mixed $p): ?PresenceStatus
+    {
+        if ($p instanceof PresenceStatus) return $p;
+        if (is_string($p)) return PresenceStatus::tryFrom($p);
+        return null;
+    }
+}
+
+if (!function_exists('presenceCases')) {
+    function presenceCases(): array
+    {
+        return PresenceStatus::cases();
     }
 }

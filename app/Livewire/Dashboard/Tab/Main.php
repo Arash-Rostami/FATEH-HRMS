@@ -54,11 +54,11 @@ class Main extends Component
                 'icon' => 'open_in_new',
                 'bg' => 'bg-surface-container-high'
             ],
-            'profile' => [
-                'component' => Profile::class,
-                'label' => 'پروفایل',
-                'icon' => 'person',
-                'bg' => 'bg-surface-dim'
+            'status' => [
+                'component' => Status::class,
+                'label' => 'وضعیت',
+                'icon' => 'hub',
+                'bg' => 'bg-surface-container-low'
             ],
             'faqs' => [
                 'component' => Faqs::class,

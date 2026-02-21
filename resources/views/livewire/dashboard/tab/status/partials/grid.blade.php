@@ -1,0 +1,102 @@
+<div class="@container w-full">
+    <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
+
+        @forelse($this->users as $user)
+            @php
+                $p   = presence($user->presence);
+                $clr = $p?->color() ?? 'gray';
+            @endphp
+
+            <div wire:key="user-{{ $user->id }}"
+                 class="group relative flex flex-col items-center gap-2 p-3 pt-4
+                         rounded-2xl overflow-hidden cursor-pointer h-40
+                         bg-{{ $clr }}-500/5
+                         border border-{{ $clr }}-500/20
+                         hover:border-{{ $clr }}-500/50
+                         hover:bg-{{ $clr }}-500/10
+                         hover:shadow-lg hover:shadow-{{ $clr }}-500/10
+                         hover:-translate-y-0.5
+                         transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+
+                {{-- Avatar --}}
+                <div class="relative z-10 mt-1">
+                    <img
+                        src="{{ $user->profile?->image ? asset('storage/'.$user->profile->image) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=random&color=fff' }}"
+                        alt="{{ $user->name }}"
+                        class="w-12 h-12 rounded-full object-cover
+                               ring-2 ring-{{ $clr }}-500 ring-offset-2
+                               ring-offset-[var(--md-sys-color-surface-container)]
+                               group-hover:scale-105 group-hover:ring-offset-4
+                               transition-all duration-300"
+                        loading="lazy"
+                    >
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full
+                                bg-{{ $clr }}-500 flex items-center justify-center
+                                border-2 border-[var(--md-sys-color-surface)] shadow-sm">
+                        <span class="material-symbols-rounded text-white leading-none text-[10px]">{{ $p?->icon() ?? 'help' }}</span>
+                    </div>
+                </div>
+
+                {{-- Name & Position --}}
+                <div class="w-full text-center px-1 z-10 space-y-0.5">
+                    <p class="text-[11px] font-semibold text-[var(--md-sys-color-on-surface)] truncate leading-snug">
+                        {{ $user->name }}
+                    </p>
+                    <p class="text-[9px] text-{{ $clr }}-400/70 truncate font-medium">
+                        {{ $user->profile?->position ?? 'کارمند' }}
+                    </p>
+                </div>
+
+                {{-- Hover Actions --}}
+                <div class="absolute inset-x-0 bottom-0 h-10 z-20
+                            flex items-center justify-between px-2
+                            bg-[var(--md-sys-color-surface-container-high)]/95 backdrop-blur-sm
+                            border-t border-{{ $clr }}-500/20
+                            translate-y-full opacity-0
+                            group-hover:translate-y-0 group-hover:opacity-100
+                            transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+
+                    @if($user->sms_number)
+                        <button
+                            @click.stop="$dispatch('open-sms-modal', { user: '{{ $user->id }}' })"
+                            title="پیامک: {{ $user->sms_number }}"
+                            class="p-1.5 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
+                                   hover:text-[var(--md-sys-color-primary)]
+                                   hover:bg-[var(--md-sys-color-primary)]/10 transition-colors">
+                            <span class="material-symbols-rounded text-[15px]">sms</span>
+                        </button>
+                    @else
+                        <div class="w-7"></div>
+                    @endif
+
+                    <div class="flex items-center gap-0.5 text-{{ $clr }}-400">
+                        @if($user->getTodaysDeskExtension())
+                            <span class="material-symbols-rounded text-[11px]">domain</span>
+                            <span class="text-[11px] font-bold tabular-nums">{{ $user->getTodaysDeskExtension() }}</span>
+                        @elseif(!$user->sms_number)
+                            <span class="text-[10px] text-[var(--md-sys-color-outline)]">---</span>
+                        @endif
+                    </div>
+
+                    @if($user->sms_number || $user->getTodaysDeskExtension())
+                        <a href="tel:{{ $user->sms_number ?? $user->getTodaysDeskExtension() }}"
+                           @click.stop
+                           class="p-1.5 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
+                                  hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
+                            <span class="material-symbols-rounded text-[15px]">call</span>
+                        </a>
+                    @else
+                        <div class="w-7"></div>
+                    @endif
+                </div>
+            </div>
+
+        @empty
+            <div class="col-span-full flex flex-col items-center justify-center py-16 gap-3
+                        text-[var(--md-sys-color-on-surface-variant)]/35">
+                <span class="material-symbols-rounded text-5xl">manage_search</span>
+                <p class="text-sm font-medium">کاربری یافت نشد</p>
+            </div>
+        @endforelse
+    </div>
+</div>
