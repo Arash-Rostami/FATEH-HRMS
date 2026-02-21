@@ -59,6 +59,16 @@ class User extends Authenticatable
         return Arr::get($this->extra ?? [], $key, $default);
     }
 
+    public function getSmsNumberAttribute(): ?string
+    {
+        return $this->profile?->cellphone;
+    }
+
+    public function getTodaysDeskExtension(): ?string
+    {
+        return null;
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
