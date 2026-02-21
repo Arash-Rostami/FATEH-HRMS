@@ -59,24 +59,26 @@ class Status extends Component
     #[Computed]
     public function stats()
     {
+        // Fetch raw counts without model casting to avoid Enum object issues
         $results = User::query()
             ->where('status', 'active')
+            ->toBase() // Skip model hydration
             ->selectRaw('presence, count(*) as count')
             ->groupBy('presence')
             ->get();
 
         $counts = [];
         foreach ($results as $row) {
-            // The presence attribute is cast to Enum, so get its value
-            $key = $row->presence instanceof PresenceStatus ? $row->presence->value : $row->presence;
-            $counts[$key] = $row->count;
+            // Ensure the key is a string (e.g., 'onsite')
+            $counts[$row->presence] = $row->count;
         }
 
+        // Return counts for all enum cases, defaulting to 0
         return [
             'onsite' => $counts['onsite'] ?? 0,
             'remote' => $counts['remote'] ?? 0,
-            'busy' => $counts['busy'] ?? 0,
             'mission' => $counts['mission'] ?? 0,
+            'busy' => $counts['busy'] ?? 0,
         ];
     }
 

@@ -8,6 +8,13 @@
             @endphp
 
             <div wire:key="user-{{ $user->id }}"
+                 x-data
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
                  class="group relative flex flex-col items-center gap-2 p-3 pt-4
                          rounded-2xl overflow-hidden cursor-pointer h-40
                          transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]

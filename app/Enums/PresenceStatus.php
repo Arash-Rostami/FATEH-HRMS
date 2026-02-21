@@ -6,8 +6,8 @@ enum PresenceStatus: string
 {
     case Onsite = 'onsite';
     case Remote = 'remote';
-    case Busy = 'busy';
     case Mission = 'mission';
+    case Busy = 'busy';
 
     public function activeClass(): string
     {
@@ -26,8 +26,8 @@ enum PresenceStatus: string
         return match ($this) {
             self::Onsite => 'emerald',
             self::Remote => 'sky',
-            self::Busy => 'rose',
             self::Mission => 'amber',
+            self::Busy => 'rose',
         };
     }
 
@@ -46,8 +46,8 @@ enum PresenceStatus: string
         return match ($this) {
             self::Onsite => 'apartment',
             self::Remote => 'laptop_chromebook',
-            self::Busy => 'do_not_disturb_on',
             self::Mission => 'flight_takeoff',
+            self::Busy => 'do_not_disturb_on',
         };
     }
 
@@ -64,8 +64,8 @@ enum PresenceStatus: string
         return match ($this) {
             self::Onsite => 'در دفتر',
             self::Remote => 'دورکار',
-            self::Busy => 'مشغول',
             self::Mission => 'مأموریت',
+            self::Busy => 'مشغول',
         };
     }
 
@@ -76,8 +76,8 @@ enum PresenceStatus: string
         return match ($this) {
             self::Onsite => 'حضور فیزیکی',
             self::Remote => 'کار از منزل',
-            self::Busy => 'عدم مزاحمت',
             self::Mission => 'خارج از شرکت',
+            self::Busy => 'عدم مزاحمت',
         };
     }
 }
