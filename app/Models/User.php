@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PresenceStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
@@ -40,17 +42,6 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
-    public function getSmsNumberAttribute(): ?string
-    {
-        return $this->profile?->cellphone;
-    }
-
-    public function getTodaysDeskExtension(): ?string
-    {
-        return null;
-    }
-
-
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
@@ -69,6 +60,16 @@ class User extends Authenticatable
     public function getExtraValue(string $key, mixed $default = null): mixed
     {
         return Arr::get($this->extra ?? [], $key, $default);
+    }
+
+    public function getSmsNumberAttribute(): ?string
+    {
+        return $this->profile?->cellphone;
+    }
+
+    public function getTodaysDeskExtension(): ?string
+    {
+        return null;
     }
 
     public function isActive(): bool
@@ -91,7 +92,7 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
 
-    public function profile()
+    public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
     }
@@ -108,7 +109,7 @@ class User extends Authenticatable
 
     public function scopeActive($query)
     {
-        return $query->where('statusSwitcher', 'active');
+        return $query->where('status', 'active');
     }
 
     public function scopeOfType($query, string $type)
@@ -119,6 +120,19 @@ class User extends Authenticatable
     public function scopeOnline($query, int $minutes = 5)
     {
         return $query->where('last_seen', '>=', now()->subMinutes($minutes));
+    }
+
+    public function scopeSearch(Builder $query, string $term): void
+    {
+        $query->where(fn(Builder $subQuery) => $subQuery
+            ->where('name', 'like', '%' . $term . '%')
+            ->orWhereHas('profile', fn(Builder $profileQuery) => $profileQuery
+                ->where('position', 'like', '%' . $term . '%')
+                ->orWhereHas('department', fn(Builder $deptQuery) => $deptQuery
+                    ->where('name', 'like', '%' . $term . '%')
+                )
+            )
+        );
     }
 
     public function scopeWithRole($query, string $role)

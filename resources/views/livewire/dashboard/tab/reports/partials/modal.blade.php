@@ -7,7 +7,7 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] to-transparent"></div>
 
                 <!-- Close Button Overlay -->
-                <button @click="showModal = false" class="absolute top-4 right-4 z-20 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-md border border-white/10">
+                <button @click="showModal = false" class="absolute top-4 right-4 z-20 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors border border-white/10">
                     <span class="material-symbols-rounded text-xl">close</span>
                 </button>
 

@@ -27,12 +27,13 @@ export default (Alpine) => {
         tabsOrder: [
             'overview',
             'post',
+            'feed',
             'calendar',
             'gallery',
-            'share',
-            'analytics',
-            'profile',
-            'help'
+            'reports',
+            'links',
+            'status',
+            'faqs'
         ],
 
         toggle(value) {

@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\User;
 use App\Services\SmsService;
+use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -12,19 +13,15 @@ use Livewire\Component;
 #[Lazy]
 class Status extends Component
 {
-    public string $activeFilter = 'onsite';
+    public string $activeFilter = 'all';
     public string $search = '';
 
     public function sendSms(string $userId, SmsService $smsService)
     {
-        $user = User::findOrFail($userId);
+        $user = User::with('profile')->findOrFail($userId);
 
         if ($user->sms_number) {
-            // Placeholder message - ideally passed from frontend modal
-            $message = "Your status has been updated.";
-            $smsService->send($user->sms_number, $message);
-
-            // Dispatch event to window for Alpine listener
+            $smsService->send($user->sms_number, " to be inserted later on ...");
             $this->dispatch('toast', message: 'پیامک با موفقیت ارسال شد', type: 'success');
         } else {
             $this->dispatch('toast', message: 'شماره تلفن همراه یافت نشد', type: 'error');
@@ -36,21 +33,9 @@ class Status extends Component
     {
         return User::query()
             ->with(['profile.department'])
-            ->where('status', 'active')
-            ->when($this->activeFilter !== 'all', function (Builder $query) {
-                $query->where('presence', $this->activeFilter);
-            })
-            ->when($this->search, function (Builder $query) {
-                $query->where(function (Builder $subQuery) {
-                    $subQuery->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhereHas('profile', function (Builder $profileQuery) {
-                            $profileQuery->where('position', 'like', '%' . $this->search . '%')
-                                ->orWhereHas('department', function (Builder $deptQuery) {
-                                    $deptQuery->where('name', 'like', '%' . $this->search . '%');
-                                });
-                        });
-                });
-            })
+            ->active()
+            ->when($this->activeFilter !== 'all', fn (Builder $query) => $query->where('presence', $this->activeFilter))
+            ->when($this->search, fn (Builder $query) => $query->search($this->search))
             ->orderBy('name')
             ->get();
     }
@@ -59,11 +44,15 @@ class Status extends Component
     public function stats()
     {
         $counts = User::query()
-            ->where('status', 'active')
+            ->active()
+            ->when($this->search, fn (Builder $query) => $query->search($this->search))
             ->selectRaw('presence, count(*) as count')
             ->groupBy('presence')
-            ->pluck('count', 'presence')
-            ->toArray();
+            ->get()
+            ->mapWithKeys(fn ($row) => [
+                ($row->presence instanceof PresenceStatus ? $row->presence->value : $row->presence) => $row->count
+            ])
+            ->all();
 
         return [
             'onsite' => $counts['onsite'] ?? 0,
@@ -75,7 +64,7 @@ class Status extends Component
 
     public function setFilter(string $filter)
     {
-        $this->activeFilter = $filter;
+        $this->activeFilter = $this->activeFilter === $filter ? 'all' : $filter;
     }
 
     public function render()

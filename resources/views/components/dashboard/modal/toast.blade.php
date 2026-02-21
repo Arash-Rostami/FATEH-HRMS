@@ -25,7 +25,7 @@
     x-transition:leave="transition ease-in duration-200"
     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
     x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-    class="fixed bottom-6 left-6 z-[100] max-w-sm w-full flex items-center gap-4 px-6 py-4 rounded-xl shadow-xl border backdrop-blur-xl"
+    class="fixed bottom-6 left-6 z-[100] max-w-sm w-full flex items-center gap-4 px-6 py-4 rounded-xl shadow-xl border"
     :class="{
         'bg-[var(--md-sys-color-surface-container)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)]': type === 'info',
         'bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error-container)]': type === 'error',
@@ -57,7 +57,8 @@
     </div>
 
     <!-- Close Button -->
-    <button @click="show = false" class="shrink-0 p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+    <button @click="show = false"
+            class="shrink-0 p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
         <span class="material-symbols-rounded text-lg">close</span>
     </button>
 </div>

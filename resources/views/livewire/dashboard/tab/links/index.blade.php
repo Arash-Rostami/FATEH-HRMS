@@ -2,7 +2,7 @@
      dir="rtl">
 
     @if($this->internalLinks->isNotEmpty())
-        <section x-data="links" class="relative group/section" @resize.window="checkScroll">
+        <section x-data="links" class="relative group/section mx-4" @resize.window="checkScroll">
             <div class="flex items-center justify-between mb-6 px-2">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
@@ -71,7 +71,7 @@
     @endif
 
     @if($this->externalLinks->isNotEmpty())
-        <section x-data="links" class="relative group/section" @resize.window="checkScroll">
+        <section x-data="links" class="relative group/section mx-4" @resize.window="checkScroll">
             <div class="flex items-center justify-between mb-6 px-2">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">

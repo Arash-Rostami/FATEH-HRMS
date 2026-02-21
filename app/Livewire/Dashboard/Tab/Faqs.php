@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
-use App\Models\FAQ;
 use App\Models\Department;
+use App\Models\FAQ;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -20,13 +20,39 @@ class Faqs extends Component
     public ?string $selectedCategory = null;
 
     #[Url]
-    public ?int $selectedDepartment = null;
+    public ?string $selectedDepartment = null;
 
     public int $perPage = 10;
 
-    public function updatedSearch()
+    #[Computed(seconds: 3600, cache: true, key: 'faq-categories')]
+    public function categories()
     {
-        $this->resetPage();
+        return FAQ::query()
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category');
+    }
+
+    #[Computed(seconds: 3600, cache: true, key: 'faq-departments')]
+    public function departments()
+    {
+        return Department::select(['id', 'code', 'name', 'description'])->get();
+    }
+
+    #[Computed]
+    public function faqs()
+    {
+        return FAQ::query()
+            ->with(['department', 'user'])
+            ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
+                ->where('question', 'like', '%' . $search . '%')
+                ->orWhere('answer', 'like', '%' . $search . '%')
+            ))
+            ->when($this->selectedCategory, fn($query, $category) => $query->where('category', $category))
+            ->when($this->selectedDepartment, fn($query, $department) => $query->where('department_id', $department))
+            ->latest()
+            ->paginate($this->perPage);
     }
 
     public function filterByCategory(?string $category)
@@ -35,47 +61,10 @@ class Faqs extends Component
         $this->resetPage();
     }
 
-    public function filterByDepartment(?int $departmentId)
+    public function filterByDepartment(?string $departmentCode)
     {
-        $this->selectedDepartment = $departmentId;
+        $this->selectedDepartment = $departmentCode;
         $this->resetPage();
-    }
-
-    public function resetFilters()
-    {
-        $this->search = '';
-        $this->selectedCategory = null;
-        $this->selectedDepartment = null;
-        $this->resetPage();
-    }
-
-    #[Computed]
-    public function faqs()
-    {
-        return FAQ::query()
-            ->with(['department', 'user'])
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('question', 'like', '%' . $this->search . '%')
-                        ->orWhere('answer', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->selectedCategory, fn($q) => $q->where('category', $this->selectedCategory))
-            ->when($this->selectedDepartment, fn($q) => $q->where('department_id', $this->selectedDepartment))
-            ->latest()
-            ->paginate($this->perPage);
-    }
-
-    #[Computed]
-    public function categories()
-    {
-        return FAQ::distinct()->pluck('category')->filter()->values();
-    }
-
-    #[Computed]
-    public function departments()
-    {
-        return Department::select('id', 'name', 'description')->get();
     }
 
     public function loadMore()
@@ -86,5 +75,18 @@ class Faqs extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.faqs.index');
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->selectedCategory = null;
+        $this->selectedDepartment = null;
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
     }
 }

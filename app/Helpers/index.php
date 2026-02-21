@@ -36,13 +36,13 @@ if (!function_exists('jdate')) {
 
 
 if (!function_exists('presence')) {
-    function presence(mixed $p): ?PresenceStatus
+    function presence(mixed $p): PresenceStatus
     {
         if ($p instanceof PresenceStatus) return $p;
-        if (is_string($p)) return PresenceStatus::tryFrom($p);
-        return null;
+        return PresenceStatus::tryFrom((string)$p) ?? PresenceStatus::Onsite;
     }
 }
+
 
 if (!function_exists('presenceCases')) {
     function presenceCases(): array

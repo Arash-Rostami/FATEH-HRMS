@@ -16,7 +16,7 @@ import feed from "./data/feed.js";
 import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
-import status from "./data/status.js";
+import filters from "./data/filters.js";
 
 
 
@@ -52,6 +52,6 @@ export default function initAlpine() {
         Alpine.data('links', links)
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)
-        Alpine.data('status', status)
+        Alpine.data('filters', filters)
     })
 }

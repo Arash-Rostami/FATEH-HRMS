@@ -5,7 +5,7 @@
     }"
     class="relative w-full h-screen bg-[var(--md-sys-color-background)] overflow-hidden flex flex-col-reverse md:flex-row p-4 md:p-8 gap-6"
 >
-    <div class="w-full md:w-[35%] h-[45vh] md:h-full flex flex-col gap-4 md:gap-6 shrink-0">
+    <div class="mx-auto w-full md:scale-[.90] md:w-[35%] h-[45vh] md:h-full flex flex-col gap-4 md:gap-6 shrink-0">
         <button
             wire:click="openCreateModal"
             class="flex items-center justify-center gap-3 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] w-full py-4 md:py-5 rounded-2xl md:rounded-[1.75rem] hover:shadow-2xl hover:shadow-[var(--md-sys-color-primary)]/40 transition-all active:scale-[0.98] group shrink-0"
@@ -14,14 +14,14 @@
             <span class="font-bold text-base md:text-lg">رویداد جدید</span>
         </button>
 
-        <div class="flex-1 bg-[var(--md-sys-color-surface-container-low)]/60  border border-[var(--md-sys-color-outline-variant)]/40 rounded-[2rem] flex flex-col overflow-hidden shadow-sm">
+        <div class="flex-1 bg-[var(--md-sys-color-surface-container-low)]/60 border border-[var(--md-sys-color-outline-variant)]/40 rounded-[2rem] flex flex-col overflow-hidden shadow-sm">
             <div class="flex-1 overflow-y-auto">
                 @include('livewire.dashboard.tab.calendar.partials.events')
             </div>
         </div>
     </div>
 
-    <div class="flex-1 md:w-[65%] h-full flex flex-col overflow-hidden bg-[var(--md-sys-color-surface)] rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm">
+    <div class="mx-auto flex-1 md:scale-[.90] md:w-[65%] h-full flex flex-col overflow-hidden bg-[var(--md-sys-color-surface)] rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm">
         <div class="flex items-center justify-between shrink-0 px-6 py-6 md:px-10">
             <div class="flex flex-col gap-1">
                 <h2 class="text-[var(--md-sys-color-on-surface)] text-2xl md:text-4xl font-black font-yekan tracking-tight">
