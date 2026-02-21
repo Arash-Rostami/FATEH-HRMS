@@ -69,7 +69,7 @@
                 </div>
 
                 {{-- Quick Actions (Slide Up Overlay - Compact) --}}
-                <div class="absolute bottom-0 left-0 right-0 py-2 px-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] bg-[var(--md-sys-color-surface-container)]/95 backdrop-blur-md flex justify-between items-center border-t border-white/5 z-20 h-12">
+                <div class="absolute bottom-0 left-0 right-0 py-2 px-3 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] bg-[var(--md-sys-color-surface-container)]/95 backdrop-blur-md flex justify-between items-center border-t border-white/5 z-20 h-14">
                     {{-- SMS --}}
                     @if($user->sms_number)
                         <button
@@ -79,16 +79,28 @@
                         >
                             <span class="material-symbols-rounded text-[18px]">sms</span>
                         </button>
+                    @else
+                        <div class="w-8 h-8"></div> {{-- Spacer --}}
                     @endif
 
-                    {{-- Extension/Cell Indicator --}}
-                    <div class="flex flex-col items-center">
-                         @if($user->getTodaysDeskExtension())
-                            <span class="text-[8px] font-bold text-[var(--md-sys-color-primary)] uppercase tracking-wider">داخلی</span>
-                            <span class="text-xs font-black text-[var(--md-sys-color-on-surface)]">{{ $user->getTodaysDeskExtension() }}</span>
-                        @else
-                            <span class="text-[8px] font-bold text-[var(--md-sys-color-tertiary)] uppercase tracking-wider">موبایل</span>
-                             <span class="text-[10px] font-bold text-[var(--md-sys-color-on-surface)] dir-ltr">{{ $user->sms_number ?? '---' }}</span>
+                    {{-- Extension & Cell Indicator (Center Stack) --}}
+                    <div class="flex flex-col items-center justify-center gap-0.5 min-w-[80px]">
+                        @if($user->getTodaysDeskExtension())
+                            <div class="flex items-center gap-1 text-[var(--md-sys-color-primary)]" title="Extension">
+                                <span class="material-symbols-rounded text-[12px]">domain</span>
+                                <span class="text-xs font-black">{{ $user->getTodaysDeskExtension() }}</span>
+                            </div>
+                        @endif
+
+                        @if($user->sms_number)
+                            <div class="flex items-center gap-1 text-[var(--md-sys-color-tertiary)]" title="Mobile">
+                                 <span class="material-symbols-rounded text-[12px]">smartphone</span>
+                                 <span class="text-[10px] font-bold dir-ltr">{{ $user->sms_number }}</span>
+                            </div>
+                        @endif
+
+                        @if(!$user->sms_number && !$user->getTodaysDeskExtension())
+                            <span class="text-[10px] text-[var(--md-sys-color-outline)]">---</span>
                         @endif
                     </div>
 
@@ -102,6 +114,8 @@
                         >
                             <span class="material-symbols-rounded text-[18px]">call</span>
                         </a>
+                    @else
+                        <div class="w-8 h-8"></div> {{-- Spacer --}}
                     @endif
                 </div>
             </div>
