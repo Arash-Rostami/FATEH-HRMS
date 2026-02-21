@@ -2,6 +2,7 @@
 
 
 use App\Enums\PresenceStatus;
+use App\Services\GreetingService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Morilog\Jalali\Jalalian;
@@ -48,5 +49,13 @@ if (!function_exists('presenceCases')) {
     function presenceCases(): array
     {
         return PresenceStatus::cases();
+    }
+}
+
+if (!function_exists('greeting')) {
+    function greeting(?string $name = null): string
+    {
+        $name ??= auth()->user()?->name ?? '';
+        return app(GreetingService::class)->getGreeting($name);
     }
 }

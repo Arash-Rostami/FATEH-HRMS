@@ -3,6 +3,7 @@ import registerThemeStore from './stores/theme.js'
 import registerBackgroundStore from './stores/background.js'
 
 import password from "./data/password.js";
+import greeting from "./data/greeting.js";
 import menu from "./data/menu.js";
 import shapes from "./data/shapes.js";
 import timer from "./data/timer.js";
@@ -17,8 +18,6 @@ import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
 import filters from "./data/filters.js";
-
-
 
 
 export default function initAlpine() {
@@ -39,6 +38,7 @@ export default function initAlpine() {
          |--------------------------------------------------------------------------
          */
         Alpine.data('password', password)
+        Alpine.data('greeting', greeting)
         Alpine.data('menu', menu)
         Alpine.data('shapes', shapes)
         Alpine.data('timer', timer)
