@@ -10,13 +10,9 @@
             <div wire:key="user-{{ $user->id }}"
                  class="group relative flex flex-col items-center gap-2 p-3 pt-4
                          rounded-2xl overflow-hidden cursor-pointer h-40
-                         bg-{{ $clr }}-500/5
-                         border border-{{ $clr }}-500/20
-                         hover:border-{{ $clr }}-500/50
-                         hover:bg-{{ $clr }}-500/10
-                         hover:shadow-lg hover:shadow-{{ $clr }}-500/10
+                         transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                          hover:-translate-y-0.5
-                         transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                         {{ $p?->cardClasses() ?? \App\Enums\PresenceStatus::defaultCardClasses() }}">
 
                 {{-- Avatar --}}
                 <div class="relative z-10 mt-1">
