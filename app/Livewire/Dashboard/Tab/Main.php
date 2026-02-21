@@ -18,6 +18,12 @@ class Main extends Component
                 'icon' => 'home',
                 'bg' => 'bg-surface-variant'
             ],
+            'status' => [
+                'component' => Status::class,
+                'label' => 'وضعیت',
+                'icon' => 'hub',
+                'bg' => 'bg-surface-container-low'
+            ],
             'post' => [
                 'component' => Posts::class,
                 'label' => 'پست',
