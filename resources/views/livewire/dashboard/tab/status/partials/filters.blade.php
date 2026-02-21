@@ -6,13 +6,26 @@
             shadow-[0_2px_8px_0_rgb(0,0,0,0.06)]">
 
     {{-- Filters --}}
-    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+        <button
+            @click="setFilter('all')"
+            :class="activeFilter === 'all'
+                ? 'bg-[var(--md-sys-color-on-surface)] text-[var(--md-sys-color-surface)] shadow-lg'
+                : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]'"
+            class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
+                   border border-transparent select-none whitespace-nowrap
+                   transition-all duration-200"
+        >
+            <span class="material-symbols-rounded text-[17px]">groups</span>
+            <span>همه</span>
+        </button>
+
         @foreach(presenceCases() as $status)
             <button
                 @click="setFilter('{{ $status->value }}')"
                 :class="activeFilter === '{{ $status->value }}'
                     ? '{{ $status->activeClass() }}'
-                    : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]'"
+                    : '{{ $status->inactiveClass() }}'"
                 class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
                        border border-transparent select-none whitespace-nowrap
                        transition-all duration-200"
@@ -24,7 +37,7 @@
                     :class="activeFilter === '{{ $status->value }}'
                         ? 'bg-white/25 text-white'
                         : 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]'"
-                    x-text="$wire.stats['{{ $status->value }}']"
+                    x-text="$wire.stats['{{ $status->value }}'] ?? 0"
                 ></span>
             </button>
         @endforeach
@@ -37,7 +50,7 @@
                      group-focus-within:text-[var(--md-sys-color-primary)] transition-colors">search</span>
         <input
             type="text"
-            x-model.debounce.300ms="searchQuery"
+            x-model.debounce.300ms="search"
             placeholder="جستجو..."
             class="w-full pl-4 pr-10 py-2 rounded-xl text-sm outline-none
                    bg-[var(--md-sys-color-surface-container-high)]

@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
-
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = [
+    protected  = [
         'name',
         'email',
         'password',
@@ -29,8 +28,7 @@ class User extends Authenticatable
         'extra',
     ];
 
-
-    protected $hidden = [
+    protected  = [
         'password',
         'remember_token',
     ];
@@ -39,17 +37,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
-
-    public function getSmsNumberAttribute(): ?string
-    {
-        return $this->profile?->cellphone;
-    }
-
-    public function getTodaysDeskExtension(): ?string
-    {
-        return null;
-    }
-
 
     public function events(): HasMany
     {
@@ -69,6 +56,17 @@ class User extends Authenticatable
     public function getExtraValue(string $key, mixed $default = null): mixed
     {
         return Arr::get($this->extra ?? [], $key, $default);
+    }
+
+    public function getSmsNumberAttribute(): ?string
+    {
+        return $this->profile?->cellphone;
+    }
+
+    public function getTodaysDeskExtension(): ?string
+    {
+        // Placeholder for future implementation
+        return null;
     }
 
     public function isActive(): bool
@@ -91,7 +89,7 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
 
-    public function profile()
+    public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
     }
@@ -108,7 +106,7 @@ class User extends Authenticatable
 
     public function scopeActive($query)
     {
-        return $query->where('statusSwitcher', 'active');
+        return $query->where('status', 'active');
     }
 
     public function scopeOfType($query, string $type)
