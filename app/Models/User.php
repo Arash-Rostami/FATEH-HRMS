@@ -64,11 +64,6 @@ class User extends Authenticatable
         return $this->profile?->cellphone;
     }
 
-    public function getTodaysDeskExtension(): ?string
-    {
-        return null;
-    }
-
     public function isActive(): bool
     {
         return $this->status === 'active';

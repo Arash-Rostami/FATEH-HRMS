@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -13,6 +14,21 @@ class Status extends Component
 {
     public string $activeFilter = 'onsite';
     public string $search = '';
+
+    public function sendSms(string $userId, SmsService $smsService)
+    {
+        $user = User::findOrFail($userId);
+
+        if ($user->sms_number) {
+            // Placeholder message - ideally passed from frontend modal
+            $message = "Your status has been updated.";
+            $smsService->send($user->sms_number, $message);
+
+            $this->dispatch('toast-message', message: 'پیامک با موفقیت ارسال شد', type: 'success');
+        } else {
+            $this->dispatch('toast-message', message: 'شماره تلفن همراه یافت نشد', type: 'error');
+        }
+    }
 
     #[Computed]
     public function users()
@@ -41,10 +57,6 @@ class Status extends Component
     #[Computed]
     public function stats()
     {
-        // Using distinct queries for clarity and avoiding complex grouping logic
-        // Alternatively could use groupBy('presence')->selectRaw('presence, count(*) as count')->pluck('count', 'presence')
-        // But this is cleaner for specific keys
-
         $counts = User::query()
             ->where('status', 'active')
             ->selectRaw('presence, count(*) as count')

@@ -71,16 +71,16 @@
                         </button>
                     @endif
 
-                    {{-- Extension --}}
+                    {{-- Cellphone Display (Replaces Extension) --}}
                     <div class="flex flex-col items-center">
-                        <span class="text-[9px] font-bold text-[var(--md-sys-color-primary)] uppercase tracking-wider">داخلی</span>
-                        <span class="text-sm font-black text-[var(--md-sys-color-on-surface)]">{{ $user->getTodaysDeskExtension() ?? '---' }}</span>
+                        <span class="text-[9px] font-bold text-[var(--md-sys-color-primary)] uppercase tracking-wider">موبایل</span>
+                        <span class="text-sm font-black text-[var(--md-sys-color-on-surface)]" dir="ltr">{{ $user->sms_number ?? '---' }}</span>
                     </div>
 
                     {{-- Call --}}
-                    @if($user->profile?->cellphone)
+                    @if($user->sms_number)
                          <a
-                            href="tel:{{ $user->profile->cellphone }}"
+                            href="tel:{{ $user->sms_number }}"
                             @click.stop
                             class="p-2 rounded-full hover:bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-tertiary-container)] transition-colors transform hover:scale-110"
                             title="تماس"
