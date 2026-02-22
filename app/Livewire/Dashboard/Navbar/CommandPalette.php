@@ -28,6 +28,16 @@ class CommandPalette extends Component
 
     public function selectResult($action)
     {
+        // Add to recent searches via browser event
+        // The component will send back the full item details needed for history display
+        if (!empty($this->results)) {
+            // Find the item matching the action
+            $selectedItem = collect($this->results)->firstWhere('action', $action);
+            if ($selectedItem) {
+                $this->dispatch('add-recent-search', item: $selectedItem);
+            }
+        }
+
         // Format: 'type:target'
         $parts = explode(':', $action, 2);
 
@@ -46,11 +56,10 @@ class CommandPalette extends Component
                 break;
 
             case 'route':
-                // Check if route exists to avoid errors, or catch exception
                 try {
                      return redirect()->route($target);
                 } catch (\Exception $e) {
-                    // Fallback or log
+                    // Fallback
                 }
                 break;
 
