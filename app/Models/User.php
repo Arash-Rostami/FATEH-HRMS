@@ -17,7 +17,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = [
+    protected  = [
         'name',
         'email',
         'password',
@@ -32,39 +32,44 @@ class User extends Authenticatable
     ];
 
 
-    protected $hidden = [
+    protected  = [
         'password',
         'remember_token',
     ];
 
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class);
+        return ->hasMany(Comment::class);
+    }
+
+    public function credentials(): HasMany
+    {
+        return ->hasMany(Credential::class);
     }
 
     public function events(): HasMany
     {
-        return $this->hasMany(Event::class);
+        return ->hasMany(Event::class);
     }
 
     public function faqs(): HasMany
     {
-        return $this->hasMany(FAQ::class);
+        return ->hasMany(FAQ::class);
     }
 
     public function feeds(): HasMany
     {
-        return $this->hasMany(Feed::class);
+        return ->hasMany(Feed::class);
     }
 
-    public function getExtraValue(string $key, mixed $default = null): mixed
+    public function getExtraValue(string , mixed  = null): mixed
     {
-        return Arr::get($this->extra ?? [], $key, $default);
+        return Arr::get(->extra ?? [], , );
     }
 
     public function getSmsNumberAttribute(): ?string
     {
-        return $this->profile?->cellphone;
+        return ->profile?->cellphone;
     }
 
     public function getTodaysDeskExtension(): ?string
@@ -74,82 +79,82 @@ class User extends Authenticatable
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return ->status === 'active';
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return ->role === 'admin';
     }
 
-    public function isOnline(int $minutes = 5): bool
+    public function isOnline(int  = 5): bool
     {
-        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
+        return ->last_seen && ->last_seen->gte(now()->subMinutes());
     }
 
     public function posts(): HasMany
     {
-        return $this->hasMany(Post::class);
+        return ->hasMany(Post::class);
     }
 
     public function profile(): HasOne
     {
-        return $this->hasOne(Profile::class);
+        return ->hasOne(Profile::class);
     }
 
     public function reactions(): HasMany
     {
-        return $this->hasMany(Reaction::class);
+        return ->hasMany(Reaction::class);
     }
 
     public function reports(): HasMany
     {
-        return $this->hasMany(Report::class);
+        return ->hasMany(Report::class);
     }
 
-    public function scopeActive($query)
+    public function scopeActive()
     {
-        return $query->where('status', 'active');
+        return ->where('status', 'active');
     }
 
-    public function scopeOfType($query, string $type)
+    public function scopeOfType(, string )
     {
-        return $query->where('type', $type);
+        return ->where('type', );
     }
 
-    public function scopeOnline($query, int $minutes = 5)
+    public function scopeOnline(, int  = 5)
     {
-        return $query->where('last_seen', '>=', now()->subMinutes($minutes));
+        return ->where('last_seen', '>=', now()->subMinutes());
     }
 
-    public function scopeSearch(Builder $query, string $term): void
+    public function scopeSearch(Builder , string ): void
     {
-        $query->where(fn(Builder $subQuery) => $subQuery
-            ->where('name', 'like', '%' . $term . '%')
-            ->orWhereHas('profile', fn(Builder $profileQuery) => $profileQuery
-                ->where('position', 'like', '%' . $term . '%')
-                ->orWhereHas('department', fn(Builder $deptQuery) => $deptQuery
-                    ->where('name', 'like', '%' . $term . '%')
+        ->where(fn(Builder ) =>
+            ->where('name', 'like', '%' .  . '%')
+            ->orWhereHas('profile', fn(Builder ) =>
+                ->where('position', 'like', '%' .  . '%')
+                ->orWhereHas('department', fn(Builder ) =>
+                    ->where('name', 'like', '%' .  . '%')
                 )
             )
         );
     }
 
-    public function scopeWithRole($query, string $role)
+    public function scopeWithRole(, string )
     {
-        return $query->where('role', $role);
+        return ->where('role', );
     }
 
-    public function setExtraValue(string $key, mixed $value): void
+    public function setExtraValue(string , mixed ): void
     {
-        $extra = $this->extra ?? [];
-        Arr::set($extra, $key, $value);
-        $this->extra = $extra;
+         = ->extra ?? [];
+        Arr::set(, , );
+        ->extra = ;
     }
 
     public function touchLastSeen(): void
     {
-        $this->update(['last_seen' => now()]);
+        ->update(['last_seen' => now()]);
     }
 
     protected function casts(): array
