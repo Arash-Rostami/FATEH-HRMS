@@ -17,3 +17,14 @@
 
 
 
+
+/* Fix for Select Options in Dark Mode */
+select option {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+}
+
+.dark select option {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+}

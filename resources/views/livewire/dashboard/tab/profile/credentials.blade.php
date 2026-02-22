@@ -1,73 +1,76 @@
-<div class="space-y-8">
+<div class="space-y-6">
     <!-- Search Bar -->
     <div class="relative max-w-md mx-auto md:mx-0">
         <x-dashboard.form.input
             wire:model.live.debounce.300ms="search"
-            label="Search Credentials"
+            label="جستجو در نام‌های کاربری"
             name="search"
-            icon="fas fa-search"
-            class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg"
+            icon="search"
+            class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg rounded-xl"
         />
     </div>
 
     <!-- Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($credentials as $cred)
-            <x-dashboard.form.card class="relative overflow-hidden group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 border-t-4 border-t-blue-500 hover:shadow-2xl hover:shadow-blue-500/20">
-                <!-- Background Decoration -->
-                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
-                    <i class="fas fa-key text-8xl rotate-12 transform translate-x-4 -translate-y-4"></i>
+            <div class="group relative overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <!-- Decorative BG -->
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none">
+                    <span class="material-symbols-rounded text-9xl transform rotate-12 translate-x-4 -translate-y-4 text-[var(--md-sys-color-primary)]">vpn_key</span>
                 </div>
 
-                <div class="flex items-center justify-between mb-6 relative z-10">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-                            <i class="fas fa-shield-alt text-xl"></i>
+                <div class="p-6 relative z-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shrink-0">
+                            <span class="material-symbols-rounded text-2xl">security</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white truncate max-w-[150px]" title="{{ $cred->app_name }}">{{ $cred->app_name }}</h3>
-                    </div>
-                </div>
-
-                <div class="space-y-4 relative z-10">
-                    <div class="group/field relative transition-all">
-                        <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1 ml-1">Username</label>
-                        <div class="flex items-center justify-between bg-gray-50/80 dark:bg-black/20 rounded-xl p-2.5 border border-gray-100 dark:border-white/5 hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors">
-                            <span class="font-mono text-sm truncate select-all text-gray-700 dark:text-gray-300">{{ $cred->username }}</span>
-                            <x-dashboard.form.copy-button text="{{ $cred->username }}" class="bg-white dark:bg-white/5 shadow-sm" />
-                        </div>
+                        <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)] truncate" title="{{ $cred->app_name }}">{{ $cred->app_name }}</h3>
                     </div>
 
-                    <div class="group/field relative transition-all">
-                        <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1 ml-1">Password</label>
-                        <div class="flex items-center justify-between bg-gray-50/80 dark:bg-black/20 rounded-xl p-2.5 border border-gray-100 dark:border-white/5 hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors group-hover:bg-blue-50/30 dark:group-hover:bg-blue-900/10">
-                            <span class="font-mono text-sm tracking-[0.2em] text-gray-400">••••••••</span>
-                            <x-dashboard.form.copy-button text="{{ $cred->password }}" class="bg-white dark:bg-white/5 shadow-sm" />
+                    <div class="space-y-4">
+                        <div class="group/field relative">
+                            <label class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest font-bold mb-1 ml-1 block">نام کاربری</label>
+                            <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-variant)]/30 rounded-xl p-3 border border-transparent hover:border-[var(--md-sys-color-outline)] transition-colors">
+                                <span class="font-mono text-sm truncate select-all text-[var(--md-sys-color-on-surface)] dir-ltr">{{ $cred->username }}</span>
+                                <x-dashboard.form.copy-button text="{{ $cred->username }}" class="bg-[var(--md-sys-color-surface)] shadow-sm rounded-lg p-1" />
+                            </div>
+                        </div>
+
+                        <div class="group/field relative">
+                            <label class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest font-bold mb-1 ml-1 block">رمز عبور</label>
+                            <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-variant)]/30 rounded-xl p-3 border border-transparent hover:border-[var(--md-sys-color-outline)] transition-colors">
+                                <span class="font-mono text-sm tracking-[0.2em] text-[var(--md-sys-color-on-surface-variant)]">••••••••</span>
+                                <x-dashboard.form.copy-button text="{{ $cred->password }}" class="bg-[var(--md-sys-color-surface)] shadow-sm rounded-lg p-1" />
+                            </div>
                         </div>
                     </div>
 
                     @if($cred->link)
-                        <div class="pt-2">
-                            <a href="{{ $cred->link }}" target="_blank" class="flex items-center justify-center w-full text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 rounded-xl hover:shadow-lg hover:shadow-blue-500/40 hover:scale-[1.02] transition-all duration-300 active:scale-95">
-                                <i class="fas fa-external-link-alt mr-2 text-xs"></i> Launch Application
+                        <div class="mt-6 pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
+                            <a href="{{ $cred->link }}" target="_blank" class="flex items-center justify-center w-full gap-2 py-2.5 rounded-xl bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)] text-sm font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
+                                <span class="material-symbols-rounded text-lg">open_in_new</span>
+                                ورود به سامانه
                             </a>
                         </div>
                     @endif
-
-                    @if($cred->note)
-                        <div class="mt-4 p-3 bg-yellow-50 text-yellow-800 rounded-xl text-xs dark:bg-yellow-500/10 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-500/10 flex gap-2">
-                            <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
-                            <p class="leading-relaxed">{{ Str::limit($cred->note, 60) }}</p>
-                        </div>
-                    @endif
                 </div>
-            </x-dashboard.form.card>
+
+                @if($cred->note)
+                    <div class="bg-[var(--md-sys-color-surface-variant)]/50 px-6 py-3 border-t border-[var(--md-sys-color-outline-variant)]">
+                        <div class="flex gap-2 text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                            <span class="material-symbols-rounded text-base shrink-0 mt-0.5">info</span>
+                            <p class="leading-relaxed line-clamp-2">{{ $cred->note }}</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
         @empty
             <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
-                <div class="bg-gray-100 dark:bg-white/5 rounded-full p-6 mb-4 animate-pulse">
-                    <i class="fas fa-search text-4xl text-gray-400 dark:text-gray-500"></i>
+                <div class="bg-[var(--md-sys-color-surface-variant)] rounded-full p-6 mb-4 animate-pulse">
+                    <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-on-surface-variant)]">search_off</span>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No credentials found</h3>
-                <p class="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">We couldn't find any credentials matching "{{ $search }}". Try searching for a different app name.</p>
+                <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2">موردی یافت نشد</h3>
+                <p class="text-[var(--md-sys-color-on-surface-variant)] max-w-sm mx-auto">هیچ نام کاربری با عبارت "{{ $search }}" یافت نشد.</p>
             </div>
         @endforelse
     </div>
