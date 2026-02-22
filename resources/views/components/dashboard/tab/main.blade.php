@@ -16,7 +16,7 @@
           }
       }">
 
-    <div class="relative w-full h-full flex flex-col overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8"
+    <div class="relative w-full h-auto flex flex-col overflow-y-auto custom-scrollbar p-4 md:p-6 lg:p-8 pb-24 md:pb-12"
          x-show="show"
          x-transition:enter="transition ease-out duration-300 transform"
          x-transition:enter-start="opacity-0 translate-y-4"

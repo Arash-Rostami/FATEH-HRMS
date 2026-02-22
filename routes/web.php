@@ -7,6 +7,7 @@ use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
 use App\Livewire\Dashboard\Tab\Main;
+use App\Livewire\Dashboard\Tab\Profile;
 use Illuminate\Support\Facades\Route;
 
 
@@ -27,6 +28,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');
     Route::get('/dashboard', Main::class)->name('dashboard');
+    Route::get('/profile', Profile::class)->name('profile');
+
 });
 
 

@@ -1,0 +1,28 @@
+@props(['label', 'name', 'type' => 'text', 'disabled' => false, 'icon' => null])
+
+<div class="relative group w-full md3-input-group">
+    @if($icon)
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors">
+            <span class="material-symbols-rounded text-[20px]">{{ $icon }}</span>
+        </div>
+    @endif
+
+    <input
+        type="{{ $type }}"
+        name="{{ $name }}"
+        id="{{ $name }}"
+        {{ $disabled ? 'disabled' : '' }}
+        {!! $attributes->merge([
+            'class' => 'md3-input peer ' . ($icon ? 'pr-10' : '')
+        ]) !!}
+        placeholder=" "
+    />
+    <label for="{{ $name }}"
+           class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
+        {{ $label }}
+    </label>
+
+    @error($name)
+        <p class="mt-1 text-xs text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>
+    @enderror
+</div>
