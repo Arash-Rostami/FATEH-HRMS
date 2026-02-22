@@ -94,5 +94,5 @@
             </div>
         @endif
     </div>
-    <livewire:dashboard.modal.toast />
+    <x-dashboard.modal.toast />
 </div>

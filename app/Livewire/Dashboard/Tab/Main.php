@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Main extends Component
@@ -91,13 +92,21 @@ class Main extends Component
         ])->extends('layouts.app')->section('content');
     }
 
-    public function setTab($tabId)
+    #[On('switch-tab')]
+    public function setTab($tab)
     {
+        $tabId = $tab;
+
         if ($tabId === $this->activeTab) {
             return;
         }
 
         $tabsKeys = array_keys($this->getTabsProperty());
+
+        if (!in_array($tabId, $tabsKeys)) {
+            return;
+        }
+
         $currentIndex = array_search($this->activeTab, $tabsKeys);
         $newIndex = array_search($tabId, $tabsKeys);
 

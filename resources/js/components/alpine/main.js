@@ -4,6 +4,7 @@ import registerBackgroundStore from './stores/background.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
+import search from "./data/search.js";
 import menu from "./data/menu.js";
 import shapes from "./data/shapes.js";
 import timer from "./data/timer.js";
@@ -39,6 +40,7 @@ export default function initAlpine() {
          */
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
+        Alpine.data('search', search)
         Alpine.data('menu', menu)
         Alpine.data('shapes', shapes)
         Alpine.data('timer', timer)
