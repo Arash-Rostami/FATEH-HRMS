@@ -5,35 +5,45 @@
      class="sticky top-[60px] lg:top-[80px] z-[51] bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0 transition-colors duration-300">
 
     {{--  Menu  --}}
-    <div class="flex items-center gap-2 lg:gap-3">
+    <div class="flex items-center gap-2 lg:gap-3 shrink-0">
         <x-dashboard.navbar.hamburger title="منوی اصلی"/>
     </div>
     <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1"></div>
 
     {{-- Search --}}
-    <div class="w-3/5 md:w-full flex justify-center max-w-xs md:max-w-md mx-2 md:mx-4">
-        <div class="relative w-full">
-            <div
-                class="flex items-center justify-center h-[40px] w-full gap-2 md:gap-3 px-3 md:px-4 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm cursor-pointer group"
+    <div class="flex-1 flex justify-center px-2 lg:px-6">
+        <div class="relative group">
+            {{-- Mobile Trigger --}}
+            <button
+                class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-on-primary)]/5 hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-on-primary)] transition-all active:scale-95"
                 @click="$dispatch('open-command-palette')"
-                title="جستجو (Ctrl+K)">
-                <span
-                    class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100 transition-opacity">search</span>
-                <span class="hidden md:inline text-xs opacity-60 group-hover:opacity-80 transition-opacity font-medium">جستجو...</span>
-                <div
-                    class="hidden md:flex items-center gap-1 mr-auto opacity-40 group-hover:opacity-100 transition-opacity">
-                    <span
-                        class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-on-primary)]/10 border border-[var(--md-sys-color-on-primary)]/10 text-[9px] font-mono">Ctrl</span>
-                    <span
-                        class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-on-primary)]/10 border border-[var(--md-sys-color-on-primary)]/10 text-[9px] font-mono">K</span>
+                title="جستجو"
+            >
+                <span class="material-symbols-rounded">search</span>
+            </button>
+
+            {{-- Desktop Trigger --}}
+            <div
+                class="hidden md:flex items-center justify-between h-10 w-full min-w-[280px] lg:min-w-[400px] px-4 rounded-xl bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 cursor-pointer transition-all active:scale-[0.98]"
+                @click="$dispatch('open-command-palette')"
+                title="جستجو (Ctrl+K)"
+            >
+                <div class="flex items-center gap-3 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-rounded text-[20px]">search</span>
+                    <span class="text-sm">جستجو در سیستم...</span>
+                </div>
+                <div class="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity ltr:ml-auto rtl:mr-auto">
+                    <kbd class="hidden lg:inline-flex items-center justify-center min-w-[20px] h-5 rounded bg-[var(--md-sys-color-on-primary)]/10 text-[10px] font-sans">Ctrl</kbd>
+                    <kbd class="inline-flex items-center justify-center min-w-[20px] h-5 rounded bg-[var(--md-sys-color-on-primary)]/10 text-[10px] font-sans">K</kbd>
                 </div>
             </div>
+
             <livewire:dashboard.navbar.command-palette/>
         </div>
     </div>
 
     {{-- DESKTOP ONLY --}}
-    <div class="hidden xl:flex justify-start items-center gap-1.5 lg:gap-2 mr-auto">
+    <div class="hidden xl:flex justify-start items-center gap-1.5 lg:gap-2 mr-auto shrink-0">
         <div class="hidden 2xl:flex items-center gap-2">
             <div
                 class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm">
@@ -73,7 +83,7 @@
     </div>
 
     {{-- MOBILE/TABLET ONLY --}}
-    <div class="xl:hidden flex items-center justify-start gap-1 max-w-1/4" x-data="{ showSecondary: false }">
+    <div class="xl:hidden flex items-center justify-start gap-1 max-w-1/4 shrink-0" x-data="{ showSecondary: false }">
 
         <button type="button"
                 @click="showSecondary = !showSecondary"
@@ -120,7 +130,7 @@
         </div>
     </div>
     {{-- FINAL SECTION --}}
-    <div class="flex items-center gap-1 sm:gap-1.5 mr-1 xl:mr-0">
+    <div class="flex items-center gap-1 sm:gap-1.5 mr-1 xl:mr-0 shrink-0">
         <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1 hidden sm:block"></div>
         <div title="اعلان‌ها">
             <x-dashboard.navbar.notification/>

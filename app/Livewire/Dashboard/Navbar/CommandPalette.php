@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Navbar;
 
+use App\Services\NavigationSearchService;
 use Livewire\Component;
 
 class CommandPalette extends Component
@@ -21,13 +22,46 @@ class CommandPalette extends Component
             return;
         }
 
-        $this->results = collect([
-            ['icon' => 'person', 'title' => 'پروفایل کاربری', 'subtitle' => 'مشاهده و ویرایش اطلاعات شخصی', 'action' => 'profile'],
-            ['icon' => 'dashboard', 'title' => 'داشبورد اصلی', 'subtitle' => 'بازگشت به صفحه اصلی', 'action' => 'dashboard'],
-            ['icon' => 'settings', 'title' => 'تنظیمات سیستم', 'subtitle' => 'مدیریت پیکربندی‌ها', 'action' => 'settings'],
-            ['icon' => 'logout', 'title' => 'خروج از حساب', 'subtitle' => 'پایان نشست کاربری', 'action' => 'logout'],
-        ])->filter(function ($item) {
-            return str_contains($item['title'], $this->query);
-        })->values()->toArray();
+        $searchService = app(NavigationSearchService::class);
+        $this->results = $searchService->search($this->query);
+    }
+
+    public function selectResult($action)
+    {
+        // Format: 'type:target'
+        $parts = explode(':', $action, 2);
+
+        if (count($parts) < 2) {
+            return;
+        }
+
+        $type = $parts[0];
+        $target = $parts[1];
+
+        switch ($type) {
+            case 'tab':
+                $this->dispatch('switch-tab', tab: $target);
+                $this->reset(['query', 'results']);
+                $this->dispatch('close-command-palette');
+                break;
+
+            case 'route':
+                // Check if route exists to avoid errors, or catch exception
+                try {
+                     return redirect()->route($target);
+                } catch (\Exception $e) {
+                    // Fallback or log
+                }
+                break;
+
+            case 'url':
+                return redirect()->to($target);
+
+            case 'event':
+                $this->dispatch($target);
+                $this->reset(['query', 'results']);
+                $this->dispatch('close-command-palette');
+                break;
+        }
     }
 }
