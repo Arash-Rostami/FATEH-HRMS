@@ -2,72 +2,18 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Traits\HasDashboardTabs;
 use Livewire\Component;
+use Livewire\Attributes\Url;
 
 class Main extends Component
 {
-    public $activeTab = 'overview';
-    public $direction = 'up';
+    use HasDashboardTabs;
 
-    public function getTabsProperty()
-    {
-        return [
-            'overview' => [
-                'component' => Overview::class,
-                'label' => 'مروری',
-                'icon' => 'home',
-                'bg' => 'bg-surface-variant'
-            ],
-            'post' => [
-                'component' => Posts::class,
-                'label' => 'پست',
-                'icon' => 'newspaper',
-                'bg' => 'bg-secondary-container'
-            ],
-            'feed' => [
-                'component' => Feeds::class,
-                'label' => 'اخبار',
-                'icon' => 'rss_feed',
-                'bg' => 'bg-tertiary-container'
-            ],
-            'calendar' => [
-                'component' => Calendar::class,
-                'label' => 'تقویم',
-                'icon' => 'calendar_month',
-                'bg' => 'bg-tertiary-container'
-            ],
-            'gallery' => [
-                'component' => Gallery::class,
-                'label' => 'گالری',
-                'icon' => 'image',
-                'bg' => 'bg-surface-container-high'
-            ],
-            'reports' => [
-                'component' => Reports::class,
-                'label' => 'گزارش‌ها',
-                'icon' => 'description',
-                'bg' => 'bg-secondary-container'
-            ],
-            'links' => [
-                'component' => Links::class,
-                'label' => 'لینک‌ها',
-                'icon' => 'open_in_new',
-                'bg' => 'bg-surface-container-high'
-            ],
-            'status' => [
-                'component' => Status::class,
-                'label' => 'وضعیت',
-                'icon' => 'hub',
-                'bg' => 'bg-surface-container-low'
-            ],
-            'faqs' => [
-                'component' => Faqs::class,
-                'label' => 'پرسش‌های متداول',
-                'icon' => 'help',
-                'bg' => 'bg-info-container'
-            ],
-        ];
-    }
+    #[Url(as: 'tab')]
+    public $activeTab = 'overview';
+
+    public $direction = 'up';
 
     public function navigateTab(int $step)
     {
