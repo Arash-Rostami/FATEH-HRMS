@@ -12,7 +12,6 @@
                             <span class="material-symbols-rounded text-6xl text-[var(--md-sys-color-on-surface-variant)]">person</span>
                         @endif
                     </div>
-                    <!-- Upload overlay (optional future feature) -->
                 </div>
                 <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)] mb-1">{{ $user->name }}</h3>
                 <p class="text-sm text-[var(--md-sys-color-on-surface-variant)]">{{ $user->email }}</p>
@@ -22,8 +21,8 @@
                         <span class="text-[var(--md-sys-color-on-surface-variant)]">تکمیل پروفایل</span>
                         <span class="font-bold text-[var(--md-sys-color-primary)]">{{ $completion }}%</span>
                     </div>
-                    <div class="w-full h-2 bg-[var(--md-sys-color-surface-variant)] rounded-3xl overflow-hidden">
-                        <div class="h-full bg-[var(--md-sys-color-primary)] rounded-3xl transition-all duration-1000" style="width: {{ $completion }}%"></div>
+                    <div class="w-full h-2 bg-[var(--md-sys-color-surface-variant)] rounded-lg overflow-hidden">
+                        <div class="h-full bg-[var(--md-sys-color-primary)] rounded-lg transition-all duration-1000" style="width: {{ $completion }}%"></div>
                     </div>
                 </div>
             </x-dashboard.form.card>
@@ -65,7 +64,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <x-dashboard.form.select label="واحد سازمانی" name="profileData.department_id" wire:model="profileData.department_id" icon="domain">
                 <option value="" class="bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)]">انتخاب واحد</option>
-                @foreach($departments as $code => $name)
+                @foreach($user->profile->department ? [$user->profile->department->code => $user->profile->department->name] : [] as $code => $name)
                     <option value="{{ $code }}" class="bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)]">{{ $name }}</option>
                 @endforeach
             </x-dashboard.form.select>

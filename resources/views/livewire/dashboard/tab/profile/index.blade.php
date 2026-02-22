@@ -14,7 +14,6 @@
 
     <!-- Profile Content Area -->
     <main class="flex-1 flex flex-col lg:flex-row relative overflow-hidden pt-[80px] lg:pt-[100px] lg:pr-[100px] lg:pl-[100px]">
-        <!-- Adjusted padding to account for navbars -->
 
         <div class="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-12 flex flex-col gap-6">
 
@@ -62,15 +61,14 @@
             <!-- Content -->
             <div class="relative min-h-[500px]">
                 @if($activeSubTab === 'info')
-                    @include('livewire.dashboard.tab.profile.info')
+                    <livewire:dashboard.tab.profile.info />
                 @elseif($activeSubTab === 'documents')
-                    @include('livewire.dashboard.tab.profile.documents')
+                    <livewire:dashboard.tab.profile.documents />
                 @elseif($activeSubTab === 'credentials')
-                    @include('livewire.dashboard.tab.profile.credentials')
+                    <livewire:dashboard.tab.profile.credentials />
                 @endif
             </div>
 
         </div>
     </main>
-
 </div>

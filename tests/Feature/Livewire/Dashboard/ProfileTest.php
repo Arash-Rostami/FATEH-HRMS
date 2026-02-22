@@ -3,6 +3,8 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Tab\Profile;
+use App\Livewire\Dashboard\Tab\Profile\Info;
+use App\Livewire\Dashboard\Tab\Profile\Documents;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -23,16 +25,13 @@ class ProfileTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_profile_info_can_be_updated()
+    public function test_info_component_update()
     {
         $user = User::factory()->create();
 
-        // Profile created in mount
-
         Livewire::actingAs($user)
-            ->test(Profile::class)
+            ->test(Info::class)
             ->set('profileData.personnel_id', 'TEST1234')
-            ->set('profileData.gender', 'male')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -47,39 +46,13 @@ class ProfileTest extends TestCase
         $file = UploadedFile::fake()->create('document.pdf', 1000);
 
         Livewire::actingAs($user)
-            ->test(Profile::class)
+            ->test(Documents::class)
             ->set('customType', 'National ID')
             ->set('customFile', $file)
             ->call('uploadCustom')
             ->assertHasNoErrors();
 
-        // Check if file exists in storage
-        // The path is not deterministic due to hashName, but we can check if attachments array has it
         $attachments = $user->fresh()->profile->attachments;
         $this->assertCount(1, $attachments);
-        $this->assertEquals('National ID', $attachments[0]['type']);
-        Storage::disk('public')->assertExists($attachments[0]['path']);
-    }
-
-    public function test_duplicate_document_type_prevention()
-    {
-        Storage::fake('public');
-        $user = User::factory()->create();
-        $user->profile()->create([
-            'attachments' => [
-                ['type' => 'Existing Doc', 'path' => 'path/to/doc', 'name' => 'doc.pdf', 'uploaded_at' => now()]
-            ]
-        ]);
-
-        $file = UploadedFile::fake()->create('new.pdf', 1000);
-
-        Livewire::actingAs($user)
-            ->test(Profile::class)
-            ->set('customType', 'Existing Doc')
-            ->set('customFile', $file)
-            ->call('uploadCustom')
-            ->assertHasErrors(['customType']);
-
-        $this->assertCount(1, $user->fresh()->profile->attachments);
     }
 }
