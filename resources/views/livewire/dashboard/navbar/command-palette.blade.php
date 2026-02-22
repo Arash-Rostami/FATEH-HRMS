@@ -3,6 +3,7 @@
      @keydown.window.prevent.cmd.k="toggle()"
      @keydown.escape.window="open = false"
      @open-command-palette.window="toggle()"
+     @close-command-palette.window="open = false"
      class="relative z-[200]">
 
     <div x-show="open"
@@ -12,7 +13,7 @@
          x-transition:leave="ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black/60 "
+         class="fixed inset-0 bg-black/60 backdrop-blur-sm"
          @click="open = false"
          style="display: none;"></div>
 
@@ -26,35 +27,47 @@
          class="fixed inset-0 z-[201] flex items-start justify-center pt-[10vh] px-4"
          style="display: none;">
 
-        <div class="w-full max-w-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[60vh] text-[var(--md-sys-color-on-surface)]">
+        <div class="w-full max-w-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[60vh] text-[var(--md-sys-color-on-surface)] ring-1 ring-white/10">
 
             <div class="flex items-center gap-3 px-4 py-4 border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container)]/30">
                 <span class="material-symbols-rounded text-[24px] text-emerald-400 animate-pulse">search</span>
                 <input x-ref="searchInput"
-                       wire:model.live="query"
+                       wire:model.live.debounce.150ms="query"
                        type="text"
                        placeholder="جستجو در بخش‌های مختلف سیستم..."
                        class="w-full bg-transparent border-none outline-none text-current placeholder-current/30 text-lg font-medium h-10"
                        @keydown.down.prevent="selectedIndex = Math.min(selectedIndex + 1, $wire.results.length - 1)"
                        @keydown.up.prevent="selectedIndex = Math.max(selectedIndex - 1, 0)"
-                       @keydown.enter.prevent="if($wire.results.length > 0) { alert('Action: ' + $wire.results[selectedIndex].action); open = false; }">
-                <button @click="open = false" class="opacity-30 hover:opacity-100 px-2 py-1 bg-[var(--md-sys-color-surface-container)] rounded text-xs">ESC</button>
+                       @keydown.enter.prevent="if($wire.results.length > 0) { $wire.selectResult($wire.results[selectedIndex].action); }">
+                <button @click="open = false" class="opacity-30 hover:opacity-100 px-2 py-1 bg-[var(--md-sys-color-surface-container)] rounded text-xs transition-opacity">ESC</button>
             </div>
 
-            <div class="overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <div class="overflow-y-auto custom-scrollbar p-2 space-y-1" style="max-height: 50vh;">
                 @if(count($results) > 0)
                     @foreach($results as $index => $result)
                         <button class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group text-right hover:bg-[var(--md-sys-color-surface-container-high)] focus:bg-[var(--md-sys-color-surface-container-high)] outline-none border border-transparent focus:border-emerald-500/50"
                                 :class="{ 'bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-emerald-500/50': selectedIndex === {{ $index }} }"
-                                @mouseenter="selectedIndex = {{ $index }}">
+                                @mouseenter="selectedIndex = {{ $index }}"
+                                wire:click="selectResult('{{ $result['action'] }}')">
+
                             <div class="w-10 h-10 rounded-lg bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/10 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50 transition-colors">
                                 <span class="material-symbols-rounded text-[24px] opacity-70 group-hover:text-emerald-400">{{ $result['icon'] }}</span>
                             </div>
+
                             <div class="flex flex-col items-start flex-1">
-                                <span class="text-sm font-medium group-hover:text-emerald-500">{{ $result['title'] }}</span>
-                                <span class="text-xs opacity-40 group-hover:opacity-60">{{ $result['subtitle'] }}</span>
+                                <div class="flex items-center gap-2 w-full">
+                                    <span class="text-sm font-medium group-hover:text-emerald-500 truncate">{{ $result['title'] }}</span>
+                                    @if(str_starts_with($result['action'], 'tab:'))
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)] opacity-50 ml-auto">TAB</span>
+                                    @elseif(str_starts_with($result['action'], 'route:'))
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)] opacity-50 ml-auto">PAGE</span>
+                                    @endif
+                                </div>
+                                <span class="text-xs opacity-40 group-hover:opacity-60 truncate max-w-full">{{ $result['subtitle'] }}</span>
                             </div>
-                            <span class="material-symbols-rounded text-[18px] opacity-0 group-hover:opacity-100 group-hover:text-emerald-400 transition-all -translate-x-2 group-hover:translate-x-0">chevron_left</span>
+
+                            <span class="material-symbols-rounded text-[18px] opacity-0 group-hover:opacity-100 group-hover:text-emerald-400 transition-all -translate-x-2 group-hover:translate-x-0 rtl:translate-x-2 rtl:group-hover:translate-x-0"
+                                  :class="{ 'opacity-100 translate-x-0 rtl:translate-x-0': selectedIndex === {{ $index }} }">keyboard_return</span>
                         </button>
                     @endforeach
                 @elseif(strlen($query) > 1)
@@ -81,10 +94,10 @@
 
             <div class="bg-[var(--md-sys-color-surface-container)]/30 px-4 py-2 border-t border-[var(--md-sys-color-outline-variant)]/10 flex items-center justify-between text-[10px] opacity-30">
                 <div class="flex items-center gap-3">
-                    <span class="flex items-center gap-1"><kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded">Enter</kbd> انتخاب</span>
-                    <span class="flex items-center gap-1"><kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded">↓</kbd> <kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded">↑</kbd> پیمایش</span>
+                    <span class="flex items-center gap-1"><kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded min-w-[20px] text-center">Enter</kbd> انتخاب</span>
+                    <span class="flex items-center gap-1"><kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded min-w-[20px] text-center">↓</kbd> <kbd class="bg-[var(--md-sys-color-surface-container)] px-1 rounded min-w-[20px] text-center">↑</kbd> پیمایش</span>
                 </div>
-                <span>AI Search v1.0</span>
+                <span>AI Search v2.0</span>
             </div>
         </div>
     </div>
