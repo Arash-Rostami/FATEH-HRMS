@@ -1,8 +1,8 @@
 <div>
-    <x-ui.card title="Document Repository" description="Manage your personnel documents." class="border-t-4 border-t-cyan-500">
+    <x-ui.card title="مخزن مدارک و اسناد" description="بارگذاری و مدیریت مدارک پرسنلی.">
         <x-slot name="actions">
-            <x-ui.button x-on:click="$dispatch('open-modal', { name: 'upload-custom-modal' })" icon="fas fa-plus">
-                Add Custom Document
+            <x-ui.button x-on:click="$dispatch('open-modal', { name: 'upload-custom-modal' })" icon="add" variant="primary">
+                افزودن مدرک سفارشی
             </x-ui.button>
         </x-slot>
 
@@ -13,54 +13,54 @@
                     @php
                         $uploadedDoc = collect($this->parsedAttachments)->firstWhere('type', $type);
                     @endphp
-                    <div class="relative group rounded-xl border border-gray-200 bg-white/50 p-5 hover:bg-white hover:shadow-lg hover:-translate-y-1 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 transition-all duration-300">
+                    <div class="relative group rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]/50 p-5 hover:bg-[var(--md-sys-color-surface)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 shadow-inner">
-                                    <i class="{{ $details['icon'] }} text-2xl"></i>
+                                <div class="p-3 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-inner">
+                                    <span class="material-symbols-rounded text-2xl">{{ str_replace('fas fa-', '', $details['icon']) }}</span>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-gray-900 dark:text-white">{{ $details['label'] }}</h4>
+                                    <h4 class="font-bold text-[var(--md-sys-color-on-surface)]">{{ $details['label'] }}</h4>
                                     @if($uploadedDoc)
                                         <div class="flex items-center gap-2 mt-1">
                                             <span class="flex h-2 w-2 relative">
                                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                               <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                             </span>
-                                            <p class="text-xs text-green-600 dark:text-green-400 font-medium">
-                                                Uploaded {{ \Carbon\Carbon::parse($uploadedDoc['uploaded_at'])->diffForHumans() }}
+                                            <p class="text-xs text-green-600 font-medium">
+                                                بارگذاری شده {{ \Carbon\Carbon::parse($uploadedDoc['uploaded_at'])->diffForHumans() }}
                                             </p>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 mt-1">
-                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-gray-300 dark:bg-gray-600"></span>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Not uploaded yet</p>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--md-sys-color-outline)]"></span>
+                                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هنوز بارگذاری نشده</p>
                                         </div>
                                     @endif
                                 </div>
                             </div>
                             @if($uploadedDoc)
                                 <div class="flex gap-2">
-                                    <a href="{{ Storage::url($uploadedDoc['path']) }}" target="_blank" class="text-gray-400 hover:text-blue-500 transition-colors p-2 hover:bg-blue-50 rounded-lg dark:hover:bg-blue-500/10">
-                                        <i class="fas fa-eye"></i>
+                                    <a href="{{ Storage::url($uploadedDoc['path']) }}" target="_blank" class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-colors p-2 hover:bg-[var(--md-sys-color-primary-container)] rounded-lg">
+                                        <span class="material-symbols-rounded">visibility</span>
                                     </a>
-                                    <button wire:click="deleteDocument('{{ $uploadedDoc['path'] }}')" wire:confirm="Are you sure you want to delete this document?" class="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg dark:hover:bg-red-500/10">
-                                        <i class="fas fa-trash-alt"></i>
+                                    <button wire:click="deleteDocument('{{ $uploadedDoc['path'] }}')" wire:confirm="آیا از حذف این مدرک اطمینان دارید؟" class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] transition-colors p-2 hover:bg-[var(--md-sys-color-error-container)] rounded-lg">
+                                        <span class="material-symbols-rounded">delete</span>
                                     </button>
                                 </div>
                             @endif
                         </div>
 
                         @if(!$uploadedDoc)
-                            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
-                                <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50 hover:border-blue-400 transition-all dark:bg-gray-800/50 dark:border-gray-600 dark:hover:border-blue-500 dark:hover:bg-gray-700">
+                            <div class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
+                                <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-[var(--md-sys-color-outline)] rounded-lg cursor-pointer bg-[var(--md-sys-color-surface-variant)]/30 hover:bg-[var(--md-sys-color-surface-variant)] hover:border-[var(--md-sys-color-primary)] transition-all">
                                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <i class="fas fa-cloud-upload-alt text-gray-400 mb-2"></i>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span></p>
+                                        <span class="material-symbols-rounded text-[var(--md-sys-color-outline)] mb-2">cloud_upload</span>
+                                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]"><span class="font-semibold">برای آپلود کلیک کنید</span></p>
                                     </div>
                                     <input type="file" class="hidden" wire:model="files.{{ $type }}" wire:change="uploadStandard('{{ $type }}')" accept=".pdf,.jpg,.png,.jpeg">
                                 </label>
-                                @error("files.$type") <p class="text-xs text-red-500 mt-1 animate-pulse">{{ $message }}</p> @enderror
+                                @error("files.$type") <p class="text-xs text-[var(--md-sys-color-error)] mt-1 animate-pulse">{{ $message }}</p> @enderror
                             </div>
                         @endif
                     </div>
@@ -69,32 +69,32 @@
 
             <!-- Custom Documents -->
             @if(collect($this->parsedAttachments)->where('is_custom', true)->isNotEmpty())
-                <div class="pt-8 border-t border-gray-200 dark:border-white/10">
+                <div class="pt-8 border-t border-[var(--md-sys-color-outline-variant)]">
                     <div class="flex items-center gap-3 mb-6">
-                        <i class="fas fa-folder-plus text-purple-500 text-xl"></i>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Custom Documents</h3>
+                        <span class="material-symbols-rounded text-[var(--md-sys-color-tertiary)] text-2xl">folder_special</span>
+                        <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)]">مدارک سفارشی</h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @foreach(collect($this->parsedAttachments)->where('is_custom', true) as $doc)
-                            <div class="relative group rounded-xl border border-gray-200 bg-white/50 p-5 hover:bg-white hover:shadow-lg hover:-translate-y-1 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 transition-all duration-300">
+                            <div class="relative group rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]/50 p-5 hover:bg-[var(--md-sys-color-surface)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-4">
-                                        <div class="p-3 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 shadow-inner">
-                                            <i class="fas fa-file-alt text-2xl"></i>
+                                        <div class="p-3 rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] shadow-inner">
+                                            <span class="material-symbols-rounded text-2xl">description</span>
                                         </div>
                                         <div>
-                                            <h4 class="font-bold text-gray-900 dark:text-white capitalize">{{ $doc['name'] }}</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                Uploaded {{ \Carbon\Carbon::parse($doc['uploaded_at'])->diffForHumans() }}
+                                            <h4 class="font-bold text-[var(--md-sys-color-on-surface)] capitalize">{{ $doc['name'] }}</h4>
+                                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">
+                                                بارگذاری شده {{ \Carbon\Carbon::parse($doc['uploaded_at'])->diffForHumans() }}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
-                                        <a href="{{ Storage::url($doc['path']) }}" target="_blank" class="text-gray-400 hover:text-blue-500 transition-colors p-2 hover:bg-blue-50 rounded-lg dark:hover:bg-blue-500/10">
-                                            <i class="fas fa-eye"></i>
+                                        <a href="{{ Storage::url($doc['path']) }}" target="_blank" class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-colors p-2 hover:bg-[var(--md-sys-color-primary-container)] rounded-lg">
+                                            <span class="material-symbols-rounded">visibility</span>
                                         </a>
-                                        <button wire:click="deleteDocument('{{ $doc['path'] }}')" wire:confirm="Are you sure you want to delete this document?" class="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg dark:hover:bg-red-500/10">
-                                            <i class="fas fa-trash-alt"></i>
+                                        <button wire:click="deleteDocument('{{ $doc['path'] }}')" wire:confirm="آیا از حذف این مدرک اطمینان دارید؟" class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] transition-colors p-2 hover:bg-[var(--md-sys-color-error-container)] rounded-lg">
+                                            <span class="material-symbols-rounded">delete</span>
                                         </button>
                                     </div>
                                 </div>
@@ -107,28 +107,28 @@
     </x-ui.card>
 
     <!-- Upload Custom Modal -->
-    <x-ui.modal name="upload-custom-modal" title="Add Custom Document">
+    <x-ui.modal name="upload-custom-modal" title="افزودن مدرک جدید">
         <form wire:submit="uploadCustom" class="space-y-6">
-            <x-ui.input label="Document Name" name="customType" wire:model="customType" placeholder="e.g., Gym Membership" icon="fas fa-tag" />
+            <x-ui.input label="عنوان مدرک" name="customType" wire:model="customType" placeholder="مثال: کارت باشگاه ورزشی" icon="label" />
 
             <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Select File</label>
+                <label class="block text-sm font-medium text-[var(--md-sys-color-on-surface-variant)] ml-1">انتخاب فایل</label>
                 <div class="flex items-center justify-center w-full">
-                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-blue-50 hover:border-blue-500 dark:hover:bg-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:hover:border-gray-500 transition-all">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-[var(--md-sys-color-outline)] border-dashed rounded-xl cursor-pointer bg-[var(--md-sys-color-surface-variant)]/30 hover:bg-[var(--md-sys-color-surface-variant)] hover:border-[var(--md-sys-color-primary)] transition-all">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
-                            <p class="text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">PDF, PNG, JPG (MAX. 5MB)</p>
+                            <span class="material-symbols-rounded text-3xl text-[var(--md-sys-color-outline)] mb-3">cloud_upload</span>
+                            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)]"><span class="font-semibold">برای انتخاب فایل کلیک کنید</span></p>
+                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1">PDF, PNG, JPG (حداکثر 5 مگابایت)</p>
                         </div>
                         <input id="dropzone-file" type="file" wire:model="customFile" class="hidden" accept=".pdf,.jpg,.png,.jpeg" />
                     </label>
                 </div>
-                @error('customFile') <p class="text-xs text-red-500 mt-1 animate-pulse">{{ $message }}</p> @enderror
+                @error('customFile') <p class="text-xs text-[var(--md-sys-color-error)] mt-1 animate-pulse">{{ $message }}</p> @enderror
             </div>
 
-            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
-                <x-ui.button type="button" variant="ghost" x-on:click="$dispatch('close-modal', { name: 'upload-custom-modal' })">Cancel</x-ui.button>
-                <x-ui.button type="submit" loading="uploadCustom" icon="fas fa-upload" class="shadow-blue-500/50">Upload Document</x-ui.button>
+            <div class="flex justify-end gap-3 pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
+                <x-ui.button type="button" variant="ghost" x-on:click="$dispatch('close-modal', { name: 'upload-custom-modal' })">انصراف</x-ui.button>
+                <x-ui.button type="submit" loading="uploadCustom" icon="upload" variant="primary">بارگذاری مدرک</x-ui.button>
             </div>
         </form>
     </x-ui.modal>

@@ -10,9 +10,9 @@ class Credential extends Model
 {
     use HasFactory;
 
-    protected  = 'app_credentials';
+    protected $table = 'app_credentials';
 
-    protected  = [
+    protected $fillable = [
         'user_id',
         'app_name',
         'username',
@@ -23,6 +23,6 @@ class Credential extends Model
 
     public function user(): BelongsTo
     {
-        return ->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 }
