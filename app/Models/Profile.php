@@ -43,6 +43,15 @@ class Profile extends Model
         'user_id',
     ];
 
+    protected $casts = [
+        'attachments' => 'array',
+        'favorite_colors' => 'array',
+        'birthdate' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'number_of_children' => 'integer',
+    ];
+
     public function age(): ?int
     {
         return $this->birthdate?->age;
