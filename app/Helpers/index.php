@@ -59,3 +59,34 @@ if (!function_exists('greeting')) {
         return app(GreetingService::class)->getGreeting($name);
     }
 }
+
+if (!function_exists('shortGreeting')) {
+    function shortGreeting(?string $name = null): string
+    {
+        $name ??= auth()->user()?->name ?? '';
+        return app(GreetingService::class)->getShortGreeting($name);
+    }
+}
+
+
+if (!function_exists('isSpecialDay')) {
+    function isSpecialDay($type)
+    {
+        $user = Auth::user();
+        if (!$user) return false;
+
+        $cacheKey = $type . $user->id;
+        if (cache()->has($cacheKey)) return false;
+
+        $date = null;
+        if ($type === 'birthdate' && $user->profile && $user->profile->birthdate) {
+            $date = $user->profile->birthdate;
+        } elseif ($type === 'start_date' && $user->profile && $user->profile->start_date) {
+            $date = $user->profile->start_date;
+        }
+
+        if (!$date) return false;
+
+        return $date->format('m-d') === now()->format('m-d');
+    }
+}

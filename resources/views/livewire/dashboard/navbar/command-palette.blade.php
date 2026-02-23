@@ -13,7 +13,7 @@
          x-transition:leave="ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+         class="fixed inset-0 bg-black/60 "
          @click="open = false"></div>
 
     <div x-cloak
@@ -32,7 +32,7 @@
                     ring-1 ring-white/5
                     text-[var(--md-sys-color-on-surface)]">
 
-            <div class="flex items-center gap-4 px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container)]/30 backdrop-blur-xl">
+            <div class="flex items-center gap-4 px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container)]/30">
                 <span class="material-symbols-rounded text-[28px] text-[var(--md-sys-color-primary)] animate-pulse">search</span>
                 <input x-ref="searchInput"
                        wire:model.live.debounce.150ms="query"

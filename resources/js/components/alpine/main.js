@@ -11,6 +11,8 @@ import timer from "./data/timer.js";
 import settings from "./data/settings.js";
 import palette from "./data/palette.js";
 import fullscreen from "./data/fullscreen.js";
+import googleTranslate from "./data/googleTranslate.js";
+import occasion from "./data/occasion.js";
 import sidebar from "./data/sidebar.js";
 import share from "./data/share.js";
 import background from "./data/background.js";
@@ -47,6 +49,8 @@ export default function initAlpine() {
         Alpine.data('settings', settings)
         Alpine.data('palette', palette)
         Alpine.data('fullscreen', fullscreen)
+        Alpine.data('googleTranslate', googleTranslate)
+        Alpine.data('occasion', occasion)
         Alpine.data('sidebar', sidebar)
         Alpine.data('share', share)
         Alpine.data('background', background)

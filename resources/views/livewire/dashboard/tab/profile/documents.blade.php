@@ -81,7 +81,7 @@
                                         @endif
                                     </div>
                                 @elseif($status === 'approved')
-                                    <a href="{{ $uploadedDoc['url'] }}" target="_blank"
+                                    <a href="{{ Storage::url($uploadedDoc['path']) }}" target="_blank"
                                        class="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-xl font-bold text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-sm">
                                         <span class="material-symbols-rounded text-[16px]">visibility</span>
                                         مشاهده مدرک
@@ -146,7 +146,7 @@
                 this.fileName = f.name;
                 this.previewUrl = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'].includes(f.type) ? URL.createObjectURL(f) : '';
             }
-        }" class="space-y-5">
+        }" class="space-y-5 bg-[var(--md-sys-color-primary-container)]">
             <x-dashboard.form.input label="عنوان مدرک" name="customType" wire:model="customType" placeholder="مثال: گواهی دوره آموزشی" icon="label" />
 
             <div>
@@ -187,42 +187,7 @@
                 <x-dashboard.form.button type="button" wire:click="showCustomUploadConfirmation" wire:loading.attr="disabled" wire:target="customFile" icon="upload" variant="primary">مرحله بعد</x-dashboard.form.button>
             </div>
         </div>
-    </x-dashboard.form.modal>
 
-    @if($showConfirmDialog)
-        <div wire:key="confirm-upload-dialog-container" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black/60 animate-[fade-in_0.2s_ease-out]" aria-hidden="true"></div>
-            <div class="relative bg-[var(--md-sys-color-surface)] rounded-2xl shadow-xl border border-[var(--md-sys-color-outline-variant)] w-full max-w-md overflow-hidden z-[101] animate-[slide-up_0.3s_ease-out]">
-                <div class="p-6">
-                    <div class="flex items-center gap-4 mb-5">
-                        <div class="w-11 h-11 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-rounded text-[22px]">verified</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">تایید نهایی بارگذاری</h3>
-                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">آیا از صحت فایل انتخاب شده اطمینان دارید؟</p>
-                        </div>
-                    </div>
-                    <div class="bg-[var(--md-sys-color-surface-variant)]/40 border border-[var(--md-sys-color-outline-variant)] rounded-xl p-4 mb-5">
-                        <p class="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] mb-1">نام فایل</p>
-                        <p class="text-sm text-[var(--md-sys-color-on-surface)] font-mono truncate" dir="ltr">{{ $pendingFileName }}</p>
-                    </div>
-                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[var(--md-sys-color-error-container)]/40 border border-[var(--md-sys-color-error)]/20 text-[var(--md-sys-color-on-error-container)]">
-                        <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-error)] flex-shrink-0 mt-0.5">lock</span>
-                        <p class="text-xs leading-relaxed">پس از تایید نهایی امکان حذف یا تغییر این مدرک مسدود خواهد شد.</p>
-                    </div>
-                </div>
-                <div class="bg-[var(--md-sys-color-surface-variant)]/30 px-6 py-4 flex items-center justify-end gap-3 border-t border-[var(--md-sys-color-outline-variant)]/60">
-                    <button type="button" wire:click.prevent="cancelUpload" class="px-4 py-2 rounded-xl text-sm font-bold text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                        انصراف
-                    </button>
-                    <button type="button" wire:click.prevent="confirmUpload" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:opacity-90 transition-opacity">
-                        <span class="material-symbols-rounded text-[16px]">cloud_done</span>
-                        بله، بارگذاری شود
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+    </x-dashboard.form.modal>
 
 </div>

@@ -4,7 +4,9 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Department;
 use App\Models\Profile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Morilog\Jalali\Jalalian;
@@ -42,7 +44,6 @@ class Info extends Component
 
     public $image;
     public ?string $existingImage = null;
-    public array $departments = [];
     public array $favoriteColors = [];
 
     public $birthYear;
@@ -70,14 +71,7 @@ class Info extends Component
             'state.emergency_relationship' => 'required|string|max:50',
             'state.work_experience' => 'required|string|max:50',
             'state.interests' => 'nullable|string|max:1000',
-
-            'state.personnel_id' => 'nullable|string',
-            'state.department_id' => 'nullable|string',
-            'state.position' => 'nullable|string',
-            'state.employment_type' => 'nullable|string',
-            'state.employment_status' => 'nullable|string',
             'state.email' => 'nullable|string',
-
             'birthYear' => 'required|integer',
             'birthMonth' => 'required|integer',
             'birthDay' => 'required|integer',
@@ -112,15 +106,16 @@ class Info extends Component
 
     public function mount(): void
     {
-        $profile = Auth::user()->profile;
-        $this->departments = Department::pluck('name', 'code')->toArray();
+        $user = Auth::user();
+        $profile = $user->profile;
 
         if ($profile) {
             $this->state = array_merge($this->state, $profile->only(array_keys($this->state)));
             $this->existingImage = $profile->image;
 
-            $dbColors = $profile->favorite_colors;
-            $this->favoriteColors = is_array($dbColors) ? $dbColors : (is_string($dbColors) ? explode(',', $dbColors) : []);
+            $this->favoriteColors = is_array($profile->favorite_colors)
+                ? $profile->favorite_colors
+                : (is_string($profile->favorite_colors) ? explode(',', $profile->favorite_colors) : []);
 
             if ($profile->birthdate) {
                 $jalali = Jalalian::fromCarbon($profile->birthdate);
@@ -130,35 +125,22 @@ class Info extends Component
             }
         }
 
-        $this->state['email'] = Auth::user()->email ?? '';
+        $this->state['email'] = $user->email ?? '';
     }
 
     public function save(): void
     {
         $this->validate();
 
-        $profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
+        $user = Auth::user();
+        $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
-        $profile->fill([
-            'gender' => $this->state['gender'],
-            'marital_status' => $this->state['marital_status'],
-            'number_of_children' => $this->state['number_of_children'],
-            'id_card_number' => $this->state['id_card_number'],
-            'id_booklet_number' => $this->state['id_booklet_number'],
-            'degree' => $this->state['degree'],
-            'field' => $this->state['field'],
-            'landline' => $this->state['landline'],
-            'cellphone' => $this->state['cellphone'],
-            'license_plate' => $this->state['license_plate'],
-            'zip_code' => $this->state['zip_code'],
-            'address' => $this->state['address'],
-            'accessibility' => $this->state['accessibility'],
-            'insurance' => $this->state['insurance'],
-            'emergency_phone' => $this->state['emergency_phone'],
-            'emergency_relationship' => $this->state['emergency_relationship'],
-            'work_experience' => $this->state['work_experience'],
-            'interests' => $this->state['interests'],
-        ]);
+        $profile->fill(Arr::only($this->state, [
+            'gender', 'marital_status', 'number_of_children', 'id_card_number', 'id_booklet_number',
+            'degree', 'field', 'landline', 'cellphone', 'license_plate', 'zip_code', 'address',
+            'accessibility', 'insurance', 'emergency_phone', 'emergency_relationship',
+            'work_experience', 'interests'
+        ]));
 
         if ($this->birthYear && $this->birthMonth && $this->birthDay) {
             try {
@@ -185,6 +167,17 @@ class Info extends Component
         $this->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
     }
 
+    public function confirmDeleteImage(): void
+    {
+        $this->dispatch('open-confirmation',
+            title: 'حذف تصویر پروفایل',
+            message: 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.',
+            method: 'confirmAction',
+            params: 'confirm-delete-profile-image'
+        );
+    }
+
+    #[On('confirm-delete-profile-image')]
     public function deleteImage(): void
     {
         $profile = Auth::user()->profile;
@@ -192,11 +185,14 @@ class Info extends Component
             $profile->image = null;
             $profile->save();
             $this->existingImage = null;
+            $this->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
         }
     }
 
     public function render()
     {
-        return view('livewire.dashboard.tab.profile.info');
+        return view('livewire.dashboard.tab.profile.info', [
+            'departments' => Department::pluck('name', 'code')->toArray()
+        ]);
     }
 }

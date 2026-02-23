@@ -15,14 +15,14 @@ class Main extends Component
         return [
             'overview' => [
                 'component' => Overview::class,
-                'label' => 'مروری',
+                'label' => 'خانه',
                 'icon' => 'home',
                 'bg' => 'bg-surface-variant'
             ],
             'post' => [
                 'component' => Posts::class,
                 'label' => 'پست',
-                'icon' => 'newspaper',
+                'icon' => 'campaign',
                 'bg' => 'bg-secondary-container'
             ],
             'feed' => [
@@ -37,16 +37,22 @@ class Main extends Component
                 'icon' => 'calendar_month',
                 'bg' => 'bg-tertiary-container'
             ],
+            'status' => [
+                'component' => Status::class,
+                'label' => 'وضعیت',
+                'icon' => 'badge',
+                'bg' => 'bg-surface-container-low'
+            ],
             'gallery' => [
                 'component' => Gallery::class,
                 'label' => 'گالری',
-                'icon' => 'image',
+                'icon' => 'photo_library',
                 'bg' => 'bg-surface-container-high'
             ],
             'reports' => [
                 'component' => Reports::class,
                 'label' => 'گزارش‌ها',
-                'icon' => 'description',
+                'icon' => 'show_chart',
                 'bg' => 'bg-secondary-container'
             ],
             'links' => [
@@ -54,12 +60,6 @@ class Main extends Component
                 'label' => 'لینک‌ها',
                 'icon' => 'open_in_new',
                 'bg' => 'bg-surface-container-high'
-            ],
-            'status' => [
-                'component' => Status::class,
-                'label' => 'وضعیت',
-                'icon' => 'hub',
-                'bg' => 'bg-surface-container-low'
             ],
             'faqs' => [
                 'component' => Faqs::class,

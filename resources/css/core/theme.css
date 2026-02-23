@@ -46,7 +46,24 @@
 
         --header-bg: #000000;
         --header-border-color: #FFA500;
+
+        --tool-amethyst-bg: #ebdcf9;
+        --tool-amethyst-text: #2c1a3d;
+        --tool-amethyst-color: #6d4c91;
+
+        --tool-sapphire-bg: #cce8e4;
+        --tool-sapphire-text: #0d302c;
+        --tool-sapphire-color: #2a6b64;
+
+        --tool-sage-bg: #e2e6c3;
+        --tool-sage-text: #25290f;
+        --tool-sage-color: #555c27;
+
+        --tool-gold-bg: #f7e1c6;
+        --tool-gold-text: #3d260c;
+        --tool-gold-color: #8a5a23;
     }
+
 
     :root.dark {
         --md-sys-color-primary: #b5cbd2;
@@ -75,6 +92,22 @@
         --md-sys-color-on-surface-variant: #bfc8cc;
         --md-sys-color-outline: #899296;
         --md-sys-color-outline-variant: #40484b;
+
+        --tool-amethyst-bg: #38264c;
+        --tool-amethyst-text: #ebdcf9;
+        --tool-amethyst-color: #bba0d6;
+
+        --tool-sapphire-bg: #1a403b;
+        --tool-sapphire-text: #cce8e4;
+        --tool-sapphire-color: #77b5ae;
+
+        --tool-sage-bg: #353a16;
+        --tool-sage-text: #e2e6c3;
+        --tool-sage-color: #a3ab6e;
+
+        --tool-gold-bg: #4d3211;
+        --tool-gold-text: #f7e1c6;
+        --tool-gold-color: #d1a673;
     }
 
     [data-theme='blue'] {
@@ -520,3 +553,4 @@ button {
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
 }
+

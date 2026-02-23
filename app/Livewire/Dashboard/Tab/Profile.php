@@ -14,7 +14,7 @@ class Profile extends Component
         return view('livewire.dashboard.tab.profile.index', [
             'user' => Auth::user(),
             'completion' => $this->calculateCompletion(),
-        ]);
+        ])->extends('layouts.app')->section('content');
     }
 
     public function setTab(string $tab)
@@ -22,10 +22,18 @@ class Profile extends Component
         $this->activeTab = $tab;
     }
 
+    public function confirmAction(string $event)
+    {
+        $this->dispatch($event);
+    }
+
     private function calculateCompletion(): int
     {
         $profile = Auth::user()->profile;
-        if (!$profile) return 0;
+
+        if (!$profile) {
+            return 0;
+        }
 
         $fields = [
             'personnel_id', 'gender', 'employment_type', 'marital_status',
@@ -34,13 +42,8 @@ class Profile extends Component
             'insurance', 'emergency_phone', 'start_date'
         ];
 
-        $filled = 0;
-        foreach ($fields as $field) {
-            if (!empty($profile->$field)) {
-                $filled++;
-            }
-        }
+        $filled = collect($fields)->filter(fn($field) => !empty($profile->{$field}))->count();
 
-        return (int)round(($filled / count($fields)) * 100);
+        return (int) round(($filled / count($fields)) * 100);
     }
 }

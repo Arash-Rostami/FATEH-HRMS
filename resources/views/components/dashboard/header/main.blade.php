@@ -37,7 +37,7 @@
                              text-white/50 leading-none
                              max-w-[180px] lg:max-w-[380px]
                              overflow-hidden whitespace-nowrap block
-                             transition-opacity duration-700 tracking-wide leading-relaxed max-w-[200px] lg:max-w-[400px] truncate transition-colors duration-500 ease-out group-hover:text-white"></span>
+                             transition-opacity duration-700 tracking-wide leading-relaxed max-w-[200px] lg:max-w-[500px] truncate transition-colors duration-500 ease-out group-hover:text-white"></span>
             </div>
         </div>
 

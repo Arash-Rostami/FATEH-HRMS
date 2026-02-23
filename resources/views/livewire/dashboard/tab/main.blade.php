@@ -11,4 +11,5 @@
     <x-dashboard.navbar.right :activeTab="$activeTab" :tabs="$tabs"/>
     <x-dashboard.navbar.mobile :activeTab="$activeTab" :tabs="$tabs"/>
 
+    <x-dashboard.footer.occasion/>
 </div>

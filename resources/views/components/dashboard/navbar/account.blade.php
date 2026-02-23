@@ -44,6 +44,8 @@
             </div>
 
             <a href="{{ url('/profile') }}"
+               target="_blank"
+               rel="noopener noreferrer"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
                         <span
                             class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">person</span>

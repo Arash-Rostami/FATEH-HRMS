@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -88,7 +89,12 @@ class Documents extends Component
         $this->pendingUploadKey = $key;
         $this->pendingFileName = $this->files[$key]->getClientOriginalName() ?? 'فایل انتخاب شده';
 
-        $this->dispatch('open-modal', name: 'confirm-upload-modal');
+        $this->dispatch('open-confirmation',
+            title: 'تایید نهایی بارگذاری',
+            message: "آیا از صحت فایل «{$this->pendingFileName}» اطمینان دارید؟",
+            method: 'confirmAction',
+            params: 'confirm-upload-documents'
+        );
     }
 
     public function showCustomUploadConfirmation(): void
@@ -108,9 +114,16 @@ class Documents extends Component
         $this->pendingUploadKey = 'custom_upload_pending';
         $this->pendingFileName = $this->customFile->getClientOriginalName() ?? 'فایل سفارشی';
 
-        $this->dispatch('open-modal', name: 'confirm-upload-modal');
+        // Dispatch reusable confirmation modal via Profile relay
+        $this->dispatch('open-confirmation',
+            title: 'تایید نهایی بارگذاری',
+            message: "آیا از صحت فایل سفارشی «{$this->pendingFileName}» اطمینان دارید؟",
+            method: 'confirmAction',
+            params: 'confirm-upload-documents'
+        );
     }
 
+    #[On('confirm-upload-documents')]
     public function confirmUpload(): void
     {
         if ($this->pendingUploadKey === 'custom_upload_pending') {
@@ -121,11 +134,6 @@ class Documents extends Component
         if ($this->pendingUploadKey) {
             $this->processStandardUpload($this->pendingUploadKey);
         }
-    }
-
-    public function cancelUpload(): void
-    {
-        $this->resetConfirmDialog();
     }
 
     private function processStandardUpload(string $key): void
@@ -155,13 +163,13 @@ class Documents extends Component
             $userProfile->save();
 
             unset($this->files[$key]);
-            $this->resetConfirmDialog();
-            $this->dispatch('notify', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
+            $this->resetUploadState();
+            $this->dispatch('toast', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
 
         } catch (\Exception $e) {
             $this->errorMessage = 'خطایی در بارگذاری فایل رخ داد. لطفاً مجدداً تلاش کنید.';
-            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
-            $this->resetConfirmDialog();
+            $this->dispatch('toast', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
+            $this->resetUploadState();
         }
     }
 
@@ -196,23 +204,21 @@ class Documents extends Component
             $userProfile->save();
 
             $this->reset(['customType', 'customFile']);
-            $this->resetConfirmDialog();
+            $this->resetUploadState();
             $this->dispatch('close-modal', name: 'upload-custom-modal');
             $this->dispatch('notify', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
 
         } catch (\Exception $e) {
             $this->errorMessage = 'خطایی در ذخیره مدرک سفارشی رخ داد.';
             $this->dispatch('notify', message: $this->errorMessage, type: 'error');
-            $this->resetConfirmDialog();
+            $this->resetUploadState();
         }
     }
 
-    private function resetConfirmDialog(): void
+    private function resetUploadState(): void
     {
         $this->pendingUploadKey = '';
         $this->pendingFileName = '';
-
-        $this->dispatch('close-modal', name: 'confirm-upload-modal');
     }
 
     #[Computed]
