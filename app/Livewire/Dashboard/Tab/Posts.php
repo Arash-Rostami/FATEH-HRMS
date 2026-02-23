@@ -44,6 +44,12 @@ class Posts extends Component
             ->get();
     }
 
+    #[Computed]
+    public function totalPosts()
+    {
+        return Post::count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.posts.index');

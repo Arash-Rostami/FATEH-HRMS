@@ -20,6 +20,12 @@ class Links extends Component
         return Link::external()->orderBy('sequence')->get();
     }
 
+    #[Computed]
+    public function totalLinks()
+    {
+        return Link::internal()->count() + Link::external()->count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.links.index');
