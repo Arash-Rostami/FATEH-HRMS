@@ -165,11 +165,11 @@ class Documents extends Component
 
             unset($this->files[$key]);
             $this->resetUploadState();
-            $this->dispatch('notify', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
+            $this->dispatch('toast', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
 
         } catch (\Exception $e) {
             $this->errorMessage = 'خطایی در بارگذاری فایل رخ داد. لطفاً مجدداً تلاش کنید.';
-            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->dispatch('toast', message: $this->errorMessage, type: 'error');
             $this->resetUploadState();
         }
     }
@@ -207,11 +207,11 @@ class Documents extends Component
             $this->reset(['customType', 'customFile']);
             $this->resetUploadState();
             $this->dispatch('close-modal', name: 'upload-custom-modal');
-            $this->dispatch('notify', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
+            $this->dispatch('toast', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
 
         } catch (\Exception $e) {
             $this->errorMessage = 'خطایی در ذخیره مدرک سفارشی رخ داد.';
-            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->dispatch('toast', message: $this->errorMessage, type: 'error');
             $this->resetUploadState();
         }
     }
