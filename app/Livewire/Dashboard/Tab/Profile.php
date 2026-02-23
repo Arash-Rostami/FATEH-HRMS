@@ -14,7 +14,7 @@ class Profile extends Component
         return view('livewire.dashboard.tab.profile.index', [
             'user' => Auth::user(),
             'completion' => $this->calculateCompletion(),
-        ])->extends('layouts.app')->section('content');
+        ]);
     }
 
     public function setTab(string $tab)

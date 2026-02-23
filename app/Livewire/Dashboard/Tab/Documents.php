@@ -3,121 +3,208 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Profile;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Str;
 
 class Documents extends Component
 {
     use WithFileUploads;
 
     public Profile $profile;
-    public $files = [];
-    public $customType;
+    public array $files = [];
+    public string $customType = '';
     public $customFile;
-    public $confirmingDelete = null;
 
-    public $standardTypes = [
-        'shenasnameh' => ['label' => 'Shenasnameh', 'icon' => 'fas fa-id-card'],
-        'national_id' => ['label' => 'National ID Card', 'icon' => 'fas fa-address-card'],
-        'diploma' => ['label' => 'Latest Degree', 'icon' => 'fas fa-graduation-cap'],
-        'military_service' => ['label' => 'Military Service', 'icon' => 'fas fa-user-shield'],
-        'insurance_record' => ['label' => 'Insurance Records', 'icon' => 'fas fa-file-invoice'],
+    public bool $showConfirmDialog = false;
+    public string $pendingUploadKey = '';
+    public string $pendingFileName = '';
+    public ?string $errorMessage = null;
+
+    public array $standardTypes = [
+        'shenasnameh' => ['label' => 'تمام صفحات شناسنامه', 'icon' => 'badge'],
+        'national_id' => ['label' => 'پشت و روی کارت ملی', 'icon' => 'id_card'],
+        'diploma' => ['label' => 'آخرین مدرک تحصیلی', 'icon' => 'school'],
+        'military_service' => ['label' => 'کارت پایان خدمت یا معافیت', 'icon' => 'military_tech'],
+        'insurance_record' => ['label' => 'کلیه سوابق بیمه', 'icon' => 'receipt_long'],
     ];
 
-    public function mount()
+    protected function rules(): array
+    {
+        return [
+            'files.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'customFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'customType' => 'required_with:customFile|string|max:100',
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'files.*.required' => 'لطفاً یک فایل انتخاب کنید.',
+            'files.*.file' => 'یک فایل معتبر بارگذاری کنید.',
+            'files.*.mimes' => 'فرمت فایل باید PDF, JPG, JPEG یا PNG باشد.',
+            'files.*.max' => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
+            'customFile.required' => 'لطفاً فایل مدرک سفارشی را انتخاب کنید.',
+            'customFile.mimes' => 'فرمت فایل باید PDF, JPG, JPEG یا PNG باشد.',
+            'customFile.max' => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
+            'customType.required_with' => 'لطفاً عنوان مدرک سفارشی را وارد کنید.',
+        ];
+    }
+
+    public function mount(): void
     {
         $this->profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
     }
 
-    public function uploadStandard($type)
+    public function showUploadConfirmation(string $key): void
     {
+        $this->errorMessage = null;
+
+        $this->validate(["files.{$key}" => $this->rules()['files.*']]);
+
+        $this->pendingUploadKey = $key;
+        $this->pendingFileName = $this->files[$key]->getClientOriginalName() ?? 'فایل انتخاب شده';
+        $this->showConfirmDialog = true;
+    }
+
+    public function showCustomUploadConfirmation(): void
+    {
+        $this->errorMessage = null;
+
         $this->validate([
-            "files.$type" => 'required|file|max:5120|mimes:pdf,jpg,jpeg,png',
+            'customType' => $this->rules()['customType'],
+            'customFile' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        $file = $this->files[$type];
-        $filename = "doc_{}_" . time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('profiles/docs/' . $this->profile->id, $filename, 'public');
-
-        $attachments = $this->profile->attachments ?? [];
-
-        // Remove old if exists for this type (standard types are unique)
-        $attachments = array_filter($attachments, fn($a) => ($a['type'] ?? '') !== $type);
-
-        $attachments[] = [
-            'type' => $type,
-            'name' => $this->standardTypes[$type]['label'],
-            'path' => $path,
-            'uploaded_at' => now()->toDateTimeString(),
-            'is_custom' => false,
-        ];
-
-        $this->profile->attachments = array_values($attachments);
-        $this->profile->save();
-
-        unset($this->files[$type]);
-        $this->dispatch('notify', message: 'Document uploaded successfully!', type: 'success');
+        $this->pendingUploadKey = 'custom_upload_pending';
+        $this->pendingFileName = $this->customFile->getClientOriginalName() ?? 'فایل سفارشی';
+        $this->showConfirmDialog = true;
     }
 
-    public function uploadCustom()
+    public function confirmUpload(): void
     {
-        $this->validate([
-            'customType' => 'required|string|max:50',
-            'customFile' => 'required|file|max:5120|mimes:pdf,jpg,jpeg,png',
-        ]);
+        if ($this->pendingUploadKey === 'custom_upload_pending') {
+            $this->processCustomUpload();
+            return;
+        }
 
-        $filename = "doc_custom_" . Str::slug($this->customType) . "_" . time() . '.' . $this->customFile->getClientOriginalExtension();
-        $path = $this->customFile->storeAs('profiles/docs/' . $this->profile->id, $filename, 'public');
-
-        $attachments = $this->profile->attachments ?? [];
-        $attachments[] = [
-            'type' => 'custom',
-            'name' => $this->customType,
-            'path' => $path,
-            'uploaded_at' => now()->toDateTimeString(),
-            'is_custom' => true,
-        ];
-
-        $this->profile->attachments = $attachments;
-        $this->profile->save();
-
-        $this->reset(['customType', 'customFile']);
-        $this->dispatch('close-modal', name: 'upload-custom-modal'); // Close modal
-        $this->dispatch('notify', message: 'Custom document added!', type: 'success');
+        if ($this->pendingUploadKey) {
+            $this->processStandardUpload($this->pendingUploadKey);
+        }
     }
 
-    public function deleteDocument($path)
+    public function cancelUpload(): void
     {
-        $attachments = $this->profile->attachments ?? [];
-        $attachments = array_filter($attachments, fn($a) => $a['path'] !== $path);
-
-        // Optionally delete file from storage
-        // Storage::disk('public')->delete($path);
-
-        $this->profile->attachments = array_values($attachments);
-        $this->profile->save();
-
-        $this->dispatch('toast', message: 'Document removed.', type: 'info');
+        $this->resetConfirmDialog();
     }
 
-    public function getParsedAttachmentsProperty()
+    private function processStandardUpload(string $key): void
     {
-        $attachments = $this->profile->attachments ?? [];
-        return collect($attachments)->map(function($item) {
-            if (is_string($item)) {
-                return [
-                    'type' => 'unknown',
-                    'name' => basename($item),
-                    'path' => $item,
-                    'uploaded_at' => null,
-                    'is_custom' => false,
-                ];
+        try {
+            $uploadedFile = $this->files[$key];
+            $timestamp = time();
+            $extension = $uploadedFile->getClientOriginalExtension();
+
+            $fileName = "doc_standard_{$key}_{$timestamp}.{$extension}";
+            $newPath = $uploadedFile->storeAs("profiles/docs/{$this->profile->id}", $fileName, 'public');
+
+            $currentAttachments = collect($this->profile->attachments ?? []);
+
+            $this->profile->attachments = $currentAttachments
+                ->reject(fn ($path) => str_contains($path, "doc_standard_{$key}_"))
+                ->push($newPath)
+                ->values()
+                ->all();
+
+            $this->profile->save();
+
+            unset($this->files[$key]);
+            $this->resetConfirmDialog();
+            $this->dispatch('notify', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
+
+        } catch (\Exception $e) {
+            $this->errorMessage = 'خطایی در بارگذاری فایل رخ داد. لطفاً مجدداً تلاش کنید.';
+            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->resetConfirmDialog();
+        }
+    }
+
+    private function processCustomUpload(): void
+    {
+        try {
+            $timestamp = time();
+            $extension = $this->customFile->getClientOriginalExtension();
+            $slug = Str::slug($this->customType, '-');
+
+            if (empty($slug)) {
+                $slug = 'doc';
             }
-            return $item;
-        });
+
+            $fileName = "doc_custom_{$slug}_{$timestamp}.{$extension}";
+            $newPath = $this->customFile->storeAs("profiles/docs/{$this->profile->id}", $fileName, 'public');
+
+            $currentAttachments = collect($this->profile->attachments ?? []);
+
+            $this->profile->attachments = $currentAttachments
+                ->reject(fn ($path) => str_contains($path, "doc_custom_{$slug}_"))
+                ->push($newPath)
+                ->values()
+                ->all();
+
+            $this->profile->save();
+
+            $this->reset(['customType', 'customFile']);
+            $this->resetConfirmDialog();
+            $this->dispatch('close-modal', name: 'upload-custom-modal');
+            $this->dispatch('notify', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
+
+        } catch (\Exception $e) {
+            $this->errorMessage = 'خطایی در ذخیره مدرک سفارشی رخ داد.';
+            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->resetConfirmDialog();
+        }
+    }
+
+    private function resetConfirmDialog(): void
+    {
+        $this->showConfirmDialog = false;
+        $this->pendingUploadKey = '';
+        $this->pendingFileName = '';
+    }
+
+    public function getParsedAttachmentsProperty(): \Illuminate\Support\Collection
+    {
+        $allPaths = $this->profile->attachments ?? [];
+        $parsed = collect();
+
+        foreach ($allPaths as $path) {
+            if (!is_string($path)) {
+                continue;
+            }
+
+            $fileName = basename($path);
+
+            if (preg_match('/doc_(standard|custom)_(.+)__?(\d{10,})\.\w+/', str_replace('__', '_', $fileName), $matches)) {
+                $category = $matches[1];
+                $keyOrSlug = $matches[2];
+                $timestamp = (int) $matches[3];
+
+                $parsed->push([
+                    'category' => $category,
+                    'key' => $keyOrSlug,
+                    'uploadedTime' => Carbon::createFromTimestamp($timestamp, 'Asia/Tehran')->format('Y/m/d H:i'),
+                    'path' => $path,
+                    'url' => Storage::disk('public')->url($path),
+                    'fileName' => $fileName,
+                ]);
+            }
+        }
+
+        return $parsed;
     }
 
     public function render()

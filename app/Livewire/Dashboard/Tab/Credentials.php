@@ -9,6 +9,11 @@ class Credentials extends Component
 {
     public string $search = '';
 
+    public function getHasAnyCredentialsProperty(): bool
+    {
+        return Auth::user()->credentials()->exists();
+    }
+
     public function getCredentialsProperty()
     {
         return Auth::user()->credentials()
@@ -22,7 +27,8 @@ class Credentials extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.profile.credentials', [
-            'credentials' => $this->credentials
+            'credentials' => $this->credentials,
+            'hasAny' => $this->hasAnyCredentials,
         ]);
     }
 }

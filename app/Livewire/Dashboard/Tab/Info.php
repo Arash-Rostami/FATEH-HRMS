@@ -5,105 +5,193 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Department;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Carbon\Carbon;
+use Morilog\Jalali\Jalalian;
 
 class Info extends Component
 {
     use WithFileUploads;
 
-    public Profile $profile;
-    public $image;
-    public $departments = [];
+    public array $state = [
+        'personnel_id' => '',
+        'gender' => '',
+        'employment_type' => '',
+        'marital_status' => '',
+        'number_of_children' => 0,
+        'employment_status' => '',
+        'id_card_number' => '',
+        'id_booklet_number' => '',
+        'degree' => '',
+        'field' => '',
+        'landline' => '',
+        'cellphone' => '',
+        'license_plate' => '',
+        'zip_code' => '',
+        'address' => '',
+        'accessibility' => '',
+        'department_id' => '',
+        'position' => '',
+        'insurance' => '',
+        'emergency_phone' => '',
+        'emergency_relationship' => '',
+        'work_experience' => '',
+        'interests' => '',
+        'email' => '',
+    ];
 
-    // Date parts
+    public $image;
+    public ?string $existingImage = null;
+    public array $departments = [];
+    public array $favoriteColors = [];
+
     public $birthYear;
     public $birthMonth;
     public $birthDay;
 
-    protected function rules()
+    protected function rules(): array
     {
         return [
-            'profile.personnel_id' => 'nullable|string|max:255',
-            'profile.gender' => 'nullable|in:male,female',
-            'profile.employment_type' => 'nullable|in:fulltime,parttime,contract',
-            'profile.marital_status' => 'nullable|in:single,married',
-            'profile.number_of_children' => 'nullable|integer|min:0',
-            'profile.employment_status' => 'nullable|in:probational,working,terminated',
-            'profile.id_card_number' => 'nullable|string|max:20',
-            'profile.id_booklet_number' => 'nullable|string|max:20',
-            'profile.degree' => 'nullable|string|max:255',
-            'profile.field' => 'nullable|string|max:255',
-            'profile.birthdate' => 'nullable|date',
-            'profile.landline' => 'nullable|string|max:20',
-            'profile.cellphone' => 'required|string|max:20',
-            'profile.license_plate' => 'nullable|string|max:20',
-            'profile.zip_code' => 'nullable|string|max:20',
-            'profile.address' => 'nullable|string|max:1000',
-            'profile.accessibility' => 'nullable|string|max:500',
-            'profile.department_id' => 'nullable|exists:departments,code',
-            'profile.position' => 'nullable|string|max:255',
-            'profile.insurance' => 'nullable|string|max:50',
-            'profile.emergency_phone' => 'nullable|string|max:20',
-            'profile.emergency_relationship' => 'nullable|string|max:50',
-            'profile.start_date' => 'nullable|date',
-            'profile.end_date' => 'nullable|date',
-            'profile.work_experience' => 'nullable|string|max:50',
-            'profile.interests' => 'nullable|string|max:1000',
-            'profile.favorite_colors' => 'nullable|array',
+            'state.gender' => 'required|in:male,female',
+            'state.marital_status' => 'required|in:single,married',
+            'state.number_of_children' => 'required|integer|min:0',
+            'state.id_card_number' => 'nullable|string|max:20',
+            'state.id_booklet_number' => 'required|string|max:20',
+            'state.degree' => 'required|string|max:255',
+            'state.field' => 'required|string|max:255',
+            'state.landline' => 'nullable|string|max:20',
+            'state.cellphone' => 'required|string|max:20',
+            'state.license_plate' => 'nullable|string|max:20',
+            'state.zip_code' => 'required|string|max:20',
+            'state.address' => 'required|string|max:1000',
+            'state.accessibility' => 'nullable|string|max:500',
+            'state.insurance' => 'required|string|max:50',
+            'state.emergency_phone' => 'required|string|max:20',
+            'state.emergency_relationship' => 'required|string|max:50',
+            'state.work_experience' => 'required|string|max:50',
+            'state.interests' => 'nullable|string|max:1000',
 
-            'birthYear' => 'nullable|integer',
-            'birthMonth' => 'nullable|integer',
-            'birthDay' => 'nullable|integer',
+            'state.personnel_id' => 'nullable|string',
+            'state.department_id' => 'nullable|string',
+            'state.position' => 'nullable|string',
+            'state.employment_type' => 'nullable|string',
+            'state.employment_status' => 'nullable|string',
+            'state.email' => 'nullable|string',
+
+            'birthYear' => 'required|integer',
+            'birthMonth' => 'required|integer',
+            'birthDay' => 'required|integer',
+            'favoriteColors' => 'nullable|array',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 
-    public function mount()
+    protected function messages(): array
     {
-        $this->profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
+        return [
+            'state.gender.required' => 'انتخاب جنسیت الزامی می‌باشد.',
+            'state.marital_status.required' => 'انتخاب وضعیت تأهل الزامی می‌باشد.',
+            'state.number_of_children.required' => 'وارد کردن تعداد فرزندان الزامی است.',
+            'state.id_booklet_number.required' => 'وارد کردن شماره شناسنامه الزامی است.',
+            'state.degree.required' => 'انتخاب مقطع تحصیلی الزامی می‌باشد.',
+            'state.field.required' => 'وارد کردن رشته تحصیلی الزامی است.',
+            'state.cellphone.required' => 'وارد کردن شماره تلفن همراه الزامی است.',
+            'state.zip_code.required' => 'وارد کردن کد پستی الزامی است.',
+            'state.address.required' => 'وارد کردن آدرس الزامی است.',
+            'state.insurance.required' => 'وارد کردن شماره بیمه الزامی است.',
+            'state.emergency_phone.required' => 'تلفن تماس ضروری الزامی است.',
+            'state.emergency_relationship.required' => 'نسبت تماس ضروری الزامی است.',
+            'state.work_experience.required' => 'وارد کردن سوابق کاری الزامی است.',
+            'birthYear.required' => 'سال تولد الزامی است.',
+            'birthMonth.required' => 'ماه تولد الزامی است.',
+            'birthDay.required' => 'روز تولد الزامی است.',
+            'image.image' => 'فایل باید یک تصویر باشد.',
+            'image.max' => 'حجم تصویر نباید بیشتر از ۲ مگابایت باشد.',
+        ];
+    }
+
+    public function mount(): void
+    {
+        $profile = Auth::user()->profile;
         $this->departments = Department::pluck('name', 'code')->toArray();
 
-        if ($this->profile->birthdate) {
-            $date = $this->profile->birthdate;
-            if ($date) {
-                $this->birthYear = $date->year;
-                $this->birthMonth = $date->month;
-                $this->birthDay = $date->day;
+        if ($profile) {
+            $this->state = array_merge($this->state, $profile->only(array_keys($this->state)));
+            $this->existingImage = $profile->image;
+
+            $dbColors = $profile->favorite_colors;
+            $this->favoriteColors = is_array($dbColors) ? $dbColors : (is_string($dbColors) ? explode(',', $dbColors) : []);
+
+            if ($profile->birthdate) {
+                $jalali = Jalalian::fromCarbon($profile->birthdate);
+                $this->birthYear = $jalali->getYear();
+                $this->birthMonth = $jalali->getMonth();
+                $this->birthDay = $jalali->getDay();
             }
         }
+
+        $this->state['email'] = Auth::user()->email ?? '';
     }
 
-    public function save()
+    public function save(): void
     {
-        if ($this->birthYear && $this->birthMonth && $this->birthDay) {
-            try {
-                $this->profile->birthdate = Carbon::createFromDate($this->birthYear, $this->birthMonth, $this->birthDay);
-            } catch (\Exception $e) {
-                $this->dispatch('toast', message: 'خطا در بروزرسانی!', type: 'error');
-            }
-        }
-
         $this->validate();
 
-        if ($this->image) {
-            $this->validate(['image' => 'image|max:2048']);
-            $path = $this->image->store('profiles', 'public');
-            $this->profile->image = $path;
+        $profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
+
+        $profile->fill([
+            'gender' => $this->state['gender'],
+            'marital_status' => $this->state['marital_status'],
+            'number_of_children' => $this->state['number_of_children'],
+            'id_card_number' => $this->state['id_card_number'],
+            'id_booklet_number' => $this->state['id_booklet_number'],
+            'degree' => $this->state['degree'],
+            'field' => $this->state['field'],
+            'landline' => $this->state['landline'],
+            'cellphone' => $this->state['cellphone'],
+            'license_plate' => $this->state['license_plate'],
+            'zip_code' => $this->state['zip_code'],
+            'address' => $this->state['address'],
+            'accessibility' => $this->state['accessibility'],
+            'insurance' => $this->state['insurance'],
+            'emergency_phone' => $this->state['emergency_phone'],
+            'emergency_relationship' => $this->state['emergency_relationship'],
+            'work_experience' => $this->state['work_experience'],
+            'interests' => $this->state['interests'],
+        ]);
+
+        if ($this->birthYear && $this->birthMonth && $this->birthDay) {
+            try {
+                $profile->birthdate = Jalalian::fromFormat(
+                    'Y/n/j',
+                    "{$this->birthYear}/{$this->birthMonth}/{$this->birthDay}"
+                )->toCarbon();
+            } catch (\Exception $e) {
+                $this->dispatch('toast', message: 'تاریخ تولد نامعتبر است.', type: 'error');
+                return;
+            }
         }
 
-        $this->profile->user_id = Auth::id();
-        $this->profile->save();
+        if ($this->image) {
+            $path = $this->image->store('profiles', 'public');
+            $profile->image = $path;
+            $this->existingImage = $path;
+            $this->image = null;
+        }
 
-        $this->dispatch('toast', message: 'پروفایل بروزرسانی شد', type: 'success');
+        $profile->favorite_colors = $this->favoriteColors;
+        $profile->save();
+
+        $this->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
     }
 
-    public function deleteImage()
+    public function deleteImage(): void
     {
-        if ($this->profile->image) {
-            $this->profile->image = null;
-            $this->profile->save();
+        $profile = Auth::user()->profile;
+        if ($profile && $profile->image) {
+            $profile->image = null;
+            $profile->save();
+            $this->existingImage = null;
         }
     }
 
