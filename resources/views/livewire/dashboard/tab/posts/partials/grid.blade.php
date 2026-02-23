@@ -9,16 +9,16 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
         @island(name: 'posts', lazy: true)
-        @if(->posts->isNotEmpty())
-            @foreach(->posts as )
+        @if($this->posts->isNotEmpty())
+            @foreach($this->posts as $post)
                 <article
                     class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
-                    wire:key="post-{{ ->id }}"
+                    wire:key="post-{{ $post->id }}"
                 >
-                    <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]" wire:click="selectPost({{ ->id }})">
+                    <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]" wire:click="selectPost({{ $post->id }})">
                         <img
-                            src="{{ ->image }}"
-                            alt="{{ superClean(->title, 200) }}"
+                            src="{{ $post->image }}"
+                            alt="{{ superClean($post->title, 200) }}"
                             loading="lazy"
                             class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                         >
@@ -31,24 +31,24 @@
                                 <span class="text-[10px] font-bold tracking-wide">اخبار</span>
                             </div>
                             <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] mt-0.5">
-                                {{ ->created_at->diffForHumans() }}
+                                {{ $post->created_at->diffForHumans() }}
                             </span>
                         </div>
 
                         <h4
                             class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-2 leading-snug cursor-pointer group-hover:text-[var(--md-sys-color-primary)] transition-colors"
-                            wire:click="selectPost({{ ->id }})"
+                            wire:click="selectPost({{ $post->id }})"
                         >
-                            {{ superClean(->title, 100) }}
+                            {{ superClean($post->title, 100) }}
                         </h4>
 
                         <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 mb-5 flex-grow text-justify">
-                            {{ superClean(->body, 100) }}
+                            {{ superClean($post->body, 100) }}
                         </p>
 
                         <div class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
                             <button
-                                @click="('select-post', { id: {{ ->id }} })"
+                                @click="$dispatch('select-post', { id: {{ $post->id }} })"
                                 class="flex items-center gap-2 text-xs font-bold text-[var(--md-sys-color-primary)] transition-all hover:gap-3 px-3 py-1.5 rounded-full hover:bg-[var(--md-sys-color-primary-container)]/30"
                             >
                                 <span>ادامه مطلب</span>

@@ -1,3 +1,15 @@
+@php
+    $transforms = [
+        ['z' => 'z-20', 'rotate' => 'rotate-6', 'hover' => 'group-hover:-translate-x-12 group-hover:-rotate-12'],
+        ['z' => 'z-10', 'rotate' => '-rotate-2', 'hover' => 'group-hover:translate-x-0 group-hover:rotate-3'],
+        ['z' => 'z-0', 'rotate' => 'rotate-3', 'hover' => 'group-hover:translate-x-12 group-hover:rotate-12'],
+    ];
+    $paths = $photo->path ?? [];
+    $visibleImages = array_slice($paths, 0, 3);
+    $hiddenImages = array_slice($paths, 3);
+    $hiddenImageCount = count($paths) - count($visibleImages);
+@endphp
+
 <div
     class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
     :class="{
@@ -15,9 +27,9 @@
     </div>
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-4 px-5 pt-5 md:px-6 md:pt-6">
+    <div class="flex items-center justify-between mb-4 px-5 pt-5 md:px-6 md:pt-6 shrink-0">
         <div class="flex flex-col items-start gap-1">
-            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-tight">
+            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-tight truncate max-w-[200px]">
                 {{ $photo->title }}
             </h3>
             <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
@@ -29,46 +41,38 @@
         </div>
     </div>
 
-    {{-- Body / Collage --}}
-    <div class="flex-1 overflow-y-auto feed-scrollbar p-5 md:p-6 space-y-5 pb-24 relative">
-        @php
-            $visibleImages = array_slice($photo->path ?? [], 0, 4);
-            $hiddenImages = array_slice($photo->path ?? [], 4);
-            $hiddenCount = count($photo->path ?? []) - 4;
-        @endphp
+    {{-- Collage (Original Logic Restored) --}}
+    <div class="flex-1 relative flex items-center justify-center min-h-[200px] w-full perspective-1000 py-4 feed-scrollbar overflow-y-auto">
+        @foreach($visibleImages as $index => $imagePath)
+            @php $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => '']; @endphp
+            <a href="{{ asset($imagePath) }}"
+               data-fancybox="gallery-{{ $photo->id }}"
+               class="absolute w-40 h-40 md:w-56 md:h-56 rounded-xl shadow-md overflow-hidden border-4 border-[var(--md-sys-color-surface)] transition-all duration-500 ease-out cursor-zoom-in {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
+            >
+                <img src="{{ asset($imagePath) }}" alt="{{ $photo->title }}" class="w-full h-full object-cover" loading="lazy">
+            </a>
+        @endforeach
 
-        <div class="grid grid-cols-2 gap-1.5 w-full min-h-[200px]">
-            @foreach($visibleImages as $index => $imagePath)
-                <a href="{{ asset($imagePath) }}"
-                   data-fancybox="gallery-{{ $photo->id }}"
-                   class="relative group/img overflow-hidden rounded-xl bg-[var(--md-sys-color-surface-variant)] aspect-square cursor-zoom-in border border-[var(--md-sys-color-outline-variant)]/10 shadow-sm"
-                >
-                    <img src="{{ asset($imagePath) }}"
-                         alt="{{ $photo->title }}"
-                         class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover/img:scale-110 group-hover/img:brightness-110"
-                         loading="lazy">
-                    <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-scrim,black)]/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity duration-300"></div>
-
-                    @if($index === 3 && $hiddenCount > 0)
-                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                            <span class="text-white font-bold text-lg">+{{ $hiddenCount }}</span>
-                        </div>
-                    @endif
-                </a>
-            @endforeach
-        </div>
-
-        {{-- Hidden Images for Fancybox --}}
-        <div class="hidden">
-            @foreach($hiddenImages as $imagePath)
-                <a href="{{ asset($imagePath) }}" data-fancybox="gallery-{{ $photo->id }}"></a>
-            @endforeach
-        </div>
-
-        @if(!empty($photo->description))
-            <div class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right text-justify dir-rtl bg-[var(--md-sys-color-surface-variant)]/30 p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/20">
-                {{ strip_tags($photo->description) }}
+        @if($hiddenImageCount > 0)
+            <div class="absolute bottom-4 right-4 z-30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-full px-3 py-1 text-xs font-bold shadow-lg">
+                +{{ $hiddenImageCount }}
             </div>
         @endif
     </div>
+
+    {{-- Hidden Images for Fancybox --}}
+    <div class="hidden">
+        @foreach($hiddenImages as $imagePath)
+            <a href="{{ asset($imagePath) }}" data-fancybox="gallery-{{ $photo->id }}"></a>
+        @endforeach
+    </div>
+
+    {{-- Description --}}
+    @if(!empty($photo->description))
+        <div class="mt-auto shrink-0 relative z-20 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/10 p-4 mx-4 mb-4 rounded-xl">
+            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 text-justify">
+                {{ strip_tags($photo->description) }}
+            </p>
+        </div>
+    @endif
 </div>
