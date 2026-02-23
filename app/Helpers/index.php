@@ -59,3 +59,4 @@ if (!function_exists('greeting')) {
         return app(GreetingService::class)->getGreeting($name);
     }
 }
+require_once __DIR__ . '/special_days.php';
