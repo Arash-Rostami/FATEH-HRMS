@@ -72,6 +72,12 @@ class Faqs extends Component
         $this->perPage += 10;
     }
 
+    #[Computed]
+    public function totalFaqs()
+    {
+        return FAQ::count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.faqs.index');

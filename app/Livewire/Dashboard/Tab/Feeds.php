@@ -112,6 +112,12 @@ class Feeds extends Component
         $this->assetsLoaded = true;
     }
 
+    #[Computed]
+    public function totalFeeds()
+    {
+        return Feed::count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.feeds.index');
