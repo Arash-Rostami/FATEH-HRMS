@@ -25,63 +25,63 @@
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($standardTypes as $key => $type)
+                @foreach( as  => )
                     @php
-                        $uploadedDoc = $this->parsedAttachments->firstWhere('key', $key);
-                        $status = $uploadedDoc ? 'approved' : (isset($files[$key]) ? 'pending' : 'empty');
+                         = ->parsedAttachments->firstWhere('key', );
+                         =  ? 'approved' : (isset([]) ? 'pending' : 'empty');
                     @endphp
 
                     <div class="group relative flex flex-col rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-variant)]/20 overflow-hidden transition-all duration-200 hover:border-[var(--md-sys-color-primary)]/40 hover:shadow-sm">
 
                         <div class="h-[3px] w-full
-                            {{ $status === 'approved' ? 'bg-[var(--md-sys-color-primary)]' :
-                               ($status === 'pending'  ? 'bg-[var(--md-sys-color-tertiary)]' :
-                               ($status === 'rejected' ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-outline-variant)]')) }}"
-                             style="{{ $status === 'approved' ? 'box-shadow: 0 0 8px color-mix(in srgb, var(--md-sys-color-primary) 50%, transparent)' : '' }}">
+                            {{  === 'approved' ? 'bg-[var(--md-sys-color-primary)]' :
+                               ( === 'pending'  ? 'bg-[var(--md-sys-color-tertiary)]' :
+                               ( === 'rejected' ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-outline-variant)]')) }}"
+                             style="{{  === 'approved' ? 'box-shadow: 0 0 8px color-mix(in srgb, var(--md-sys-color-primary) 50%, transparent)' : '' }}">
                         </div>
 
                         <div class="p-4 flex flex-col gap-3 h-full">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0
-                                    {{ $status === 'approved' ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' :
-                                       ($status === 'pending'  ? 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]' :
-                                       ($status === 'rejected' ? 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' :
+                                    {{  === 'approved' ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' :
+                                       ( === 'pending'  ? 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]' :
+                                       ( === 'rejected' ? 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' :
                                         'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]')) }}">
                                     <span class="material-symbols-rounded text-[18px]">
-                                        {{ $status === 'approved' ? 'check_circle' : ($status === 'pending' ? 'hourglass_top' : ($status === 'rejected' ? 'cancel' : 'upload_file')) }}
+                                        {{  === 'approved' ? 'check_circle' : ( === 'pending' ? 'hourglass_top' : ( === 'rejected' ? 'cancel' : 'upload_file')) }}
                                     </span>
                                 </div>
                                 <div class="overflow-hidden">
-                                    <h4 class="font-bold text-sm text-[var(--md-sys-color-on-surface)] leading-tight">{{ $type['label'] }}</h4>
+                                    <h4 class="font-bold text-sm text-[var(--md-sys-color-on-surface)] leading-tight">{{ ['label'] }}</h4>
                                     <span class="text-[10px] font-medium
-                                        {{ $status === 'approved' ? 'text-[var(--md-sys-color-primary)]' :
-                                           ($status === 'pending'  ? 'text-[var(--md-sys-color-tertiary)]' :
-                                           ($status === 'rejected' ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]')) }}">
-                                        {{ $status === 'approved' ? 'تایید شده' : ($status === 'pending' ? 'در انتظار تایید' : ($status === 'rejected' ? 'رد شده' : 'بارگذاری نشده')) }}
+                                        {{  === 'approved' ? 'text-[var(--md-sys-color-primary)]' :
+                                           ( === 'pending'  ? 'text-[var(--md-sys-color-tertiary)]' :
+                                           ( === 'rejected' ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]')) }}">
+                                        {{  === 'approved' ? 'تایید شده' : ( === 'pending' ? 'در انتظار تایید' : ( === 'rejected' ? 'رد شده' : 'بارگذاری نشده')) }}
                                     </span>
                                 </div>
                             </div>
 
                             <div class="mt-auto">
-                                @if($status === 'empty')
-                                    <label for="file-{{ $key }}"
+                                @if( === 'empty')
+                                    <label for="file-{{  }}"
                                            class="flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-[var(--md-sys-color-outline-variant)] rounded-xl cursor-pointer text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5 transition-all">
                                         <span class="material-symbols-rounded text-base">cloud_upload</span>
                                         انتخاب فایل
-                                        <input type="file" id="file-{{ $key }}" wire:model.live="files.{{ $key }}" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
+                                        <input type="file" id="file-{{  }}" wire:model.live="files.{{  }}" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
                                     </label>
-                                    <div wire:loading wire:target="files.{{ $key }}" class="text-center mt-2 text-[10px] text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی...</div>
-                                @elseif($status === 'pending')
+                                    <div wire:loading wire:target="files.{{  }}" class="text-center mt-2 text-[10px] text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی...</div>
+                                @elseif( === 'pending')
                                     <div class="flex items-center justify-between bg-[var(--md-sys-color-tertiary-container)]/30 border border-[var(--md-sys-color-tertiary)]/20 px-3 py-2 rounded-xl">
                                         <span class="text-[11px] font-bold text-[var(--md-sys-color-tertiary)]">در انتظار تایید</span>
-                                        @if(isset($files[$key]))
-                                            <button type="button" wire:click.prevent="removeFile('{{ $key }}')" class="text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] p-1 rounded-lg transition-colors">
+                                        @if(isset([]))
+                                            <button type="button" wire:click.prevent="removeFile('{{  }}')" class="text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] p-1 rounded-lg transition-colors">
                                                 <span class="material-symbols-rounded text-[16px]">close</span>
                                             </button>
                                         @endif
                                     </div>
-                                @elseif($status === 'approved')
-                                    <a href="{{ $uploadedDoc['url'] }}" target="_blank"
+                                @elseif( === 'approved')
+                                    <a href="{{ ['url'] }}" target="_blank"
                                        class="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-xl font-bold text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-sm">
                                         <span class="material-symbols-rounded text-[16px]">visibility</span>
                                         مشاهده مدرک
@@ -92,7 +92,7 @@
                     </div>
                 @endforeach
 
-                <button type="button" wire:click="$dispatch('open-modal', { name: 'upload-custom-modal' })"
+                <button type="button" wire:click="('open-modal', { name: 'upload-custom-modal' })"
                         class="group relative flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--md-sys-color-outline-variant)] bg-transparent p-6 hover:border-[var(--md-sys-color-primary)]/60 hover:bg-[var(--md-sys-color-primary)]/5 transition-all min-h-[140px]">
                     <div class="w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-variant)] group-hover:bg-[var(--md-sys-color-primary-container)] flex items-center justify-center transition-colors">
                         <span class="material-symbols-rounded text-[26px] text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">add</span>
@@ -104,27 +104,27 @@
                 </button>
             </div>
 
-            @php $customDocs = $this->parsedAttachments->where('category', 'custom'); @endphp
-            @if($customDocs->count() > 0)
+            @php  = ->parsedAttachments->where('category', 'custom'); @endphp
+            @if(->count() > 0)
                 <div class="mt-6 pt-6 border-t border-[var(--md-sys-color-outline-variant)]/60">
                     <div class="flex items-center gap-2 mb-4">
                         <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-lg">folder_special</span>
                         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سایر مدارک بارگذاری شده</h3>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ $customDocs->count() }}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ ->count() }}</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        @foreach($customDocs as $doc)
+                        @foreach( as )
                             <div class="flex items-center justify-between p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 transition-colors">
                                 <div class="flex items-center gap-3 overflow-hidden">
                                     <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                                         <span class="material-symbols-rounded text-[18px]">description</span>
                                     </div>
                                     <div class="overflow-hidden">
-                                        <p class="font-bold text-xs text-[var(--md-sys-color-on-surface)] truncate" title="{{ $doc['key'] }}">{{ $doc['key'] }}</p>
-                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5" dir="ltr">{{ $doc['uploadedTime'] }}</p>
+                                        <p class="font-bold text-xs text-[var(--md-sys-color-on-surface)] truncate" title="{{ ['key'] }}">{{ ['key'] }}</p>
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5" dir="ltr">{{ ['uploadedTime'] }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ $doc['url'] }}" target="_blank"
+                                <a href="{{ ['url'] }}" target="_blank"
                                    class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors">
                                     <span class="material-symbols-rounded text-[16px]">download</span>
                                 </a>
@@ -158,7 +158,7 @@
                         <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">انتخاب فایل مدرک</span>
                         <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1">PDF، JPG یا PNG — حداکثر ۵ مگابایت</span>
                     </label>
-                    <input id="custom-file-upload" type="file" class="hidden" wire:model="customFile" @change="handleCustomFileSelect($event)" accept=".pdf,.jpg,.png,.jpeg">
+                    <input id="custom-file-upload" type="file" class="hidden" wire:model="customFile" @change="handleCustomFileSelect()" accept=".pdf,.jpg,.png,.jpeg">
                     <div wire:loading wire:target="customFile" class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی فایل...</div>
                 </div>
                 <div x-show="fileName" x-cloak class="space-y-3">
@@ -178,8 +178,8 @@
                         پیش‌نمایش فایل
                     </a>
                 </div>
-                @error('customType') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
-                @error('customFile') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
+                @error('customType') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{  }}</p> @enderror
+                @error('customFile') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{  }}</p> @enderror
             </div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/60">
@@ -188,41 +188,5 @@
             </div>
         </div>
     </x-dashboard.form.modal>
-
-    @if($showConfirmDialog)
-        <div wire:key="confirm-upload-dialog-container" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black/60 animate-[fade-in_0.2s_ease-out]" aria-hidden="true"></div>
-            <div class="relative bg-[var(--md-sys-color-surface)] rounded-2xl shadow-xl border border-[var(--md-sys-color-outline-variant)] w-full max-w-md overflow-hidden z-[101] animate-[slide-up_0.3s_ease-out]">
-                <div class="p-6">
-                    <div class="flex items-center gap-4 mb-5">
-                        <div class="w-11 h-11 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-rounded text-[22px]">verified</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">تایید نهایی بارگذاری</h3>
-                            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">آیا از صحت فایل انتخاب شده اطمینان دارید؟</p>
-                        </div>
-                    </div>
-                    <div class="bg-[var(--md-sys-color-surface-variant)]/40 border border-[var(--md-sys-color-outline-variant)] rounded-xl p-4 mb-5">
-                        <p class="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] mb-1">نام فایل</p>
-                        <p class="text-sm text-[var(--md-sys-color-on-surface)] font-mono truncate" dir="ltr">{{ $pendingFileName }}</p>
-                    </div>
-                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[var(--md-sys-color-error-container)]/40 border border-[var(--md-sys-color-error)]/20 text-[var(--md-sys-color-on-error-container)]">
-                        <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-error)] flex-shrink-0 mt-0.5">lock</span>
-                        <p class="text-xs leading-relaxed">پس از تایید نهایی امکان حذف یا تغییر این مدرک مسدود خواهد شد.</p>
-                    </div>
-                </div>
-                <div class="bg-[var(--md-sys-color-surface-variant)]/30 px-6 py-4 flex items-center justify-end gap-3 border-t border-[var(--md-sys-color-outline-variant)]/60">
-                    <button type="button" wire:click.prevent="cancelUpload" class="px-4 py-2 rounded-xl text-sm font-bold text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                        انصراف
-                    </button>
-                    <button type="button" wire:click.prevent="confirmUpload" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:opacity-90 transition-opacity">
-                        <span class="material-symbols-rounded text-[16px]">cloud_done</span>
-                        بله، بارگذاری شود
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
 
 </div>
