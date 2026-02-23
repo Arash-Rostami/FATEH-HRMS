@@ -61,9 +61,9 @@
     </div>
 
     <!-- Privacy Toggle -->
-    <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20">
+    <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm">
         <div class="flex items-center gap-3 text-[var(--md-sys-color-on-surface)]">
-            <div class="p-2 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] rounded-lg">
+            <div class="p-2 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] rounded-xl">
                 <span class="material-symbols-rounded">lock</span>
             </div>
             <div>
