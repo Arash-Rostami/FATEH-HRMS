@@ -153,5 +153,6 @@
         </div>
 
         <x-dashboard.modal.toast/>
+        <x-dashboard.modal.confirmation/>
     </div>
 </div>
