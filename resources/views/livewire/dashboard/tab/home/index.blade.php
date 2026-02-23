@@ -59,13 +59,13 @@
         <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
     </div>
 
-    <div class="relative overflow-hidden rounded-2xl mb-8
+    <div class="relative overflow-hidden rounded-3xl mb-8
                 bg-[var(--md-sys-color-surface)]
                 border border-[var(--md-sys-color-outline-variant)]/20
                 shadow-sm">
 
         {{-- Left accent stripe --}}
-        <div class="absolute top-0 right-0 bottom-0 w-1.5 bg-[var(--md-sys-color-secondary)]"></div>
+        <div class="absolute top-0 right-0 bottom-0 w-1.5 rounded-r-3xl bg-[var(--md-sys-color-secondary)]"></div>
 
         <div class="grid md:grid-cols-[auto_1fr] gap-0">
             {{-- Icon column --}}
@@ -117,30 +117,30 @@
         </span>
     </div>
 
-    <div class="space-y-3 mb-8" x-data="{ active: null }">
+    <div class="space-y-2 mb-8" x-data="{ active: null }">
         @foreach($this->modules as $index => $module)
             <div class="rounded-2xl overflow-hidden
-                        border border-[var(--md-sys-color-outline-variant)]/20
+                        border border-[var(--md-sys-color-outline-variant)]
                         bg-[var(--md-sys-color-surface)]
                         transition-all duration-300 shadow-sm"
                  :class="active === {{ $index }}
                     ? 'shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] border-[var(--md-sys-color-primary)]/30 ring-1 ring-[var(--md-sys-color-primary)]/20'
-                    : 'hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-md'">
+                    : 'hover:border-[var(--md-sys-color-outline-variant)] hover:shadow-md'">
 
                 <button
                         @click="active = (active === {{ $index }} ? null : {{ $index }})"
                         class="w-full flex items-center justify-between p-4 md:p-5 text-right
                            transition-colors duration-200 focus:outline-none
-                           hover:bg-[var(--md-sys-color-surface-container-low)]">
+                           hover:bg-[var(--md-sys-color-surface-variant)]/30">
 
                     <div class="flex items-center gap-4">
                         {{-- Numbered badge --}}
                         <div class="relative flex-shrink-0">
                             <div
-                                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm"
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
                                     :class="active === {{ $index }}
                                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] scale-110'
-                                    : 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]'">
+                                    : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'">
                                 <span
                                         class="material-symbols-rounded text-xl">{{ $module['icon'] ?? 'extension' }}</span>
                             </div>
@@ -148,8 +148,8 @@
 
                         <div class="text-right">
                             <span
-                                    class="text-sm font-bold text-[var(--md-sys-color-on-surface)] block group-hover:text-[var(--md-sys-color-primary)] transition-colors">{{ $module['title'] }}</span>
-                            <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 block opacity-70"
+                                    class="text-sm font-bold text-[var(--md-sys-color-on-surface)] block">{{ $module['title'] }}</span>
+                            <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 block"
                                   x-show="active !== {{ $index }}">
                                 کلیک کنید برای اطلاعات بیشتر
                             </span>
@@ -162,7 +162,7 @@
                                 class="hidden sm:flex text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all duration-200"
                                 :class="active === {{ $index }}
                                 ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
-                                : 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]'">
+                                : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'">
                             {{ sprintf('%02d', $index + 1) }}
                         </span>
                         <span class="material-symbols-rounded text-2xl transition-all duration-300"
@@ -177,14 +177,15 @@
                 {{-- Content panel --}}
                 <div x-show="active === {{ $index }}"
                      x-transition:enter="transition ease-out duration-250"
-                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0">
                     <div class="mx-4 mb-4 p-5 rounded-xl
-                                bg-[var(--md-sys-color-surface-container-lowest)]
-                                border border-[var(--md-sys-color-outline-variant)]/10">
+                                bg-[var(--md-sys-color-surface-variant)]/30
+                                border border-[var(--md-sys-color-primary)]/10
+                                border-r-2 border-r-[var(--md-sys-color-primary)]">
                         <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify">
                             {{ $module['content'] }}
                         </p>
