@@ -1,37 +1,51 @@
-<div
-    x-data="report(@entangle('view'), @entangle('showModal'))"
-    class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8 flex flex-col gap-4 p-4 md:p-8"
-    dir="rtl"
->
-    <!-- Header & Toggle -->
-    <div class="flex flex-col md:flex-row justify-end items-center z-10 relative gap-4 mb-4 shrink-0">
-        <div class="flex bg-[var(--md-sys-color-surface-container-high)] rounded-lg p-1 border border-[var(--md-sys-color-outline-variant)]">
-            <button wire:click="toggleView('card')"
-                    class="p-2 rounded-md transition-all duration-300 group flex items-center justify-center"
-                    :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm': view === 'card', 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]': view !== 'card' }"
-                    title="Card View">
-                <span class="material-symbols-rounded text-xl">grid_view</span>
+<div class="h-full flex flex-col relative bg-[var(--md-sys-color-background)]"
+     x-data="{
+        showModal: false,
+        activeReport: null,
+        view: @entangle('view'),
+        scrollNext() {
+             this.$refs.reportContainer.scrollBy({ left: -350, behavior: 'smooth' });
+        },
+        scrollPrev() {
+             this.$refs.reportContainer.scrollBy({ left: 350, behavior: 'smooth' });
+        }
+     }">
+
+    <div class="px-4 md:px-12 pt-4 md:pt-8 pb-0" dir="rtl">
+        <x-dashboard.tab.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش" />
+    </div>
+
+    <div class="px-4 md:px-12 pt-2 md:pt-4 flex items-center justify-between mb-2 md:mb-4 relative z-10">
+        <h2 class="text-[var(--md-sys-color-on-surface)] text-xl md:text-2xl font-black tracking-tight flex items-center gap-3">
+            <span class="bg-[var(--md-sys-color-primary)] w-2 h-8 rounded-full"></span>
+            لیست گزارش‌ها
+        </h2>
+
+        <div class="flex bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm">
+            <button @click="view = 'card'; $wire.toggleView('card')"
+                    :class="view === 'card' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
+                    class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center w-10 h-10">
+                <span class="material-symbols-rounded">grid_view</span>
             </button>
-            <button wire:click="toggleView('list')"
-                    class="p-2 rounded-md transition-all duration-300 group flex items-center justify-center"
-                    :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm': view === 'list', 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]': view !== 'list' }"
-                    title="List View">
-                <span class="material-symbols-rounded text-xl">view_list</span>
+            <button @click="view = 'list'; $wire.toggleView('list')"
+                    :class="view === 'list' ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
+                    class="p-2 rounded-lg transition-all duration-300 flex items-center justify-center w-10 h-10">
+                <span class="material-symbols-rounded">view_list</span>
             </button>
         </div>
     </div>
 
-    <!-- Content Area -->
-    <div class="relative w-full h-full overflow-hidden flex-1 group/container">
+    <!-- Main Content Area -->
+    <div class="flex-1 w-full relative overflow-hidden">
 
         <!-- Card View (Horizontal Scroll) -->
         <div x-show="view === 'card'"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="w-full h-full relative">
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="w-full h-full flex flex-col justify-center relative group/container">
 
-            <!-- Navigation Arrows (Absolute) -->
+            <!-- Navigation Buttons -->
             <button @click="scrollPrev" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 disabled:opacity-0 translate-x-1/2 md:translate-x-0">
                 <span class="material-symbols-rounded text-3xl">chevron_right</span>
             </button>
@@ -48,7 +62,7 @@
                 @foreach ($this->reports as $report)
                     <div wire:key="report-{{ $report->id }}"
                          data-report-id="{{ $report->id }}"
-                         class="shrink-0 w-full max-w-sm md:w-[400px] h-[70vh] md:h-[80vh] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] scale-[0.9]"
+                         class="shrink-0 w-full max-w-sm md:w-[400px] h-[70vh] md:h-[80vh] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] md:scale-[0.9]"
                          @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
                         {{-- Active Stripe Indicator (Added to match Feed/Gallery style) --}}

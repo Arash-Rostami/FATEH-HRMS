@@ -74,6 +74,13 @@ class Reports extends Component
         return Report::active()->count() > $this->perPage;
     }
 
+
+    #[Computed]
+    public function totalReports()
+    {
+        return Report::active()->count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.reports.index');

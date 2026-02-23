@@ -7,6 +7,10 @@
     dir="rtl"
 >
 
+    <div class="px-4 md:px-8 pt-4 md:pt-8 pb-0 shrink-0">
+        <x-dashboard.tab.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال" />
+    </div>
+
     @include('livewire.dashboard.tab.faqs.partials.modal')
 
     <div

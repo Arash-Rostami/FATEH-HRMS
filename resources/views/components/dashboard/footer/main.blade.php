@@ -1,6 +1,7 @@
 @props(['translatePage' => false])
 
 <footer
+    id="footer"
     class="w-full mt-auto relative z-30"
     dir="ltr"
     x-data="{

@@ -11,8 +11,8 @@
 </head>
 <body
     class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
-<x-dashboard.header.main/>
-<x-dashboard.navbar.top/>
+<x-dashboard.header.scrollable/>
+
 
 @isset($slot)
     {{ $slot }}

@@ -1,7 +1,6 @@
-<div x-data="{ showHeader: true, lastScroll: 0 }"
-     @scroll.window="showHeader = window.scrollY < lastScroll || window.scrollY < 50; lastScroll = window.scrollY"
-     :class="showHeader ? 'translate-y-0' : '-translate-y-full'"
-     class="sticky top-0 z-50 transition-transform duration-300 ease-in-out">
+<div class="sticky !top-0 z-50 transition-transform duration-300 ease-in-out"
+     :class="isVisible ? 'translate-y-0' : '-translate-y-full'">
+
     <header dir="rtl"
             class="shrink-0
                    bg-[var(--header-bg)]
@@ -10,7 +9,8 @@
                    px-4 lg:px-8"
             x-data="greeting('{{ addslashes(greeting()) }}')">
 
-        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
+        <div
+            class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
         <div class="relative h-full flex items-center justify-between gap-4">
 
             <div class="flex items-center gap-3 min-w-0">
@@ -20,14 +20,16 @@
                             leading-none select-none whitespace-nowrap
                             bg-gradient-to-l from-white via-white/90 to-white/60
                             bg-clip-text text-transparent">
-                    اینتـرا،&nbsp;<span class="bg-gradient-to-l from-[#FF7F6E] to-[#ffb199] bg-clip-text text-transparent">خانه دیجیتـال ما</span>
+                    اینتـرا،&nbsp;<span
+                        class="bg-gradient-to-l from-[#FF7F6E] to-[#ffb199] bg-clip-text text-transparent">خانه دیجیتـال ما</span>
                 </h1>
 
                 <span class="hidden sm:block h-7 w-px bg-white/15 shrink-0"></span>
 
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="relative flex h-1.5 w-1.5 shrink-0">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                     </span>
                     <span x-text="displayed"

@@ -4,12 +4,12 @@
 <div
     x-ref="timeline"
     @scroll.debounce.100ms="handleScroll"
-    class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-[5%] md:pr-[10%] md:pl-4 z-10"
+    class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[5%] md:pr-[10%] md:pl-4 z-10"
     style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
 >
     <div
         x-ref="galleryContainer"
-        class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-hidden md:overflow-x-auto md:snap-x md:snap-mandatory gap-6 md:gap-12 p-4 md:p-8 scrollbar-hide items-center md:items-stretch"
+        class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-hidden md:overflow-x-auto md:snap-x md:snap-mandatory gap-6 md:gap-12 md:p-4 md:p-8 scrollbar-hide items-center md:items-stretch"
     >
         @foreach($this->photos as $photo)
             <div
@@ -18,7 +18,7 @@
                 class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                 :class="{
                         'z-30 scale-100 md:scale-105': activeId == {{ $photo->id }},
-                        'z-10 scale-95 opacity-80 blur-[1px] grayscale-[30%]': activeId != {{ $photo->id }}
+                        'z-10 scale-95 opacity-100 md:opacity-80 md:blur-[1px] md:grayscale-[30%]': activeId != {{ $photo->id }}
                     }"
             >
                 {{-- Timeline Marker (Desktop only) --}}
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="relative z-20 h-full w-full scale-[0.9]">
+                <div class="relative z-20 h-full w-full md:scale-[0.9]">
                     @include('livewire.dashboard.tab.gallery.partials.item', ['photo' => $photo])
                 </div>
             </div>

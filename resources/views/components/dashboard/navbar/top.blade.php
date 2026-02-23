@@ -3,10 +3,8 @@
     'direction' => 'up'
 ])
 
-<div x-data="{ showNavbar: true, lastScroll: 0 }"
-     @scroll.window="showNavbar = window.scrollY < lastScroll || window.scrollY < 50; lastScroll = window.scrollY"
-     :class="showNavbar ? 'top-[60px] lg:top-[80px]' : 'top-0'"
-     class="sticky z-[51] w-full transition-all duration-300 ease-in-out">
+<div :class="isVisible ? 'top-[60px] lg:top-[80px]' : 'top-0'"
+     class="sticky z-[51] w-full transition-all duration-300 ease-in-out will-change-transform">
 
     <nav x-cloak
          x-data="menu"
@@ -50,6 +48,7 @@
 
                 <div class="flex items-center justify-center h-[40px] min-w-[140px] gap-2 px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10  transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary)]/10 shadow-sm"
                      title="وضعیت حضور">
+                    <livewire:dashboard.navbar.status-switcher/>
                 </div>
             </div>
             <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1"></div>

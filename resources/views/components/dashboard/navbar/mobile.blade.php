@@ -1,55 +1,33 @@
 @props(['activeTab', 'tabs'])
 
 @php
-    $count = count($tabs);
-    $perPage = $count > 4 ? 4 : 2;
-
+    $perPage = max((int) ceil(count($tabs) / 2), 4);
     $chunks = array_chunk($tabs, $perPage, true);
     $pageOne = $chunks[0] ?? [];
     $pageTwo = $chunks[1] ?? [];
+    $pageTwoKeys = array_keys($pageTwo);
+    $initialPage = in_array($activeTab, $pageTwoKeys) ? 1 : 0;
 @endphp
 
 <aside
-    x-data="{
-        page: 0,
-        isAtBottom: false,
-        toggle() { this.page = this.page === 0 ? 1 : 0 },
-        checkScroll() {
-            this.isAtBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 100);
-        }
-    }"
-    @scroll.window.throttle.50ms="checkScroll()"
-    x-init="checkScroll()"
+    x-data="{ activeTab: @entangle('activeTab'), ...mobile({{ $initialPage }}, @js($pageTwoKeys)) }"
+    @keydown.window.arrow-right.prevent="!$event.repeat && $wire.navigateTab(1)"
+    @keydown.window.arrow-left.prevent="!$event.repeat && $wire.navigateTab(-1)"
     :class="isAtBottom ? 'bottom-14' : 'bottom-6'"
-    class="lg:hidden fixed left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px] bg-[var(--md-sys-color-primary-container)] rounded-2xl transition-[bottom] duration-300 ease-in-out">
-
+    class="lg:hidden fixed left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] z-50 h-[72px] bg-[var(--md-sys-color-primary-container)] rounded-2xl transition-[bottom] duration-300 ease-in-out"
+>
     <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-50">
-        <button @click="toggle()"
-                class="w-10 h-10 rounded-xl flex items-center justify-center
-                       bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
-                       shadow-lg shadow-[var(--md-sys-color-primary)]/30
-                       border-[3px] border-[var(--md-sys-color-surface)]
-                       transition-all duration-500 hover:scale-110 active:scale-95 group">
-
-            <span class="material-symbols-rounded text-[20px] transition-transform duration-500"
-                  :class="page === 0 ? 'rotate-0' : '-rotate-180'">
-                swap_horiz
-            </span>
+        <button @click="toggle()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-lg border-[3px] border-[var(--md-sys-color-surface)] transition-all duration-500 hover:scale-110 active:scale-95">
+            <span class="material-symbols-rounded text-[20px] transition-transform duration-500" :class="page === 0 ? 'rotate-0' : '-rotate-180'">swap_horiz</span>
         </button>
     </div>
 
-    <div class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl shadow-black/10 overflow-hidden">
+    <div class="relative w-full h-full bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/20 rounded-[24px] shadow-2xl overflow-hidden">
+        <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">
 
-        <div class="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-             :class="page === 0 ? 'translate-x-0' : '-translate-x-1/2'">
-
-            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2"
-                 wire:keydown.window.arrow-right.prevent="navigateTab(1)"
-                 wire:keydown.window.arrow-left.prevent="navigateTab(-1)">
+            <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
                 @foreach($pageOne as $key => $tab)
-                    <button wire:click="setTab('{{ $key }}')"
-                            class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
-                                   {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
+                    <button wire:click="setTab('{{ $key }}')" class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
@@ -60,9 +38,7 @@
 
             <div class="w-1/2 h-full flex items-center justify-between px-4 gap-2">
                 @foreach($pageTwo as $key => $tab)
-                    <button wire:click="setTab('{{ $key }}')"
-                            class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90
-                                   {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
+                    <button wire:click="setTab('{{ $key }}')" class="flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
                     </button>
                 @endforeach
@@ -70,6 +46,7 @@
                     <div class="flex-1"></div>
                 @endfor
             </div>
+
         </div>
     </div>
 </aside>

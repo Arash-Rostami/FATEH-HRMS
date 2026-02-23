@@ -74,6 +74,12 @@ class Gallery extends Component
         $this->assetsLoaded = true;
     }
 
+    #[Computed]
+    public function totalPhotos()
+    {
+        return $this->getBaseQuery()->count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.tab.gallery.index');

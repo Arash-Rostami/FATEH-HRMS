@@ -1,5 +1,7 @@
 <div class="h-full w-full relative overflow-y-auto overflow-x-hidden p-6 md:p-8 space-y-12 pb-24 custom-scrollbar" dir="rtl">
 
+    <x-dashboard.tab.title icon="open_in_new" title="لینک‌ها و ابزارها" :count="$this->totalLinks" countLabel="لینک" />
+
     {{-- Internal Links Section --}}
     @if($this->internalLinks->isNotEmpty())
         <section class="relative group/section" x-data="{
@@ -18,20 +20,20 @@
             <div class="flex items-center justify-between mb-6 px-1">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm">
-                        <span class="material-symbols-rounded text-xl">apps</span>
+                        <span class="material-symbols-rounded text-xl">dataset_linked</span>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">سامانه‌های داخلی</h3>
-                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">دسترسی سریع به ابزارهای سازمانی</p>
+                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">منابع و ابزارهای درون‌سازمانی</p>
                     </div>
                 </div>
 
                 {{-- Navigation Buttons --}}
                 <div class="flex gap-2 transition-opacity duration-300" x-show="hasOverflow" x-cloak>
-                    <button @click="scrollRight" class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] transition-colors shadow-sm flex items-center justify-center">
+                    <button @click="scrollRight" class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors shadow-sm flex items-center justify-center">
                         <span class="material-symbols-rounded text-xl">chevron_right</span>
                     </button>
-                    <button @click="scrollLeft" class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] transition-colors shadow-sm flex items-center justify-center">
+                    <button @click="scrollLeft" class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors shadow-sm flex items-center justify-center">
                         <span class="material-symbols-rounded text-xl">chevron_left</span>
                     </button>
                 </div>
