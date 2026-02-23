@@ -21,6 +21,7 @@ import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
 import filters from "./data/filters.js";
+import taskboard from "./data/taskboard.js";
 
 
 export default function initAlpine() {
@@ -59,5 +60,6 @@ export default function initAlpine() {
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)
         Alpine.data('filters', filters)
+        Alpine.data('taskboard', taskboard)
     })
 }

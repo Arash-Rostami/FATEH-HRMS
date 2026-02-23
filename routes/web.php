@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');
     Route::get('/dashboard', Main::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
+    Route::get('/tasks', App\Livewire\Dashboard\Taskboard\Main::class)->name('tasks');
 
 });
 
