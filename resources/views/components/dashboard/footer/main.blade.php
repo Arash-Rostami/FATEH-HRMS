@@ -12,7 +12,7 @@
     }"
 >
     <div
-        class="relative overflow-hidden border-t border-1/2 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] rounded-b-2xl">
+        class="relative overflow-hidden bg-[var(--md-sys-color-surface)] rounded-b-2xl">
 
         <div
             class="absolute top-0 left-1/4 w-40 h-40 rounded-full blur-3xl -translate-y-1/2 pointer-events-none opacity-[0.06]"
@@ -21,15 +21,13 @@
             class="absolute bottom-0 right-1/4 w-40 h-40 rounded-full blur-3xl translate-y-1/2 pointer-events-none opacity-[0.05]"
             style="background: var(--md-sys-color-tertiary)"></div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-4 py-3 md:py-4">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative z-10 max-w-7xl mx-auto px-1 sm:px-4 py-1 sm:py-0">
+            <div class="flex flex-row items-center justify-around md:justify-between w-full">
 
-                {{-- LEFT--}}
-                <div class="group flex items-stretch rounded-xl overflow-hidden cursor-pointer
-                            border border-[var(--md-sys-color-outline-variant)]/50
+                <div class="group flex items-stretch rounded-xl overflow-hidden cursor-pointer scale-[0.70] sm:scale-[0.85] origin-left
                             hover:border-[var(--md-sys-color-primary)]/30
                             hover:shadow-[0_2px_12px_color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]
-                            transition-all duration-300 order-2 sm:order-1"
+                            transition-all duration-300"
                      @click="window.open('https://time-gr.com/cv', '_blank')">
 
                     <div class="flex items-center justify-center px-3
@@ -41,11 +39,10 @@
                             class="material-symbols-rounded text-[15px] font-fill transition-transform duration-300 group-hover:rotate-12">hub</span>
                     </div>
 
-                    {{-- Text: app name ↔ creator + month year below --}}
-                    <div class="flex flex-col justify-center px-3 py-1.5 gap-0.5
+                    <div class="flex flex-col justify-center px-3 py-1 gap-0.5
                                 bg-[var(--md-sys-color-surface-variant)]/30
                                 group-hover:bg-[var(--md-sys-color-primary)]/5
-                                transition-colors duration-300" title="developed by ">
+                                transition-colors duration-300" title="Developer">
 
                         <div class="relative overflow-hidden h-[18px] flex items-center">
                             <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] absolute whitespace-nowrap
@@ -61,7 +58,6 @@
                                     class="material-symbols-rounded text-[13px] leading-none text-red-400 font-fill flex-shrink-0">favorite</span>
                                  {{ config('app.developer') }}
                             </span>
-                            {{-- spacer: sized to wider string (Arash Rostami + icon) --}}
                             <span class="text-[11px] opacity-0 pointer-events-none flex items-center gap-1.5">
                                 <span class="text-[13px]">·</span>{{ config('app.developer') }}
                             </span>
@@ -73,20 +69,19 @@
                     </div>
                 </div>
 
-                {{-- CENTER--}}
-                <div class="order-1 sm:order-2">
+                <div class="scale-[0.70] sm:scale-[0.9] origin-center">
                     <x-dashboard.footer.google/>
                 </div>
 
-                {{-- RIGHT --}}
-                <div class="flex items-center gap-2 order-3">
-                    <span class="inline-flex items-center px-2 py-1 rounded-xl
-                                 bg-[var(--md-sys-color-surface-variant)]/50
-                                 border border-[var(--md-sys-color-outline-variant)]/40
+                <div class="flex items-center gap-1 sm:gap-2 scale-[0.70] sm:scale-100 origin-right">
+                    <span
+                        title="last update: {{ config('app.last_update') }}"
+                        class="inline-flex items-center px-2 py-1 rounded-lg scale-125 sm:scale-[1.5] origin-right sm:origin-center
+                                 bg-[var(--md-sys-color-surface-variant)]/50 cursor-help
                                  text-[10px] font-bold font-mono text-[var(--md-sys-color-on-surface-variant)] tracking-wide">
                         v:{{ config('app.version') }}
                     </span>
-                    <span class="text-[11px] font-mono text-[var(--md-sys-color-on-surface-variant)] opacity-60">
+                    <span class="text-[11px] font-mono text-[var(--md-sys-color-on-surface-variant)] opacity-60 ml-2 sm:ml-0 whitespace-nowrap">
                         © <span x-text="now.year"></span>
                     </span>
                 </div>

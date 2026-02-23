@@ -5,9 +5,6 @@
     </div>
 
     <div>
-        <x-dashboard.header.main/>
-        <x-dashboard.navbar.top/>
-
         <div dir="rtl" class="flex flex-col gap-6 p-4 md:p-8">
             <div
                 class="relative overflow-hidden rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-sm px-8 py-6">
@@ -158,6 +155,5 @@
             <x-dashboard.modal.toast/>
             <x-dashboard.modal.confirmation/>
         </div>
-
     </div>
 </div>

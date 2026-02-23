@@ -102,7 +102,6 @@
                         <div class="font-medium">نسخه سیستم: 1.0.0</div>
                         <div
                             class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[12px] font-medium">
-                            <livewire:dashboard.header.weather/>
                         </div>
                     </div>
                 </div>

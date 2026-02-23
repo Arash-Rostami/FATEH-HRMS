@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Header;
+namespace App\Livewire\Dashboard\Navbar;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
@@ -11,7 +11,7 @@ class Weather extends Component
 {
     public function render()
     {
-        return view('livewire.dashboard.header.weather');
+        return view('livewire.dashboard.navbar.weather');
     }
 
     #[Computed(seconds: 14400, cache: true, key: 'weather.tehran')]

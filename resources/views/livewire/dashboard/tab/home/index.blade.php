@@ -3,9 +3,9 @@
      x-data="greeting('{{ addslashes(shortGreeting()) }}')">
 
 
-{{-- ═══════════════════════════════════════════════════
-         HERO BANNER
-    ═══════════════════════════════════════════════════ --}}
+    {{-- ═══════════════════════════════════════════════════
+             HERO BANNER
+        ═══════════════════════════════════════════════════ --}}
     <div class="relative overflow-hidden rounded-2xl mb-4
                 bg-[var(--md-sys-color-primary-container)]
                 border border-[var(--md-sys-color-primary)]/20
@@ -57,11 +57,11 @@
                             border border-[var(--md-sys-color-on-primary-container)]/12
                             backdrop-blur-sm min-w-[88px]">
                         <span
-                            class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">{{ $stat['icon'] }}</span>
+                                class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">{{ $stat['icon'] }}</span>
                         <span
-                            class="text-xl font-bold text-[var(--md-sys-color-on-primary-container)]">{{ $stat['value'] }}</span>
+                                class="text-xl font-bold text-[var(--md-sys-color-on-primary-container)]">{{ $stat['value'] }}</span>
                         <span
-                            class="text-[10px] font-medium text-[var(--md-sys-color-on-primary-container)]/60 tracking-wide">{{ $stat['label'] }}</span>
+                                class="text-[10px] font-medium text-[var(--md-sys-color-on-primary-container)]/60 tracking-wide">{{ $stat['label'] }}</span>
                     </div>
                 @endforeach
             </div>
@@ -73,7 +73,7 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="flex items-center gap-3 mb-4">
         <div
-            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center">
+                class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center">
             <span class="material-symbols-rounded text-base font-fill">bolt</span>
         </div>
         <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">دسترسی سریع</h2>
@@ -86,16 +86,20 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         @foreach($this->tools as $index => $tool)
             <button
-                type="button"
-                wire:click="$dispatch('switch-tab', { tab: '{{ $tool['action'] }}' })"
-                class="group relative overflow-hidden rounded-2xl p-5 md:p-6 text-right
+                    type="button"
+                    @if($tool['action'] === 'profile')
+                        @click="window.open('{{ route('profile') }}', '_blank')"
+                    @else
+                        wire:click='$dispatch("switch-tab", { tab: "{{ $tool['action'] }}" })'
+                    @endif
+                    class="group relative overflow-hidden rounded-2xl p-5 md:p-6 text-right
                        border border-transparent
                        transition-all duration-300 ease-out
                        hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]
                        hover:-translate-y-1 hover:border-[var(--md-sys-color-outline-variant)]/60
                        active:scale-[0.97] active:translate-y-0
                        focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40"
-                style="background-color: {{ $tool['bg'] }}; color: {{ $tool['text'] }};">
+                    style="background-color: {{ $tool['bg'] }}; color: {{ $tool['text'] }};">
 
                 {{-- Subtle inner grid texture --}}
                 <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -103,8 +107,8 @@
 
                 {{-- Arrow reveal --}}
                 <div
-                    class="absolute top-4 left-4 opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 transition-all duration-300">
-                    <span class="material-symbols-rounded text-base">arrow_back</span>
+                        class="absolute top-4 left-4 opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 transition-all duration-300">
+                    <span class="material-symbols-rounded text-base">touch_app</span>
                 </div>
 
                 <div class="relative z-10">
@@ -128,7 +132,7 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="flex items-center gap-3 mb-4">
         <div
-            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
+                class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
             <span class="material-symbols-rounded text-base font-fill">info</span>
         </div>
         <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">راهنمای رابط کاربری</h2>
@@ -146,7 +150,7 @@
         <div class="grid md:grid-cols-[auto_1fr] gap-0">
             {{-- Icon column --}}
             <div
-                class="flex items-start justify-center p-6 md:p-8 md:border-l border-[var(--md-sys-color-outline-variant)]/50">
+                    class="flex items-start justify-center p-6 md:p-8 md:border-l border-[var(--md-sys-color-outline-variant)]/50">
                 <div class="w-14 h-14 rounded-2xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]
                             flex items-center justify-center shadow-sm">
                     <span class="material-symbols-rounded text-3xl font-fill">map</span>
@@ -183,7 +187,7 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="flex items-center gap-3 mb-4">
         <div
-            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
+                class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
             <span class="material-symbols-rounded text-base font-fill">layers</span>
         </div>
         <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">ماژول‌های سیستم</h2>
@@ -205,8 +209,8 @@
                     : 'hover:border-[var(--md-sys-color-outline-variant)]'">
 
                 <button
-                    @click="active = (active === {{ $index }} ? null : {{ $index }})"
-                    class="w-full flex items-center justify-between p-4 md:p-5 text-right
+                        @click="active = (active === {{ $index }} ? null : {{ $index }})"
+                        class="w-full flex items-center justify-between p-4 md:p-5 text-right
                            transition-colors duration-200 focus:outline-none
                            hover:bg-[var(--md-sys-color-surface-variant)]/30">
 
@@ -214,18 +218,18 @@
                         {{-- Numbered badge --}}
                         <div class="relative flex-shrink-0">
                             <div
-                                class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
-                                :class="active === {{ $index }}
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
+                                    :class="active === {{ $index }}
                                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] scale-110'
                                     : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'">
                                 <span
-                                    class="material-symbols-rounded text-xl">{{ $module['icon'] ?? 'extension' }}</span>
+                                        class="material-symbols-rounded text-xl">{{ $module['icon'] ?? 'extension' }}</span>
                             </div>
                         </div>
 
                         <div class="text-right">
                             <span
-                                class="text-sm font-bold text-[var(--md-sys-color-on-surface)] block">{{ $module['title'] }}</span>
+                                    class="text-sm font-bold text-[var(--md-sys-color-on-surface)] block">{{ $module['title'] }}</span>
                             <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 block"
                                   x-show="active !== {{ $index }}">
                                 کلیک کنید برای اطلاعات بیشتر
@@ -236,8 +240,8 @@
                     {{-- Counter badge + chevron --}}
                     <div class="flex items-center gap-3">
                         <span
-                            class="hidden sm:flex text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all duration-200"
-                            :class="active === {{ $index }}
+                                class="hidden sm:flex text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all duration-200"
+                                :class="active === {{ $index }}
                                 ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
                                 : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'">
                             {{ sprintf('%02d', $index + 1) }}
@@ -271,27 +275,4 @@
             </div>
         @endforeach
     </div>
-
-    {{-- Footer --}}
-    <x-dashboard.footer.main />
-
 </div>
-
-{{-- Staggered entrance animation --}}
-<style>
-    @keyframes slide-up-fade {
-        from { opacity: 0; transform: translateY(14px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    .w-full.max-w-7xl > * {
-        animation: slide-up-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-    .w-full.max-w-7xl > *:nth-child(1) { animation-delay: 0.05s; }
-    .w-full.max-w-7xl > *:nth-child(2) { animation-delay: 0.12s; }
-    .w-full.max-w-7xl > *:nth-child(3) { animation-delay: 0.18s; }
-    .w-full.max-w-7xl > *:nth-child(4) { animation-delay: 0.24s; }
-    .w-full.max-w-7xl > *:nth-child(5) { animation-delay: 0.30s; }
-    .w-full.max-w-7xl > *:nth-child(6) { animation-delay: 0.35s; }
-    .w-full.max-w-7xl > *:nth-child(7) { animation-delay: 0.40s; }
-    .font-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-</style>

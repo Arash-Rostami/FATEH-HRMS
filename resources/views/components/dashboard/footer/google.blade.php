@@ -2,7 +2,7 @@
     <button
         @click="toggle()"
         class="group relative flex items-center gap-2 px-3 py-1.5 rounded-xl
-               border transition-all duration-200 active:scale-[0.97]
+                transition-all duration-200 active:scale-[0.97]
                focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40"
         :class="enabled
             ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)]/30 text-[var(--md-sys-color-on-primary-container)]'
