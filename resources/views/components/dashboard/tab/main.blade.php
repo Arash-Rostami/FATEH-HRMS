@@ -7,6 +7,7 @@
           direction: @js($direction),
           init() {
               this.show = true;
+              window.scrollTo({ top: 0, behavior: 'smooth' });
               $watch('activeTab', (value) => {
                   this.show = false;
                   setTimeout(() => {

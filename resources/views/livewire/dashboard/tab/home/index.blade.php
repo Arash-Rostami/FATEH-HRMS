@@ -8,7 +8,7 @@
         ═══════════════════════════════════════════════════ --}}
     <div class="relative overflow-hidden rounded-2xl mb-4
                 bg-[var(--md-sys-color-primary-container)]
-                border border-[var(--md-sys-color-primary)]/20
+               border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm
                 shadow-[0_2px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]">
 
         {{-- Decorative mesh --}}
@@ -93,9 +93,8 @@
                         wire:click='$dispatch("switch-tab", { tab: "{{ $tool['action'] }}" })'
                     @endif
                     class="group relative overflow-hidden rounded-2xl p-5 md:p-6 text-right
-                       border border-transparent
+                        border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm
                        transition-all duration-300 ease-out
-                       hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]
                        hover:-translate-y-1 hover:border-[var(--md-sys-color-outline-variant)]/60
                        active:scale-[0.97] active:translate-y-0
                        focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40"
@@ -141,7 +140,7 @@
 
     <div class="relative overflow-hidden rounded-3xl mb-8
                 bg-[var(--md-sys-color-surface)]
-                border border-[var(--md-sys-color-outline-variant)]
+                border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm
                 shadow-[var(--md-sys-elevation-1)]">
 
         {{-- Left accent stripe --}}

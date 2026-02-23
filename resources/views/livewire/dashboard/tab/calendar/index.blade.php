@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="mx-auto w-full flex-1 md:scale-[.90] md:w-[65%] h-full flex flex-col overflow-hidden bg-[var(--md-sys-color-surface)] rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm">
+    <div class="mx-auto w-full flex-1 md:scale-[.90] md:w-[65%] h-full flex flex-col overflow-hidden bg-[var(--md-sys-color-surface)] rounded-[2rem] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]">
         <div class="flex items-center justify-between shrink-0 px-6 py-6 md:px-10">
             <div class="flex flex-col gap-1">
                 <h2 class="text-[var(--md-sys-color-on-surface)] text-2xl md:text-4xl font-black font-yekan tracking-tight">

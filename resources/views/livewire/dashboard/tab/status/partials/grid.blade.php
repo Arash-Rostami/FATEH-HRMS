@@ -14,7 +14,7 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
                  class="group relative flex flex-col items-center gap-2 p-3 pt-4
-                         rounded-2xl overflow-hidden cursor-pointer h-40
+                         border shadow-sm rounded-2xl overflow-hidden cursor-pointer h-40
                          transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                          hover:-translate-y-0.5
                          {{ $p->cardClasses() }}">
