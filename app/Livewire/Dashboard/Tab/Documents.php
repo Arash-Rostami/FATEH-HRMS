@@ -151,7 +151,9 @@ class Documents extends Component
             }
 
             $fileName = "doc_standard_{$key}_{$timestamp}.{$extension}";
-            $newPath = $uploadedFile->storeAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
+
+            // Use storePubliclyAs to ensure visibility is public (0644/0755)
+            $newPath = $uploadedFile->storePubliclyAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
 
             $currentAttachments = collect($userProfile->attachments ?? []);
 
@@ -192,7 +194,9 @@ class Documents extends Component
             }
 
             $fileName = "doc_custom_{$slug}_{$timestamp}.{$extension}";
-            $newPath = $this->customFile->storeAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
+
+            // Use storePubliclyAs
+            $newPath = $this->customFile->storePubliclyAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
 
             $currentAttachments = collect($userProfile->attachments ?? []);
 
