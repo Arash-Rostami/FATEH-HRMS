@@ -1,4 +1,4 @@
-<div x-data="googleTranslate" class="relative">
+<div x-data="googleTranslate">
     <button
         @click="toggle()"
         class="group relative flex items-center gap-3 pl-1 pr-3 py-1.5 rounded-full transition-all duration-300 border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] active:scale-95"
@@ -41,11 +41,6 @@
         </div>
     </button>
 
-    <!-- Google Element Container - Visible when enabled -->
-    <div
-        id="google_translate_element"
-        x-show="enabled"
-        x-transition
-        class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 p-2 bg-white rounded-lg shadow-xl border border-gray-200 min-w-[200px]"
-    ></div>
+    <!-- Hidden Google Element Container (Used by script but hidden from view) -->
+    <div id="google_translate_element" class="hidden"></div>
 </div>

@@ -2,10 +2,9 @@ export default (initialState = false) => ({
     enabled: initialState,
 
     init() {
-        const storedState = localStorage.getItem('google_translate_enabled');
-        if (storedState !== null) {
-            this.enabled = storedState === 'true';
-        }
+        // Check cookie for translation state (googtrans cookie handles the actual translation)
+        const cookie = document.cookie.match(/(^|;)\s*googtrans\s*=\s*([^;]+)/);
+        this.enabled = !!cookie;
 
         if (this.enabled) {
             this.loadGoogleScript();
@@ -14,21 +13,24 @@ export default (initialState = false) => ({
 
     toggle() {
         this.enabled = !this.enabled;
-        localStorage.setItem('google_translate_enabled', this.enabled);
 
         if (this.enabled) {
-            this.loadGoogleScript();
+            // Set cookie to translate from Farsi (fa) to English (en) automatically
+            document.cookie = "googtrans=/fa/en; path=/; domain=" + location.hostname;
+            document.cookie = "googtrans=/fa/en; path=/; domain=." + location.hostname; // Handling subdomains just in case
+            localStorage.setItem('google_translate_enabled', 'true');
+            window.location.reload();
         } else {
+            // Clear cookies to disable translation
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + location.hostname;
+            localStorage.setItem('google_translate_enabled', 'false');
             window.location.reload();
         }
     },
 
     loadGoogleScript() {
-        // If script is already loaded and widget initialized, just ensure UI is clean
-        if (window.google && window.google.translate && window.google.translate.TranslateElement) {
-             // Re-run init if needed or just let it be
-             return;
-        }
+        if (window.google && window.google.translate) return;
 
         if (!window.googleTranslateElementInit) {
             window.googleTranslateElementInit = () => {
@@ -49,11 +51,13 @@ export default (initialState = false) => ({
     },
 
     cleanUI() {
+        // Hide the Google widget and branding completely since we are using auto-translate via cookies
         const style = document.createElement('style');
         style.innerHTML = `
             .goog-te-banner-frame { display: none !important; }
             .goog-te-gadget-icon { display: none !important; }
-            .goog-te-gadget-simple { background-color: transparent !important; border: none !important; padding: 0 !important; font-size: 14px !important; }
+            .goog-te-gadget-simple { display: none !important; }
+            #google_translate_element { display: none !important; }
             body { top: 0px !important; }
         `;
         document.head.appendChild(style);
