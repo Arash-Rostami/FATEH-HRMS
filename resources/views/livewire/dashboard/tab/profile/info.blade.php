@@ -100,8 +100,7 @@
                                 class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">verified</span>
                         </div>
                         @if($existingImage && !$image)
-                            <button type="button" wire:click="deleteImage"
-                                    wire:confirm="آیا از حذف تصویر پروفایل اطمینان دارید؟"
+                            <button type="button" wire:click="confirmDeleteImage"
                                     class="flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] hover:opacity-80 transition-opacity">
                                 <span class="material-symbols-rounded text-[15px]">delete</span>
                                 حذف تصویر
