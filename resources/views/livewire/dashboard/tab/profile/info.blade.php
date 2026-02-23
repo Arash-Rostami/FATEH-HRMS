@@ -55,7 +55,7 @@
                             @if ($image)
                                 <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
                             @elseif($existingImage)
-                                <img src="{{ Storage::url($existingImage) }}" class="w-full h-full object-cover">
+                                <img src="{{ Storage::url($existingImage) }}?v={{ time() }}" wire:key="img-{{ $existingImage }}" class="w-full h-full object-cover">
                             @else
                                 <div
                                     class="w-full h-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
