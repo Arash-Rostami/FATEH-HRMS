@@ -25,28 +25,28 @@ class Documents extends Component
         'files.*.mimes' => 'فرمت فایل باید PDF, JPG, JPEG یا PNG باشد.',
         'files.*.max' => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
     ])]
-    public array  = [];
+    public array $files = [];
 
     #[Validate('required_with:customFile|string|max:100', message: [
         'required_with' => 'لطفاً عنوان مدرک سفارشی را وارد کنید.',
     ])]
-    public string  = '';
+    public string $customType = '';
 
     #[Validate('nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', message: [
         'required' => 'لطفاً فایل مدرک سفارشی را انتخاب کنید.',
         'mimes' => 'فرمت فایل باید PDF, JPG, JPEG یا PNG باشد.',
         'max' => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
     ])]
-    public ;
+    public $customFile;
 
     #[Locked]
-    public string  = '';
+    public string $pendingUploadKey = '';
 
     #[Locked]
-    public string  = '';
+    public string $pendingFileName = '';
 
     #[Locked]
-    public ?string  = null;
+    public ?string $errorMessage = null;
 
     #[Computed]
     public function profile(): Profile
@@ -66,41 +66,41 @@ class Documents extends Component
         ];
     }
 
-    public function updated(string ): void
+    public function updated(string $property): void
     {
-        if (str_starts_with(, 'files.')) {
-             = str_replace('files.', '', );
-            ->showUploadConfirmation();
+        if (str_starts_with($property, 'files.')) {
+            $key = str_replace('files.', '', $property);
+            $this->showUploadConfirmation($key);
         }
     }
 
-    public function removeFile(string ): void
+    public function removeFile(string $key): void
     {
-        unset(->files[]);
+        unset($this->files[$key]);
     }
 
-    public function showUploadConfirmation(string ): void
+    public function showUploadConfirmation(string $key): void
     {
-        ->errorMessage = null;
+        $this->errorMessage = null;
 
-        ->validateOnly("files.{}");
+        $this->validateOnly("files.{$key}");
 
-        ->pendingUploadKey = ;
-        ->pendingFileName = ->files[]->getClientOriginalName() ?? 'فایل انتخاب شده';
+        $this->pendingUploadKey = $key;
+        $this->pendingFileName = $this->files[$key]->getClientOriginalName() ?? 'فایل انتخاب شده';
 
         // Dispatch reusable confirmation modal
-        ->dispatch('open-confirmation',
+        $this->dispatch('open-confirmation',
             title: 'تایید نهایی بارگذاری',
-            message: "آیا از صحت فایل «{->pendingFileName}» اطمینان دارید؟",
+            message: "آیا از صحت فایل «{$this->pendingFileName}» اطمینان دارید؟",
             method: 'confirmUpload'
         );
     }
 
     public function showCustomUploadConfirmation(): void
     {
-        ->errorMessage = null;
+        $this->errorMessage = null;
 
-        ->validate([
+        $this->validate([
             'customType' => 'required_with:customFile|string|max:100',
             'customFile' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ], [
@@ -110,153 +110,153 @@ class Documents extends Component
             'customFile.max' => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
         ]);
 
-        ->pendingUploadKey = 'custom_upload_pending';
-        ->pendingFileName = ->customFile->getClientOriginalName() ?? 'فایل سفارشی';
+        $this->pendingUploadKey = 'custom_upload_pending';
+        $this->pendingFileName = $this->customFile->getClientOriginalName() ?? 'فایل سفارشی';
 
         // Dispatch reusable confirmation modal
-        ->dispatch('open-confirmation',
+        $this->dispatch('open-confirmation',
             title: 'تایید نهایی بارگذاری',
-            message: "آیا از صحت فایل سفارشی «{->pendingFileName}» اطمینان دارید؟",
+            message: "آیا از صحت فایل سفارشی «{$this->pendingFileName}» اطمینان دارید؟",
             method: 'confirmUpload'
         );
     }
 
     public function confirmUpload(): void
     {
-        if (->pendingUploadKey === 'custom_upload_pending') {
-            ->processCustomUpload();
+        if ($this->pendingUploadKey === 'custom_upload_pending') {
+            $this->processCustomUpload();
             return;
         }
 
-        if (->pendingUploadKey) {
-            ->processStandardUpload(->pendingUploadKey);
+        if ($this->pendingUploadKey) {
+            $this->processStandardUpload($this->pendingUploadKey);
         }
     }
 
-    private function processStandardUpload(string ): void
+    private function processStandardUpload(string $key): void
     {
         try {
-             = ->files[];
-             = time();
-             = ->getClientOriginalExtension();
+            $uploadedFile = $this->files[$key];
+            $timestamp = time();
+            $extension = $uploadedFile->getClientOriginalExtension();
 
-             = ->profile;
+            $userProfile = $this->profile;
 
-            if (!->exists) {
-                ->save();
+            if (!$userProfile->exists) {
+                $userProfile->save();
             }
 
-             = "doc_standard_{}_{}.{}";
-             = ->storeAs("profiles/docs/{->id}", , 'public');
+            $fileName = "doc_standard_{$key}_{$timestamp}.{$extension}";
+            $newPath = $uploadedFile->storeAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
 
-             = collect(->attachments ?? []);
+            $currentAttachments = collect($userProfile->attachments ?? []);
 
-            ->attachments =
-                ->reject(fn () => str_contains(, "doc_standard_{}_"))
-                ->push()
+            $userProfile->attachments = $currentAttachments
+                ->reject(fn ($path) => str_contains($path, "doc_standard_{$key}_"))
+                ->push($newPath)
                 ->values()
                 ->all();
 
-            ->save();
+            $userProfile->save();
 
-            unset(->files[]);
-            ->resetUploadState();
-            ->dispatch('notify', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
+            unset($this->files[$key]);
+            $this->resetUploadState();
+            $this->dispatch('notify', message: 'مدرک با موفقیت ثبت نهایی شد.', type: 'success');
 
-        } catch (\Exception ) {
-            ->errorMessage = 'خطایی در بارگذاری فایل رخ داد. لطفاً مجدداً تلاش کنید.';
-            ->dispatch('notify', message: ->errorMessage, type: 'error');
-            ->resetUploadState();
+        } catch (\Exception $e) {
+            $this->errorMessage = 'خطایی در بارگذاری فایل رخ داد. لطفاً مجدداً تلاش کنید.';
+            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->resetUploadState();
         }
     }
 
     private function processCustomUpload(): void
     {
         try {
-             = time();
-             = ->customFile->getClientOriginalExtension();
-             = Str::slug(->customType, '-');
+            $timestamp = time();
+            $extension = $this->customFile->getClientOriginalExtension();
+            $slug = Str::slug($this->customType, '-');
 
-            if (empty()) {
-                 = 'doc';
+            if (empty($slug)) {
+                $slug = 'doc';
             }
 
-             = ->profile;
+            $userProfile = $this->profile;
 
-            if (!->exists) {
-                ->save();
+            if (!$userProfile->exists) {
+                $userProfile->save();
             }
 
-             = "doc_custom_{}_{}.{}";
-             = ->customFile->storeAs("profiles/docs/{->id}", , 'public');
+            $fileName = "doc_custom_{$slug}_{$timestamp}.{$extension}";
+            $newPath = $this->customFile->storeAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
 
-             = collect(->attachments ?? []);
+            $currentAttachments = collect($userProfile->attachments ?? []);
 
-            ->attachments =
-                ->reject(fn () => str_contains(, "doc_custom_{}_"))
-                ->push()
+            $userProfile->attachments = $currentAttachments
+                ->reject(fn ($path) => str_contains($path, "doc_custom_{$slug}_"))
+                ->push($newPath)
                 ->values()
                 ->all();
 
-            ->save();
+            $userProfile->save();
 
-            ->reset(['customType', 'customFile']);
-            ->resetUploadState();
-            ->dispatch('close-modal', name: 'upload-custom-modal');
-            ->dispatch('notify', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
+            $this->reset(['customType', 'customFile']);
+            $this->resetUploadState();
+            $this->dispatch('close-modal', name: 'upload-custom-modal');
+            $this->dispatch('notify', message: 'مدرک سفارشی با موفقیت ثبت نهایی شد.', type: 'success');
 
-        } catch (\Exception ) {
-            ->errorMessage = 'خطایی در ذخیره مدرک سفارشی رخ داد.';
-            ->dispatch('notify', message: ->errorMessage, type: 'error');
-            ->resetUploadState();
+        } catch (\Exception $e) {
+            $this->errorMessage = 'خطایی در ذخیره مدرک سفارشی رخ داد.';
+            $this->dispatch('notify', message: $this->errorMessage, type: 'error');
+            $this->resetUploadState();
         }
     }
 
     private function resetUploadState(): void
     {
-        ->pendingUploadKey = '';
-        ->pendingFileName = '';
+        $this->pendingUploadKey = '';
+        $this->pendingFileName = '';
         // No need to dispatch close-modal as the reusable component handles it
     }
 
     #[Computed]
     public function parsedAttachments(): \Illuminate\Support\Collection
     {
-         = ->profile->attachments ?? [];
-         = collect();
+        $allPaths = $this->profile->attachments ?? [];
+        $parsed = collect();
 
-        foreach ( as ) {
-            if (!is_string()) {
+        foreach ($allPaths as $path) {
+            if (!is_string($path)) {
                 continue;
             }
 
-             = basename();
+            $fileName = basename($path);
 
-            if (preg_match('/doc_(standard|custom)_(.+)__?(\d{10,})\.\w+/', str_replace('__', '_', ), )) {
-                 = [1];
-                 = [2];
-                 = (int) [3];
+            if (preg_match('/doc_(standard|custom)_(.+)__?(\d{10,})\.\w+/', str_replace('__', '_', $fileName), $matches)) {
+                $category = $matches[1];
+                $keyOrSlug = $matches[2];
+                $timestamp = (int) $matches[3];
 
-                ->push([
-                    'category' => ,
-                    'key' => ,
-                    'uploadedTime' => Carbon::createFromTimestamp(, 'Asia/Tehran')->format('Y/m/d H:i'),
-                    'path' => ,
-                    'url' => Storage::disk('public')->url(),
-                    'fileName' => ,
+                $parsed->push([
+                    'category' => $category,
+                    'key' => $keyOrSlug,
+                    'uploadedTime' => Carbon::createFromTimestamp($timestamp, 'Asia/Tehran')->format('Y/m/d H:i'),
+                    'path' => $path,
+                    'url' => Storage::disk('public')->url($path),
+                    'fileName' => $fileName,
                 ]);
             }
         }
 
-        return ;
+        return $parsed;
     }
 
     public function render()
     {
         return view('livewire.dashboard.tab.profile.documents', [
-            'profile' => ->profile,
-            'standardTypes' => ->standardTypes,
-            'parsedAttachments' => ->parsedAttachments,
+            'profile' => $this->profile,
+            'standardTypes' => $this->standardTypes,
+            'parsedAttachments' => $this->parsedAttachments,
         ]);
     }
 }

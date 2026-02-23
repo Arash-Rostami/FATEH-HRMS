@@ -13,7 +13,7 @@ class Info extends Component
 {
     use WithFileUploads;
 
-    public array  = [
+    public array $state = [
         'personnel_id' => '',
         'gender' => '',
         'employment_type' => '',
@@ -40,14 +40,14 @@ class Info extends Component
         'email' => '',
     ];
 
-    public ;
-    public ?string  = null;
-    public array  = [];
-    public array  = [];
+    public $image;
+    public ?string $existingImage = null;
+    public array $departments = [];
+    public array $favoriteColors = [];
 
-    public ;
-    public ;
-    public ;
+    public $birthYear;
+    public $birthMonth;
+    public $birthDay;
 
     protected function rules(): array
     {
@@ -112,82 +112,82 @@ class Info extends Component
 
     public function mount(): void
     {
-         = Auth::user()->profile;
-        ->departments = Department::pluck('name', 'code')->toArray();
+        $profile = Auth::user()->profile;
+        $this->departments = Department::pluck('name', 'code')->toArray();
 
-        if () {
-            ->state = array_merge(->state, ->only(array_keys(->state)));
-            ->existingImage = ->image;
+        if ($profile) {
+            $this->state = array_merge($this->state, $profile->only(array_keys($this->state)));
+            $this->existingImage = $profile->image;
 
-             = ->favorite_colors;
-            ->favoriteColors = is_array() ?  : (is_string() ? explode(',', ) : []);
+            $dbColors = $profile->favorite_colors;
+            $this->favoriteColors = is_array($dbColors) ? $dbColors : (is_string($dbColors) ? explode(',', $dbColors) : []);
 
-            if (->birthdate) {
-                 = Jalalian::fromCarbon(->birthdate);
-                ->birthYear = ->getYear();
-                ->birthMonth = ->getMonth();
-                ->birthDay = ->getDay();
+            if ($profile->birthdate) {
+                $jalali = Jalalian::fromCarbon($profile->birthdate);
+                $this->birthYear = $jalali->getYear();
+                $this->birthMonth = $jalali->getMonth();
+                $this->birthDay = $jalali->getDay();
             }
         }
 
-        ->state['email'] = Auth::user()->email ?? '';
+        $this->state['email'] = Auth::user()->email ?? '';
     }
 
     public function save(): void
     {
-        ->validate();
+        $this->validate();
 
-         = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
+        $profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
 
-        ->fill([
-            'gender' => ->state['gender'],
-            'marital_status' => ->state['marital_status'],
-            'number_of_children' => ->state['number_of_children'],
-            'id_card_number' => ->state['id_card_number'],
-            'id_booklet_number' => ->state['id_booklet_number'],
-            'degree' => ->state['degree'],
-            'field' => ->state['field'],
-            'landline' => ->state['landline'],
-            'cellphone' => ->state['cellphone'],
-            'license_plate' => ->state['license_plate'],
-            'zip_code' => ->state['zip_code'],
-            'address' => ->state['address'],
-            'accessibility' => ->state['accessibility'],
-            'insurance' => ->state['insurance'],
-            'emergency_phone' => ->state['emergency_phone'],
-            'emergency_relationship' => ->state['emergency_relationship'],
-            'work_experience' => ->state['work_experience'],
-            'interests' => ->state['interests'],
+        $profile->fill([
+            'gender' => $this->state['gender'],
+            'marital_status' => $this->state['marital_status'],
+            'number_of_children' => $this->state['number_of_children'],
+            'id_card_number' => $this->state['id_card_number'],
+            'id_booklet_number' => $this->state['id_booklet_number'],
+            'degree' => $this->state['degree'],
+            'field' => $this->state['field'],
+            'landline' => $this->state['landline'],
+            'cellphone' => $this->state['cellphone'],
+            'license_plate' => $this->state['license_plate'],
+            'zip_code' => $this->state['zip_code'],
+            'address' => $this->state['address'],
+            'accessibility' => $this->state['accessibility'],
+            'insurance' => $this->state['insurance'],
+            'emergency_phone' => $this->state['emergency_phone'],
+            'emergency_relationship' => $this->state['emergency_relationship'],
+            'work_experience' => $this->state['work_experience'],
+            'interests' => $this->state['interests'],
         ]);
 
-        if (->birthYear && ->birthMonth && ->birthDay) {
+        if ($this->birthYear && $this->birthMonth && $this->birthDay) {
             try {
-                ->birthdate = Jalalian::fromFormat(
+                $profile->birthdate = Jalalian::fromFormat(
                     'Y/n/j',
-                    "{->birthYear}/{->birthMonth}/{->birthDay}"
+                    "{$this->birthYear}/{$this->birthMonth}/{$this->birthDay}"
                 )->toCarbon();
-            } catch (\Exception ) {
-                ->dispatch('toast', message: 'تاریخ تولد نامعتبر است.', type: 'error');
+            } catch (\Exception $e) {
+                $this->dispatch('toast', message: 'تاریخ تولد نامعتبر است.', type: 'error');
                 return;
             }
         }
 
-        if (->image) {
-             = ->image->store('profiles', 'public');
-            ->image = ;
-            ->existingImage = ;
-            ->image = null;
+        if ($this->image) {
+            $path = $this->image->store('profiles', 'public');
+            $profile->image = $path;
+            $this->existingImage = $path;
+            $this->image = null;
         }
 
-        ->favorite_colors = ->favoriteColors;
-        ->save();
+        $profile->favorite_colors = $this->favoriteColors;
+        $profile->save();
 
-        ->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
+        $this->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
     }
 
     public function confirmDeleteImage(): void
     {
-        ->dispatch('open-confirmation',
+        $this->dispatch('open-confirmation',
             title: 'حذف تصویر پروفایل',
             message: 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.',
             method: 'deleteImage'
@@ -196,12 +196,12 @@ class Info extends Component
 
     public function deleteImage(): void
     {
-         = Auth::user()->profile;
-        if ( && ->image) {
-            ->image = null;
-            ->save();
-            ->existingImage = null;
-            ->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
+        $profile = Auth::user()->profile;
+        if ($profile && $profile->image) {
+            $profile->image = null;
+            $profile->save();
+            $this->existingImage = null;
+            $this->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
         }
     }
 
