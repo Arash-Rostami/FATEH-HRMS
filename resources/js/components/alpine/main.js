@@ -6,6 +6,9 @@ import menu from './data/menu.js';
 import mobile from './data/mobile.js';
 import scrollManager from './data/scrollManager.js';
 import search from './data/search.js';
+import timer from './data/timer.js';
+import fullscreen from './data/fullscreen.js';
+// Removed notification import as it might not exist
 
 export default function initAlpine() {
     const modules = import.meta.glob('./data/*.js');
@@ -21,13 +24,25 @@ export default function initAlpine() {
         Alpine.data('mobile', mobile);
         Alpine.data('scrollManager', scrollManager);
         Alpine.data('search', search);
+        Alpine.data('timer', timer);
+        Alpine.data('fullscreen', fullscreen);
+
+        const criticalNames = [
+            'sidebar',
+            'menu',
+            'mobile',
+            'scrollManager',
+            'search',
+            'timer',
+            'fullscreen'
+        ];
 
         for (const path in modules) {
             const match = path.match(/\/([^\/]+)\.js$/);
             if (!match) continue;
 
             const name = match[1];
-            if (['sidebar', 'menu', 'mobile', 'scrollManager', 'search'].includes(name)) continue;
+            if (criticalNames.includes(name)) continue;
 
             Alpine.data(name, (...args) => ({
                 async init() {
@@ -46,6 +61,7 @@ export default function initAlpine() {
 
                         if (component.init) component.init.call(this);
                     } catch {
+                        // Fail silently
                     }
                 }
             }));
