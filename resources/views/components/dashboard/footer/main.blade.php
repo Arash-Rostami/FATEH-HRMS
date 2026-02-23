@@ -3,8 +3,7 @@
 <footer
     class="w-full mt-auto relative z-30"
     x-data="{
-        year: new Date().getFullYear(),
-        showCredits: false
+        year: new Date().getFullYear()
     }"
 >
     <!-- Glassmorphism Container -->
@@ -35,7 +34,7 @@
 
                 <!-- Center: Translate Toggle -->
                 <div class="order-1 md:order-2">
-                    <x-dashboard.toggle-google :translatePage="$translatePage" />
+                    <x-dashboard.footer.google />
                 </div>
 
                 <!-- Right: Copyright -->
@@ -47,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Occasion Components (Birthday/Anniversary) -->
-    <x-user.occasion.main />
+    <!-- Occasion Components -->
+    <x-dashboard.footer.occasion />
 
 </footer>
