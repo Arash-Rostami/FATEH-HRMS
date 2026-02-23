@@ -2,9 +2,7 @@
 
 <footer
     class="w-full mt-auto relative z-30"
-    x-data="{
-        year: new Date().getFullYear()
-    }"
+    x-data="footer"
 >
     <!-- Glassmorphism Container -->
     <div class="relative overflow-hidden border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)]/80 backdrop-blur-xl">

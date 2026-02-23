@@ -1,16 +1,4 @@
-<div x-data="{
-    enabled: localStorage.getItem('google_translate_enabled') === 'true',
-    toggle() {
-        this.enabled = !this.enabled;
-        localStorage.setItem('google_translate_enabled', this.enabled);
-        if (this.enabled) {
-            // Trigger load via service if implemented globally, or simple reload for now as per plan
-             window.location.reload();
-        } else {
-             window.location.reload();
-        }
-    }
-}">
+<div x-data="googleTranslate">
     <button
         @click="toggle()"
         class="group relative flex items-center gap-3 pl-1 pr-3 py-1.5 rounded-full transition-all duration-300 border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] active:scale-95"

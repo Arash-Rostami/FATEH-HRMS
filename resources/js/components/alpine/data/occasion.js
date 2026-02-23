@@ -1,43 +1,46 @@
-export default class Confetti {
-    constructor(canvasId = 'confetti-canvas') {
-        this.canvasId = canvasId;
-        this.canvas = null;
-        this.ctx = null;
-        this.particles = [];
-        this.animationId = null;
-        this.colors = ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0'];
-    }
+export default () => ({
+    show: true,
+    canvas: null,
+    ctx: null,
+    particles: [],
+    animationId: null,
+    colors: ['#FFC107', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0'],
 
-    start() {
-        this.canvas = document.getElementById(this.canvasId);
+    init() {
+        // Wait a bit for DOM to render then start confetti
+        setTimeout(() => {
+            this.startConfetti();
+        }, 100);
+    },
+
+    close() {
+        this.show = false;
+        this.stopConfetti();
+    },
+
+    startConfetti() {
+        this.canvas = document.getElementById('confetti-canvas');
         if (!this.canvas) return;
 
         this.ctx = this.canvas.getContext('2d');
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
 
         this.createParticles();
         this.animate();
+    },
 
-        window.addEventListener('resize', () => this.resize());
-    }
-
-    stop() {
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
+    stopConfetti() {
+        if (this.animationId) cancelAnimationFrame(this.animationId);
         this.particles = [];
-        if (this.ctx) {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        }
-    }
+        if (this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
 
     resize() {
         if (!this.canvas) return;
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-    }
+    },
 
     createParticles() {
         for (let i = 0; i < 150; i++) {
@@ -52,13 +55,13 @@ export default class Confetti {
                 spin: Math.random() < 0.5 ? 1 : -1
             });
         }
-    }
+    },
 
     animate() {
-        if (!this.ctx) return;
+        if (!this.ctx || !this.show) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.particles.forEach((p, i) => {
+        this.particles.forEach((p) => {
             p.y += p.speed;
             p.angle += p.spin;
 
@@ -77,4 +80,4 @@ export default class Confetti {
 
         this.animationId = requestAnimationFrame(() => this.animate());
     }
-}
+})

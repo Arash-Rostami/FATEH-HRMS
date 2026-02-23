@@ -20,6 +20,11 @@ import gallery from "./data/gallery.js";
 import report from "./data/report.js";
 import filters from "./data/filters.js";
 
+// New Components
+import footer from "./data/footer.js";
+import googleTranslate from "./data/googleTranslate.js";
+import occasion from "./data/occasion.js";
+
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
@@ -55,5 +60,9 @@ export default function initAlpine() {
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)
         Alpine.data('filters', filters)
+
+        Alpine.data('footer', footer)
+        Alpine.data('googleTranslate', googleTranslate)
+        Alpine.data('occasion', occasion)
     })
 }

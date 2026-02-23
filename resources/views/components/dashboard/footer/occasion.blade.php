@@ -41,15 +41,18 @@
 
 @if($occasionType)
     <div
-        x-data="{ show: true }"
+        x-data="occasion"
         x-show="show"
-        x-init="setTimeout(() => {
-            if(window.Confetti) window.Confetti.start('confetti-canvas');
-        }, 100)"
+        x-transition:enter="transition ease-out duration-500"
+        x-transition:enter-start="opacity-0 scale-90"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-90"
         class="fixed inset-0 z-[100] flex items-center justify-center px-4"
         style="display: none;"
     >
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="show = false"></div>
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
         <canvas id="confetti-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-[101]"></canvas>
 
         <div class="relative w-full max-w-md bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl border border-[var(--md-sys-color-outline-variant)] overflow-hidden z-[102]">
@@ -69,7 +72,7 @@
                 </p>
                 <div class="pt-4">
                     <button
-                        @click="show = false"
+                        @click="close()"
                         class="w-full py-3 px-6 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                         متشکرم!
