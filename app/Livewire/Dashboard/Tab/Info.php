@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Department;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Morilog\Jalali\Jalalian;
@@ -187,13 +188,16 @@ class Info extends Component
 
     public function confirmDeleteImage(): void
     {
+        // Dispatch reusable confirmation modal via Profile relay
         $this->dispatch('open-confirmation',
             title: 'حذف تصویر پروفایل',
             message: 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.',
-            method: 'deleteImage'
+            method: 'confirmAction',
+            params: 'confirm-delete-profile-image'
         );
     }
 
+    #[On('confirm-delete-profile-image')]
     public function deleteImage(): void
     {
         $profile = Auth::user()->profile;

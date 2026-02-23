@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -88,11 +89,12 @@ class Documents extends Component
         $this->pendingUploadKey = $key;
         $this->pendingFileName = $this->files[$key]->getClientOriginalName() ?? 'فایل انتخاب شده';
 
-        // Dispatch reusable confirmation modal
+        // Dispatch reusable confirmation modal via Profile relay
         $this->dispatch('open-confirmation',
             title: 'تایید نهایی بارگذاری',
             message: "آیا از صحت فایل «{$this->pendingFileName}» اطمینان دارید؟",
-            method: 'confirmUpload'
+            method: 'confirmAction',
+            params: 'confirm-upload-documents'
         );
     }
 
@@ -113,14 +115,16 @@ class Documents extends Component
         $this->pendingUploadKey = 'custom_upload_pending';
         $this->pendingFileName = $this->customFile->getClientOriginalName() ?? 'فایل سفارشی';
 
-        // Dispatch reusable confirmation modal
+        // Dispatch reusable confirmation modal via Profile relay
         $this->dispatch('open-confirmation',
             title: 'تایید نهایی بارگذاری',
             message: "آیا از صحت فایل سفارشی «{$this->pendingFileName}» اطمینان دارید؟",
-            method: 'confirmUpload'
+            method: 'confirmAction',
+            params: 'confirm-upload-documents'
         );
     }
 
+    #[On('confirm-upload-documents')]
     public function confirmUpload(): void
     {
         if ($this->pendingUploadKey === 'custom_upload_pending') {

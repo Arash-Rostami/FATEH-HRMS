@@ -22,6 +22,11 @@ class Profile extends Component
         $this->activeTab = $tab;
     }
 
+    public function confirmAction(string $event)
+    {
+        $this->dispatch($event);
+    }
+
     private function calculateCompletion(): int
     {
         $profile = Auth::user()->profile;
