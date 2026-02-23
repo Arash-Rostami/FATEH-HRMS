@@ -49,9 +49,9 @@
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                     {{-- Avatar Upload --}}
-                    <div class="relative group mx-auto md:mx-0">
+                    <div class="relative group mx-auto md:mx-0 w-32 h-32">
                         <div
-                            class="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50">
+                            class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50">
                             @if ($image)
                                 <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
                             @elseif($existingImage)
@@ -67,12 +67,32 @@
                                 <x-dashboard.loader.spinner size="sm" class="text-white"/>
                             </div>
                         </div>
+
+                        {{-- Upload Button (Bottom Right) --}}
                         <label for="profile-image-upload"
-                               class="absolute -bottom-2 -left-2 flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform">
+                               class="absolute -bottom-2 -right-2 flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]">
                             <span class="material-symbols-rounded text-[18px]">photo_camera</span>
                             <input type="file" id="profile-image-upload" wire:model="image" class="hidden"
                                    accept="image/*"/>
                         </label>
+
+                        {{-- Delete Button (Top Left) --}}
+                        @if($existingImage && !$image)
+                            <button type="button" wire:click="confirmDeleteImage"
+                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
+                                    title="حذف تصویر">
+                                <span class="material-symbols-rounded text-[16px]">delete</span>
+                            </button>
+                        @endif
+
+                        {{-- Cancel New Upload Button (Top Left - if new image selected) --}}
+                        @if($image)
+                             <button type="button" wire:click="$set('image', null)"
+                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
+                                    title="انصراف">
+                                <span class="material-symbols-rounded text-[16px]">close</span>
+                            </button>
+                        @endif
                     </div>
 
                     {{-- User Info --}}
@@ -99,13 +119,6 @@
                             <span
                                 class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">verified</span>
                         </div>
-                        @if($existingImage && !$image)
-                            <button type="button" wire:click="confirmDeleteImage"
-                                    class="flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] hover:opacity-80 transition-opacity">
-                                <span class="material-symbols-rounded text-[15px]">delete</span>
-                                حذف تصویر
-                            </button>
-                        @endif
                         @error('image') <p
                             class="text-xs text-[var(--md-sys-color-error)] font-bold">{{ $message }}</p> @enderror
                     </div>
@@ -298,5 +311,4 @@
             </x-dashboard.form.button>
         </div>
     </div>
-
 </form>
