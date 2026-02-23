@@ -363,7 +363,7 @@
     }
 
     .md3-btn {
-        @apply relative inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full font-medium overflow-hidden;
+        @apply relative inline-flex items-center justify-center gap-2 px-6 h-11 rounded-xl font-medium overflow-hidden;
         background-color: var(--md-sys-color-primary);
         color: var(--md-sys-color-on-primary);
         font-family: var(--font-sans);
@@ -513,4 +513,10 @@ button {
     animation: blob-bounce 8s ease-in-out infinite;
     filter: drop-shadow(0 0 8px var(--md-sys-color-primary));
     transition: all 0.5s ease;
+}
+
+
+.dark select option {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
 }

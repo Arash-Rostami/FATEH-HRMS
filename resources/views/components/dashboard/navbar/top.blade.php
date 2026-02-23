@@ -1,3 +1,8 @@
+@props([
+    'activeTab' => 'overview',
+    'direction' => 'up'
+])
+
 <nav x-cloak
      x-data="menu"
      dir="rtl"
