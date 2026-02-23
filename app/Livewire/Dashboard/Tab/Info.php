@@ -31,8 +31,7 @@ class Info extends Component
         'zip_code' => '',
         'address' => '',
         'accessibility' => '',
-        'department_id' => '',
-        'position' => '',
+        // 'department_id' and 'position' removed from state to prevent tampering
         'insurance' => '',
         'emergency_phone' => '',
         'emergency_relationship' => '',
@@ -72,11 +71,7 @@ class Info extends Component
             'state.work_experience' => 'required|string|max:50',
             'state.interests' => 'nullable|string|max:1000',
 
-            'state.personnel_id' => 'nullable|string',
-            'state.department_id' => 'nullable|string',
-            'state.position' => 'nullable|string',
-            'state.employment_type' => 'nullable|string',
-            'state.employment_status' => 'nullable|string',
+            // Removed administrative fields from validation
             'state.email' => 'nullable|string',
 
             'birthYear' => 'required|integer',
@@ -117,7 +112,10 @@ class Info extends Component
         $this->departments = Department::pluck('name', 'code')->toArray();
 
         if ($profile) {
-            $this->state = array_merge($this->state, $profile->only(array_keys($this->state)));
+            // Only fill safe attributes
+            $safeAttributes = array_keys($this->state);
+            $this->state = array_merge($this->state, $profile->only($safeAttributes));
+
             $this->existingImage = $profile->image;
 
             $dbColors = $profile->favorite_colors;
@@ -140,6 +138,7 @@ class Info extends Component
 
         $profile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
 
+        // Explicitly fill only user-editable fields
         $profile->fill([
             'gender' => $this->state['gender'],
             'marital_status' => $this->state['marital_status'],
@@ -159,6 +158,7 @@ class Info extends Component
             'emergency_relationship' => $this->state['emergency_relationship'],
             'work_experience' => $this->state['work_experience'],
             'interests' => $this->state['interests'],
+            // Department and Position are EXCLUDED
         ]);
 
         if ($this->birthYear && $this->birthMonth && $this->birthDay) {
