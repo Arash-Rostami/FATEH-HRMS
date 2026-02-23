@@ -15,16 +15,16 @@
 
     {{-- Quick Access Tools --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        @foreach(->tools as )
+        @foreach($this->tools as $tool)
             <button
                 type="button"
-                wire:click="$dispatch('switch-tab', { tab: '{{ ['action'] }}' })"
+                wire:click="$dispatch('switch-tab', { tab: '{{ $tool['action'] }}' })"
                 class="group relative overflow-hidden rounded-2xl p-4 md:p-6 text-right transition-all duration-300 hover:shadow-lg active:scale-[0.98] border border-transparent hover:border-[var(--md-sys-color-outline-variant)]"
-                style="background-color: {{ ['bg'] }}; color: {{ ['text'] }};">
+                style="background-color: {{ $tool['bg'] }}; color: {{ $tool['text'] }};">
 
                 <div class="flex justify-between items-start mb-3">
                     <span class="material-symbols-rounded text-3xl md:text-4xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
-                        {{ ['icon'] }}
+                        {{ $tool['icon'] }}
                     </span>
                     <span class="material-symbols-rounded text-lg opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                         arrow_back
@@ -32,7 +32,7 @@
                 </div>
 
                 <h3 class="text-base md:text-lg font-bold">
-                    {{ ['title'] }}
+                    {{ $tool['title'] }}
                 </h3>
             </button>
         @endforeach
@@ -65,38 +65,38 @@
             ماژول‌های سیستم
         </h2>
 
-        @foreach(->modules as  => )
+        @foreach($this->modules as $index => $module)
             <div class="rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] overflow-hidden transition-all duration-300"
-                 :class="{ 'ring-2 ring-[var(--md-sys-color-primary)] ring-opacity-50': active === {{  }} }">
+                 :class="{ 'ring-2 ring-[var(--md-sys-color-primary)] ring-opacity-50': active === {{ $index }} }">
 
                 <button
-                    @click="active = (active === {{  }} ? null : {{  }})"
+                    @click="active = (active === {{ $index }} ? null : {{ $index }})"
                     class="w-full flex items-center justify-between p-4 md:p-5 text-right transition-colors hover:bg-[var(--md-sys-color-surface-container-high)] focus:outline-none">
 
                     <div class="flex items-center gap-4">
                         <div class="p-2 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                             <span class="material-symbols-rounded text-2xl">
-                                {{ ['icon'] ?? 'extension' }}
+                                {{ $module['icon'] ?? 'extension' }}
                             </span>
                         </div>
                         <span class="text-lg font-semibold text-[var(--md-sys-color-on-surface)]">
-                            {{ ['title'] }}
+                            {{ $module['title'] }}
                         </span>
                     </div>
 
                     <span class="material-symbols-rounded text-2xl transition-transform duration-300 text-[var(--md-sys-color-outline)]"
-                          :class="{ 'rotate-180 text-[var(--md-sys-color-primary)]': active === {{  }} }">
+                          :class="{ 'rotate-180 text-[var(--md-sys-color-primary)]': active === {{ $index }} }">
                         expand_more
                     </span>
                 </button>
 
-                <div x-show="active === {{  }}"
+                <div x-show="active === {{ $index }}"
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0 -translate-y-2"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
                     <div class="p-5 md:p-6 text-base leading-loose opacity-80 text-justify">
-                        {{ ['content'] }}
+                        {{ $module['content'] }}
                     </div>
                 </div>
             </div>
