@@ -140,15 +140,15 @@
 
                     @if($activeTab === 'info')
                         <div class="animate-fade-in-up">
-                            <livewire:dashboard.tab.info wire:key="tab-info"/>
+                            <livewire:dashboard.profile.info wire:key="tab-info"/>
                         </div>
                     @elseif($activeTab === 'documents')
                         <div class="animate-fade-in-up">
-                            <livewire:dashboard.tab.documents wire:key="tab-docs" lazy="true"/>
+                            <livewire:dashboard.profile.documents wire:key="tab-docs" lazy="true"/>
                         </div>
                     @elseif($activeTab === 'credentials')
                         <div class="animate-fade-in-up">
-                            <livewire:dashboard.tab.credentials wire:key="tab-creds" lazy="true"/>
+                            <livewire:dashboard.profile.credentials wire:key="tab-creds" lazy="true"/>
                         </div>
                     @endif
                 </div>

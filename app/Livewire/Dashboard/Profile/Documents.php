@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Tab;
+namespace App\Livewire\Dashboard\Profile;
 
 use App\Models\Profile;
 use Carbon\Carbon;
@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Validate;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -114,7 +114,6 @@ class Documents extends Component
         $this->pendingUploadKey = 'custom_upload_pending';
         $this->pendingFileName = $this->customFile->getClientOriginalName() ?? 'فایل سفارشی';
 
-        // Dispatch reusable confirmation modal via Profile relay
         $this->dispatch('open-confirmation',
             title: 'تایید نهایی بارگذاری',
             message: "آیا از صحت فایل سفارشی «{$this->pendingFileName}» اطمینان دارید؟",
@@ -255,7 +254,7 @@ class Documents extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.profile.documents', [
+        return view('livewire.dashboard.profile.documents', [
             'profile' => $this->profile,
             'standardTypes' => $this->standardTypes,
             'parsedAttachments' => $this->parsedAttachments,

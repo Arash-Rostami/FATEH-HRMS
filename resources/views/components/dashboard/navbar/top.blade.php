@@ -1,5 +1,5 @@
 @props([
-    'activeTab' => 'overview',
+    'activeTab' => 'home',
     'direction' => 'up'
 ])
 

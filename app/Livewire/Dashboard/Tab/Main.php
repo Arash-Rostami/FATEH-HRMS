@@ -7,14 +7,14 @@ use Livewire\Component;
 
 class Main extends Component
 {
-    public $activeTab = 'overview';
+    public $activeTab = 'home';
     public $direction = 'up';
 
     public function getTabsProperty()
     {
         return [
-            'overview' => [
-                'component' => Overview::class,
+            'home' => [
+                'component' => Home::class,
                 'label' => 'خانه',
                 'icon' => 'home',
                 'bg' => 'bg-surface-variant'

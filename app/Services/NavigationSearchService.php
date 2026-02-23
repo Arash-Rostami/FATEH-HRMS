@@ -15,12 +15,12 @@ class NavigationSearchService
     {
         return collect([
             [
-                'id' => 'overview',
+                'id' => 'home',
                 'title' => 'مروری',
                 'subtitle' => 'داشبورد اصلی و وضعیت کلی',
                 'icon' => 'home',
-                'action' => 'tab:overview',
-                'keywords' => ['home', 'dashboard', 'main', 'start', 'overview', 'خانه', 'داشبورد', 'اصلی', 'شروع', 'نمای کلی'],
+                'action' => 'tab:home',
+                'keywords' => ['home', 'dashboard', 'main', 'start', 'home', 'خانه', 'داشبورد', 'اصلی', 'شروع', 'نمای کلی'],
             ],
             [
                 'id' => 'posts',

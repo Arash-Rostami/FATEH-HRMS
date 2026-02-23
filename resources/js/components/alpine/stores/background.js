@@ -25,7 +25,7 @@ export default (Alpine) => {
         ],
 
         tabsOrder: [
-            'overview',
+            'home',
             'post',
             'feed',
             'calendar',

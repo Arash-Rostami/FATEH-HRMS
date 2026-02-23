@@ -1,1 +1,0 @@
-<x-dashboard.loader.bar/>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Tab;
+namespace App\Livewire\Dashboard\Profile;
 
 use App\Models\Department;
 use App\Models\Profile;
@@ -191,7 +191,7 @@ class Info extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.profile.info', [
+        return view('livewire.dashboard.profile.info', [
             'departments' => Department::pluck('name', 'code')->toArray()
         ]);
     }
