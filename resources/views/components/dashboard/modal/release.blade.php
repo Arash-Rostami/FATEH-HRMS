@@ -64,7 +64,6 @@
                         </div>
 
                         <div class="space-y-4 text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed">
-                            <!-- User Panel -->
                             <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50
                                         bg-[var(--md-sys-color-surface-variant)]/40
                                         hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors group">
@@ -74,25 +73,30 @@
                                         <span class="material-symbols-rounded text-sm"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">rocket_launch</span>
                                     </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">بهبود عملکرد</h5>
+                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">بهینه‌سازی نهایی و ابزارها</h5>
                                 </div>
                                 <ul class="space-y-3">
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>پیاده‌سازی <strong>View Transitions API</strong> برای جابجایی سینمایی بین صفحات.</span>
+                                        <span>ویژگیهای اضافی شامل پیش بینی آب و هوا، نمایش زمان و میانبرهای آسان به سایر بخش‌های برنامه است.</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>بهینه‌سازی کامل <strong>Service Worker</strong> و استراتژی کش PWA.</span>
+                                        <span>شمارش معکوس تولد و سالگرد کاری به همراه سایر ابزارهای کوچک از جمله ماشین حساب و تایمر و ابزارهای هوشمند.</span>
+                                    </li>
+                                     <li class="flex items-start gap-2">
+                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <span>پیاده‌سازی <strong>View Transitions API</strong> برای جابجایی سینمایی و بهینه‌سازی کامل <strong>Service Worker</strong>.</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Version 3.14 (Beta 3) -->
+                    <!-- Beta 3 (Productivity) -->
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-surface-variant)]
@@ -104,9 +108,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">v3.14</span>
+                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">Beta 3</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">Beta 3</span>
+                                             bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">بهره‌وری</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">October 15, 2025</span>
                         </div>
@@ -121,30 +125,40 @@
                                         <span class="material-symbols-rounded text-sm"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">widgets</span>
                                     </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">ابزارهای کاربردی</h5>
+                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">ابزارها و گزارشات</h5>
                                 </div>
                                 <ul class="space-y-3">
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>افزوده شدن <strong>Command Palette</strong> (جستجوی پیشرفته) با کلید میانبر Ctrl+K.</span>
+                                        <span><strong>وضعیت کاربر (پروفایل):</strong> پنل وضعیت زنده که حضور و غیاب را نشان می‌دهد و امکان ارسال پیام فوری و جستجوی اطلاعات تماس را فراهم می‌کند.</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>ماژول <strong>تقویم رویدادها</strong> با قابلیت ثبت و مدیریت جلسات.</span>
+                                        <span><strong>تقویم:</strong> رویدادهای شرکت، تولد کارکنان و سالگردهای کاری را نمایش میدهد. شمارش معکوس برای تولدها انجام میشود و جلوه‌های تبریک فعال می‌گردد.</span>
                                     </li>
                                      <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>پنل <strong>تنظیمات سریع</strong> در هدر برای دسترسی آسان‌تر.</span>
+                                        <span><strong>گزارشات:</strong> امکان صدور گزارش به صورت سند یا PDF توسط بخش‌ها و نمایش همه اسناد در پنل کاربر.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <span><strong>لینک‌ها و ابزارها:</strong> دسترسی متمرکز به تمام لینک‌های ابزارهای مرتبط با کار با قابلیت تشخیص شبکه داخلی و خارجی.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <span><strong>FAQ:</strong> گردآوری سؤالات متداول برای دسترسی آسان‌تر کارکنان، به ویژه برای استخدام‌شدگان جدید.</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Version 3.13 (Beta 2) -->
+                    <!-- Beta 2 (Social) -->
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-surface-variant)]
@@ -156,9 +170,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">v3.13</span>
+                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">Beta 2</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">Beta 2</span>
+                                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">اجتماعی</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">October 01, 2025</span>
                         </div>
@@ -173,25 +187,30 @@
                                         <span class="material-symbols-rounded text-sm"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">groups</span>
                                     </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">تعاملات اجتماعی</h5>
+                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">ارتباطات و رسانه</h5>
                                 </div>
                                 <ul class="space-y-3">
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>راه اندازی <strong>فید سازمانی (Feed)</strong> با قابلیت ثبت نظر و واکنش.</span>
+                                        <span><strong>پست و اعلانات:</strong> ارسال اطلاعیه‌های رسمی توسط منابع انسانی، ذخیره در پنل کاربر و اطلاع‌رسانی ایمیلی. منبع پیام رسانی مرکزی شرکت.</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>بخش <strong>گالری تصاویر</strong> و مدیریت اسناد در پروفایل کاربری.</span>
+                                        <span><strong>اخبار و فیدها:</strong> جمع‌آوری آخرین اخبار صنعت و موضوعات مورد علاقه کاربران از منابع مختلف در یک فید یکپارچه.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <span><strong>گالری تصاویر:</strong> نمایش تصاویر و ویدیوهای مرتبط با رویدادها، فعالیت‌ها و دستاوردهای شرکت برای اشتراک‌گذاری خاطرات سازمانی.</span>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Version 3.12 (Beta 1) -->
+                    <!-- Beta 1 (Foundation) -->
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-surface-variant)]
@@ -203,9 +222,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">v3.12</span>
+                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">Beta 1</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">Beta 1</span>
+                                             bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">پایه</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">September 15, 2025</span>
                         </div>
@@ -220,18 +239,18 @@
                                         <span class="material-symbols-rounded text-sm"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">architecture</span>
                                     </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">زیرساخت جدید</h5>
+                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">زیرساخت و تنظیمات</h5>
                                 </div>
                                 <ul class="space-y-3">
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-error)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>بازطراحی کامل <strong>سیستم احراز هویت</strong> با جلوه‌های بصری سه بعدی.</span>
+                                        <span>بازطراحی کامل <strong>سیستم احراز هویت</strong> با جلوه‌های بصری سه بعدی و موتور تم جدید (Material You).</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-error)] shrink-0"
                                               style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>موتور تم جدید با پشتیبانی از پالت‌های رنگی داینامیک Material You.</span>
+                                        <span>این اپ حالتهای تاریک و روشن را ارائه میدهد و شامل قابلیت ترجمه کامل از طریق ادغام با Google Translate است.</span>
                                     </li>
                                 </ul>
                             </div>
