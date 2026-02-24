@@ -1,6 +1,7 @@
 export default function settings() {
     return {
         open: false,
+        confirmReset: false, // New state for custom modal
         focusMode: false,
 
         get backgroundEnabled() {
@@ -35,8 +36,7 @@ export default function settings() {
         },
 
         resetApp() {
-            // Confirmation is handled in the Blade template view to keep UX simple.
-            // if(confirm('...')) logic is in the @click handler.
+            this.confirmReset = false; // Close modal if open
 
             // Clear Service Worker Caches
             if ('caches' in window) {

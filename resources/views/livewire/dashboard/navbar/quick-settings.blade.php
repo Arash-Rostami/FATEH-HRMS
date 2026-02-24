@@ -79,7 +79,7 @@
 
         <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
-        <button @click="if(confirm('آیا مطمئن هستید؟ تمام تنظیمات ظاهری به حالت پیش‌فرض باز می‌گردد.')) resetApp()"
+        <button @click="confirmReset = true; open = false;"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-rose-500/10 group text-right">
             <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">restart_alt</span>
@@ -90,4 +90,53 @@
             </div>
         </button>
     </div>
+
+    <!-- Custom Reset Confirmation Modal -->
+    <template x-teleport="body">
+        <div x-show="confirmReset"
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="display: none;">
+
+            <div @click.outside="confirmReset = false"
+                 class="relative bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/10 rounded-3xl shadow-2xl max-w-sm w-full p-6 text-[var(--md-sys-color-on-surface)]"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-4">
+
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-500 shrink-0">
+                        <span class="material-symbols-rounded text-[28px]">warning</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">بازنشانی کامل؟</h3>
+                        <p class="text-xs opacity-60 mt-0.5">تمامی تنظیمات و داده‌های ذخیره شده پاک خواهند شد.</p>
+                    </div>
+                </div>
+
+                <p class="text-sm opacity-80 leading-relaxed mb-6">
+                    آیا مطمئن هستید؟ این عمل باعث خروج از حساب کاربری، پاک شدن کش مرورگر و بازگشت تمامی تنظیمات ظاهری به حالت پیش‌فرض می‌شود.
+                </p>
+
+                <div class="flex items-center gap-3">
+                    <button @click="confirmReset = false"
+                            class="flex-1 py-2.5 rounded-xl border border-[var(--md-sys-color-outline)]/20 hover:bg-[var(--md-sys-color-surface-container-high)]/50 transition-colors font-medium text-sm">
+                        انصراف
+                    </button>
+                    <button @click="resetApp()"
+                            class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white transition-colors font-medium text-sm shadow-lg shadow-rose-500/20">
+                        بله، بازنشانی کن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
