@@ -36,8 +36,30 @@ export default function settings() {
 
         resetApp() {
             if (confirm('آیا مطمئن هستید؟ تمام تنظیمات ظاهری به حالت پیش‌فرض باز می‌گردد.')) {
+                // Clear Service Worker Caches
+                if ('caches' in window) {
+                    caches.keys().then((names) => {
+                        names.forEach((name) => {
+                            caches.delete(name);
+                        });
+                    });
+                }
+
+                // Unregister Service Workers
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then((registrations) => {
+                        registrations.forEach((registration) => {
+                            registration.unregister();
+                        });
+                    });
+                }
+
                 localStorage.clear();
-                location.reload();
+
+                // Small delay to ensure async cleanup starts
+                setTimeout(() => {
+                    location.reload();
+                }, 100);
             }
         }
     }
