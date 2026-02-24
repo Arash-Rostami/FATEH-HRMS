@@ -23,5 +23,6 @@
 <x-dashboard.footer.main/>
 @livewireScripts
 <x-service-worker />
+<x-dashboard.modal.confirmation />
 </body>
 </html>
