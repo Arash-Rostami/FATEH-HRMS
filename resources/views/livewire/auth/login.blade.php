@@ -103,10 +103,10 @@
                         wire:loading.attr="disabled"
                         wire:target="login">
                     <div class="relative flex items-center justify-center gap-2 w-full">
-                        <span class="material-symbols-rounded text-[22px]" wire:loading.remove
+                        <span class="material-symbols-rounded text-[22px] " wire:loading.remove
                               wire:target="login">login</span>
 
-                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg  class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                              viewBox="0 0 24 24" wire:loading wire:target="login">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4"></circle>

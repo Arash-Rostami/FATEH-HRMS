@@ -3,7 +3,7 @@
 <div class="flex items-center justify-center max-h-screen w-full p-0 bg-transparent animate-slide-left">
 
     <div
-        class="glass-panel w-full max-w-[1000px] h-auto lg:h-[700px] rounded-[2.5rem] relative overflow-hidden isolate shadow-2xl ring-1 ring-white/10 flex flex-col lg:flex-row transition-all duration-500 ease-out hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]">
+        class="glass-panel w-full max-w-[1000px] h-auto lg:h-[700px] rounded-2xl relative overflow-hidden isolate shadow-2xl ring-1 ring-white/10 flex flex-col lg:flex-row transition-all duration-500 ease-out hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]">
 
         <!-- Right Panel: Branding/Image (Desktop Only) -->
         <div
