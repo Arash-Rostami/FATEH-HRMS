@@ -17,7 +17,7 @@
                 "تولدت مبارک! امیدوارم بهترین سال زندگیت رو پیش رو داشته باشی."
             ];
             $occasionType = 'birthday';
-            $title = 'تولدتان مبارک ' . ($user->forename ?? 'عزیز') . '!';
+            $title = 'تولدتان مبارک ' . ($user->name ?? 'عزیز') . '!';
             $message = $birthdayQuotes[array_rand($birthdayQuotes)];
             cache()->put('birthdate' . $user->id, 'shown', now()->addHours(8));
         } elseif (isSpecialDay('start_date')) {
@@ -32,7 +32,7 @@
                 "ممنون که با مهارت و تعهدتان در کنار ما هستید."
             ];
             $occasionType = 'anniversary';
-            $title = 'سالگرد همکاریتان مبارک ' . ($user->forename ?? 'عزیز') . '!';
+            $title = 'سالگرد همکاریتان مبارک ' . ($user->name ?? 'عزیز') . '!';
             $message = $startDateQuotes[array_rand($startDateQuotes)];
             cache()->put('start_date' . $user->id, 'shown', now()->addHours(8));
         }

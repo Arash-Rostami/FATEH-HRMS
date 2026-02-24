@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
-
 
 class User extends Authenticatable
 {
@@ -31,11 +30,21 @@ class User extends Authenticatable
         'extra',
     ];
 
-
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'last_seen' => 'datetime',
+            'extra' => 'array',
+            'presence' => PresenceStatus::class,
+        ];
+    }
 
     public function comments(): HasMany
     {
@@ -46,7 +55,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Credential::class);
     }
-
 
     public function events(): HasMany
     {
@@ -61,36 +69,6 @@ class User extends Authenticatable
     public function feeds(): HasMany
     {
         return $this->hasMany(Feed::class);
-    }
-
-    public function getExtraValue(string $key, mixed $default = null): mixed
-    {
-        return Arr::get($this->extra ?? [], $key, $default);
-    }
-
-    public function getSmsNumberAttribute(): ?string
-    {
-        return $this->profile?->cellphone;
-    }
-
-    public function getTodaysDeskExtension(): ?string
-    {
-        return null;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->status === 'active';
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin';
-    }
-
-    public function isOnline(int $minutes = 5): bool
-    {
-        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
     }
 
     public function posts(): HasMany
@@ -111,6 +89,38 @@ class User extends Authenticatable
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    protected function smsNumber(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->profile?->cellphone
+        );
+    }
+
+    public function getExtraValue(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->extra ?? [], $key, $default);
+    }
+
+    public function getTodaysDeskExtension(): ?string
+    {
+        return null;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOnline(int $minutes = 5): bool
+    {
+        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
     }
 
     public function scopeActive($query)
@@ -156,16 +166,5 @@ class User extends Authenticatable
     public function touchLastSeen(): void
     {
         $this->update(['last_seen' => now()]);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'last_seen' => 'datetime',
-            'extra' => 'array',
-            'presence' => PresenceStatus::class,
-        ];
     }
 }

@@ -4,7 +4,7 @@
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">event_note</span>
             {{ \Morilog\Jalali\Jalalian::fromFormat('Y-m-d', $selectedDate)->format('l, d F') }}
         </h3>
-        <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-1.5 rounded-full border border-[var(--md-sys-color-outline-variant)]/30">
+        <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30">
             {{ count($this->selectedDayEvents) }}
         </span>
     </div>
@@ -20,11 +20,11 @@
                         @if(!empty($event['avatar']))
                             <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[var(--md-sys-color-surface-variant)]">
                             @if(($event['type'] ?? '') === 'birthday')
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center border border-white shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center border border-white shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 </div>
                             @elseif(($event['type'] ?? '') === 'anniversary')
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center border border-white shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center border border-white shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">celebration</span>
                                 </div>
                             @endif

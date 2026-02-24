@@ -14,5 +14,4 @@
 
     @include('livewire.dashboard.tab.feeds.partials.timeline')
 
-    <x-dashboard.modal.confirmation/>
 </div>

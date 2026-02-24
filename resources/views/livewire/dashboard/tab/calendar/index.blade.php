@@ -11,7 +11,7 @@
         <div class="mx-auto w-full md:scale-[.90] md:w-[35%] h-[45vh] md:h-full flex flex-col gap-4 md:gap-6 shrink-0">
             <button
                 wire:click="openCreateModal"
-                class="flex items-center justify-center gap-3 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] w-full py-4 md:py-5 rounded-2xl md:rounded-[1.75rem] hover:shadow-2xl hover:shadow-[var(--md-sys-color-primary)]/40 transition-all active:scale-[0.98] group shrink-0"
+                class="flex items-center justify-center gap-3 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] w-full py-4 md:py-5 rounded-2xl hover:shadow-2xl hover:shadow-[var(--md-sys-color-primary)]/40 transition-all active:scale-[0.98] group shrink-0"
             >
                 <span class="material-symbols-rounded text-2xl group-hover:rotate-90 transition-transform duration-300">add</span>
                 <span class="font-bold text-base md:text-lg">رویداد جدید</span>

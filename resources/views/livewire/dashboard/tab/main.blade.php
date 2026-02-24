@@ -7,4 +7,5 @@
     <x-dashboard.tab.main :activeTab="$activeTab" :direction="$direction" :currentTab="$currentTab"/>
     <x-dashboard.navbar.right :activeTab="$activeTab" :tabs="$tabs"/>
     <x-dashboard.navbar.mobile :activeTab="$activeTab" :tabs="$tabs"/>
+
 </div>

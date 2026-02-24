@@ -1,0 +1,44 @@
+export default function taskboard() {
+    return {
+        dragTask: null,
+        isDragging: false,
+
+        init() {
+            this.$watch('dragTask', value => {
+                this.isDragging = !!value;
+            });
+        },
+
+        handleDragStart(event, taskId) {
+            this.dragTask = taskId;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', taskId);
+            event.target.style.opacity = '0.5';
+        },
+
+        handleDragEnd(event) {
+            this.dragTask = null;
+            this.isDragging = false;
+            event.target.style.opacity = '1';
+        },
+
+        handleDragOver(event) {
+            if (this.dragTask) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            }
+        },
+
+        handleDrop(event, status) {
+            if (!this.dragTask) return;
+
+            event.preventDefault();
+            const taskId = this.dragTask;
+
+            this.$wire.updateTaskStatus(taskId, status);
+
+            this.dragTask = null;
+            this.isDragging = false;
+        }
+    }
+}

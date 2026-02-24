@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,26 +22,47 @@ class Report extends Model
         'active'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'active' => 'boolean',
+        ];
+    }
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id', 'code');
     }
 
-    public function getFileTypeAttribute()
+    public function user(): BelongsTo
     {
-        return $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : 'unknown';
+        return $this->belongsTo(User::class);
     }
 
-    public function getThumbnailAttribute()
+    protected function fileType(): Attribute
     {
-        if ($this->cover_image && Storage::exists($this->cover_image)) return Storage::url($this->cover_image);
-        $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
+        return Attribute::make(
+            get: fn () => $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : 'unknown'
+        );
+    }
 
-        return match ($extension) {
-            'pdf' => asset('assets/images/pdf.png'),
-            'docx', 'doc' => asset('assets/images/doc.png'),
-            default => asset('assets/images/report.png'),
-        };
+    protected function thumbnail(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->cover_image && Storage::exists($this->cover_image)) {
+                    return Storage::url($this->cover_image);
+                }
+
+                $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
+
+                return match ($extension) {
+                    'pdf' => asset('assets/images/pdf.png'),
+                    'docx', 'doc' => asset('assets/images/doc.png'),
+                    default => asset('assets/images/report.png'),
+                };
+            }
+        );
     }
 
     public function scopeActive($query)
@@ -61,17 +83,5 @@ class Report extends Model
     public function scopeInactive($query)
     {
         return $query->where('active', false);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'active' => 'boolean',
-        ];
     }
 }

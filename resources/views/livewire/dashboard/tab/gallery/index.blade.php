@@ -12,7 +12,5 @@
         @endif
 
         @include('livewire.dashboard.tab.gallery.partials.timeline')
-
-        <x-dashboard.modal.confirmation/>
     </div>
 </div>

@@ -1,11 +1,11 @@
 .custom-modal {
     background: var(--md-sys-color-primary);
-    position: fixed;
+    position: fixed !important;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     overflow: hidden;
-    z-index: 10001;
+    z-index: 100;
     width: 0;
     height: 2px;
     transition: width 0.5s ease 0.5s, height 0.5s ease;
@@ -23,13 +23,15 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
-    max-width: 600px;
-    padding: 20px;
+    max-width: 75%;
     text-align: center;
     color: var(--md-sys-color-on-primary);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease;
+    padding: 50px;
+    overflow-y: auto;
+    max-height: 90vh;
 }
 
 .custom-modal.active .custom-modal-content {
@@ -42,7 +44,6 @@
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    /* font-family: 'Vazirmatn', sans-serif; Already global */
     color: var(--md-sys-color-on-primary);
 }
 
@@ -59,9 +60,9 @@
     max-width: 400px;
     padding: 15px;
     margin-bottom: 2rem;
-    background: rgba(255, 255, 255, 0.15);
+    background: color-mix(in srgb, var(--md-sys-color-on-primary) 15%, transparent);
     border: 2px solid var(--md-sys-color-on-primary);
-    border-radius: 12px;
+    border-radius: 0.75rem;
     color: var(--md-sys-color-on-primary);
     font-size: 1.2rem;
     text-align: center;
@@ -70,13 +71,12 @@
 }
 
 .modal-input::placeholder {
-    color: var(--md-sys-color-on-primary);
-    opacity: 0.7;
+    color: color-mix(in srgb, var(--md-sys-color-on-primary) 70%, transparent);
 }
 
 .modal-input:focus {
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--md-sys-color-on-primary) 25%, transparent);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--md-sys-color-on-primary) 20%, transparent);
     border-color: var(--md-sys-color-on-primary);
 }
 
@@ -92,38 +92,44 @@
 
 .modal-btn {
     padding: 12px 30px;
-    border-radius: 9999px;
+    border-radius: 0.75rem;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     min-width: 120px;
-    /* font-family: 'Vazirmatn', sans-serif; */
 }
 
 .modal-btn-confirm {
-    background-color: var(--md-sys-color-surface);
+    background-color: var(--md-sys-color-on-primary);
     color: var(--md-sys-color-primary);
-    border: 2px solid var(--md-sys-color-surface);
+    border: 2px solid var(--md-sys-color-on-primary);
 }
 
 .modal-btn-confirm:hover {
     background-color: transparent;
     color: var(--md-sys-color-on-primary);
     border-color: var(--md-sys-color-on-primary);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--md-sys-color-on-primary) 30%, transparent);
+}
+
+.modal-btn-confirm:active {
+    transform: scale(0.97);
 }
 
 .modal-btn-cancel {
     background-color: transparent;
     color: var(--md-sys-color-on-primary);
-    border: 2px solid var(--md-sys-color-on-primary);
-    opacity: 0.8;
+    border: 2px solid color-mix(in srgb, var(--md-sys-color-on-primary) 60%, transparent);
 }
 
 .modal-btn-cancel:hover {
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--md-sys-color-on-primary);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-primary) 10%, transparent);
+}
+
+.modal-btn-cancel:active {
+    transform: scale(0.97);
 }
 
 .modal-btn.hidden {
@@ -140,6 +146,7 @@
     z-index: 10002;
     opacity: 0;
     transition: opacity 0.5s ease;
+    border-radius: 0.5rem;
 }
 
 .custom-modal.active .modal-close-icon {
@@ -182,4 +189,63 @@
     color: var(--md-sys-color-on-primary);
     font-size: 1.5rem;
     transition: opacity 0.3s ease;
+}
+
+
+/* ── Inner card that sits inside .custom-modal ─────────────────────────── */
+.modal-inner-card {
+    width: 66.666%;
+    margin-inline: auto;
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.5s ease, border-color 0.5s ease;
+
+    background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
+    box-shadow:
+        0 8px 32px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent),
+        inset 0 1px 0 0 rgba(255,255,255,0.6);
+    ring: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.modal-inner-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 0;
+    height: 3px;
+    border-radius: 1.5rem 1.5rem 0 0;
+    background: var(--md-sys-color-primary-container);
+    box-shadow: 0 1px 8px color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
+}
+
+.modal-inner-card:hover {
+    box-shadow:
+        0 16px 48px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent),
+        inset 0 1px 0 0 rgba(255,255,255,0.8);
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 100%, transparent);
+}
+
+/* Dark mode */
+.dark .modal-inner-card {
+    background: var(--md-sys-color-surface);
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent);
+    box-shadow:
+        0 12px 40px rgba(0,0,0,0.6),
+        inset 0 1px 0 0 color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent);
+    outline: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+}
+
+.dark .modal-inner-card::before {
+    background: var(--md-sys-color-primary);
+}
+
+.dark .modal-inner-card:hover {
+    box-shadow:
+        0 12px 40px rgba(0,0,0,0.6),
+        inset 0 1px 0 0 color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent);
 }
