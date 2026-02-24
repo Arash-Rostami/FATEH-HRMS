@@ -20,7 +20,7 @@
 
             <div class="modal-close-icon" @click="open = false"></div>
 
-            <div class="custom-modal-content text-right">
+            <div class="custom-modal-content text-right overflow-y-auto custom-scrollbar container-scrollbar max-h-[85vh]">
 
                 {{-- Hero Header --}}
                 <div class="relative mt-10 rounded-2xl mb-6 overflow-hidden bg-[var(--md-sys-color-primary-container)] p-5">
