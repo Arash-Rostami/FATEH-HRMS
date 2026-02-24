@@ -21,6 +21,7 @@
         x-init="
             $watch('show', value => {
                 if (value) {
+                    // Small delay to allow enter transition to start properly
                     setTimeout(() => active = true, 50);
                 } else {
                     active = false;
@@ -31,8 +32,12 @@
         :class="{ 'active': active }"
         style="display: none;"
         x-show="show"
-        x-transition:enter="transition duration-0"
-        x-transition:leave="transition duration-1000 delay-1000"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
         dir="rtl"
     >
         <!-- Close Icon -->
