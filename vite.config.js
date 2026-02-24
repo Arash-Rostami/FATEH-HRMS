@@ -80,7 +80,11 @@ self.addEventListener('fetch', (event) => {
     if (ASSETS.includes(url.pathname)) {
         event.respondWith(
             caches.match(event.request).then((response) => {
-                return response || fetch(event.request);
+                if (response) {
+                    console.log('⚡ [Service Worker] Serving from cache:', url.pathname);
+                    return response;
+                }
+                return fetch(event.request);
             })
         );
     }
