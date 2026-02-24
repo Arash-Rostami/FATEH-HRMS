@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tasks', function (Blueprint ) {
-            ->id();
-            ->string('title');
-            ->text('description')->nullable();
-            ->string('status')->default('todo');
-            ->timestamp('deadline')->nullable();
-            ->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            ->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
-            ->timestamps();
+        Schema::create('tasks', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('status')->default('todo');
+            $table->timestamp('deadline')->nullable();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
         });
     }
 

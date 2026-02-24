@@ -3,7 +3,7 @@ export default () => ({
     isDragging: false,
 
     init() {
-        this.('dragTask', value => {
+        this.$watch('dragTask', value => {
             this.isDragging = !!value;
         });
     },
@@ -36,7 +36,7 @@ export default () => ({
 
         // Optimistic UI update could happen here if needed
         // For now, let Livewire handle the state update
-        this..updateTaskStatus(taskId, status);
+        this.$wire.updateTaskStatus(taskId, status);
 
         this.dragTask = null;
         this.isDragging = false;

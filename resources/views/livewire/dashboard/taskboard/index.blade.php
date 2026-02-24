@@ -6,6 +6,7 @@
     </div>
 
     @include('livewire.dashboard.taskboard.partials.create-modal')
+    @include('livewire.dashboard.taskboard.partials.edit-modal')
     <x-dashboard.modal.confirmation/>
     <x-dashboard.modal.toast/>
 </div>

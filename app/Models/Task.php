@@ -10,7 +10,7 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected  = [
+    protected $fillable = [
         'title',
         'description',
         'status',
@@ -19,11 +19,11 @@ class Task extends Model
         'assigned_to',
     ];
 
-    protected  = [
+    protected $casts = [
         'deadline' => 'datetime',
     ];
 
-    protected  = [
+    protected $appends = [
         'deadline_formatted',
         'created_formatted',
         'delegator_name',
@@ -35,12 +35,12 @@ class Task extends Model
 
     public function assignee()
     {
-        return ->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     public function creator()
     {
-        return ->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function getAssigneeNameAttribute()
