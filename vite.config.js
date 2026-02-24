@@ -42,10 +42,9 @@ export default defineConfig({
                     }
                 ]
             },
-            workbox: {
-                cleanupOutdatedCaches: true,
+            injectManifest: {
                 globPatterns: ['build/assets/**/*.{js,css,woff2,png,svg,jpg,ttf,woff}'],
-                navigateFallback: null
+                maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit for large fonts
             },
             devOptions: {
                 enabled: true,
