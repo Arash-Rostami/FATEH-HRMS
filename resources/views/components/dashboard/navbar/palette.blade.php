@@ -23,7 +23,7 @@
 
         <template x-for="color in $store.theme.colors" :key="color.name">
             <button @click="$store.theme.set(color.name); open = false"
-                    :title="color.name"
+                    :title="color.title"
                     class="w-8 h-8 rounded-full border border-[var(--md-sys-color-outline-variant)] hover:scale-110 transition-transform relative mx-auto shadow-sm"
                     :style="'background: ' + color.color"></button>
         </template>

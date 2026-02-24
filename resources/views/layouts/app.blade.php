@@ -22,5 +22,6 @@
 
 <x-dashboard.footer.main/>
 @livewireScripts
+<x-service-worker />
 </body>
 </html>

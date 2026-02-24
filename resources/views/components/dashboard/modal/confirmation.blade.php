@@ -6,7 +6,8 @@
             title: '',
             message: '',
             confirmMethod: '',
-            confirmParams: null
+            confirmParams: null,
+            type: 'livewire'
         }"
         @open-confirmation.window="
             show = true;
@@ -14,6 +15,7 @@
             message = $event.detail.message;
             confirmMethod = $event.detail.method;
             confirmParams = $event.detail.params;
+            type = $event.detail.type || 'livewire';
         "
         @keydown.escape.window="show = false"
         x-init="
@@ -54,7 +56,14 @@
                 <button
                     type="button"
                     class="modal-btn modal-btn-confirm"
-                    @click="$wire.call(confirmMethod, confirmParams); show = false"
+                    @click="
+                        if (type === 'livewire') {
+                            $wire.call(confirmMethod, confirmParams);
+                        } else {
+                            $dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams });
+                        }
+                        show = false
+                    "
                 >
                     تایید
                 </button>

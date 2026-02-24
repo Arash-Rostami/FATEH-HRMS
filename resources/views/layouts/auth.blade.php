@@ -73,7 +73,7 @@
         <div class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2" x-cloak>
             <div class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 bg-white/80 dark:bg-black/50 opacity-[0.6] border border-gray-200 dark:border-white/10 shadow-2xl transition-all hover:bg-white hover:dark:bg-black/70">
 
-                <button @click="window.ThemeManager.toggleMode(); isDark = !isDark" class="w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all" :title="isDark ? 'تغییر به روز' : 'تغییر به شب'">
+                <button @click="window.ThemeManager.toggleMode($event); isDark = !isDark" class="w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all" :title="isDark ? 'تغییر به روز' : 'تغییر به شب'">
                     <span class="material-symbols-rounded text-[22px]" x-text="isDark ? 'dark_mode' : 'light_mode'"></span>
                 </button>
 
@@ -120,5 +120,6 @@
 </div>
 
 @livewireScripts
+<x-service-worker />
 </body>
 </html>

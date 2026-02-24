@@ -1,4 +1,5 @@
 <div x-data="settings"
+     @confirmation-confirmed.window="if($event.detail.method === 'resetAppConfirmed') resetApp()"
      class="relative">
 
     <button @click="open = !open"
@@ -79,7 +80,12 @@
 
         <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
-        <button @click="if(confirm('آیا مطمئن هستید؟ تمام تنظیمات ظاهری به حالت پیش‌فرض باز می‌گردد.')) resetApp()"
+        <button @click="$dispatch('open-confirmation', {
+                    title: 'بازنشانی کامل؟',
+                    message: 'آیا مطمئن هستید؟ این عمل باعث خروج از حساب کاربری، پاک شدن کش مرورگر و بازگشت تمامی تنظیمات ظاهری به حالت پیش‌فرض می‌شود.',
+                    method: 'resetAppConfirmed',
+                    type: 'js'
+                }); open = false;"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-rose-500/10 group text-right">
             <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-colors duration-200">
                 <span class="material-symbols-rounded text-[20px]">restart_alt</span>

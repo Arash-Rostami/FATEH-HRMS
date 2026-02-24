@@ -22,7 +22,8 @@ export default function settings() {
         toggleFocus() {
             this.focusMode = !this.focusMode;
             if (this.focusMode) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                document.documentElement.requestFullscreen().catch(() => {
+                });
                 Alpine.store('background').patternEnabled = false;
                 Alpine.store('background').enabled = false;
                 this.$wire.call('enableFocusMode');
@@ -35,10 +36,28 @@ export default function settings() {
         },
 
         resetApp() {
-            if (confirm('آیا مطمئن هستید؟ تمام تنظیمات ظاهری به حالت پیش‌فرض باز می‌گردد.')) {
-                localStorage.clear();
-                location.reload();
+            // Clear Service Worker Caches
+            if ('caches' in window) {
+                caches.keys().then((names) => {
+                    names.forEach((name) => {
+                        caches.delete(name);
+                    });
+                });
             }
+
+            // Unregister Service Workers
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then((registrations) => {
+                    registrations.forEach((registration) => {
+                        registration.unregister();
+                    });
+                });
+            }
+
+            localStorage.clear();
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         }
     }
 }

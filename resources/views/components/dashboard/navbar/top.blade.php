@@ -63,6 +63,7 @@
                 <x-dashboard.navbar.palette/>
             </div>
             <div title="یادداشت‌های انتشار">
+                <x-dashboard.modal.release/>
             </div>
             <div title="تنظیمات سریع">
                 <livewire:dashboard.navbar.quick-settings/>
@@ -119,7 +120,6 @@
                 <x-dashboard.navbar.account/>
             </div>
         </div>
-
-        <x-dashboard.modal.release/>
+        <x-dashboard.modal.confirmation />
     </nav>
 </div>
