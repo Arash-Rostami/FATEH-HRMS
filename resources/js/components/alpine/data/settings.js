@@ -1,7 +1,6 @@
 export default function settings() {
     return {
         open: false,
-        confirmReset: false, // New state for custom modal
         focusMode: false,
 
         get backgroundEnabled() {
@@ -36,7 +35,7 @@ export default function settings() {
         },
 
         resetApp() {
-            this.confirmReset = false; // Close modal if open
+            // Logic for Reset App (called after confirmation)
 
             // Clear Service Worker Caches
             if ('caches' in window) {
