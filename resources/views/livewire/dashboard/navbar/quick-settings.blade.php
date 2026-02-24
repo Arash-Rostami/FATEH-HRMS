@@ -97,6 +97,5 @@
         </button>
     </div>
 
-    <!-- Reusable Confirmation Modal Included -->
-    <x-dashboard.modal.confirmation />
+    <!-- Duplicate <x-dashboard.modal.confirmation /> removed -->
 </div>
