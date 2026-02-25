@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-5 shrink-0">
         <h3 class="text-lg md:text-xl font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">event_note</span>
-            {{ \Morilog\Jalali\Jalalian::fromFormat('Y-m-d', $selectedDate)->format('l, d F') }}
+            {{ formatJalaliDate($selectedDate) }}
         </h3>
         <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30">
             {{ count($this->selectedDayEvents) }}
@@ -29,14 +29,7 @@
                                 </div>
                             @endif
                         @else
-                            @php
-                                $typeStyles = match($event['type'] ?? '') {
-                                    'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
-                                    'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
-                                    default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
-                                };
-                            @endphp
-                            <div class="w-12 h-12 rounded-[1rem] {{ $typeStyles }} flex items-center justify-center transition-colors">
+                            <div class="w-12 h-12 rounded-[1rem] {{ getEventStyles($event['type'] ?? '') }} flex items-center justify-center transition-colors">
                                 @if(($event['type'] ?? '') === 'birthday')
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 @elseif(($event['type'] ?? '') === 'anniversary')

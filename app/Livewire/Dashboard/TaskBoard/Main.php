@@ -6,8 +6,8 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
-use Morilog\Jalali\Jalalian;
 use Morilog\Jalali\CalendarUtils;
+use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
@@ -37,32 +37,35 @@ class Main extends Component
     public array $years = [];
     public int $perPage = 4;
 
+    public bool $isCreateModalOpen = false;
+    public bool $isEditModalOpen = false;
+
     public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
-
     public array $columnConfig = [
         'todo' => [
             'title' => 'انجام نشده',
             'icon' => '🧾',
-            'color' => 'rose',
+            'color' => 'primary',
             'lightGradient' => 'from-rose-500 to-pink-600',
             'darkGradient' => 'from-rose-700 to-pink-800',
         ],
         'in-progress' => [
             'title' => 'در حال انجام',
             'icon' => '⏳',
-            'color' => 'amber',
+            'color' => 'secondary',
             'lightGradient' => 'from-amber-500 to-orange-600',
             'darkGradient' => 'from-amber-700 to-orange-800'
         ],
         'done' => [
-            'title' => 'تکمیل شده',
+            'title' => 'انجام شده',
             'icon' => '🎯',
-            'color' => 'emerald',
+            'color' => 'tertiary',
             'lightGradient' => 'from-emerald-500 to-green-600',
             'darkGradient' => 'from-emerald-700 to-green-800'
-        ]
+        ],
     ];
+
 
     protected $rules = [
         'newTitle' => 'required|string|max:255',
@@ -94,19 +97,69 @@ class Main extends Component
         'deadlineDay' => 'روز سررسید',
     ];
 
-    public function mount()
+    public function createTask()
     {
-        $currentYear = Jalalian::now()->getYear();
-        $this->years = range($currentYear, $currentYear + 3);
+        $this->validate();
 
-        $this->staffMembers = Cache::remember("staff_" . auth()->id(), 3600, fn() =>
-        collect(User::where('status', 'active')->where('id', '!=', auth()->id())->get(['id', 'name']))
-            ->map(fn($user) => ['id' => $user->id, 'full_name' => $user->full_name])
-            ->values()
-            ->toArray()
-        );
+        $deadline = null;
+        if ($this->deadlineYear && $this->deadlineMonth && $this->deadlineDay) {
+            try {
+                $farsiDate = sprintf('%s/%02d/%02d', $this->deadlineYear, $this->deadlineMonth, $this->deadlineDay);
+                $deadline = CalendarUtils::createCarbonFromFormat('Y/m/d', $farsiDate);
+            } catch (\Exception $e) {
+                $this->addError('deadline', 'تاریخ وارد شده معتبر نیست');
+                return;
+            }
+        }
 
+        Task::create([
+            'title' => $this->newTitle,
+            'description' => $this->newDescription,
+            'status' => 'todo',
+            'deadline' => $deadline,
+            'user_id' => auth()->id(),
+            'assigned_to' => $this->selectedAssignee ?: null,
+        ]);
+
+        $this->reset(['newTitle', 'newDescription', 'deadlineYear', 'deadlineMonth', 'deadlineDay', 'selectedAssignee']);
         $this->loadTasks();
+
+        $this->isCreateModalOpen = false;
+        $this->dispatch('task-created');
+    }
+
+    public function deleteTask($taskId)
+    {
+        $task = Task::find($taskId);
+
+        if ($task && $task->can_delete) {
+            $task->delete();
+            $this->loadTasks();
+        }
+    }
+
+    public function editTask($taskId)
+    {
+        $task = Task::find($taskId);
+
+        if ($task && ($task->can_change_status || $task->user_id === auth()->id())) {
+            $this->editingTaskId = $taskId;
+            $this->newTitle = $task->title;
+            $this->newDescription = $task->description;
+
+            if ($task->deadline) {
+                $jDate = Jalalian::fromCarbon($task->deadline);
+                $this->deadlineYear = $jDate->getYear();
+                $this->deadlineMonth = $jDate->getMonth();
+                $this->deadlineDay = $jDate->getDay();
+            } else {
+                $this->reset(['deadlineYear', 'deadlineMonth', 'deadlineDay']);
+            }
+
+            $this->selectedAssignee = $task->assigned_to;
+
+            $this->isEditModalOpen = true;
+        }
     }
 
     public function loadTasks()
@@ -143,67 +196,67 @@ class Main extends Component
         }
     }
 
-    public function createTask()
+    public function mount()
     {
-        $this->validate();
+        $currentYear = Jalalian::now()->getYear();
+        $this->years = range($currentYear, $currentYear + 3);
 
-        $deadline = null;
-        if ($this->deadlineYear && $this->deadlineMonth && $this->deadlineDay) {
-            try {
-                $farsiDate = sprintf('%s/%02d/%02d', $this->deadlineYear, $this->deadlineMonth, $this->deadlineDay);
-                $deadline = CalendarUtils::createCarbonFromFormat('Y/m/d', $farsiDate);
-            } catch (\Exception $e) {
-                $this->addError('deadline', 'تاریخ وارد شده معتبر نیست');
-                return;
-            }
-        }
+        $this->staffMembers = Cache::remember("staff_" . auth()->id(), 3600, fn() => collect(User::where('status', 'active')->where('id', '!=', auth()->id())->get(['id', 'name']))
+            ->map(fn($user) => ['id' => $user->id, 'full_name' => $user->full_name])
+            ->values()
+            ->toArray()
+        );
 
-        Task::create([
-            'title' => $this->newTitle,
-            'description' => $this->newDescription,
-            'status' => 'todo',
-            'deadline' => $deadline,
-            'user_id' => auth()->id(),
-            'assigned_to' => $this->selectedAssignee ?: null,
-        ]);
-
-        $this->reset(['newTitle', 'newDescription', 'deadlineYear', 'deadlineMonth', 'deadlineDay', 'selectedAssignee']);
         $this->loadTasks();
-
-        $this->dispatch('task-created');
     }
 
-    public function deleteTask($taskId)
+    public function nextPage(string $column)
     {
-        $task = Task::find($taskId);
+        $maxPage = (int)ceil($this->totalCount[$column] / $this->perPage);
 
-        if ($task && $task->can_delete) {
-            $task->delete();
+        if ($this->page[$column] < $maxPage) {
+            $this->page[$column]++;
             $this->loadTasks();
         }
     }
 
-    public function editTask($taskId)
+    public function openCreateModal()
+    {
+        $this->reset(['newTitle', 'newDescription', 'deadlineYear', 'deadlineMonth', 'deadlineDay', 'selectedAssignee']);
+        $this->isCreateModalOpen = true;
+    }
+
+    public function prevPage(string $column)
+    {
+        if ($this->page[$column] > 1) {
+            $this->page[$column]--;
+            $this->loadTasks();
+        }
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.taskboard.index')
+            ->extends('layouts.app')
+            ->section('content');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
+        $this->loadTasks();
+    }
+
+    public function undoAssignment($taskId)
     {
         $task = Task::find($taskId);
 
-        if ($task && ($task->can_change_status || $task->user_id === auth()->id())) {
-            $this->editingTaskId = $taskId;
-            $this->newTitle = $task->title;
-            $this->newDescription = $task->description;
-
-            if ($task->deadline) {
-                $jDate = Jalalian::fromCarbon($task->deadline);
-                $this->deadlineYear = $jDate->getYear();
-                $this->deadlineMonth = $jDate->getMonth();
-                $this->deadlineDay = $jDate->getDay();
-            } else {
-                $this->reset(['deadlineYear', 'deadlineMonth', 'deadlineDay']);
-            }
-
-            $this->selectedAssignee = $task->assigned_to;
-
-            $this->dispatch('open-modal', 'edit-task-modal');
+        if ($task && $task->is_delegator) {
+            $task->update(['assigned_to' => null]);
+            $this->activeTab = 'my-tasks';
+            $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
+            $this->loadTasks();
         }
     }
 
@@ -236,44 +289,8 @@ class Main extends Component
         $this->reset(['editingTaskId', 'newTitle', 'newDescription', 'deadlineYear', 'deadlineMonth', 'deadlineDay', 'selectedAssignee']);
         $this->loadTasks();
 
+        $this->isEditModalOpen = false;
         $this->dispatch('task-updated');
-    }
-
-    public function nextPage(string $column)
-    {
-        $maxPage = (int)ceil($this->totalCount[$column] / $this->perPage);
-
-        if ($this->page[$column] < $maxPage) {
-            $this->page[$column]++;
-            $this->loadTasks();
-        }
-    }
-
-    public function prevPage(string $column)
-    {
-        if ($this->page[$column] > 1) {
-            $this->page[$column]--;
-            $this->loadTasks();
-        }
-    }
-
-    public function switchTab($tab)
-    {
-        $this->activeTab = $tab;
-        $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
-        $this->loadTasks();
-    }
-
-    public function undoAssignment($taskId)
-    {
-        $task = Task::find($taskId);
-
-        if ($task && $task->is_delegator) {
-            $task->update(['assigned_to' => null]);
-            $this->activeTab = 'my-tasks';
-            $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
-            $this->loadTasks();
-        }
     }
 
     public function updateTaskStatus($taskId, $newColumn)
@@ -284,12 +301,5 @@ class Main extends Component
             $task->update(['status' => $newColumn]);
             $this->loadTasks();
         }
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.taskboard.index')
-            ->extends('layouts.app')
-            ->section('content');
     }
 }

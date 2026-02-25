@@ -4,14 +4,9 @@
     @foreach($media ?? [] as $path)
         @if(!empty($path))
             <div class="relative group overflow-hidden w-full h-full cursor-zoom-in">
-                @php
-                    $extension = strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
-                    $isVideo = in_array($extension, ['mp4', 'webm', 'ogg']);
-                @endphp
-
-                @if($isVideo)
+                @if(isVideo($path))
                     <video controls class="w-full h-full object-cover bg-black/90">
-                        <source src="{{ Storage::url($path) }}" type="video/{{ $extension }}">
+                        <source src="{{ Storage::url($path) }}" type="video/{{ getFileExtension($path) }}">
                     </video>
                 @else
                     <img src="{{ Storage::url($path) }}"

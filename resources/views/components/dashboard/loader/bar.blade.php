@@ -26,12 +26,3 @@
 
     </div>
 </div>
-
-<style>
-    @keyframes indeterminate-fill {
-        0% { width: 0%; opacity: 1; }
-        70% { width: 100%; opacity: 1; }
-        90% { width: 100%; opacity: 0; }
-        100% { width: 0%; opacity: 0; }
-    }
-</style>

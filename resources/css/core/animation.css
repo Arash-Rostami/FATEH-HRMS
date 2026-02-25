@@ -206,6 +206,13 @@
     to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes indeterminate-fill {
+    0% { width: 0%; opacity: 1; }
+    70% { width: 100%; opacity: 1; }
+    90% { width: 100%; opacity: 0; }
+    100% { width: 0%; opacity: 0; }
+}
+
 .animate-spring-pop {
     animation: spring-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }

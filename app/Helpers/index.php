@@ -90,3 +90,40 @@ if (!function_exists('isSpecialDay')) {
         return $date->format('m-d') === now()->format('m-d');
     }
 }
+
+if (!function_exists('getEventStyles')) {
+    function getEventStyles($type): string
+    {
+        return match ($type) {
+            'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
+            'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
+            default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
+        };
+    }
+}
+
+if (!function_exists('formatJalaliDate')) {
+    function formatJalaliDate($date, $format = 'l, d F', $fromFormat = 'Y-m-d')
+    {
+        try {
+            return Jalalian::fromFormat($fromFormat, $date)->format($format);
+        } catch (\Throwable $e) {
+            return $date;
+        }
+    }
+}
+
+if (!function_exists('isVideo')) {
+    function isVideo($path): bool
+    {
+        $extension = strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
+        return in_array($extension, ['mp4', 'webm', 'ogg']);
+    }
+}
+
+if (!function_exists('getFileExtension')) {
+    function getFileExtension($path): string
+    {
+        return strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
+    }
+}
