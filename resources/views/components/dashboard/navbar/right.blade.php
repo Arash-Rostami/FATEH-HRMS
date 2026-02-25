@@ -27,12 +27,7 @@
                 {{ $tab['icon'] }}
             </span>
 
-            <span
-                class="absolute right-[64px] top-1/2 -translate-y-1/2 bg-[var(--md-sys-color-inverse-surface)] text-[var(--md-sys-color-inverse-on-surface)] text-[14px] font-medium tracking-[0.1px] px-4 py-2 rounded-xl opacity-0 invisible translate-x-3 group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.0,0,1.0)] whitespace-nowrap !z-[101] pointer-events-none shadow-[0_4px_8px_3px_rgba(0,0,0,0.15),0_1px_3px_rgba(0,0,0,0.3)] border border-[var(--md-sys-color-outline)]/10"
-                role="tooltip"
-            >
-                {{ $tab['label'] }}
-            </span>
+            <x-dashboard.tooltip :text="$tab['label']" position="left" />
         </button>
     @endforeach
 </aside>

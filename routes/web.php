@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Main::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
+    Route::view('/coming', 'layouts.toCome')->name('coming');
 
 
 });

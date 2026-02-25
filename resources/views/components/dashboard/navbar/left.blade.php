@@ -70,7 +70,7 @@
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
 
-        <a href="{{ url('/documents') }}"
+        <a href="{{ url('/coming') }}"
            @mouseenter="setHover('documents')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
@@ -117,7 +117,7 @@
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
 
-        <a href="{{ url('/suggestions') }}"
+        <a href="{{ url('/coming') }}"
            @mouseenter="setHover('suggestions')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2

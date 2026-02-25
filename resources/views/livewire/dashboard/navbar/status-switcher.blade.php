@@ -20,10 +20,10 @@
             $wire.changeStatus(val);
         }
     }"
-     class="relative w-full h-full flex items-center justify-center">
+     class="relative w-full h-full flex items-center justify-center group">
 
     <button @click="open = !open"
-            class="flex items-center gap-2 w-full h-full justify-center outline-none group transition-all duration-300">
+            class="flex items-center gap-2 w-full h-full justify-center outline-none transition-all duration-300">
 
         <!-- Icon -->
         <span class="material-symbols-rounded text-[20px] transition-colors duration-300"
@@ -40,6 +40,8 @@
         <span class="!hidden lg:!block material-symbols-rounded text-[18px] opacity-50 transition-transform duration-300 group-hover:opacity-80"
               :class="open ? 'rotate-180' : ''">expand_more</span>
     </button>
+
+    <x-dashboard.tooltip text="وضعیت حضور" position="bottom" />
 
     <!-- Dropdown -->
     <div x-show="open"
@@ -63,14 +65,14 @@
         @foreach(presenceCases() as $status)
             <button @click="setStatus('{{ $status->value }}')"
                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200
-                           hover:bg-[var(--md-sys-color-surface-container-high)]/50 group text-right mb-1 last:mb-0
+                           hover:bg-[var(--md-sys-color-surface-container-high)]/50 group/item text-right mb-1 last:mb-0
                            {{ $status->ringClass() }}">
 
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
                          :class="currentStatus === '{{ $status->value }}'
                             ? 'bg-{{ $status->color() }}-500 text-white shadow-lg shadow-{{ $status->color() }}-500/25'
-                            : 'bg-{{ $status->color() }}-500/10 text-{{ $status->color() }}-400 group-hover:bg-{{ $status->color() }}-500 group-hover:text-white'">
+                            : 'bg-{{ $status->color() }}-500/10 text-{{ $status->color() }}-400 group-hover/item:bg-{{ $status->color() }}-500 group-hover/item:text-white'">
                         <span class="material-symbols-rounded text-[20px]">{{ $status->icon() }}</span>
                     </div>
 
@@ -78,10 +80,10 @@
                         <span class="text-sm font-medium transition-colors duration-200"
                               :class="currentStatus === '{{ $status->value }}'
                                 ? 'text-{{ $status->color() }}-500'
-                                : 'group-hover:text-{{ $status->color() }}-500'">
+                                : 'group-hover/item:text-{{ $status->color() }}-500'">
                             {{ $status->label() }}
                         </span>
-                        <span class="text-[10px] opacity-50 group-hover:text-{{ $status->color() }}-400/70 text-right transition-colors duration-200">
+                        <span class="text-[10px] opacity-50 group-hover/item:text-{{ $status->color() }}-400/70 text-right transition-colors duration-200">
                             {{ $status->sublabel() }}
                         </span>
                     </div>

@@ -7,7 +7,6 @@
         :class="enabled
             ? 'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)]/30 text-[var(--md-sys-color-on-primary-container)]'
             : 'bg-[var(--md-sys-color-surface-variant)]/40 border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-primary)]/40 hover:bg-[var(--md-sys-color-primary)]/5'"
-        :title="enabled ? 'غیرفعال کردن ترجمه' : 'فعال کردن ترجمه'"
     >
         {{-- Icon --}}
         <span class="material-symbols-rounded text-[16px] transition-colors duration-200"
@@ -24,6 +23,8 @@
               :class="enabled
                 ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]'
                 : 'bg-[var(--md-sys-color-outline)] opacity-50'"></span>
+
+        <x-dashboard.tooltip x-text="enabled ? 'غیرفعال کردن ترجمه' : 'فعال کردن ترجمه'" position="top" />
     </button>
 
     <div id="google_translate_element" class="hidden"></div>

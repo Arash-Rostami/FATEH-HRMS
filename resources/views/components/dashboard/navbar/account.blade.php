@@ -1,7 +1,9 @@
+@props(['title' => 'حساب کاربری'])
+
 <div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
-            title="حساب کاربری"
-            class="flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 group  shadow-sm outline-none">
+            class="group relative flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 shadow-sm outline-none"
+        {{ $attributes->merge(['class' => '']) }}>
 
         <div
             class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
@@ -25,6 +27,8 @@
 
         <span class="material-symbols-rounded text-[20px] opacity-70 group-hover:opacity-100 transition-all"
               :class="open ? 'rotate-180' : ''">expand_more</span>
+
+        <x-dashboard.tooltip :text="$title" position="bottom" />
     </button>
 
     <div x-show="open" @click.outside="open = false"
