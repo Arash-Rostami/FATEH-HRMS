@@ -19,7 +19,6 @@
 @else
     @yield('content')
 @endisset
-<x-dashboard.navbar.menu-modal/>
 
 <x-dashboard.footer.main/>
 @livewireScripts

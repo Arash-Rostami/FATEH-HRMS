@@ -64,24 +64,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="p-4 border-t border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface-container-low)]">
-                @auth
-                    <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/10 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-[var(--md-sys-color-primary)]/10 flex items-center justify-center overflow-hidden">
-                            @if(auth()->user()->avatar)
-                                <img src="{{ auth()->user()->avatar }}" class="w-full h-full object-cover">
-                            @else
-                                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">person</span>
-                            @endif
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold text-sm truncate">{{ auth()->user()->name }}</div>
-                            <div class="text-[10px] opacity-60 truncate">{{ auth()->user()->email }}</div>
-                        </div>
-                        <livewire:auth.logout-button/>
-                    </div>
-                @endauth
-            </div>
+
 
         </div>
     </div>

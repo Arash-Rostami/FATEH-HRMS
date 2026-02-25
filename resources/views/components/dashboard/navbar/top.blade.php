@@ -3,16 +3,17 @@
     'direction' => 'up'
 ])
 
-<div :class="isVisible ? 'top-[60px] lg:top-[80px]' : 'top-0'"
-     class="sticky z-[51] w-full transition-all duration-300 ease-in-out will-change-transform">
+<div x-data="menu"
+     @resize.window="updatePerPage"
+     :class="isVisible ? 'top-[60px] lg:top-[80px]' : 'top-0'"
+     class="sticky z-[51] w-full transition-all duration-300 ease-in-out">
 
     <nav x-cloak
-         x-data="menu"
          dir="rtl"
-         @resize.window="updatePerPage"
          class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0">
 
         {{-- Menu Modal --}}
+        <x-dashboard.modal.menu/>
 
         <div class="flex items-center gap-2 lg:gap-3">
             <x-dashboard.navbar.hamburger />
@@ -107,5 +108,4 @@
         </div>
         <x-dashboard.modal.confirmation />
     </nav>
-
 </div>
