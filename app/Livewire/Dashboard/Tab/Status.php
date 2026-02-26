@@ -7,10 +7,8 @@ use App\Services\SmsService;
 use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
-#[Lazy]
 class Status extends Component
 {
     public string $activeFilter = 'all';
@@ -47,10 +45,11 @@ class Status extends Component
             ->active()
             ->when($this->search, fn (Builder $query) => $query->search($this->search))
             ->selectRaw('presence, count(*) as count')
+            ->toBase()
             ->groupBy('presence')
             ->get()
             ->mapWithKeys(fn ($row) => [
-                ($row->presence instanceof PresenceStatus ? $row->presence->value : $row->presence) => $row->count
+                $row->presence => $row->count
             ])
             ->all();
 
