@@ -63,7 +63,7 @@ button {
 
         --md-sys-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
 
-        --header-bg: #000000;
+        --header-bg: #1a1c1e;
         --header-border-color: #FFA500;
 
         --tool-amethyst-bg: #ebdcf9;
@@ -111,6 +111,9 @@ button {
         --md-sys-color-outline: #899296;
         --md-sys-color-outline-variant: #40484b;
 
+        --header-bg: #101416;
+        --header-border-color: #FFB347;
+
         --tool-amethyst-bg: #38264c;
         --tool-amethyst-text: #ebdcf9;
         --tool-amethyst-color: #bba0d6;
@@ -135,8 +138,9 @@ button {
         --md-sys-color-on-primary-container: #21005D;
         --md-sys-color-surface: #FAF8FF;
         --md-sys-color-surface-variant: #E7E0EC;
+
         --header-bg: #21005D;
-        --header-border-color: #6750A4;
+        --header-border-color: #F5A623;
     }
 
     [data-theme='amethyst'].dark {
@@ -147,8 +151,9 @@ button {
         --md-sys-color-background: #141218;
         --md-sys-color-surface: #141218;
         --md-sys-color-surface-variant: #49454F;
+
         --header-bg: #141218;
-        --header-border-color: #D0BCFF;
+        --header-border-color: #F8C471;
     }
 
     [data-theme='arctic'] {
@@ -164,7 +169,24 @@ button {
         --md-sys-color-surface-variant: #E0F7FF;
 
         --header-bg: #003642;
-        --header-border-color: #00A8CC;
+        --header-border-color: #FF6B35;
+    }
+
+    [data-theme='arctic'].dark {
+        --md-sys-color-primary: #5ED3F3;
+        --md-sys-color-on-primary: #003642;
+        --md-sys-color-primary-container: #004F60;
+        --md-sys-color-on-primary-container: #CFF6FF;
+
+        --md-sys-color-secondary: #4FB0CC;
+        --md-sys-color-tertiary: #84E0FA;
+
+        --md-sys-color-background: #0B1315;
+        --md-sys-color-surface: #0B1315;
+        --md-sys-color-surface-variant: #3F484A;
+
+        --header-bg: #0B1315;
+        --header-border-color: #FF8A5B;
     }
 
     [data-theme='blue'] {
@@ -176,7 +198,7 @@ button {
         --md-sys-color-surface-variant: #E0E2EC;
 
         --header-bg: #001B3D;
-        --header-border-color: #375E90;
+        --header-border-color: #F2A65A;
     }
 
     [data-theme='blue'].dark {
@@ -189,7 +211,7 @@ button {
         --md-sys-color-surface-variant: #44474F;
 
         --header-bg: #0B0E15;
-        --header-border-color: #A8C7FF;
+        --header-border-color: #F5C088;
     }
 
     [data-theme='forest'] {
@@ -201,7 +223,7 @@ button {
         --md-sys-color-surface-variant: #E2E4DA;
 
         --header-bg: #102000;
-        --header-border-color: #416916;
+        --header-border-color: #E83F6F;
     }
 
     [data-theme='forest'].dark {
@@ -214,7 +236,7 @@ button {
         --md-sys-color-surface-variant: #45483F;
 
         --header-bg: #11150E;
-        --header-border-color: #A6D476;
+        --header-border-color: #F06A91;
     }
 
     [data-theme='nebula'] {
@@ -230,7 +252,7 @@ button {
         --md-sys-color-surface-variant: #E6E6FA;
 
         --header-bg: #10105A;
-        --header-border-color: #5B5BD6;
+        --header-border-color: #B9FBC0;
     }
 
     [data-theme='nebula'].dark {
@@ -244,7 +266,7 @@ button {
         --md-sys-color-surface-variant: #2A2A3D;
 
         --header-bg: #0A0A18;
-        --header-border-color: #C6C5FF;
+        --header-border-color: #D3FCD8;
     }
 
     [data-theme='obsidian'] {
@@ -259,8 +281,8 @@ button {
         --md-sys-color-surface: #FAFAF7;
         --md-sys-color-surface-variant: #EEEDE6;
 
-        --header-bg: #000000;
-        --header-border-color: #BFA14A;
+        --header-bg: #1A1500;
+        --header-border-color: #4A90E2;
     }
 
     [data-theme='obsidian'].dark {
@@ -274,7 +296,7 @@ button {
         --md-sys-color-surface-variant: #2B2B2B;
 
         --header-bg: #000000;
-        --header-border-color: #F5D57A;
+        --header-border-color: #71AAEB;
     }
 
     [data-theme='ocean'] {
@@ -286,7 +308,7 @@ button {
         --md-sys-color-surface-variant: #DBE4E6;
 
         --header-bg: #001F24;
-        --header-border-color: #006874;
+        --header-border-color: #EF476F;
     }
 
     [data-theme='ocean'].dark {
@@ -299,7 +321,7 @@ button {
         --md-sys-color-surface-variant: #3F484A;
 
         --header-bg: #091315;
-        --header-border-color: #4FD8EB;
+        --header-border-color: #F47290;
     }
 
     [data-theme='sunset'] {
@@ -311,7 +333,7 @@ button {
         --md-sys-color-surface-variant: #F3DDDF;
 
         --header-bg: #400013;
-        --header-border-color: #9B4050;
+        --header-border-color: #06D6A0;
     }
 
     [data-theme='sunset'].dark {
@@ -324,7 +346,7 @@ button {
         --md-sys-color-surface-variant: #524345;
 
         --header-bg: #191113;
-        --header-border-color: #FFB2BC;
+        --header-border-color: #3DE0B6;
     }
 
     .custom-sticky {

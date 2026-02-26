@@ -1,4 +1,4 @@
-<div class="w-full max-w-[88rem] mx-auto !pt-0 pb-10 text-[var(--md-sys-color-on-surface)]"
+<div class="animate-fade w-full max-w-[88rem] mx-auto !pt-0 pb-10 text-[var(--md-sys-color-on-surface)]"
      dir="rtl"
      x-data="greeting('{{ addslashes(shortGreeting()) }}')">
 

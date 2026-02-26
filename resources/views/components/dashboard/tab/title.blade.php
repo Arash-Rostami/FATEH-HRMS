@@ -1,6 +1,6 @@
 @props(['icon', 'title', 'count' => null, 'countLabel' => 'مورد'])
 
-<div class="flex items-center gap-3 mb-4">
+<div class="flex items-center gap-3 mb-8">
     <div
         class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
         <span class="material-symbols-rounded text-base font-fill">{{ $icon }}</span>

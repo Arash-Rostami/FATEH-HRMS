@@ -3,7 +3,7 @@
     active: null,
     toggle(id) { this.active = (this.active === id) ? null : id }
      }"
-    class="relative w-full max-w-[88rem] mx-auto h-full flex flex-col bg-[var(--md-sys-color-background)] overflow-hidden"
+    class="animate-fade relative w-full max-w-[88rem] mx-auto h-full flex flex-col overflow-hidden"
     dir="rtl"
 >
 

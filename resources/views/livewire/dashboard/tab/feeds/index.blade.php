@@ -1,6 +1,6 @@
 <div
     x-data="feed"
-    class="relative w-full max-w-[88rem] mx-auto h-full bg-[var(--md-sys-color-background)]"
+    class="animate-fade relative w-full max-w-[88rem] mx-auto h-full"
     dir="rtl"
 >
     <x-dashboard.tab.title

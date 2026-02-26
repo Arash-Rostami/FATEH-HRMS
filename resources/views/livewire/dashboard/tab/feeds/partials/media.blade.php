@@ -6,10 +6,10 @@
             <div class="relative group overflow-hidden w-full h-full cursor-zoom-in">
                 @if(isVideo($path))
                     <video controls class="w-full h-full object-cover bg-black/90">
-                        <source src="{{ Storage::url($path) }}" type="video/{{ getFileExtension($path) }}">
+                        <source src="{{ url($path) }}" type="video/{{ getFileExtension($path) }}">
                     </video>
                 @else
-                    <img src="{{ Storage::url($path) }}"
+                    <img src="{{ url($path) }}"
                          class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 group-hover:brightness-110"
                          loading="lazy"
                          decoding="async"

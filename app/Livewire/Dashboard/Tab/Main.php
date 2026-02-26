@@ -2,15 +2,19 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Main extends Component
 {
     public $activeTab = 'home';
+
     public $direction = 'up';
 
-    public function getTabsProperty()
+    #[Computed]
+    public function tabs()
     {
         return [
             'home' => [
@@ -72,13 +76,12 @@ class Main extends Component
 
     public function navigateTab(int $step)
     {
-        $keys = array_keys($this->getTabsProperty());
+        $keys = array_keys($this->tabs);
         $currentIndex = array_search($this->activeTab, $keys);
 
         if ($currentIndex === false) return;
 
         $count = count($keys);
-
         $newIndex = ($currentIndex + $step + $count) % $count;
 
         $this->setTab($keys[$newIndex]);
@@ -87,31 +90,27 @@ class Main extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.main', [
-            'currentTab' => $this->getTabsProperty()[$this->activeTab] ?? null,
-            'tabs' => $this->getTabsProperty()
+            'currentTab' => $this->tabs[$this->activeTab] ?? null,
         ])->extends('layouts.app')->section('content');
     }
 
     #[On('switch-tab')]
     public function setTab($tab)
     {
-        $tabId = $tab;
-
-        if ($tabId === $this->activeTab) {
+        if ($tab === $this->activeTab) {
             return;
         }
 
-        $tabsKeys = array_keys($this->getTabsProperty());
+        $tabsKeys = array_keys($this->tabs);
 
-        if (!in_array($tabId, $tabsKeys)) {
+        if (!in_array($tab, $tabsKeys)) {
             return;
         }
 
         $currentIndex = array_search($this->activeTab, $tabsKeys);
-        $newIndex = array_search($tabId, $tabsKeys);
+        $newIndex = array_search($tab, $tabsKeys);
 
         $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
-
-        $this->activeTab = $tabId;
+        $this->activeTab = $tab;
     }
 }

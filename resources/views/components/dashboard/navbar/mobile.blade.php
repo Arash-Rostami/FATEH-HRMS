@@ -18,7 +18,10 @@
 >
     <div class="absolute -top-5 left-1/2 -translate-x-1/2 z-50">
         <button @click="toggle()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-lg border-[3px] border-[var(--md-sys-color-surface)] transition-all duration-500 hover:scale-110 active:scale-95">
-            <span class="material-symbols-rounded text-[20px] transition-transform duration-500" :class="page === 0 ? 'rotate-0' : '-rotate-180'">swap_horiz</span>
+          <span
+              class="material-symbols-rounded text-[20px]"
+              :style="{ transform: page === 0 ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1)' }"
+          >swap_horiz</span>
         </button>
     </div>
 

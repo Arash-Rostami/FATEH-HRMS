@@ -12,7 +12,7 @@
                   this.show = false;
                   setTimeout(() => {
                       this.show = true;
-                  }, 50);
+                  }, 25);
               });
           }
       }">
@@ -30,7 +30,6 @@
         <livewire:dynamic-component
             :component="$currentTab['component']"
             :key="$activeTab"
-{{--            lazy--}}
         />
     </div>
 </main>

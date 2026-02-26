@@ -23,3 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 resources/assets/video/*.mp4
+/public/img
+/public/img/*

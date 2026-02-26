@@ -1,4 +1,4 @@
-<div class="h-full w-full max-w-[88rem] mx-auto relative overflow-y-auto overflow-x-hidden space-y-12 pb-24 custom-scrollbar" dir="rtl">
+<div class="animate-fade h-full w-full max-w-[88rem] mx-auto relative overflow-y-auto overflow-x-hidden space-y-12 pb-24 custom-scrollbar" dir="rtl">
 
 <x-dashboard.tab.title icon="open_in_new" title="لینک‌ها و ابزارها" :count="$this->totalLinks" countLabel="لینک" />
 

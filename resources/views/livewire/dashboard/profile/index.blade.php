@@ -1,5 +1,5 @@
 <div class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide" dir="rtl">
-    <div class="max-w-[85rem] mx-auto">
+    <div class="max-w-[88rem] mx-auto">
         <x-dashboard.tab.title icon="person" title="پروفایل کاربری" />
 
         <div class="w-full flex flex-col gap-5">

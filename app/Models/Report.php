@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Vite;
 
 class Report extends Model
 {
@@ -50,16 +51,16 @@ class Report extends Model
     {
         return Attribute::make(
             get: function () {
-                if ($this->cover_image && Storage::exists($this->cover_image)) {
+                if ($this->cover_image) {
                     return Storage::url($this->cover_image);
                 }
 
                 $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
 
                 return match ($extension) {
-                    'pdf' => asset('assets/images/pdf.png'),
-                    'docx', 'doc' => asset('assets/images/doc.png'),
-                    default => asset('assets/images/report.png'),
+                    'pdf' => Vite::asset('resources/assets/img/pdf.png'),
+                    'docx', 'doc' => Vite::asset('resources/assets/img/doc.png'),
+                    default => Vite::asset('resources/assets/img/report.png'),
                 };
             }
         );
