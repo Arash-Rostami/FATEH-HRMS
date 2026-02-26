@@ -46,6 +46,7 @@ export default function initAlpine() {
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
         Alpine.data('scrollManager', scrollManager)
+        window.mobile = mobile;
         Alpine.data('mobile', mobile)
         Alpine.data('search', search)
         Alpine.data('menu', menu)
