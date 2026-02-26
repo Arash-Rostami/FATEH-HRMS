@@ -1,5 +1,6 @@
-export default function mobile(initialPage, pageTwoKeys) {
+export default function mobile(initialPage, pageTwoKeys, activeTab) {
     return {
+        activeTab: activeTab,
         page: initialPage,
         isAtBottom: false,
         pageTwoKeys: pageTwoKeys,
