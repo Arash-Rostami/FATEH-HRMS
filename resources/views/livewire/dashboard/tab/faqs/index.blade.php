@@ -24,7 +24,7 @@
             <div
                 x-data="{ expanded: false }"
                 x-init="$watch('active', value => expanded = value === {{ $faq->id }})"
-                class="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] bg-[var(--md-sys-color-surface)] max-w-7xl mx-auto w-full shadow-sm"
+                class="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] bg-[var(--md-sys-color-surface)] max-w-[85rem] mx-auto w-full shadow-sm"
                 :class="expanded ? 'ring-1 ring-[var(--md-sys-color-primary)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]' : ''"
             >
                 <button

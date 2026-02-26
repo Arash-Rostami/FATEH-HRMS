@@ -1,4 +1,4 @@
-<div class="w-full max-w-8xl md:scale-[0.95] mx-auto p-4 md:p-8 !pt-0 pb-10 text-[var(--md-sys-color-on-surface)]"
+<div class="w-full max-w-[85rem] md:scale-[0.95] mx-auto p-4 md:p-8 !pt-0 pb-10 text-[var(--md-sys-color-on-surface)]"
      dir="rtl"
      x-data="greeting('{{ addslashes(shortGreeting()) }}')">
 
