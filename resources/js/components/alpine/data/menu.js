@@ -2,11 +2,11 @@ export default function menu() {
     return {
         menuOpen: false,
         items: [
-            {href: '/settings/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
-            {href: '/settings/preferences', icon: 'tune', title: 'تنظیمات', sub: 'شخصی‌سازی'},
+            {href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
+            {href: '/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
+            {href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'شخصی‌سازی'},
             {href: '/tools/export', icon: 'download', title: 'خروجی', sub: 'دریافت داده‌ها'},
             {href: '/tools/import', icon: 'upload', title: 'ورودی', sub: 'بارگذاری فایل'},
-            {href: '/dashboard', icon: 'dashboard', title: 'داشبورد', sub: 'نمای کلی'},
             {href: '/reports', icon: 'bar_chart', title: 'گزارشات', sub: 'تحلیل آماری'},
             {href: '/projects', icon: 'folder_open', title: 'پروژه‌ها', sub: 'مدیریت کارها'},
             {href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
