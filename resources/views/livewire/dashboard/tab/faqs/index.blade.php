@@ -3,11 +3,11 @@
     active: null,
     toggle(id) { this.active = (this.active === id) ? null : id }
      }"
-    class="relative w-full h-full flex flex-col bg-[var(--md-sys-color-background)] overflow-hidden"
+    class="relative w-full max-w-[88rem] mx-auto h-full flex flex-col bg-[var(--md-sys-color-background)] overflow-hidden"
     dir="rtl"
 >
 
-    <div class="px-4 md:px-8 pt-4 md:pt-8 pb-0 shrink-0">
+    <div class="pb-0 shrink-0">
         <x-dashboard.tab.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال" />
     </div>
 
@@ -24,7 +24,7 @@
             <div
                 x-data="{ expanded: false }"
                 x-init="$watch('active', value => expanded = value === {{ $faq->id }})"
-                class="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] bg-[var(--md-sys-color-surface)] max-w-7xl mx-auto w-full shadow-sm"
+                class="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] bg-[var(--md-sys-color-surface)]  w-full shadow-sm"
                 :class="expanded ? 'ring-1 ring-[var(--md-sys-color-primary)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]' : ''"
             >
                 <button

@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col relative bg-[var(--md-sys-color-background)]"
+<div class="h-full max-w-[88rem] mx-auto flex flex-col relative bg-[var(--md-sys-color-background)]"
      dir="rtl"
      x-data="{
         showModal: false,
@@ -12,7 +12,7 @@
         }
      }">
 
-    <div class="px-4 md:px-12 pt-4 md:pt-8 pb-0">
+    <div >
         <x-dashboard.tab.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش" />
     </div>
 

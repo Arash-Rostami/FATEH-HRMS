@@ -1,6 +1,6 @@
-<div class="w-full flex flex-col gap-4 p-4 md:p-6 animate-fade-in-up p-4 md:p-8">
+<div class="w-full max-w-[88rem] mx-auto flex flex-col gap-4 animate-fade-in-up">
 
-    <div dir="rtl">
+<div dir="rtl">
         <x-dashboard.tab.title icon="badge" title="وضعیت همکاران" :count="array_sum($this->stats)" countLabel="نفر"/>
     </div>
 

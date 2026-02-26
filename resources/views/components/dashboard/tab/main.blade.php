@@ -30,7 +30,7 @@
         <livewire:dynamic-component
             :component="$currentTab['component']"
             :key="$activeTab"
-            lazy
+{{--            lazy--}}
         />
     </div>
 </main>
