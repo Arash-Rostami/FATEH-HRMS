@@ -110,8 +110,9 @@
                                         @click="$dispatch('open-confirmation', {
                                             title: 'حذف نظر',
                                             message: 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.',
-                                            method: 'deleteComment',
-                                            params: {{ $comment->id }}
+                                            method: 'delete-comment-confirmed',
+                                            params: {{ $comment->id }},
+                                            type: 'js'
                                         })"
                                         class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
                                         title="حذف"

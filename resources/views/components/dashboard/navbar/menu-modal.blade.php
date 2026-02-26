@@ -2,11 +2,11 @@
     <div x-show="menuOpen"
          @click.self="toggleMenu"
          x-transition:enter="transition-all duration-300"
-         x-transition:enter-start="opacity-0 backdrop-blur-0"
-         x-transition:enter-end="opacity-100 backdrop-blur-sm"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
          x-transition:leave="transition-all duration-200 delay-100"
-         x-transition:leave-start="opacity-100 backdrop-blur-sm"
-         x-transition:leave-end="opacity-0 backdrop-blur-0"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
          class="fixed inset-0 bg-black/40 z-[10000] flex justify-start lg:hidden">
 
         <div

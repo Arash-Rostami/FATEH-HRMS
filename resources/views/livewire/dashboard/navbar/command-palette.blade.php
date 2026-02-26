@@ -18,13 +18,7 @@
 
     <div x-cloak
          x-show="open"
-         x-transition:enter="ease-out duration-300"
-         x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-         x-transition:leave="ease-in duration-200"
-         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-         x-transition:leave-end="opacity-0 scale-95 translate-y-4"
-         class="fixed inset-0 z-[201] flex items-start justify-center pt-[10vh] px-4 pointer-events-none">
+         class="fixed inset-0 z-[201] flex items-start justify-center pt-[10vh] px-4 pointer-events-none animate-slide-down">
 
         <div class="pointer-events-auto w-full max-w-2xl flex flex-col max-h-[60vh] rounded-2xl shadow-2xl overflow-hidden
                     bg-[var(--md-sys-color-surface)]

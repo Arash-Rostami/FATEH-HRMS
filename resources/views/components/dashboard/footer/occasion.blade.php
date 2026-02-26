@@ -53,7 +53,7 @@
         style="display: none;"
     >
         {{-- Backdrop --}}
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
+        <div class="absolute inset-0 bg-black/60" @click="close()"></div>
 
         {{-- Confetti canvas --}}
         <canvas id="confetti-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-[101]"></canvas>

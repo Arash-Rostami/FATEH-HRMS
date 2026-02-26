@@ -46,14 +46,8 @@
     <!-- Dropdown -->
     <div x-show="open"
          @click.outside="open = false"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
          class="absolute top-[calc(100%+12px)] right-0 p-2 rounded-2xl w-64
-                bg-[var(--md-sys-color-surface)]/95
+                bg-[var(--md-sys-color-surface)]/95 animate-slide-down
                 border border-[var(--md-sys-color-outline-variant)]/10
                 shadow-2xl z-50 text-[var(--md-sys-color-on-surface)]"
          style="display: none;">

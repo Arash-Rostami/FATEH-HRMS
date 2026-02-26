@@ -24,10 +24,12 @@ export default function mobile(initialPage, pageTwoKeys) {
             }
 
             this.$watch('activeTab', () => this.syncPage());
+        },
 
-            // this.$cleanup(() => {
-            //     if (this.observer) this.observer.disconnect();
-            // });
+        destroy() {
+            if (this.observer) {
+                this.observer.disconnect();
+            }
         }
     };
 }

@@ -55,8 +55,7 @@
                 ] as $stat)
                     <div class="flex flex-col items-center justify-center gap-1 px-5 py-3 rounded-2xl
                             bg-[var(--md-sys-color-on-primary-container)]/8
-                            border border-[var(--md-sys-color-on-primary-container)]/12
-                            backdrop-blur-sm min-w-[88px]">
+                            border border-[var(--md-sys-color-on-primary-container)]/12 min-w-[88px]">
                         <span
                                 class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">{{ $stat['icon'] }}</span>
                         <span

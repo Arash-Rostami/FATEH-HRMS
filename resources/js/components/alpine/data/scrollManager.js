@@ -3,17 +3,17 @@ export default function scrollManager() {
         isVisible: true,
         lastY: 0,
         ticking: false,
+        scrollHandler: null,
 
         init() {
-            const handler = () => {
+            this.scrollHandler = () => {
                 if (!this.ticking) {
                     window.requestAnimationFrame(() => this.update());
                     this.ticking = true;
                 }
             };
 
-            window.addEventListener('scroll', handler, { passive: true });
-            this.$cleanup(() => window.removeEventListener('scroll', handler));
+            window.addEventListener('scroll', this.scrollHandler, { passive: true });
         },
 
         update() {
@@ -21,6 +21,12 @@ export default function scrollManager() {
             this.isVisible = currentY < 50 || currentY < this.lastY;
             this.lastY = currentY;
             this.ticking = false;
+        },
+
+        destroy() {
+            if (this.scrollHandler) {
+                window.removeEventListener('scroll', this.scrollHandler);
+            }
         }
     };
 }

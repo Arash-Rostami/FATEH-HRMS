@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Feeds extends Component
@@ -48,6 +49,7 @@ class Feeds extends Component
         unset($this->feeds);
     }
 
+    #[On("delete-comment-confirmed")]
     public function deleteComment($commentId)
     {
         if (Comment::where('user_id', Auth::id())->where('id', $commentId)->delete()) {

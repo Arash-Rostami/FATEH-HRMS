@@ -6,7 +6,7 @@
         {{ $attributes->merge(['class' => '']) }}>
 
         <div
-            class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+            class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm ">
             @if(auth()->check() && auth()->user()->avatar)
                 <img src="{{ auth()->user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
             @else
@@ -32,13 +32,7 @@
     </button>
 
     <div x-show="open" @click.outside="open = false"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-         class="absolute left-0 mt-2 w-56 bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-50 text-[var(--md-sys-color-on-surface)]"
+         class="absolute left-0 mt-2 w-56 bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-50 text-[var(--md-sys-color-on-surface)] animate-slide-down"
          style="display: none;">
 
         <div class="p-2 space-y-1">

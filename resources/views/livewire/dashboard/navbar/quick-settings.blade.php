@@ -8,10 +8,7 @@
     <x-dashboard.tooltip text="تنظیمات سریع" position="bottom" />
 
     <div x-show="open" @click.outside="open = false"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-         class="absolute left-0 mt-2 w-64 bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-50 text-[var(--md-sys-color-on-surface)]"
+         class="absolute left-0 mt-2 w-64 bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-50 text-[var(--md-sys-color-on-surface)] animate-slide-down"
          style="display: none;">
 
         <div class="px-4 py-3 border-b border-[var(--md-sys-color-outline-variant)]/10 flex items-center justify-between">

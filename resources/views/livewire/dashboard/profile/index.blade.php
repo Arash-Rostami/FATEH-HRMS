@@ -1,5 +1,6 @@
 <div class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide" dir="rtl">
     <div class="max-w-[88rem] mx-auto">
+
         <x-dashboard.tab.title icon="person" title="پروفایل کاربری" />
 
         <div class="w-full flex flex-col gap-5">
@@ -43,7 +44,7 @@
                         </div>
                     </div>
 
-                    <div class="w-full sm:w-64 bg-[var(--md-sys-color-surface-container-low)]/50 rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 backdrop-blur-sm">
+                    <div class="w-full sm:w-64 bg-[var(--md-sys-color-surface-container-low)]/50 rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/30">
                         <div class="flex justify-between items-end mb-2">
                             <span class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">تکمیل پروفایل</span>
                             <span class="text-lg font-bold text-[var(--md-sys-color-primary)]">{{ $completion }}%</span>

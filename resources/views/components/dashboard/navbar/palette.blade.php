@@ -7,10 +7,7 @@
     </button>
 
     <div x-show="open" @click.outside="open = false"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-         class="absolute left-0 mt-3 p-3 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-2xl z-50 flex flex-col gap-3 min-w-[50px]"
+         class="absolute left-0 mt-3 p-3 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] shadow-2xl z-50 flex flex-col gap-3 min-w-[50px] animate-slide-down"
          style="display: none;">
 
         <button @click="$store.theme.toggleMode()"
