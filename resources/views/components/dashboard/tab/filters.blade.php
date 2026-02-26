@@ -9,7 +9,7 @@
 
 <div
     dir="rtl"
-    x-data="filters({{ $open }}, '{{ $searchModel }}', () => {{ $activeCondition }}, () => { {{ $clearAction }} })"
+    x-data="filters(@js($open), '{{ $searchModel }}', function() { return {{ $activeCondition }}; }, function() { {{ $clearAction }}; })"
     class="sticky top-0 z-20 bg-[var(--md-sys-color-surface)]/95 rounded-2xl border-b border-[var(--md-sys-color-outline-variant)]/30 px-4 py-3 flex flex-col gap-3 transition-all duration-300"
 >
     <div class="flex items-center gap-2 w-full max-w-7xl mx-auto ">
