@@ -6,18 +6,17 @@
 
         @foreach(['هویتی', 'پایه', 'تکمیلی'] as $index => $label)
             <div class="relative z-10 flex flex-col items-center gap-2 group cursor-pointer" @click="if({{ $index + 1 }} <= step) step = {{ $index + 1 }}">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
-                    {{ $step > $index + 1 ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md' :
-                       ($step === $index + 1 ? 'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)] shadow-[0_0_12px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] scale-110' :
-                       'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)]') }}">
-                    @if($step > $index + 1)
-                        <span class="material-symbols-rounded text-lg">check</span>
-                    @else
-                        {{ $index + 1 }}
-                    @endif
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300"
+                    :class="{
+                        'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md': step > {{ $index + 1 }},
+                        'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-primary)] shadow-[0_0_12px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] scale-110': step === {{ $index + 1 }},
+                        'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)]': step < {{ $index + 1 }}
+                    }">
+                    <span x-show="step > {{ $index + 1 }}" class="material-symbols-rounded text-lg">check</span>
+                    <span x-show="step <= {{ $index + 1 }}">{{ $index + 1 }}</span>
                 </div>
-                <span class="text-[10px] md:text-xs font-bold transition-colors
-                    {{ $step >= $index + 1 ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">
+                <span class="text-[10px] md:text-xs font-bold transition-colors"
+                    :class="step >= {{ $index + 1 }} ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)]'">
                     {{ $label }}
                 </span>
             </div>
