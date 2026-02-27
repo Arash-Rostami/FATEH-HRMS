@@ -1,120 +1,86 @@
-<div
-    x-data="{ show: false }"
-    @open-modal.window="if ($event.detail === 'edit-task-modal') show = true"
-    @task-updated.window="show = false"
-    @keydown.escape.window="show = false"
-    style="display: none;"
-    x-show="show"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
->
-    <div
-        x-show="show"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 transition-opacity bg-gray-500/75 backdrop-blur-sm"
-        @click="show = false"
-    ></div>
-
-    <div
-        x-show="show"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        class="relative transform overflow-hidden rounded-2xl bg-[var(--md-sys-color-surface)] text-left shadow-xl transition-all w-full max-w-lg"
-    >
-        <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/40 flex items-center justify-between">
-            <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">ویرایش وظیفه</h3>
-            <button @click="show = false" class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)]">
-                <span class="material-symbols-rounded">close</span>
-            </button>
-        </div>
-
-        <div class="p-6 space-y-4">
-            <!-- Title -->
+<x-dashboard.modal.slideover name="edit-task-modal" title="ویرایش وظیفه" icon="edit_document">
+    <form wire:submit="updateTask" class="flex flex-col h-full bg-[var(--md-sys-color-surface)]" dir="rtl">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar">
             <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-1">عنوان وظیفه <span class="text-red-500">*</span></label>
-                <input
-                    type="text"
-                    wire:model="newTitle"
-                    class="w-full rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)] shadow-sm"
-                    placeholder="عنوان وظیفه را وارد کنید..."
-                >
-                @error('newTitle') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
+                <x-dashboard.form.input label="عنوان وظیفه" name="editingTask.title" wire:model="editingTask.title" icon="title" placeholder="مثال: بررسی گزارش ماهیانه فروش" required />
             </div>
 
-            <!-- Description -->
             <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-1">توضیحات</label>
-                <textarea
-                    wire:model="newDescription"
-                    rows="3"
-                    class="w-full rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)] shadow-sm"
-                    placeholder="توضیحات تکمیلی..."
-                ></textarea>
-                @error('newDescription') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
+                <x-dashboard.form.textarea label="توضیحات (اختیاری)" name="editingTask.description" wire:model="editingTask.description" icon="description" placeholder="جزئیات بیشتر درباره این وظیفه..." rows="4" />
             </div>
 
-            <!-- Deadline -->
-            <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-1">مهلت انجام</label>
-                <div class="grid grid-cols-3 gap-2" dir="ltr">
-                    <select wire:model="deadlineYear" class="rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm">
-                        <option value="">سال</option>
-                        @foreach($years as $year)
-                            <option value="{{ $year }}">{{ $year }}</option>
-                        @endforeach
-                    </select>
-                    <select wire:model="deadlineMonth" class="rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm">
-                        <option value="">ماه</option>
-                        @foreach($months as $num => $name)
-                            <option value="{{ $num }}">{{ $name }}</option>
-                        @endforeach
-                    </select>
-                    <select wire:model="deadlineDay" class="rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm">
-                        <option value="">روز</option>
-                        @foreach(range(1, 31) as $day)
-                            <option value="{{ $day }}">{{ $day }}</option>
-                        @endforeach
-                    </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-dashboard.form.select label="وضعیت" name="editingTask.status" wire:model="editingTask.status" icon="pending_actions" required>
+                    <option value="todo">برای انجام</option>
+                    <option value="in-progress">در حال انجام</option>
+                    <option value="done">انجام شده</option>
+                </x-dashboard.form.select>
+
+                <div x-data="{
+                        open: false,
+                        search: '',
+                        get users() {
+                            return @js($delegationUsers->map(fn($u) => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->profile_photo_url])->values()->all());
+                        },
+                        get filteredUsers() {
+                            if (this.search === '') return this.users;
+                            return this.users.filter(u => u.name.includes(this.search));
+                        },
+                        get selectedUser() {
+                            return this.users.find(u => u.id == $wire.get('editingTask.assigned_to'));
+                        }
+                    }" class="relative">
+                    <label class="block text-sm font-medium text-[var(--md-sys-color-on-surface)] mb-1.5 px-1">واگذاری به (اختیاری)</label>
+                    <div @click="open = !open" @click.away="open = false" class="flex items-center justify-between w-full h-11 px-3 bg-[var(--md-sys-color-surface-variant)]/30 border border-[var(--md-sys-color-outline-variant)] rounded-xl cursor-pointer hover:border-[var(--md-sys-color-primary)] transition-colors">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <template x-if="selectedUser">
+                                <div class="flex items-center gap-2">
+                                    <img :src="selectedUser.avatar" class="w-6 h-6 rounded-full object-cover">
+                                    <span x-text="selectedUser.name" class="text-sm text-[var(--md-sys-color-on-surface)] truncate"></span>
+                                </div>
+                            </template>
+                            <template x-if="!selectedUser">
+                                <span class="text-sm text-[var(--md-sys-color-on-surface-variant)]">بدون واگذاری (شخصی)</span>
+                            </template>
+                        </div>
+                        <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                    </div>
+
+                    <div x-show="open" x-transition x-cloak class="absolute z-50 w-full mt-1 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg overflow-hidden flex flex-col max-h-60">
+                        <div class="p-2 border-b border-[var(--md-sys-color-outline-variant)]">
+                            <div class="relative">
+                                <span class="material-symbols-rounded absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)] text-sm">search</span>
+                                <input type="text" x-model="search" placeholder="جستجوی همکار..." class="w-full pl-3 pr-8 py-1.5 bg-[var(--md-sys-color-surface-variant)]/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)]" @click.stop>
+                            </div>
+                        </div>
+                        <ul class="flex-1 overflow-y-auto py-1 custom-scrollbar">
+                            <li @click="$wire.set('editingTask.assigned_to', null); open = false; search = ''" class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors" :class="!selectedUser ? 'bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface)]'">
+                                <div class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center">
+                                    <span class="material-symbols-rounded text-sm">person_off</span>
+                                </div>
+                                <span class="text-sm font-medium">بدون واگذاری (شخصی)</span>
+                            </li>
+                            <template x-for="user in filteredUsers" :key="user.id">
+                                <li @click="$wire.set('editingTask.assigned_to', user.id); open = false; search = ''" class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors" :class="selectedUser?.id == user.id ? 'bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface)]'">
+                                    <img :src="user.avatar" class="w-8 h-8 rounded-full object-cover">
+                                    <span x-text="user.name" class="text-sm font-medium"></span>
+                                    <span class="material-symbols-rounded mr-auto text-sm" x-show="selectedUser?.id == user.id">check</span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
                 </div>
-                @error('deadline') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
             </div>
 
-            <!-- Assignee -->
             <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-1">مسئول انجام</label>
-                <select
-                    wire:model="selectedAssignee"
-                    class="w-full rounded-xl border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] focus:ring-[var(--md-sys-color-primary)] shadow-sm"
-                >
-                    <option value="">خودم (شخصی)</option>
-                    @foreach($staffMembers as $staff)
-                        <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
-                    @endforeach
-                </select>
+                <x-dashboard.form.input type="datetime-local" label="مهلت انجام (اختیاری)" name="editingTask.deadline" wire:model="editingTask.deadline" icon="event" />
+                <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-1 px-1">تاریخ و ساعت پایان کار را مشخص کنید.</p>
             </div>
         </div>
 
-        <div class="bg-[var(--md-sys-color-surface-container-low)] px-6 py-4 flex flex-row-reverse gap-2">
-            <button
-                wire:click="updateTask"
-                class="inline-flex items-center justify-center rounded-xl bg-[var(--md-sys-color-primary)] px-4 py-2 text-sm font-semibold text-[var(--md-sys-color-on-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] sm:w-auto transition-all"
-            >
-                ذخیره تغییرات
-            </button>
-            <button
-                @click="show = false"
-                class="inline-flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-semibold text-[var(--md-sys-color-on-surface)] shadow-sm ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface-container)] sm:mt-0 sm:w-auto transition-all"
-            >
-                انصراف
-            </button>
+        <div class="p-4 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] flex gap-3">
+            <x-dashboard.form.button type="submit" variant="primary" icon="save" loading="updateTask" class="flex-1">ذخیره تغییرات</x-dashboard.form.button>
+            <x-dashboard.form.button type="button" variant="outline" @click="$dispatch('close-modal', 'edit-task-modal')">انصراف</x-dashboard.form.button>
         </div>
-    </div>
-</div>
+    </form>
+</x-dashboard.modal.slideover>
