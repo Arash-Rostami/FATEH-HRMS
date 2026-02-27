@@ -3,7 +3,7 @@
     x-data="{
         calendarOpen: true
     }"
-    class="relative w-full h-screen bg-[var(--md-sys-color-background)] overflow-hidden flex flex-col p-4 md:p-8 gap-6"
+    class="relative w-full max-w-[85rem] mx-auto h-screen bg-[var(--md-sys-color-background)] overflow-hidden flex flex-col p-4 md:p-8 gap-6"
 >
     <x-dashboard.tab.title icon="calendar_month" title="تقویم کاری" />
 

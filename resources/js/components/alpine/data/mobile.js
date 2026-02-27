@@ -1,5 +1,6 @@
-export default function mobile(initialPage, pageTwoKeys) {
+export default function mobile(initialPage, pageTwoKeys, activeTabEntangle) {
     return {
+        activeTab: activeTabEntangle,
         page: initialPage,
         isAtBottom: false,
         pageTwoKeys: pageTwoKeys,
@@ -23,9 +24,9 @@ export default function mobile(initialPage, pageTwoKeys) {
                 this.observer.observe(el);
             }
 
-            this.$watch('activeTab', () => this.syncPage());
+            this.('activeTab', () => this.syncPage());
 
-            this.$cleanup(() => {
+            this.(() => {
                 if (this.observer) this.observer.disconnect();
             });
         }

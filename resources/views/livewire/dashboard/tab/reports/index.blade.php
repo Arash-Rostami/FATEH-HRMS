@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col relative bg-[var(--md-sys-color-background)]"
+<div class="h-full max-w-[85rem] mx-auto flex flex-col relative bg-[var(--md-sys-color-background)]"
      x-data="{
         showModal: false,
         activeReport: null,
@@ -129,7 +129,7 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="w-full h-full overflow-y-auto pb-20 px-2 md:px-0 scrollbar-hide relative">
 
-            <div class="space-y-4 max-w-4xl mx-auto">
+            <div class="space-y-4 w-full mx-auto">
                 @foreach ($this->reports as $report)
                     <div wire:key="report-list-{{ $report->id }}"
                          class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"

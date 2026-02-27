@@ -10,7 +10,7 @@
 @endphp
 
 <aside
-    x-data="{ activeTab: @entangle('activeTab'), ...mobile({{ $initialPage }}, @js($pageTwoKeys)) }"
+    x-data="mobile({{ $initialPage }}, @js($pageTwoKeys), @entangle('activeTab'))"
     @keydown.window.arrow-right.prevent="!$event.repeat && $wire.navigateTab(1)"
     @keydown.window.arrow-left.prevent="!$event.repeat && $wire.navigateTab(-1)"
     :class="isAtBottom ? 'bottom-14' : 'bottom-6'"

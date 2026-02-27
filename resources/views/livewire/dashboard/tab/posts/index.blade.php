@@ -1,5 +1,5 @@
 <div
-    class="h-full w-full relative overflow-hidden flex flex-col gap-6 p-4 md:p-8"
+    class="h-full w-full max-w-[85rem] mx-auto relative overflow-hidden flex flex-col gap-6 p-4 md:p-8"
     dir="rtl"
     x-data="share"
     @open-post-panel.window="panelOpen = true"
