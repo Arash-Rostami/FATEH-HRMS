@@ -1,5 +1,6 @@
-export default function mobile(initialPage, pageTwoKeys) {
+export default function mobile(initialPage, pageTwoKeys, activeTab) {
     return {
+        activeTab: activeTab,
         page: initialPage,
         isAtBottom: false,
         pageTwoKeys: pageTwoKeys,
@@ -10,7 +11,7 @@ export default function mobile(initialPage, pageTwoKeys) {
         },
 
         syncPage() {
-            this.page = this.pageTwoKeys.includes(this.activeTab) ? 1 : 0;
+            this.page = this.pageTwoKeys.includes(String(this.activeTab)) ? 1 : 0;
         },
 
         init() {

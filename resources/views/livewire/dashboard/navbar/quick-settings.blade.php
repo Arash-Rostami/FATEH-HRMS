@@ -1,4 +1,4 @@
-<div x-data="{ open: false }" class="relative group">
+<div x-data="settings()" class="relative group">
     <button @click="open = !open"
             class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/50 active:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center relative"
             :class="open ? 'bg-[var(--md-sys-color-surface-container-high)]' : ''">
