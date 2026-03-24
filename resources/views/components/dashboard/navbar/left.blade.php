@@ -70,8 +70,8 @@
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
 
-        <a href="{{ url('/coming') }}"
-           @mouseenter="setHover('documents')"
+        <a href="{{ url('/dms') }}"
+           @mouseenter="setHover('dms')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
                   rounded-r-2xl rounded-l-none
@@ -95,22 +95,22 @@
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
-                      'scale-110 rotate-[8deg]': isHovered('documents'),
-                      'scale-100': !isHovered('documents')
+                      'scale-110 rotate-[8deg]': isHovered('dms'),
+                      'scale-100': !isHovered('dms')
                   }"
-                  :style="isActive('documents') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_managed</span>
+                  :style="isActive('dms') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_managed</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
                 مدیریت مستندات
             </span>
 
-            <div x-show="isActive('documents')"
+            <div x-show="isActive('dms')"
                  x-transition:enter="transition-all duration-500 ease-out"
                  x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
                  x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
 
-            <div x-show="isHovered('documents') && !isActive('documents')"
+            <div x-show="isHovered('dms') && !isActive('dms')"
                  x-transition:enter="transition-opacity duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"

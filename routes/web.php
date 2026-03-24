@@ -6,6 +6,7 @@ use App\Livewire\Auth\LogoutButton;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
+use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\Tab\Main;
 use App\Livewire\Dashboard\Taskboard\Main as TaskBoard;
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Main::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
+    Route::get('/dms', Dms::class)->name('dms');
     Route::view('/coming', 'layouts.toCome')->name('coming');
 
 

@@ -9,8 +9,7 @@
 
     @livewireStyles
 </head>
-<body
-    class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
+<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
 <x-dashboard.header.scrollable/>
 
 
@@ -20,8 +19,13 @@
     @yield('content')
 @endisset
 
+@include('components.dashboard.tools.calculator')
+@include('components.dashboard.tools.stopwatch')
+<x-dashboard.modal.toast/>
+<x-dashboard.footer.occasion/>
+
 <x-dashboard.footer.main/>
 @livewireScripts
-<x-service-worker />
+<x-service-worker/>
 </body>
 </html>

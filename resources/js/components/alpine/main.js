@@ -24,6 +24,9 @@ import gallery from "./data/gallery.js";
 import report from "./data/report.js";
 import filters from "./data/filters.js";
 import taskboard from "./data/taskboard.js";
+import profile from "./data/profile.js";
+import calculator from "./data/calculator.js";
+import stopwatch from "./data/stopwatch.js";
 
 
 export default function initAlpine() {
@@ -65,5 +68,9 @@ export default function initAlpine() {
         Alpine.data('report', report)
         Alpine.data('filters', filters)
         Alpine.data('taskboard', taskboard)
+        Alpine.data('profile', profile)
+        Alpine.data('calculator', calculator)
+        Alpine.data('stopwatch', stopwatch)
+
     })
 }

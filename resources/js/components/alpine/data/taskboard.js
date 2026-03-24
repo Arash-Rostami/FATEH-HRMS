@@ -1,3 +1,5 @@
+import settings from "./settings.js";
+
 export default function taskboard() {
     return {
         dragTask: null,
@@ -7,6 +9,11 @@ export default function taskboard() {
             this.$watch('dragTask', value => {
                 this.isDragging = !!value;
             });
+        },
+
+        initPattern() {
+            const settingInstance = settings();
+            return settingInstance.initPattern();
         },
 
         handleDragStart(event, taskId) {

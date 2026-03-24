@@ -1,3 +1,5 @@
+import particle from "./particle.js";
+
 export default function settings() {
     return {
         open: false,
@@ -11,14 +13,19 @@ export default function settings() {
             return Alpine.store('background').patternEnabled;
         },
 
+        initPattern() {
+            return (this.patternEnabled)
+                ? particle() : document.getElementById('interactive-background')?.remove();
+        },
+
         toggleBackground() {
             Alpine.store('background').toggle(!this.backgroundEnabled);
         },
 
         togglePattern() {
             Alpine.store('background').togglePattern(!this.patternEnabled);
+            return this.initPattern();
         },
-
         toggleFocus() {
             this.focusMode = !this.focusMode;
             if (this.focusMode) {

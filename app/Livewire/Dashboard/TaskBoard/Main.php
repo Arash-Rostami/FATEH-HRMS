@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Livewire\Dashboard\Taskboard;
+namespace App\Livewire\Dashboard\TaskBoard;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Traits\TaskBoardState;
+use App\Traits\TaskBoardValidation;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use Morilog\Jalali\CalendarUtils;
@@ -11,91 +14,8 @@ use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
-    public array $tasks = ['todo' => [], 'in-progress' => [], 'done' => []];
-    public array $columns = ['todo', 'in-progress', 'done'];
-    public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'done' => 0];
-    public array $page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
-
-    public array $months = [
-        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد',
-        4 => 'تیر', 5 => 'مرداد', 6 => 'شهریور',
-        7 => 'مهر', 8 => 'آبان', 9 => 'آذر',
-        10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
-    ];
-
-    public string $activeTab = 'my-tasks';
-    public $staffMembers = [];
-    public $selectedAssignee = null;
-    public $editingTaskId = null;
-
-    public $newTitle = '';
-    public $newDescription = '';
-    public $deadlineYear = '';
-    public $deadlineMonth = '';
-    public $deadlineDay = '';
-
-    public array $years = [];
-    public int $perPage = 4;
-
-    public bool $isCreateModalOpen = false;
-    public bool $isEditModalOpen = false;
-
-    public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
-    public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
-    public array $columnConfig = [
-        'todo' => [
-            'title' => 'انجام نشده',
-            'icon' => '🧾',
-            'color' => 'primary',
-            'lightGradient' => 'from-rose-500 to-pink-600',
-            'darkGradient' => 'from-rose-700 to-pink-800',
-        ],
-        'in-progress' => [
-            'title' => 'در حال انجام',
-            'icon' => '⏳',
-            'color' => 'secondary',
-            'lightGradient' => 'from-amber-500 to-orange-600',
-            'darkGradient' => 'from-amber-700 to-orange-800'
-        ],
-        'done' => [
-            'title' => 'انجام شده',
-            'icon' => '🎯',
-            'color' => 'tertiary',
-            'lightGradient' => 'from-emerald-500 to-green-600',
-            'darkGradient' => 'from-emerald-700 to-green-800'
-        ],
-    ];
-
-
-    protected $rules = [
-        'newTitle' => 'required|string|max:255',
-        'newDescription' => 'nullable|string',
-        'deadlineYear' => 'nullable|integer',
-        'deadlineMonth' => 'nullable|integer|min:1|max:12',
-        'deadlineDay' => 'nullable|integer|min:1|max:31',
-    ];
-
-    protected $messages = [
-        'newTitle.required' => 'فیلد عنوان الزامی است.',
-        'newTitle.string' => 'عنوان باید یک متن باشد.',
-        'newTitle.max' => 'عنوان نباید بیش از :max کاراکتر باشد.',
-        'newDescription.string' => 'توضیحات باید یک متن باشد.',
-        'deadlineYear.integer' => 'سال سررسید باید یک عدد صحیح باشد.',
-        'deadlineMonth.integer' => 'ماه سررسید باید یک عدد صحیح باشد.',
-        'deadlineMonth.min' => 'ماه باید بین 1 تا 12 باشد.',
-        'deadlineMonth.max' => 'ماه باید بین 1 تا 12 باشد.',
-        'deadlineDay.integer' => 'روز سررسید باید یک عدد صحیح باشد.',
-        'deadlineDay.min' => 'روز باید بین 1 تا 31 باشد.',
-        'deadlineDay.max' => 'روز باید بین 1 تا 31 باشد.',
-    ];
-
-    protected $validationAttributes = [
-        'newTitle' => 'عنوان',
-        'newDescription' => 'توضیحات',
-        'deadlineYear' => 'سال سررسید',
-        'deadlineMonth' => 'ماه سررسید',
-        'deadlineDay' => 'روز سررسید',
-    ];
+    use TaskBoardState;
+    use TaskBoardValidation;
 
     public function createTask()
     {
@@ -106,7 +26,7 @@ class Main extends Component
             try {
                 $farsiDate = sprintf('%s/%02d/%02d', $this->deadlineYear, $this->deadlineMonth, $this->deadlineDay);
                 $deadline = CalendarUtils::createCarbonFromFormat('Y/m/d', $farsiDate);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addError('deadline', 'تاریخ وارد شده معتبر نیست');
                 return;
             }
@@ -126,6 +46,7 @@ class Main extends Component
 
         $this->isCreateModalOpen = false;
         $this->dispatch('task-created');
+        $this->dispatch('toast', message: 'وظیفه با موفقیت اضافه شد.', type: 'success');
     }
 
     public function deleteTask($taskId)
@@ -135,6 +56,7 @@ class Main extends Component
         if ($task && $task->can_delete) {
             $task->delete();
             $this->loadTasks();
+            $this->dispatch('toast', message: 'وظیفه با موفقیت حذف شد.', type: 'success');
         }
     }
 
@@ -273,7 +195,7 @@ class Main extends Component
             try {
                 $farsiDate = sprintf('%s/%02d/%02d', $this->deadlineYear, $this->deadlineMonth, $this->deadlineDay);
                 $deadline = CalendarUtils::createCarbonFromFormat('Y/m/d', $farsiDate);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->addError('deadline', 'تاریخ وارد شده معتبر نیست');
                 return;
             }
@@ -290,7 +212,7 @@ class Main extends Component
         $this->loadTasks();
 
         $this->isEditModalOpen = false;
-        $this->dispatch('task-updated');
+        $this->dispatch('toast', message: 'وظیفه با موفقیت بروزرسانی شد.', type: 'success');
     }
 
     public function updateTaskStatus($taskId, $newColumn)

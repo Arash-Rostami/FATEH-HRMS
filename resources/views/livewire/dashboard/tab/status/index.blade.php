@@ -8,5 +8,4 @@
 
     @include('livewire.dashboard.tab.status.partials.grid')
 
-    <x-dashboard.modal.toast/>
 </div>

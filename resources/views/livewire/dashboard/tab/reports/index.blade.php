@@ -169,6 +169,4 @@
     </div>
 
     @include('livewire.dashboard.tab.reports.partials.modal')
-
-    <x-dashboard.modal.toast />
 </div>

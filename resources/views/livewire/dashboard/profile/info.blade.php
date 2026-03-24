@@ -1,9 +1,7 @@
-<form wire:submit.prevent="save" class="space-y-5" x-data="{
-    step: 1, maxSteps: 3,
-    nextStep() { if (this.step < this.maxSteps) { this.step++; window.scrollTo({ top: 0, behavior: 'smooth' }); } },
-    prevStep() { if (this.step > 1) { this.step--; window.scrollTo({ top: 0, behavior: 'smooth' }); } },
-    setStep(s) { if (s >= 1 && s <= this.maxSteps) { this.step = s; window.scrollTo({ top: 0, behavior: 'smooth' }); } }
-}" dir="rtl">
+<form wire:submit.prevent="save"
+      class="space-y-5"
+      x-data="profile"
+      dir="rtl">
 
     {{-- Step Rail --}}
     <div
@@ -48,53 +46,6 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    {{-- Avatar Upload --}}
-                    <div class="relative group mx-auto md:mx-0 w-32 h-32">
-                        <div
-                            class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50">
-                            @if ($image)
-                                <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
-                            @elseif($existingImage)
-                                <img src="{{ Storage::url($existingImage) }}" class="w-full h-full object-cover">
-                            @else
-                                <div
-                                    class="w-full h-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
-                                    <span class="material-symbols-rounded text-5xl">person</span>
-                                </div>
-                            @endif
-                            <div wire:loading wire:target="image"
-                                 class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                                <x-dashboard.loader.spinner size="sm" class="text-white"/>
-                            </div>
-                        </div>
-
-                        {{-- Upload Button (Bottom Right) --}}
-                        <label for="profile-image-upload"
-                               class="absolute -bottom-2 -right-2 flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]">
-                            <span class="material-symbols-rounded text-[18px]">photo_camera</span>
-                            <input type="file" id="profile-image-upload" wire:model="image" class="hidden"
-                                   accept="image/*"/>
-                        </label>
-
-                        {{-- Delete Button (Top Left) --}}
-                        @if($existingImage && !$image)
-                            <button type="button" wire:click="confirmDeleteImage"
-                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
-                                    title="حذف تصویر">
-                                <span class="material-symbols-rounded text-[16px]">delete</span>
-                            </button>
-                        @endif
-
-                        {{-- Cancel New Upload Button (Top Left - if new image selected) --}}
-                        @if($image)
-                            <button type="button" wire:click="$set('image', null)"
-                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
-                                    title="انصراف">
-                                <span class="material-symbols-rounded text-[16px]">close</span>
-                            </button>
-                        @endif
-                    </div>
-
                     {{-- User Info --}}
                     <div class="space-y-3">
                         <div
@@ -119,8 +70,60 @@
                             <span
                                 class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">verified</span>
                         </div>
-                        @error('image') <p
-                            class="text-xs text-[var(--md-sys-color-error)] font-bold">{{ $message }}</p> @enderror
+                        @error('image')
+                        <p class="text-xs text-[var(--md-sys-color-error)] font-bold">{{ $message }}</p> @enderror
+                    </div>
+                    {{-- User Image --}}
+                    <div class="relative group mx-auto w-32 h-32">
+                        <div
+                            class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50 mx-auto">
+                            @if ($image)
+                                <img alt="profile-image" src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
+                            @elseif($existingImage)
+                                <img alt="profile-image" src="{{ Storage::url($existingImage) }}" class="w-full h-full object-cover">
+                            @else
+                                <div
+                                    class="w-full h-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span class="material-symbols-rounded text-5xl">person</span>
+                                </div>
+                            @endif
+                            <div wire:loading wire:target="image"
+                                 class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                                <x-dashboard.loader.spinner size="sm" class="text-white"/>
+                            </div>
+                        </div>
+
+                        {{-- Upload Button (Bottom Right) --}}
+                        <label for="profile-image-upload"
+                               class="absolute -bottom-2 -right-2 flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]">
+                            <span class="material-symbols-rounded text-[18px]">photo_camera</span>
+                            <input type="file" id="profile-image-upload" wire:model="image" class="hidden"
+                                   accept="image/*"/>
+                        </label>
+
+                        {{-- Delete Button (Top Left) --}}
+                        @if($existingImage && !$image)
+                            <button type="button"
+                                    wire:click="$dispatch('open-confirmation', {
+                                     title: 'حذف تصویر پروفایل',
+                                     message: 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.',
+                                     method:'confirmAction',
+                                     params: 'confirm-delete-profile-image'
+                                     })"
+                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
+                                    title="حذف تصویر">
+                                <span class="material-symbols-rounded text-[16px]">delete</span>
+                            </button>
+                        @endif
+
+                        {{-- Cancel New Upload Button (Top Left - if new image selected) --}}
+                        @if($image)
+                            <button type="button" wire:click="$set('image', null)"
+                                    class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
+                                    title="انصراف">
+                                <span class="material-symbols-rounded text-[16px]">close</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -166,7 +169,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             <x-dashboard.form.select label="سال" name="birthYear" wire:model="birthYear">
                                 <option value="">سال</option>
-                                @for($i = 1330; $i <= 1410; $i++)
+                                @for($i = (now()->year - 696); $i <= (now()->year - 616); $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </x-dashboard.form.select>
@@ -218,12 +221,19 @@
                                             icon="markunread_mailbox"/>
                     <x-dashboard.form.input label="تلفن ضروری" name="state.emergency_phone"
                                             wire:model="state.emergency_phone" icon="emergency"/>
-                    <x-dashboard.form.input label="نسبت فرد ضروری" name="state.emergency_relationship"
+                    <x-dashboard.form.input label="نسبت فرد ضروری"
+                                            @input="(e) => setDirection(e)"
+                                            x-init="(e) => setDirection(e)"
+                                            name="state.emergency_relationship"
                                             wire:model="state.emergency_relationship" icon="family_restroom"/>
                     <x-dashboard.form.input label="شماره پلاک خودرو" name="state.license_plate"
                                             wire:model="state.license_plate" icon="directions_car"/>
                     <div class="col-span-1 md:col-span-2 lg:col-span-3">
-                        <x-dashboard.form.textarea label="آدرس دقیق" name="state.address" wire:model="state.address"
+                        <x-dashboard.form.textarea label="آدرس دقیق"
+                                                   name="state.address"
+                                                   @input="(e) => setDirection(e)"
+                                                   x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
+                                                   wire:model="state.address"
                                                    icon="location_on" rows="2"/>
                     </div>
                 </div>
@@ -249,18 +259,26 @@
                         <option value="graduate">کارشناسی</option>
                         <option value="postgraduate">کارشناسی ارشد یا دکترا</option>
                     </x-dashboard.form.select>
-                    <x-dashboard.form.input label="رشته تحصیلی" name="state.field" wire:model="state.field"
+                    <x-dashboard.form.input label="رشته تحصیلی" name="state.field"
+                                            @input="(e) => setDirection(e)"
+                                            x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
+                                            wire:model="state.field"
                                             icon="menu_book"/>
                     <x-dashboard.form.input label="شماره بیمه" name="state.insurance" wire:model="state.insurance"
                                             icon="health_and_safety"/>
                     <x-dashboard.form.input label="سابقه کار" name="state.work_experience"
                                             wire:model="state.work_experience" icon="history"/>
                     <div class="col-span-1 md:col-span-3">
-                        <x-dashboard.form.textarea label="نیازهای ویژه (دسترسی)" name="state.accessibility"
+                        <x-dashboard.form.textarea label="نیازهای ویژه (دسترسی)"
+                                                   @input="(e) => setDirection(e)"
+                                                   x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
+                                                   name="state.accessibility"
                                                    wire:model="state.accessibility" icon="accessible" rows="2"/>
                     </div>
                     <div class="col-span-1 md:col-span-3">
                         <x-dashboard.form.textarea label="علایق و سرگرمی‌ها" name="state.interests"
+                                                   @input="(e) => setDirection(e)"
+                                                   x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
                                                    wire:model="state.interests" icon="favorite" rows="2"/>
                     </div>
 
@@ -281,7 +299,8 @@
                                     <div :style="`background-color: ${color}`"
                                          class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
                                     <span
-                                        class="material-symbols-rounded absolute text-white opacity-0 peer-checked:opacity-100 drop-shadow-md mix-blend-difference text-sm">check</span>
+                                        class="material-symbols-rounded absolute text-white opacity-0 peer-checked:opacity-100 drop-shadow-md mix-blend-difference text-sm"
+                                        :class="{ 'peer-checked:opacity-100 opacity-100': $wire.favoriteColors.includes(color) }">check</span>
                                 </label>
                             </template>
                         </div>
@@ -291,7 +310,7 @@
         </div>
     </div>
 
-    {{-- Sticky Footer Actions --}}
+    {{-- Actions --}}
     <div class="sticky bottom-4 z-30 flex justify-between items-center">
         <div class="flex gap-2">
             <button type="button" x-show="step > 1" @click="prevStep()"

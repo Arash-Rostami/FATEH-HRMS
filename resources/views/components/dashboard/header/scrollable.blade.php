@@ -2,4 +2,5 @@
 
     <x-dashboard.header.main/>
     <x-dashboard.navbar.top/>
+
 </div>

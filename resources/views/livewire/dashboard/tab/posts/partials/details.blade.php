@@ -5,7 +5,7 @@
 
             <button
                 @click="togglePanel()"
-                class="absolute top-6 left-6 w-10 h-10 rounded-full bg-black/40 text-white/90 flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
+                class="absolute top-6 left-6 w-10 h-10 rounded-lg bg-black/40 text-white/90 flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
             >
                 <span class="material-symbols-rounded font-bold">close</span>
             </button>
@@ -79,7 +79,7 @@
 
             <button
                 @click="togglePanel()"
-                class="px-8 py-2.5 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm shadow-md hover:shadow-xl hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:-translate-y-0.5 transition-all active:scale-95 active:shadow-sm"
+                class="px-8 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm shadow-md hover:shadow-xl hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:-translate-y-0.5 transition-all active:scale-95 active:shadow-sm"
             >
                 بستن
             </button>

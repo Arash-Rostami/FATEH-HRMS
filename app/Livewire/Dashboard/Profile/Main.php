@@ -9,6 +9,10 @@ class Main extends Component
 {
     public string $activeTab = 'info';
 
+    public function confirmAction(string $event)
+    {
+        $this->dispatch($event);
+    }
     public function render()
     {
         return view('livewire.dashboard.profile.index', [
@@ -20,11 +24,6 @@ class Main extends Component
     public function setTab(string $tab)
     {
         $this->activeTab = $tab;
-    }
-
-    public function confirmAction(string $event)
-    {
-        $this->dispatch($event);
     }
 
     private function calculateCompletion(): int
@@ -44,6 +43,6 @@ class Main extends Component
 
         $filled = collect($fields)->filter(fn($field) => !empty($profile->{$field}))->count();
 
-        return (int) round(($filled / count($fields)) * 100);
+        return (int)round(($filled / count($fields)) * 100);
     }
 }

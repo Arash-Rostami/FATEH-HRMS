@@ -35,6 +35,15 @@ if (!function_exists('jdate')) {
     }
 }
 
+if (!function_exists('isPast')) {
+    function isPast(string $time = null): bool
+    {
+        if (!$time) return false;
+
+        return Carbon::parse($time)->isPast();
+    }
+}
+
 
 if (!function_exists('presence')) {
     function presence(mixed $p): PresenceStatus

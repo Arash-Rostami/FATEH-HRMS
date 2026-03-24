@@ -2,21 +2,19 @@ export default function menu() {
     return {
         menuOpen: false,
         items: [
-            {href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
-            {href: '/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
-            {href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'شخصی‌سازی'},
-            {href: '/tools/export', icon: 'download', title: 'خروجی', sub: 'دریافت داده‌ها'},
-            {href: '/tools/import', icon: 'upload', title: 'ورودی', sub: 'بارگذاری فایل'},
-            {href: '/reports', icon: 'bar_chart', title: 'گزارشات', sub: 'تحلیل آماری'},
-            {href: '/projects', icon: 'folder_open', title: 'پروژه‌ها', sub: 'مدیریت کارها'},
-            {href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
-            {href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
-            {href: '/help', icon: 'support_agent', title: 'پشتیبانی', sub: 'مرکز راهنما'},
-            {href: '/security', icon: 'security', title: 'امنیت', sub: 'مجوزها و رمز'},
-            {href: '/logout', icon: 'power_settings_new', title: 'خروج', sub: 'پایان نشست'},
-            {href: '#', icon: 'api', title: 'API', sub: 'اتصالات'},
-            {href: '#', icon: 'history', title: 'تاریخچه', sub: 'لاگ سیستم'},
-            {href: '#', icon: 'cloud', title: 'فضای ابری', sub: 'مدیریت فایل'}
+            {id: 'dashboard-controller', href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
+            {id: 'profile-controller', href: '/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
+            {id: 'tasks-controller', href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'شخصی‌سازی'},
+            {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate'},
+            {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
+            {id: 'reports-controller', href: '/reports', icon: 'bar_chart', title: 'گزارشات', sub: 'تحلیل آماری'},
+            {id: 'projects-controller', href: '/projects', icon: 'folder_open', title: 'پروژه‌ها', sub: 'مدیریت کارها'},
+            {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
+            {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
+            {id: 'help-controller', href: '/help', icon: 'support_agent', title: 'پشتیبانی', sub: 'مرکز راهنما'},
+            {id: 'security-controller', href: '/security', icon: 'security', title: 'امنیت', sub: 'مجوزها و رمز'},
+            {id: '#-controller', href: '#', icon: 'api', title: 'API', sub: 'اتصالات'},
+
         ],
         current: 0,
         perPage: 12,
@@ -49,6 +47,9 @@ export default function menu() {
                 this.perPage = newPerPage;
                 this.current = 0;
             }
+        },
+        clickItems() {
+            return this.items.filter(item => item.action === 'calculate' || item.action === 'stopwatch');
         },
         init() {
             this.updatePerPage();
