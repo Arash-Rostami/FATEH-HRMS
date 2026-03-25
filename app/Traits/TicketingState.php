@@ -11,6 +11,7 @@ trait TicketingState
     public $ticketToRate = null;
     public ?array $selectedTicket = null;
     public string $activeTab = 'new';
+    public string $direction = 'up';
     public string $modalTab = 'request';
     public array $requestAreas = [];
     public array $fileInputs = [];
@@ -86,5 +87,17 @@ trait TicketingState
         $ticket = Ticket::with('assignee')->find($ticketId);
         $this->selectedTicket = $ticket ? $ticket->toArray() : null;
         $this->modalTab = 'request';
+    }
+
+    public function switchTab(string $tab): void
+    {
+        if ($this->activeTab === $tab) return;
+
+        $tabs = $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'];
+        $currentIndex = array_search($this->activeTab, $tabs);
+        $newIndex = array_search($tab, $tabs);
+
+        $this->direction = $newIndex > $currentIndex ? 'down' : 'up';
+        $this->activeTab = $tab;
     }
 }

@@ -26,7 +26,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
-                @forelse($tickets as $ticket)
+                @forelse($this->tickets as $ticket)
                     @php
                         $prio = $priorityMap[$ticket->priority] ?? null;
                         $stat = $statusMap[$ticket->status] ?? null;
@@ -111,5 +111,15 @@
 </div>
 
 <div class="mt-6 flex justify-center rtl" dir="ltr">
-    {{ $tickets->links('vendor.livewire.simple-tailwind') }}
 </div>
+@if($this->tickets->hasMorePages())
+    <div class="flex justify-center py-6 pb-12 w-full mt-4">
+        <button wire:click="loadMore"
+                class="group flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] transition-all shadow-sm hover:shadow-md outline-none">
+            <span wire:loading.remove wire:target="loadMore">بارگذاری بیشتر</span>
+            <span wire:loading wire:target="loadMore">در حال دریافت...</span>
+            <span class="material-symbols-rounded text-lg group-hover:translate-y-0.5 transition-transform" wire:loading.remove wire:target="loadMore">expand_more</span>
+            <span class="material-symbols-rounded text-lg animate-spin" wire:loading wire:target="loadMore">progress_activity</span>
+        </button>
+    </div>
+@endif

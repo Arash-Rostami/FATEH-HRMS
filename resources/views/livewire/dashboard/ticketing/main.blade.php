@@ -15,7 +15,7 @@
                 <div class="flex border-b border-[var(--md-sys-color-outline-variant)]/50 overflow-x-auto hide-scrollbar bg-[var(--md-sys-color-surface-container-lowest)]" role="tablist">
                     @if($ticketToRate)
                         <button
-                            wire:click="$set('activeTab', 'rate')"
+                            wire:click="switchTab('rate')"
                             role="tab"
                             :aria-selected="$wire.activeTab === 'rate'"
                             class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"
@@ -29,7 +29,7 @@
                         </button>
                     @else
                         <button
-                            wire:click="$set('activeTab', 'new')"
+                            wire:click="switchTab('new')"
                             role="tab"
                             :aria-selected="$wire.activeTab === 'new'"
                             class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"
@@ -44,7 +44,7 @@
                     @endif
 
                     <button
-                        wire:click="$set('activeTab', 'log')"
+                        wire:click="switchTab('log')"
                         role="tab"
                         :aria-selected="$wire.activeTab === 'log'"
                         class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"

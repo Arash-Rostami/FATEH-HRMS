@@ -7,17 +7,23 @@ use App\Traits\TicketingState;
 use App\Traits\TicketingValidation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Main extends Component
 {
-    use WithFileUploads, WithPagination, TicketingState, TicketingValidation;
+    use WithFileUploads, TicketingState, TicketingValidation;
+
+    public int $perPage = 10;
 
     public function mount()
     {
         $this->mountTicketingState();
+    }
+
+    public function loadMore(): void
+    {
+        $this->perPage += 10;
     }
 
     public function addFileInput(): void
@@ -70,12 +76,13 @@ class Main extends Component
             $paths = $this->storeAttachment();
             $this->persistTicket($data['ticket'], $paths);
 
-            $this->reset(['ticket', 'files', 'fileInputs']);
+            $this->reset(['ticket', 'files', 'fileInputs', 'perPage']);
             $this->ticket['requestType'] = 'support';
             $this->ticket['priority'] = 'low';
             $this->loadRequestAreas();
             $this->addFileInput();
             $this->activeTab = 'log';
+            $this->direction = 'up';
 
             $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
 
@@ -127,15 +134,16 @@ class Main extends Component
         return $paths;
     }
 
-    public function render()
+    public function getTicketsProperty()
     {
-        $tickets = Ticket::where('requester_id', auth()->id())
+        return Ticket::where('requester_id', auth()->id())
             ->orderByRaw("FIELD(status, 'open', 'in-progress', 'closed')")
             ->orderByDesc('created_at')
-            ->simplePaginate(10);
+            ->paginate($this->perPage);
+    }
 
-        return view('livewire.dashboard.ticketing.main', [
-            'tickets' => $tickets,
-        ])->extends('layouts.app')->section('content');
+    public function render()
+    {
+        return view('livewire.dashboard.ticketing.main')->extends('layouts.app')->section('content');
     }
 }
