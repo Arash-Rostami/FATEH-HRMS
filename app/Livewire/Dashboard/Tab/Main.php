@@ -65,6 +65,7 @@ class Main extends Component
                 'icon' => 'open_in_new',
                 'bg' => 'bg-surface-container-high'
             ],
+
             'faqs' => [
                 'component' => Faqs::class,
                 'label' => 'پرسش‌های متداول',

@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
     Route::get('/dms', Dms::class)->name('dms');
+    Route::get('/authorized/{filename}', function ($filename) { return response()->file(storage_path("app/private/dms/" . $filename)); })->where('filename', '.*')->name('secure-file');
     Route::view('/coming', 'layouts.toCome')->name('coming');
 
 
