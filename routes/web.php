@@ -31,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Main::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
+    Route::get('/ticketing', AppLivewireDashboardTicketingMain::class)->name('ticketing');
     Route::get('/dms', Dms::class)->name('dms');
     Route::get('/authorized/{filename}', [DMS::class, 'getAuthorizedFile'])
         ->where('filename', '.*')
