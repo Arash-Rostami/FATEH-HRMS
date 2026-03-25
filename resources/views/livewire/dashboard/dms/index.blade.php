@@ -54,7 +54,7 @@
             <!-- Table -->
             @include('livewire.dashboard.dms.partials.table')
 
-            @if($this->docs->hasMorePages())
+            @if($hasMorePages)
                 <div class="flex justify-center py-6 pb-2">
                     <button wire:click="loadMore"
                             class="group flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] transition-all shadow-sm hover:shadow-md">

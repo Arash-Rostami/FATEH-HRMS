@@ -4,22 +4,30 @@ namespace App\Livewire\Dashboard\Dms;
 
 use App\Models\DMS as DMSModel;
 use App\Models\Read;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class Main extends Component
 {
-    use WithPagination;
-
     #[Url]
     public string $search = '';
 
     #[Url]
     public ?string $activeFilter = 'all';
 
+    #[Locked]
+    public array $docIds = [];
+
     public int $perPage = 10;
+    public bool $hasMorePages = true;
+
+    public function mount()
+    {
+        $this->loadInitialDocs();
+    }
 
     #[Computed]
     public function confirmedDocs()
@@ -69,17 +77,14 @@ class Main extends Component
                 $document->increment('combined_read_count');
             }
 
-            // Unset computed properties to force refresh on next access
             unset($this->confirmedDocs);
             unset($this->readDocs);
         }
     }
 
-    #[Computed]
-    public function docs()
+    private function getBaseQuery(): Builder
     {
         return DMSModel::query()
-            ->with('reads')
             ->visibleToUser()
             ->when($this->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -98,8 +103,51 @@ class Main extends Component
                        ->orWhereJsonContains('extra->Type', $this->activeFilter);
                 });
             })
-            ->latest()
-            ->paginate($this->perPage);
+            ->latest();
+    }
+
+    #[Computed]
+    public function docs()
+    {
+        if (empty($this->docIds)) {
+            return collect();
+        }
+
+        $idsString = implode(',', $this->docIds);
+
+        return DMSModel::with('reads')
+            ->whereIn('id', $this->docIds)
+            ->orderByRaw("FIELD(id, {$idsString})")
+            ->get();
+    }
+
+    public function loadInitialDocs(): void
+    {
+        $this->docIds = $this->getBaseQuery()->take($this->perPage)->pluck('id')->toArray();
+        $this->hasMorePages = count($this->docIds) >= $this->perPage;
+
+        unset($this->docs);
+    }
+
+    public function loadMore(): void
+    {
+        if (!$this->hasMorePages) {
+            return;
+        }
+
+        $newIds = $this->getBaseQuery()
+            ->skip(count($this->docIds))
+            ->take($this->perPage)
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($newIds)) {
+            $this->hasMorePages = false;
+            return;
+        }
+
+        $this->docIds = array_merge($this->docIds, $newIds);
+        unset($this->docs);
     }
 
     #[Computed]
@@ -120,19 +168,14 @@ class Main extends Component
         return DMSModel::visibleToUser()->count();
     }
 
-    public function loadMore()
-    {
-        $this->perPage += 10;
-    }
-
     public function updatedSearch()
     {
-        $this->resetPage();
+        $this->loadInitialDocs();
     }
 
     public function updatedActiveFilter()
     {
-        $this->resetPage();
+        $this->loadInitialDocs();
     }
 
     public function render()
