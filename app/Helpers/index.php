@@ -35,6 +35,13 @@ if (!function_exists('jdate')) {
     }
 }
 
+if (!function_exists('jdateOnly')) {
+    function jdateOnly($date = null)
+    {
+        return jdate($date)->format('%d/%m/%Y');
+    }
+}
+
 if (!function_exists('isPast')) {
     function isPast(string $time = null): bool
     {

@@ -23,7 +23,7 @@
             <span class="material-symbols-rounded text-base animate-pulse" style="animation-duration: 2s;">chevron_right</span>
         </div>
 
-        <a href="{{ url('/tasks') }}"
+        <a href="{{ url('/tasks') }}" target="_blank"
            @mouseenter="setHover('tasks')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
@@ -70,7 +70,7 @@
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
 
-        <a href="{{ url('/dms') }}"
+        <a href="{{ url('/dms') }}" target="_blank"
            @mouseenter="setHover('dms')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
@@ -98,7 +98,7 @@
                       'scale-110 rotate-[8deg]': isHovered('dms'),
                       'scale-100': !isHovered('dms')
                   }"
-                  :style="isActive('dms') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_managed</span>
+                  :style="isActive('dms') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_open</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
                 مدیریت مستندات

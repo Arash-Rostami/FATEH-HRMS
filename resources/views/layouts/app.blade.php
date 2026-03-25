@@ -9,8 +9,11 @@
 
     @livewireStyles
 </head>
-<body class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
-<x-dashboard.header.scrollable/>
+<body
+    class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
+@unless(View::hasSection('minimal_layout'))
+    <x-dashboard.header.scrollable/>
+@endunless
 
 
 @isset($slot)
@@ -21,10 +24,14 @@
 
 @include('components.dashboard.tools.calculator')
 @include('components.dashboard.tools.stopwatch')
-<x-dashboard.modal.toast/>
-<x-dashboard.footer.occasion/>
 
-<x-dashboard.footer.main/>
+@unless(View::hasSection('minimal_layout'))
+    <x-dashboard.modal.toast/>
+    <x-dashboard.footer.occasion/>
+
+    <x-dashboard.footer.main/>
+@endunless
+
 @livewireScripts
 <x-service-worker/>
 </body>

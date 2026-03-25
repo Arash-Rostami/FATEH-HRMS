@@ -27,6 +27,7 @@ import taskboard from "./data/taskboard.js";
 import profile from "./data/profile.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
+import dms from "./data/dms.js";
 
 
 export default function initAlpine() {
@@ -71,6 +72,7 @@ export default function initAlpine() {
         Alpine.data('profile', profile)
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)
+        Alpine.data('dms', dms)
 
     })
 }

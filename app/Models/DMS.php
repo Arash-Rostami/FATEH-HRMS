@@ -21,10 +21,11 @@ class DMS extends Model
         'obsolete' => 'منسوخ شده',
     ];
     private static $statusIconMapping = [
-        'live' => '<i class="material-icons text-green-500">check_circle</i>',
-        'under_review' => '<i class="material-icons text-yellow-500">hourglass_bottom</i>',
-        'obsolete' => '<i class="material-icons text-red-500">cancel</i>',
+        'live' => '<span class="material-symbols-rounded text-green-500">check_circle</span>',
+        'under_review' => '<span class="material-symbols-rounded text-yellow-500">hourglass_empty</span>',
+        'obsolete' => '<span class="material-symbols-rounded text-red-500">cancel</span>',
     ];
+
     protected $table = 'dms';
     protected $fillable = [
         'file',
@@ -73,7 +74,9 @@ class DMS extends Model
             ->where(function ($query) {
                 $query
                     ->whereJsonContains('owners', 'ALL')
-                    ->orWhereJsonContains('owners', auth()->user()?->profile->department);
+                    ->orWhereJsonContains('owners', auth()->user()?->profile?->department)
+                    ->orWhereJsonContains('users', (string)auth()->id())
+                    ->orWhereJsonContains('users', auth()->id());
             });
     }
 }

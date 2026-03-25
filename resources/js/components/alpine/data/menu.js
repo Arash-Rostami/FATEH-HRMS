@@ -4,11 +4,11 @@ export default function menu() {
         items: [
             {id: 'dashboard-controller', href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
             {id: 'profile-controller', href: '/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
-            {id: 'tasks-controller', href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'شخصی‌سازی'},
+            {id: 'tasks-controller', href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'فردی/تیمی'},
             {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate'},
             {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
+            {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
             {id: 'reports-controller', href: '/reports', icon: 'bar_chart', title: 'گزارشات', sub: 'تحلیل آماری'},
-            {id: 'projects-controller', href: '/projects', icon: 'folder_open', title: 'پروژه‌ها', sub: 'مدیریت کارها'},
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
             {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
             {id: 'help-controller', href: '/help', icon: 'support_agent', title: 'پشتیبانی', sub: 'مرکز راهنما'},

@@ -1,6 +1,6 @@
 export default function particle(enabled) {
     return () => {
-        if (/(profile|tasks)/.test(window.location.href)) {
+        if (/(profile|tasks|dms)/.test(window.location.href)) {
             let canvas = document.getElementById('interactive-background');
             if (canvas) canvas.remove();
 
@@ -8,6 +8,11 @@ export default function particle(enabled) {
                 if (canvas) canvas.remove();
                 canvas = document.createElement('canvas');
                 canvas.id = 'interactive-background';
+                canvas.style.position = 'fixed';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.zIndex = '-10';
+                canvas.style.pointerEvents = 'none';
                 document.body.appendChild(canvas);
             }
             const ctx = canvas.getContext('2d', {alpha: true});
