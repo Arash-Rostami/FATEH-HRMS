@@ -65,12 +65,6 @@ class Main extends Component
                 'icon' => 'open_in_new',
                 'bg' => 'bg-surface-container-high'
             ],
-            'dms' => [
-                'component' => Dms::class,
-                'label' => 'مستندات',
-                'icon' => 'folder_open',
-                'bg' => 'bg-secondary-container'
-            ],
 
             'faqs' => [
                 'component' => Faqs::class,
