@@ -28,6 +28,7 @@ import profile from "./data/profile.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
 import dms from "./data/dms.js";
+import ths from "./data/ths.js";
 
 
 export default function initAlpine() {

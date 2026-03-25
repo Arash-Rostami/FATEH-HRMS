@@ -8,10 +8,9 @@ export default function menu() {
             {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate'},
             {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
             {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
-            {id: 'reports-controller', href: '/reports', icon: 'bar_chart', title: 'گزارشات', sub: 'تحلیل آماری'},
+            {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
             {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
-            {id: 'help-controller', href: '/help', icon: 'support_agent', title: 'پشتیبانی', sub: 'مرکز راهنما'},
             {id: 'security-controller', href: '/security', icon: 'security', title: 'امنیت', sub: 'مجوزها و رمز'},
             {id: '#-controller', href: '#', icon: 'api', title: 'API', sub: 'اتصالات'},
 

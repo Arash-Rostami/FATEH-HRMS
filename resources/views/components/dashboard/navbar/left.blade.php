@@ -117,8 +117,8 @@
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
 
-        <a href="{{ url('/coming') }}"
-           @mouseenter="setHover('suggestions')"
+        <a href="{{ url('/ths') }}" target="_blank"
+           @mouseenter="setHover('ths')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
                   rounded-r-2xl rounded-l-none
@@ -142,28 +142,29 @@
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
-                      'scale-110 rotate-[8deg]': isHovered('suggestions'),
-                      'scale-100': !isHovered('suggestions')
+                      'scale-110 rotate-[8deg]': isHovered('ths'),
+                      'scale-100': !isHovered('ths')
                   }"
-                  :style="isActive('suggestions') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">lightbulb</span>
+                  :style="isActive('ths') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">support_agent</span>
 
             <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
-                پیشنهادات
+                تیکتینگ
             </span>
 
-            <div x-show="isActive('suggestions')"
+            <div x-show="isActive('ths')"
                  x-transition:enter="transition-all duration-500 ease-out"
                  x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
                  x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
 
-            <div x-show="isHovered('suggestions') && !isActive('suggestions')"
+            <div x-show="isHovered('ths') && !isActive('ths')"
                  x-transition:enter="transition-opacity duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
     </aside>
+
 
     <div
         x-show="isExpanded"
