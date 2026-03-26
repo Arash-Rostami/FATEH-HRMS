@@ -1,62 +1,67 @@
-<form wire:submit.prevent="submitTicket" class="space-y-6 md:space-y-8">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {{-- Request Type --}}
+<form wire:submit.prevent="submitTicket" class="space-y-8 animate-[fade-in-up_0.4s_ease-out]">
+
+    {{-- Request Type & Area Selection --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 bg-[var(--md-sys-color-surface-container-lowest)] border border-[var(--md-sys-color-outline-variant)]/40 p-5 rounded-2xl shadow-sm">
         <div class="space-y-2">
             <label for="requestType" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)]">
-                <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">tune</span>
+                <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">category</span>
                 نوع درخواست:
             </label>
-            <div class="relative">
+            <div class="relative group">
                 <select id="requestType" wire:model.live="ticket.requestType"
-                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-colors">
-                    <option value="support">پشتیبانی</option>
-                    <option value="access">دسترسی</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)]">
-                    <span class="material-symbols-rounded text-xl">expand_more</span>
-                </div>
-            </div>
-            @error('ticket.requestType') <span class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
-        </div>
-
-        {{-- Request Area --}}
-        <div class="space-y-2">
-            <label for="requestArea" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)]">
-                <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">location_on</span>
-                حوزه درخواست:
-            </label>
-            <div class="relative">
-                <select id="requestArea" wire:model="ticket.requestArea"
-                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-colors">
-                    @foreach($requestAreas as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-all group-hover:border-[var(--md-sys-color-primary)]/50">
+                    <option value="">انتخاب کنید...</option>
+                    @foreach($requestTypes as $key => $type)
+                        <option value="{{ $key }}">{{ $type['label'] }}</option>
                     @endforeach
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)]">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
                     <span class="material-symbols-rounded text-xl">expand_more</span>
                 </div>
             </div>
-            @error('ticket.requestArea') <span class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
+            @error('ticket.requestType') <span class="text-xs text-[var(--md-sys-color-error)] mt-1 ml-1 block">{{ $message }}</span> @enderror
         </div>
 
-        {{-- Priority --}}
+        <div class="space-y-2">
+            <label for="requestArea" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)] {{ !$ticket['requestType'] ? 'opacity-50' : '' }}">
+                <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">layers</span>
+                حوزه درخواست:
+            </label>
+            <div class="relative group {{ !$ticket['requestType'] ? 'opacity-50 cursor-not-allowed' : '' }}">
+                <select id="requestArea" wire:model="ticket.requestArea"
+                        {{ !$ticket['requestType'] ? 'disabled' : '' }}
+                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-all group-hover:border-[var(--md-sys-color-primary)]/50 disabled:bg-[var(--md-sys-color-surface-variant)]/50">
+                    <option value="">انتخاب کنید...</option>
+                    @if($ticket['requestType'])
+                        @foreach($requestAreas as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    @endif
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
+                    <span class="material-symbols-rounded text-xl">expand_more</span>
+                </div>
+            </div>
+            @error('ticket.requestArea') <span class="text-xs text-[var(--md-sys-color-error)] mt-1 ml-1 block">{{ $message }}</span> @enderror
+        </div>
+
         <div class="space-y-2">
             <label for="priority" class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface)]">
                 <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">warning</span>
                 اولویت:
             </label>
-            <div class="relative">
+            <div class="relative group">
                 <select id="priority" wire:model="ticket.priority"
-                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-colors">
+                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-all group-hover:border-[var(--md-sys-color-primary)]/50">
                     <option value="low">کم</option>
                     <option value="medium">متوسط</option>
                     <option value="high">زیاد</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)]">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-4 text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">
                     <span class="material-symbols-rounded text-xl">expand_more</span>
                 </div>
             </div>
-            @error('ticket.priority') <span class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
+            @error('ticket.priority') <span class="text-xs text-[var(--md-sys-color-error)] mt-1 ml-1 block">{{ $message }}</span> @enderror
         </div>
     </div>
 
@@ -69,9 +74,9 @@
                     موضوع تیکت:
                 </label>
                 <input type="text" id="subject" wire:model="ticket.subject"
-                       class="w-full bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 shadow-sm transition-colors placeholder:text-[var(--md-sys-color-on-surface-variant)]/60"
+                       class="w-full bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 shadow-sm transition-all hover:border-[var(--md-sys-color-primary)]/50 placeholder:text-[var(--md-sys-color-on-surface-variant)]/60"
                        placeholder="موضوع را به‌طور خلاصه وارد کنید">
-                @error('ticket.subject') <span class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
+                @error('ticket.subject') <span class="text-xs text-[var(--md-sys-color-error)] block mt-1 ml-1">{{ $message }}</span> @enderror
             </div>
 
             <div class="space-y-2">
@@ -80,9 +85,9 @@
                     توضیحات تکمیلی:
                 </label>
                 <textarea id="description" wire:model="ticket.description"
-                          class="w-full bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 shadow-sm transition-colors placeholder:text-[var(--md-sys-color-on-surface-variant)]/60 min-h-[160px] resize-y"
+                          class="w-full bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-2 focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-4 shadow-sm transition-all hover:border-[var(--md-sys-color-primary)]/50 placeholder:text-[var(--md-sys-color-on-surface-variant)]/60 min-h-[160px] resize-y leading-relaxed"
                           placeholder="توضیحات کامل مشکل یا درخواست خود را وارد کنید..."></textarea>
-                @error('ticket.description') <span class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
+                @error('ticket.description') <span class="text-xs text-[var(--md-sys-color-error)] block mt-1 ml-1">{{ $message }}</span> @enderror
             </div>
         </div>
 
@@ -93,8 +98,8 @@
                     <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">attach_file</span>
                     ضمائم (اختیاری)
                 </span>
-                <button type="button" wire:click="addFileInput" class="text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-full p-1 transition-colors" title="افزودن فایل">
-                    <span class="material-symbols-rounded text-xl">add</span>
+                <button type="button" wire:click="addFileInput" class="text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-xl p-1.5 transition-colors group flex items-center justify-center border border-transparent hover:border-[var(--md-sys-color-primary)]/30" title="افزودن فایل">
+                    <span class="material-symbols-rounded text-xl group-active:scale-95 transition-transform">add</span>
                 </button>
             </label>
 
@@ -114,54 +119,54 @@
                              }"
                              class="flex items-center">
                             <label for="dropzone-file-{{ $key }}"
-                                   class="flex-1 flex flex-col items-center justify-center h-20 border-2 border-dashed rounded-xl cursor-pointer transition-colors"
-                                   :class="$wire.errors.has('files.{{ $key }}') ? 'border-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/10' : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]/50'">
+                                   class="flex-1 flex flex-col items-center justify-center h-20 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md"
+                                   :class="$wire.errors.has('files.{{ $key }}') ? 'border-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/10' : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]/60'">
 
                                 <div class="flex items-center justify-center w-full px-4 gap-3">
                                     <template x-if="url && type.startsWith('image/')">
-                                        <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-[var(--md-sys-color-outline-variant)]">
+                                        <div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-[var(--md-sys-color-outline-variant)] shadow-sm">
                                             <img :src="url" class="w-full h-full object-cover">
                                         </div>
                                     </template>
                                     <template x-if="url && !type.startsWith('image/')">
-                                        <div class="w-10 h-10 rounded-lg bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center shrink-0">
+                                        <div class="w-10 h-10 rounded-lg bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center shrink-0 shadow-inner">
                                             <span class="material-symbols-rounded text-[var(--md-sys-color-on-secondary-container)]">description</span>
                                         </div>
                                     </template>
                                     <template x-if="!url">
                                         <div class="flex flex-col items-center">
-                                            <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-2xl mb-1">cloud_upload</span>
-                                            <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]">آپلود فایل</span>
+                                            <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]/80 text-2xl mb-1 group-hover:text-[var(--md-sys-color-primary)] transition-colors group-hover:-translate-y-0.5 transform">cloud_upload</span>
+                                            <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">انتخاب فایل</span>
                                         </div>
                                     </template>
 
                                     <div x-show="url" class="flex-1 min-w-0">
-                                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="name"></p>
-                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5" x-text="size + ' MB'"></p>
+                                        <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="name"></p>
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 font-mono" x-text="size + ' MB'"></p>
                                     </div>
                                 </div>
                                 <input id="dropzone-file-{{ $key }}" type="file" class="hidden" wire:model="files.{{ $key }}" @change="initFile" />
                             </label>
 
                             @if($index > 0)
-                                <button type="button" wire:click="removeFileInput('{{ $key }}')" class="absolute -right-2 -top-2 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity transform scale-90 hover:scale-100">
-                                    <span class="material-symbols-rounded text-sm">close</span>
+                                <button type="button" wire:click="removeFileInput('{{ $key }}')" class="absolute -right-2 -top-2 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-all transform scale-90 hover:scale-100 border border-[var(--md-sys-color-surface)]">
+                                    <span class="material-symbols-rounded text-xs">close</span>
                                 </button>
                             @endif
                         </div>
-                        @error('files.' . $key) <p class="text-[10px] text-[var(--md-sys-color-error)] mt-1 ml-1">{{ $message }}</p> @enderror
+                        @error('files.' . $key) <p class="text-[10px] text-[var(--md-sys-color-error)] mt-1 ml-1 block">{{ $message }}</p> @enderror
                     </div>
                 @endforeach
             </div>
         </div>
     </div>
 
-    <div class="flex justify-end pt-4 border-t border-[var(--md-sys-color-outline-variant)]/50 mt-8">
+    <div class="flex justify-end pt-5 border-t border-[var(--md-sys-color-outline-variant)]/50 mt-8">
         <button type="submit"
                 wire:loading.attr="disabled"
-                class="flex items-center gap-2 px-6 py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-medium text-sm rounded-full hover:bg-opacity-90 shadow-md transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group">
-            <span wire:loading.remove wire:target="submitTicket">ثبت درخواست</span>
-            <span wire:loading wire:target="submitTicket">در حال ارسال...</span>
+                class="flex items-center gap-2 px-8 py-3 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.2)] hover:bg-opacity-90 transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group outline-none focus:ring-4 focus:ring-[var(--md-sys-color-primary)]/30">
+            <span wire:loading.remove wire:target="submitTicket">ثبت و ارسال درخواست</span>
+            <span wire:loading wire:target="submitTicket">در حال پردازش...</span>
             <span class="material-symbols-rounded text-[18px] transform rtl:-scale-x-100 group-hover:translate-x-1 transition-transform" wire:loading.remove wire:target="submitTicket">send</span>
             <span class="material-symbols-rounded text-[18px] animate-spin" wire:loading wire:target="submitTicket">progress_activity</span>
         </button>

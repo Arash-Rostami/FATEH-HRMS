@@ -32,7 +32,7 @@
                     $stat = $statusMap[$ticket->status] ?? null;
                     $fId = 'T-' . $ticket->created_at->format('ym') . '-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
                 @endphp
-                <tr class="hover:bg-[var(--md-sys-color-surface-container-lowest)] transition-colors group">
+                <tr class="hover:bg-[var(--md-sys-color-surface-container-lowest)] transition-colors group cursor-pointer" wire:click="viewTicket({{ $ticket->id }}); $dispatch('ths-modal')">
                     <td class="px-6 py-4 flex items-center gap-3">
                         <div class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] shrink-0 border border-[var(--md-sys-color-outline-variant)]/30 group-hover:border-[var(--md-sys-color-primary)]/30 transition-colors" title="{{ $prio['title'] ?? '' }}">
                             @if($prio)
@@ -89,7 +89,7 @@
                     </td>
 
                     <td class="px-6 py-4 text-center">
-                        <button wire:click="viewTicket({{ $ticket->id }})" class="p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors inline-flex group relative" title="مشاهده جزئیات">
+                        <button class="p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors inline-flex group relative" title="مشاهده جزئیات">
                             <span class="material-symbols-rounded text-[20px] group-hover:scale-110 transition-transform">visibility</span>
                         </button>
                     </td>
