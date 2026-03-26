@@ -41,7 +41,7 @@
             }
         }"
         @if($eventName)
-            @{{ $eventName }}.window="show = true"
+            {{ '@'.$eventName }}.window="show = true"
         @endif
         @keydown.escape.window="show = false"
         x-init="
