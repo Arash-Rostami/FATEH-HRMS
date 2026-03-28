@@ -77,6 +77,8 @@ class User extends Authenticatable
         return $this->hasMany(Feed::class);
     }
 
+    public function reservations(): HasMany { return $this->hasMany(Reservation::class); }
+
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);

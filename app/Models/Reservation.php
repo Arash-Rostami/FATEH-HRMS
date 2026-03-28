@@ -15,6 +15,7 @@ class Reservation extends Model
         'resource_id',
         'start_time',
         'end_time',
+        'is_full_day',
         'status',
         'cancelled_by_id',
         'cancelled_at',
@@ -48,6 +49,7 @@ class Reservation extends Model
             'start_time' => JalaliTimestamp::class,
             'end_time' => JalaliTimestamp::class,
             'cancelled_at' => JalaliTimestamp::class,
+            'is_full_day' => 'boolean',
         ];
     }
 }
