@@ -1,97 +1,59 @@
 <div
     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto"
-     dir="rtl"
-    x-data="ths">
+    style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;"
+    dir="rtl"
+    x-data="ths"
+    x-init="initPattern()"
+>
 
-
-    <div class="transition-all duration-300 min-h-screen flex flex-col pt-16 md:pt-0 relative z-10 pb-20 md:pb-0 max-w-[88rem] mx-auto page-wrapper">
-
-        <x-dashboard.tab.title
-            icon="support_agent"
-            title="تیکتینگ"
-{{--            :count="$this->totalDocs"--}}
+    <div
+        class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
+        <div class="max-w-[85rem] mx-auto space-y-6">
+            <x-dashboard.tab.title
+                icon="support_agent"
+                title="تیکتینگ"
+                :count="$this->totalTickets"
             />
 
-        <div class="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1400px] w-full mx-auto animate-[fade-in-up_0.6s_ease-out]">
-            <div class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+            <x-dashboard.button.tab-selector
+                :active-tab="$activeTab"
+                :has-a11y="true"
+                button-base-class="group relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 outline-none flex-1 min-w-[140px]"
+                button-active-class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md shadow-[var(--md-sys-color-primary)]/20"
+                button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
+                icon-base-class="material-symbols-rounded text-xl"
+                icon-active-class="font-variation-fill"
+                icon-inactive-class="opacity-70 group-hover:opacity-100"
+                :tabs="[
+                ['id' => 'rate', 'icon' => 'star','label' => 'ارزیابی','condition' => $ticketToRate ?? false],
+                ['id' => 'new','icon' => 'add_box','label' => 'تیکت جدید','condition' => !($ticketToRate ?? false)],
+                ['id' => 'log','icon' => 'history','label' => 'تاریخچه']
+            ]"/>
 
-                {{-- Tab Selector --}}
-                <div class="flex border-b border-[var(--md-sys-color-outline-variant)]/50 overflow-x-auto hide-scrollbar bg-[var(--md-sys-color-surface-container-lowest)]" role="tablist">
-                    @if($ticketToRate)
-                        <button
-                            wire:click="switchTab('rate')"
-                            role="tab"
-                            :aria-selected="$wire.activeTab === 'rate'"
-                            class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"
-                            :class="$wire.activeTab === 'rate'
-                                ? 'text-[var(--md-sys-color-primary)]'
-                                : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-[var(--md-sys-color-on-surface)]'"
-                        >
-                            <span class="material-symbols-rounded text-lg" :class="$wire.activeTab === 'rate' ? 'font-variation-fill' : ''">star</span>
-                            ارزیابی
-                            <div x-show="$wire.activeTab === 'rate'" x-transition class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--md-sys-color-primary)] rounded-t-full"></div>
-                        </button>
-                    @else
-                        <button
-                            wire:click="switchTab('new')"
-                            role="tab"
-                            :aria-selected="$wire.activeTab === 'new'"
-                            class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"
-                            :class="$wire.activeTab === 'new'
-                                ? 'text-[var(--md-sys-color-primary)]'
-                                : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-[var(--md-sys-color-on-surface)]'"
-                        >
-                            <span class="material-symbols-rounded text-lg" :class="$wire.activeTab === 'new' ? 'font-variation-fill' : ''">add_box</span>
-                            تیکت جدید
-                            <div x-show="$wire.activeTab === 'new'" x-transition class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--md-sys-color-primary)] rounded-t-full"></div>
-                        </button>
-                    @endif
+            <div x-show="$wire.activeTab !== 'log'"
+                 class='py-4 px-6 min-h-[400px] relative index-10 overflow-x-auto rounded-2xl  bg-[var(--md-sys-color-surface)] shadow-sm'>
 
-                    <button
-                        wire:click="switchTab('log')"
-                        role="tab"
-                        :aria-selected="$wire.activeTab === 'log'"
-                        class="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all relative flex-1 min-w-[140px]"
-                        :class="$wire.activeTab === 'log'
-                            ? 'text-[var(--md-sys-color-primary)]'
-                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-low)] hover:text-[var(--md-sys-color-on-surface)]'"
-                    >
-                        <span class="material-symbols-rounded text-lg" :class="$wire.activeTab === 'log' ? 'font-variation-fill' : ''">history</span>
-                        تاریخچه درخواست‌ها
-                        <div x-show="$wire.activeTab === 'log'" x-transition class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--md-sys-color-primary)] rounded-t-full"></div>
-                    </button>
+                <div x-show="$wire.activeTab === 'new' && !@js($ticketToRate)"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="w-full">
+                    @include('livewire.dashboard.ths.partials.create')
                 </div>
-
-                {{-- Content Area --}}
-                <div class="p-4 sm:p-6 lg:p-8 relative min-h-[400px]">
-
-                    <div x-show="$wire.activeTab === 'new' && !@js($ticketToRate)"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 translate-y-4"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="w-full">
-                        @include('livewire.dashboard.ths.partials.create')
-                    </div>
-
-                    <div x-show="$wire.activeTab === 'rate' && @js($ticketToRate)"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 translate-y-4"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="w-full">
-                        @include('livewire.dashboard.ths.partials.rate')
-                    </div>
-
-                    <div x-show="$wire.activeTab === 'log'"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 translate-y-4"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="w-full">
-                        @include('livewire.dashboard.ths.partials.list')
-                    </div>
+                <div x-show="$wire.activeTab === 'rate' && @js($ticketToRate)"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="w-full">
+                    @include('livewire.dashboard.ths.partials.rate')
                 </div>
+            </div>
+            <div x-show="$wire.activeTab === 'log'"
+                 x-transition:enter="animate-fade"
+                 class="w-full">
+                @include('livewire.dashboard.ths.partials.list')
             </div>
         </div>
     </div>
-
     @include('livewire.dashboard.ths.partials.modal')
 </div>

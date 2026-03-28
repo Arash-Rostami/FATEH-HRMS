@@ -13,13 +13,10 @@ class Faqs extends Component
 {
     use WithPagination;
 
-    #[Url]
     public string $search = '';
 
-    #[Url]
     public ?string $selectedCategory = null;
 
-    #[Url]
     public ?string $selectedDepartment = null;
 
     public int $perPage = 10;

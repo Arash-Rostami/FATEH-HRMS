@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 
 trait TicketingState
 {
@@ -37,9 +38,7 @@ trait TicketingState
         $this->loadRequestAreas();
         $this->ticketToRate = $this->loadTicketToRate();
 
-        if ($this->ticketToRate) {
-            $this->activeTab = 'rate';
-        }
+        if ($this->ticketToRate) $this->activeTab = 'rate';
     }
 
     public function getFormattedTicketId(?array $ticket): string
@@ -91,13 +90,36 @@ trait TicketingState
 
     public function switchTab(string $tab): void
     {
+        if (in_array($tab, ['request', 'response'])) {
+            $this->modalTab = $tab;
+            return;
+        }
+
         if ($this->activeTab === $tab) return;
 
         $tabs = $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'];
         $currentIndex = array_search($this->activeTab, $tabs);
         $newIndex = array_search($tab, $tabs);
 
-        $this->direction = $newIndex > $currentIndex ? 'down' : 'up';
+        if ($currentIndex !== false && $newIndex !== false) {
+            $this->direction = $newIndex > $currentIndex ? 'down' : 'up';
+        }
+
         $this->activeTab = $tab;
+    }
+
+    #[Computed]
+    public function tickets()
+    {
+        return Ticket::where('requester_id', auth()->id())
+            ->orderByRaw("FIELD(status, 'open', 'in-progress', 'closed')")
+            ->orderByDesc('created_at')
+            ->paginate($this->perPage ?? 10);
+    }
+
+    #[Computed]
+    public function totalTickets(): int
+    {
+        return $this->tickets->total();
     }
 }

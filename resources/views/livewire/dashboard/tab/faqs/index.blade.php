@@ -8,7 +8,7 @@
 >
 
     <div class="pb-0 shrink-0">
-        <x-dashboard.tab.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال" />
+        <x-dashboard.tab.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال"/>
     </div>
 
     @include('livewire.dashboard.tab.faqs.partials.modal')
@@ -20,6 +20,7 @@
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
         </div>
 
+        @island('faqs')
         @forelse($this->faqs as $faq)
             <div
                 x-data="{ expanded: false }"
@@ -110,15 +111,16 @@
 
         @if($this->faqs->hasMorePages())
             <div class="flex justify-center py-6 pb-12">
-                <button wire:click="loadMore"
-                        class="group flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] transition-all shadow-sm hover:shadow-md">
-                    <span>بارگذاری بیشتر</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                         stroke="currentColor" class="w-4 h-4 group-hover:translate-y-0.5 transition-transform">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                    </svg>
-                </button>
+                <x-dashboard.button.load-more
+                    action="loadMore"
+                    text="بارگذاری بیشتر"
+                    loading-text="در حال دریافت..."
+                    icon="expand_more"
+                    wire:island="faqs"
+                    class="font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+                />
             </div>
         @endif
+        @endisland
     </div>
 </div>

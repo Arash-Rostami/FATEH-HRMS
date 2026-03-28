@@ -1,4 +1,5 @@
-<form wire:submit.prevent="submitTicket" class="space-y-6 md:space-y-8">
+<form wire:submit.prevent="submitTicket"
+      class="space-y-6 md:space-y-8">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {{-- Request Type --}}
         <div class="space-y-2">
@@ -27,7 +28,7 @@
             </label>
             <div class="relative">
                 <select id="requestArea" wire:model="ticket.requestArea"
-                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-colors">
+                        class="w-full appearance-none bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-3 pr-4 shadow-sm transition-colors [&>option:not(:first-child)]:text-center">
                     @foreach($requestAreas as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
@@ -93,9 +94,10 @@
                     <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">attach_file</span>
                     ضمائم (اختیاری)
                 </span>
-                <button type="button" wire:click="addFileInput" class="text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-full p-1 transition-colors" title="افزودن فایل">
+                <button type="button" wire:click="addFileInput" class="text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] rounded-lg p-1 transition-colors" title="افزودن فایل">
                     <span class="material-symbols-rounded text-xl">add</span>
                 </button>
+
             </label>
 
             <div class="space-y-3 pt-2">
@@ -135,16 +137,25 @@
                                         </div>
                                     </template>
 
-                                    <div x-show="url" class="flex-1 min-w-0">
-                                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="name"></p>
-                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5" x-text="size + ' MB'"></p>
+                                    <div class="flex-1 min-w-0 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="name"></p>
+                                            <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5" x-text="size + ' MB'"></p>
+                                        </div>
+                                        <button type="button"
+                                                title="حذف"
+                                                @click.prevent="url=''; name=''; size=''; type=''; $el.closest('label').querySelector('input').value=''; $wire.set('files.{{ $key }}', null)"
+                                                class="ml-2 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded p-0.5 pb-0 transition-colors">
+                                            <span class="material-symbols-rounded text-base">close</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <input id="dropzone-file-{{ $key }}" type="file" class="hidden" wire:model="files.{{ $key }}" @change="initFile" />
                             </label>
 
                             @if($index > 0)
-                                <button type="button" wire:click="removeFileInput('{{ $key }}')" class="absolute -right-2 -top-2 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity transform scale-90 hover:scale-100">
+                                <button type="button" wire:click="removeFileInput('{{ $key }}')"
+                                        class="absolute -right-2 -top-2 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] rounded-lg p-0.5 pb-0 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity transform scale-90 hover:scale-100">
                                     <span class="material-symbols-rounded text-sm">close</span>
                                 </button>
                             @endif
@@ -157,13 +168,12 @@
     </div>
 
     <div class="flex justify-end pt-4 border-t border-[var(--md-sys-color-outline-variant)]/50 mt-8">
-        <button type="submit"
-                wire:loading.attr="disabled"
-                class="flex items-center gap-2 px-6 py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-medium text-sm rounded-full hover:bg-opacity-90 shadow-md transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group">
-            <span wire:loading.remove wire:target="submitTicket">ثبت درخواست</span>
-            <span wire:loading wire:target="submitTicket">در حال ارسال...</span>
-            <span class="material-symbols-rounded text-[18px] transform rtl:-scale-x-100 group-hover:translate-x-1 transition-transform" wire:loading.remove wire:target="submitTicket">send</span>
-            <span class="material-symbols-rounded text-[18px] animate-spin" wire:loading wire:target="submitTicket">progress_activity</span>
-        </button>
+        <x-dashboard.button.submit
+            target="submitTicket"
+            text="ثبت درخواست"
+            loading-text="در حال ارسال..."
+            icon="send"
+            class="px-6 py-2.5 font-medium rounded-xl shadow-md"
+        />
     </div>
 </form>

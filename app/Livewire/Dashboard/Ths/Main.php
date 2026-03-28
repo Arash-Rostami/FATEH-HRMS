@@ -5,10 +5,9 @@ namespace App\Livewire\Dashboard\Ths;
 use App\Models\Ticket;
 use App\Traits\TicketingState;
 use App\Traits\TicketingValidation;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class Main extends Component
 {
@@ -16,9 +15,9 @@ class Main extends Component
 
     public int $perPage = 10;
 
-    public function mount()
+    public function addFileInput(): void
     {
-        $this->mountTicketingState();
+        $this->fileInputs[] = uniqid('', true);
     }
 
     public function loadMore(): void
@@ -26,9 +25,9 @@ class Main extends Component
         $this->perPage += 10;
     }
 
-    public function addFileInput(): void
+    public function rate($score): void
     {
-        $this->fileInputs[] = uniqid('', true);
+        $this->satisfactionScore = (int)$score;
     }
 
     public function removeFileInput($key): void
@@ -41,16 +40,9 @@ class Main extends Component
         ));
     }
 
-    public function updated($propertyName)
+    public function render()
     {
-        if (Str::startsWith($propertyName, 'files.')) {
-            $this->resetErrorBag($propertyName);
-        }
-    }
-
-    public function rate($score): void
-    {
-        $this->satisfactionScore = (int)$score;
+        return view('livewire.dashboard.ths.index')->extends('layouts.app')->section('content');
     }
 
     public function submitRating()
@@ -77,17 +69,29 @@ class Main extends Component
             $this->persistTicket($data['ticket'], $paths);
 
             $this->reset(['ticket', 'files', 'fileInputs', 'perPage']);
+
+            $this->ticket['department'] = data_get(auth()->user(), 'profile.department.name', 'N/A');
             $this->ticket['requestType'] = 'support';
             $this->ticket['priority'] = 'low';
+
             $this->loadRequestAreas();
             $this->addFileInput();
+
             $this->activeTab = 'log';
             $this->direction = 'up';
 
             $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
+            $this->reset();
 
         } catch (\Exception $e) {
             $this->dispatch('toast', message: 'خطایی رخ داده است. لطفا دوباره تلاش کنید.', type: 'error');
+        }
+    }
+
+    public function updated($propertyName)
+    {
+        if (Str::startsWith($propertyName, 'files.')) {
+            $this->resetErrorBag($propertyName);
         }
     }
 
@@ -132,18 +136,5 @@ class Main extends Component
         }
 
         return $paths;
-    }
-
-    public function getTicketsProperty()
-    {
-        return Ticket::where('requester_id', auth()->id())
-            ->orderByRaw("FIELD(status, 'open', 'in-progress', 'closed')")
-            ->orderByDesc('created_at')
-            ->paginate($this->perPage);
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.ths.index')->extends('layouts.app')->section('content');
     }
 }

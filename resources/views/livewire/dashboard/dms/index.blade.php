@@ -5,69 +5,74 @@
      style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-dashboard.tab.title
-            icon="folder_open"
-            title="مستندات"
-            :count="$this->totalDocs"
-            countLabel="سند"/>
+        <div class="max-w-[85rem] mx-auto space-y-6">
 
-        <div class="mb-6 z-10 relative">
-            @include('livewire.dashboard.dms.partials.filters')
-        </div>
+            <x-dashboard.tab.title
+                icon="folder_open"
+                title="مستندات"
+                :count="$this->totalDocs"
+                countLabel="سند"/>
 
-        @include('livewire.dashboard.dms.partials.pdf-viewer')
-
-        <div class="space-y-6 relative z-10">
-            <div wire:loading.delay class="absolute inset-0 bg-[var(--md-sys-color-surface)]/50 z-50 flex items-center justify-center rounded-2xl backdrop-blur-sm">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
+            <div class="mb-6 z-10 relative">
+                @include('livewire.dashboard.dms.partials.filters')
             </div>
 
-            @if ($this->docs->whereNotIn('id', $this->confirmedDocs)->isNotEmpty())
-                <div class="relative z-20 backdrop-blur-md bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
-                    <div class="shrink-0 mt-1">
-                        <span class="material-symbols-rounded text-2xl text-[var(--md-sys-color-error)]">error</span>
+            @include('livewire.dashboard.dms.partials.pdf-viewer')
+
+            <div class="space-y-6 relative z-10">
+                <div wire:loading.delay
+                     class="absolute inset-0 bg-[var(--md-sys-color-surface)]/50 z-50 flex items-center justify-center rounded-2xl backdrop-blur-sm">
+                    <div
+                        class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
+                </div>
+
+                @if ($this->docs->whereNotIn('id', $this->confirmedDocs)->isNotEmpty())
+                    <div
+                        class="relative z-20 backdrop-blur-md bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
+                        <div class="shrink-0 mt-1">
+                            <span
+                                class="material-symbols-rounded text-2xl text-[var(--md-sys-color-error)]">error</span>
+                        </div>
+                        <div class="text-sm leading-relaxed text-justify">
+                            <p class="font-bold mb-1">اقدام مورد نیاز</p>
+                            این اسناد توسط سازمان به طور رسمی صادر شده‌اند. با کلیک بر روی
+                            "مشاهده سند"، تأیید می‌کنید که محتوای آن‌ها را مطالعه کرده و از آن مطلع شدید.
+                            این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می‌شود.
+                        </div>
                     </div>
-                    <div class="text-sm leading-relaxed text-justify">
-                        <p class="font-bold mb-1">اقدام مورد نیاز</p>
-                        این اسناد توسط سازمان به طور رسمی صادر شده‌اند. با کلیک بر روی
-                        "مشاهده سند"، تأیید می‌کنید که محتوای آن‌ها را مطالعه کرده و از آن مطلع شدید.
-                        این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می‌شود.
+                @endif
+
+                <div class="px-5 py-3 inline-flex flex-col gap-3.5">
+                    <div title="راهنمای وضعیت سند"
+                         class="flex items-center gap-6 text-sm font-medium text-[var(--md-sys-color-on-surface)] cursor-help">
+                        <div class="flex items-center gap-3 group">
+                            <div
+                                class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-error)] shadow-inner group-hover:scale-105 transition-transform"
+                                title="نشانگر امضا نشده">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent"></div>
+                                <div
+                                    class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-error)]/20 rounded-s-md"></div>
+                            </div>
+                            <span>امضا نشده</span>
+                        </div>
+
+                        <div class="flex items-center gap-3 group">
+                            <div
+                                class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-outline)] shadow-inner group-hover:scale-105 transition-transform"
+                                title="نشانگر خوانده نشده">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-outline-variant)]/40 to-transparent"></div>
+                                <div
+                                    class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-outline)]/40 rounded-s-md"></div>
+                            </div>
+                            <span>خوانده نشده</span>
+                        </div>
                     </div>
                 </div>
-            @endif
 
-            <div class="px-5 py-3 inline-flex flex-col gap-3.5">
-                <div title="راهنمای وضعیت سند" class="flex items-center gap-6 text-sm font-medium text-[var(--md-sys-color-on-surface)] cursor-help">
-                    <div class="flex items-center gap-3 group">
-                        <div class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-error)] shadow-inner group-hover:scale-105 transition-transform" title="نشانگر امضا نشده">
-                            <div class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent"></div>
-                            <div class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-error)]/20 rounded-s-md"></div>
-                        </div>
-                        <span>امضا نشده</span>
-                    </div>
-
-                    <div class="flex items-center gap-3 group">
-                        <div class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-outline)] shadow-inner group-hover:scale-105 transition-transform" title="نشانگر خوانده نشده">
-                            <div class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-outline-variant)]/40 to-transparent"></div>
-                            <div class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-outline)]/40 rounded-s-md"></div>
-                        </div>
-                        <span>خوانده نشده</span>
-                    </div>
-                </div>
+                @include('livewire.dashboard.dms.partials.table')
             </div>
-
-            @include('livewire.dashboard.dms.partials.table')
-
-            @if($hasMorePages)
-                <div class="flex justify-center py-6 pb-2">
-                    <button wire:click="loadMore" class="group flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] transition-all shadow-sm hover:shadow-md">
-                        <span>بارگذاری بیشتر</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 group-hover:translate-y-0.5 transition-transform">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                        </svg>
-                    </button>
-                </div>
-            @endif
         </div>
     </div>
 </div>

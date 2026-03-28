@@ -1,6 +1,6 @@
 export default function particle(enabled) {
     return () => {
-        if (/(profile|tasks|dms)/.test(window.location.href)) {
+        if (/(profile|tasks|dms|ths)/.test(window.location.href)) {
             let canvas = document.getElementById('interactive-background');
             if (canvas) canvas.remove();
 

@@ -74,6 +74,7 @@ export default function initAlpine() {
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)
         Alpine.data('dms', dms)
+        Alpine.data('ths', ths)
 
     })
 }

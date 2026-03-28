@@ -1,5 +1,5 @@
 @if ($ticketToRate)
-    <div class="bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)]/50 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
+    <div class="bg-[var(--md-sys-color-primary-container)]/10 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
         {{-- Decorative background element --}}
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-[var(--md-sys-color-primary)] opacity-5 rounded-full blur-2xl"></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--md-sys-color-secondary)] opacity-5 rounded-full blur-2xl"></div>
@@ -63,16 +63,15 @@
                     @error('satisfactionComment') <span class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
                 </div>
 
-                {{-- Submit Button --}}
                 <div class="pt-2 border-t border-[var(--md-sys-color-outline-variant)]/40">
-                    <button type="submit"
-                            wire:loading.attr="disabled"
-                            class="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm rounded-full hover:bg-[var(--md-sys-color-primary)]/90 shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mx-auto group">
-                        <span wire:loading.remove wire:target="submitRating">ثبت بازخورد</span>
-                        <span wire:loading wire:target="submitRating">در حال ثبت...</span>
-                        <span class="material-symbols-rounded text-[20px] rtl:-scale-x-100 group-hover:translate-x-1 transition-transform" wire:loading.remove wire:target="submitRating">thumb_up</span>
-                        <span class="material-symbols-rounded text-[20px] animate-spin" wire:loading wire:target="submitRating">progress_activity</span>
-                    </button>
+                    <x-dashboard.button.submit
+                        target="submitRating"
+                        text="ثبت بازخورد"
+                        loading-text="در حال ثبت..."
+                        icon="thumb_up"
+                        icon-size="text-[20px]"
+                        class="w-full sm:w-auto px-8 py-3 font-bold rounded-full shadow-lg hover:shadow-xl mx-auto"
+                    />
                 </div>
             </form>
         </div>

@@ -1,3 +1,4 @@
+@island('docs')
 <div
     class="overflow-x-auto rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
     <table class="w-full border-collapse text-sm">
@@ -128,3 +129,15 @@
         </tbody>
     </table>
 </div>
+@if($hasMorePages)
+    <div class="flex justify-center py-6 pb-2">
+        <x-dashboard.button.load-more
+            action="loadMore"
+            text="بارگذاری بیشتر"
+            loading-text="در حال دریافت..."
+            icon="expand_more"
+            class="font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+        />
+    </div>
+@endif
+@endisland

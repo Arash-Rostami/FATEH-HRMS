@@ -7,8 +7,8 @@
         <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
     </div>
 
+    @island(name: 'posts', lazy: true)
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
-        @island(name: 'posts', lazy: true)
         @if($this->posts->isNotEmpty())
             @foreach($this->posts as $post)
                 <article
@@ -66,17 +66,19 @@
                 <span class="text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]">هیچ پستی یافت نشد.</span>
             </div>
         @endif
-        @endisland
     </div>
 
     <div class="mt-8 mb-12 flex justify-center">
-        <button
-            wire:click="loadMore" wire:island="posts"
-            class="group px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm hover:shadow-md hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] active:scale-95 transition-all duration-300 flex items-center gap-2"
-        >
-            <span class="text-xs font-bold">نمایش بیشتر</span>
-            <span class="material-symbols-rounded text-xl group-hover:translate-y-0.5 transition-transform" wire:loading.remove target="loadMore">expand_more</span>
-            <div class="w-4 h-4 border-2 border-[var(--md-sys-color-primary)] border-t-transparent rounded-full animate-spin" wire:loading target="loadMore"></div>
-        </button>
+        <x-dashboard.button.load-more
+            action="loadMore"
+            text="نمایش بیشتر"
+            loading-text="در حال دریافت..."
+            icon="expand_more"
+            icon-size="text-xl"
+            wire:island="posts"
+            class="text-xs font-bold px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm hover:shadow-md hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] active:scale-95 duration-300"
+        />
     </div>
+    @endisland
+
 </section>
