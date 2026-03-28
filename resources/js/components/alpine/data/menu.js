@@ -11,10 +11,10 @@ export default function menu() {
             {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
 
             // New Reservation Navigation Buttons
-            {id: 'reservation-seat', href: '/dashboard?tab=reservation&type=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
-            {id: 'reservation-spot', href: '/dashboard?tab=reservation&type=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
-            {id: 'reservation-car', href: '/dashboard?tab=reservation&type=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
-            {id: 'reservation-appointment', href: '/dashboard?tab=reservation&type=appointment', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
+            {id: 'reservation-seat', href: '/reservation/seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
+            {id: 'reservation-spot', href: '/reservation/spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
+            {id: 'reservation-car', href: '/reservation/car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
+            {id: 'reservation-appointment', href: '/reservation/appointment', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
 
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
             {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},

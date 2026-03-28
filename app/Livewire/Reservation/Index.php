@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Dashboard\Tab\Reservation;
+namespace App\Livewire\Reservation;
 
 use App\Models\Reservation;
 use App\Models\ReservationPolicy;
@@ -75,6 +75,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.reservation.index');
+        return view('livewire.reservation.index');
     }
 }

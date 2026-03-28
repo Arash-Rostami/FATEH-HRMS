@@ -11,6 +11,7 @@ use App\Livewire\Dashboard\Ths\Main as Ths;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\Tab\Main;
 use App\Livewire\Dashboard\Taskboard\Main as TaskBoard;
+use App\Livewire\Reservation\Index as ReservationIndex;
 use Illuminate\Support\Facades\Route;
 
 
@@ -38,9 +39,10 @@ Route::middleware(['auth'])->group(function () {
         ->where('filename', '.*')
         ->name('secure-file');
 
+    // New Reservation Route
+    Route::get('/reservation/{type?}', ReservationIndex::class)->name('reservation');
+
     Route::view('/coming', 'layouts.toCome')->name('coming');
 
 
 });
-
-
