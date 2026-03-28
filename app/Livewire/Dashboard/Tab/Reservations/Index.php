@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Morilog\Jalali\Jalalian;
 
 class Index extends Component
 {
@@ -17,11 +18,50 @@ class Index extends Component
     public $startTime = '09:00';
     public $endTime = '10:00';
     public $filterFloor = null;
-    public $filterMetadata = [];
 
     public function mount()
     {
         $this->date = now()->toDateString();
+    }
+
+    #[Computed]
+    public function availableDates()
+    {
+        $dates = [];
+        $today = now();
+        for ($i = 0; $i < 14; $i++) {
+            $date = $today->copy()->addDays($i);
+            $jalali = Jalalian::fromCarbon($date);
+            $dates[] = [
+                'value' => $date->toDateString(),
+                'day' => $jalali->format('l'), // شنبه
+                'date' => $jalali->format('d'), // ۲۵
+                'month' => $jalali->format('F'), // مهر
+                'isToday' => $i === 0,
+            ];
+        }
+        return $dates;
+    }
+
+    #[Computed]
+    public function availableTimeSlots()
+    {
+        $slots = [];
+        for ($h = 8; $h <= 18; $h++) {
+            $slots[] = sprintf('%02d:00', $h);
+            $slots[] = sprintf('%02d:30', $h);
+        }
+        return $slots;
+    }
+
+    #[Computed]
+    public function availableFloors()
+    {
+        return [
+            ['value' => '1', 'label' => 'طبقه ۱'],
+            ['value' => '2', 'label' => 'طبقه ۲'],
+            ['value' => '3', 'label' => 'طبقه ۳'],
+        ];
     }
 
     #[Computed]
@@ -30,7 +70,7 @@ class Index extends Component
         $query = Resource::where('type', $this->type)->where('status', 'active');
 
         if ($this->filterFloor) {
-             // Example JSON search: metadata->floor
+             // Use MySQL JSON extraction operator ->> for better performance
              $query->where('metadata->floor', $this->filterFloor);
         }
 
@@ -44,6 +84,7 @@ class Index extends Component
              ->where('status', 'active')
              ->whereDate('start_time', '>=', now()->toDateString())
              ->with('resource')
+             ->orderBy('start_time')
              ->get();
     }
 
@@ -53,10 +94,34 @@ class Index extends Component
         $this->resetFilters();
     }
 
+    public function setDate($date)
+    {
+        $this->date = $date;
+    }
+
+    public function setStartTime($time)
+    {
+        $this->startTime = $time;
+    }
+
+    public function setEndTime($time)
+    {
+        $this->endTime = $time;
+    }
+
+    public function setFloor($floor)
+    {
+        // Toggle behavior
+        if ($this->filterFloor === $floor) {
+            $this->filterFloor = null;
+        } else {
+            $this->filterFloor = $floor;
+        }
+    }
+
     public function resetFilters()
     {
         $this->filterFloor = null;
-        $this->filterMetadata = [];
     }
 
     public function book(int $resourceId)
@@ -68,7 +133,6 @@ class Index extends Component
             $start = Carbon::parse($this->date)->startOfDay();
             $end = Carbon::parse($this->date)->endOfDay();
         } else {
-            // It's an appointment (hourly metric)
             $start = Carbon::parse($this->date . ' ' . $this->startTime);
             $end = Carbon::parse($this->date . ' ' . $this->endTime);
         }
@@ -76,9 +140,19 @@ class Index extends Component
         $service = new ReservationService();
         try {
             $service->createReservation(Auth::user(), $resource, $start, $end, $isFullDay);
-            $this->dispatch('notify', ['message' => 'Reservation successful', 'type' => 'success']);
+
+            // Dispatch to existing global UI notification pattern
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'رزرو با موفقیت انجام شد'
+            ]);
+
+            // Clear cache for computed properties implicitly by Livewire state change
         } catch (\Exception $e) {
-            $this->dispatch('notify', ['message' => $e->getMessage(), 'type' => 'error']);
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
@@ -88,9 +162,15 @@ class Index extends Component
         $service = new ReservationService();
         try {
             $service->cancelReservation($reservation, Auth::user());
-            $this->dispatch('notify', ['message' => 'Reservation cancelled successfully', 'type' => 'success']);
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'رزرو لغو شد'
+            ]);
         } catch (\Exception $e) {
-            $this->dispatch('notify', ['message' => $e->getMessage(), 'type' => 'error']);
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
