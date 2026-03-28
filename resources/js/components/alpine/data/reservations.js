@@ -1,10 +1,7 @@
 export default () => ({
-    openFilterModal: false,
-    selectedType: 'seat',
-    selectedDate: null,
-
     init() {
-        // Initialize reservations component logic
+        // Enforce specific layout setups if required on initialization
+        console.log('Reservations MD3 component initialized');
     },
 
     openFilter() {
@@ -15,10 +12,7 @@ export default () => ({
         this.openFilterModal = false;
     },
 
-    confirmFilter() {
-        this.closeFilter();
-        if (typeof Livewire !== 'undefined') {
-            Livewire.dispatch('refresh-resources', { type: this.selectedType, date: this.selectedDate });
-        }
+    scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 });

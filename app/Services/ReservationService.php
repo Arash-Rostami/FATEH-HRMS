@@ -133,7 +133,7 @@ class ReservationService
         }
 
         if ($start->isSameDay(now()) && now()->diffInHours($start, false) < $windowHours) {
-           // throw new Exception("Booking must be made at least {$windowHours} hours in advance.");
+           throw new Exception("Booking must be made at least {$windowHours} hours in advance.");
         }
 
         if (!$this->isResourceAvailable($resource, $start, $end, $isFullDay)) {
