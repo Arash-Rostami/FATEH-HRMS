@@ -17,8 +17,23 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->integer('maximum')->default(12);
+            $table->string('type')->default('employee');
+            $table->string('role')->default('user');
+            $table->string('status')->default('active');
+            $table->string('presence')->default('on-leave');
+            $table->json('booking')->default('{"car": false, "seat": true, "spot": true, "meeting": true, "all": false}');
+            $table->timestamp('last_seen')->nullable();
+            $table->json('extra')->nullable();
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index('role');
+            $table->index('status');
+            $table->index('type');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

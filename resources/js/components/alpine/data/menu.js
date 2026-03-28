@@ -9,6 +9,12 @@ export default function menu() {
             {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
             {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
             {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
+
+            {id: 'reservation-seat', href: '/reservation/seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
+            {id: 'reservation-spot', href: '/reservation/spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
+            {id: 'reservation-car', href: '/reservation/car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
+            {id: 'reservation-appointment', href: '/reservation/appointment', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
+
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
             {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
             {id: 'security-controller', href: '/security', icon: 'security', title: 'امنیت', sub: 'مجوزها و رمز'},
@@ -22,7 +28,7 @@ export default function menu() {
         },
         pageItems(index) {
             const start = index * this.perPage;
-            return this.items.slice(start, start + this.perPage);
+            return this.items.filter(item => item.href !== '-').slice(start, start + this.perPage);
         },
         toggleMenu() {
             this.menuOpen = !this.menuOpen;

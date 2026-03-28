@@ -29,6 +29,7 @@ import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
 import dms from "./data/dms.js";
 import ths from "./data/ths.js";
+import reservation from "./data/reservation.js";
 
 
 export default function initAlpine() {
@@ -75,6 +76,7 @@ export default function initAlpine() {
         Alpine.data('stopwatch', stopwatch)
         Alpine.data('dms', dms)
         Alpine.data('ths', ths)
+        Alpine.data('reservation', reservation)
 
     })
 }

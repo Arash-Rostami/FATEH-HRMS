@@ -35,6 +35,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $attributes = [
+        'booking' => '{"car": false, "seat": true, "spot": true, "meeting": true, "all": false}',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -42,6 +46,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_seen' => 'datetime',
             'extra' => 'array',
+            'maximum' => 'integer',
+            'booking' => 'array',
             'presence' => PresenceStatus::class,
         ];
     }

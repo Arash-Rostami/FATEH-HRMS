@@ -8,6 +8,7 @@ use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Ths\Main as Ths;
+use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\Tab\Main;
 use App\Livewire\Dashboard\Taskboard\Main as TaskBoard;
@@ -34,6 +35,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tasks', TaskBoard::class)->name('tasks');
     Route::get('/dms', Dms::class)->name('dms');
     Route::get('/ths', Ths::class)->name('ths');
+    Route::get('/reservation/{type?}', Reservation::class)->name('reservation');
+
     Route::get('/authorized/{filename}', [DMS::class, 'getAuthorizedFile'])
         ->where('filename', '.*')
         ->name('secure-file');
