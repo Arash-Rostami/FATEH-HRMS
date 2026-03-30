@@ -1,11 +1,9 @@
+import settings from "./settings.js";
+
 export default () => ({
-    init() {
-        if (typeof Alpine !== 'undefined' && Alpine.store('settings')) {
-            const bg = Alpine.store('settings').backgroundPattern;
-            if (bg) {
-                this.$el.style.backgroundImage = bg;
-            }
-        }
+    initPattern() {
+        const settingInstance = settings();
+        return settingInstance.initPattern();
     },
 
     scrollToTop() {

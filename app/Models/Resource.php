@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +49,18 @@ class Resource extends Model
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    public function scopeAvailable(Builder $q, string $type, Carbon $start, Carbon $end, ?string $floor = null): Builder
+    {
+        return $q->where('type', $type)
+            ->where('status', 'active')
+            ->when($floor, fn($q, $f) => $q->where('metadata->floor', $f))
+            ->whereDoesntHave('reservations', fn($q) => $q
+                ->whereIn('status', ['active', 'released'])
+                ->where('start_time', '<', $end)
+                ->where('end_time', '>', $start)
+            );
     }
 
     protected function displayImage(): Attribute

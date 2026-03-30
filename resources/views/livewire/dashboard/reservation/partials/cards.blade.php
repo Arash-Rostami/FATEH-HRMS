@@ -50,4 +50,16 @@
             </div>
         </x-dashboard.modal.base>
     </div>
+
+    @if($this->totalResources > count($this->resources))
+        <div class="mt-8 flex justify-center relative z-1">
+            <x-dashboard.button.load-more
+                action="loadMoreResources"
+                text="نمایش موارد بیشتر"
+                loadingText="در حال بارگذاری..."
+                icon="expand_more"
+                class="px-6 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] text-sm font-semibold shadow-sm"
+            />
+        </div>
+    @endif
 @endif

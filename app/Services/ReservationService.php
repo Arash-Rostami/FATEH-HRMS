@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Reservation;
 use App\Models\ReservationPolicy;
 use App\Models\Resource;
+use App\Models\Event;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -80,14 +81,26 @@ class ReservationService
 
         if ($hasConflict) throw new Exception("شما در این بازه زمانی، رزرو فعال دیگری از همین نوع دارید.");
 
-        return DB::transaction(fn() => Reservation::create([
-            'user_id' => $user->id,
-            'resource_id' => $resource->id,
-            'start_time' => $start,
-            'end_time' => $end,
-            'is_full_day' => $isFullDay,
-            'status' => 'active',
-        ]));
+        return DB::transaction(function () use ($user, $resource, $start, $end, $isFullDay) {
+            $reservation = Reservation::create([
+                'user_id'     => $user->id,
+                'resource_id' => $resource->id,
+                'start_time'  => $start,
+                'end_time'    => $end,
+                'is_full_day' => $isFullDay,
+                'status'      => 'active',
+            ]);
+
+            if ($resource->type === 'meeting' && $related = $resource->relatedUser) {
+                $base = ['date' => $start, 'private' => true, 'description' => 'جلسه برنامه‌ریزی شده از طریق سیستم رزرواسیون'];
+
+                foreach ([[$user, $related], [$related, $user]] as [$host, $guest]) {
+                    Event::create(array_merge($base, ['user_id' => $host->id, 'title' => 'جلسه با ' . $guest->name]));
+                }
+            }
+
+            return $reservation;
+        });
     }
 
     public function getResourcePolicies(string $type): array
