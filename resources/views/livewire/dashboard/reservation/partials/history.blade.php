@@ -17,19 +17,19 @@
         ];
     @endphp
 
-    <div class="flex bg-[var(--md-sys-color-surface-container-low)] p-1 rounded-2xl shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 w-full mb-4 overflow-x-auto custom-scrollbar">
-        @foreach($historyTabs as $tab)
-            <button wire:click="switchHistoryTab('{{ $tab['id'] }}')"
-                    class="flex-1 relative flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-[12px] sm:text-[13px] font-bold rounded-xl transition-all duration-300 outline-none whitespace-nowrap {{ $activeHistoryTab === $tab['id'] ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]' }}">
-                @if($activeHistoryTab === $tab['id'])
-                    <span class="absolute inset-0 rounded-xl bg-[var(--md-sys-color-primary-container)] shadow-sm shadow-[var(--md-sys-color-primary)]/10"></span>
-                @endif
-                <span class="material-symbols-rounded text-[16px] sm:text-[18px] relative z-10 {{ $activeHistoryTab === $tab['id'] ? 'font-fill' : 'opacity-70' }}">
-                    {{ $tab['icon'] }}
-                </span>
-                <span class="relative z-10">{{ $tab['label'] }}</span>
-            </button>
-        @endforeach
+    <div class="w-full mb-4">
+        <x-dashboard.button.tab-selector
+            :tabs="$historyTabs"
+            action="switchHistoryTab"
+            :active-tab="$activeHistoryTab"
+            class="flex w-full bg-[var(--md-sys-color-surface-container-low)] p-1 rounded-2xl shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 overflow-x-auto custom-scrollbar"
+            button-base-class="flex-1 relative flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-[12px] sm:text-[13px] font-bold rounded-xl transition-all duration-300 outline-none whitespace-nowrap"
+            button-active-class="bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-sm shadow-[var(--md-sys-color-primary)]/10"
+            button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]"
+            icon-base-class="material-symbols-rounded text-[16px] sm:text-[18px] relative z-10"
+            icon-active-class="font-fill"
+            icon-inactive-class="opacity-70"
+        />
     </div>
 
     <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] p-2 flex flex-col gap-2 shadow-sm overflow-y-auto"

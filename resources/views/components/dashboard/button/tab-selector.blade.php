@@ -8,6 +8,7 @@
     'iconActiveClass' => '',
     'iconInactiveClass' => '',
     'hasA11y' => false,
+    'action' => 'switchTab',
 ])
 
 <div
@@ -17,7 +18,7 @@
     @foreach($tabs as $tab)
         @if($tab['condition'] ?? true)
             <button
-                wire:click="switchTab('{{ $tab['id'] }}')"
+                wire:click="{{ $action }}('{{ $tab['id'] }}')"
                 @if($hasA11y)
                     role="tab"
                 :aria-selected="$wire.activeTab === '{{ $tab['id'] }}'"
