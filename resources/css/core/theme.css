@@ -659,3 +659,13 @@ button {
     height: 100%;
     z-index: -1!important;
 }
+.custom-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.custom-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.mask-fade-right {
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}

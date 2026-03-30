@@ -143,3 +143,31 @@ if (!function_exists('getFileExtension')) {
         return strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
     }
 }
+
+if (!function_exists('convertToPersian')) {
+    function convertToPersian(?string $string): ?string
+    {
+        if ($string === null) return null;
+
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+        return str_replace($english, $persian, $string);
+    }
+}
+
+if (!function_exists('toJalali')) {
+    function toJalali(mixed $date, string $format = 'Y/m/d H:i'): string
+    {
+        if (empty($date)) return '';
+        if ($date instanceof Carbon) return Jalalian::fromCarbon($date)->format($format);
+
+        $dateString = (string)$date;
+        $dateString = str_replace('/', '-', $dateString);
+        $year = (int)explode('-', $dateString)[0];
+
+        if ($year >= 1300 && $year <= 1500) return $dateString;
+
+        return Jalalian::fromCarbon(Carbon::parse($dateString))->format($format);
+    }
+}

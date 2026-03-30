@@ -1,24 +1,28 @@
 export default () => ({
-    openFilterModal: false,
-    selectedType: 'seat',
-    selectedDate: null,
-
     init() {
-        console.log('Reservation component initialized');
+        if (typeof Alpine !== 'undefined' && Alpine.store('settings')) {
+            const bg = Alpine.store('settings').backgroundPattern;
+            if (bg) {
+                this.$el.style.backgroundImage = bg;
+            }
+        }
     },
 
-    openFilter() {
-        this.openFilterModal = true;
+    scrollToTop() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
     },
 
-    closeFilter() {
-        this.openFilterModal = false;
+    scrollNext(btnEl) {
+        const container = btnEl.previousElementSibling;
+        if (container) {
+            container.scrollBy({left: -250, behavior: 'smooth'});
+        }
     },
 
-    confirmFilter() {
-        this.closeFilter();
-        if (typeof Livewire !== 'undefined') {
-            Livewire.dispatch('refresh-resources', { type: this.selectedType, date: this.selectedDate });
+    scrollPrev(btnEl) {
+        const container = btnEl.nextElementSibling;
+        if (container) {
+            container.scrollBy({left: 250, behavior: 'smooth'});
         }
     }
 });

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('type'); // seat, spot, car, appointment
-            $table->json('metadata')->nullable(); // extension, floor, card, user_id (for appointments), etc.
-            $table->string('status')->default('active'); // active, inactive
+            $table->json('metadata')->nullable();
+            $table->string('status')->default('active');
             $table->string('image')->nullable();
             $table->timestamps();
         });

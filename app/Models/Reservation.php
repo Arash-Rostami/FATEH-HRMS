@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\JalaliTimestamp;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +15,7 @@ class Reservation extends Model
         'resource_id',
         'start_time',
         'end_time',
+        'is_full_day',
         'status',
         'cancelled_by_id',
         'cancelled_at',
@@ -45,9 +46,28 @@ class Reservation extends Model
     protected function casts(): array
     {
         return [
-            'start_time' => JalaliTimestamp::class,
-            'end_time' => JalaliTimestamp::class,
-            'cancelled_at' => JalaliTimestamp::class,
+            'start_time' => 'datetime',
+            'end_time' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'is_full_day' => 'boolean',
         ];
+    }
+
+    protected function displayTime(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $bookingDate = convertToPersian(toJalali($this->start_time, 'Y/m/d'));
+
+                if ($this->is_full_day) {
+                    return $bookingDate . ' (تمام روز)';
+                }
+
+                $startTime = convertToPersian(toJalali($this->start_time, 'H:i'));
+                $endTime = convertToPersian(toJalali($this->end_time, 'H:i'));
+
+                return $bookingDate . ' • ' . $startTime . ' تا ' . $endTime;
+            }
+        );
     }
 }

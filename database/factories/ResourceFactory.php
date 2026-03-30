@@ -13,7 +13,7 @@ class ResourceFactory extends Factory
     {
         return [
             'name' => $this->faker->words(3, true),
-            'type' => $this->faker->randomElement(['room', 'equipment', 'vehicle']),
+            'type' => $this->faker->randomElement(['seat', 'spot', 'car', 'meeting']),
             'metadata' => [
                 'capacity' => $this->faker->numberBetween(2, 100),
                 'location' => $this->faker->company(),

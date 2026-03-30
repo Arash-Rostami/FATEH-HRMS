@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('resource_id')->constrained('resources')->cascadeOnDelete();
             $table->timestamp('start_time')->nullable();
             $table->timestamp('end_time')->nullable();
+            $table->boolean('is_full_day')->default(false);
             $table->string('status')->default('active');
             $table->foreignId('cancelled_by_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('cancelled_at')->nullable();

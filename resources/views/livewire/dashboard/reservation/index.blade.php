@@ -1,34 +1,59 @@
-<div x-data="reservation" class="w-full h-full flex flex-col p-4 space-y-4">
-    <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Reservations</h2>
-        <div class="flex space-x-2 rtl:space-x-reverse">
-            <!-- Filter Actions -->
-            <button @click="openFilterModal = true" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Filter</button>
+<div
+    class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto"
+    style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;"
+    dir="rtl"
+    x-data="reservation"
+>
+    <div class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
+        <div class="max-w-[85rem] mx-auto space-y-6">
+
+            <x-dashboard.tab.title
+                icon="event_available"
+                title="سامانه رزرواسیون هوشمند"
+                :count="count($this->resources)"
+                countLabel="مورد"/>
+
+            <x-dashboard.button.tab-selector
+                wire:key="tab-selector-{{ $activeTab }}"
+                :active-tab="$activeTab"
+                :has-a11y="true"
+                button-base-class="group relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 outline-none flex-1 min-w-[140px]"
+                button-active-class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md shadow-[var(--md-sys-color-primary)]/20"
+                button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
+                icon-base-class="material-symbols-rounded text-xl"
+                icon-active-class="font-variation-fill"
+                icon-inactive-class="opacity-70 group-hover:opacity-100"
+                :tabs="$tabs"
+            />
+
+            <div class="px-4 md:px-12 mb-6 animate-slide-up-fade">
+                @include('livewire.dashboard.reservation.partials.date')
+            </div>
+
+            <div class="px-4 md:px-12 mb-8 animate-slide-up-fade flex flex-col gap-6">
+                @if($activeTab == 'meeting')
+                    @include('livewire.dashboard.reservation.partials.time')
+                @endif
+
+                @if($activeTab === 'seat' || $activeTab === 'spot')
+                    @include('livewire.dashboard.reservation.partials.filter')
+                @endif
+            </div>
+
+            <div class="px-4 md:px-12 mb-8">
+                <div class="w-full h-px bg-[var(--md-sys-color-outline-variant)]" style="opacity: 0.3;"></div>
+            </div>
+
+            <div class="px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12 w-full items-start">
+                <div class="lg:col-span-8 xl:col-span-9 space-y-6 animate-slide-up-fade min-w-0"
+                     style="animation-delay: 0.25s;">
+                    @include('livewire.dashboard.reservation.partials.cards')
+                </div>
+
+                <div class="lg:col-span-4 xl:col-span-3 min-w-0 h-full">
+                    @include('livewire.dashboard.reservation.partials.history')
+                </div>
+            </div>
         </div>
-    </div>
-
-    <!-- Smart Table / Grid view -->
-    <div class="flex-1 overflow-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
-        @if($errorMessage)
-            <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
-                {{ $errorMessage }}
-            </div>
-        @endif
-
-        @if(count($resources) > 0)
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($resources as $resource)
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-600 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $resource->name }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 capitalize">{{ $resource->type }}</p>
-                        </div>
-                        <button wire:click="bookResource({{ $resource->id }})" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Book Now</button>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <p class="text-gray-500 dark:text-gray-400 text-center">Select filters to view available resources.</p>
-        @endif
     </div>
 </div>

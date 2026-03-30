@@ -11,7 +11,11 @@ class ReservationPolicy extends Model
 
     protected $fillable = [
         'resource_type',
-        'booking_window_days',
-        'booking_window_hours',
+        'key',
+        'value',
+    ];
+
+    protected $casts = [
+        'value' => 'array',
     ];
 }
