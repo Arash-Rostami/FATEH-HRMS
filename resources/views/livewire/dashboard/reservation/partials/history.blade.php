@@ -64,8 +64,14 @@
                 </div>
 
                 @if($activeHistoryTab === 'upcoming')
-                    <button wire:click="cancel({{ $reservation->id }})"
-                            wire:confirm="آیا از لغو این رزرو اطمینان دارید؟"
+                    <button x-on:click="$dispatch('open-confirmation', {
+                                title: 'لغو رزرو',
+                                message: 'آیا از لغو این رزرو اطمینان دارید؟',
+                                confirmText: 'بله، لغو شود',
+                                cancelText: 'خیر',
+                                method: 'cancel',
+                                params: {{ $reservation->id }}
+                            })"
                             class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/0 hover:bg-[var(--md-sys-color-error-container)] opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-error)] shrink-0 ml-1"
                             title="لغو رزرو">
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px] font-fill">delete</span>

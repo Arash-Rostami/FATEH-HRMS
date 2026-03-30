@@ -1,4 +1,4 @@
-const ROUTE = /(profile|tasks|dms|ths|reservation)/;
+import { ROUTE_PATTERN as ROUTE } from "../../../core/constants.js";
 
 const LAYERS = [
     {maxDist: 110, speed: 0.35, minSz: 0.9, maxSz: 2.2, opacity: 0.40, lw: 0.9, weight: 0.65},

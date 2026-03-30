@@ -1,4 +1,17 @@
 import particle from "./particle.js";
+import parallax from "./parallax.js";
+import gradient from "./gradient.js";
+import geometry from "./geometry.js";
+import ambient from "./ambient.js";
+
+const patterns = {
+    particle,
+    parallax,
+    gradient,
+    geometry,
+    ambient
+};
+
 
 export default function settings() {
     return {
@@ -9,13 +22,30 @@ export default function settings() {
             return Alpine.store('background').enabled;
         },
 
+        get activePattern() {
+            return Alpine.store('background').activePattern;
+        },
+
+        get availablePatterns() {
+            return Alpine.store('background').patterns;
+        },
+
         get patternEnabled() {
             return Alpine.store('background').patternEnabled;
         },
 
         initPattern() {
-            return (this.patternEnabled)
-                ? particle() : document.getElementById('interactive-background')?.remove();
+            document.getElementById('interactive-background')?.remove();
+
+            if (this.patternEnabled) {
+                const patternFunc = patterns[this.activePattern] || patterns['particle'];
+                return patternFunc();
+            }
+        },
+
+        setPattern(patternId) {
+            Alpine.store('background').setPattern(patternId);
+            this.initPattern();
         },
 
         toggleBackground() {
