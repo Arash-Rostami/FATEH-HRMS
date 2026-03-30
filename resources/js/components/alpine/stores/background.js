@@ -12,6 +12,15 @@ export default (Alpine) => {
     Alpine.store('background', {
         enabled: localStorage.getItem('backgroundEnabled') === 'true',
         patternEnabled: localStorage.getItem('patternEnabled') === 'true',
+        activePattern: localStorage.getItem('activePattern') || 'particle',
+
+        patterns: [
+            { id: 'particle', name: 'ذرات معلق' },
+            { id: 'parallax', name: 'پوشش سه بعدی (پارالاکس)' },
+            { id: 'gradient', name: 'طیف رنگی روان' },
+            { id: 'geometry', name: 'اشکال هندسی' },
+            { id: 'ambient', name: 'نورپردازی محیطی' }
+        ],
 
         images: [
             bg1,
@@ -54,6 +63,11 @@ export default (Alpine) => {
             }
             localStorage.setItem('patternEnabled', value);
             window.dispatchEvent(new CustomEvent('pattern-toggled', {detail: value}));
+        },
+        setPattern(patternId) {
+            this.activePattern = patternId;
+            localStorage.setItem('activePattern', patternId);
+            window.dispatchEvent(new CustomEvent('pattern-changed', {detail: patternId}));
         },
 
         init() {

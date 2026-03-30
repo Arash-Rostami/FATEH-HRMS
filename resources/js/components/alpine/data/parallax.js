@@ -1,4 +1,4 @@
-const ROUTE = /(profile|tasks|dms|ths|reservation)/;
+import { ROUTE_PATTERN as ROUTE } from "../../../core/constants.js";
 
 export default function jazzyParallax() {
     return () => {
