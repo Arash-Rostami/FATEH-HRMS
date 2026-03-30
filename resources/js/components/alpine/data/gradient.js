@@ -1,9 +1,9 @@
-const ROUTE = /(profile|tasks|dms|ths|reservation)/;
+let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, visibilityHandler;
+let w, h, colors, mouse, visible, wavesArray;
 
-export default function fluidWaves() {
-    return () => {
-        if (!ROUTE.test(location.href)) return;
-        document.getElementById('interactive-background')?.remove();
+export default {
+    init() {
+        this.destroy();
 
         const canvas = document.createElement('canvas');
         canvas.id = 'interactive-background';
@@ -21,10 +21,9 @@ export default function fluidWaves() {
         const ctx = canvas.getContext('2d', {alpha: true, desynchronized: true});
         const dpr = Math.min(2, devicePixelRatio || 1);
 
-        let w, h, animationId;
-        let colors = { primary: '78,95,102', tertiary: '107,87,120' };
-        const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-        let visible = true;
+        colors = { primary: '78,95,102', tertiary: '107,87,120' };
+        mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+        visible = true;
 
         const getThemeColors = () => {
             const s = getComputedStyle(document.documentElement);
@@ -41,11 +40,11 @@ export default function fluidWaves() {
             };
         };
 
-        const themeObserver = new MutationObserver(() => { colors = getThemeColors(); });
+        themeObserver = new MutationObserver(() => { colors = getThemeColors(); });
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
-        const waves = [
+        wavesArray = [
             { amp: 45, freq: 0.0015, spd: 0.0008, base: 0.75, op: 0.18 },
             { amp: 65, freq: 0.0010, spd: 0.0012, base: 0.82, op: 0.12 },
             { amp: 35, freq: 0.0020, spd: 0.0005, base: 0.88, op: 0.25 }
@@ -65,28 +64,29 @@ export default function fluidWaves() {
             mouse.y = mouse.ty;
         };
 
-        let resizeId;
-        window.addEventListener('resize', () => {
+        resizeHandler = () => {
             clearTimeout(resizeId);
             resizeId = setTimeout(resize, 150);
-        });
+        };
+        window.addEventListener('resize', resizeHandler);
 
-        window.addEventListener('mousemove', e => {
+        mouseMoveHandler = e => {
             mouse.tx = e.clientX;
             mouse.ty = e.clientY;
-        });
+        };
+        window.addEventListener('mousemove', mouseMoveHandler);
 
-        document.addEventListener('visibilitychange', () => {
+        visibilityHandler = () => {
             visible = document.visibilityState === 'visible';
             if (visible) draw(performance.now());
-        });
+        };
+        document.addEventListener('visibilitychange', visibilityHandler);
 
         const draw = (time) => {
-            if (!document.getElementById('interactive-background')) {
-                themeObserver.disconnect();
+            if (!visible) {
+                animationId = requestAnimationFrame(draw);
                 return;
             }
-            if (!visible) return;
 
             ctx.clearRect(0, 0, w, h);
 
@@ -96,8 +96,8 @@ export default function fluidWaves() {
             const mouseOffset = (mouse.y / h - 0.5) * 80;
             const mousePhase = (mouse.x / w - 0.5) * 1.5;
 
-            for (let i = 0; i < waves.length; i++) {
-                const wave = waves[i];
+            for (let i = 0; i < wavesArray.length; i++) {
+                const wave = wavesArray[i];
                 ctx.beginPath();
                 ctx.moveTo(0, h);
 
@@ -122,5 +122,15 @@ export default function fluidWaves() {
 
         resize();
         animationId = requestAnimationFrame(draw);
-    };
+    },
+
+    destroy() {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (resizeId) clearTimeout(resizeId);
+        if (themeObserver) themeObserver.disconnect();
+        if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+        if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler);
+        if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
+        document.getElementById('interactive-background')?.remove();
+    }
 }

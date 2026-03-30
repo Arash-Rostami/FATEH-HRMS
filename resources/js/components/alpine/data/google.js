@@ -1,29 +1,27 @@
 let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, visibilityHandler;
+let w, h, colors, mouse, visible, forms;
 
 export default {
     init() {
         this.destroy();
 
         const canvas = document.createElement('canvas');
-        canvas.id = 'interactive-background';
+        canvas.id = 'interactive-background-google';
         Object.assign(canvas.style, {
             position: 'fixed', top: 0, left: 0, zIndex: -10,
             pointerEvents: 'none', opacity: '0',
-            transition: 'opacity 2.5s ease-in-out'
+            transition: 'opacity 2.5s cubic-bezier(0.2, 0, 0, 1)'
         });
         document.body.appendChild(canvas);
 
-        setTimeout(() => {
-            canvas.style.opacity = '1';
-        }, 50);
+        setTimeout(() => { canvas.style.opacity = '1'; }, 50);
 
         const ctx = canvas.getContext('2d', {alpha: true, desynchronized: true});
         const dpr = Math.min(2, devicePixelRatio || 1);
 
-        let w, h;
-        let colors = { primary: '78,95,102', tertiary: '107,87,120' };
-        const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-        let visible = true;
+        colors = { primary: '78,95,102', tertiary: '107,87,120' };
+        mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+        visible = true;
 
         const getThemeColors = () => {
             const s = getComputedStyle(document.documentElement);
@@ -44,10 +42,10 @@ export default {
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
-        const orbs = [
-            { phase: 0, speed: 0.0004, size: 0.55, colorKey: 'primary' },
-            { phase: 2, speed: 0.0003, size: 0.65, colorKey: 'tertiary' },
-            { phase: 4, speed: 0.0005, size: 0.50, colorKey: 'primary' }
+        forms = [
+            { points: 4, radiusMult: 0.55, speed: 0.0005, amp: 0.15, phaseMult: 1.2, dir: 1, colorKey: 'primary', op: 0.07, offsetX: -0.1, offsetY: -0.1 },
+            { points: 5, radiusMult: 0.45, speed: 0.0004, amp: 0.12, phaseMult: 1.5, dir: -1, colorKey: 'tertiary', op: 0.09, offsetX: 0.2, offsetY: 0.1 },
+            { points: 4, radiusMult: 0.60, speed: 0.0006, amp: 0.18, phaseMult: 0.8, dir: 1, colorKey: 'primary', op: 0.05, offsetX: 0.0, offsetY: 0.2 }
         ];
 
         const resize = () => {
@@ -89,47 +87,50 @@ export default {
             }
 
             ctx.clearRect(0, 0, w, h);
-            ctx.globalCompositeOperation = 'lighter';
 
-            mouse.x += (mouse.tx - mouse.x) * 0.04;
-            mouse.y += (mouse.ty - mouse.y) * 0.04;
+            mouse.x += (mouse.tx - mouse.x) * 0.05;
+            mouse.y += (mouse.ty - mouse.y) * 0.05;
 
-            const cx = w / 2;
-            const cy = h / 2;
-            const minDim = Math.max(w, h);
+            const maxDim = Math.max(w, h);
 
-            for (let i = 0; i < orbs.length; i++) {
-                const orb = orbs[i];
-                const t = time * orb.speed + orb.phase;
+            for (let i = 0; i < forms.length; i++) {
+                const f = forms[i];
 
-                let ox, oy;
-                if (i === 2) {
-                    ox = mouse.x;
-                    oy = mouse.y;
-                } else {
-                    ox = cx + Math.cos(t) * (w * 0.35);
-                    oy = cy + Math.sin(t * 0.8) * (h * 0.35);
+                const cx = w / 2 + (w * f.offsetX) + (mouse.x - w / 2) * 0.08 * (i + 1);
+                const cy = h / 2 + (h * f.offsetY) + (mouse.y - h / 2) * 0.08 * (i + 1);
+
+                const baseRadius = maxDim * f.radiusMult;
+                const rotation = time * 0.00008 * f.dir;
+                const pts = [];
+
+                for (let j = 0; j < f.points; j++) {
+                    const angle = (j / f.points) * Math.PI * 2 + rotation;
+                    const radiusOffset = Math.sin(time * f.speed + j * f.phaseMult) * (baseRadius * f.amp);
+                    const r = baseRadius + radiusOffset;
+                    pts.push({
+                        x: cx + Math.cos(angle) * r,
+                        y: cy + Math.sin(angle) * r
+                    });
                 }
 
-                const breathingScale = 1 + Math.sin(time * 0.0015 + orb.phase) * 0.15;
-                const radius = minDim * orb.size * breathingScale;
-
-                if (radius <= 0) continue;
-
-                const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
-                const rgb = colors[orb.colorKey];
-
-                grad.addColorStop(0, `rgba(${rgb}, 0.25)`);
-                grad.addColorStop(0.5, `rgba(${rgb}, 0.08)`);
-                grad.addColorStop(1, `rgba(${rgb}, 0)`);
-
-                ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.arc(ox, oy, radius, 0, Math.PI * 2);
+                const midX0 = (pts[0].x + pts[f.points - 1].x) / 2;
+                const midY0 = (pts[0].y + pts[f.points - 1].y) / 2;
+                ctx.moveTo(midX0, midY0);
+
+                for (let j = 0; j < f.points; j++) {
+                    const p1 = pts[j];
+                    const p2 = pts[(j + 1) % f.points];
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    ctx.quadraticCurveTo(p1.x, p1.y, midX, midY);
+                }
+                ctx.closePath();
+
+                ctx.fillStyle = `rgba(${colors[f.colorKey]}, ${f.op})`;
                 ctx.fill();
             }
 
-            ctx.globalCompositeOperation = 'source-over';
             animationId = requestAnimationFrame(draw);
         };
 
@@ -144,6 +145,6 @@ export default {
         if (resizeHandler) window.removeEventListener('resize', resizeHandler);
         if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler);
         if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
-        document.getElementById('interactive-background')?.remove();
+        document.getElementById('interactive-background-google')?.remove();
     }
 }

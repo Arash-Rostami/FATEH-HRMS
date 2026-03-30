@@ -6,7 +6,6 @@
      }"
      style="z-index: -1;"
 >
-    <!-- 1. Dynamic Background Layer -->
     <div
         class="absolute inset-0 -z-10 pointer-events-none overflow-hidden"
         x-show="$store.background.enabled"
@@ -26,14 +25,4 @@
         </template>
         <div class="absolute inset-0 bg-[var(--md-sys-color-background)]/85 "></div>
     </div>
-
-    <!-- 2. Pattern Background Layer -->
-    <div class="absolute pointer-events-none h-full w-full animate-fade"
-         x-show="$store.background.patternEnabled"
-    >
-        @for ($i = 0; $i < 3; $i++)
-            <x-dashboard.shapes/>
-        @endfor
-    </div>
-
 </div>

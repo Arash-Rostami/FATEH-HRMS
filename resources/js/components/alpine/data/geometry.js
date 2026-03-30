@@ -1,9 +1,9 @@
-const ROUTE = /(profile|tasks|dms|ths|reservation)/;
+let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, visibilityHandler;
+let w, h, colors, mouse, visible, shapesArray;
 
-export default function geometricShapes() {
-    return () => {
-        if (!ROUTE.test(location.href)) return;
-        document.getElementById('interactive-background')?.remove();
+export default {
+    init() {
+        this.destroy();
 
         const canvas = document.createElement('canvas');
         canvas.id = 'interactive-background';
@@ -21,10 +21,9 @@ export default function geometricShapes() {
         const ctx = canvas.getContext('2d', {alpha: true, desynchronized: true});
         const dpr = Math.min(2, devicePixelRatio || 1);
 
-        let w, h, animationId;
-        let colors = { primary: '78,95,102', tertiary: '107,87,120' };
-        const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-        let visible = true;
+        colors = { primary: '78,95,102', tertiary: '107,87,120' };
+        mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+        visible = true;
 
         const getThemeColors = () => {
             const s = getComputedStyle(document.documentElement);
@@ -41,11 +40,11 @@ export default function geometricShapes() {
             };
         };
 
-        const themeObserver = new MutationObserver(() => { colors = getThemeColors(); });
+        themeObserver = new MutationObserver(() => { colors = getThemeColors(); });
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
-        const shapes = Array.from({ length: 15 }, () => ({
+        shapesArray = Array.from({ length: 15 }, () => ({
             x: Math.random(),
             y: Math.random(),
             vx: (Math.random() - 0.5) * 0.0008,
@@ -71,28 +70,29 @@ export default function geometricShapes() {
             mouse.y = mouse.ty;
         };
 
-        let resizeId;
-        window.addEventListener('resize', () => {
+        resizeHandler = () => {
             clearTimeout(resizeId);
             resizeId = setTimeout(resize, 150);
-        });
+        };
+        window.addEventListener('resize', resizeHandler);
 
-        window.addEventListener('mousemove', e => {
+        mouseMoveHandler = e => {
             mouse.tx = e.clientX;
             mouse.ty = e.clientY;
-        });
+        };
+        window.addEventListener('mousemove', mouseMoveHandler);
 
-        document.addEventListener('visibilitychange', () => {
+        visibilityHandler = () => {
             visible = document.visibilityState === 'visible';
             if (visible) draw();
-        });
+        };
+        document.addEventListener('visibilitychange', visibilityHandler);
 
         const draw = () => {
-            if (!document.getElementById('interactive-background')) {
-                themeObserver.disconnect();
+            if (!visible) {
+                animationId = requestAnimationFrame(draw);
                 return;
             }
-            if (!visible) return;
 
             ctx.clearRect(0, 0, w, h);
 
@@ -102,8 +102,8 @@ export default function geometricShapes() {
             const parallaxX = (mouse.x / w - 0.5) * 80;
             const parallaxY = (mouse.y / h - 0.5) * 80;
 
-            for (let i = 0; i < shapes.length; i++) {
-                const s = shapes[i];
+            for (let i = 0; i < shapesArray.length; i++) {
+                const s = shapesArray[i];
 
                 s.x += s.vx;
                 s.y += s.vy;
@@ -156,5 +156,15 @@ export default function geometricShapes() {
 
         resize();
         animationId = requestAnimationFrame(draw);
-    };
+    },
+
+    destroy() {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (resizeId) clearTimeout(resizeId);
+        if (themeObserver) themeObserver.disconnect();
+        if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+        if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler);
+        if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
+        document.getElementById('interactive-background')?.remove();
+    }
 }

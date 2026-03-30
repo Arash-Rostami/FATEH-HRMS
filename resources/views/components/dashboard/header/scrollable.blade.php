@@ -3,4 +3,5 @@
     <x-dashboard.header.main/>
     <x-dashboard.navbar.top/>
 
+    <x-dashboard.tab.background/>
 </div>

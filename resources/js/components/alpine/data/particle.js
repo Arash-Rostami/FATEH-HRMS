@@ -1,5 +1,3 @@
-const ROUTE = /(profile|tasks|dms|ths|reservation)/;
-
 const LAYERS = [
     {maxDist: 110, speed: 0.35, minSz: 0.9, maxSz: 2.2, opacity: 0.40, lw: 0.9, weight: 0.65},
     {maxDist: 68, speed: 0.12, minSz: 0.5, maxSz: 1.2, opacity: 0.20, lw: 0.6, weight: 0.35},
@@ -8,10 +6,11 @@ const LAYERS = [
 const CFG = {density: 0.00010, maxN: 300, mouseR: 150, attract: 0.0009, fps: 60};
 const CONNECT_SQ = 0.55;
 
-export default function particle() {
-    return () => {
-        if (!ROUTE.test(location.href)) return;
-        document.getElementById('interactive-background')?.remove();
+let rafId, themeObserver, resizeHandler, mouseMoveHandler, mouseLeaveHandler, visibilityHandler;
+
+export default {
+    init() {
+        this.destroy();
 
         const canvas = document.createElement('canvas');
         canvas.id = 'interactive-background';
@@ -47,7 +46,7 @@ export default function particle() {
             return `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`;
         }
 
-        const themeObserver = new MutationObserver(() => {
+        themeObserver = new MutationObserver(() => {
             rgb = getThemeRGB();
         });
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
@@ -103,23 +102,31 @@ export default function particle() {
                 id = setTimeout(fn, t);
             };
         };
-        window.addEventListener('resize', debounce(resize, 120));
+
+        resizeHandler = debounce(resize, 120);
+        window.addEventListener('resize', resizeHandler);
 
         const mouse = {x: 0, y: 0, sx: 0, sy: 0, on: false};
-        window.addEventListener('mousemove', e => {
+
+        mouseMoveHandler = e => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
             mouse.on = true;
-        });
-        window.addEventListener('mouseleave', () => {
+        };
+        window.addEventListener('mousemove', mouseMoveHandler);
+
+        mouseLeaveHandler = () => {
             mouse.on = false;
-        });
+        };
+        window.addEventListener('mouseleave', mouseLeaveHandler);
 
         let visible = true, last = 0, accum = 0;
         const mspf = 1000 / CFG.fps, mr2 = CFG.mouseR ** 2;
-        document.addEventListener('visibilitychange', () => {
+
+        visibilityHandler = () => {
             visible = document.visibilityState === 'visible';
-        });
+        };
+        document.addEventListener('visibilitychange', visibilityHandler);
 
         const LBUF = MAX * 9;
         const LX1 = new Float32Array(LBUF), LY1 = new Float32Array(LBUF);
@@ -127,11 +134,7 @@ export default function particle() {
         const LW = new Float32Array(LBUF);
 
         function frame(now) {
-            if (!document.getElementById('interactive-background')) {
-                themeObserver.disconnect();
-                return;
-            }
-            requestAnimationFrame(frame);
+            rafId = requestAnimationFrame(frame);
             if (!visible) {
                 last = now;
                 return;
@@ -257,9 +260,19 @@ export default function particle() {
         }
 
         resize();
-        requestAnimationFrame(t => {
+        rafId = requestAnimationFrame(t => {
             last = t;
-            requestAnimationFrame(frame);
+            rafId = requestAnimationFrame(frame);
         });
-    };
+    },
+
+    destroy() {
+        if (rafId) cancelAnimationFrame(rafId);
+        if (themeObserver) themeObserver.disconnect();
+        if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+        if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler);
+        if (mouseLeaveHandler) window.removeEventListener('mouseleave', mouseLeaveHandler);
+        if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
+        document.getElementById('interactive-background')?.remove();
+    }
 }
