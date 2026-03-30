@@ -88,7 +88,7 @@
                             <input type="radio"
                                    name="pattern_selection"
                                    :value="pattern.id"
-                                   x-model="activePattern"
+                                   :checked="activePattern === pattern.id"
                                    @change="setPattern(pattern.id)"
                                    class="w-3.5 h-3.5 text-amber-500 focus:ring-amber-500/50 bg-[var(--md-sys-color-surface-container)] border-[var(--md-sys-color-outline-variant)]">
                         </label>

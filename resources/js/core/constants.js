@@ -1,1 +1,1 @@
-export const ROUTE_PATTERN = /(profile|tasks|dms|ths|reservation)/;
+export const ROUTE_PATTERN = /(dashboard|profile|tasks|dms|ths|reservation)/;

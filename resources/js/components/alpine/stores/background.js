@@ -80,6 +80,10 @@ export default (Alpine) => {
                 this.patternEnabled = e.detail;
                 if (this.patternEnabled) this.enabled = false;
             });
+
+            window.addEventListener('pattern-changed', (e) => {
+                this.activePattern = e.detail;
+            });
         }
     })
 }

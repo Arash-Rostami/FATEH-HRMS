@@ -18,6 +18,10 @@ export default function settings() {
         open: false,
         focusMode: false,
 
+        init() {
+            this.initPattern();
+        },
+
         get backgroundEnabled() {
             return Alpine.store('background').enabled;
         },
