@@ -12,26 +12,88 @@ use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
-    public $activeTab = 'seat';
+    public $activeTab      = 'seat';
+    public $activeHistoryTab = 'upcoming';
     public $date;
-    public $startTime = '09:00';
-    public $endTime = '10:00';
-    public $filterFloor = null;
-    public $zoomImageUrl = null;
+    public $startTime      = '09:00';
+    public $endTime        = '10:00';
+    public $filterFloor    = null;
+    public $zoomImageUrl   = null;
+    public $resourcesLimit = 6;
+    public $historyLimit   = 5;
+
+    private function timeRange(): array
+    {
+        $isFullDay = in_array($this->activeTab, ['seat', 'spot', 'car']);
+        return [
+            $isFullDay ? Carbon::parse($this->date)->startOfDay() : Carbon::parse("{$this->date} {$this->startTime}"),
+            $isFullDay ? Carbon::parse($this->date)->endOfDay()   : Carbon::parse("{$this->date} {$this->endTime}"),
+            $isFullDay,
+        ];
+    }
+
+    private function invalidateResourceCache(): void
+    {
+        $this->resourcesLimit = 6;
+        unset($this->resources, $this->totalResources);
+    }
+
+    #[Computed]
+    public function resources()
+    {
+        [$start, $end] = $this->timeRange();
+        return Resource::available($this->activeTab, $start, $end, $this->filterFloor)
+            ->limit($this->resourcesLimit)->get();
+    }
+
+    #[Computed]
+    public function totalResources()
+    {
+        [$start, $end] = $this->timeRange();
+        return Resource::available($this->activeTab, $start, $end, $this->filterFloor)->count();
+    }
+
+    #[Computed]
+    public function historyReservations()
+    {
+        $query = Reservation::forUser(auth()->id())->with('resource');
+
+        match($this->activeHistoryTab) {
+            'previous'  => $query->previous()->orderByDesc('start_time'),
+            'cancelled' => $query->cancelled()->orderByDesc('cancelled_at'),
+            default     => $query->upcoming()->orderBy('start_time'),
+        };
+
+        return $query->limit($this->historyLimit)->get();
+    }
+
+    #[Computed]
+    public function totalHistoryReservations()
+    {
+        $query = Reservation::forUser(auth()->id());
+
+        match($this->activeHistoryTab) {
+            'previous'  => $query->previous(),
+            'cancelled' => $query->cancelled(),
+            default     => $query->upcoming(),
+        };
+
+        return $query->count();
+    }
 
     #[Computed]
     public function availableDates(): array
     {
         $dates = [];
-        $date = now();
+        $date  = now();
         $month = Jalalian::fromCarbon($date)->getMonth();
 
         for ($i = 0; $i < 21 && ($j = Jalalian::fromCarbon($date))->getMonth() === $month; $i++, $date->addDay()) {
             $dates[] = [
-                'value' => $date->toDateString(),
-                'day' => $j->format('l'),
-                'date' => $j->format('d'),
-                'month' => $j->format('F'),
+                'value'   => $date->toDateString(),
+                'day'     => $j->format('l'),
+                'date'    => $j->format('d'),
+                'month'   => $j->format('F'),
                 'isToday' => $i === 0,
             ];
         }
@@ -42,33 +104,24 @@ class Main extends Component
     #[Computed]
     public function availableFloors()
     {
-        return Resource::query()
-            ->where('type', $this->activeTab)
-            ->where('status', 'active')
-            ->get()
-            ->pluck('metadata.floor')
-            ->filter()
-            ->unique()
-            ->sort()
+        return Resource::where('type', $this->activeTab)->where('status', 'active')
+            ->get()->pluck('metadata.floor')->filter()->unique()->sort()
             ->map(function ($floor) {
-                $cleanFloor = str_replace('"', '', (string)$floor);
-                $floorNum = (int)$cleanFloor;
-
+                $f = str_replace('"', '', (string) $floor);
+                $n = (int) $f;
                 return [
-                    'value' => $cleanFloor,
+                    'value' => $f,
                     'label' => match (true) {
-                        $floorNum < 0 => 'طبقه منفی ' . abs($floorNum),
-                        $floorNum === 0 => 'همکف',
-                        default => 'طبقه ' . $cleanFloor
-                    }
+                        $n < 0   => 'طبقه منفی ' . abs($n),
+                        $n === 0 => 'همکف',
+                        default  => 'طبقه ' . $f,
+                    },
                 ];
-            })
-            ->values()
-            ->toArray();
+            })->values()->toArray();
     }
 
     #[Computed]
-    public function availableTimeSlots()
+    public function availableTimeSlots(): array
     {
         $slots = [];
         for ($h = 8; $h <= 19; $h++) {
@@ -78,13 +131,10 @@ class Main extends Component
         return $slots;
     }
 
-    public function book(int $resourceId, ReservationService $service)
+    public function book(int $resourceId, ReservationService $service): void
     {
+        [$start, $end, $isFullDay] = $this->timeRange();
         $resource = Resource::findOrFail($resourceId);
-        $isFullDay = in_array($resource->type, ['seat', 'spot', 'car']);
-
-        $start = $isFullDay ? Carbon::parse($this->date)->startOfDay() : Carbon::parse("{$this->date} {$this->startTime}");
-        $end = $isFullDay ? Carbon::parse($this->date)->endOfDay() : Carbon::parse("{$this->date} {$this->endTime}");
 
         try {
             $service->createReservation(auth()->user(), $resource, $start, $end, $isFullDay);
@@ -94,7 +144,7 @@ class Main extends Component
         }
     }
 
-    public function cancel(int $reservationId, ReservationService $service)
+    public function cancel(int $reservationId, ReservationService $service): void
     {
         try {
             $service->cancelReservation(Reservation::findOrFail($reservationId), auth()->user());
@@ -104,71 +154,44 @@ class Main extends Component
         }
     }
 
-    public function mount()
-    {
-        $this->date = now()->toDateString();
-    }
+    public function mount(): void { $this->date = now()->toDateString(); }
 
     public function render()
     {
         return view('livewire.dashboard.reservation.index', ['tabs' => Resource::getTabs()])
-            ->extends('layouts.app')
-            ->section('content');
+            ->extends('layouts.app')->section('content');
     }
 
-    public function resetFilters()
-    {
-        $this->filterFloor = null;
-        unset($this->resources);
-    }
+    public function resetFilters(): void   { $this->filterFloor = null; $this->invalidateResourceCache(); }
+    public function setDate($date): void   { $this->date = $date;       $this->invalidateResourceCache(); }
+    public function setStartTime($t): void { $this->startTime = $t;     $this->invalidateResourceCache(); }
+    public function setEndTime($t): void   { $this->endTime = $t;       $this->invalidateResourceCache(); }
 
-    #[Computed]
-    public function resources()
-    {
-        return Resource::where('type', $this->activeTab)
-            ->where('status', 'active')
-            ->when($this->filterFloor, fn($q, $floor) => $q->where('metadata->floor', $floor))
-            ->get();
-    }
-
-    public function setDate($date)
-    {
-        $this->date = $date;
-    }
-
-    public function setEndTime($time)
-    {
-        $this->endTime = $time;
-    }
-
-    public function setFloor($floor)
+    public function setFloor($floor): void
     {
         $this->filterFloor = $this->filterFloor === $floor ? null : $floor;
-        unset($this->resources);
-    }
-
-    public function setStartTime($time)
-    {
-        $this->startTime = $time;
+        $this->invalidateResourceCache();
     }
 
     public function switchTab(string $tab): void
     {
         if ($this->activeTab === $tab) return;
-
         $this->activeTab = $tab;
-        unset($this->resources);
         $this->resetFilters();
     }
 
-    #[Computed]
-    public function userReservations()
+    public function loadMoreResources(): void  { $this->resourcesLimit += 6; unset($this->resources); }
+    public function switchHistoryTab(string $tab): void
     {
-        return Reservation::where('user_id', auth()->id())
-            ->where('status', 'active')
-            ->whereDate('start_time', '>=', now()->toDateString())
-            ->with('resource')
-            ->orderBy('start_time')
-            ->get();
+        if ($this->activeHistoryTab === $tab) return;
+        $this->activeHistoryTab = $tab;
+        $this->historyLimit = 5;
+        unset($this->historyReservations, $this->totalHistoryReservations);
+    }
+
+    public function loadMoreHistory(): void
+    {
+        $this->historyLimit += 5;
+        unset($this->historyReservations);
     }
 }
