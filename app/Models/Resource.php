@@ -64,13 +64,9 @@ class Resource extends Model
     {
         return Attribute::make(
             get: function () {
-                $path = $this->display_image;
+                if (!$this->display_image) return null;
 
-                if (!$path) return null;
-
-                return ($this->image && $path === $this->image)
-                    ? asset('build/assets/' . $path)
-                    : Storage::url($path);
+                return Storage::url($this->display_image);
             }
         );
     }
