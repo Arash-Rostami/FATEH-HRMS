@@ -37,17 +37,6 @@ class Reservation extends Model
     public function scopePrevious(Builder $q): Builder               { return $q->where('status', 'active')->where('start_time', '<', now()); }
     public function scopeCancelled(Builder $q): Builder              { return $q->whereIn('status', ['cancelled_user', 'cancelled_admin']); }
 
-    public static function statsForUser(int $userId): object
-    {
-        $now = now();
-        return static::forUser($userId)
-            ->selectRaw("
-                SUM(CASE WHEN status = 'active' AND start_time >= ? THEN 1 ELSE 0 END) as upcoming_count,
-                SUM(CASE WHEN status = 'active' AND start_time <  ? THEN 1 ELSE 0 END) as previous_count,
-                SUM(CASE WHEN status IN ('cancelled_user','cancelled_admin') THEN 1 ELSE 0 END) as cancelled_count
-            ", [$now, $now])
-            ->first();
-    }
 
     protected function displayTime(): Attribute
     {

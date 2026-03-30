@@ -13,15 +13,14 @@ use Morilog\Jalali\Jalalian;
 class Main extends Component
 {
     public $activeTab      = 'seat';
+    public $activeHistoryTab = 'upcoming';
     public $date;
     public $startTime      = '09:00';
     public $endTime        = '10:00';
     public $filterFloor    = null;
     public $zoomImageUrl   = null;
     public $resourcesLimit = 6;
-    public $upcomingLimit  = 5;
-    public $previousLimit  = 5;
-    public $cancelledLimit = 5;
+    public $historyLimit   = 5;
 
     private function timeRange(): array
     {
@@ -55,35 +54,32 @@ class Main extends Component
     }
 
     #[Computed]
-    public function reservationStats()
+    public function historyReservations()
     {
-        return Reservation::statsForUser(auth()->id());
+        $query = Reservation::forUser(auth()->id())->with('resource');
+
+        match($this->activeHistoryTab) {
+            'previous'  => $query->previous()->orderByDesc('start_time'),
+            'cancelled' => $query->cancelled()->orderByDesc('cancelled_at'),
+            default     => $query->upcoming()->orderBy('start_time'),
+        };
+
+        return $query->limit($this->historyLimit)->get();
     }
 
     #[Computed]
-    public function upcomingReservations()
+    public function totalHistoryReservations()
     {
-        return Reservation::forUser(auth()->id())->upcoming()
-            ->with('resource')->orderBy('start_time')->limit($this->upcomingLimit)->get();
-    }
+        $query = Reservation::forUser(auth()->id());
 
-    #[Computed]
-    public function previousReservations()
-    {
-        return Reservation::forUser(auth()->id())->previous()
-            ->with('resource')->orderByDesc('start_time')->limit($this->previousLimit)->get();
-    }
+        match($this->activeHistoryTab) {
+            'previous'  => $query->previous(),
+            'cancelled' => $query->cancelled(),
+            default     => $query->upcoming(),
+        };
 
-    #[Computed]
-    public function cancelledReservations()
-    {
-        return Reservation::forUser(auth()->id())->cancelled()
-            ->with('resource')->orderByDesc('cancelled_at')->limit($this->cancelledLimit)->get();
+        return $query->count();
     }
-
-    #[Computed] public function totalUpcoming()  { return $this->reservationStats->upcoming_count  ?? 0; }
-    #[Computed] public function totalPrevious()  { return $this->reservationStats->previous_count  ?? 0; }
-    #[Computed] public function totalCancelled() { return $this->reservationStats->cancelled_count ?? 0; }
 
     #[Computed]
     public function availableDates(): array
@@ -185,7 +181,17 @@ class Main extends Component
     }
 
     public function loadMoreResources(): void  { $this->resourcesLimit += 6; unset($this->resources); }
-    public function loadMoreUpcoming(): void   { $this->upcomingLimit  += 5; unset($this->upcomingReservations); }
-    public function loadMorePrevious(): void   { $this->previousLimit  += 5; unset($this->previousReservations); }
-    public function loadMoreCancelled(): void  { $this->cancelledLimit += 5; unset($this->cancelledReservations); }
+    public function switchHistoryTab(string $tab): void
+    {
+        if ($this->activeHistoryTab === $tab) return;
+        $this->activeHistoryTab = $tab;
+        $this->historyLimit = 5;
+        unset($this->historyReservations, $this->totalHistoryReservations);
+    }
+
+    public function loadMoreHistory(): void
+    {
+        $this->historyLimit += 5;
+        unset($this->historyReservations);
+    }
 }
