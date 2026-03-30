@@ -18,6 +18,10 @@ class Main extends Component
     public $endTime = '10:00';
     public $filterFloor = null;
     public $zoomImageUrl = null;
+    public $resourcesLimit = 6;
+    public $upcomingLimit = 5;
+    public $previousLimit = 5;
+    public $cancelledLimit = 5;
 
     #[Computed]
     public function availableDates(): array
@@ -119,37 +123,78 @@ class Main extends Component
     public function resetFilters()
     {
         $this->filterFloor = null;
+        $this->resourcesLimit = 6;
         unset($this->resources);
+        unset($this->totalResources);
     }
 
     #[Computed]
     public function resources()
     {
+        $isFullDay = in_array($this->activeTab, ['seat', 'spot', 'car']);
+        $start = $isFullDay ? Carbon::parse($this->date)->startOfDay() : Carbon::parse("{$this->date} {$this->startTime}");
+        $end = $isFullDay ? Carbon::parse($this->date)->endOfDay() : Carbon::parse("{$this->date} {$this->endTime}");
+
         return Resource::where('type', $this->activeTab)
             ->where('status', 'active')
             ->when($this->filterFloor, fn($q, $floor) => $q->where('metadata->floor', $floor))
+            ->whereDoesntHave('reservations', function ($q) use ($start, $end) {
+                $q->whereIn('status', ['active', 'released'])
+                  ->where('start_time', '<', $end)
+                  ->where('end_time', '>', $start);
+            })
+            ->limit($this->resourcesLimit)
             ->get();
+    }
+
+    #[Computed]
+    public function totalResources()
+    {
+        $isFullDay = in_array($this->activeTab, ['seat', 'spot', 'car']);
+        $start = $isFullDay ? Carbon::parse($this->date)->startOfDay() : Carbon::parse("{$this->date} {$this->startTime}");
+        $end = $isFullDay ? Carbon::parse($this->date)->endOfDay() : Carbon::parse("{$this->date} {$this->endTime}");
+
+        return Resource::where('type', $this->activeTab)
+            ->where('status', 'active')
+            ->when($this->filterFloor, fn($q, $floor) => $q->where('metadata->floor', $floor))
+            ->whereDoesntHave('reservations', function ($q) use ($start, $end) {
+                $q->whereIn('status', ['active', 'released'])
+                  ->where('start_time', '<', $end)
+                  ->where('end_time', '>', $start);
+            })
+            ->count();
     }
 
     public function setDate($date)
     {
         $this->date = $date;
+        $this->resourcesLimit = 6;
+        unset($this->resources);
+        unset($this->totalResources);
     }
 
     public function setEndTime($time)
     {
         $this->endTime = $time;
+        $this->resourcesLimit = 6;
+        unset($this->resources);
+        unset($this->totalResources);
     }
 
     public function setFloor($floor)
     {
         $this->filterFloor = $this->filterFloor === $floor ? null : $floor;
+        $this->resourcesLimit = 6;
         unset($this->resources);
+        unset($this->totalResources);
     }
 
     public function setStartTime($time)
     {
         $this->startTime = $time;
+        $this->resourcesLimit = 6;
+        unset($this->resources);
+        unset($this->totalResources);
     }
 
     public function switchTab(string $tab): void
@@ -157,18 +202,91 @@ class Main extends Component
         if ($this->activeTab === $tab) return;
 
         $this->activeTab = $tab;
-        unset($this->resources);
         $this->resetFilters();
     }
 
+    public function loadMoreResources()
+    {
+        $this->resourcesLimit += 6;
+        unset($this->resources);
+    }
+
+    public function loadMoreUpcoming()
+    {
+        $this->upcomingLimit += 5;
+        unset($this->upcomingReservations);
+    }
+
+    public function loadMorePrevious()
+    {
+        $this->previousLimit += 5;
+        unset($this->previousReservations);
+    }
+
+    public function loadMoreCancelled()
+    {
+        $this->cancelledLimit += 5;
+        unset($this->cancelledReservations);
+    }
+
     #[Computed]
-    public function userReservations()
+    public function upcomingReservations()
     {
         return Reservation::where('user_id', auth()->id())
             ->where('status', 'active')
-            ->whereDate('start_time', '>=', now()->toDateString())
+            ->where('start_time', '>=', now())
             ->with('resource')
             ->orderBy('start_time')
+            ->limit($this->upcomingLimit)
             ->get();
+    }
+
+    #[Computed]
+    public function totalUpcoming()
+    {
+        return Reservation::where('user_id', auth()->id())
+            ->where('status', 'active')
+            ->where('start_time', '>=', now())
+            ->count();
+    }
+
+    #[Computed]
+    public function previousReservations()
+    {
+        return Reservation::where('user_id', auth()->id())
+            ->where('status', 'active')
+            ->where('start_time', '<', now())
+            ->with('resource')
+            ->orderByDesc('start_time')
+            ->limit($this->previousLimit)
+            ->get();
+    }
+
+    #[Computed]
+    public function totalPrevious()
+    {
+        return Reservation::where('user_id', auth()->id())
+            ->where('status', 'active')
+            ->where('start_time', '<', now())
+            ->count();
+    }
+
+    #[Computed]
+    public function cancelledReservations()
+    {
+        return Reservation::where('user_id', auth()->id())
+            ->whereIn('status', ['cancelled_user', 'cancelled_admin'])
+            ->with('resource')
+            ->orderByDesc('cancelled_at')
+            ->limit($this->cancelledLimit)
+            ->get();
+    }
+
+    #[Computed]
+    public function totalCancelled()
+    {
+        return Reservation::where('user_id', auth()->id())
+            ->whereIn('status', ['cancelled_user', 'cancelled_admin'])
+            ->count();
     }
 }
