@@ -40,6 +40,7 @@ class Profile extends Model
         'work_experience',
         'interests',
         'favorite_colors',
+        'about_me',
         'user_id',
     ];
 
@@ -88,6 +89,7 @@ class Profile extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'number_of_children' => 'integer',
+            'about_me' => 'array',
         ];
     }
 }

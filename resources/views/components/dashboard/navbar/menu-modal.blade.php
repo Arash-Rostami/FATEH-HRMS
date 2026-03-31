@@ -44,7 +44,7 @@
                             ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
                             : 'hover:bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]'">
 
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0"
+                        <div class="relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0"
                              :class="window.location.pathname === item.href
                                 ? 'bg-[var(--md-sys-color-secondary)]/20 text-[var(--md-sys-color-secondary)]'
                                 : 'bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] group-hover:bg-[var(--md-sys-color-primary)]/10 group-hover:text-[var(--md-sys-color-primary)]'">

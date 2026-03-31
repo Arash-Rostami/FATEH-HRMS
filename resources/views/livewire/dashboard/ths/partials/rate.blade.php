@@ -1,8 +1,8 @@
 @if ($ticketToRate)
     <div class="bg-[var(--md-sys-color-primary-container)]/10 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
         {{-- Decorative background element --}}
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[var(--md-sys-color-primary)] opacity-5 rounded-full blur-2xl"></div>
-        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--md-sys-color-secondary)] opacity-5 rounded-full blur-2xl"></div>
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[var(--md-sys-color-primary)] opacity-5 rounded-full "></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--md-sys-color-secondary)] opacity-5 rounded-full"></div>
 
         <div class="relative z-10 flex flex-col items-center text-center space-y-6">
             <div class="w-16 h-16 bg-[var(--md-sys-color-primary-container)] rounded-full flex items-center justify-center text-[var(--md-sys-color-on-primary-container)] mb-2 shadow-inner">

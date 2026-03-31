@@ -657,15 +657,113 @@ button {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1!important;
+    z-index: -1 !important;
 }
+
 .custom-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
 .custom-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
 .mask-fade-right {
     mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 1.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--md-sys-color-surface);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: transform 0.5s ease;
+}
+
+.avatar-icon {
+    font-size: 2.25rem;
+}
+
+.avatar-badge {
+    position: absolute;
+    bottom: -0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    background-color: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.avatar-blue {
+    background-color: #93c5fd;
+    box-shadow: 0 0 0 2px #3b82f6, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.avatar-blue .avatar-icon { color: #1d4ed8; }
+
+.avatar-pink {
+    background-color: #f9a8d4;
+    box-shadow: 0 0 0 2px #ec4899, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.avatar-pink .avatar-icon { color: #be185d; }
+
+.avatar-green {
+    background-color: #6ee7b7;
+    box-shadow: 0 0 0 2px #10b981, 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.avatar-green .avatar-icon { color: #047857; }
+
+/* Interaction */
+.group:hover .avatar-wrapper {
+    transform: scale(1.1);
+}
+
+.ad-flip-card {
+    background-color: transparent;
+    perspective: 1000px;
+}
+
+.ad-flip-card-inner {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.ad-flip-toggle:checked ~ .ad-flip-card-inner {
+    transform: rotateY(-180deg);
+}
+
+.ad-flip-card-front, .ad-flip-card-back {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.ad-flip-card-back {
+    transform: rotateY(-180deg);
 }

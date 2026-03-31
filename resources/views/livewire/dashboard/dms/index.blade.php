@@ -21,14 +21,14 @@
 
             <div class="space-y-6 relative z-10">
                 <div wire:loading.delay
-                     class="absolute inset-0 bg-[var(--md-sys-color-surface)]/50 z-50 flex items-center justify-center rounded-2xl backdrop-blur-sm">
+                     class="absolute inset-0 bg-[var(--md-sys-color-surface)]/50 z-50 flex items-center justify-center rounded-2xl">
                     <div
                         class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
                 </div>
 
                 @if ($this->docs->whereNotIn('id', $this->confirmedDocs)->isNotEmpty())
                     <div
-                        class="relative z-20 backdrop-blur-md bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
+                        class="relative z-20 bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
                         <div class="shrink-0 mt-1">
                             <span
                                 class="material-symbols-rounded text-2xl text-[var(--md-sys-color-error)]">error</span>

@@ -9,6 +9,7 @@ export default function menu() {
             {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
             {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
             {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
+            {id: 'ads-controller', href: '/ads', icon: 'work', title: 'فرصت‌های شغلی', sub: 'استخدامی'},
 
             {id: 'reservation-seat', href: '/reservation/seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
             {id: 'reservation-spot', href: '/reservation/spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},

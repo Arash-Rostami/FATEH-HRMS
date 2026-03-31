@@ -13,6 +13,7 @@ class Status extends Component
 {
     public string $activeFilter = 'all';
     public string $search = '';
+    public $showAboutModal = false;
 
     public function sendSms(string $userId, SmsService $smsService)
     {

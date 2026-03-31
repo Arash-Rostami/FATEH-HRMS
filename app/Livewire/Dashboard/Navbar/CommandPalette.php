@@ -26,7 +26,7 @@ class CommandPalette extends Component
         $this->results = app(NavigationSearchService::class)->search($this->query);
     }
 
-    public function selectResult(string $action): mixed
+    public function selectResult(string $action): void
     {
         if (!empty($this->results)) {
             $selectedItem = collect($this->results)->firstWhere('action', $action);
@@ -38,16 +38,14 @@ class CommandPalette extends Component
 
         $parts = explode(':', $action, 2);
 
-        if (count($parts) < 2) {
-            return null;
-        }
+        if (count($parts) < 2) return;
 
         [$type, $target] = $parts;
 
-        return match ($type) {
+        match ($type) {
             'tab' => $this->handleTab($target),
             'route' => $this->handleRoute($target),
-            'url' => redirect()->to($target),
+            'url' => $this->handleUrl($target),
             'event' => $this->handleEvent($target),
             default => null,
         };
@@ -55,17 +53,26 @@ class CommandPalette extends Component
 
     private function handleTab(string $target): void
     {
-        $this->dispatch('switch-tab', tab: $target);
-        $this->resetPalette();
+        if (request()->routeIs('dashboard')) {
+            $this->dispatch('switch-tab', tab: $target);
+            $this->resetPalette();
+            return;
+        }
+
+        $this->redirectRoute('dashboard', ['tab' => $target], navigate: true);
     }
 
-    private function handleRoute(string $target): mixed
+    private function handleRoute(string $target): void
     {
         try {
-            return redirect()->route($target);
+            $this->redirectRoute($target, navigate: true);
         } catch (Exception) {
-            return null;
         }
+    }
+
+    private function handleUrl(string $target): void
+    {
+        $this->redirect($target);
     }
 
     private function handleEvent(string $target): void

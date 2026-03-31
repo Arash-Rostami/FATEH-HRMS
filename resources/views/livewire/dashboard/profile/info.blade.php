@@ -325,7 +325,11 @@
             </button>
         </div>
         <div class="rounded-xl  p-2">
-            <x-dashboard.form.button type="submit" loading="save" icon="save" variant="primary">
+            <x-dashboard.form.button
+                type="submit"
+                loading="save"
+                icon="save"
+                variant="primary">
                 ذخیره نهایی اطلاعات
             </x-dashboard.form.button>
         </div>

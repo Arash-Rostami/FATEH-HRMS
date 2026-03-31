@@ -16,7 +16,7 @@
             <button x-show="!imageError"
                     type="button"
                     wire:click="$set('zoomImageUrl', '{{  $resource->displayImageUrl }}')"
-                    class="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center backdrop-blur-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20 shadow-xl"
+                    class="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/20 hover:bg-black/40 border border-white/10 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20 shadow-xl"
                     title="بزرگنمایی"
             >
                 <span class="material-symbols-rounded text-[22px]">zoom_in</span>

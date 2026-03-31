@@ -8,7 +8,7 @@ import scrollManager from "./data/scrollManager.js";
 import mobile from "./data/mobile.js";
 import search from "./data/search.js";
 import menu from "./data/menu.js";
-import shapes from "./data/shapes.js";
+import shapes from "./data/patterns/shapes.js";
 import timer from "./data/timer.js";
 import settings from "./data/settings.js";
 import palette from "./data/palette.js";

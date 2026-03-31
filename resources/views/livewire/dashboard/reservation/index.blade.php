@@ -4,6 +4,7 @@
     dir="rtl"
     x-data="reservation"
     x-init="initPattern()"
+    @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
 >
     <div class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
         <div class="max-w-[85rem] mx-auto space-y-6">
@@ -59,4 +60,5 @@
             </div>
         </div>
     </div>
+
 </div>

@@ -18,7 +18,7 @@
                 class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                 :class="{
                         'z-30 scale-100 md:scale-105': activeId == {{ $photo->id }},
-                        'z-10 scale-95 opacity-100 md:opacity-80 md:blur-[1px] md:grayscale-[30%]': activeId != {{ $photo->id }}
+                        'z-10 scale-95 opacity-100 md:opacity-80  md:grayscale-[30%]': activeId != {{ $photo->id }}
                     }"
             >
                 {{-- Timeline Marker (Desktop only) --}}

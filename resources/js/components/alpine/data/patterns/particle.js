@@ -1,6 +1,6 @@
 const LAYERS = [
-    {maxDist: 110, speed: 0.35, minSz: 0.9, maxSz: 2.2, opacity: 0.40, lw: 0.9, weight: 0.65},
-    {maxDist: 68, speed: 0.12, minSz: 0.5, maxSz: 1.2, opacity: 0.20, lw: 0.6, weight: 0.35},
+    {maxDist: 110, speed: 0.35, minSz: 0.9, maxSz: 2.2, opacity: 0.50, lw: 0.9, weight: 0.65},
+    {maxDist: 68, speed: 0.12, minSz: 0.5, maxSz: 1.2, opacity: 0.30, lw: 0.6, weight: 0.35},
 ];
 
 const CFG = {density: 0.00010, maxN: 300, mouseR: 150, attract: 0.0009, fps: 60};

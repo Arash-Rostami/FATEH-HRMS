@@ -1,27 +1,29 @@
 let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, visibilityHandler;
-let w, h, colors, mouse, visible, blobs;
 
 export default {
     init() {
         this.destroy();
 
         const canvas = document.createElement('canvas');
-        canvas.id = 'interactive-background-apple';
+        canvas.id = 'interactive-background';
         Object.assign(canvas.style, {
             position: 'fixed', top: 0, left: 0, zIndex: -10,
             pointerEvents: 'none', opacity: '0',
-            transition: 'opacity 3s ease-in-out'
+            transition: 'opacity 2.5s ease-in-out'
         });
         document.body.appendChild(canvas);
 
-        setTimeout(() => { canvas.style.opacity = '1'; }, 50);
+        setTimeout(() => {
+            canvas.style.opacity = '1';
+        }, 50);
 
         const ctx = canvas.getContext('2d', {alpha: true, desynchronized: true});
         const dpr = Math.min(2, devicePixelRatio || 1);
 
-        colors = { primary: '78,95,102', tertiary: '107,87,120' };
-        mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-        visible = true;
+        let w, h;
+        let colors = { primary: '78,95,102', tertiary: '107,87,120' };
+        const mouse = { x: -1000, y: -1000 };
+        let visible = true;
 
         const getThemeColors = () => {
             const s = getComputedStyle(document.documentElement);
@@ -42,11 +44,22 @@ export default {
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
-        blobs = [
-            { points: 8, radiusMult: 0.45, speed: 0.0008, amp: 0.08, phaseMult: 1, dir: 1, c1: 'primary', c2: 'tertiary', op: 0.15 },
-            { points: 7, radiusMult: 0.50, speed: 0.0006, amp: 0.10, phaseMult: 2, dir: -1, c1: 'tertiary', c2: 'primary', op: 0.12 },
-            { points: 9, radiusMult: 0.35, speed: 0.0010, amp: 0.06, phaseMult: 3, dir: 1, c1: 'primary', c2: 'primary', op: 0.08 }
-        ];
+        const charSet = '0123456789ABCDEF01010101!@#$<>{}[]|';
+        const fontSize = 16;
+        let columns = [];
+
+        const setupColumns = () => {
+            const colCount = Math.floor(w / fontSize) + 1;
+            columns = [];
+            for (let i = 0; i < colCount; i++) {
+                columns[i] = {
+                    y: Math.floor(Math.random() * -(h / fontSize)),
+                    speed: Math.floor(Math.random() * 3) + 1,
+                    tick: 0,
+                    char: '0'
+                };
+            }
+        };
 
         const resize = () => {
             w = innerWidth;
@@ -56,10 +69,7 @@ export default {
             canvas.style.width = w + 'px';
             canvas.style.height = h + 'px';
             ctx.scale(dpr, dpr);
-            mouse.tx = w / 2;
-            mouse.ty = h / 2;
-            mouse.x = mouse.tx;
-            mouse.y = mouse.ty;
+            setupColumns();
         };
 
         resizeHandler = () => {
@@ -69,70 +79,75 @@ export default {
         window.addEventListener('resize', resizeHandler);
 
         mouseMoveHandler = e => {
-            mouse.tx = e.clientX;
-            mouse.ty = e.clientY;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
         };
         window.addEventListener('mousemove', mouseMoveHandler);
 
         visibilityHandler = () => {
             visible = document.visibilityState === 'visible';
-            if (visible) draw(performance.now());
+            if (visible) draw();
         };
         document.addEventListener('visibilitychange', visibilityHandler);
 
-        const draw = (time) => {
+        const draw = () => {
             if (!visible) {
                 animationId = requestAnimationFrame(draw);
                 return;
             }
 
-            ctx.clearRect(0, 0, w, h);
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, w, h);
 
-            mouse.x += (mouse.tx - mouse.x) * 0.03;
-            mouse.y += (mouse.ty - mouse.y) * 0.03;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.font = `bold ${fontSize}px monospace`;
+            ctx.textAlign = 'center';
 
-            const cx = w / 2 + (mouse.x - w / 2) * 0.15;
-            const cy = h / 2 + (mouse.y - h / 2) * 0.15;
-            const maxDim = Math.max(w, h);
+            const mouseRadius = 120;
 
-            for (let i = 0; i < blobs.length; i++) {
-                const b = blobs[i];
-                const baseRadius = maxDim * b.radiusMult;
-                const rotation = time * 0.0001 * b.dir;
-                const pts = [];
+            for (let i = 0; i < columns.length; i++) {
+                const col = columns[i];
 
-                for (let j = 0; j < b.points; j++) {
-                    const angle = (j / b.points) * Math.PI * 2 + rotation;
-                    const radiusOffset = Math.sin(time * b.speed + j * b.phaseMult) * (baseRadius * b.amp);
-                    const r = baseRadius + radiusOffset;
-                    pts.push({
-                        x: cx + Math.cos(angle) * r,
-                        y: cy + Math.sin(angle) * r
-                    });
+                col.tick++;
+                if (col.tick >= col.speed) {
+                    col.y++;
+                    col.tick = 0;
+                    col.char = charSet[Math.floor(Math.random() * charSet.length)];
                 }
 
-                ctx.beginPath();
-                const midX0 = (pts[0].x + pts[b.points - 1].x) / 2;
-                const midY0 = (pts[0].y + pts[b.points - 1].y) / 2;
-                ctx.moveTo(midX0, midY0);
+                const px = i * fontSize + (fontSize / 2);
+                const py = col.y * fontSize;
 
-                for (let j = 0; j < b.points; j++) {
-                    const p1 = pts[j];
-                    const p2 = pts[(j + 1) % b.points];
-                    const midX = (p1.x + p2.x) / 2;
-                    const midY = (p1.y + p2.y) / 2;
-                    ctx.quadraticCurveTo(p1.x, p1.y, midX, midY);
+                const dx = px - mouse.x;
+                const dy = py - mouse.y;
+                const distToMouse = Math.sqrt(dx * dx + dy * dy);
+
+                if (distToMouse < mouseRadius) {
+                    ctx.fillStyle = `rgb(${colors.tertiary})`;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = `rgb(${colors.tertiary})`;
+
+                    if (Math.random() > distToMouse / mouseRadius) {
+                        col.char = charSet[Math.floor(Math.random() * charSet.length)];
+                    }
+                } else {
+                    ctx.shadowBlur = 0;
+                    if (Math.random() > 0.75) {
+                        ctx.fillStyle = `rgba(255, 255, 255, 0.5)`;
+                    } else {
+                        ctx.fillStyle = `rgb(${colors.primary})`;
+                    }
                 }
-                ctx.closePath();
 
-                const grad = ctx.createLinearGradient(cx - baseRadius, cy - baseRadius, cx + baseRadius, cy + baseRadius);
-                grad.addColorStop(0, `rgba(${colors[b.c1]}, ${b.op})`);
-                grad.addColorStop(1, `rgba(${colors[b.c2]}, 0)`);
+                ctx.fillText(col.char, px, py);
 
-                ctx.fillStyle = grad;
-                ctx.fill();
+                if (py > h && Math.random() > 0.98) {
+                    col.y = 0;
+                }
             }
 
+            ctx.shadowBlur = 0;
             animationId = requestAnimationFrame(draw);
         };
 
@@ -147,6 +162,6 @@ export default {
         if (resizeHandler) window.removeEventListener('resize', resizeHandler);
         if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler);
         if (visibilityHandler) document.removeEventListener('visibilitychange', visibilityHandler);
-        document.getElementById('interactive-background-apple')?.remove();
+        document.getElementById('interactive-background')?.remove();
     }
 }

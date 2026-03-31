@@ -21,7 +21,7 @@
                         <div class="flex items-center gap-6">
                             <div class="relative group">
                                 <div
-                                    class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
+                                    class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
                                 <img
                                     src="{{ $user->profile?->image ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=random' }}"
                                     alt="{{ $user->name }}"
@@ -97,6 +97,7 @@
 
                         @foreach([
                             'info'        => ['label' => 'اطلاعات فردی', 'icon' => 'person',  'sub' => 'مشخصات و تماس'],
+                            'about'       => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق'],
                             'documents'   => ['label' => 'مدارک و اسناد',   'icon' => 'folder_open',   'sub' => 'آپلود فایل‌ها'],
                             'credentials' => ['label' => 'دسترسی و امنیتی',       'icon' => 'verified_user',  'sub' => 'نقش‌ها و مجوزها'],
                         ] as $key => $tab)
@@ -152,10 +153,10 @@
                         <div
                             class="border-b border-[var(--md-sys-color-outline-variant)]/40 px-4 py-3 flex items-center gap-2 mb-2">
                          <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">
-                            {{ ['info' => 'person', 'documents' => 'folder_open', 'credentials' => 'verified_user'][$activeTab] }}
+                            {{ ['info' => 'person', 'about' => 'psychology', 'documents' => 'folder_open', 'credentials' => 'verified_user'][$activeTab] }}
                          </span>
                             <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
-                                {{ ['info' => 'ویرایش اطلاعات فردی', 'documents' => 'مدیریت مدارک و مستندات', 'credentials' => 'مشاهده دسترسی‌ها'][$activeTab] }}
+                                {{ ['info' => 'ویرایش اطلاعات فردی', 'about' => 'درباره من', 'documents' => 'مدیریت مدارک و مستندات', 'credentials' => 'مشاهده دسترسی‌ها'][$activeTab] }}
                             </h2>
                         </div>
 
@@ -164,6 +165,12 @@
                                 <div class="animate-fade-in">
                                     <livewire:dashboard.profile.info
                                         wire:key="tab-info"/>
+                                </div>
+                            @elseif($activeTab === 'about')
+                                <div class="animate-fade-in">
+                                    <livewire:dashboard.profile.about
+                                        wire:key="tab-about"
+                                        lazy="true"/>
                                 </div>
                             @elseif($activeTab === 'documents')
                                 <div class="animate-fade-in">

@@ -15,9 +15,9 @@
 
             <!-- Ambient Glows -->
             <div
-                class="absolute -top-20 -left-20 w-80 h-80 bg-[var(--md-sys-color-primary)]/20 rounded-full blur-[100px] group-hover:bg-[var(--md-sys-color-primary)]/30 transition-colors duration-700"></div>
+                class="absolute -top-20 -left-20 w-80 h-80 bg-[var(--md-sys-color-primary)]/20 rounded-full group-hover:bg-[var(--md-sys-color-primary)]/30 transition-colors duration-700"></div>
             <div
-                class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[var(--md-sys-color-tertiary)]/20 rounded-full blur-[120px] group-hover:bg-[var(--md-sys-color-tertiary)]/30 transition-colors duration-700"></div>
+                class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[var(--md-sys-color-tertiary)]/20 rounded-full group-hover:bg-[var(--md-sys-color-tertiary)]/30 transition-colors duration-700"></div>
 
             <!-- Hover Overlay -->
             <div
@@ -28,7 +28,7 @@
                 <!-- Logo Icon -->
                 <div class="relative group-hover:scale-110 transition-transform duration-700 ease-in-out">
                     <div
-                        class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 blur-2xl rounded-full"></div>
+                        class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 rounded-full"></div>
                     <div
                         class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
                         <span
@@ -58,7 +58,7 @@
             <!-- Mobile Header (Visible only on small screens) -->
             <div class="lg:hidden pt-8 px-6 pb-2 text-center flex flex-col items-center gap-4">
                 <div
-                    class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 blur-2xl rounded-full"></div>
+                    class="absolute inset-0 bg-gradient-to-tr from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-tertiary)] opacity-30 rounded-full"></div>
                 <div
                     class="w-20 h-20 rounded-xl bg-gradient-to-br from-white/10 to-white/5  border border-white/20 shadow-2xl flex items-center justify-center relative z-10">
                     <span

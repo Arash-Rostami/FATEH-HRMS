@@ -38,6 +38,7 @@ return new class extends Migration {
             $table->string('image')->nullable();
             $table->json('attachments')->nullable();
             $table->json('favorite_colors')->nullable();
+            $table->json('about_me')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             $table->index('department');

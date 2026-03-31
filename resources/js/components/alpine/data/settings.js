@@ -1,21 +1,36 @@
-import shapes from "./shapes.js";
-import particle from "./particle.js";
-import parallax from "./parallax.js";
-import gradient from "./gradient.js";
-import geometry from "./geometry.js";
-import ambient from "./ambient.js";
-import apple from "./apple.js";
-import google from "./google.js";
+import shapes from "./patterns/shapes.js";
+import particle from "./patterns/particle.js";
+import parallax from "./patterns/parallax.js";
+import gradient from "./patterns/gradient.js";
+import geometry from "./patterns/geometry.js";
+import flora from "./patterns/flora.js";
+import ambient from "./patterns/ambient.js";
+import cyber from "./patterns/cyber.js";
+import google from "./patterns/google.js";
+import note from "./patterns/note.js";
+import ripple from "./patterns/ripple.js";
+import cloud from "./patterns/cloud.js";
+import rain from "./patterns/rain.js";
+import snow from "./patterns/snow.js";
+import firefly from "./patterns/firefly.js";
+
 
 const patterns = {
     shapes,
+    rain,
     particle,
     parallax,
     gradient,
     geometry,
+    cloud,
+    flora,
     ambient,
-    apple,
-    google
+    cyber,
+    google,
+    note,
+    ripple,
+    firefly,
+    snow
 };
 
 export default function settings() {
@@ -82,7 +97,7 @@ export default function settings() {
         },
 
         toggleBackground() {
-            Alpine.store('background').toggle(!Alpine.store('background').enabled);
+            Alpine.store('background').toggleBackground(!Alpine.store('background').enabled);
         },
 
         togglePattern() {
@@ -117,9 +132,7 @@ export default function settings() {
             }
 
             localStorage.clear();
-            setTimeout(() => {
-                location.reload();
-            }, 500);
+            setTimeout(() => {location.reload();}, 500);
         }
     }
 }

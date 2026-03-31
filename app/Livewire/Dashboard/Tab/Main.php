@@ -27,7 +27,7 @@ class Main extends Component
                 'component' => Posts::class,
                 'label' => 'پست',
                 'icon' => 'campaign',
-                'bg' => 'bg-secondary-container'
+                'bg' => 'bg-secondary-container',
             ],
             'feed' => [
                 'component' => Feeds::class,

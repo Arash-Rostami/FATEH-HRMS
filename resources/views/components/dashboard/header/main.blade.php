@@ -44,7 +44,7 @@
             <div class="group relative flex items-center shrink-0">
                 <div class="absolute -inset-3 rounded-full
                             bg-gradient-to-r from-[#FF7F6E]/15 to-[#ffb199]/10
-                            blur-xl opacity-0 group-hover:opacity-100
+                            opacity-0 group-hover:opacity-100
                             transition duration-700 pointer-events-none"></div>
                 <img src="{{ Vite::asset('resources/assets/img/logo.png') }}"
                      alt="Fateh Logo"

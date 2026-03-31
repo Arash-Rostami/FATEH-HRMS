@@ -8,6 +8,66 @@ use Illuminate\Support\Str;
 class NavigationSearchService
 {
     /**
+     * Search for items based on a query string.
+     * Uses comprehensive fuzzy matching.
+     */
+    public function search(string $query): array
+    {
+        $query = Str::lower(trim($query));
+
+        if (strlen($query) < 2) return [];
+
+        return $this->getSearchableItems()
+            ->map(function ($item) use ($query) {
+                $score = 0;
+                $exactMatch = false;
+
+                // 1. Check Title & Subtitle (High Priority)
+                if (Str::contains(Str::lower($item['title']), $query)) {
+                    $score += 50;
+                }
+                if (Str::contains(Str::lower($item['subtitle']), $query)) {
+                    $score += 30;
+                }
+
+                // 2. Check Keywords (Exact & Fuzzy)
+                foreach ($item['keywords'] as $keyword) {
+                    $keyword = Str::lower($keyword);
+
+                    // Exact match
+                    if ($keyword === $query) {
+                        $score += 100;
+                        $exactMatch = true;
+                        break;
+                    }
+
+                    // Partial match (contains)
+                    if (Str::contains($keyword, $query)) {
+                        $score += 40;
+                    }
+
+                    // Near word match (Levenshtein) - for typos (if query is at least 3 chars to avoid noise)
+                    if (strlen($query) >= 3) {
+                        $distance = levenshtein($query, $keyword);
+                        $length = max(strlen($query), strlen($keyword));
+                        $similarity = 1 - ($distance / $length);
+
+                        if ($similarity > 0.7) {
+                            $score += 20 * $similarity;
+                        }
+                    }
+                }
+
+                $item['score'] = $score;
+                return $item;
+            })
+            ->filter(fn($item) => $item['score'] > 0)
+            ->sortByDesc('score')
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Get all searchable items.
      * Extend this method to add more items.
      */
@@ -16,7 +76,7 @@ class NavigationSearchService
         return collect([
             [
                 'id' => 'home',
-                'title' => 'مروری',
+                'title' => 'خانه',
                 'subtitle' => 'داشبورد اصلی و وضعیت کلی',
                 'icon' => 'home',
                 'action' => 'tab:home',
@@ -86,7 +146,47 @@ class NavigationSearchService
                 'action' => 'tab:faqs',
                 'keywords' => ['faq', 'help', 'question', 'support', 'answer', 'guide', 'manual', 'سوال', 'پرسش', 'پاسخ', 'راهنما', 'کمک', 'پشتیبانی'],
             ],
+            [
+                'id' => 'dms',
+                'title' => 'مدیریت اسناد',
+                'subtitle' => 'مخزن متمرکز اسناد رسمی',
+                'icon' => 'folder_managed',
+                'action' => 'route:dms',
+                'keywords' => ['dms', 'document', 'file', 'archive', 'signature', 'اسناد', 'سند', 'فایل', 'آرشیو', 'امضا', 'مخزن', 'نامه'],
+            ],
+            [
+                'id' => 'ths',
+                'title' => 'سیستم تیکت',
+                'subtitle' => 'درخواست‌های پشتیبانی و دسترسی',
+                'icon' => 'support_agent',
+                'action' => 'route:ths',
+                'keywords' => ['ths', 'ticket', 'support', 'helpdesk', 'issue', 'تیکت', 'پشتیبانی', 'درخواست', 'مشکل', 'گزارش', 'آی تی', 'سیستم'],
+            ],
+            [
+                'id' => 'reservation',
+                'title' => 'رزرو فضا و منابع',
+                'subtitle' => 'رزرو میز، پارکینگ، خودرو و جلسات',
+                'icon' => 'meeting_room',
+                'action' => 'route:reservation',
+                'keywords' => ['reservation', 'booking', 'desk', 'parking', 'car', 'meeting', 'room', 'رزرو', 'میز', 'پارکینگ', 'خودرو', 'ماشین', 'جلسه', 'اتاق', 'فضا'],
+            ],
+            [
+                'id' => 'taskboard',
+                'title' => 'تسک بورد',
+                'subtitle' => 'مدیریت وظایف و پروژه‌ها',
+                'icon' => 'view_kanban',
+                'action' => 'route:tasks',
+                'keywords' => ['task', 'board', 'kanban', 'project', 'todo', 'agile', 'تسک', 'وظیفه', 'پروژه', 'بورد', 'کانبان', 'کار', 'انجام', 'مدیریت'],
+            ],
             // Global Actions
+            [
+                'id' => 'ads',
+                'title' => 'فرصت‌های شغلی',
+                'subtitle' => 'مشاهده موقعیت‌های استخدامی و شغلی',
+                'icon' => 'work',
+                'action' => 'route:ads',
+                'keywords' => ['ads', 'jobs', 'careers', 'hiring', 'employment', 'فرصت', 'شغل', 'استخدام', 'همکاری', 'کار'],
+            ],
             [
                 'id' => 'profile',
                 'title' => 'پروفایل کاربری',
@@ -104,65 +204,5 @@ class NavigationSearchService
                 'keywords' => ['logout', 'exit', 'signout', 'leave', 'خروج', 'بستن', 'پایان'],
             ],
         ]);
-    }
-
-    /**
-     * Search for items based on a query string.
-     * Uses comprehensive fuzzy matching.
-     */
-    public function search(string $query): array
-    {
-        $query = Str::lower(trim($query));
-
-        if (strlen($query) < 2) return [];
-
-        return $this->getSearchableItems()
-            ->map(function ($item) use ($query) {
-                $score = 0;
-                $exactMatch = false;
-
-                // 1. Check Title & Subtitle (High Priority)
-                if (Str::contains(Str::lower($item['title']), $query)) {
-                    $score += 50;
-                }
-                if (Str::contains(Str::lower($item['subtitle']), $query)) {
-                    $score += 30;
-                }
-
-                // 2. Check Keywords (Exact & Fuzzy)
-                foreach ($item['keywords'] as $keyword) {
-                    $keyword = Str::lower($keyword);
-
-                    // Exact match
-                    if ($keyword === $query) {
-                        $score += 100;
-                        $exactMatch = true;
-                        break;
-                    }
-
-                    // Partial match (contains)
-                    if (Str::contains($keyword, $query)) {
-                        $score += 40;
-                    }
-
-                    // Near word match (Levenshtein) - for typos (if query is at least 3 chars to avoid noise)
-                    if (strlen($query) >= 3) {
-                        $distance = levenshtein($query, $keyword);
-                        $length = max(strlen($query), strlen($keyword));
-                        $similarity = 1 - ($distance / $length);
-
-                        if ($similarity > 0.7) {
-                            $score += 20 * $similarity;
-                        }
-                    }
-                }
-
-                $item['score'] = $score;
-                return $item;
-            })
-            ->filter(fn($item) => $item['score'] > 0)
-            ->sortByDesc('score')
-            ->values()
-            ->toArray();
     }
 }

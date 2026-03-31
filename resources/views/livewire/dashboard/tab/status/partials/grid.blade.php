@@ -14,25 +14,39 @@
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
                  class="group relative flex flex-col items-center gap-2 p-3 pt-4
-                         border shadow-sm rounded-2xl overflow-hidden cursor-pointer h-40
-                         transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                         hover:-translate-y-0.5
-                         {{ $p->cardClasses() }}">
+                     border shadow-sm rounded-2xl overflow-hidden cursor-pointer h-40
+                     transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                     hover:-translate-y-0.5
+                     {{ $p->cardClasses() }}">
 
                 <div class="relative z-10 mt-1">
                     <img
-                        src="{{ $user->profile?->image ? asset('storage/'.$user->profile->image) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=random&color=fff' }}"
+                        src="{{ $user->profile?->image ? asset('storage/'.$user->profile->image) : "https://ui-avatars.com/api/?name=".urlencode($user->name)."&background=random&color=fff" }}"
                         alt="{{ $user->name }}"
-                        class="w-12 h-12 rounded-full object-cover
-                               ring-2 ring-{{ $p->color() }}-500 ring-offset-2
-                               ring-offset-[var(--md-sys-color-surface-container)]
-                               group-hover:scale-105 group-hover:ring-offset-4
-                               transition-all duration-300"
+                        class="w-18 h-18 rounded-full object-cover
+                           ring-2 ring-{{ $p->color() }}-500 ring-offset-2
+                           ring-offset-[var(--md-sys-color-surface-container)]
+                           group-hover:scale-105 group-hover:ring-offset-4
+                           transition-all duration-300"
                         loading="lazy"
                     >
+
+                    @if($user->profile?->about_me)
+                        <div class="absolute -top-4 -left-6 w-8 h-8 rounded-full
+                                bg-[var(--md-sys-color-primary)] flex items-center justify-center
+                                border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow cursor-pointer hover:scale-110 transition-transform z-20"
+                             title="درباره من"
+                             @click.stop="$dispatch('open-about-me', {
+                            user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}', image: '{{ $user->profile?->image}}' },
+                            aboutMe: @js($user->profile?->about_me ?? [])
+                         })">
+                            <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
+                        </div>
+                    @endif
+
                     <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full
-                                bg-{{ $p->color() }}-500 flex items-center justify-center
-                                border-2 border-[var(--md-sys-color-surface)] shadow-sm">
+                            bg-{{ $p->color() }}-500 flex items-center justify-center
+                            border-2 border-[var(--md-sys-color-surface)] shadow-sm">
                         <span
                             class="material-symbols-rounded text-white leading-none text-[10px]">{{ $p->icon() }}</span>
                     </div>
@@ -48,20 +62,18 @@
                 </div>
 
                 <div class="absolute inset-x-0 bottom-0 h-10 z-20
-                            flex items-center justify-between px-2
-                            bg-[var(--md-sys-color-surface-container-high)]/95
-                            border-t border-{{ $p->color() }}-500/20
-                            translate-y-full opacity-0
-                            group-hover:translate-y-0 group-hover:opacity-100
-                            transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                        flex items-center justify-between px-2
+                        bg-[var(--md-sys-color-surface-container-high)]/95
+                        border-t border-{{ $p->color() }}-500/20
+                        transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
 
                     @if($user->sms_number)
                         <button
                             @click.stop="$dispatch('open-sms-modal', { user: '{{ $user->id }}' })"
                             title="پیامک: {{ $user->sms_number }}"
                             class="p-1.5 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
-                                   hover:text-[var(--md-sys-color-primary)]
-                                   hover:bg-[var(--md-sys-color-primary)]/10 transition-colors">
+                               hover:text-[var(--md-sys-color-primary)]
+                               hover:bg-[var(--md-sys-color-primary)]/10 transition-colors">
                             <span class="material-symbols-rounded text-[15px]">sms</span>
                         </button>
                     @else
@@ -82,7 +94,7 @@
                         <a href="tel:{{ $user->sms_number ?? $user->getTodaysDeskExtension() }}"
                            @click.stop
                            class="p-1.5 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
-                                  hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
+                              hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
                             <span class="material-symbols-rounded text-[15px]">call</span>
                         </a>
                     @else
@@ -93,7 +105,7 @@
 
         @empty
             <div class="col-span-full flex flex-col items-center justify-center py-16 gap-3
-                        text-[var(--md-sys-color-on-surface-variant)]/35">
+                    text-[var(--md-sys-color-on-surface-variant)]/35">
                 <span class="material-symbols-rounded text-5xl">manage_search</span>
                 <p class="text-sm font-medium">کاربری یافت نشد</p>
             </div>

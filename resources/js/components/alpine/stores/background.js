@@ -15,18 +15,25 @@ export default (Alpine) => {
 
         patterns: [
             { id: 'shapes', name: 'اشکال شناور' },
-            { id: 'particle', name: 'ستاره های‌ کهکشان' },
+            { id: 'rain', name: 'نم نم باران' },
+            { id: 'particle', name: 'ذرات مغناطیستی' },
             { id: 'parallax', name: 'فضای بی‌کران' },
             { id: 'gradient', name: 'امواج متحرک' },
             { id: 'geometry', name: 'کریستال‌های معلق' },
+            { id: 'cloud', name: 'ابرهای روان' },
+            { id: 'flora', name: 'گندم‌زار طلایی' },
             { id: 'ambient', name: 'گوی متحرک' },
-            { id: 'apple', name: 'طیف شناور' },
-            { id: 'google', name: 'توپ شناور' }
+            { id: 'cyber', name: 'هک سایبری' },
+            { id: 'google', name: 'توپ شناور' },
+            { id: 'note', name: 'نت موسیقی' },
+            { id: 'ripple', name: 'آب مواج' },
+            { id: 'firefly', name: 'شب تاب رنگی' },
+            { id: 'snow', name: 'رقص برف' },
         ],
 
         images: [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8],
 
-        toggle(value) {
+        toggleBackground(value) {
             this.enabled = value;
             if (value) {
                 this.patternEnabled = false;

@@ -83,7 +83,7 @@
                      style="background-image: radial-gradient(circle, var(--md-sys-color-on-primary-container) 1px, transparent 1px); background-size: 20px 20px;"></div>
 
                 {{-- Glow orb --}}
-                <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full blur-3xl opacity-30 pointer-events-none"
+                <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full opacity-30 pointer-events-none"
                      style="background: var(--md-sys-color-primary)"></div>
 
                 {{-- Icon badge --}}
