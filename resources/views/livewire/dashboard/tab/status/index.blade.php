@@ -8,4 +8,6 @@
 
     @include('livewire.dashboard.tab.status.partials.grid')
 
+    @include('livewire.dashboard.tab.status.partials.about-modal')
+
 </div>

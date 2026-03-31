@@ -27,6 +27,13 @@
                 {{ $tab['icon'] }}
             </span>
 
+            @if($tab['badge'] ?? false)
+                <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-error border-2 border-[var(--md-sys-color-surface)]"></span>
+                </span>
+            @endif
+
             <x-dashboard.tooltip :text="$tab['label']" position="left" />
         </button>
     @endforeach
