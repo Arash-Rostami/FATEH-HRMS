@@ -37,8 +37,8 @@
                                     border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow cursor-pointer hover:scale-110 transition-transform z-20"
                              title="درباره من"
                              @click.stop="$dispatch('open-about-modal', {
-                                user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? \'کارشناس\' }}' },
-                                aboutMe: JSON.parse('{{ json_encode($user->profile?->about_me ?? []) }}')
+                                user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}' },
+                                aboutMe: @js($user->profile?->about_me ?? [])
                              })">
                             <span class="material-symbols-rounded text-white leading-none text-[12px]">info</span>
                         </div>
