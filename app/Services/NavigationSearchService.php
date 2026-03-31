@@ -86,6 +86,38 @@ class NavigationSearchService
                 'action' => 'tab:faqs',
                 'keywords' => ['faq', 'help', 'question', 'support', 'answer', 'guide', 'manual', 'سوال', 'پرسش', 'پاسخ', 'راهنما', 'کمک', 'پشتیبانی'],
             ],
+            [
+                'id' => 'dms',
+                'title' => 'مدیریت اسناد',
+                'subtitle' => 'مخزن متمرکز اسناد رسمی',
+                'icon' => 'folder_managed',
+                'action' => 'route:dms.index',
+                'keywords' => ['dms', 'document', 'file', 'archive', 'signature', 'اسناد', 'سند', 'فایل', 'آرشیو', 'امضا', 'مخزن', 'نامه'],
+            ],
+            [
+                'id' => 'ths',
+                'title' => 'سیستم تیکت',
+                'subtitle' => 'درخواست‌های پشتیبانی و دسترسی',
+                'icon' => 'support_agent',
+                'action' => 'route:ths.index',
+                'keywords' => ['ths', 'ticket', 'support', 'helpdesk', 'issue', 'تیکت', 'پشتیبانی', 'درخواست', 'مشکل', 'گزارش', 'آی تی', 'سیستم'],
+            ],
+            [
+                'id' => 'reservation',
+                'title' => 'رزرو فضا و منابع',
+                'subtitle' => 'رزرو میز، پارکینگ، خودرو و جلسات',
+                'icon' => 'meeting_room',
+                'action' => 'route:reservation.index',
+                'keywords' => ['reservation', 'booking', 'desk', 'parking', 'car', 'meeting', 'room', 'رزرو', 'میز', 'پارکینگ', 'خودرو', 'ماشین', 'جلسه', 'اتاق', 'فضا'],
+            ],
+            [
+                'id' => 'taskboard',
+                'title' => 'تسک بورد',
+                'subtitle' => 'مدیریت وظایف و پروژه‌ها',
+                'icon' => 'view_kanban',
+                'action' => 'route:taskboard.index',
+                'keywords' => ['task', 'board', 'kanban', 'project', 'todo', 'agile', 'تسک', 'وظیفه', 'پروژه', 'بورد', 'کانبان', 'کار', 'انجام', 'مدیریت'],
+            ],
             // Global Actions
             [
                 'id' => 'profile',
