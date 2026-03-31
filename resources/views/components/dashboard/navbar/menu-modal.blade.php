@@ -44,11 +44,20 @@
                             ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
                             : 'hover:bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]'">
 
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0"
+                        <div class="relative w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0"
                              :class="window.location.pathname === item.href
                                 ? 'bg-[var(--md-sys-color-secondary)]/20 text-[var(--md-sys-color-secondary)]'
                                 : 'bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] group-hover:bg-[var(--md-sys-color-primary)]/10 group-hover:text-[var(--md-sys-color-primary)]'">
                             <span class="material-symbols-rounded text-[22px]" x-text="item.icon"></span>
+
+                            @if(\App\Models\Ad::active()->exists())
+                            <template x-if="item.id === 'ads-controller'">
+                                <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-error border border-[var(--md-sys-color-surface)]"></span>
+                                </span>
+                            </template>
+                            @endif
                         </div>
 
                         <div class="flex flex-col flex-1">

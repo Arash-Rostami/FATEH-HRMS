@@ -2,16 +2,31 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Models\Ad;
+use App\Models\Profile;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Main extends Component
 {
     public $activeTab = 'home';
-
     public $direction = 'up';
+
+    #[Computed]
+    public function hasActiveAds()
+    {
+        return Ad::active()->exists();
+    }
+
+    #[Computed]
+    public function hasRecentAboutMe()
+    {
+        return Profile::whereNotNull('about_me')
+            ->where('updated_at', '>=', Carbon::now()->subDays(7))
+            ->exists();
+    }
 
     #[Computed]
     public function tabs()
@@ -21,55 +36,64 @@ class Main extends Component
                 'component' => Home::class,
                 'label' => 'خانه',
                 'icon' => 'home',
-                'bg' => 'bg-surface-variant'
+                'bg' => 'bg-surface-variant',
+                'badge' => false,
             ],
             'post' => [
                 'component' => Posts::class,
                 'label' => 'پست',
                 'icon' => 'campaign',
-                'bg' => 'bg-secondary-container'
+                'bg' => 'bg-secondary-container',
+                'badge' => false,
             ],
             'feed' => [
                 'component' => Feeds::class,
                 'label' => 'اخبار',
                 'icon' => 'rss_feed',
-                'bg' => 'bg-tertiary-container'
+                'bg' => 'bg-tertiary-container',
+                'badge' => false,
             ],
             'calendar' => [
                 'component' => Calendar::class,
                 'label' => 'تقویم',
                 'icon' => 'calendar_month',
-                'bg' => 'bg-tertiary-container'
+                'bg' => 'bg-tertiary-container',
+                'badge' => false,
             ],
             'status' => [
                 'component' => Status::class,
                 'label' => 'وضعیت',
                 'icon' => 'badge',
-                'bg' => 'bg-surface-container-low'
+                'bg' => 'bg-surface-container-low',
+                'badge' => $this->hasRecentAboutMe,
             ],
             'gallery' => [
                 'component' => Gallery::class,
                 'label' => 'گالری',
                 'icon' => 'photo_library',
-                'bg' => 'bg-surface-container-high'
+                'bg' => 'bg-surface-container-high',
+                'badge' => false,
             ],
             'reports' => [
                 'component' => Reports::class,
                 'label' => 'گزارش‌ها',
                 'icon' => 'show_chart',
-                'bg' => 'bg-secondary-container'
+                'bg' => 'bg-secondary-container',
+                'badge' => false,
             ],
             'links' => [
                 'component' => Links::class,
                 'label' => 'لینک‌ها',
                 'icon' => 'open_in_new',
-                'bg' => 'bg-surface-container-high'
+                'bg' => 'bg-surface-container-high',
+                'badge' => false,
             ],
             'faqs' => [
                 'component' => Faqs::class,
                 'label' => 'پرسش‌های متداول',
                 'icon' => 'help',
-                'bg' => 'bg-info-container'
+                'bg' => 'bg-secondary-container',
+                'badge' => false,
             ],
         ];
     }

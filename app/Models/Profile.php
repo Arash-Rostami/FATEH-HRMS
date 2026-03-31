@@ -40,6 +40,7 @@ class Profile extends Model
         'work_experience',
         'interests',
         'favorite_colors',
+        'about_me',
         'user_id',
     ];
 
@@ -84,6 +85,7 @@ class Profile extends Model
         return [
             'attachments' => 'array',
             'favorite_colors' => 'array',
+            'about_me' => 'array',
             'birthdate' => 'date',
             'start_date' => 'date',
             'end_date' => 'date',

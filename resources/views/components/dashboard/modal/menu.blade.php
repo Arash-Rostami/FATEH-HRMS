@@ -53,10 +53,19 @@
                                                            :href="item.href" @click="closeMenu"
                                                            class="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] active:scale-[0.96] transition-all duration-200 h-[110px] sm:h-[130px] justify-center border border-transparent hover:border-[var(--md-sys-color-outline-variant)]/20">
                                                             <div
-                                                                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+                                                                class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
                                                                 <span
                                                                     class="material-symbols-rounded text-[22px] sm:text-[24px] text-[var(--md-sys-color-primary)]"
                                                                     x-text="item.icon"></span>
+
+                                                                @if($hasActiveAds ?? false)
+                                                                <template x-if="item.id === 'ads-controller'">
+                                                                    <span class="absolute -top-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
+                                                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                                                                        <span class="relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 bg-error border border-[var(--md-sys-color-surface)]"></span>
+                                                                    </span>
+                                                                </template>
+                                                                @endif
                                                             </div>
                                                             <div class="text-center w-full"
                                                                  :id="item.id">
@@ -74,10 +83,19 @@
                                                         <a @click="closeMenu();$dispatch(item.action)"
                                                            class="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] active:scale-[0.96] transition-all duration-200 h-[110px] sm:h-[130px] justify-center border border-transparent hover:border-[var(--md-sys-color-outline-variant)]/20">
                                                             <div
-                                                                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+                                                                class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
                                                                 <span
                                                                     class="material-symbols-rounded text-[22px] sm:text-[24px] text-[var(--md-sys-color-primary)]"
                                                                     x-text="item.icon"></span>
+
+                                                                @if($hasActiveAds ?? false)
+                                                                <template x-if="item.id === 'ads-controller'">
+                                                                    <span class="absolute -top-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
+                                                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                                                                        <span class="relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 bg-error border border-[var(--md-sys-color-surface)]"></span>
+                                                                    </span>
+                                                                </template>
+                                                                @endif
                                                             </div>
                                                             <div class="text-center w-full"
                                                                  :id="item.id">

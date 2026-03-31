@@ -7,6 +7,8 @@ use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
 use App\Livewire\Dashboard\Dms\Main as Dms;
+use App\Livewire\Dashboard\Ads\Main as Ads;
+
 use App\Livewire\Dashboard\Ths\Main as Ths;
 use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Profile\Main as Profile;
@@ -34,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
     Route::get('/dms', Dms::class)->name('dms');
+    Route::get('/ads', Ads::class)->name('ads');
+
     Route::get('/ths', Ths::class)->name('ths');
     Route::get('/reservation/{type?}', Reservation::class)->name('reservation');
 
