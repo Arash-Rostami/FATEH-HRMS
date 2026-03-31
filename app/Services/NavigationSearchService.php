@@ -88,6 +88,14 @@ class NavigationSearchService
             ],
             // Global Actions
             [
+                'id' => 'ads',
+                'title' => 'فرصت‌های شغلی',
+                'subtitle' => 'مشاهده موقعیت‌های استخدامی و شغلی',
+                'icon' => 'work',
+                'action' => 'route:ads',
+                'keywords' => ['ads', 'jobs', 'careers', 'hiring', 'employment', 'فرصت', 'شغل', 'استخدام', 'همکاری', 'کار'],
+            ],
+            [
                 'id' => 'profile',
                 'title' => 'پروفایل کاربری',
                 'subtitle' => 'ویرایش اطلاعات حساب',
