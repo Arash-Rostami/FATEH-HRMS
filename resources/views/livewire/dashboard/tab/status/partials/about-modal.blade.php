@@ -1,11 +1,11 @@
-<template x-teleport="body">
-    <div x-data="{
-            show: false,
-            user: null,
-            aboutMe: {},
-            close() { this.show = false; setTimeout(() => this.user = null, 300) }
-         }"
-         @open-about-modal.window="show = true; user = $event.detail.user; aboutMe = $event.detail.aboutMe || {};"
+<div x-data="{
+        show: false,
+        user: null,
+        aboutMe: {},
+        close() { this.show = false; setTimeout(() => this.user = null, 300) }
+     }"
+     @open-about-modal.window="show = true; user = $event.detail.user; aboutMe = $event.detail.aboutMe || {};">
+    <template x-teleport="body">
          x-show="show"
          class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
          style="display: none;">
@@ -129,5 +129,5 @@
             </div>
 
         </div>
-    </div>
-</template>
+    </template>
+</div>
