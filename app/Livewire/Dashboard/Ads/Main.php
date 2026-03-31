@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Livewire\Dashboard\Tab;
+namespace App\Livewire\Dashboard\Ads;
 
 use App\Models\Ad;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class Ads extends Component
+class Main extends Component
 {
     public string $activeFilter = 'active';
     public string $search = '';
@@ -43,6 +43,8 @@ class Ads extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.ads.index');
+        return view('livewire.dashboard.ads.index')
+            ->extends('layouts.app')
+            ->section('content');
     }
 }

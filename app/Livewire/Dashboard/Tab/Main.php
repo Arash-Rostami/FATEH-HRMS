@@ -67,13 +67,6 @@ class Main extends Component
                 'bg' => 'bg-surface-container-low',
                 'badge' => $this->hasRecentAboutMe,
             ],
-            'ads' => [
-                'component' => Ads::class,
-                'label' => 'فرصت‌های شغلی',
-                'icon' => 'work',
-                'bg' => 'bg-primary-container',
-                'badge' => $this->hasActiveAds,
-            ],
             'gallery' => [
                 'component' => Gallery::class,
                 'label' => 'گالری',
