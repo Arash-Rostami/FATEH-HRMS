@@ -1,37 +1,22 @@
-import shapes from "./patterns/shapes.js";
-import particle from "./patterns/particle.js";
-import parallax from "./patterns/parallax.js";
-import gradient from "./patterns/gradient.js";
-import geometry from "./patterns/geometry.js";
-import flora from "./patterns/flora.js";
-import ambient from "./patterns/ambient.js";
-import cyber from "./patterns/cyber.js";
-import google from "./patterns/google.js";
-import note from "./patterns/note.js";
-import ripple from "./patterns/ripple.js";
-import cloud from "./patterns/cloud.js";
-import rain from "./patterns/rain.js";
-import snow from "./patterns/snow.js";
-import firefly from "./patterns/firefly.js";
-
-
-const patterns = {
-    shapes,
-    rain,
-    particle,
-    parallax,
-    gradient,
-    geometry,
-    cloud,
-    flora,
-    ambient,
-    cyber,
-    google,
-    note,
-    ripple,
-    firefly,
-    snow
+const patternLoaders = {
+    shapes: () => import("./patterns/shapes.js"),
+    rain: () => import("./patterns/rain.js"),
+    particle: () => import("./patterns/particle.js"),
+    parallax: () => import("./patterns/parallax.js"),
+    gradient: () => import("./patterns/gradient.js"),
+    geometry: () => import("./patterns/geometry.js"),
+    cloud: () => import("./patterns/cloud.js"),
+    flora: () => import("./patterns/flora.js"),
+    ambient: () => import("./patterns/ambient.js"),
+    cyber: () => import("./patterns/cyber.js"),
+    google: () => import("./patterns/google.js"),
+    note: () => import("./patterns/note.js"),
+    ripple: () => import("./patterns/ripple.js"),
+    firefly: () => import("./patterns/firefly.js"),
+    snow: () => import("./patterns/snow.js")
 };
+
+let activePatternInstance = null;
 
 export default function settings() {
     return {
@@ -58,13 +43,12 @@ export default function settings() {
         },
 
         clearVisuals() {
-            Object.values(patterns).forEach(p => {
-                if (p && typeof p.destroy === 'function') {
-                    try {
-                        p.destroy();
-                    } catch (e) {}
-                }
-            });
+            if (activePatternInstance && typeof activePatternInstance.destroy === 'function') {
+                try {
+                    activePatternInstance.destroy();
+                    activePatternInstance = null;
+                } catch (e) {}
+            }
 
             ['interactive-background', 'interactive-background-apple', 'interactive-background-google'].forEach(id => {
                 const el = document.getElementById(id);
@@ -72,22 +56,28 @@ export default function settings() {
             });
         },
 
-        initPattern() {
+        async initPattern() {
             this.clearVisuals();
 
             if (Alpine.store('background').patternEnabled) {
                 const currentPatternId = Alpine.store('background').activePattern || 'shapes';
-                const patternObj = patterns[currentPatternId];
+                const loader = patternLoaders[currentPatternId];
 
-                if (patternObj) {
-                    setTimeout(() => {
-                        if (typeof patternObj.init === 'function') {
-                            patternObj.init();
-                        } else if (typeof patternObj === 'function') {
-                            const runner = patternObj();
-                            if (typeof runner === 'function') runner();
-                        }
-                    }, 50);
+                if (loader) {
+                    try {
+                        const module = await loader();
+                        const patternObj = module.default;
+
+                        setTimeout(() => {
+                            if (patternObj && typeof patternObj.init === 'function') {
+                                patternObj.init();
+                                activePatternInstance = patternObj;
+                            } else if (typeof patternObj === 'function') {
+                                activePatternInstance = patternObj();
+                                if (typeof activePatternInstance === 'function') activePatternInstance();
+                            }
+                        }, 50);
+                    } catch (err) {}
                 }
             }
         },
