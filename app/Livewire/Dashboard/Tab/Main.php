@@ -92,7 +92,7 @@ class Main extends Component
                 'component' => Faqs::class,
                 'label' => 'پرسش‌های متداول',
                 'icon' => 'help',
-                'bg' => 'bg-info-container',
+                'bg' => 'bg-secondary-container',
                 'badge' => false,
             ],
         ];

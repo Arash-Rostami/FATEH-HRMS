@@ -163,61 +163,6 @@
                  x-transition:enter-end="opacity-100"
                  class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
         </a>
-            <a href="{{ url('/ads') }}" target="_blank"
-           @mouseenter="setHover('ads')"
-           @mouseleave="clearHover()"
-           class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
-                  rounded-r-2xl rounded-l-none
-                  shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
-                  transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
-                  active:scale-[0.94] active:shadow-none
-                  cursor-pointer overflow-hidden
-                  lg:translate-x-0 touch-manipulation
-                  min-h-[80px] md:min-h-[100px]
-                  bg-[var(--md-sys-color-primary)]
-                  text-[var(--md-sys-color-on-primary)]
-                  hover:bg-[var(--md-sys-color-primary-container)]
-                  hover:text-[var(--md-sys-color-on-primary-container)]
-                  hover:shadow-[6px_0_24px_var(--md-sys-color-primary)]/20"
-           :class="{
-               '-translate-x-full lg:translate-x-0': !isExpanded,
-               'translate-x-0': isExpanded,
-               'hover:translate-x-2 lg:hover:translate-x-1': true
-           }"
-           :style="'transition-delay: ' + getTransitionDelay(3)">
-
-            <div class="relative mb-2">
-                <span class="material-symbols-rounded text-[24px] md:text-[26px] transition-all duration-500"
-                      :class="{
-                          'scale-110 rotate-[8deg]': isHovered('ads'),
-                          'scale-100': !isHovered('ads')
-                      }"
-                      :style="isActive('ads') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">work</span>
-
-                @if(\App\Models\Ad::active()->exists())
-                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-error border border-[var(--md-sys-color-primary)]"></span>
-                    </span>
-                @endif
-            </div>
-
-            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
-                فرصت‌های شغلی
-            </span>
-
-            <div x-show="isActive('ads')"
-                 x-transition:enter="transition-all duration-500 ease-out"
-                 x-transition:enter-start="opacity-0 scale-y-0 translate-x-2"
-                 x-transition:enter-end="opacity-100 scale-y-100 translate-x-0"
-                 class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full bg-[var(--md-sys-color-on-primary)] shadow-[2px_0_12px_var(--md-sys-color-on-primary)]/60"></div>
-
-            <div x-show="isHovered('ads') && !isActive('ads')"
-                 x-transition:enter="transition-opacity duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 class="absolute inset-0 bg-[var(--md-sys-color-primary-container)]/10 pointer-events-none"></div>
-        </a>
     </aside>
 
 
