@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
+use App\Models\Traits\HasProfileHierarchy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Support\Arr;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasProfileHierarchy;
 
     protected $fillable = [
         'name',
@@ -86,7 +87,7 @@ class User extends Authenticatable
 
     public function isOnline(int $minutes = 5): bool
     {
-        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
+        return ($this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes))) || $this->isActive();
     }
 
     public function posts(): HasMany
@@ -111,6 +112,11 @@ class User extends Authenticatable
 
     public function reservations(): HasMany { return $this->hasMany(Reservation::class); }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -128,15 +134,13 @@ class User extends Authenticatable
 
     public function scopeSearch(Builder $query, string $term): void
     {
-        $query->where(fn(Builder $subQuery) => $subQuery
-            ->where('name', 'like', '%' . $term . '%')
-            ->orWhereHas('profile', fn(Builder $profileQuery) => $profileQuery
-                ->where('position', 'like', '%' . $term . '%')
-                ->orWhereHas('department', fn(Builder $deptQuery) => $deptQuery
-                    ->where('name', 'like', '%' . $term . '%')
-                )
+        $query->when($term, fn($q) => $q->where(fn($q) => $q
+            ->where('name', 'like', "%{$term}%")
+            ->orWhereHas('profile', fn($p) => $p
+                ->where('position', 'like', "%{$term}%")
+                ->orWhereHas('department', fn($d) => $d->whereAny(['name', 'code', 'description'], 'like', "%{$term}%"))
             )
-        );
+        ));
     }
 
     public function scopeWithRole($query, string $role)
@@ -144,11 +148,21 @@ class User extends Authenticatable
         return $query->where('role', $role);
     }
 
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
     public function setExtraValue(string $key, mixed $value): void
     {
         $extra = $this->extra ?? [];
         Arr::set($extra, $key, $value);
         $this->extra = $extra;
+    }
+
+    public function suggestions(): HasMany
+    {
+        return $this->hasMany(Suggestion::class);
     }
 
     public function touchLastSeen(): void

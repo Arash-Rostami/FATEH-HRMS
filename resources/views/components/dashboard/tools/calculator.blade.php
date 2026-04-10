@@ -1,52 +1,59 @@
-<div
-    x-data="calculator()"
-    x-init="init()"
-    x-ref="calculatorModal"
-    class="fixed top-auto z-10 inset-0 hidden overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity justify-center">
+<div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
 
-    <div class="flex items-center justify-center min-h-screen p-4 w-2/3 md:w-1/4 max-h-screen">
-        <div
-            class="relative bg-[var(--md-sys-color-primary)] rounded-xl shadow-xl transform transition-all sm:max-w-md w-full">
-            <div class="p-6">
-                <input type="text"
-                       id="display"
-                       class="w-full mb-4 border border-gray-300 rounded-xl px-3 py-2 text-2xl text-black text-right cursor-copy"
-                       x-model="formattedDisplay"
-                       x-ref="display"
-                       @click="copyToClipboard()"
-                       readonly>
-                <div class="grid grid-cols-4 gap-2">
-                    <?php
-                    $buttons = [
-                        ['value' => '7'], ['value' => '8'], ['value' => '9'], ['value' => '/', 'symbol' => '➗'],
-                        ['value' => '4'], ['value' => '5'], ['value' => '6'], ['value' => '*', 'symbol' => '✖️'],
-                        ['value' => '1'], ['value' => '2'], ['value' => '3'], ['value' => '+', 'symbol' => '➕'],
-                        ['value' => 'C', 'action' => 'clearDisplay()'], ['value' => '.'], ['value' => '0'], ['value' => '-', 'symbol' => '➖'],
-                        ['value' => 'Close', 'action' => 'closeModal()'], ['value' => '=', 'action' => 'calculate()']
-                    ];
-                    ?>
-                    @foreach ($buttons as $button)
-                        <button @click="{{  $button['action'] ?? 'appendToDisplay(\'' . $button['value'] . '\')' }}"
-                            @class([
-                                "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-xl px-3 py-2 text-xl font-bold min-w-[3rem] min-h-[3rem]']" => !isset($button['symbol']) && !isset($button['action']),
-                                "bg-orange-500 hover:bg-orange-700 rounded-xl px-4 py-3 text-lg min-w-[3rem]" => isset($button['symbol']) ,
-                                "bg-red-500 hover:bg-red-700 text-white rounded-xl px-3 py-2 text-xl font-bold min-w-[3rem] min-h-[3rem]"=> isset($button['action']) && $button['value'] === 'C',
-                                "bg-[var(--md-sys-color-primary-container)] mt-2 text-gray-700 dark:text-gray-200 py-4 px-3 min-w-[3rem] min-h-[3rem] rounded-xl"=> isset($button['action']) && $button['value'] === 'Close',
-                                "bg-green-500 hover:bg-green-700 text-white rounded-xl px-3 py-2 text-xl font-bold min-w-[3rem] min-h-[3rem]"=> isset($button['action']) && $button['value'] === '=',
-                                 ])>
-                            @if (isset($button['symbol']))
-                                <span class="filter grayscale">{{ $button['symbol'] }}</span>
-                            @else
-                                {{ $button['value'] }}
-                            @endif
-                        </button>
-                        @if($button['value'] === 'Close')
-                            {!! str_repeat('<span></span>' , 2) !!}
-                        @endif
-                    @endforeach
-                </div>
+    <x-dashboard.tools.base x-show="open">
+
+        <x-slot:icon>
+            <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">calculate</span>
+        </x-slot:icon>
+
+        <x-slot:heading>
+            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);">ماشین حساب</p>
+            <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);">محاسبات شخصی</p>
+        </x-slot:heading>
+
+        <div class="px-5 pt-5">
+            <div class="flex flex-col rounded-xl px-4 pt-3 pb-3"
+                 style="background:var(--md-sys-color-surface-variant);border:1px solid var(--md-sys-color-outline-variant);">
+                <span class="text-[11px] mb-1 text-right" style="color:var(--md-sys-color-outline);">نتیجه</span>
+                <input type="text" x-model="formattedDisplay" x-ref="display" @click="copyToClipboard()" readonly
+                       class="bg-transparent text-2xl font-mono text-right outline-none cursor-copy w-full"
+                       style="color:var(--md-sys-color-on-surface);font-feature-settings:'tnum';" dir="ltr">
             </div>
         </div>
-    </div>
 
+        <div class="p-5 pt-4">
+            @php
+                $buttons = [
+                    ['l'=>'7','a'=>"appendToDisplay('7')"],['l'=>'8','a'=>"appendToDisplay('8')"],['l'=>'9','a'=>"appendToDisplay('9')"],['l'=>'÷','a'=>"appendToDisplay('/')"],
+                    ['l'=>'4','a'=>"appendToDisplay('4')"],['l'=>'5','a'=>"appendToDisplay('5')"],['l'=>'6','a'=>"appendToDisplay('6')"],['l'=>'×','a'=>"appendToDisplay('*')"],
+                    ['l'=>'1','a'=>"appendToDisplay('1')"],['l'=>'2','a'=>"appendToDisplay('2')"],['l'=>'3','a'=>"appendToDisplay('3')"],['l'=>'+','a'=>"appendToDisplay('+')"],
+                    ['l'=>'C','a'=>'clearDisplay()'],['l'=>'.','a'=>"appendToDisplay('.')"],['l'=>'0','a'=>"appendToDisplay('0')"],['l'=>'−','a'=>"appendToDisplay('-')"],
+                ];
+            @endphp
+
+            <div class="grid grid-cols-4 gap-2">
+                @foreach($buttons as $btn)
+                    @php
+                        $isOp    = in_array($btn['l'], ['÷','×','+','−']);
+                        $isClear = $btn['l'] === 'C';
+                        $style   = $isOp
+                            ? 'background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);border:1px solid transparent;'
+                            : ($isClear
+                                ? 'background:color-mix(in srgb,var(--md-sys-color-error) 12%,transparent);color:var(--md-sys-color-error);border:1px solid var(--md-sys-color-outline-variant);'
+                                : 'background:var(--md-sys-color-surface-variant);color:var(--md-sys-color-on-surface);border:1px solid var(--md-sys-color-outline-variant);');
+                    @endphp
+                    <button @click="{{ $btn['a'] }}"
+                            class="flex items-center justify-center rounded-xl text-sm font-semibold transition-all duration-150 hover:-translate-y-px active:scale-95"
+                            style="height:48px;{{ $style }}">{{ $btn['l'] }}</button>
+                @endforeach
+
+                <button @click="calculate()"
+                        class="col-span-4 flex items-center justify-center rounded-xl text-base font-bold transition-all duration-150 hover:-translate-y-px active:scale-95"
+                        style="height:52px;background:linear-gradient(135deg,var(--md-sys-color-primary),color-mix(in srgb,var(--md-sys-color-primary) 80%,#000 20%));color:var(--md-sys-color-on-primary);">
+                    =
+                </button>
+            </div>
+        </div>
+
+    </x-dashboard.tools.base>
 </div>

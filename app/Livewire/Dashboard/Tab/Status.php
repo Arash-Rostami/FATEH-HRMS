@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Livewire\Dashboard\Tab\Actions\SendSmsAction;
 use App\Models\User;
 use App\Services\SmsService;
-use App\Enums\PresenceStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -15,28 +15,20 @@ class Status extends Component
     public string $search = '';
     public $showAboutModal = false;
 
-    public function sendSms(string $userId, SmsService $smsService)
+    public function render()
     {
-        $user = User::with('profile')->findOrFail($userId);
-
-        if ($user->sms_number) {
-            $smsService->send($user->sms_number, " to be inserted later on ...");
-            $this->dispatch('toast', message: 'پیامک با موفقیت ارسال شد', type: 'success');
-        } else {
-            $this->dispatch('toast', message: 'شماره تلفن همراه یافت نشد', type: 'error');
-        }
+        return view('livewire.dashboard.tab.status.index');
     }
 
-    #[Computed]
-    public function users()
+    public function sendSms(string $userId, SendSmsAction $action, SmsService $smsService)
     {
-        return User::query()
-            ->with(['profile.department'])
-            ->active()
-            ->when($this->activeFilter !== 'all', fn (Builder $query) => $query->where('presence', $this->activeFilter))
-            ->when($this->search, fn (Builder $query) => $query->search($this->search))
-            ->orderBy('name')
-            ->get();
+        $result = $action->execute($userId, $smsService);
+        $this->dispatch('toast', message: $result['message'], type: $result['type']);
+    }
+
+    public function setFilter(string $filter)
+    {
+        $this->activeFilter = $this->activeFilter === $filter ? 'all' : $filter;
     }
 
     #[Computed]
@@ -44,12 +36,12 @@ class Status extends Component
     {
         $counts = User::query()
             ->active()
-            ->when($this->search, fn (Builder $query) => $query->search($this->search))
+            ->when($this->search, fn(Builder $query) => $query->search($this->search))
             ->selectRaw('presence, count(*) as count')
             ->toBase()
             ->groupBy('presence')
             ->get()
-            ->mapWithKeys(fn ($row) => [
+            ->mapWithKeys(fn($row) => [
                 $row->presence => $row->count
             ])
             ->all();
@@ -62,13 +54,15 @@ class Status extends Component
         ];
     }
 
-    public function setFilter(string $filter)
+    #[Computed]
+    public function users()
     {
-        $this->activeFilter = $this->activeFilter === $filter ? 'all' : $filter;
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.tab.status.index');
+        return User::query()
+            ->with(['profile.department'])
+            ->active()
+            ->when($this->activeFilter !== 'all', fn(Builder $query) => $query->where('presence', $this->activeFilter))
+            ->when($this->search, fn(Builder $query) => $query->search($this->search))
+            ->orderBy('name')
+            ->get();
     }
 }

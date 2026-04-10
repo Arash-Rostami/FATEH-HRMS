@@ -5,7 +5,7 @@
     class="group relative flex flex-col gap-3 p-4 md:p-5 pt-6 rounded-2xl bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40 hover:-translate-y-1 transition-all duration-300 cursor-grab active:cursor-grabbing active:scale-[0.98] select-none"
     dir="rtl"
 >
-    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 md:w-40 h-[2px] rounded-b-full opacity-80 group-hover:opacity-100 transition-opacity bg-gradient-to-r {{ $columnConfig[$task['status']]['lightGradient'] ?? $columnConfig['todo']['lightGradient'] }} animate-subtle-pulse" style="box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-{{ $columnConfig[$task['status']]['color'] ?? 'primary' }}) 40%, transparent);"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 md:w-40 h-[2px] rounded-b-full opacity-80 group-hover:opacity-100 transition-opacity bg-gradient-to-r {{ $presenter->columnConfig()[$task['status']]['lightGradient'] ?? $columnConfig['todo']['lightGradient'] }} animate-subtle-pulse" style="box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-{{ $presenter->columnConfig()[$task['status']]['color'] ?? 'primary' }}) 40%, transparent);"></div>
 
     <div class="flex items-start justify-between gap-3 mt-1">
         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-snug line-clamp-2 flex-1">
@@ -68,7 +68,7 @@
                 #{{ $task['id'] }} • {{ $task['created_formatted'] }}
             </span>
             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border">
-                {{ $columnConfig[$task['status']]['title'] ?? $columnConfig['todo']['title'] }}
+                {{ $presenter->columnConfig()[$task['status']]['title'] ?? $columnConfig['todo']['title'] }}
             </span>
         </div>
 

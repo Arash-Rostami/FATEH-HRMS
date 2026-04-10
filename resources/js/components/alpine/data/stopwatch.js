@@ -5,6 +5,8 @@ export default function stopwatch(mp3) {
         alarm: mp3,
         alarmInterval: null,
         alarmAudioInstance: null,
+        open: false,
+
         init() {
             this.modal = this.$refs.stopwatchModal;
             if (this.modal) {
@@ -67,10 +69,12 @@ export default function stopwatch(mp3) {
             this.destroyed();
         },
         mounted() {
+            this.open = true;
             this.modal.classList.remove('hidden');
             this.modal.classList.add('flex');
         },
         destroyed() {
+            this.open = false;
             this.modal.classList.remove('flex');
             this.modal.classList.add('hidden');
         }

@@ -70,7 +70,6 @@
             <div
                 class="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-10 scrollbar-thin scrollbar-thumb-[var(--md-sys-color-outline-variant)]/20 scrollbar-track-transparent hover:scrollbar-thumb-[var(--md-sys-color-outline-variant)]/40 transition-colors">
                 <div class="flex flex-col h-full justify-center min-h-min">
-                    <x-dashboard.shapes/>
 
                     <!-- Form Header -->
                     <div class="mb-8 text-center lg:text-start space-y-2">

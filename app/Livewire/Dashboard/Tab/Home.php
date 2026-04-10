@@ -14,6 +14,16 @@ class Home extends Component
         return Config::get('modules', []);
     }
 
+    public function placeholder()
+    {
+        return view('livewire.dashboard.tab.placeholder');
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.tab.home.index');
+    }
+
     #[Computed]
     public function tools(): array
     {
@@ -51,15 +61,5 @@ class Home extends Component
                 'text' => 'var(--tool-gold-text)',
             ],
         ];
-    }
-
-    public function placeholder()
-    {
-        return view('livewire.dashboard.tab.placeholder');
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.tab.home.index');
     }
 }

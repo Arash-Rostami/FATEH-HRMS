@@ -28,7 +28,7 @@ export default (Alpine) => {
             { id: 'note', name: 'نت موسیقی' },
             { id: 'ripple', name: 'آب مواج' },
             { id: 'firefly', name: 'شب تاب رنگی' },
-            { id: 'snow', name: 'رقص برف' },
+            { id: 'snow', name: 'بلور برف' },
         ],
 
         images: [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8],

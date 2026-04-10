@@ -66,7 +66,7 @@
                             @if($editingCommentId === ($comment?->id ?? null))
                                 <div class="flex flex-col gap-2 py-1">
                                     <textarea
-                                        wire:model="editingContent"
+                                        wire:model="commentForm.content"
                                         class="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-primary)]/30 rounded-xl p-2 text-xs focus:ring-1 focus:ring-[var(--md-sys-color-primary)] outline-none resize-none"
                                         rows="2"
                                     ></textarea>

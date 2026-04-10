@@ -3,36 +3,16 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Report;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
-use Illuminate\Support\Facades\Storage;
 
 class Reports extends Component
 {
-    public $perPage = 10;
-    public $view = 'card';
-    public $showModal = false;
-    public $activeReportId = null;
-
-    public function mount()
-    {
-        $this->view = session('reports_view_mode', 'card');
-    }
-
-    public function loadMore()
-    {
-        $this->perPage += 10;
-        unset($this->reports);
-        unset($this->hasMorePages);
-    }
-
-    public function toggleView($view)
-    {
-        if (in_array($view, ['card', 'list'])) {
-            $this->view = $view;
-            session(['reports_view_mode' => $view]);
-        }
-    }
+    public int $perPage = 10;
+    public string $view = 'card';
+    public bool $showModal = false;
+    public ?int $activeReportId = null;
 
     public function download($id)
     {
@@ -59,6 +39,29 @@ class Reports extends Component
     }
 
     #[Computed(seconds: 14400, cache: true)]
+    public function hasMorePages()
+    {
+        return Report::active()->count() > $this->perPage;
+    }
+
+    public function loadMore()
+    {
+        $this->perPage += 10;
+        unset($this->reports);
+        unset($this->hasMorePages);
+    }
+
+    public function mount()
+    {
+        $this->view = session('reports_view_mode', 'card');
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.tab.reports.index');
+    }
+
+    #[Computed(seconds: 14400, cache: true)]
     public function reports()
     {
         return Report::active()
@@ -68,21 +71,17 @@ class Reports extends Component
             ->get();
     }
 
-    #[Computed(seconds: 14400, cache: true)]
-    public function hasMorePages()
+    public function toggleView($view)
     {
-        return Report::active()->count() > $this->perPage;
+        if (in_array($view, ['card', 'list'])) {
+            $this->view = $view;
+            session(['reports_view_mode' => $view]);
+        }
     }
-
 
     #[Computed]
     public function totalReports()
     {
         return Report::active()->count();
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.tab.reports.index');
     }
 }

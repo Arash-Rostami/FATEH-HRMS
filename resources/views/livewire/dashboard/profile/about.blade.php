@@ -8,8 +8,8 @@
         <form wire:submit.prevent="save" class="space-y-5">
             <div>
                 <x-dashboard.form.textarea
-                    wire:model="bio"
-                    name="bio"
+                    wire:model="form.bio"
+                    name="form.bio"
                     label="من همانم که در ایام حیات..."
                     placeholder="روایت خلاصه‌ای از تولد، تحصیل، کار، مهارت و چندتا چیز دیگر که با من است..."
                     rows="4"
@@ -19,40 +19,40 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <x-dashboard.form.input
-                    wire:model="movies"
-                    name="movies"
+                    wire:model="form.movies"
+                    name="form.movies"
                     label="فیلم و سریال"
                     placeholder="مثلا: معمولا فیلم زیاد میبینم مخصوصا ژانر تاریخی..."
                     icon="movie"
                 />
 
                 <x-dashboard.form.input
-                    wire:model="music"
-                    name="music"
+                    wire:model="form.music"
+                    name="form.music"
                     label="موسیقی و پادکست"
                     placeholder="مثلا: به موسیقی و پادکست هم علاقه دارم..."
                     icon="headphones"
                 />
 
                 <x-dashboard.form.input
-                    wire:model="hobbies"
-                    name="hobbies"
+                    wire:model="form.hobbies"
+                    name="form.hobbies"
                     label="با اینا خستگیمو در می‌کنم"
                     placeholder="رنگ، غذا، سرگرمی و هنرهای مورد علاقه..."
                     icon="palette"
                 />
 
                 <x-dashboard.form.input
-                    wire:model="food"
-                    name="food"
+                    wire:model="form.food"
+                    name="form.food"
                     label="غذا و خوراکی"
                     placeholder="مثلا: خیلی به میزان کالری غذا توجه میکنم..."
                     icon="restaurant"
                 />
 
                 <x-dashboard.form.input
-                    wire:model="sports"
-                    name="sports"
+                    wire:model="form.sports"
+                    name="form.sports"
                     label="ورزش و تفریح"
                     placeholder="مثلا: سایکل توریست هستم..."
                     icon="directions_bike"

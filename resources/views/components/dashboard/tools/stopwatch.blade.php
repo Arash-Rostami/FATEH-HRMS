@@ -1,76 +1,83 @@
 <div x-data="stopwatch('{{Vite::asset('resources/assets/audio/alarm.mp3') }}')"
      x-init="init()"
      x-ref="stopwatchModal"
-     dir="rtl"
-     class="fixed top-auto z-10 inset-0 hidden overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity justify-center">
+     dir="rtl" x-cloak>
 
-    <div class="flex items-center justify-center min-h-screen p-4 w-2/3 md:w-1/4 max-h-screen">
-        <div
-            class="relative bg-[var(--md-sys-color-primary)] rounded-xl shadow-xl transform transition-all sm:max-w-md w-full p-8">
-            <button
-                title="بستن"
-                @click="closeModal()"
-                class="absolute top-3 left-3 w-6 h-6 rounded-lg flex items-center justify-center bg-black/40 text-white/90 hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
-            >
-                <span class="material-symbols-rounded scale-[.75]">close</span>
-            </button>
-            <!-- Stopwatch Display -->
-            <div class="text-center py-4 mb-4">
-                <div class="relative mx-auto mb-4 w-32 h-32 flex items-center justify-center">
-                    <!-- Animated Ring -->
-                    <svg class="absolute inset-0 w-full h-full -rotate-90">
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" class="text-black/40 hover:text-black/60 hover:scale-110" stroke-width="8"/>
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" class="text-[var(--md-sys-color-primary-container)]" stroke-width="8" stroke-linecap="round" :stroke-dasharray="`${(timer.seconds / 300) * 351.86} 351.86`" style="transition: stroke-dasharray 1s linear;"/>
-                    </svg>
-                    <!-- Stopwatch Value -->
-                    <div class="text-3xl font-bold text-[var(--md-sys-color-on-primary]"
-                         x-text="formatSeconds(timer.seconds)"
-                         style="font-variant-numeric: tabular-nums;"></div>
+    <x-dashboard.tools.base x-show="open">
+
+        <x-slot:icon>
+            <span class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[24px]">alarm</span>
+        </x-slot:icon>
+
+        <x-slot:heading>
+            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);">تایمر</p>
+            <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);"
+               x-text="timer.running ? 'فعال ...' : 'متوقف'"></p>
+        </x-slot:heading>
+
+        {{-- Ring --}}
+        <div class="flex flex-col items-center px-5 pt-6 pb-2">
+            <div class="relative w-36 h-36 flex items-center justify-center">
+                <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 144 144">
+                    <circle cx="72" cy="72" r="62" fill="none" stroke="currentColor"
+                            class="text-white/10" stroke-width="8"/>
+                    <circle cx="72" cy="72" r="62" fill="none"
+                            stroke="var(--md-sys-color-primary-container)"
+                            stroke-width="8" stroke-linecap="round"
+                            :stroke-dasharray="`${(timer.seconds / 300) * 389.56} 389.56`"
+                            style="transition:stroke-dasharray 1s linear;"/>
+                </svg>
+                <div class="text-center z-10">
+                    <div class="text-3xl font-bold text-[var(--md-sys-color-on-surface)] [font-feature-settings:'tnum']"
+                         x-text="formatSeconds(timer.seconds)"></div>
+                    <div class="text-xs mt-1 text-[var(--md-sys-color-outline)]">ثانیه</div>
                 </div>
-
-                <div class="text-xs opacity-60 text-[var(--md-sys-color-on-primary]">
-                    <span x-text="timer.running ? 'فعال ...' : 'متوقف'"></span>
-                </div>
-            </div>
-
-            <!-- Controls -->
-            <div class="flex justify-center gap-3 mb-4">
-                <button @click="resetTimer()"
-                        class="p-4 rounded-full transition-all hover:scale-110 cursor-pointer bg-[var(--md-sys-color-primary-container)]"
-                        title="ریست">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                </button>
-                <button @click="toggleTimer()"
-                        class="p-4 rounded-full transition-all hover:scale-110 shadow-lg cursor-pointer bg-[var(--md-sys-color-primary-container)]"
-                        :title="timer.running ? 'توقف' : 'شروع'">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path x-show="!timer.running" d="M8 5v14l11-7z"/><path x-show="timer.running" d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
-                </button>
-                <button  @click="stopAlarm()"
-                         x-show="alarmInterval"
-                        class="p-4 rounded-full transition-all hover:scale-110 animate-pulse bg-[var(--md-sys-color-primary-container)]"
-                        title="Stop Alarm">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-                </button>
-            </div>
-
-            <!-- Presets -->
-            <div class="space-y-2 text-center">
-                <div class="text-xs opacity-60 text-[var(--md-sys-color-primary-container)] mb-2">دقایق پیش فرض</div>
-                <div class="flex gap-2 flex-wrap text-center justify-center">
-                    <button class="chip text-[var(--md-sys-color-primary-container)]" @click="setTimerPreset(300)">5m</button>
-                    <button class="chip text-[var(--md-sys-color-primary-container)]" @click="setTimerPreset(600)">10m</button>
-                    <button class="chip text-[var(--md-sys-color-primary-container)]" @click="setTimerPreset(900)">15m</button>
-                    <button class="chip text-[var(--md-sys-color-primary-container)]" @click="setTimerPreset(1800)">30m</button>
-                    <button class="chip text-[var(--md-sys-color-primary-container)]" @click="setTimerPreset(3600)">60m</button>
-                </div>
-                <input type="number" min="1" step="1"
-                       class="input-inline h-8 w-full rounded-lg bg-black/40 text-white/90 hover:bg-black/60 hover:scale-110 hover:text-white text-center justify-center custom-arrows"
-                       placeholder="تنظیم دستی"
-                       x-model.number="customMins"
-                       @dblclick="setTimerPreset(customMins*60)"
-                       @blur="setTimerPreset(customMins*60)"
-                       @keydown.enter.prevent="setTimerPreset(customMins*60)">
             </div>
         </div>
-    </div>
+
+        {{-- Controls --}}
+        <div class="flex items-center justify-center gap-4 px-5 py-4">
+            <button @click="resetTimer()" title="ریست"
+                    class="flex items-center justify-center rounded-xl transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-primary-container)] w-[52px] h-[52px]">
+                <span class="material-symbols-rounded text-[var(--md-sys-color-on-surface-variant)]">restart_alt</span>
+            </button>
+
+            <button @click="toggleTimer()" :title="timer.running ? 'توقف' : 'شروع'"
+                    class="flex items-center justify-center rounded-xl transition-all duration-150 hover:-translate-y-px active:scale-95 animate-pulse bg-[var(--md-sys-color-primary)] w-[66px] h-[66px] shadow-lg">
+                <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-on-primary)]"
+                      x-text="timer.running ? 'pause' : 'play_arrow'"></span>
+            </button>
+
+            <button @click="stopAlarm()" x-show="alarmInterval" title="توقف آلارم"
+                    class="flex items-center justify-center rounded-xl animate-pulse transition-all duration-150 hover:-translate-y-px bg-[var(--md-sys-color-error)] active:scale-95 w-[52px] h-[52px] shadow-md">
+                <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-on-primary]">alarm_off</span>
+            </button>
+            <div x-show="!alarmInterval" class="w-[52px] h-[52px]"></div>
+        </div>
+
+        {{-- Presets --}}
+        <div class="px-5 pb-2">
+            <p class="text-[11px] font-semibold uppercase tracking-widest mb-3 text-center text-[var(--md-sys-color-outline)]">دقایق پیش‌فرض</p>
+            <div class="flex flex-wrap justify-center gap-2">
+                @foreach([[300,'۵'],[600,'۱۰'],[900,'۱۵'],[1800,'۳۰'],[3600,'۶۰']] as [$secs,$label])
+                    <button @click="setTimerPreset({{ $secs }})"
+                            class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-outline-variant)]">
+                        {{ $label }} م
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Custom input --}}
+        <div class="px-5 pb-6 pt-3">
+            <input type="number" min="1" step="1"
+                   x-model.number="customMins"
+                   @dblclick="setTimerPreset(customMins*60)"
+                   @blur="setTimerPreset(customMins*60)"
+                   @keydown.enter.prevent="setTimerPreset(customMins*60)"
+                   placeholder="تنظیم دستی (دقیقه)"
+                   class="w-full rounded-lg px-4 py-3 text-sm text-center outline-none transition-all duration-150 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]">
+        </div>
+
+    </x-dashboard.tools.base>
 </div>

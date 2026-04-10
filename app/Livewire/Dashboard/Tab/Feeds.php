@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Livewire\Dashboard\Tab\Actions\AddCommentAction;
+use App\Livewire\Dashboard\Tab\Actions\DeleteCommentAction;
+use App\Livewire\Dashboard\Tab\Actions\ToggleReactionAction;
+use App\Livewire\Dashboard\Tab\Actions\UpdateCommentAction;
+use App\Livewire\Dashboard\Tab\Forms\CommentForm;
 use App\Models\Comment;
 use App\Models\Feed;
-use App\Models\Reaction;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -18,43 +21,36 @@ class Feeds extends Component
     public array $feedIds = [];
 
     public ?int $selectedFeedId = null;
-
     public bool $assetsLoaded = false;
 
     public array $newComments = [];
     public array $replyComments = [];
 
     public ?int $editingCommentId = null;
-    public string $editingContent = '';
+    public CommentForm $commentForm;
 
     public int $perPage = 3;
     public bool $hasMorePages = true;
 
-    public function addComment($feedId, $parentId = null)
+
+    public function addComment($feedId, AddCommentAction $action, $parentId = null): void
     {
-        $target = $parentId ? "replyComments.{$parentId}" : "newComments.{$feedId}";
+        $this->commentForm->content = $parentId
+            ? $this->replyComments[$parentId]
+            : $this->newComments[$feedId];
 
-        $this->validate([
-            $target => 'required|string|max:1000',
-        ]);
+        $action->execute($this->commentForm, $feedId, $parentId);
 
-        Comment::create([
-            'feed_id' => $feedId,
-            'user_id' => Auth::id(),
-            'content' => $parentId ? $this->replyComments[$parentId] : $this->newComments[$feedId],
-            'parent_id' => $parentId
-        ]);
-
-        $this->reset([$target]);
+        data_forget($this, $parentId ? "replyComments.$parentId" : "newComments.$feedId");
+        $this->commentForm->reset('content');
         unset($this->feeds);
     }
 
     #[On("delete-comment-confirmed")]
-    public function deleteComment($commentId)
+    public function deleteComment($commentId, DeleteCommentAction $action): void
     {
-        if (Comment::where('user_id', Auth::id())->where('id', $commentId)->delete()) {
-            unset($this->feeds);
-        }
+        $action->execute($commentId);
+        unset($this->feeds);
     }
 
     #[Computed]
@@ -63,7 +59,6 @@ class Feeds extends Component
         if (empty($this->feedIds)) return collect();
 
         $idsString = implode(',', $this->feedIds);
-
         return Feed::with([
             'user',
             'comments' => fn($q) => $q->whereNull('parent_id')->latest(),
@@ -77,7 +72,7 @@ class Feeds extends Component
             ->get();
     }
 
-    public function loadInitialFeeds()
+    public function loadInitialFeeds(): void
     {
         $this->feedIds = Feed::latest()->take($this->perPage)->pluck('id')->toArray();
         $this->hasMorePages = count($this->feedIds) >= $this->perPage;
@@ -85,11 +80,10 @@ class Feeds extends Component
         if (!empty($this->feedIds) && !$this->selectedFeedId) {
             $this->selectedFeedId = $this->feedIds[0];
         }
-
         unset($this->feeds);
     }
 
-    public function loadMore()
+    public function loadMore(): void
     {
         if (!$this->hasMorePages) return;
 
@@ -108,16 +102,10 @@ class Feeds extends Component
         unset($this->feeds);
     }
 
-    public function mount()
+    public function mount(): void
     {
         $this->loadInitialFeeds();
         $this->assetsLoaded = true;
-    }
-
-    #[Computed]
-    public function totalFeeds()
-    {
-        return Feed::count();
     }
 
     public function render()
@@ -125,55 +113,36 @@ class Feeds extends Component
         return view('livewire.dashboard.tab.feeds.index');
     }
 
-    public function startEditing($commentId)
+    public function startEditing($commentId): void
     {
         $comment = Comment::where('user_id', Auth::id())->find($commentId);
-
         if ($comment) {
             $this->editingCommentId = $commentId;
-            $this->editingContent = $comment->content;
+            $this->commentForm->content = $comment->content;
         }
     }
 
-    public function toggleReaction($feedId, $emoji)
+    public function toggleReaction($feedId, $emoji, ToggleReactionAction $action): void
     {
         if (!Auth::check()) return;
 
-        DB::transaction(function () use ($feedId, $emoji) {
-            $reaction = Reaction::where('feed_id', $feedId)
-                ->where('user_id', Auth::id())
-                ->first();
-
-            if ($reaction) {
-                $reaction->emoji === $emoji ? $reaction->delete() : $reaction->update(['emoji' => $emoji]);
-            } else {
-                Reaction::create([
-                    'feed_id' => $feedId,
-                    'user_id' => Auth::id(),
-                    'emoji' => $emoji
-                ]);
-            }
-        });
-
+        $action->execute($feedId, $emoji);
         unset($this->feeds);
     }
 
-    public function updateComment()
+    #[Computed]
+    public function totalFeeds(): int
+    {
+        return Feed::count();
+    }
+
+    public function updateComment(UpdateCommentAction $action): void
     {
         if (!$this->editingCommentId) return;
 
-        $this->validate([
-            'editingContent' => 'required|string|max:1000',
-        ]);
+        $action->execute($this->commentForm, $this->editingCommentId);
 
-        $updated = Comment::where('user_id', Auth::id())
-            ->where('id', $this->editingCommentId)
-            ->update(['content' => $this->editingContent]);
-
-        if ($updated) {
-            unset($this->feeds);
-        }
-
-        $this->reset(['editingCommentId', 'editingContent']);
+        unset($this->feeds);
+        $this->reset(['editingCommentId', 'commentForm']);
     }
 }

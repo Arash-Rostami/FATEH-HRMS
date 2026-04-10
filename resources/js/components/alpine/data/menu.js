@@ -5,44 +5,46 @@ export default function menu() {
             {id: 'dashboard-controller', href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
             {id: 'profile-controller', href: '/profile', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
             {id: 'tasks-controller', href: '/tasks', icon: 'dashboard', title: 'برد وظایف', sub: 'فردی/تیمی'},
-            {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate'},
-            {id: 'stopwatch-controller', href: '-', icon: 'alarm', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
             {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
             {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
             {id: 'ads-controller', href: '/ads', icon: 'work', title: 'فرصت‌های شغلی', sub: 'استخدامی'},
-
-            {id: 'reservation-seat', href: '/reservation/seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
-            {id: 'reservation-spot', href: '/reservation/spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
-            {id: 'reservation-car', href: '/reservation/car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
-            {id: 'reservation-appointment', href: '/reservation/appointment', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
-
+            {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی'},
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین', sub: 'دفترچه تلفن'},
-            {id: 'notifications-controller', href: '/notifications', icon: 'notifications_active', title: 'پیام‌ها', sub: 'اعلانات جدید'},
-            {id: 'security-controller', href: '/security', icon: 'security', title: 'امنیت', sub: 'مجوزها و رمز'},
-            {id: '#-controller', href: '#', icon: 'api', title: 'API', sub: 'اتصالات'},
-
+            {id: 'reservation-seat', href: '/reservation?activeTab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
+            {id: 'reservation-spot', href: '/reservation?activeTab=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
+            {id: 'reservation-car', href: '/reservation?activeTab=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
+            {id: 'reservation-appointment', href: '/reservation?activeTab=meeting', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
+            {id: 'authority-controller', href: '/authority', icon: 'verified_user', title: 'اختیارات', sub: 'واحدهای سازمانی'},
+            {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate'},
+            {id: 'stopwatch-controller', href: '-', icon: 'radio', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch'},
+            {id: 'radio-controller', href: '-', icon: 'radio', title: 'رادیو', sub: 'موسیقی آنلاین', action: 'radio'},
         ],
         current: 0,
         perPage: 12,
-        get pages() {
-            return Math.max(1, Math.ceil(this.items.length / this.perPage));
+
+
+        get paginatedData() {
+            const pages = [];
+            for (let i = 0; i < this.items.length; i += this.perPage) {
+                pages.push(this.items.slice(i, i + this.perPage));
+            }
+            return pages;
         },
-        pageItems(index) {
-            const start = index * this.perPage;
-            return this.items.filter(item => item.href !== '-').slice(start, start + this.perPage);
+
+        handleItemClick(item, event) {
+            if (item.href === '-') {
+                event.preventDefault();
+                if (item.action) this.$dispatch(item.action);
+            }
+            this.closeMenu();
         },
-        toggleMenu() {
-            this.menuOpen = !this.menuOpen;
-        },
-        closeMenu() {
-            this.menuOpen = false;
-        },
-        prev() {
-            if (this.current > 0) this.current--;
-        },
-        next() {
-            if (this.current < this.pages - 1) this.current++;
-        },
+
+        toggleMenu() { this.menuOpen = !this.menuOpen; },
+        closeMenu() { this.menuOpen = false; },
+
+        prev() { if (this.current > 0) this.current--; },
+        next() { if (this.current < this.paginatedData.length - 1) this.current++; },
+
         updatePerPage() {
             let newPerPage = 12;
             if (window.matchMedia('(min-width:1024px)').matches) newPerPage = 12;
@@ -54,11 +56,10 @@ export default function menu() {
                 this.current = 0;
             }
         },
-        clickItems() {
-            return this.items.filter(item => item.action === 'calculate' || item.action === 'stopwatch');
-        },
+
         init() {
             this.updatePerPage();
+            window.addEventListener('resize', () => this.updatePerPage());
         }
     }
 }

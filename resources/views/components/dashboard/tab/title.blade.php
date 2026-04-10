@@ -2,7 +2,7 @@
 
 <div class="flex items-center gap-3 mb-8">
     <div
-        class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
+        class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
         <span class="material-symbols-rounded text-base font-fill">{{ $icon }}</span>
     </div>
     <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">{{ $title }}</h2>
@@ -13,7 +13,7 @@
         </div>
     @endif
     @if($count !== null)
-        <span class="text-[11px] font-bold px-2.5 py-1 rounded-xl
+        <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg
                      bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
             {{ $count }} {{ $countLabel }}
         </span>

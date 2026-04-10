@@ -3,6 +3,7 @@ export default function calculator() {
         display: '',
         formattedDisplay: '',
         modal: null,
+        open: false,
 
         init() {
             this.modal = this.$refs.calculatorModal;
@@ -15,7 +16,7 @@ export default function calculator() {
         },
         appendToDisplay(value) {
             this.display += value;
-            this.formattedDisplay += value;
+            this.formattedDisplay = this.display.replace(/(?<!\.)\d+/g, num => num.replace(/\B(?=(\d{3})+(?!\d))/g, "'"));
         },
         calculate() {
             try {
@@ -23,10 +24,7 @@ export default function calculator() {
                 this.display = result.toString();
                 this.formattedDisplay = (this.display === 'Error!')
                     ? this.display
-                    : result.toLocaleString('en', {
-                        useGrouping: true,
-                        maximumFractionDigits: 20
-                    }).replace(/,/g, "'");
+                    : result.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
             } catch (error) {
                 this.display = 'Error!';
             }
@@ -47,10 +45,12 @@ export default function calculator() {
             this.destroyed();
         },
         mounted() {
+            this.open = true;
             this.modal.classList.remove('hidden');
             this.modal.classList.add('flex');
         },
         destroyed() {
+            this.open = false;
             this.modal.classList.remove('flex');
             this.modal.classList.add('hidden');
         }

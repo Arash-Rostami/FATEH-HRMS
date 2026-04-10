@@ -20,7 +20,7 @@
                 {{-- Star Rating Interaction --}}
                 <div class="space-y-4" x-data="{
                         hoverRating: 0,
-                        currentRating: @entangle('satisfactionScore'),
+                        currentRating: @entangle('rating.score'),
                         setHover(val) { this.hoverRating = val; },
                         resetHover() { this.hoverRating = 0; },
                         rate(val) { this.currentRating = val; $wire.rate(val); }
@@ -46,7 +46,7 @@
                             </button>
                         @endfor
                     </div>
-                    @error('satisfactionScore')
+                    @error('rating.score')
                         <p class="text-[11px] text-[var(--md-sys-color-error)] mt-2 font-medium bg-[var(--md-sys-color-error-container)] inline-block px-3 py-1 rounded-full">{{ $message }}</p>
                     @enderror
                 </div>
@@ -57,10 +57,10 @@
                         <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">chat</span>
                         نظرات پیشنهادی (اختیاری):
                     </label>
-                    <textarea id="satisfactionComment" wire:model="satisfactionComment"
+                    <textarea id="satisfactionComment" wire:model="rating.comment"
                               class="w-full bg-[var(--md-sys-color-surface-container-lowest)] border border-[var(--md-sys-color-outline)] text-[var(--md-sys-color-on-surface)] text-sm rounded-xl focus:ring-[var(--md-sys-color-primary)] focus:border-[var(--md-sys-color-primary)] block p-4 shadow-inner transition-colors placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 min-h-[120px] resize-y"
                               placeholder="چگونه می‌توانیم خدمات خود را بهبود بخشیم؟"></textarea>
-                    @error('satisfactionComment') <span class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
+                    @error('rating.comment') <span class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="pt-2 border-t border-[var(--md-sys-color-outline-variant)]/40">

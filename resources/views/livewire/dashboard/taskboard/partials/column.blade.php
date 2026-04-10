@@ -1,5 +1,5 @@
 @php
-    $config = $columnConfig[$column];
+    $config = $presenter->columnConfig()[$column];
     $columnTasks = $tasks[$column] ?? [];
     $taskCount = $totalCount[$column] ?? 0;
 @endphp

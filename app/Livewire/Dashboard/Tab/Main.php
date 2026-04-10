@@ -4,7 +4,6 @@ namespace App\Livewire\Dashboard\Tab;
 
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Main extends Component
@@ -12,6 +11,46 @@ class Main extends Component
     public $activeTab = 'home';
 
     public $direction = 'up';
+
+    public function navigateTab(int $step)
+    {
+        $keys = array_keys($this->tabs);
+        $currentIndex = array_search($this->activeTab, $keys);
+
+        if ($currentIndex === false) return;
+
+        $count = count($keys);
+        $newIndex = ($currentIndex + $step + $count) % $count;
+
+        $this->setTab($keys[$newIndex]);
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.tab.main', [
+            'currentTab' => $this->tabs[$this->activeTab] ?? null,
+        ])->extends('layouts.app')->section('content');
+    }
+
+    #[On('switch-tab')]
+    public function setTab($tab)
+    {
+        if ($tab === $this->activeTab) {
+            return;
+        }
+
+        $tabsKeys = array_keys($this->tabs);
+
+        if (!in_array($tab, $tabsKeys)) {
+            return;
+        }
+
+        $currentIndex = array_search($this->activeTab, $tabsKeys);
+        $newIndex = array_search($tab, $tabsKeys);
+
+        $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
+        $this->activeTab = $tab;
+    }
 
     #[Computed]
     public function tabs()
@@ -72,45 +111,5 @@ class Main extends Component
                 'bg' => 'bg-info-container'
             ],
         ];
-    }
-
-    public function navigateTab(int $step)
-    {
-        $keys = array_keys($this->tabs);
-        $currentIndex = array_search($this->activeTab, $keys);
-
-        if ($currentIndex === false) return;
-
-        $count = count($keys);
-        $newIndex = ($currentIndex + $step + $count) % $count;
-
-        $this->setTab($keys[$newIndex]);
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.tab.main', [
-            'currentTab' => $this->tabs[$this->activeTab] ?? null,
-        ])->extends('layouts.app')->section('content');
-    }
-
-    #[On('switch-tab')]
-    public function setTab($tab)
-    {
-        if ($tab === $this->activeTab) {
-            return;
-        }
-
-        $tabsKeys = array_keys($this->tabs);
-
-        if (!in_array($tab, $tabsKeys)) {
-            return;
-        }
-
-        $currentIndex = array_search($this->activeTab, $tabsKeys);
-        $newIndex = array_search($tab, $tabsKeys);
-
-        $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
-        $this->activeTab = $tab;
     }
 }

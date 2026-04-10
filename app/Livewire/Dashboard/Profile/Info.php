@@ -2,12 +2,13 @@
 
 namespace App\Livewire\Dashboard\Profile;
 
+use App\Livewire\Dashboard\Profile\Actions\DeleteProfileImageAction;
+use App\Livewire\Dashboard\Profile\Actions\SaveProfileAction;
+use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 use App\Models\Department;
 use App\Models\Profile;
-use App\Traits\ProfileState;
-use App\Traits\ProfileValidation;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,87 +17,82 @@ use Morilog\Jalali\Jalalian;
 class Info extends Component
 {
     use WithFileUploads;
-    use ProfileState;
-    use ProfileValidation;
+
+    public ProfileForm $form;
+
+    public ?string $existingImage = null;
+
     #[On('confirm-delete-profile-image')]
-    public function deleteImage(): void
+    public function deleteImage(DeleteProfileImageAction $action): void
     {
-        $profile = Auth::user()->profile;
-        if ($profile && $profile->image) {
-            $profile->image = null;
-            $profile->save();
+        $deleted = $action->execute();
+
+        if ($deleted) {
             $this->existingImage = null;
             $this->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
         }
     }
 
+    #[Computed]
+    public function departments(): array
+    {
+        return Department::pluck('name', 'code')->toArray();
+    }
+
     public function mount(): void
     {
         $user = Auth::user();
-        $profile = $user->profile;
+        $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
         if ($profile) {
-            $this->state = array_merge($this->state, $profile->only(array_keys($this->state)));
-            $this->existingImage = $profile->image;
+            // Populate form with existing data
+            $this->form->fill($profile->only([
+                'gender', 'marital_status', 'number_of_children', 'id_card_number',
+                'id_booklet_number', 'degree', 'field', 'landline', 'cellphone',
+                'license_plate', 'zip_code', 'address', 'accessibility', 'insurance',
+                'emergency_phone', 'emergency_relationship', 'work_experience',
+                'interests', 'email'
+            ]));
 
-            $this->favoriteColors = is_array($profile->favorite_colors)
+            $this->form->favoriteColors = is_array($profile->favorite_colors)
                 ? $profile->favorite_colors
-                : (is_string($profile->favorite_colors) ? explode(',', $profile->favorite_colors) : []);
+                : (is_string($profile->favorite_colors)
+                    ? explode(',', $profile->favorite_colors)
+                    : []);
 
             if ($profile->birthdate) {
                 $jalali = Jalalian::fromCarbon($profile->birthdate);
-                $this->birthYear = $jalali->getYear();
-                $this->birthMonth = $jalali->getMonth();
-                $this->birthDay = $jalali->getDay();
+                $this->form->birthYear = $jalali->getYear();
+                $this->form->birthMonth = $jalali->getMonth();
+                $this->form->birthDay = $jalali->getDay();
             }
+
+            $this->existingImage = $profile->image;
         }
 
-        $this->state['email'] = $user->email ?? '';
+        $this->form->email = $user->email ?? '';
     }
 
     public function render()
     {
         return view('livewire.dashboard.profile.info', [
-            'departments' => Department::pluck('name', 'code')->toArray()
+            'departments' => $this->departments,
         ]);
     }
 
-    public function save(): void
+    public function save(SaveProfileAction $action): void
     {
-        $this->validate();
+        try {
+            $result = $action->execute($this->form);
 
-        $user = Auth::user();
-        $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
-
-        $profile->fill(Arr::only($this->state, [
-            'gender', 'marital_status', 'number_of_children', 'id_card_number', 'id_booklet_number',
-            'degree', 'field', 'landline', 'cellphone', 'license_plate', 'zip_code', 'address',
-            'accessibility', 'insurance', 'emergency_phone', 'emergency_relationship',
-            'work_experience', 'interests'
-        ]));
-
-        if ($this->birthYear && $this->birthMonth && $this->birthDay) {
-            try {
-                $profile->birthdate = Jalalian::fromFormat(
-                    'Y/n/j',
-                    "{$this->birthYear}/{$this->birthMonth}/{$this->birthDay}"
-                )->toCarbon();
-            } catch (\Exception $e) {
-                $this->dispatch('toast', message: 'تاریخ تولد نامعتبر است.', type: 'error');
-                return;
+            if ($result['imagePath']) {
+                $this->existingImage = $result['imagePath'];
+                $this->form->image = null;
             }
+
+            $this->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: 'تاریخ تولد نامعتبر است.', type: 'error');
         }
-
-        if ($this->image) {
-            $path = $this->image->store('profiles', 'public');
-            $profile->image = $path;
-            $this->existingImage = $path;
-            $this->image = null;
-        }
-
-        $profile->favorite_colors = $this->favoriteColors;
-        $profile->save();
-
-        $this->dispatch('toast', message: 'اطلاعات پروفایل با موفقیت ذخیره شد.', type: 'success');
     }
 }

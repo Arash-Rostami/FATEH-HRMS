@@ -275,6 +275,105 @@
     }
 }
 
+@keyframes eq {
+    0%, 100% {
+        transform: scaleY(0.35);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+@keyframes typing-bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes bubble-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes reply-bar-in {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 80px;
+    }
+}
+
+
+.animate-pulse-ring {
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+.animate-typing-dot-1 {
+    animation: typing-bounce 1.4s infinite 0s;
+}
+
+.animate-typing-dot-2 {
+    animation: typing-bounce 1.4s infinite 0.2s;
+}
+
+.animate-typing-dot-3 {
+    animation: typing-bounce 1.4s infinite 0.4s;
+}
+
+.animate-bubble-in {
+    animation: bubble-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.animate-toast-in {
+    animation: toast-in 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.animate-reply-bar-in {
+    animation: reply-bar-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.animate-eq {
+    animation: eq 0.8s cubic-bezier(0.2, 0.9, 0.2, 0.9) infinite;
+}
+
 .animate-slide-over-in {
     animation: slideFromLeft 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
@@ -359,4 +458,29 @@
     will-change: transform, opacity;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 
+    .animate-bubble-in,
+    .animate-toast-in,
+    .animate-reply-bar-in {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+        max-height: none;
+    }
+
+    .animate-pulse-ring {
+        animation: none !important;
+    }
+
+    .animate-typing-dot-1,
+    .animate-typing-dot-2,
+    .animate-typing-dot-3 {
+        animation: none !important;
+    }
+}

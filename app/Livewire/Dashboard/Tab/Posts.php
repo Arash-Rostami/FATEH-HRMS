@@ -6,6 +6,7 @@ use App\Models\Post;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Posts extends Component
@@ -14,8 +15,6 @@ class Posts extends Component
     public int $page = 1;
 
     public $selectedPost = null;
-
-    protected $listeners = ['select-post' => 'selectPost'];
 
     public function loadMore()
     {
@@ -44,23 +43,21 @@ class Posts extends Component
             ->get();
     }
 
-
-    #[Computed]
-    public function totalPosts()
-    {
-        return Post::count();
-    }
-
     public function render()
     {
         return view('livewire.dashboard.tab.posts.index');
     }
 
+    #[On('select-post')]
     public function selectPost($id)
     {
-        $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, function () use ($id) {
-            return Post::find($id);
-        });
+        $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, fn() => Post::find($id));
         $this->dispatch('open-post-panel');
+    }
+
+    #[Computed]
+    public function totalPosts()
+    {
+        return Post::count();
     }
 }

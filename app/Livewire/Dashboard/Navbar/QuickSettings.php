@@ -2,23 +2,16 @@
 
 namespace App\Livewire\Dashboard\Navbar;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class QuickSettings extends Component
 {
-    public function enableFocusMode()
+    public function setFocusMode(bool $enabled): void
     {
-        $user = Auth::user();
-        $user->update(['presence' => 'busy']);
-        $this->dispatch('statusSwitcher-updated', status: 'busy');
-    }
-
-    public function disableFocusMode()
-    {
-        $user = Auth::user();
-        $user->update(['presence' => 'onsite']);
-        $this->dispatch('statusSwitcher-updated', status: 'onsite');
+        $presence = $enabled ? 'busy' : 'onsite';
+        Auth::user()->update(['presence' => $presence]);
+        $this->dispatch('statusSwitcher-updated', status: $presence);
     }
 
     public function render()

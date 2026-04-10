@@ -27,8 +27,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($standardTypes as $key => $type)
                     @php
-                        $uploadedDoc = $this->parsedAttachments->firstWhere('key', $key);
-                        $status = $uploadedDoc ? 'approved' : (isset($files[$key]) ? 'pending' : 'empty');
+                        $uploadedDoc = $parsedAttachments->firstWhere('key', $key);
+                        $status = $uploadedDoc ? 'approved' : ($resetAction->hasFile($form, $key) ? 'pending' : 'empty');
                     @endphp
 
                     <div class="group relative flex flex-col rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-variant)]/20 overflow-hidden transition-all duration-200 hover:border-[var(--md-sys-color-primary)]/40 hover:shadow-sm">
@@ -68,13 +68,13 @@
                                            class="flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-[var(--md-sys-color-outline-variant)] rounded-xl cursor-pointer text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5 transition-all">
                                         <span class="material-symbols-rounded text-base">cloud_upload</span>
                                         انتخاب فایل
-                                        <input type="file" id="file-{{ $key }}" wire:model.live="files.{{ $key }}" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
+                                        <input type="file" id="file-{{ $key }}" wire:model="form.files.{{ $key }}" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
                                     </label>
-                                    <div wire:loading wire:target="files.{{ $key }}" class="text-center mt-2 text-[10px] text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی...</div>
+                                    <div wire:loading wire:target="form.files.{{ $key }}" class="text-center mt-2 text-[10px] text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی...</div>
                                 @elseif($status === 'pending')
                                     <div class="flex items-center justify-between bg-[var(--md-sys-color-tertiary-container)]/30 border border-[var(--md-sys-color-tertiary)]/20 px-3 py-2 rounded-xl">
                                         <span class="text-[11px] font-bold text-[var(--md-sys-color-tertiary)]">در انتظار تایید</span>
-                                        @if(isset($files[$key]))
+                                        @if($resetAction->hasFile($form, $key))
                                             <button type="button" wire:click.prevent="removeFile('{{ $key }}')" class="text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] p-1 rounded-lg transition-colors">
                                                 <span class="material-symbols-rounded text-[16px]">close</span>
                                             </button>
@@ -104,7 +104,7 @@
                 </button>
             </div>
 
-            @php $customDocs = $this->parsedAttachments->where('category', 'custom'); @endphp
+            @php $customDocs = $parsedAttachments->where('category', 'custom'); @endphp
             @if($customDocs->count() > 0)
                 <div class="mt-6 pt-6 border-t border-[var(--md-sys-color-outline-variant)]/60">
                     <div class="flex items-center gap-2 mb-4">
@@ -147,7 +147,7 @@
                 this.previewUrl = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'].includes(f.type) ? URL.createObjectURL(f) : '';
             }
         }" class="space-y-5 bg-[var(--md-sys-color-primary-container)]">
-            <x-dashboard.form.input label="عنوان مدرک" name="customType" wire:model="customType" placeholder="مثال: گواهی دوره آموزشی" icon="label" />
+            <x-dashboard.form.input label="عنوان مدرک" name="form.customType" wire:model="form.customType" placeholder="مثال: گواهی دوره آموزشی" icon="label" />
 
             <div>
                 <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">فایل مدرک</label>
@@ -158,8 +158,8 @@
                         <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">انتخاب فایل مدرک</span>
                         <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1">PDF، JPG یا PNG — حداکثر ۵ مگابایت</span>
                     </label>
-                    <input id="custom-file-upload" type="file" class="hidden" wire:model="customFile" @change="handleCustomFileSelect($event)" accept=".pdf,.jpg,.png,.jpeg">
-                    <div wire:loading wire:target="customFile" class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی فایل...</div>
+                    <input id="custom-file-upload" type="file" class="hidden" wire:model="form.customFile" @change="handleCustomFileSelect($event)" accept=".pdf,.jpg,.png,.jpeg">
+                    <div wire:loading wire:target="form.customFile" class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در حال آماده‌سازی فایل...</div>
                 </div>
                 <div x-show="fileName" x-cloak class="space-y-3">
                     <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 border border-[var(--md-sys-color-outline-variant)]">
@@ -178,15 +178,16 @@
                         پیش‌نمایش فایل
                     </a>
                 </div>
-                @error('customType') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
-                @error('customFile') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
+                @error('form.customType') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
+                @error('form.customFile') <p class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/60">
                 <x-dashboard.form.button type="button" variant="ghost" x-on:click="window.dispatchEvent(new CustomEvent('close-modal'))">انصراف</x-dashboard.form.button>
-                <x-dashboard.form.button type="button" wire:click="showCustomUploadConfirmation" wire:loading.attr="disabled" wire:target="customFile" icon="upload" variant="primary">مرحله بعد</x-dashboard.form.button>
+                <x-dashboard.form.button type="button" wire:click="showCustomUploadConfirmation" wire:loading.attr="disabled" wire:target="form.customFile" icon="upload" variant="primary">مرحله بعد</x-dashboard.form.button>
             </div>
         </div>
 
     </x-dashboard.form.modal>
+
 </div>

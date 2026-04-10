@@ -9,44 +9,13 @@
     <div class="modal-inner-card" dir="rtl">
         <div class="space-y-5 md:space-y-6">
 
-            <!-- Title Input -->
-            <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">
-                    عنوان وظیفه
-                    <span class="text-[var(--md-sys-color-error)]">*</span>
-                </label>
-                <input
-                    type="text"
-                    wire:model="newTitle"
-                    class="w-full min-h-[44px] px-4 py-3 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all text-sm"
-                    placeholder="عنوان وظیفه را وارد کنید..."
-                >
-                @error('newTitle')
-                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-[var(--md-sys-color-error)]">
-                    <span class="material-symbols-rounded text-sm">error</span>
-                    <span>{{ $message }}</span>
-                </div>
-                @enderror
-            </div>
+            <x-dashboard.tab.title icon="edit_note" title="محتوای وظیفه"/>
 
-            <!-- Description Textarea -->
-            <div>
-                <label class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2">
-                    توضیحات
-                </label>
-                <textarea
-                    wire:model="newDescription"
-                    rows="3"
-                    class="w-full px-4 py-3 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all text-sm resize-none"
-                    placeholder="توضیحات تکمیلی..."
-                ></textarea>
-                @error('newDescription')
-                <div class="flex items-center gap-1.5 mt-2 text-[11px] text-[var(--md-sys-color-error)]">
-                    <span class="material-symbols-rounded text-sm">error</span>
-                    <span>{{ $message }}</span>
-                </div>
-                @enderror
-            </div>
+            <x-dashboard.form.input label="عنوان وظیفه" name="newTitle"
+                                    wire:model="form.newTitle" icon="title" required/>
+
+            <x-dashboard.form.textarea label="توضیحات" name="newDescription"
+                                       wire:model="form.newDescription" icon="notes" rows="3"/>
 
             <!-- Deadline Date Picker -->
             <div>
@@ -55,27 +24,27 @@
                 </label>
                 <div class="grid grid-cols-3 gap-2 md:gap-3" dir="ltr">
                     <select
-                        wire:model="deadlineYear"
+                        wire:model="form.deadlineYear"
                         class="min-h-[44px] px-3 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all"
                     >
                         <option value="">سال</option>
-                        @foreach($years as $year)
+                        @foreach($presenter->years() as $year)
                             <option value="{{ $year }}">{{ $year }}</option>
                         @endforeach
                     </select>
 
                     <select
-                        wire:model="deadlineMonth"
+                        wire:model="form.deadlineMonth"
                         class="min-h-[44px] px-3 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all"
                     >
                         <option value="">ماه</option>
-                        @foreach($months as $num => $name)
+                        @foreach($presenter->months() as $num => $name)
                             <option value="{{ $num }}">{{ $name }}</option>
                         @endforeach
                     </select>
 
                     <select
-                        wire:model="deadlineDay"
+                        wire:model="form.deadlineDay"
                         class="min-h-[44px] px-3 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all"
                     >
                         <option value="">روز</option>
@@ -84,7 +53,7 @@
                         @endforeach
                     </select>
                 </div>
-                @error('deadline')
+                @error('form.deadline')
                 <div class="flex items-center gap-1.5 mt-2 text-[11px] text-[var(--md-sys-color-error)]">
                     <span class="material-symbols-rounded text-sm">error</span>
                     <span>{{ $message }}</span>
@@ -98,7 +67,7 @@
                     مسئول انجام
                 </label>
                 <select
-                    wire:model="selectedAssignee"
+                    wire:model="form.selectedAssignee"
                     class="w-full min-h-[44px] px-4 py-3 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40 focus:border-[var(--md-sys-color-primary)] transition-all text-sm"
                 >
                     <option value="">خودم (شخصی)</option>
@@ -106,7 +75,7 @@
                         <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
                     @endforeach
                 </select>
-                @error('selectedAssignee')
+                @error('form.selectedAssignee')
                 <div class="flex items-center gap-1.5 mt-2 text-[11px] text-[var(--md-sys-color-error)]">
                     <span class="material-symbols-rounded text-sm">error</span>
                     <span>{{ $message }}</span>

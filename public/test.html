@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم مدیریت پیشنهادات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;700;900&display=swap');
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .workflow-step {
+            transition: all 0.3s ease;
+        }
+
+        .workflow-step.active {
+            border-right: 4px solid #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .workflow-step.completed {
+            border-right: 4px solid #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .workflow-step.pending {
+            border-right: 4px solid #f59e0b;
+            background-color: #fffbeb;
+        }
+
+        .status-badge {
+            @apply px-3 py-1 rounded-full text-xs font-bold;
+        }
+
+        .suggestion-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .suggestion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-card.selected {
+            border: 2px solid #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        /* Custom scrollbar for RTL */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+<!-- Header -->
+<header class="bg-white shadow-sm border-b border-gray-200 z-10">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-lightbulb text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-900">سیستم مدیریت پیشنهادات سازمانی</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-sm text-gray-600">
+                    <i class="fas fa-user-circle ml-1"></i>
+                    کاربر: علی محمدی (مدیر واحد فناوری)
+                </div>
+                <button class="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg transition">
+                    <i class="fas fa-bell text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Layout -->
+<div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Panel - Suggestions List -->
+    <aside class="w-full lg:w-1/3 bg-white border-l border-gray-200 flex flex-col">
+        <div class="p-4 border-b border-gray-200 bg-gray-50">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold text-gray-800">پیشنهادها</h2>
+                <button onclick="showCreateForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    پیشنهاد جدید
+                </button>
+            </div>
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="جستجو در پیشنهادات..."
+                       class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                       onkeyup="filterSuggestions()">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="suggestionsList">
+            <!-- Suggestions will be populated here -->
+        </div>
+
+        <div class="p-3 border-t border-gray-200 text-center text-xs text-gray-500 bg-gray-50">
+            ۱۰ پیشنهاد یافت شد
+        </div>
+    </aside>
+
+    <!-- Right Panel - Dynamic Content -->
+    <main class="flex-1 bg-gray-100 overflow-y-auto p-4 lg:p-6" id="rightPanel">
+
+        <!-- State A: Empty State -->
+        <div id="emptyState" class="h-full flex items-center justify-center">
+            <div class="text-center max-w-md">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hand-pointer text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">هنوز پیشنهادی انتخاب نشده</h3>
+                    <p class="text-gray-600 mb-4">یک پیشنهاد را از سمت چپ انتخاب کنید یا روی «پیشنهاد جدید» بزنید تا پیشنهاد جدید ثبت کنید.</p>
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="showCreateForm()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus ml-2"></i>
+                            پیشنهاد جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- State B: Suggestion Details -->
+        <div id="detailsPanel" class="hidden space-y-4 fade-in">
+            <!-- Detail Header -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span id="detailStatus" class="status-badge"></span>
+                            <span class="text-sm text-gray-500">شناسه: <span id="detailId"></span></span>
+                        </div>
+                        <h2 id="detailTitle" class="text-2xl font-bold text-gray-900 mb-1"></h2>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-user ml-1"></i>
+                            ثبت‌کننده: <span id="detailCreator"></span>
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm transition" title="چاپ">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm transition" title="اشتراک‌گذاری">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-100">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="detailAgree">۰</div>
+                        <div class="text-xs text-gray-500 mt-1">موافق</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-red-600" id="detailDisagree">۰</div>
+                        <div class="text-xs text-gray-500 mt-1">مخالف</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gray-600" id="detailNeutral">۰</div>
+                        <div class="text-xs text-gray-500 mt-1">خنثی/بدون پاسخ</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="detailDays">۰</div>
+                        <div class="text-xs text-gray-500 mt-1">روز تا مهلت</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Hub Workflow Stack -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-project-diagram ml-2 text-blue-600"></i>
+                    روند بررسی پیشنهاد
+                </h3>
+                <div class="space-y-3" id="workflowStack">
+                    <!-- Workflow steps injected here -->
+                </div>
+            </div>
+
+            <!-- Detailed Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h4 class="font-bold text-gray-800 mb-4 border-b pb-2">اطلاعات تکمیلی</h4>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">بخش‌های مرتبط:</span>
+                            <span class="font-medium text-gray-900" id="detailDepts"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">زمان ثبت:</span>
+                            <span class="font-medium text-gray-900" id="detailDate"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">مهلت بررسی:</span>
+                            <span class="font-medium text-gray-900" id="detailDeadline"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ارجاع به رئیس:</span>
+                            <span class="font-medium" id="detailChairman"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ارجاع مجدد برای اقدام:</span>
+                            <span class="font-medium" id="detailReferred"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h4 class="font-bold text-gray-800 mb-4 border-b pb-2">آخرین تصمیم</h4>
+                    <div class="bg-gray-50 rounded-lg p-4 text-sm leading-relaxed text-gray-700" id="detailLastNote">
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">تأیید شده</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">تاریخ: ۱۴۰۲/۱۲/۱۵</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Description -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h4 class="font-bold text-gray-800 mb-3">شرح کامل پیشنهاد</h4>
+                <p class="text-gray-700 leading-relaxed text-justify" id="detailDesc"></p>
+            </div>
+        </div>
+
+        <!-- State C: Create Form -->
+        <div id="createForm" class="hidden fade-in max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <i class="fas fa-plus-circle ml-2"></i>
+                        ثبت پیشنهاد جدید
+                    </h2>
+                    <button onclick="showEmptyState()" class="text-white hover:text-blue-100 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                عنوان پیشنهاد <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="newTitle" placeholder="عنوان کوتاه و مفید پیشنهاد را وارد کنید..."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                شرح کامل پیشنهاد <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="newDesc" rows="5" placeholder="شرح کامل پیشنهاد، استدلال‌ها و محاسبات مربوطه..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">اولویت</label>
+                            <select id="newPriority" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="high">بالا</option>
+                                <option value="medium" selected>متوسط</option>
+                                <option value="low">پایین</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">وضعیت اولیه</label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50" disabled>
+                                <option>ثبت شده</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">پس از ثبت، پیشنهاد به مدیر ارسال می‌شود</p>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                بخش‌های مرتبط <span class="text-red-500">*</span>
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="منابع انسانی" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">منابع انسانی</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="مالی" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">مالی</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="فناوری اطلاعات" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">فناوری اطلاعات</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="بازرگانی" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">بازرگانی</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="اداری" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">اداری</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="فروش" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">فروش</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="تولید" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">تولید</span>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" name="depts" value="کنترل کیفیت" class="ml-2 rounded text-blue-600">
+                                    <span class="text-sm">کنترل کیفیت</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                بخش‌های اضافی (اختیاری)
+                            </label>
+                            <input type="text" placeholder="نام بخش‌های دیگر را با کاما جدا کنید..."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">در صورت عدم وجود بخش مورد نظر در لیست بالا، اینجا وارد کنید</p>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="flex items-center gap-2 p-4 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition">
+                                <i class="fas fa-paperclip text-blue-600"></i>
+                                <span class="text-sm font-medium text-blue-900">افزودن پیوست (فایل PDF یا تصویر)</span>
+                                <input type="file" class="hidden" accept=".pdf,.jpg,.png">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="submitSuggestion()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+                            <i class="fas fa-paper-plane ml-2"></i>
+                            ثبت پیشنهاد
+                        </button>
+                        <button onclick="showEmptyState()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
+                            انصراف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Sample Data
+    const suggestions = [
+        {
+            id: 'SN-1402-0842',
+            title: 'بهبود فرآیند مرخصی',
+            creator: 'سارا احمدی',
+            department: 'منابع انسانی',
+            status: 'pending_review',
+            statusLabel: 'در بررسی واحدها',
+            priority: 'high',
+            date: '۱۴۰۲/۱۲/۰۱',
+            deadline: '۱۴۰۲/۱۲/۰۸',
+            daysLeft: 3,
+            agree: 2,
+            disagree: 0,
+            neutral: 1,
+            chairman: 'خیر',
+            referred: 'خیر',
+            description: 'پیشنهاد می‌شود فرآیند درخواست مرخصی از طریق سیستم اتوماسیون اداری انجام شود تا کاغذ‌بازی کاهش یابد و سرعت پردازش افزایش پیدا کند. این تغییر می‌تواند زمان رسیدگی را از ۳ روز به ۱ روز کاهش دهد.',
+            lastNote: 'مدیر مستقیم پیشنهاد را تأیید کرده و به واحدهای مرتبط (مالی و منابع انسانی) ارجاع داده شده است.',
+            currentStep: 3
+        },
+        {
+            id: 'SN-1402-0841',
+            title: 'داشبورد فروش جدید',
+            creator: 'رضا کریمی',
+            department: 'فناوری اطلاعات',
+            status: 'chairman_review',
+            statusLabel: 'در بررسی رئیس',
+            priority: 'medium',
+            date: '۱۴۰۲/۱۱/۲۸',
+            deadline: '۱۴۰۲/۱۲/۰۵',
+            daysLeft: 0,
+            agree: 3,
+            disagree: 1,
+            neutral: 0,
+            chairman: 'بله',
+            referred: 'خیر',
+            description: 'طراحی و پیاده‌سازی داشبورد real-time برای نمایش فروش روزانه، مقایسه با اهداف ماهانه و شناسایی نقاط ضعف در لحظه.',
+            lastNote: 'یک مخالفت از واحد مالی مبنی بر هزینه بالای پیاده‌سازی وجود دارد. نیاز به تأیید رئیس برای تأمین بودجه.',
+            currentStep: 5
+        },
+        {
+            id: 'SN-1402-0840',
+            title: 'به‌روزرسانی فرآیند آنبوردینگ',
+            creator: 'مریم رضایی',
+            department: 'منابع انسانی',
+            status: 'approved',
+            statusLabel: 'تأیید شده',
+            priority: 'medium',
+            date: '۱۴۰۲/۱۱/۲۵',
+            deadline: '۱۴۰۲/۱۲/۰۱',
+            daysLeft: 0,
+            agree: 4,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'بله',
+            referred: 'بله - در دست اقدام',
+            description: 'اضافه کردن مرحله آموزش ایمنی به فرآیند استخدام جدید و ایجاد چک‌لیست دیجیتال برای مدیران.',
+            lastNote: 'پیشنهاد تأیید شد. ارجاع به واحد آموزش برای اجرا تا تاریخ ۱۴۰۲/۱۲/۲۰.',
+            currentStep: 6
+        },
+        {
+            id: 'SN-1402-0839',
+            title: 'ارتقای امنیت دفتر',
+            creator: 'علی محمدی',
+            department: 'اداری',
+            status: 'pending_manager',
+            statusLabel: 'در بررسی مدیر',
+            priority: 'high',
+            date: '۱۴۰۲/۱۲/۰۲',
+            deadline: '۱۴۰۲/۱۲/۰۴',
+            daysLeft: 2,
+            agree: 0,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'خیر',
+            referred: 'خیر',
+            description: 'نصب سیستم کنترل دسترسی کارت‌خوان برای درب ورودی طبقه دفتر مدیریت و نصب دوربین مداربسته در پارکینگ.',
+            lastNote: 'در انتظار تأیید مدیر مستقیم (مهلت ۴۸ ساعته).',
+            currentStep: 2
+        },
+        {
+            id: 'SN-1402-0838',
+            title: 'بهبود SLA پشتیبانی',
+            creator: 'حسن نوری',
+            department: 'فناوری اطلاعات',
+            status: 'rejected',
+            statusLabel: 'رد شده',
+            priority: 'low',
+            date: '۱۴۰۲/۱۱/۲۰',
+            deadline: '۱۴۰۲/۱۱/۲۷',
+            daysLeft: 0,
+            agree: 1,
+            disagree: 2,
+            neutral: 1,
+            chairman: 'بله',
+            referred: 'خیر',
+            description: 'کاهش زمان پاسخگویی به تیکت‌های پشتیبانی از ۴ ساعت به ۲ ساعت.',
+            lastNote: 'با توجه به محدودیت نیروی انسانی فعلی، این پیشنهاد در حال حاضر قابل اجرا نیست.',
+            currentStep: 5
+        },
+        {
+            id: 'SN-1402-0837',
+            title: 'سیاست دورکاری',
+            creator: 'لیلا کاظمی',
+            department: 'منابع انسانی',
+            status: 'aggregating',
+            statusLabel: 'در حال تجمیع',
+            priority: 'high',
+            date: '۱۴۰۲/۱۱/۱۵',
+            deadline: '۱۴۰۲/۱۱/۲۲',
+            daysLeft: 0,
+            agree: 3,
+            disagree: 0,
+            neutral: 2,
+            chairman: 'خیر',
+            referred: 'خیر',
+            description: 'تعیین چارچوب هفتگی برای دورکاری کارکنان (۲ روز در هفته) با حفظ بهره‌وری.',
+            lastNote: 'نظرات واحدها جمع‌آوری شد. در حال تجمیع نتایج برای ارسال به رئیس.',
+            currentStep: 4
+        },
+        {
+            id: 'SN-1402-0836',
+            title: 'اصلاح گردش انبار',
+            creator: 'محمد رستمی',
+            department: 'بازرگانی',
+            status: 'submitted',
+            statusLabel: 'ثبت شده',
+            priority: 'medium',
+            date: '۱۴۰۲/۱۲/۰۲',
+            deadline: '۱۴۰۲/۱۲/۰۹',
+            daysLeft: 7,
+            agree: 0,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'خیر',
+            referred: 'خیر',
+            description: 'استفاده از سیستم بارکد خوان برای ورود و خروج کالا از انبار جهت کاهش خطای انسانی.',
+            lastNote: 'تازه ثبت شده. در انتظار بررسی مدیر.',
+            currentStep: 1
+        },
+        {
+            id: 'SN-1402-0835',
+            title: 'کاهش مراحل تأیید مالی',
+            creator: 'فاطمه یوسفی',
+            department: 'مالی',
+            status: 'needs_revision',
+            statusLabel: 'نیاز به اصلاح',
+            priority: 'high',
+            date: '۱۴۰۲/۱۱/۱۰',
+            deadline: '۱۴۰۲/۱۱/۱۷',
+            daysLeft: 0,
+            agree: 2,
+            disagree: 1,
+            neutral: 1,
+            chairman: 'بله',
+            referred: 'خیر',
+            description: 'حذف یک مرحله تأیید در پرداخت‌های زیر ۵۰ میلیون تومان.',
+            lastNote: 'رئیس درخواست اصلاح پیشنهاد با اضافه کردن بندهای کنترلی بیشتر را دارد.',
+            currentStep: 5
+        },
+        {
+            id: 'SN-1402-0834',
+            title: 'پاکسازی سیاست‌های داخلی',
+            creator: 'پدرام سلطانی',
+            department: 'دفتر مدیریت',
+            status: 'implementing',
+            statusLabel: 'ارجاع برای اقدام',
+            priority: 'low',
+            date: '۱۴۰۲/۱۰/۱۵',
+            deadline: '۱۴۰۲/۱۱/۰۱',
+            daysLeft: 0,
+            agree: 5,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'بله',
+            referred: 'بله - در دست اقدام',
+            description: 'بازنگری و بایگانی اسناد قدیمی و اعلام سیاست‌های جدید.',
+            lastNote: 'دستور اجرا صادر شد. واحد اداری مسئول پیگیری تا پایان سال.',
+            currentStep: 6
+        },
+        {
+            id: 'SN-1402-0833',
+            title: 'طرح آموزش داخلی',
+            creator: 'نیلوفر عباسی',
+            department: 'منابع انسانی',
+            status: 'completed',
+            statusLabel: 'پایان',
+            priority: 'medium',
+            date: '۱۴۰۲/۰۹/۰۱',
+            deadline: '۱۴۰۲/۱۰/۰۱',
+            daysLeft: 0,
+            agree: 4,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'بله',
+            referred: 'بله - انجام شد',
+            description: 'برگزاری دوره‌های آموزشی مهارت‌های نرم برای کارکنان.',
+            lastNote: 'پیشنهاد با موفقیت اجرا شد. گزارش نهایی ثبت شد.',
+            currentStep: 7
+        }
+    ];
+
+    const workflowSteps = [
+        { id: 1, title: 'ثبت پیشنهاد', desc: 'ثبت اولیه توسط کاربر و تعیین بخش‌های مرتبط' },
+        { id: 2, title: 'بررسی مدیر مستقیم', desc: 'تأیید خودکار پس از ۴۸ ساعت در صورت عدم پاسخ' },
+        { id: 3, title: 'بررسی هم‌زمان واحدهای مرتبط', desc: 'ارسال همزمان به سرپرستان بخش‌ها برای نظر‌دهی (موافق/مخالف/خنثی)' },
+        { id: 4, title: 'تجمیع نظرات', desc: 'سیستم به طور خودکار نظرات را تجمیع می‌کند (عدم پاسخ = خنثی)' },
+        { id: 5, title: 'بررسی رئیس', desc: 'تصمیم نهایی تأیید، رد یا نیاز به اصلاح' },
+        { id: 6, title: 'ارجاع دوباره برای اقدام یا دستور', desc: 'پس از تأیید، ارسال به بخش‌های ذی‌نفع برای اجرا (دستور)' },
+        { id: 7, title: 'پایان', desc: 'اتمام فرآیند و بایگانی' }
+    ];
+
+    let selectedId = null;
+
+    function getStatusColor(status) {
+        const colors = {
+            'submitted': 'bg-gray-100 text-gray-800',
+            'pending_manager': 'bg-yellow-100 text-yellow-800',
+            'pending_review': 'bg-blue-100 text-blue-800',
+            'aggregating': 'bg-purple-100 text-purple-800',
+            'chairman_review': 'bg-orange-100 text-orange-800',
+            'approved': 'bg-green-100 text-green-800',
+            'rejected': 'bg-red-100 text-red-800',
+            'needs_revision': 'bg-pink-100 text-pink-800',
+            'implementing': 'bg-indigo-100 text-indigo-800',
+            'completed': 'bg-teal-100 text-teal-800'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    }
+
+    function renderSuggestions() {
+        const container = document.getElementById('suggestionsList');
+        container.innerHTML = suggestions.map(s => `
+                <div class="suggestion-card bg-white rounded-lg border border-gray-200 p-4 ${selectedId === s.id ? 'selected' : ''}"
+                     onclick="selectSuggestion('${s.id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs text-gray-500 font-mono">${s.id}</span>
+                        <span class="status-badge ${getStatusColor(s.status)}">${s.statusLabel}</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1 line-clamp-1">${s.title}</h3>
+                    <div class="flex items-center text-sm text-gray-600 mb-2">
+                        <i class="fas fa-user ml-1 text-xs"></i>
+                        ${s.creator}
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-building ml-1 text-xs"></i>
+                        ${s.department}
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <div class="flex gap-2">
+                            ${s.agree > 0 ? `<span class="text-green-600"><i class="fas fa-check"></i> ${s.agree}</span>` : ''}
+                            ${s.disagree > 0 ? `<span class="text-red-600"><i class="fas fa-times"></i> ${s.disagree}</span>` : ''}
+                        </div>
+                        <span class="text-gray-400">${s.date}</span>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function selectSuggestion(id) {
+        selectedId = id;
+        const s = suggestions.find(x => x.id === id);
+
+        // Update UI
+        document.getElementById('emptyState').classList.add('hidden');
+        document.getElementById('createForm').classList.add('hidden');
+        document.getElementById('detailsPanel').classList.remove('hidden');
+
+        // Fill data
+        document.getElementById('detailId').textContent = s.id;
+        document.getElementById('detailTitle').textContent = s.title;
+        document.getElementById('detailCreator').textContent = s.creator;
+        document.getElementById('detailStatus').textContent = s.statusLabel;
+        document.getElementById('detailStatus').className = `status-badge ${getStatusColor(s.status)}`;
+        document.getElementById('detailAgree').textContent = s.agree;
+        document.getElementById('detailDisagree').textContent = s.disagree;
+        document.getElementById('detailNeutral').textContent = s.neutral;
+        document.getElementById('detailDays').textContent = s.daysLeft;
+        document.getElementById('detailDays').className = `text-2xl font-bold ${s.daysLeft < 2 ? 'text-red-600' : 'text-blue-600'}`;
+        document.getElementById('detailDepts').textContent = s.department;
+        document.getElementById('detailDate').textContent = s.date;
+        document.getElementById('detailDeadline').textContent = s.deadline;
+        document.getElementById('detailChairman').innerHTML = s.chairman === 'بله' ? '<span class="text-green-600">✓ بله</span>' : '<span class="text-gray-500">خیر</span>';
+        document.getElementById('detailReferred').innerHTML = s.referred.includes('بله') ? `<span class="text-blue-600">${s.referred}</span>` : '<span class="text-gray-500">خیر</span>';
+        document.getElementById('detailDesc').textContent = s.description;
+        document.getElementById('detailLastNote').textContent = s.lastNote;
+
+        // Render workflow
+        renderWorkflow(s.currentStep);
+        renderSuggestions(); // Refresh list to show selection
+
+        // On mobile, scroll to right panel
+        if (window.innerWidth < 1024) {
+            document.getElementById('rightPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function renderWorkflow(currentStep) {
+        const container = document.getElementById('workflowStack');
+        container.innerHTML = workflowSteps.map(step => {
+            let status = 'pending';
+            let icon = 'clock';
+            if (step.id < currentStep) {
+                status = 'completed';
+                icon = 'check-circle';
+            } else if (step.id === currentStep) {
+                status = 'active';
+                icon = 'spinner fa-spin';
+            }
+
+            return `
+                    <div class="workflow-step ${status} rounded-lg p-4 border border-gray-200 bg-white">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
+                                ${status === 'completed' ? 'bg-green-100 text-green-600' :
+                status === 'active' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}">
+                                <i class="fas fa-${icon}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm ${status === 'active' ? 'text-blue-900' : 'text-gray-900'}">
+                                    ${step.id}. ${step.title}
+                                    ${status === 'active' ? '<span class="mr-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">فعال</span>' : ''}
+                                </h4>
+                                <p class="text-xs text-gray-600 mt-1 leading-relaxed">${step.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }).join('');
+    }
+
+    function showCreateForm() {
+        selectedId = null;
+        document.getElementById('emptyState').classList.add('hidden');
+        document.getElementById('detailsPanel').classList.add('hidden');
+        document.getElementById('createForm').classList.remove('hidden');
+        renderSuggestions();
+    }
+
+    function showEmptyState() {
+        selectedId = null;
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('detailsPanel').classList.add('hidden');
+        document.getElementById('createForm').classList.add('hidden');
+        renderSuggestions();
+    }
+
+    function submitSuggestion() {
+        const title = document.getElementById('newTitle').value;
+        if (!title) {
+            alert('لطفاً عنوان پیشنهاد را وارد کنید');
+            return;
+        }
+
+        // Simulate submission
+        const newId = 'SN-1402-' + (0843 + suggestions.length);
+        const newSuggestion = {
+            id: newId,
+            title: title,
+            creator: 'علی محمدی',
+            department: 'فناوری اطلاعات',
+            status: 'submitted',
+            statusLabel: 'ثبت شده',
+            priority: 'medium',
+            date: '۱۴۰۲/۱۲/۰۳',
+            deadline: '۱۴۰۲/۱۲/۱۰',
+            daysLeft: 7,
+            agree: 0,
+            disagree: 0,
+            neutral: 0,
+            chairman: 'خیر',
+            referred: 'خیر',
+            description: document.getElementById('newDesc').value || 'بدون شرح',
+            lastNote: 'تازه ثبت شده. در انتظار بررسی مدیر.',
+            currentStep: 1
+        };
+
+        suggestions.unshift(newSuggestion);
+        renderSuggestions();
+        selectSuggestion(newId);
+    }
+
+    function filterSuggestions() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.suggestion-card');
+        cards.forEach((card, index) => {
+            const s = suggestions[index];
+            const match = s.title.includes(term) || s.creator.includes(term) || s.id.includes(term);
+            card.style.display = match ? 'block' : 'none';
+        });
+    }
+
+    // Initialize
+    renderSuggestions();
+</script>
+</body>
+</html>

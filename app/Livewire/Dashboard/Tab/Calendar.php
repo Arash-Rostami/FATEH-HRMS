@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Livewire\Dashboard\Tab\Actions\DeleteEventAction;
+use App\Livewire\Dashboard\Tab\Actions\SaveEventAction;
+use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Models\Event;
 use App\Models\Profile;
 use Illuminate\Support\Collection;
@@ -13,6 +16,8 @@ use Throwable;
 
 class Calendar extends Component
 {
+    public EventForm $form;
+
     public int $currentYear;
     public int $currentMonth;
     public string $selectedDate;
@@ -20,32 +25,7 @@ class Calendar extends Component
     public bool $isCreateModalOpen = false;
     public bool $isDeleteModalOpen = false;
 
-    public string $eventTitle = '';
-    public string $eventDescription = '';
-    public string $eventDate = '';
-    public string $eventTime = '12:00';
-    public bool $eventPrivate = false;
-
-    public ?int $editingEventId = null;
     public ?int $deletingEventId = null;
-
-    public function mount(): void
-    {
-        $now = Jalalian::now();
-        $this->currentYear = $now->getYear();
-        $this->currentMonth = $now->getMonth();
-        $this->selectedDate = $now->format('Y-m-d');
-    }
-
-    #[Computed]
-    public function currentMonthName(): string
-    {
-        try {
-            return (new Jalalian($this->currentYear, $this->currentMonth, 1))->format('F Y');
-        } catch (Throwable $e) {
-            return '';
-        }
-    }
 
     #[Computed]
     public function calendarDays(): array
@@ -111,6 +91,107 @@ class Calendar extends Component
         }
 
         return $days;
+    }
+
+    public function confirmDelete(int $eventId): void
+    {
+        $this->deletingEventId = $eventId;
+        $this->isDeleteModalOpen = true;
+    }
+
+    #[Computed]
+    public function currentMonthName(): string
+    {
+        try {
+            return (new Jalalian($this->currentYear, $this->currentMonth, 1))->format('F Y');
+        } catch (Throwable $e) {
+            return '';
+        }
+    }
+
+    public function deleteEvent(DeleteEventAction $action): void
+    {
+        $action->execute($this->deletingEventId, Auth::id());
+
+        $this->isDeleteModalOpen = false;
+        $this->deletingEventId = null;
+    }
+
+    public function editEvent(int $eventId): void
+    {
+        $event = Event::where('user_id', Auth::id())->find($eventId);
+
+        if (!$event) return;
+
+        $this->form->editingId = $eventId;
+        $this->form->title = $event->title;
+        $this->form->description = $event->description ?? '';
+        $this->form->date = Jalalian::fromCarbon($event->date)->format('Y-m-d');
+        $this->form->time = $event->date->format('H:i');
+        $this->form->private = (bool)$event->private;
+
+        $this->isCreateModalOpen = true;
+    }
+
+    public function goToToday(): void
+    {
+        $now = Jalalian::now();
+        $this->currentYear = $now->getYear();
+        $this->currentMonth = $now->getMonth();
+        $this->selectedDate = $now->format('Y-m-d');
+    }
+
+    public function mount(): void
+    {
+        $now = Jalalian::now();
+        $this->currentYear = $now->getYear();
+        $this->currentMonth = $now->getMonth();
+        $this->selectedDate = $now->format('Y-m-d');
+    }
+
+    public function nextMonth(): void
+    {
+        if (++$this->currentMonth > 12) {
+            $this->currentMonth = 1;
+            $this->currentYear++;
+        }
+    }
+
+    public function openCreateModal(): void
+    {
+        $this->form->resetForm($this->selectedDate);
+        $this->isCreateModalOpen = true;
+    }
+
+    public function prevMonth(): void
+    {
+        if (--$this->currentMonth < 1) {
+            $this->currentMonth = 12;
+            $this->currentYear--;
+        }
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.tab.calendar.index');
+    }
+
+    public function saveEvent(SaveEventAction $action): void
+    {
+        try {
+            $action->execute($this->form, Auth::id());
+        } catch (\InvalidArgumentException $e) {
+            $this->addError('form.date', 'تاریخ نامعتبر است');
+            return;
+        }
+
+        $this->isCreateModalOpen = false;
+        $this->form->resetForm($this->selectedDate);
+    }
+
+    public function selectDate(string $date): void
+    {
+        $this->selectedDate = $date;
     }
 
     #[Computed]
@@ -179,114 +260,5 @@ class Calendar extends Component
             });
 
         return collect()->concat($events)->concat($birthdays)->concat($anniversaries);
-    }
-
-    public function selectDate(string $date): void
-    {
-        $this->selectedDate = $date;
-    }
-
-    public function nextMonth(): void
-    {
-        if (++$this->currentMonth > 12) {
-            $this->currentMonth = 1;
-            $this->currentYear++;
-        }
-    }
-
-    public function prevMonth(): void
-    {
-        if (--$this->currentMonth < 1) {
-            $this->currentMonth = 12;
-            $this->currentYear--;
-        }
-    }
-
-    public function goToToday(): void
-    {
-        $now = Jalalian::now();
-        $this->currentYear = $now->getYear();
-        $this->currentMonth = $now->getMonth();
-        $this->selectedDate = $now->format('Y-m-d');
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->eventDate = $this->selectedDate;
-        $this->isCreateModalOpen = true;
-    }
-
-    public function editEvent(int $eventId): void
-    {
-        $event = Event::where('user_id', Auth::id())->find($eventId);
-
-        if (!$event) return;
-
-        $this->editingEventId = $eventId;
-        $this->eventTitle = $event->title;
-        $this->eventDescription = $event->description ?? '';
-        $this->eventDate = Jalalian::fromCarbon($event->date)->format('Y-m-d');
-        $this->eventTime = $event->date->format('H:i');
-        $this->eventPrivate = (bool) $event->private;
-
-        $this->isCreateModalOpen = true;
-    }
-
-    public function saveEvent(): void
-    {
-        $this->validate([
-            'eventTitle' => 'required|string|max:255',
-            'eventDate' => 'required|date_format:Y-m-d',
-            'eventTime' => 'required',
-        ]);
-
-        try {
-            $gregorianDate = Jalalian::fromFormat('Y-m-d H:i', "{$this->eventDate} {$this->eventTime}")->toCarbon();
-        } catch (Throwable $e) {
-            $this->addError('eventDate', 'Invalid Date');
-            return;
-        }
-
-        Event::updateOrCreate(
-            ['id' => $this->editingEventId, 'user_id' => Auth::id()],
-            [
-                'title' => $this->eventTitle,
-                'description' => $this->eventDescription,
-                'date' => $gregorianDate,
-                'private' => $this->eventPrivate,
-            ]
-        );
-
-        $this->isCreateModalOpen = false;
-        $this->resetForm();
-    }
-
-    public function confirmDelete(int $eventId): void
-    {
-        $this->deletingEventId = $eventId;
-        $this->isDeleteModalOpen = true;
-    }
-
-    public function deleteEvent(): void
-    {
-        if ($this->deletingEventId) {
-            Event::where('user_id', Auth::id())->where('id', $this->deletingEventId)->delete();
-        }
-
-        $this->isDeleteModalOpen = false;
-        $this->deletingEventId = null;
-    }
-
-    private function resetForm(): void
-    {
-        $this->reset(['editingEventId', 'eventTitle', 'eventDescription', 'eventPrivate']);
-        $this->eventDate = $this->selectedDate;
-        $this->eventTime = '12:00';
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.tab.calendar.index');
     }
 }

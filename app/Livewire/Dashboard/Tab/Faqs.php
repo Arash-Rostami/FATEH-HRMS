@@ -5,7 +5,6 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Department;
 use App\Models\FAQ;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,11 +13,8 @@ class Faqs extends Component
     use WithPagination;
 
     public string $search = '';
-
     public ?string $selectedCategory = null;
-
     public ?string $selectedDepartment = null;
-
     public int $perPage = 10;
 
     #[Computed(seconds: 3600, cache: true, key: 'faq-categories')]
@@ -42,54 +38,46 @@ class Faqs extends Component
     {
         return FAQ::query()
             ->with(['department', 'user'])
-            ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
-                ->where('question', 'like', '%' . $search . '%')
-                ->orWhere('answer', 'like', '%' . $search . '%')
+            ->when($this->search, fn($q, $s) => $q->where(fn($sub) => $sub
+                ->where('question', 'like', "%{$s}%")
+                ->orWhere('answer', 'like', "%{$s}%")
             ))
-            ->when($this->selectedCategory, fn($query, $category) => $query->where('category', $category))
-            ->when($this->selectedDepartment, fn($query, $department) => $query->where('department_id', $department))
+            ->when($this->selectedCategory, fn($q, $c) => $q->where('category', 'like', "%{$c}%"))
+            ->when($this->selectedDepartment, fn($q, $d) => $q->where('department_id', 'like', "%{$d}%"))
             ->latest()
             ->paginate($this->perPage);
     }
 
-    public function filterByCategory(?string $category)
+    public function filterByCategory(?string $category): void
     {
         $this->selectedCategory = $category === 'all' ? null : $category;
         $this->resetPage();
     }
 
-    public function filterByDepartment(?string $departmentCode)
+    public function filterByDepartment(?string $departmentCode): void
     {
         $this->selectedDepartment = $departmentCode;
         $this->resetPage();
     }
 
-    public function loadMore()
-    {
-        $this->perPage += 10;
-    }
-
-    #[Computed]
-    public function totalFaqs()
-    {
-        return FAQ::count();
-    }
+    public function loadMore(): void { $this->perPage += 10; }
 
     public function render()
     {
         return view('livewire.dashboard.tab.faqs.index');
     }
 
-    public function resetFilters()
+    public function resetFilters(): void
     {
-        $this->search = '';
-        $this->selectedCategory = null;
-        $this->selectedDepartment = null;
+        $this->reset(['search', 'selectedCategory', 'selectedDepartment']);
         $this->resetPage();
     }
 
-    public function updatedSearch()
+    #[Computed]
+    public function totalFaqs(): int
     {
-        $this->resetPage();
+        return FAQ::count();
     }
+
+    public function updatedSearch(): void { $this->resetPage(); }
 }

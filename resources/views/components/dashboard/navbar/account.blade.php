@@ -7,11 +7,16 @@
 
         <div
             class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm ">
-            @if(auth()->check() && auth()->user()->avatar)
-                <img src="{{ auth()->user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
+            @if(auth()->check())
+                <x-dashboard.avatar
+                    :existingImage="auth()->user()?->profile->image"
+                    alt="{{ auth()->user()->name }}"
+                />
+
             @else
-                <span
-                    class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-[20px]">person</span>
+                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-[20px]">
+                    person
+                </span>
             @endif
         </div>
 
@@ -28,7 +33,7 @@
         <span class="material-symbols-rounded text-[20px] opacity-70 group-hover:opacity-100 transition-all"
               :class="open ? 'rotate-180' : ''">expand_more</span>
 
-        <x-dashboard.tooltip :text="$title" position="bottom" />
+        <x-dashboard.tooltip :text="$title" position="bottom"/>
     </button>
 
     <div x-show="open" @click.outside="open = false"

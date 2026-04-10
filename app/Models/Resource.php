@@ -22,10 +22,6 @@ class Resource extends Model
         'image',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
-
     public static function getTabs(): array
     {
         return [
@@ -61,6 +57,13 @@ class Resource extends Model
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
             );
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
     }
 
     protected function displayImage(): Attribute

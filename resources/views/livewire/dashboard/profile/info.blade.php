@@ -70,24 +70,19 @@
                             <span
                                 class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">verified</span>
                         </div>
-                        @error('image')
+                        @error('form.image')
                         <p class="text-xs text-[var(--md-sys-color-error)] font-bold">{{ $message }}</p> @enderror
                     </div>
                     {{-- User Image --}}
                     <div class="relative group mx-auto w-32 h-32">
                         <div
                             class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50 mx-auto">
-                            @if ($image)
-                                <img alt="profile-image" src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
-                            @elseif($existingImage)
-                                <img alt="profile-image" src="{{ Storage::url($existingImage) }}" class="w-full h-full object-cover">
-                            @else
-                                <div
-                                    class="w-full h-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
-                                    <span class="material-symbols-rounded text-5xl">person</span>
-                                </div>
-                            @endif
-                            <div wire:loading wire:target="image"
+                            <x-dashboard.avatar
+                                :image="$form->image"
+                                :existingImage="$existingImage" />
+
+                            <div wire:loading
+                                 wire:target="form.image"
                                  class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                                 <x-dashboard.loader.spinner size="sm" class="text-white"/>
                             </div>
@@ -97,12 +92,12 @@
                         <label for="profile-image-upload"
                                class="absolute -bottom-2 -right-2 flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]">
                             <span class="material-symbols-rounded text-[18px]">photo_camera</span>
-                            <input type="file" id="profile-image-upload" wire:model="image" class="hidden"
+                            <input type="file" id="profile-image-upload" wire:model="form.image" class="hidden"
                                    accept="image/*"/>
                         </label>
 
                         {{-- Delete Button (Top Left) --}}
-                        @if($existingImage && !$image)
+                        @if($existingImage && !$form->image)
                             <button type="button"
                                     wire:click="$dispatch('open-confirmation', {
                                      title: 'حذف تصویر پروفایل',
@@ -117,8 +112,8 @@
                         @endif
 
                         {{-- Cancel New Upload Button (Top Left - if new image selected) --}}
-                        @if($image)
-                            <button type="button" wire:click="$set('image', null)"
+                        @if($form->image)
+                            <button type="button" wire:click="$set('form.image', null)"
                                     class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary)] text-[var(--md-sys-color-on-secondary)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]"
                                     title="انصراف">
                                 <span class="material-symbols-rounded text-[16px]">close</span>
@@ -146,19 +141,19 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <x-dashboard.form.select label="جنسیت" name="state.gender" wire:model="state.gender" icon="wc">
+                    <x-dashboard.form.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc">
                         <option value="">انتخاب کنید</option>
                         <option value="male">مرد</option>
                         <option value="female">زن</option>
                     </x-dashboard.form.select>
-                    <x-dashboard.form.select label="وضعیت تاهل" name="state.marital_status"
-                                             wire:model="state.marital_status" icon="diversity_2">
+                    <x-dashboard.form.select label="وضعیت تاهل" name="form.marital_status"
+                                             wire:model="form.marital_status" icon="diversity_2">
                         <option value="">انتخاب کنید</option>
                         <option value="single">مجرد</option>
                         <option value="married">متاهل</option>
                     </x-dashboard.form.select>
-                    <x-dashboard.form.input type="number" label="تعداد فرزندان" name="state.number_of_children"
-                                            wire:model="state.number_of_children" icon="child_care"/>
+                    <x-dashboard.form.input type="number" label="تعداد فرزندان" name="form.number_of_children"
+                                            wire:model="form.number_of_children" icon="child_care"/>
 
                     <div
                         class="col-span-1 md:col-span-2 lg:col-span-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-variant)]/20 p-4">
@@ -167,19 +162,19 @@
                             <span class="text-sm font-bold">تاریخ تولد</span>
                         </div>
                         <div class="grid grid-cols-3 gap-3">
-                            <x-dashboard.form.select label="سال" name="birthYear" wire:model="birthYear">
+                            <x-dashboard.form.select label="سال" name="form.birthYear" wire:model="form.birthYear">
                                 <option value="">سال</option>
                                 @for($i = (now()->year - 696); $i <= (now()->year - 616); $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </x-dashboard.form.select>
-                            <x-dashboard.form.select label="ماه" name="birthMonth" wire:model="birthMonth">
+                            <x-dashboard.form.select label="ماه" name="form.birthMonth" wire:model="form.birthMonth">
                                 <option value="">ماه</option>
                                 @for($i = 1; $i <= 12; $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </x-dashboard.form.select>
-                            <x-dashboard.form.select label="روز" name="birthDay" wire:model="birthDay">
+                            <x-dashboard.form.select label="روز" name="form.birthDay" wire:model="form.birthDay">
                                 <option value="">روز</option>
                                 @for($i = 1; $i <= 31; $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
@@ -188,10 +183,10 @@
                         </div>
                     </div>
 
-                    <x-dashboard.form.input label="شماره ملی" name="state.id_card_number"
-                                            wire:model="state.id_card_number" icon="fingerprint"/>
-                    <x-dashboard.form.input label="شماره شناسنامه" name="state.id_booklet_number"
-                                            wire:model="state.id_booklet_number" icon="menu_book"/>
+                    <x-dashboard.form.input label="شماره ملی" name="form.id_card_number"
+                                            wire:model="form.id_card_number" icon="fingerprint"/>
+                    <x-dashboard.form.input label="شماره شناسنامه" name="form.id_booklet_number"
+                                            wire:model="form.id_booklet_number" icon="menu_book"/>
                 </div>
             </div>
         </div>
@@ -213,27 +208,27 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <x-dashboard.form.input label="تلفن همراه" name="state.cellphone" wire:model="state.cellphone"
+                    <x-dashboard.form.input label="تلفن همراه" name="form.cellphone" wire:model="form.cellphone"
                                             icon="smartphone"/>
-                    <x-dashboard.form.input label="تلفن ثابت" name="state.landline" wire:model="state.landline"
+                    <x-dashboard.form.input label="تلفن ثابت" name="form.landline" wire:model="form.landline"
                                             icon="call"/>
-                    <x-dashboard.form.input label="کد پستی" name="state.zip_code" wire:model="state.zip_code"
+                    <x-dashboard.form.input label="کد پستی" name="form.zip_code" wire:model="form.zip_code"
                                             icon="markunread_mailbox"/>
-                    <x-dashboard.form.input label="تلفن ضروری" name="state.emergency_phone"
-                                            wire:model="state.emergency_phone" icon="emergency"/>
+                    <x-dashboard.form.input label="تلفن ضروری" name="form.emergency_phone"
+                                            wire:model="form.emergency_phone" icon="emergency"/>
                     <x-dashboard.form.input label="نسبت فرد ضروری"
                                             @input="(e) => setDirection(e)"
                                             x-init="(e) => setDirection(e)"
-                                            name="state.emergency_relationship"
-                                            wire:model="state.emergency_relationship" icon="family_restroom"/>
-                    <x-dashboard.form.input label="شماره پلاک خودرو" name="state.license_plate"
-                                            wire:model="state.license_plate" icon="directions_car"/>
+                                            name="form.emergency_relationship"
+                                            wire:model="form.emergency_relationship" icon="family_restroom"/>
+                    <x-dashboard.form.input label="شماره پلاک خودرو" name="form.license_plate"
+                                            wire:model="form.license_plate" icon="directions_car"/>
                     <div class="col-span-1 md:col-span-2 lg:col-span-3">
                         <x-dashboard.form.textarea label="آدرس دقیق"
-                                                   name="state.address"
+                                                   name="form.address"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
-                                                   wire:model="state.address"
+                                                   wire:model="form.address"
                                                    icon="location_on" rows="2"/>
                     </div>
                 </div>
@@ -252,34 +247,34 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <x-dashboard.form.select label="مدرک تحصیلی" name="state.degree" wire:model="state.degree"
+                    <x-dashboard.form.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree"
                                              icon="school">
                         <option value="">انتخاب مدرک</option>
                         <option value="undergraduate">دیپلم یا کاردانی</option>
                         <option value="graduate">کارشناسی</option>
                         <option value="postgraduate">کارشناسی ارشد یا دکترا</option>
                     </x-dashboard.form.select>
-                    <x-dashboard.form.input label="رشته تحصیلی" name="state.field"
+                    <x-dashboard.form.input label="رشته تحصیلی" name="form.field"
                                             @input="(e) => setDirection(e)"
                                             x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
-                                            wire:model="state.field"
+                                            wire:model="form.field"
                                             icon="menu_book"/>
-                    <x-dashboard.form.input label="شماره بیمه" name="state.insurance" wire:model="state.insurance"
+                    <x-dashboard.form.input label="شماره بیمه" name="form.insurance" wire:model="form.insurance"
                                             icon="health_and_safety"/>
-                    <x-dashboard.form.input label="سابقه کار" name="state.work_experience"
-                                            wire:model="state.work_experience" icon="history"/>
+                    <x-dashboard.form.input label="سابقه کار" name="form.work_experience"
+                                            wire:model="form.work_experience" icon="history"/>
                     <div class="col-span-1 md:col-span-3">
                         <x-dashboard.form.textarea label="نیازهای ویژه (دسترسی)"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
-                                                   name="state.accessibility"
-                                                   wire:model="state.accessibility" icon="accessible" rows="2"/>
+                                                   name="form.accessibility"
+                                                   wire:model="form.accessibility" icon="accessible" rows="2"/>
                     </div>
                     <div class="col-span-1 md:col-span-3">
-                        <x-dashboard.form.textarea label="علایق و سرگرمی‌ها" name="state.interests"
+                        <x-dashboard.form.textarea label="علایق و سرگرمی‌ها" name="form.interests"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
-                                                   wire:model="state.interests" icon="favorite" rows="2"/>
+                                                   wire:model="form.interests" icon="favorite" rows="2"/>
                     </div>
 
                     <div
@@ -294,13 +289,13 @@
                             <template
                                 x-for="color in ['#ef4444','#3b82f6','#10b981','#f59e0b','#000000','#ffffff','#8b5cf6','#ec4899','#64748b','#14b8a6']">
                                 <label class="cursor-pointer relative flex items-center justify-center">
-                                    <input type="checkbox" wire:model="favoriteColors" :value="color"
+                                    <input type="checkbox" wire:model="form.favoriteColors" :value="color"
                                            class="peer sr-only">
                                     <div :style="`background-color: ${color}`"
                                          class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
                                     <span
                                         class="material-symbols-rounded absolute text-white opacity-0 peer-checked:opacity-100 drop-shadow-md mix-blend-difference text-sm"
-                                        :class="{ 'peer-checked:opacity-100 opacity-100': $wire.favoriteColors.includes(color) }">check</span>
+                                        :class="{ 'peer-checked:opacity-100 opacity-100': $wire.form.favoriteColors.includes(color) }">check</span>
                                 </label>
                             </template>
                         </div>

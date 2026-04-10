@@ -11,7 +11,7 @@
         <x-dashboard.tab.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال"/>
     </div>
 
-    @include('livewire.dashboard.tab.faqs.partials.modal')
+    @include('livewire.dashboard.tab.faqs.partials.filters')
 
     <div
         class="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 custom-scrollbar relative bg-[var(--md-sys-color-surface-container-lowest)]">
@@ -20,7 +20,6 @@
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
         </div>
 
-        @island('faqs')
         @forelse($this->faqs as $faq)
             <div
                 x-data="{ expanded: false }"
@@ -121,6 +120,5 @@
                 />
             </div>
         @endif
-        @endisland
     </div>
 </div>

@@ -8,7 +8,6 @@ import scrollManager from "./data/scrollManager.js";
 import mobile from "./data/mobile.js";
 import search from "./data/search.js";
 import menu from "./data/menu.js";
-import shapes from "./data/patterns/shapes.js";
 import timer from "./data/timer.js";
 import settings from "./data/settings.js";
 import palette from "./data/palette.js";
@@ -30,6 +29,8 @@ import stopwatch from "./data/stopwatch.js";
 import dms from "./data/dms.js";
 import ths from "./data/ths.js";
 import reservation from "./data/reservation.js";
+import radio from "./data/radio.js";
+import contact from "./data/contact.js";
 
 
 export default function initAlpine() {
@@ -55,7 +56,6 @@ export default function initAlpine() {
         Alpine.data('mobile', mobile)
         Alpine.data('search', search)
         Alpine.data('menu', menu)
-        Alpine.data('shapes', shapes)
         Alpine.data('timer', timer)
         Alpine.data('settings', settings)
         Alpine.data('palette', palette)
@@ -77,6 +77,8 @@ export default function initAlpine() {
         Alpine.data('dms', dms)
         Alpine.data('ths', ths)
         Alpine.data('reservation', reservation)
+        Alpine.data('radio', radio)
+        Alpine.data('contact', contact)
 
     })
 }

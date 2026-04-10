@@ -20,20 +20,6 @@ class Gallery extends Component
     public int $perPage = 5;
     public bool $hasMorePages = true;
 
-    #[Computed]
-    public function photos()
-    {
-        if (empty($this->photoIds)) {
-            return collect();
-        }
-
-        $idsString = implode(',', $this->photoIds);
-
-        return Photo::whereIn('id', $this->photoIds)
-            ->orderByRaw("FIELD(id, {$idsString})")
-            ->get();
-    }
-
     public function loadInitialPhotos(): void
     {
         $this->photoIds = $this->getBaseQuery()->take($this->perPage)->pluck('id')->toArray();
@@ -75,14 +61,28 @@ class Gallery extends Component
     }
 
     #[Computed]
-    public function totalPhotos()
+    public function photos()
     {
-        return $this->getBaseQuery()->count();
+        if (empty($this->photoIds)) {
+            return collect();
+        }
+
+        $idsString = implode(',', array_map('intval', $this->photoIds));
+
+        return Photo::whereIn('id', $this->photoIds)
+            ->orderByRaw("FIELD(id, {$idsString})")
+            ->get();
     }
 
     public function render()
     {
         return view('livewire.dashboard.tab.gallery.index');
+    }
+
+    #[Computed]
+    public function totalPhotos()
+    {
+        return $this->getBaseQuery()->count();
     }
 
     private function getBaseQuery(): Builder

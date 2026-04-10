@@ -16,6 +16,11 @@ class Department extends Model
     protected $primaryKey = 'code';
     protected $keyType = 'string';
 
+
+    public function authorities(): HasMany
+    {
+        return $this->hasMany(Authority::class, 'department_id', 'code');
+    }
     public function faqs(): HasMany
     {
         return $this->hasMany(FAQ::class, 'department_id', 'code');

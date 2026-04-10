@@ -23,9 +23,9 @@
                             <span class="material-symbols-rounded text-xl">confirmation_number</span>
                         </div>
                         <div>
-                            <h3 title="📆 {{ $this->getFormattedTimeStamp($selectedTicket, 'created_at')  }}" dir="ltr"
+                            <h3 title="📆 {{ $presenter->formatTimestamp($selectedTicket, 'created_at') }}" dir="ltr"
                                 class="cursor-help font-bold text-[var(--md-sys-color-on-surface)] text-sm tracking-wide font-mono flex items-center gap-2 flex-row-reverse ltr">
-                                {{ $this->getFormattedTicketId($selectedTicket) }}
+                                {{ $presenter->formatId($selectedTicket)}}
                             </h3>
                         </div>
                     </div>
@@ -62,7 +62,7 @@
                                     <span
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">حوزه</span>
                                     <span
-                                        class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">{{ $this->getRequestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area']) }}</span>
+                                        class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area']) }}</span>
                                 </div>
                                 <div
                                     class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
@@ -168,7 +168,7 @@
                                            dir="ltr">
                                             <span
                                                 class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">event_available</span>
-                                            {{ $this->getFormattedTimeStamp($selectedTicket, 'completion_date') }}
+                                            {{$presenter->formatTimestamp($selectedTicket, 'completion_date') }}
                                         </p>
                                     </div>
                                 @endif

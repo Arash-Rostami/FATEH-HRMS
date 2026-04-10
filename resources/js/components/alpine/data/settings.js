@@ -17,6 +17,8 @@ const patternLoaders = {
 };
 
 let activePatternInstance = null;
+let patternInitPromise = null;
+let patternInitRunId = 0;
 
 export default function settings() {
     return {
@@ -46,9 +48,10 @@ export default function settings() {
             if (activePatternInstance && typeof activePatternInstance.destroy === 'function') {
                 try {
                     activePatternInstance.destroy();
-                    activePatternInstance = null;
                 } catch (e) {}
             }
+
+            activePatternInstance = null;
 
             ['interactive-background', 'interactive-background-apple', 'interactive-background-google'].forEach(id => {
                 const el = document.getElementById(id);
@@ -57,27 +60,62 @@ export default function settings() {
         },
 
         async initPattern() {
-            this.clearVisuals();
+            if (patternInitPromise) {
+                return patternInitPromise;
+            }
 
-            if (Alpine.store('background').patternEnabled) {
+            const runId = ++patternInitRunId;
+
+            patternInitPromise = (async () => {
+                this.clearVisuals();
+
+                if (!Alpine.store('background').patternEnabled) {
+                    return null;
+                }
+
                 const currentPatternId = Alpine.store('background').activePattern || 'shapes';
                 const loader = patternLoaders[currentPatternId];
 
-                if (loader) {
-                    try {
-                        const module = await loader();
-                        const patternObj = module.default;
+                if (!loader) {
+                    return null;
+                }
 
-                        setTimeout(() => {
-                            if (patternObj && typeof patternObj.init === 'function') {
-                                patternObj.init();
-                                activePatternInstance = patternObj;
-                            } else if (typeof patternObj === 'function') {
-                                activePatternInstance = patternObj();
-                                if (typeof activePatternInstance === 'function') activePatternInstance();
-                            }
-                        }, 50);
-                    } catch (err) {}
+                try {
+                    const module = await loader();
+
+                    if (runId !== patternInitRunId) {
+                        return null;
+                    }
+
+                    const patternObj = module.default;
+
+                    await new Promise(resolve => setTimeout(resolve, 50));
+
+                    if (runId !== patternInitRunId) {
+                        return null;
+                    }
+
+                    if (patternObj && typeof patternObj.init === 'function') {
+                        patternObj.init();
+                        activePatternInstance = patternObj;
+                    } else if (typeof patternObj === 'function') {
+                        activePatternInstance = patternObj();
+                        if (typeof activePatternInstance === 'function') {
+                            activePatternInstance();
+                        }
+                    }
+
+                    return activePatternInstance;
+                } catch (err) {
+                    return null;
+                }
+            })();
+
+            try {
+                return await patternInitPromise;
+            } finally {
+                if (runId === patternInitRunId) {
+                    patternInitPromise = null;
                 }
             }
         },
@@ -96,15 +134,18 @@ export default function settings() {
 
         toggleFocus() {
             this.focusMode = !this.focusMode;
+
             if (this.focusMode) {
                 document.documentElement.requestFullscreen().catch(() => {});
                 Alpine.store('background').patternEnabled = false;
                 Alpine.store('background').enabled = false;
-                this.$wire.call('enableFocusMode');
+                this.$wire.call('setFocusMode', true);
             } else {
-                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
                 Alpine.store('background').enabled = true;
-                this.$wire.call('disableFocusMode');
+                this.$wire.call('setFocusMode', false);
             }
         },
 
@@ -122,7 +163,7 @@ export default function settings() {
             }
 
             localStorage.clear();
-            setTimeout(() => {location.reload();}, 500);
+            setTimeout(() => { location.reload(); }, 500);
         }
-    }
+    };
 }
