@@ -23,7 +23,7 @@
             <div
                 class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
             <span
-                class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm backdrop-blur-md bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
+                class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                 {{ $group['label'] }}
             </span>
             <div
@@ -144,7 +144,7 @@
 
                         @if($msg['is_last'])
                             <div @class([
-                                        'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] backdrop-blur-sm scale-90 group-hover:scale-100',
+                                        'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100',
                                         'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
                                         'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
                                     ])>

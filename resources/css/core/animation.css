@@ -341,117 +341,116 @@
     }
 }
 
-
 .animate-pulse-ring {
-    animation: pulse-ring 2s ease-out infinite;
+    animation: pulse-ring 2s ease-out infinite !important;
 }
 
 .animate-typing-dot-1 {
-    animation: typing-bounce 1.4s infinite 0s;
+    animation: typing-bounce 1.4s infinite 0s !important;
 }
 
 .animate-typing-dot-2 {
-    animation: typing-bounce 1.4s infinite 0.2s;
+    animation: typing-bounce 1.4s infinite 0.2s !important;
 }
 
 .animate-typing-dot-3 {
-    animation: typing-bounce 1.4s infinite 0.4s;
+    animation: typing-bounce 1.4s infinite 0.4s !important;
 }
 
 .animate-bubble-in {
-    animation: bubble-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
+    animation: bubble-in 0.25s cubic-bezier(0.2, 0, 0, 1) both !important;
 }
 
 .animate-toast-in {
-    animation: toast-in 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+    animation: toast-in 0.35s cubic-bezier(0.2, 0, 0, 1) both !important;
 }
 
 .animate-reply-bar-in {
-    animation: reply-bar-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
+    animation: reply-bar-in 0.25s cubic-bezier(0.2, 0, 0, 1) both !important;
 }
 
 .animate-eq {
-    animation: eq 0.8s cubic-bezier(0.2, 0.9, 0.2, 0.9) infinite;
+    animation: eq 0.8s cubic-bezier(0.2, 0.9, 0.2, 0.9) infinite !important;
 }
 
 .animate-slide-over-in {
-    animation: slideFromLeft 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    animation: slideFromLeft 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
 }
 
 .animate-slide-over-out {
-    animation: slideToLeft 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    animation: slideToLeft 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
 }
 
 .animate-backdrop-in {
-    animation: backdropFadeIn 0.5s ease-out forwards;
+    animation: backdropFadeIn 0.5s ease-out forwards !important;
 }
 
 .animate-backdrop-out {
-    animation: backdropFadeOut 0.4s ease-in forwards;
+    animation: backdropFadeOut 0.4s ease-in forwards !important;
 }
 
 .animate-spring-pop {
-    animation: spring-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    animation: spring-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
 .animate-subtle-pulse {
-    animation: subtle-pulse 1600ms linear infinite;
+    animation: subtle-pulse 1600ms linear infinite !important;
 }
 
 .animate-slide-scale {
-    animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-fade {
-    animation: fadeIn 0.8s ease-out forwards;
+    animation: fadeIn 0.8s ease-out forwards !important;
 }
 
 .animate-slide-up {
-    animation: slideUp 0.6s cubic-bezier(0.2, 0.0, 0, 1.0) forwards;
+    animation: slideUp 0.6s cubic-bezier(0.2, 0.0, 0, 1.0) forwards !important;
 }
 
 .animate-slide-left {
-    animation: slideLeftFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideLeftFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-slide-right {
-    animation: slideRightFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideRightFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-slide-down {
-    animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-pop {
-    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
 .animate-rotate {
-    animation: rotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: rotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-skew {
-    animation: skewIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: skewIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-bounce {
-    animation: bounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: bounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
 .animate-slide-blur {
-    animation: slideBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-flip-y {
-    animation: flipYIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: flipYIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-expand {
-    animation: expandIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: expandIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-sweep {
-    animation: sweepIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: sweepIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 [class*="animate-"] {

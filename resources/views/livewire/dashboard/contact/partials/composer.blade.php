@@ -1,5 +1,5 @@
 <footer
-    class="flex-shrink-0 border-t backdrop-blur-xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]">
+    class="flex-shrink-0 border-t bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]">
     @error('composer.body')
     <div class="flex items-center gap-2 px-5 pt-3 text-[11px] text-[var(--md-sys-color-error)]" role="alert">
         <span class="material-symbols-rounded text-sm"

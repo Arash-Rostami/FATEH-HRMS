@@ -20,8 +20,18 @@ class Main extends Component
 
     public function render()
     {
+        $presenter = new ProfilePresenter();
+        $user = $this->user;
+
         return view('livewire.dashboard.profile.index', [
-            'user' => $this->user, 'completion' => (new ProfilePresenter())->completion($this->user),
+            'user'           => $user,
+            'completion'     => $presenter->completion($user),
+            'avatarImage'    => $presenter->avatarUrl($user),
+            'position'       => $presenter->position($user),
+            'departmentName' => $presenter->departmentName($user),
+            'memberSince'    => $presenter->memberSince($user),
+            'lastSeen'       => $presenter->lastSeen($user),
+            'tabs'           => $presenter->tabs(),
         ])->extends('layouts.app')->section('content');
     }
 

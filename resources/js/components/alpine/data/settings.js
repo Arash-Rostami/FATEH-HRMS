@@ -17,106 +17,167 @@ const patternLoaders = {
 };
 
 let activePatternInstance = null;
-let patternInitPromise = null;
 let patternInitRunId = 0;
+let patternInitAbort = null;
 
 export default function settings() {
     return {
         open: false,
         focusMode: false,
+        fontSizeLevel: 0,
+        minScale: -2,
+        maxScale: 3,
+        readingRuler: false,
+        doubleClickCopy: false,
+
 
         get availablePatterns() {
             return Alpine.store('background').patterns;
         },
 
         init() {
-            this.$nextTick(() => {
-                this.initPattern();
-            });
+            this.fontSizeLevel = parseInt(localStorage.getItem('fontSizeLevel') || '0');
+            this.readingRuler = localStorage.getItem('readingRuler') === 'true';
+            this.doubleClickCopy = localStorage.getItem('doubleClickCopy') === 'true';
+            this.applyDoubleClickCopy();
+            this.applyFontSize();
+            this.applyReadingRuler();
+
+            this.$nextTick(() => this.initPattern());
 
             this.$watch('$store.background.patternEnabled', () => this.initPattern());
             this.$watch('$store.background.activePattern', () => this.initPattern());
-
             this.$watch('$store.background.enabled', (value) => {
-                if (value) {
-                    this.clearVisuals();
-                }
+                if (value) this.clearVisuals();
             });
+        },
+
+        applyFontSize() {
+            const scale = 1 + (this.fontSizeLevel * 0.1);
+            document.documentElement.style.setProperty('--app-font-scale', scale);
+            document.documentElement.style.fontSize = `${scale * 100}%`;
+            localStorage.setItem('fontSizeLevel', this.fontSizeLevel);
+        },
+
+        increaseFontSize() {
+            if (this.fontSizeLevel < this.maxScale) {
+                this.fontSizeLevel++;
+                this.applyFontSize();
+            }
+        },
+
+        decreaseFontSize() {
+            if (this.fontSizeLevel > this.minScale) {
+                this.fontSizeLevel--;
+                this.applyFontSize();
+            }
+        },
+
+        resetFontSize() {
+            this.fontSizeLevel = 0;
+            this.applyFontSize();
+        },
+
+        getScaleLabel() {
+            if (this.fontSizeLevel < 0) return 'کوچک';
+            if (this.fontSizeLevel === 0) return 'پیش‌فرض';
+            if (this.fontSizeLevel === 1) return 'بزرگ';
+            return 'خیلی بزرگ';
+        },
+        toggleReadingRuler() {
+            this.readingRuler = !this.readingRuler;
+            localStorage.setItem('readingRuler', this.readingRuler);
+            this.applyReadingRuler();
+        },
+
+        applyReadingRuler() {
+            document.documentElement.classList.toggle('reading-ruler', this.readingRuler);
+            if (this.readingRuler) {
+                document.addEventListener('mousemove', this._rulerHandler = (e) => {
+                    document.documentElement.style.setProperty('--ruler-y', `${e.clientY}px`);
+                });
+            } else {
+                document.removeEventListener('mousemove', this._rulerHandler);
+            }
+        },
+
+        toggleDoubleClickCopy() {
+            this.doubleClickCopy = !this.doubleClickCopy;
+            localStorage.setItem('doubleClickCopy', this.doubleClickCopy);
+            this.applyDoubleClickCopy();
+        },
+
+        applyDoubleClickCopy() {
+            if (this.doubleClickCopy) {
+                document.addEventListener('mouseup', this._copyHandler = () => {
+                    const selection = window.getSelection()?.toString().trim();
+                    if (selection) {
+                        navigator.clipboard.writeText(selection).then(() => {
+                            this._showCopyToast();
+                        });
+                    }
+                });
+            } else {
+                document.removeEventListener('mouseup', this._copyHandler);
+            }
+        },
+
+        _showCopyToast() {
+            const toast = document.createElement('div');
+            toast.textContent = 'کپی شد';
+            toast.classList.add('toast-floating');
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+
+                setTimeout(() => toast.remove(), 200);
+            }, 1500);
         },
 
         clearVisuals() {
-            if (activePatternInstance && typeof activePatternInstance.destroy === 'function') {
+            if (typeof activePatternInstance?.destroy === 'function') {
                 try {
                     activePatternInstance.destroy();
-                } catch (e) {}
+                } catch {
+                }
             }
-
             activePatternInstance = null;
-
-            ['interactive-background', 'interactive-background-apple', 'interactive-background-google'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.remove();
-            });
+            ['interactive-background', 'interactive-background-apple', 'interactive-background-google']
+                .forEach(id => document.getElementById(id)?.remove());
         },
 
         async initPattern() {
-            if (patternInitPromise) {
-                return patternInitPromise;
-            }
-
+            patternInitAbort?.abort();
+            const controller = new AbortController();
+            patternInitAbort = controller;
             const runId = ++patternInitRunId;
 
-            patternInitPromise = (async () => {
-                this.clearVisuals();
+            this.clearVisuals();
 
-                if (!Alpine.store('background').patternEnabled) {
-                    return null;
-                }
+            if (!Alpine.store('background').patternEnabled) return;
 
-                const currentPatternId = Alpine.store('background').activePattern || 'shapes';
-                const loader = patternLoaders[currentPatternId];
-
-                if (!loader) {
-                    return null;
-                }
-
-                try {
-                    const module = await loader();
-
-                    if (runId !== patternInitRunId) {
-                        return null;
-                    }
-
-                    const patternObj = module.default;
-
-                    await new Promise(resolve => setTimeout(resolve, 50));
-
-                    if (runId !== patternInitRunId) {
-                        return null;
-                    }
-
-                    if (patternObj && typeof patternObj.init === 'function') {
-                        patternObj.init();
-                        activePatternInstance = patternObj;
-                    } else if (typeof patternObj === 'function') {
-                        activePatternInstance = patternObj();
-                        if (typeof activePatternInstance === 'function') {
-                            activePatternInstance();
-                        }
-                    }
-
-                    return activePatternInstance;
-                } catch (err) {
-                    return null;
-                }
-            })();
+            const currentPatternId = Alpine.store('background').activePattern || 'shapes';
+            const loader = patternLoaders[currentPatternId];
+            if (!loader) return;
 
             try {
-                return await patternInitPromise;
-            } finally {
-                if (runId === patternInitRunId) {
-                    patternInitPromise = null;
+                const module = await loader();
+                if (controller.signal.aborted || runId !== patternInitRunId) return;
+
+                await new Promise(r => setTimeout(r, 50));
+                if (controller.signal.aborted || runId !== patternInitRunId) return;
+
+                const patternObj = module.default;
+                if (typeof patternObj?.init === 'function') {
+                    patternObj.init();
+                    activePatternInstance = patternObj;
+                } else if (typeof patternObj === 'function') {
+                    activePatternInstance = patternObj();
+                    if (typeof activePatternInstance === 'function') activePatternInstance();
                 }
+            } catch {
             }
         },
 
@@ -136,14 +197,14 @@ export default function settings() {
             this.focusMode = !this.focusMode;
 
             if (this.focusMode) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                document.documentElement.requestFullscreen().catch(() => {
+                });
                 Alpine.store('background').patternEnabled = false;
                 Alpine.store('background').enabled = false;
                 this.$wire.call('setFocusMode', true);
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                }
+                document.exitFullscreen?.().catch(() => {
+                });
                 Alpine.store('background').enabled = true;
                 this.$wire.call('setFocusMode', false);
             }
@@ -151,19 +212,11 @@ export default function settings() {
 
         resetApp() {
             if ('caches' in window) {
-                caches.keys().then((names) => {
-                    names.forEach((name) => caches.delete(name));
-                });
+                caches.keys().then(names => names.forEach(n => caches.delete(n)));
             }
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then((registrations) => {
-                    registrations.forEach((registration) => registration.unregister());
-                });
-            }
-
+            navigator.serviceWorker?.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
             localStorage.clear();
-            setTimeout(() => { location.reload(); }, 500);
+            setTimeout(() => location.reload(), 500);
         }
     };
 }

@@ -1,4 +1,4 @@
-<x-dashboard.tab.filters
+<x-dashboard.form.filters
     searchModel="search"
     activeCondition="this.$wire.get('activeFilter') !== 'all'"
     clearAction="this.$wire.set('activeFilter', 'all'); this.$wire.set('search', '');"
@@ -45,4 +45,4 @@
             </button>
         @endforeach
     </div>
-</x-dashboard.tab.filters>
+</x-dashboard.form.filters>

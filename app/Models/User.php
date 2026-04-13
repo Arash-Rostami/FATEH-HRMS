@@ -90,6 +90,11 @@ class User extends Authenticatable
         return ($this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes))) || $this->isActive();
     }
 
+    public function latestEnergyTest()
+    {
+        return $this->hasOne(EnergyTest::class)->latestOfMany('completed_at');
+    }
+
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);

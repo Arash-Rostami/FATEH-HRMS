@@ -1,4 +1,4 @@
-<x-dashboard.tab.filters
+<x-dashboard.form.filters
     placeholder="جستجوی اعضا..."
     searchModel="search"
     activeCondition="this.$wire.get('search') !== ''"
@@ -31,4 +31,4 @@
             @endforeach
         </div>
     </div>
-</x-dashboard.tab.filters>
+</x-dashboard.form.filters>

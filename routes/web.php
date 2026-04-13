@@ -13,6 +13,7 @@ use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
 use App\Livewire\Dashboard\Authority\Main as Authority;
 use App\Livewire\Dashboard\Contact\Main as Contact;
+use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Tab\Main;
 use App\Livewire\Dashboard\Taskboard\Main as TaskBoard;
 use App\Livewire\Dashboard\Ths\Main as Ths;
@@ -43,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/suggestion', Suggestion::class)->name('suggestion');
     Route::get('/authority', Authority::class)->name('authority');
     Route::get('/contacts', Contact::class)->name('contact');
+    Route::get('/energy', Energy::class)->name('energy');
 
     Route::get('/reservation', Reservation::class)->name('reservation');
 

@@ -1,4 +1,4 @@
-<x-dashboard.tab.filters
+<x-dashboard.form.filters
     searchModel="search"
     activeCondition="this.$wire.get('activeFilter') !== 'active'"
     clearAction="this.$wire.set('activeFilter', 'active'); this.$wire.set('search', '');"
@@ -50,4 +50,4 @@
             </span>
         </button>
     </div>
-</x-dashboard.tab.filters>
+</x-dashboard.form.filters>

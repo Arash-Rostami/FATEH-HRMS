@@ -1,7 +1,6 @@
 <div
     dir="rtl"
     x-data="contact()"
-    x-init="initPattern()"
     x-on:chat-ready.window="scrollToBottom(true)"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays()"
@@ -38,6 +37,5 @@
                 @endif
             </main>
         </div>
-
     </div>
 </div>

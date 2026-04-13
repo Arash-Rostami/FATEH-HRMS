@@ -1,4 +1,4 @@
-<x-dashboard.tab.filters
+<x-dashboard.form.filters
     placeholder="جستجو بر اساس عنوان، کد یا نسخه..."
     searchModel="search"
     filterTitle="دسته‌بندی‌ها"
@@ -26,5 +26,5 @@
             </button>
         @endforeach
     </div>
-</x-dashboard.tab.filters>
+</x-dashboard.form.filters>
 

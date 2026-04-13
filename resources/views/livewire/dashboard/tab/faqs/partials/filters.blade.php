@@ -1,4 +1,4 @@
-<x-dashboard.tab.filters
+<x-dashboard.form.filters
     searchModel="search"
     activeCondition="this.$wire.get('selectedCategory') !== null || this.$wire.get('selectedDepartment') !== null"
     clearAction="this.$wire.resetFilters()"
@@ -45,4 +45,4 @@
             </div>
         </div>
     </div>
-</x-dashboard.tab.filters>
+</x-dashboard.form.filters>

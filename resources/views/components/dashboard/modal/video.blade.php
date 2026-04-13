@@ -25,7 +25,7 @@
                class="text-white/80 text-sm font-semibold truncate max-w-[75%] leading-none"></p>
 
             <button @click="handleVideoClose()"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 backdrop-blur-sm transition-all group text-sm font-medium">
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all group text-sm font-medium">
                 <span
                     class="material-symbols-rounded text-[18px] group-hover:rotate-90 transition-transform duration-200">close</span>
                 بستن

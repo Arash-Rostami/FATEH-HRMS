@@ -46,7 +46,7 @@
                 {{ auth()->user()->name ?? 'مهمان' }}
             </div>
 
-            <a href="{{ url('/profile') }}"
+            <a href="{{ url('/profile?activeTab=info') }}"
                target="_blank"
                rel="noopener noreferrer"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
