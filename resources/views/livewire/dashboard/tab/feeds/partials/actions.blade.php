@@ -1,30 +1,37 @@
-<div class="flex flex-col gap-3">
-    <!-- Reaction Picker -->
-    <div class="flex items-center gap-2 justify-between">
-        @php
-            $emojis = ['👍', '❤️', '😂', '😮', '😢', '💔', '👏'];
-            $userReaction = $feed->reactions->firstWhere('user_id', auth()->id());
-        @endphp
+<div class="flex items-center gap-2 justify-between">
+    @php
+        $emojis = ['👍', '❤️', '😂', '😮', '😢', '💔', '👏', '🔥', '🎉', '😍', '🤔', '💯', '🙌', '😤', '🥺', '😎', '🫶', '💪', '🤩', '😇', '🙏'];
+        $userReaction = $feed->reactions->firstWhere('user_id', auth()->id());
+        $selectedEmoji = $userReaction?->emoji;
+        if ($selectedEmoji && in_array($selectedEmoji, $emojis)) {
+            $emojis = array_merge([$selectedEmoji], array_values(array_filter($emojis, fn($e) => $e !== $selectedEmoji)));
+        }
+    @endphp
 
-        <div class="flex items-center gap-1 overflow-x-auto pb-1 -mx-1 px-1 custom-scrollbar">
-            @foreach($emojis as $emoji)
-                <button
-                    wire:click="toggleReaction({{ $feed->id }}, '{{ $emoji }}')"
-                    class="relative group w-10 h-10 flex items-center justify-center rounded-full text-lg hover:bg-[var(--md-sys-color-secondary-container)] hover:scale-110 active:scale-95 transition-all
-                    {{ $userReaction && $userReaction->emoji === $emoji ? 'bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-primary)] shadow-md' : 'bg-[var(--md-sys-color-surface-container)] border border-transparent' }}"
-                >
-                    <span class="transform transition-transform group-hover:rotate-12">{{ $emoji }}</span>
+    <div class="flex-shrink-0 flex items-center gap-1 h-9 px-2.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)]">
+        <span class="material-symbols-rounded text-[15px] leading-none">thumb_up</span>
+        <span class="text-xs font-semibold tabular-nums leading-none">{{ $feed->reactions->count() }}</span>
+    </div>
 
-                    @if($userReaction && $userReaction->emoji === $emoji)
-                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-[var(--md-sys-color-primary)] rounded-full animate-ping"></span>
-                    @endif
-                </button>
-            @endforeach
-        </div>
+    <div class="flex items-center gap-0.5 py-1 overflow-visible"
+         wire:key="reaction-strip-{{ $feed->id }}-{{ $selectedEmoji }}"
+         x-data="{ page: 0, per: 7, emojis: {{ json_encode(array_values($emojis)) }}, selected: '{{ $selectedEmoji }}' }">
 
-        <div class="flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium">
-            <span class="material-symbols-rounded text-[16px]">thumb_up</span>
-            <span>{{ $feed->reactions->count() }}</span>
-        </div>
+        <template x-for="emoji in emojis.slice(page * per, page * per + per)" :key="emoji">
+            <button
+                x-on:click="$wire.toggleReaction({{ $feed->id }}, emoji)"
+                class="relative flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-base transition-all duration-150 hover:bg-[var(--md-sys-color-secondary-container)] hover:scale-110 active:scale-95 bg-[var(--md-sys-color-surface-container)]"
+                :class="emoji === selected ? '!bg-[var(--md-sys-color-primary-container)]' : ''"
+            >
+                <span class="leading-none select-none" x-text="emoji"></span>
+                <span x-show="emoji === selected"
+                      class="absolute -top-1 -right-1 w-2 h-2 rounded-sm bg-[var(--md-sys-color-primary)] animate-pulse z-10"></span>
+            </button>
+        </template>
+
+        <button @click="page = (page + 1) % Math.ceil(emojis.length / per)"
+                class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-secondary-container)] active:scale-95 transition-all duration-150">
+            <span class="material-symbols-rounded text-[18px] leading-none">chevron_left</span>
+        </button>
     </div>
 </div>

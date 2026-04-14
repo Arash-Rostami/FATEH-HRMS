@@ -9,7 +9,6 @@ class NavigationSearchService
 {
     /**
      * Search for items based on a query string.
-     * Uses comprehensive fuzzy matching.
      */
     public function search(string $query): array
     {
@@ -35,8 +34,6 @@ class NavigationSearchService
                 foreach ($tokens as $token) {
                     if (Str::contains($title, $token)) $score += 40;
                     if (Str::contains($subtitle, $token)) $score += 20;
-
-                    // Check if token exists in any keyword
                     if ($keywords->contains(fn($k) => Str::contains($k, $token))) $score += 30;
                 }
 

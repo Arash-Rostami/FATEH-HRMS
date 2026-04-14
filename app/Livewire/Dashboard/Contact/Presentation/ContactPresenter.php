@@ -74,7 +74,7 @@ class ContactPresenter
             return [
                 'id'         => (int) ($msg['id'] ?? 0),
                 'body'       => $msg['body'] ?? '',
-                'body_html'  => $this->linkify(e($msg['body'] ?? '')),
+                'body_html'  => nl2br($this->linkify(e($msg['body'] ?? '')), false),
                 'created_at' => $msg['created_at'] ?? null,
                 'time'       => $createdAt->format('H:i'),
                 'datetime'   => $msg['created_at'] ?? '',

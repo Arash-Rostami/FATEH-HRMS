@@ -15,7 +15,7 @@
 
     @include('livewire.dashboard.tab.feeds.partials.header', ['feed' => $feed])
 
-    <div class="flex-1 overflow-y-auto feed-scrollbar p-5 md:p-6 space-y-5 pb-24">
+    <div class="flex-1 overflow-y-auto feed-scrollbar p-5 md:p-6 space-y-5 pb-6">
         @if(!empty($feed?->content))
             <div class="text-sm leading-[2] text-[var(--md-sys-color-on-surface)] text-right text-justify" dir="rtl">
                 {!! superClean($feed->content) !!}
@@ -55,8 +55,7 @@
             </div>
         </div>
     </div>
-
-    <div class="absolute bottom-0 left-0 right-0 p-4 md:p-5 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-[var(--md-sys-color-surface)]/95 to-transparent pt-8 rounded-b-2xl">
+    <div class="px-3 md:px-4 py-2.5 border-t border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] rounded-b-lg overflow-visible">
         @include('livewire.dashboard.tab.feeds.partials.actions', ['feed' => $feed])
     </div>
 </div>
