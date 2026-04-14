@@ -14,11 +14,6 @@ class Home extends Component
         return Config::get('modules', []);
     }
 
-    public function placeholder()
-    {
-        return view('livewire.dashboard.tab.placeholder');
-    }
-
     public function render()
     {
         return view('livewire.dashboard.tab.home.index');

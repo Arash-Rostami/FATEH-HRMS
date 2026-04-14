@@ -1,6 +1,6 @@
 <div @confirmation-confirmed.window="$wire.dispatch($event.detail.method, {commentId: $event.detail.params})"
      x-data="feed"
-     class="relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8"
+     class="animate-fade relative w-full h-full bg-[var(--md-sys-color-background)] p-4 md:p-8"
      dir="rtl"
 >
     <x-dashboard.tab.title

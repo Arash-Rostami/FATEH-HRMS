@@ -1,11 +1,13 @@
 @php( $isProfileTab = $activeTab !== 'onboarding')
 <div
-    class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide"
+    class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide animate-fade"
     x-data="settings()"
     x-init="initPattern()"
     dir="rtl"
 >
     <div class="max-w-[88rem] mx-auto">
+        <x-dashboard.placeholder/>
+
         <x-dashboard.tab.title
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"

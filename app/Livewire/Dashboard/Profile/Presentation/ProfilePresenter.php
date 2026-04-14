@@ -54,8 +54,8 @@ class ProfilePresenter
         return [
             'info' => ['label' => 'اطلاعات فردی', 'icon' => 'person', 'sub' => 'مشخصات و تماس', 'title' => 'ویرایش اطلاعات فردی', 'component' => 'dashboard.profile.info', 'key' => 'tab-info', 'lazy' => false],
             'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => true],
-            'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'folder_open', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => true],
-            'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'verified_user', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => true],
+            'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'cloud_upload', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => true],
+            'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'vpn_key', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => true],
             'onboarding' => ['label' => 'آنبوردینگ', 'icon' => 'apartment', 'sub' => 'آشنایی با شرکت', 'title' => 'آنبوردینگ (آشنایی با شرکت)', 'component' => 'dashboard.profile.onboarding', 'key' => 'tab-onboarding', 'lazy' => true],
         ];
     }

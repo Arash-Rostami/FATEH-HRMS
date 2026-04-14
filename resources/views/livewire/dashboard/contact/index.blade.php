@@ -5,8 +5,7 @@
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays()"
     role="application"
-    aria-label="پیام‌رسان سازمانی"
-    class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto"
+    class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
     <div class="max-w-[88rem] mx-auto page-wrapper">

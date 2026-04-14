@@ -2,7 +2,7 @@
 
     <div class="relative overflow-hidden rounded-2xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 p-5">
         <div class="absolute -right-4 -top-4 opacity-[0.08] pointer-events-none">
-            <span class="material-symbols-rounded text-[100px]">folder_shared</span>
+            <span class="material-symbols-rounded text-[100px]">cloud_upload</span>
         </div>
         <div class="relative z-10 flex gap-4 items-start md:items-center">
             <div class="w-10 h-10 flex-shrink-0 rounded-xl bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] flex items-center justify-center shadow-inner">

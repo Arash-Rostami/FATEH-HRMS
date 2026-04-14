@@ -9,7 +9,7 @@
         <button
             wire:click="setTab('{{ $key }}')"
             class="group relative w-12 h-12 flex items-center justify-center rounded-xl
-                   bg-[var(--md-sys-color-primary)]
+                   bg-[var(--md-sys-color-primary)] animate-slide-in-right animate-delay-500
                    text-[var(--md-sys-color-on-primary)]
                    cursor-pointer transition-all duration-300 ease-out
                    hover:bg-[var(--md-sys-color-primary-container)]
@@ -29,11 +29,13 @@
 
             @if($tab['badge'] ?? false)
                 <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-700 border-2 border-[var(--md-sys-color-surface)]"></span>
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>
+                    <span
+                        class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-700 border-2 border-[var(--md-sys-color-surface)]"></span>
                 </span>
             @endif
-            <x-dashboard.tooltip :text="$tab['label']" position="left" />
+            <x-dashboard.tooltip :text="$tab['label']" position="left"/>
         </button>
     @endforeach
 </aside>

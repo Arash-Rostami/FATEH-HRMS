@@ -1,4 +1,4 @@
-<header class="flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b  z-10 bg-[color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent)] border-[var(--md-sys-color-primary-container)]">
+<header class="border-runner flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b  z-10 bg-[color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent)] border-[var(--md-sys-color-primary-container)]">
     @php($isOnline = method_exists($activeContact, 'isOnline') && $activeContact->isOnline())
 
     <button

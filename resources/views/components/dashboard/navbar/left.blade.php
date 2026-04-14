@@ -27,7 +27,7 @@
            @mouseenter="setHover('tasks')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
-                  rounded-r-2xl rounded-l-none
+                  rounded-r-2xl rounded-l-none animate-slide-in-left animate-delay-150
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
                   transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
                   active:scale-[0.94] active:shadow-none
@@ -41,10 +41,8 @@
                   hover:shadow-[6px_0_24px_var(--md-sys-color-primary)]/20"
            :class="{
                '-translate-x-full lg:translate-x-0': !isExpanded,
-               'translate-x-0': isExpanded,
-               'hover:translate-x-2 lg:hover:translate-x-1': true
-           }"
-           :style="'transition-delay: ' + getTransitionDelay(0)">
+               'translate-x-0': isExpanded
+           }">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
@@ -74,7 +72,7 @@
            @mouseenter="setHover('dms')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
-                  rounded-r-2xl rounded-l-none
+                  rounded-r-2xl rounded-l-none animate-slide-in-left animate-delay-300
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
                   transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
                   active:scale-[0.94] active:shadow-none
@@ -89,9 +87,7 @@
            :class="{
                '-translate-x-full lg:translate-x-0': !isExpanded,
                'translate-x-0': isExpanded,
-               'hover:translate-x-2 lg:hover:translate-x-1': true
-           }"
-           :style="'transition-delay: ' + getTransitionDelay(1)">
+           }">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{
@@ -121,7 +117,7 @@
            @mouseenter="setHover('ths')"
            @mouseleave="clearHover()"
            class="relative flex flex-col items-center justify-center py-5 md:py-6 px-2
-                  rounded-r-2xl rounded-l-none
+                  rounded-r-2xl rounded-l-none animate-slide-in-left animate-delay-500
                   shadow-[4px_0_16px_var(--md-sys-color-primary)]/15
                   transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
                   active:scale-[0.94] active:shadow-none
@@ -136,9 +132,7 @@
            :class="{
                '-translate-x-full lg:translate-x-0': !isExpanded,
                'translate-x-0': isExpanded,
-               'hover:translate-x-2 lg:hover:translate-x-1': true
-           }"
-           :style="'transition-delay: ' + getTransitionDelay(2)">
+           }">
 
             <span class="material-symbols-rounded text-[24px] md:text-[26px] mb-2 transition-all duration-500"
                   :class="{

@@ -7,10 +7,12 @@
      sections: @js($sections ?? []),
      categoryKeys: @js($categoryKeys ?? []),
 }"
-     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto"
+     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
      style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
+        <x-dashboard.placeholder/>
+
         <x-dashboard.tab.title
             icon="energy"
             title="پرسشنامه انرژی"
@@ -27,12 +29,12 @@
         />
 
         <div class="flex justify-center mb-8">
-
             <div x-show="activeTab==='survey'"
+                 class="animate-fade"
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="animate-fade">
+                 >
 
                 @if($showSurvey)
                     @php
@@ -156,7 +158,8 @@
                     @include('livewire.dashboard.energy.partials.after-test')
                 @endif
             </div>
-            <div x-show="activeTab==='chart'" class="animate-fade">
+            <div x-show="activeTab==='chart'"
+                 class="animate-fade">
                 <livewire:dashboard.energy.chart/>
             </div>
         </div>
