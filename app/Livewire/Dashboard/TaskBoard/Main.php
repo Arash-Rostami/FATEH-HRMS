@@ -146,7 +146,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.taskboard.index', ['presenter' => new TaskBoardPresenter()])
+        return view('livewire.dashboard.taskboard', ['presenter' => new TaskBoardPresenter()])
             ->extends('layouts.app')
             ->section('content');
     }

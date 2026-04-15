@@ -37,7 +37,7 @@ class StatusSwitcher extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.navbar.status-switcher');
+        return view('livewire.dashboard.navbar.top.status-switcher');
     }
 
     #[On('statusSwitcher-updated')]

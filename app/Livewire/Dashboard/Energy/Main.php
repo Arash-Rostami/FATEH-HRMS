@@ -97,7 +97,7 @@ class Main extends Component
 
     public function render(): View
     {
-        return view('livewire.dashboard.energy.index', [
+        return view('livewire.dashboard.energy', [
             'categoryKeys' => array_keys($this->questions),
             'presenter' => new EnergyPresenter(),
         ]);

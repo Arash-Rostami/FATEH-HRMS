@@ -64,7 +64,7 @@ class Faqs extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.faqs.index');
+        return view('livewire.dashboard.tab.faqs');
     }
 
     public function resetFilters(): void

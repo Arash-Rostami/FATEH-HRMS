@@ -58,7 +58,7 @@ class Reports extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.reports.index');
+        return view('livewire.dashboard.tab.reports');
     }
 
     #[Computed(seconds: 14400, cache: true)]

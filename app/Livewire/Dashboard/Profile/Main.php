@@ -23,7 +23,7 @@ class Main extends Component
         $presenter = new ProfilePresenter();
         $user = $this->user;
 
-        return view('livewire.dashboard.profile.index', [
+        return view('livewire.dashboard.profile', [
             'user'           => $user,
             'completion'     => $presenter->completion($user),
             'avatarImage'    => $presenter->avatarUrl($user),

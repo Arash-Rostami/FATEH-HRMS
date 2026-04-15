@@ -34,7 +34,7 @@ class Main extends Component
     public function availableDates(): array
     {
         $dates = [];
-        $date = now();
+        $date = Carbon::now();
         $month = Jalalian::fromCarbon($date)->getMonth();
 
         for ($i = 0; $i < 21 && ($j = Jalalian::fromCarbon($date))->getMonth() === $month; $i++, $date->addDay()) {
@@ -213,7 +213,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.reservation.index', [
+        return view('livewire.dashboard.reservation', [
             'tabs'        => Resource::getTabs(),
             'historyTabs' => self::getHistoryTabs(),
         ])->extends('layouts.app')->section('content');

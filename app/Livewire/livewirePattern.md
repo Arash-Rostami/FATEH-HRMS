@@ -170,7 +170,7 @@ Pass via `render()`:
 ```php
 public function render()
 {
-    return view('livewire.path.index', [
+    return view('livewire.path', [
         'presenter' => new SomethingPresenter(),
     ]);
 }
@@ -179,6 +179,7 @@ public function render()
 **Rules:**
 - Only needed when Blade calls `$this->getSomething()` style methods for display
 - Pure read-only — no writes, no DB, no state mutation
+- Remember the view follows the ordinary and same pattern if component is dms the blade would be dms.blade and all of its partials would sit within dms folder
 - If the formatting is one-liner and only used once, inline it in Blade with `@php` instead
 
 ---
@@ -224,7 +225,7 @@ class Main extends Component
     // Render
     public function render()
     {
-        return view('livewire.path.index');
+        return view('livewire.path');
     }
 }
 ```

@@ -19,7 +19,7 @@
     @if($this->hasAnyCredentials)
         {{-- Search --}}
         <div class="relative max-w-sm">
-            <x-dashboard.form.input
+            <x-ui.forms.input
                 wire:model.live.debounce.300ms="search"
                 label="جستجو در سامانه‌ها..."
                 name="search"
@@ -55,7 +55,7 @@
                             <div class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)] mb-1.5">نام کاربری</div>
                             <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-variant)]/40 rounded-xl px-3 py-2 border border-[var(--md-sys-color-outline-variant)]/60 hover:border-[var(--md-sys-color-primary)]/40 transition-colors">
                                 <span class="font-mono text-sm truncate select-all text-[var(--md-sys-color-on-surface)] flex-1" dir="ltr">{{ $cred->username }}</span>
-                                <x-dashboard.form.copy-button text="{{ $cred->username }}" />
+                                <x-ui.buttons.copy text="{{ $cred->username }}" />
                             </div>
                         </div>
 
@@ -71,7 +71,7 @@
                                     <span x-show="!show" class="font-mono text-sm tracking-[0.3em] text-[var(--md-sys-color-on-surface-variant)] pt-1">••••••••</span>
                                     <span x-show="show" x-cloak class="font-mono text-sm truncate select-all text-[var(--md-sys-color-on-surface)]" dir="ltr">{{ $cred->password }}</span>
                                 </div>
-                                <x-dashboard.form.copy-button text="{{ $cred->password }}" class="flex-shrink-0" />
+                                <x-ui.buttons.copy text="{{ $cred->password }}" class="flex-shrink-0" />
                             </div>
                         </div>
 

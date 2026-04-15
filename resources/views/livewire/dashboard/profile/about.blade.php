@@ -7,7 +7,7 @@
 
         <form wire:submit.prevent="save" class="space-y-5">
             <div>
-                <x-dashboard.form.textarea
+                <x-ui.forms.textarea
                     wire:model="form.bio"
                     name="form.bio"
                     label="من همانم که در ایام حیات..."
@@ -18,7 +18,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-dashboard.form.input
+                <x-ui.forms.input
                     wire:model="form.movies"
                     name="form.movies"
                     label="فیلم و سریال"
@@ -26,7 +26,7 @@
                     icon="movie"
                 />
 
-                <x-dashboard.form.input
+                <x-ui.forms.input
                     wire:model="form.music"
                     name="form.music"
                     label="موسیقی و پادکست"
@@ -34,7 +34,7 @@
                     icon="headphones"
                 />
 
-                <x-dashboard.form.input
+                <x-ui.forms.input
                     wire:model="form.hobbies"
                     name="form.hobbies"
                     label="با اینا خستگیمو در می‌کنم"
@@ -42,7 +42,7 @@
                     icon="palette"
                 />
 
-                <x-dashboard.form.input
+                <x-ui.forms.input
                     wire:model="form.food"
                     name="form.food"
                     label="غذا و خوراکی"
@@ -50,7 +50,7 @@
                     icon="restaurant"
                 />
 
-                <x-dashboard.form.input
+                <x-ui.forms.input
                     wire:model="form.sports"
                     name="form.sports"
                     label="ورزش و تفریح"
@@ -60,7 +60,7 @@
             </div>
 
             <div class="flex items-center justify-end pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
-                <x-dashboard.form.button
+                <x-ui.buttons.form
                     type="submit"
                     target="save"
                     loading-text="در حال ذخیره..."
@@ -68,7 +68,7 @@
                     class="px-6 py-2.5 rounded-xl font-bold hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-md duration-300"
                 >
                     ذخیره اطلاعات
-                </x-dashboard.form.button>
+                </x-ui.buttons.form>
             </div>
         </form>
     </div>

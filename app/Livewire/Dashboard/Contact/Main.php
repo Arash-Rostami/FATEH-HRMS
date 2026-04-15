@@ -188,7 +188,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.contact.index', [
+        return view('livewire.dashboard.contact', [
             'activeContact' => $this->activeContact,
             'p' => new ContactPresenter(),
         ])->layout('layouts.app');

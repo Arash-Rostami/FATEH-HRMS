@@ -108,7 +108,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.dms.index')
+        return view('livewire.dashboard.dms')
             ->extends('layouts.app')
             ->section('content');
     }

@@ -23,7 +23,6 @@ class Calendar extends Component
     public string $selectedDate;
 
     public bool $isCreateModalOpen = false;
-    public bool $isDeleteModalOpen = false;
 
     public ?int $deletingEventId = null;
 
@@ -96,7 +95,14 @@ class Calendar extends Component
     public function confirmDelete(int $eventId): void
     {
         $this->deletingEventId = $eventId;
-        $this->isDeleteModalOpen = true;
+
+        $this->dispatch('open-confirmation', [
+            'title' => 'حذف رویداد؟',
+            'message' => 'آیا مطمئن هستید که می‌خواهید این رویداد را حذف کنید؟ این عملیات غیرقابل بازگشت است.',
+            'method' => 'deleteEvent',
+            'params' => $eventId,
+            'type' => 'non-livewire'
+        ]);
     }
 
     #[Computed]
@@ -109,11 +115,9 @@ class Calendar extends Component
         }
     }
 
-    public function deleteEvent(DeleteEventAction $action): void
+    public function deleteEvent(int $eventId): void
     {
-        $action->execute($this->deletingEventId, Auth::id());
-
-        $this->isDeleteModalOpen = false;
+        app(DeleteEventAction::class)->execute($eventId, Auth::id());
         $this->deletingEventId = null;
     }
 
@@ -173,7 +177,7 @@ class Calendar extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.calendar.index');
+        return view('livewire.dashboard.tab.calendar');
     }
 
     public function saveEvent(SaveEventAction $action): void

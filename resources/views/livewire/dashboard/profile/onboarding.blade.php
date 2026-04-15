@@ -119,7 +119,7 @@
                 </div>
             </section>
 
-            <x-dashboard.modal.video/>
+            <x-ui.modals.video/>
 
         @endif
 

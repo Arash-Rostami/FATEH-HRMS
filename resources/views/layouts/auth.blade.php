@@ -87,9 +87,9 @@
                 <button @click="useVideo = !useVideo"
                         class="group relative w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all">
                     <span class="material-symbols-rounded text-[22px]" x-text="useVideo ? 'image' : 'movie'"></span>
-                    <x-dashboard.tooltip position="left">
+                    <x-ui.modals.tooltip position="left">
                         <span x-text="useVideo ? 'توقف ویدیو (سیستم‌های ضعیف)' : 'پخش ویدیو'"></span>
-                    </x-dashboard.tooltip>
+                    </x-ui.modals.tooltip>
                 </button>
 
                 <div class="w-[1px] h-5 bg-gray-300 dark:bg-white/10"></div>
@@ -99,7 +99,7 @@
                     <button @click="openVideo = !openVideo"
                             class="group relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all">
                         <span class="material-symbols-rounded text-[22px]">tune</span>
-                        <x-dashboard.tooltip text="تنظیمات ویدیو" position="bottom"/>
+                        <x-ui.modals.tooltip text="تنظیمات ویدیو" position="bottom"/>
                     </button>
                     <div x-show="openVideo" @click.outside="openVideo = false"
                          x-transition:enter="transition ease-out duration-200"
@@ -119,7 +119,7 @@
 
                 <div class="w-[1px] h-5 bg-gray-300 dark:bg-white/10"></div>
 
-                <x-dashboard.navbar.palette/>
+                <x-dashboard.navbars.top.palette/>
             </div>
         </div>
         <div class="w-full max-w-[650px] relative z-30 flex flex-col justify-center items-center my-auto opacity-[0.9]">

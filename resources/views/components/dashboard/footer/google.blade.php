@@ -24,7 +24,7 @@
                 ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]'
                 : 'bg-[var(--md-sys-color-outline)] opacity-50'"></span>
 
-        <x-dashboard.tooltip x-text="enabled ? 'غیرفعال کردن ترجمه' : 'فعال کردن ترجمه'" position="top" />
+        <x-ui.modals.tooltip x-text="enabled ? 'غیرفعال کردن ترجمه' : 'فعال کردن ترجمه'" position="top" />
     </button>
 
     <div id="google_translate_element" class="hidden"></div>

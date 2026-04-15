@@ -17,7 +17,7 @@ class Status extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.status.index');
+        return view('livewire.dashboard.tab.status');
     }
 
     public function sendSms(string $userId, SendSmsAction $action, SmsService $smsService)

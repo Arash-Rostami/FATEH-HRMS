@@ -22,7 +22,7 @@ class Links extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.links.index');
+        return view('livewire.dashboard.tab.links');
     }
 
     #[Computed]

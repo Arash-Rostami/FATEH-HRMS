@@ -13,7 +13,7 @@ class CommandPalette extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.navbar.command-palette');
+        return view('livewire.dashboard.navbar.top.command-palette');
     }
 
     public function updatedQuery(): void

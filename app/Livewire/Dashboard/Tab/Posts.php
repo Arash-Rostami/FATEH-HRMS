@@ -45,7 +45,7 @@ class Posts extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.posts.index');
+        return view('livewire.dashboard.tab.posts');
     }
 
     #[On('select-post')]

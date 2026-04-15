@@ -16,8 +16,8 @@ class Main extends Component
     public function ads()
     {
         return Ad::query()
-            ->when($this->activeFilter === 'active', fn (Builder $query) => $query->active())
-            ->when($this->activeFilter === 'archived', fn (Builder $query) => $query->inactive())
+            ->when($this->activeFilter === 'active', fn(Builder $query) => $query->active())
+            ->when($this->activeFilter === 'archived', fn(Builder $query) => $query->inactive())
             ->when($this->search, function (Builder $query) {
                 $query->where('position', 'like', "%{$this->search}%")
                     ->orWhere('skill', 'like', "%{$this->search}%")
@@ -43,7 +43,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.ads.index')
+        return view('livewire.dashboard.ads')
             ->extends('layouts.app')
             ->section('content');
     }

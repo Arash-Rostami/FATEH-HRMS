@@ -16,6 +16,6 @@ class Weather extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.navbar.weather');
+        return view('livewire.dashboard.navbar.top.weather');
     }
 }

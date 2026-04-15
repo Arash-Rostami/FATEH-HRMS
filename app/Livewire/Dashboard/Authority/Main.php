@@ -55,7 +55,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.authority.index', [
+        return view('livewire.dashboard.authority', [
             'presenter' => new AuthorityPresenter(),
         ])->extends('layouts.app')->section('content');
     }

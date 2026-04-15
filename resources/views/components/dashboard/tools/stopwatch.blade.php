@@ -3,7 +3,7 @@
      x-ref="stopwatchModal"
      dir="rtl" x-cloak>
 
-    <x-dashboard.tools.base x-show="open">
+    <x-ui.modals.backdrop x-show="open">
 
         <x-slot:icon>
             <span class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[24px]">alarm</span>
@@ -79,5 +79,5 @@
                    class="w-full rounded-lg px-4 py-3 text-sm text-center outline-none transition-all duration-150 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]">
         </div>
 
-    </x-dashboard.tools.base>
+    </x-ui.modals.backdrop>
 </div>

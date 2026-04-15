@@ -110,7 +110,7 @@ class Feeds extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.feeds.index');
+        return view('livewire.dashboard.tab.feeds');
     }
 
     public function startEditing($commentId): void

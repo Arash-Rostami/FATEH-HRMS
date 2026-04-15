@@ -77,14 +77,14 @@
                     <div class="relative group mx-auto w-32 h-32">
                         <div
                             class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50 mx-auto">
-                            <x-dashboard.avatar
+                            <x-ui.avatar
                                 :image="$form->image"
                                 :existingImage="$existingImage" />
 
                             <div wire:loading
                                  wire:target="form.image"
                                  class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                                <x-dashboard.loader.spinner size="sm" class="text-white"/>
+                                <x-ui.loaders.spinner size="sm" class="text-white"/>
                             </div>
                         </div>
 
@@ -141,18 +141,18 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <x-dashboard.form.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc">
+                    <x-ui.forms.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc">
                         <option value="">انتخاب کنید</option>
                         <option value="male">مرد</option>
                         <option value="female">زن</option>
-                    </x-dashboard.form.select>
-                    <x-dashboard.form.select label="وضعیت تاهل" name="form.marital_status"
+                    </x-ui.forms.select>
+                    <x-ui.forms.select label="وضعیت تاهل" name="form.marital_status"
                                              wire:model="form.marital_status" icon="diversity_2">
                         <option value="">انتخاب کنید</option>
                         <option value="single">مجرد</option>
                         <option value="married">متاهل</option>
-                    </x-dashboard.form.select>
-                    <x-dashboard.form.input type="number" label="تعداد فرزندان" name="form.number_of_children"
+                    </x-ui.forms.select>
+                    <x-ui.forms.input type="number" label="تعداد فرزندان" name="form.number_of_children"
                                             wire:model="form.number_of_children" icon="child_care"/>
 
                     <div
@@ -162,30 +162,30 @@
                             <span class="text-sm font-bold">تاریخ تولد</span>
                         </div>
                         <div class="grid grid-cols-3 gap-3">
-                            <x-dashboard.form.select label="سال" name="form.birthYear" wire:model="form.birthYear">
+                            <x-ui.forms.select label="سال" name="form.birthYear" wire:model="form.birthYear">
                                 <option value="">سال</option>
                                 @for($i = (now()->year - 696); $i <= (now()->year - 616); $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
-                            </x-dashboard.form.select>
-                            <x-dashboard.form.select label="ماه" name="form.birthMonth" wire:model="form.birthMonth">
+                            </x-ui.forms.select>
+                            <x-ui.forms.select label="ماه" name="form.birthMonth" wire:model="form.birthMonth">
                                 <option value="">ماه</option>
                                 @for($i = 1; $i <= 12; $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
-                            </x-dashboard.form.select>
-                            <x-dashboard.form.select label="روز" name="form.birthDay" wire:model="form.birthDay">
+                            </x-ui.forms.select>
+                            <x-ui.forms.select label="روز" name="form.birthDay" wire:model="form.birthDay">
                                 <option value="">روز</option>
                                 @for($i = 1; $i <= 31; $i++)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
-                            </x-dashboard.form.select>
+                            </x-ui.forms.select>
                         </div>
                     </div>
 
-                    <x-dashboard.form.input label="شماره ملی" name="form.id_card_number"
+                    <x-ui.forms.input label="شماره ملی" name="form.id_card_number"
                                             wire:model="form.id_card_number" icon="fingerprint"/>
-                    <x-dashboard.form.input label="شماره شناسنامه" name="form.id_booklet_number"
+                    <x-ui.forms.input label="شماره شناسنامه" name="form.id_booklet_number"
                                             wire:model="form.id_booklet_number" icon="menu_book"/>
                 </div>
             </div>
@@ -208,23 +208,23 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <x-dashboard.form.input label="تلفن همراه" name="form.cellphone" wire:model="form.cellphone"
+                    <x-ui.forms.input label="تلفن همراه" name="form.cellphone" wire:model="form.cellphone"
                                             icon="smartphone"/>
-                    <x-dashboard.form.input label="تلفن ثابت" name="form.landline" wire:model="form.landline"
+                    <x-ui.forms.input label="تلفن ثابت" name="form.landline" wire:model="form.landline"
                                             icon="call"/>
-                    <x-dashboard.form.input label="کد پستی" name="form.zip_code" wire:model="form.zip_code"
+                    <x-ui.forms.input label="کد پستی" name="form.zip_code" wire:model="form.zip_code"
                                             icon="markunread_mailbox"/>
-                    <x-dashboard.form.input label="تلفن ضروری" name="form.emergency_phone"
+                    <x-ui.forms.input label="تلفن ضروری" name="form.emergency_phone"
                                             wire:model="form.emergency_phone" icon="emergency"/>
-                    <x-dashboard.form.input label="نسبت فرد ضروری"
+                    <x-ui.forms.input label="نسبت فرد ضروری"
                                             @input="(e) => setDirection(e)"
                                             x-init="(e) => setDirection(e)"
                                             name="form.emergency_relationship"
                                             wire:model="form.emergency_relationship" icon="family_restroom"/>
-                    <x-dashboard.form.input label="شماره پلاک خودرو" name="form.license_plate"
+                    <x-ui.forms.input label="شماره پلاک خودرو" name="form.license_plate"
                                             wire:model="form.license_plate" icon="directions_car"/>
                     <div class="col-span-1 md:col-span-2 lg:col-span-3">
-                        <x-dashboard.form.textarea label="آدرس دقیق"
+                        <x-ui.forms.textarea label="آدرس دقیق"
                                                    name="form.address"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
@@ -247,31 +247,31 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <x-dashboard.form.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree"
+                    <x-ui.forms.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree"
                                              icon="school">
                         <option value="">انتخاب مدرک</option>
                         <option value="undergraduate">دیپلم یا کاردانی</option>
                         <option value="graduate">کارشناسی</option>
                         <option value="postgraduate">کارشناسی ارشد یا دکترا</option>
-                    </x-dashboard.form.select>
-                    <x-dashboard.form.input label="رشته تحصیلی" name="form.field"
+                    </x-ui.forms.select>
+                    <x-ui.forms.input label="رشته تحصیلی" name="form.field"
                                             @input="(e) => setDirection(e)"
                                             x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
                                             wire:model="form.field"
                                             icon="menu_book"/>
-                    <x-dashboard.form.input label="شماره بیمه" name="form.insurance" wire:model="form.insurance"
+                    <x-ui.forms.input label="شماره بیمه" name="form.insurance" wire:model="form.insurance"
                                             icon="health_and_safety"/>
-                    <x-dashboard.form.input label="سابقه کار" name="form.work_experience"
+                    <x-ui.forms.input label="سابقه کار" name="form.work_experience"
                                             wire:model="form.work_experience" icon="history"/>
                     <div class="col-span-1 md:col-span-3">
-                        <x-dashboard.form.textarea label="نیازهای ویژه (دسترسی)"
+                        <x-ui.forms.textarea label="نیازهای ویژه (دسترسی)"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
                                                    name="form.accessibility"
                                                    wire:model="form.accessibility" icon="accessible" rows="2"/>
                     </div>
                     <div class="col-span-1 md:col-span-3">
-                        <x-dashboard.form.textarea label="علایق و سرگرمی‌ها" name="form.interests"
+                        <x-ui.forms.textarea label="علایق و سرگرمی‌ها" name="form.interests"
                                                    @input="(e) => setDirection(e)"
                                                    x-init="(el) => {el.addEventListener('load', (e) => setDirection(e));setDirection(el);}"
                                                    wire:model="form.interests" icon="favorite" rows="2"/>
@@ -320,13 +320,13 @@
             </button>
         </div>
         <div class="rounded-xl  p-2">
-            <x-dashboard.form.button
+            <x-ui.buttons.form
                 type="submit"
                 loading="save"
                 icon="save"
                 variant="primary">
                 ذخیره نهایی اطلاعات
-            </x-dashboard.form.button>
+            </x-ui.buttons.form>
         </div>
     </div>
 </form>

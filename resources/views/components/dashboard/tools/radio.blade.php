@@ -2,7 +2,7 @@
 
 <div x-data="radio('{{ $id }}')" x-init="init()" dir="rtl" x-cloak>
 
-    <x-dashboard.tools.base x-show="open" :minimizable="true">
+    <x-ui.modals.backdrop x-show="open" :minimizable="true">
 
         <x-slot:icon>
             <div x-show="playing" class="flex items-end gap-[3px] h-5">
@@ -75,7 +75,7 @@
             <span class="text-xs text-[var(--md-sys-color-outline)]" x-text="stations.length ? `${stations.length} ایستگاه` : ''"></span>
         </div>
 
-    </x-dashboard.tools.base>
+    </x-ui.modals.backdrop>
 
     {{-- Minimized tab --}}
     <div

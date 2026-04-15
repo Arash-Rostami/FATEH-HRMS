@@ -102,7 +102,7 @@
     <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                 border border-[var(--md-sys-color-outline-variant)]">
 
-        <x-dashboard.tab.title icon="account_tree" title="روند بررسی پیشنهاد"/>
+        <x-ui.title icon="account_tree" title="روند بررسی پیشنهاد"/>
 
         <div class="mt-5 relative">
             <div class="absolute right-5 top-5 bottom-5 w-[2px]
@@ -164,7 +164,7 @@
                     transition-all duration-300">
 
             <div class="px-5 md:px-6 pt-5">
-                <x-dashboard.tab.title icon="info" title="اطلاعات تکمیلی"/>
+                <x-ui.title icon="info" title="اطلاعات تکمیلی"/>
             </div>
 
             <div class="p-5 md:px-6 md:pb-6">
@@ -236,7 +236,7 @@
         <div class="rounded-2xl p-5 shadow-sm space-y-4 bg-[var(--md-sys-color-surface)]">
 
             <div>
-                <x-dashboard.tab.title icon="description" title="شرح"/>
+                <x-ui.title icon="description" title="شرح"/>
                 <p class="mt-3 text-sm leading-relaxed text-justify text-[var(--md-sys-color-on-surface-variant)]">
                     {{ is_array($p->suggestion()->description)
                         ? ($p->suggestion()->description['self'] ?? '')
@@ -246,7 +246,7 @@
 
             {{-- PURPOSE --}}
             <div class="pt-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
-                <x-dashboard.tab.title icon="rocket_launch" title="اهداف"/>
+                <x-ui.title icon="rocket_launch" title="اهداف"/>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     @foreach((array)$p->suggestion()->purpose as $pv)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-bold
@@ -260,7 +260,7 @@
 
             {{-- RULES --}}
             <div class="pt-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
-                <x-dashboard.tab.title icon="rule" title="قواعد"/>
+                <x-ui.title icon="rule" title="قواعد"/>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     @foreach((array)$p->suggestion()->rule as $rv)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-bold
@@ -279,7 +279,7 @@
     @if(count($p->suggestion()->departments ?? []))
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]">
 
-            <x-dashboard.tab.title icon="corporate_fare" title="واحدهای ذی‌نفع"/>
+            <x-ui.title icon="corporate_fare" title="واحدهای ذی‌نفع"/>
 
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($p->departmentStatuses() as $dept)
@@ -331,7 +331,7 @@
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
-            <x-dashboard.tab.title icon="rate_review" title="بازخوردها"/>
+            <x-ui.title icon="rate_review" title="بازخوردها"/>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 @foreach($p->reviewItems() as $item)
@@ -456,7 +456,7 @@
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
-            <x-dashboard.tab.title icon="add_comment" title="ثبت بازخورد"/>
+            <x-ui.title icon="add_comment" title="ثبت بازخورد"/>
 
             <div class="mt-4 space-y-4">
 
@@ -496,11 +496,11 @@
                 @enderror
 
                 {{-- CHANGE: Updated wire:model for comment --}}
-                <x-dashboard.form.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment"/>
+                <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment"/>
 
-                <x-dashboard.form.button icon="send" wire:click="submitFeedback" wire:loading.attr="disabled">
+                <x-ui.buttons.form icon="send" wire:click="submitFeedback" wire:loading.attr="disabled">
                     ثبت بازخورد
-                </x-dashboard.form.button>
+                </x-ui.buttons.form>
 
             </div>
         </div>
@@ -511,7 +511,7 @@
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
-            <x-dashboard.tab.title icon="gavel" title="تصمیم نهایی"/>
+            <x-ui.title icon="gavel" title="تصمیم نهایی"/>
 
             <div class="mt-4 space-y-4">
 
@@ -554,7 +554,7 @@
                 @enderror
 
                 {{-- CHANGE: Updated wire:model for decision comment --}}
-                <x-dashboard.form.textarea
+                <x-ui.forms.textarea
                     label="یادداشت تصمیم"
                     name="decisionComment"
                     :rows="4"
@@ -604,7 +604,7 @@
                             <div
                                 class="p-4 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
                                 {{-- CHANGE: Updated wire:model for referralActions --}}
-                                <x-dashboard.form.textarea
+                                <x-ui.forms.textarea
                                     label="دستورالعمل اقدام"
                                     name="referralActions"
                                     :rows="3"
@@ -617,9 +617,9 @@
                     </div>
                 @endif
 
-                <x-dashboard.form.button icon="gavel" wire:click="submitDecision" wire:loading.attr="disabled">
+                <x-ui.buttons.form icon="gavel" wire:click="submitDecision" wire:loading.attr="disabled">
                     ثبت تصمیم
-                </x-dashboard.form.button>
+                </x-ui.buttons.form>
 
             </div>
         </div>

@@ -76,7 +76,7 @@ class Gallery extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.gallery.index');
+        return view('livewire.dashboard.tab.gallery');
     }
 
     #[Computed]

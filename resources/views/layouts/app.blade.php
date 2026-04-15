@@ -14,7 +14,7 @@
 <div class="loading-line"></div>
 
 @unless(View::hasSection('minimal_layout'))
-    <x-dashboard.header.scrollable/>
+    <x-dashboard.header/>
 @endunless
 
 
@@ -24,15 +24,11 @@
     @yield('content')
 @endisset
 
-@include('components.dashboard.tools.calculator')
-@include('components.dashboard.tools.stopwatch')
-@include('components.dashboard.tools.radio')
+
 
 @unless(View::hasSection('minimal_layout'))
-    <x-dashboard.modal.toast/>
-    <x-dashboard.footer.occasion/>
-
-    <x-dashboard.footer.main/>
+    <x-dashboard.global/>
+    <x-dashboard.footer/>
 @endunless
 
 @livewireScripts

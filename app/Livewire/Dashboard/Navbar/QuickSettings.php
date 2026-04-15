@@ -16,6 +16,6 @@ class QuickSettings extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.navbar.quick-settings');
+        return view('livewire.dashboard.navbar.top.quick-settings');
     }
 }

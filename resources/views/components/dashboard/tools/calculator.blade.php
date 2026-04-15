@@ -1,6 +1,6 @@
 <div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
 
-    <x-dashboard.tools.base x-show="open">
+    <x-ui.modals.backdrop x-show="open">
 
         <x-slot:icon>
             <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">calculate</span>
@@ -55,5 +55,5 @@
             </div>
         </div>
 
-    </x-dashboard.tools.base>
+    </x-ui.modals.backdrop>
 </div>

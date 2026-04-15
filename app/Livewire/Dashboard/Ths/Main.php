@@ -68,7 +68,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.ths.index', [
+        return view('livewire.dashboard.ths', [
             'presenter' => new TicketPresenter(),
         ])->extends('layouts.app')->section('content');
     }

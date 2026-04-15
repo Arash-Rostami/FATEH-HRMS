@@ -14,7 +14,7 @@
                         </button>
                         <div class="flex items-center gap-3">
                             <div class="w-14 h-14 rounded-2xl bg-[var(--md-sys-color-primary-container)] flex items-center justify-center shadow-md overflow-hidden shrink-0">
-                                <x-dashboard.avatar :image="null" :existingImage="optional(auth()->user()?->profile)->image" class="rounded-lg" />
+                                <x-ui.avatar :image="null" :existingImage="optional(auth()->user()?->profile)->image" class="rounded-lg" />
                             </div>
                             <div class="flex flex-col">
                                 <div class="text-lg font-bold text-white leading-tight">{{ $currentUser?->name ?? 'کاربر سیستم' }}</div>
@@ -41,7 +41,7 @@
                                                             <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
                                                                 <span class="material-symbols-rounded text-[22px] sm:text-[24px] text-[var(--md-sys-color-primary)]" x-text="item.icon"></span>
                                                                 <template x-if="item.id in @js($menuState)">
-                                                                    <x-dashboard.loader.notification-badge />
+                                                                    <x-ui.notification-badge />
                                                                 </template>
                                                             </div>
                                                             <div class="text-center w-full" :id="item.id">
