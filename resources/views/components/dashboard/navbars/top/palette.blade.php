@@ -28,7 +28,9 @@
 
         <span x-text="groupTitles[page]"
               class="text-[10px] font-medium text-center text-[var(--md-sys-color-on-surface-variant)] tracking-widest leading-none mx-auto opacity-60"></span>
-        <hr class="mb-1 pt-0 mt-0">
+
+        <div class="h-px bg-[var(--md-sys-color-outline-variant)] opacity-50"></div>
+
         <template x-for="color in $store.theme.colors.slice(page * perPage, page * perPage + perPage)"
                   :key="color.name">
             <button @click="$store.theme.set(color.name); open = false"

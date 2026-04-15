@@ -36,14 +36,33 @@
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-[var(--md-sys-color-on-primary-container)]">یادداشت‌های انتشار</h3>
-                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 mt-0.5">آخرین تغییرات و بهبودها</p>
+                            <p class="text-[11px] text-[var(--md-sys-color-on-primary-container)]/70 mt-0.5">نسخه استاندارد شده با پوشش کامل ماژول‌ها و جزئیات کاربردی</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-right space-y-8 pr-4">
 
-                    <!-- Version β.4(Latest) -->
+                    {{-- accordion items --}}
+                    @php
+                        $allModules = collect(config('modules', []));
+                        function releaseItem(string $icon, string $color, string $title, string $desc): string {
+                            return <<<HTML
+                            <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                <div class="w-full flex items-start gap-2 p-3 text-right">
+                                    <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-$color)]"
+                                          style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                    <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">$title</strong>
+                                </div>
+                                <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                    $desc
+                                </div>
+                            </li>
+                            HTML;
+                        }
+                    @endphp
+
+                    {{-- ─── β.5 ─── --}}
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-primary-container)]
@@ -55,48 +74,55 @@
 
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">β.4</span>
-                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">جدیدترین</span>
+                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">β.5</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">جدیدترین</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">{{ date('F j, Y') }}</span>
                         </div>
 
-                        <div class="space-y-4 text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed">
-                            <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50
-                                        bg-[var(--md-sys-color-surface-variant)]/40
-                                        hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors group">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                                bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                                        <span class="material-symbols-rounded text-sm"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">rocket_launch</span>
-                                    </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">بهینه‌سازی نهایی و ابزارها</h5>
+                        <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                                    <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">hub</span>
                                 </div>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>ویژگیهای اضافی شامل پیش بینی آب و هوا، نمایش زمان و میانبرهای آسان به سایر بخش‌های برنامه است.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>شمارش معکوس تولد و سالگرد کاری به همراه سایر ابزارهای کوچک از جمله ماشین حساب و تایمر و ابزارهای هوشمند.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-primary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>پیاده‌سازی <strong>View Transitions API</strong> برای جابجایی سینمایی و بهینه‌سازی کامل <strong>Service Worker</strong>.</span>
-                                    </li>
-                                </ul>
+                                <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">بازطراحی Release Notes</h5>
                             </div>
+                            <ul class="space-y-2">
+                                <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                    <div class="w-full flex items-start gap-2 p-3 text-right">
+                                        <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-primary)]"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">ساختار یادداشت‌ها</strong>
+                                    </div>
+                                    <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                        قالب از حالت کلی و سطحی به ساختار حرفه‌ای ماژول‌محور ارتقا یافت؛ هر بخش بر اساس خروجی واقعی ماژول‌ها نوشته شده است.
+                                    </div>
+                                </li>
+                                <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                    <div class="w-full flex items-start gap-2 p-3 text-right">
+                                        <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-primary)]"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">پوشش کامل ماژول‌ها</strong>
+                                    </div>
+                                    <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                        تمام ماژول‌های سامانه شامل اعلان‌ها، فید، تقویم، گالری، گزارشات، لینک‌ها و ابزارها، FAQ، پروفایل، آنبوردینگ، مدارک، اطلاعات کاربری، فرصت‌های شغلی، پیشنهادات، تسک‌بورد، DMS، تیکت، رزرو، چت داخلی، انرژی، اختیارات، رادیو و سایر ابزارها در یادداشت‌ها پوشش داده شدند.
+                                    </div>
+                                </li>
+                                <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                    <div class="w-full flex items-start gap-2 p-3 text-right">
+                                        <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-primary)]"
+                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                        <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">استانداردسازی متون سازمانی</strong>
+                                    </div>
+                                    <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                        متن‌ها برای استفاده رسمی در محیط سازمانی بازنویسی شدند تا در ارائه به مدیران، منابع انسانی و کاربران نهایی قابل اتکا باشند.
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- β.2 (Productivity) -->
+                    {{-- ─── β.4 ─── --}}
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-surface-variant)]
@@ -107,58 +133,140 @@
 
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.2</span>
-                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">بهره‌وری</span>
+                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.4</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">هسته منابع انسانی</span>
+                            </div>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Mar 30, 2026</span>
+                        </div>
+
+                        <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                                    <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">badge</span>
+                                </div>
+                                <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">پروفایل، آنبوردینگ و مدارک</h5>
+                            </div>
+                            <ul class="space-y-2">
+                                @foreach([
+                                    ['وضعیت کاریر (پروفایل)', 'داشبورد وضعیت زنده کارکنان، جستجوی اطلاعات تماس، مشاهده پروفایل همکاران و تغییر وضعیت حضور.'],
+                                    ['آنبوردینگ', 'تجمیع سیاست‌ها، ویدیوها، مستندات نقش شغلی و بسته‌های راهنمای شروع برای نیروهای جدید.'],
+                                    ['مدیریت و بارگذاری مدارک', 'بارگذاری مدارک استاندارد/سفارشی با وضعیت «در انتظار تایید» و «تایید شده» و امکان دانلود فایل‌های نهایی.'],
+                                    ['اطلاعات کاربری سازمانی', 'خزانه امن نام کاربری/رمز عبور سامانه‌ها با قابلیت جستجو، کپی سریع و لینک مستقیم ورود.'],
+                                    ['فرصت‌های شغلی', 'انتشار، مشاهده و آرشیو موقعیت‌های استخدامی برای اطلاع‌رسانی داخلی و معرفی نیروهای مستعد.'],
+                                    ['تقویم سازمانی', 'نمایش رویدادها، تولدها و سالگردها با قابلیت تبریک و برنامه‌ریزی منابع انسانی.'],
+                                ] as [$title, $desc])
+                                    <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                        <div class="w-full flex items-start gap-2 p-3 text-right">
+                                            <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-secondary)]"
+                                                  style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                            <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">{{ $title }}</strong>
+                                        </div>
+                                        <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                            {{ $desc }}
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- ─── β.3 ─── --}}
+                    <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
+                        <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
+                                    bg-[var(--md-sys-color-surface-variant)]
+                                    border-2 border-[var(--md-sys-color-outline-variant)]
+                                    flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-outline)]"></div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.3</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">عملیات و گردش‌کار</span>
+                            </div>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Mar 12, 2026</span>
+                        </div>
+
+                        <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
+                                    <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">workspaces</span>
+                                </div>
+                                <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">مدیریت فرآیندها و همکاری بین واحدی</h5>
+                            </div>
+                            <ul class="space-y-2">
+                                @foreach([
+                                    ['پیشنهادات', 'گردش رسمی پیشنهاد از کاربر تا مدیر واحد و تصمیم نهایی مدیریت، همراه با اعلان مرحله‌ای.'],
+                                    ['تسک بورد', 'مدیریت وظایف تیمی مبتنی بر کانبان برای ایجاد، ارجاع و رهگیری وضعیت انجام کار.'],
+                                    ['مدیریت اسناد (DMS)', 'صدور، امضا، ردیابی بازدید و تمرکز اسناد رسمی فرآیندی در سطح سازمان.'],
+                                    ['سیستم تیکت', 'ثبت و پیگیری درخواست‌ها با تعیین مسئول، وضعیت رسیدگی و تاریخچه پاسخ.'],
+                                    ['رزرو فضا و منابع', 'زمان‌بندی استفاده از اتاق‌ها و منابع سازمانی با مدیریت تعارض زمانی.'],
+                                    ['گزارشات + لینک‌ها و ابزارها', 'تولید گزارش PDF/سندی، اشتراک بین واحدی و دسترسی هوشمند به ابزارهای داخلی/خارجی بر اساس شبکه.'],
+                                ] as [$title, $desc])
+                                    <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                        <div class="w-full flex items-start gap-2 p-3 text-right">
+                                            <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-tertiary)]"
+                                                  style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                            <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">{{ $title }}</strong>
+                                        </div>
+                                        <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                            {{ $desc }}
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- ─── β.2 ─── --}}
+                    <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
+                        <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
+                                    bg-[var(--md-sys-color-surface-variant)]
+                                    border-2 border-[var(--md-sys-color-outline-variant)]
+                                    flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-outline)]"></div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.2</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ارتباطات و دانش</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Feb 20, 2026</span>
                         </div>
 
-                        <div class="space-y-4 text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed">
-                            <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50
-                                        bg-[var(--md-sys-color-surface-variant)]/40
-                                        hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors group">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                                bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
-                                        <span class="material-symbols-rounded text-sm"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">widgets</span>
-                                    </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">ابزارها و گزارشات</h5>
+                        <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                                    <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">forum</span>
                                 </div>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>وضعیت کاربر (پروفایل):</strong> پنل وضعیت زنده که حضور و غیاب را نشان می‌دهد و امکان ارسال پیام فوری و جستجوی اطلاعات تماس را فراهم می‌کند.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>تقویم:</strong> رویدادهای شرکت، تولد کارکنان و سالگردهای کاری را نمایش میدهد. شمارش معکوس برای تولدها انجام میشود و جلوه‌های تبریک فعال می‌گردد.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>گزارشات:</strong> امکان صدور گزارش به صورت سند یا PDF توسط بخش‌ها و نمایش همه اسناد در پنل کاربر.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>لینک‌ها و ابزارها:</strong> دسترسی متمرکز به تمام لینک‌های ابزارهای مرتبط با کار با قابلیت تشخیص شبکه داخلی و خارجی.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-secondary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>FAQ:</strong> گردآوری سؤالات متداول برای دسترسی آسان‌تر کارکنان، به ویژه برای استخدام‌شدگان جدید.</span>
-                                    </li>
-                                </ul>
+                                <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">رسانه داخلی، اطلاع‌رسانی و خودخدمتی</h5>
                             </div>
+                            <ul class="space-y-2">
+                                @foreach([
+                                    ['پست و اعلانات', 'اطلاع‌رسانی رسمی منابع انسانی، پست‌های پین‌شده و آرشیو پیام‌ها با اعلان ایمیلی.'],
+                                    ['اخبار و فیدها', 'تجمیع اخبار صنعت/سازمان برای دسترسی یکپارچه به جریان اطلاعات به‌روز.'],
+                                    ['گالری تصاویر', 'پوشش تصویری و ویدیویی رویدادها، دستاوردها و خاطرات سازمانی.'],
+                                    ['پیام‌رسان داخلی', 'ارتباط سریع میان کارکنان برای هماهنگی روزانه و کاهش وابستگی به کانال‌های خارج از سامانه.'],
+                                    ['پرسش‌های متداول (FAQ)', 'دانشنامه پاسخ‌های تکرارشونده جهت تسریع خودخدمتی کارکنان به‌ویژه در ماه‌های ابتدایی همکاری.'],
+                                    ['رادیو زنده', 'پخش محتوای صوتی سازمانی برای اطلاع‌رسانی و تعامل درون‌سازمانی.'],
+                                ] as [$title, $desc])
+                                    <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                        <div class="w-full flex items-start gap-2 p-3 text-right">
+                                            <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-secondary)]"
+                                                  style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                            <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">{{ $title }}</strong>
+                                        </div>
+                                        <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                            {{ $desc }}
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- β.2 (Social) -->
+                    {{-- ─── β.1 ─── --}}
                     <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
                         <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
                                     bg-[var(--md-sys-color-surface-variant)]
@@ -169,90 +277,84 @@
 
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.2</span>
-                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">اجتماعی</span>
-                            </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Feb 15,  2026</span>
-                        </div>
-
-                        <div class="space-y-4 text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed">
-                            <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50
-                                        bg-[var(--md-sys-color-surface-variant)]/40
-                                        hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors group">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                                bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
-                                        <span class="material-symbols-rounded text-sm"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">groups</span>
-                                    </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">ارتباطات و رسانه</h5>
-                                </div>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>پست و اعلانات:</strong> ارسال اطلاعیه‌های رسمی توسط منابع انسانی، ذخیره در پنل کاربر و اطلاع‌رسانی ایمیلی. منبع پیام رسانی مرکزی شرکت.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>اخبار و فیدها:</strong> جمع‌آوری آخرین اخبار صنعت و موضوعات مورد علاقه کاربران از منابع مختلف در یک فید یکپارچه.</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-tertiary)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span><strong>گالری تصاویر:</strong> نمایش تصاویر و ویدیوهای مرتبط با رویدادها، فعالیت‌ها و دستاوردهای شرکت برای اشتراک‌گذاری خاطرات سازمانی.</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- β.1 (Foundation) -->
-                    <div class="relative border-r-2 border-[var(--md-sys-color-outline-variant)]/40 pr-6 pb-8 last:border-0 last:pb-0">
-                        <div class="absolute -right-[9px] top-0 w-4 h-4 rounded-full z-10
-                                    bg-[var(--md-sys-color-surface-variant)]
-                                    border-2 border-[var(--md-sys-color-outline-variant)]
-                                    flex items-center justify-center">
-                            <div class="w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-outline)]"></div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg
-                                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.1</span>
-                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg
-                                             bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">پایه</span>
+                                <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.1</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">پایه</span>
                             </div>
                             <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Feb 10, 2026</span>
                         </div>
 
-                        <div class="space-y-4 text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed">
-                            <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50
-                                        bg-[var(--md-sys-color-surface-variant)]/40
-                                        hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors group">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                                bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
-                                        <span class="material-symbols-rounded text-sm"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">architecture</span>
-                                    </div>
-                                    <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">زیرساخت و تنظیمات</h5>
+                        <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
+                                    <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">architecture</span>
                                 </div>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-error)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>بازطراحی کامل <strong>سیستم احراز هویت</strong> با جلوه‌های بصری سه بعدی و موتور تم جدید (Material You).</span>
+                                <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">زیرساخت، امنیت و تجربه کاربری</h5>
+                            </div>
+                            <ul class="space-y-2">
+                                @foreach([
+                                    ['احراز هویت و موتور تم', 'بازطراحی کامل با پشتیبانی Material You و حالت Dark/Light برای تجربه یکنواخت در تمام ماژول‌ها.'],
+                                    ['زیرساخت عملیاتی', 'پشتیبانی از تقویم سازمانی، لینک‌ها و ابزارها، گزارشات و سایر قابلیت‌های پایه برای آماده‌سازی بستر منابع انسانی.'],
+                                    ['اختیارات (Authority/Auth)', 'تعریف سطح دسترسی و سیاست‌های نقش‌محور برای ماژول‌ها و عملیات مدیریتی.'],
+                                    ['پرسش‌نامه انرژی', 'سنجش وضعیت انرژی کارکنان برای پایش سلامت سازمانی و تصمیم‌سازی HR.'],
+                                    ['سایر ابزارها', 'ماشین‌حساب، کرنومتر، تایمر، نمایش زمان، وضعیت آب‌وهوا و ابزارهای کمکی روزانه (ماژول Others).'],
+                                ] as [$title, $desc])
+                                    <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
+                                        <div class="w-full flex items-start gap-2 p-3 text-right">
+                                            <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-error)]"
+                                                  style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
+                                            <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">{{ $title }}</strong>
+                                        </div>
+                                        <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
+                                            {{ $desc }}
+                                        </div>
                                     </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="material-symbols-rounded text-sm mt-0.5 text-[var(--md-sys-color-error)] shrink-0"
-                                              style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                        <span>این اپ حالتهای تاریک و روشن را ارائه میدهد و شامل قابلیت ترجمه کامل از طریق ادغام با Google Translate است.</span>
-                                    </li>
-                                </ul>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- Module Summaries --}}
+                    <div x-data="{ open: false }"
+                         class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/30 overflow-hidden">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between flex-wrap gap-3 p-4 text-right hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
+                                    <span class="material-symbols-rounded text-sm"
+                                          style="font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24">inventory_2</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">خلاصه کامل همه ماژول‌ها</h4>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] px-2 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                                    {{ $allModules->count() }} ماژول
+                                </span>
+                                <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200"
+                                      :class="open ? 'rotate-180' : ''">expand_more</span>
+                            </div>
+                        </button>
+                        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 max-h-0"
+                             x-transition:enter-end="opacity-100 max-h-[1000px]"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 max-h-[1000px]"
+                             x-transition:leave-end="opacity-0 max-h-0"
+                             class="px-4 pb-4 overflow-hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                @foreach($allModules as $module)
+                                    <div class="rounded-xl p-3 border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]/70">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]"
+                                                  style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">{{ $module['icon'] ?? 'widgets' }}</span>
+                                            <h5 class="text-xs font-semibold text-[var(--md-sys-color-on-surface)]">{{ trim($module['title'] ?? 'ماژول') }}</h5>
+                                        </div>
+                                        <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
+                                            {{ $module['summary'] ?? ($module['content'] ?? 'توضیحی ثبت نشده است.') }}
+                                        </p>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
