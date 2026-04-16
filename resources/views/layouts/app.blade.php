@@ -6,7 +6,6 @@
     <x-dashboard.meta-tags/>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
     @livewireStyles
 </head>
 <body
@@ -32,6 +31,5 @@
 @endunless
 
 @livewireScripts
-<x-service-worker/>
 </body>
 </html>

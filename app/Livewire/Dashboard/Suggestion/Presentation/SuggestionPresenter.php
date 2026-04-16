@@ -259,17 +259,21 @@ class SuggestionPresenter
     {
         $review = $reviewsMap[$dept] ?? null;
         $feedback = $review?->feedback ?? self::DEFAULT_FEEDBACK;
+        $style = $this->feedbackStyle($feedback);
 
         return [
-            'dept' => $dept,
-            'name' => $review?->department?->description ?? $dept,
-            'feedback' => $feedback,
-            'style' => $this->feedbackStyle($feedback),
-            'is_action' => in_array($dept, $referrals, true),
+            'dept'        => $dept,
+            'name'        => $review?->department?->description ?? $dept,
+            'feedback'    => $feedback,
+            'style'       => $style,
+            'bg_class'    => 'bg-[var(--md-sys-color-' . $style[0] . ')]',
+            'text_class'  => 'text-[var(--md-sys-color-' . $style[1] . ')]',
+            'is_action'   => in_array($dept, $referrals, true),
             'is_complete' => $review?->complete ?? false,
-            'has_review' => $review !== null,
+            'has_review'  => $review !== null,
         ];
     }
+
 
     private function buildInfoRow(string $icon, string $label, string $value, string $type = 'text'): array
     {
@@ -279,13 +283,20 @@ class SuggestionPresenter
     private function buildReviewItem(Review $review, array $referrals): array
     {
         $isCeo = $review->department_id === self::CEO_DEPT_ID;
+        $style = $this->feedbackStyle($review->feedback);
+
         return [
-            'review' => $review,
-            'style' => $this->feedbackStyle($review->feedback),
-            'is_ma' => $isCeo,
-            'is_action' => in_array($review->department_id, $referrals, true),
-            'label' => $isCeo ? 'مدیریت ارشد' : ($review->department?->description ?? $review->department_id),
-            'feedback_label' => Review::FEEDBACKS[$review->feedback] ?? $review->feedback,
+            'review'           => $review,
+            'style'            => $style,
+            'bg_class'         => 'bg-[color-mix(in_srgb,var(--md-sys-color-' . $style[0] . ')_15%,transparent)]',
+            'icon_bg_class'    => 'bg-[color-mix(in_srgb,var(--md-sys-color-' . $style[0] . ')_40%,transparent)]',
+            'icon_text_class'  => 'text-[var(--md-sys-color-' . $style[1] . ')]',
+            'badge_bg_class'   => 'bg-[var(--md-sys-color-' . $style[0] . ')]',
+            'badge_text_class' => 'text-[var(--md-sys-color-' . $style[1] . ')]',
+            'is_ma'            => $isCeo,
+            'is_action'        => in_array($review->department_id, $referrals, true),
+            'label'            => $isCeo ? 'مدیریت ارشد' : ($review->department?->description ?? $review->department_id),
+            'feedback_label'   => Review::FEEDBACKS[$review->feedback] ?? $review->feedback,
         ];
     }
 
@@ -294,7 +305,7 @@ class SuggestionPresenter
         return [
             'count' => $count ?? 0,
             'label' => $label,
-            'color' => "text-[var(--md-sys-color-{$colorContext})]",
+            'color' => 'text-[var(--md-sys-color-' . $colorContext . ')]',
             'icon' => $icon,
         ];
     }

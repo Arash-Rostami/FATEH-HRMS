@@ -47,18 +47,18 @@
                     @php
                         $allModules = collect(config('modules', []));
                         function releaseItem(string $icon, string $color, string $title, string $desc): string {
-                            return <<<HTML
-                            <li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">
-                                <div class="w-full flex items-start gap-2 p-3 text-right">
-                                    <span class="material-symbols-rounded text-sm shrink-0 text-[var(--md-sys-color-$color)]"
-                                          style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">check_circle</span>
-                                    <strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">$title</strong>
-                                </div>
-                                <div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">
-                                    $desc
-                                </div>
-                            </li>
-                            HTML;
+                            $dynamicIconClass = 'text-[var(--md-sys-color-' . $color . ')]';
+
+                            return '<li class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 overflow-hidden bg-[var(--md-sys-color-surface)]/70">' .
+                                   '<div class="w-full flex items-start gap-2 p-3 text-right">' .
+                                       '<span class="material-symbols-rounded text-sm shrink-0 ' . $dynamicIconClass . '"' .
+                                             ' style="font-variation-settings:\'FILL\' 1,\'wght\' 400,\'GRAD\' 0,\'opsz\' 24">check_circle</span>' .
+                                       '<strong class="text-xs flex-1 text-[var(--md-sys-color-on-surface)] text-right">' . $title . '</strong>' .
+                                   '</div>' .
+                                   '<div class="px-3 pb-3 pt-1 text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)] border-t border-[var(--md-sys-color-outline-variant)]/30 pr-8">' .
+                                       $desc .
+                                   '</div>' .
+                               '</li>';
                         }
                     @endphp
 

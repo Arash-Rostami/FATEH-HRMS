@@ -22,6 +22,8 @@
     },
     "dependencies": {
         "@fancyapps/ui": "^6.1.11",
-        "material-symbols": "^0.40.2"
+        "material-symbols": "^0.40.2",
+        "workbox-cacheable-response": "^7.4.0",
+        "workbox-expiration": "^7.4.0"
     }
 }

@@ -1,61 +1,52 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vite'
+import laravel from 'laravel-vite-plugin'
+import tailwindcss from '@tailwindcss/vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
     plugins: [
+        tailwindcss(),
+
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
-        tailwindcss(),
+
         viteStaticCopy({
             targets: [
+                { src: 'resources/assets/audio', dest: 'assets' },
+                { src: 'resources/assets/video', dest: 'assets' },
+                { src: 'resources/assets/img',   dest: 'assets' },
+                { src: 'resources/assets/fonts', dest: 'assets' },
                 {
-                    src: 'resources/assets/*',
-                    dest: 'assets'
-                }
+                    src: 'node_modules/material-symbols/rounded.css',
+                    dest: 'assets/material-symbols'
+                },
+                {
+                    src: 'node_modules/material-symbols/material-symbols-rounded.woff2',
+                    dest: 'assets/material-symbols'
+                },
             ]
         }),
         VitePWA({
             strategies: 'injectManifest',
             srcDir: 'resources/js',
             filename: 'sw.js',
-            registerType: 'autoUpdate',
             outDir: 'public',
-            manifest: {
-                name: 'Intra Dashboard',
-                short_name: 'Intra',
-                description: 'The digital home for your work.',
-                theme_color: '#000000',
-                background_color: '#000000',
-                display: 'standalone',
-                scope: '/',
-                start_url: '/',
-                icons: [
-                    {
-                        src: 'assets/img/mining.svg',
-                        sizes: 'any',
-                        type: 'image/svg+xml'
-                    }
-                ]
-            },
-            workbox: {
-                cleanupOutdatedCaches: true,
-                globPatterns: ['build/assets/**/*.{js,css,woff2,png,svg,jpg,ttf,woff}'],
-                navigateFallback: null
-            },
+            registerType: 'autoUpdate',
             devOptions: {
                 enabled: true,
                 type: 'module'
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
             }
         })
     ],
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**', '**/public/sw.js'],
-        },
-    },
-});
+    build: {
+        manifest: 'manifest.json',
+        outDir: 'public/build',
+        emptyOutDir: true,
+    }
+})

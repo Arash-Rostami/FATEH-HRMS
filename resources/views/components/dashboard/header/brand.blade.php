@@ -46,7 +46,7 @@
                             bg-gradient-to-r from-[#FF7F6E]/15 to-[#ffb199]/10
                             opacity-0 group-hover:opacity-100
                             transition duration-700 pointer-events-none"></div>
-                <img src="{{ Vite::asset('resources/assets/img/logo.png') }}"
+                <img src="{{ asset('build/assets/img/logo.png') }}"
                      alt="Fateh Logo"
                      class="relative h-[30px] lg:h-[44px] w-auto
                             transition-all duration-500 ease-out

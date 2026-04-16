@@ -1,4 +1,4 @@
-<div x-data="stopwatch('{{Vite::asset('resources/assets/audio/alarm.mp3') }}')"
+<div x-data="stopwatch('{{ asset('build/assets/audio/alarm.mp3') }}')"
      x-init="init()"
      x-ref="stopwatchModal"
      dir="rtl" x-cloak>

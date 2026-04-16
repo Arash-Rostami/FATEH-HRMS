@@ -3,7 +3,7 @@
 
     {{-- ══ HEADER ══ --}}
     <div class="rounded-2xl overflow-hidden shadow-sm bg-[var(--md-sys-color-surface)]">
-        <div class="h-1 bg-[var(--md-sys-color-{{ $stage['bg'] }})]"></div>
+        <div class="h-1 {{ 'bg-[var(--md-sys-color-' . $stage['bg'] . ')]' }}"></div>
 
         <div class="p-5 md:p-6">
             <div class="text-sm pb-2">
@@ -15,8 +15,8 @@
 
             <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm
-                            bg-[var(--md-sys-color-{{ $stage['bg'] }})]
-                            text-[var(--md-sys-color-{{ $stage['on'] }})]">
+                            {{ 'bg-[var(--md-sys-color-' . $stage['bg'] . ')]' }}
+                            {{ 'text-[var(--md-sys-color-' . $stage['on'] . ')]' }}">
                     <span class="material-symbols-rounded text-2xl font-fill">
                         {{ $stage['icon'] }}
                     </span>
@@ -36,8 +36,8 @@
                         <span
                             title="مرحله/وضعیت"
                             class="cursor-help px-2.5 py-1 rounded-lg text-xs font-bold
-                                  bg-[var(--md-sys-color-{{ $stage['bg'] }})]
-                                   text-[var(--md-sys-color-{{ $stage['on'] }})]">
+                                  {{ 'bg-[var(--md-sys-color-' . $stage['bg'] . ')]' }}
+                                  {{ 'text-[var(--md-sys-color-' . $stage['on'] . ')]' }}">
                             {{ $stage['badge_icon'] }} {{ $stage['label'] }}
                         </span>
 
@@ -45,8 +45,8 @@
                         <span
                             title="اولویت"
                             class="cursor-help px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1
-                                   bg-[var(--md-sys-color-{{ $pr[0] }})]
-                                   text-[var(--md-sys-color-{{ $pr[1] }})]">
+                                   {{ 'bg-[var(--md-sys-color-' . $pr[0] . ')]' }}
+                                   {{ 'text-[var(--md-sys-color-' . $pr[1] . ')]' }}">
                             <span class="material-symbols-rounded !text-xs">
                                 {{ $pr[2] }}
                             </span>
@@ -278,102 +278,72 @@
     {{-- ══ DEPARTMENTS STATUS ══ --}}
     @if(count($p->suggestion()->departments ?? []))
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]">
-
             <x-ui.title icon="corporate_fare" title="واحدهای ذی‌نفع"/>
-
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($p->departmentStatuses() as $dept)
                     <div @class([
-                        "flex items-center gap-3 p-3 rounded-xl bg-[var(--md-sys-color-{$dept['style'][0]})]",
-                        'border-r-2 border-[var(--md-sys-color-primary)]' => $dept['is_action'],
-                    ])>
-
-                        <span class="material-symbols-rounded text-base font-fill
-                                     text-[var(--md-sys-color-{{ $dept['style'][1] }})]">
-                            {{ $dept['style'][2] }}
-                        </span>
-
+                    "flex items-center gap-3 p-3 rounded-xl",
+                    $dept['bg_class'] => true,
+                    'border-r-2 border-[var(--md-sys-color-primary)]' => $dept['is_action'],
+                ])>
+                    <span class="material-symbols-rounded text-base font-fill {{ $dept['text_class'] }}">
+                        {{ $dept['style'][2] }}
+                    </span>
                         <span class="text-sm font-bold flex-1 text-[var(--md-sys-color-on-surface)]">
-                            {{ $dept['name'] }}
-                        </span>
-
+                        {{ $dept['name'] }}
+                    </span>
                         @if($dept['is_action'])
                             <span class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
-                                         bg-[var(--md-sys-color-primary-container)]
-                                         text-[var(--md-sys-color-on-primary-container)]">
-                                <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
-                                ارجاع
-                            </span>
-
+                                     bg-[var(--md-sys-color-primary-container)]
+                                     text-[var(--md-sys-color-on-primary-container)]">
+                            <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
+                            ارجاع
+                        </span>
                             @if($dept['is_complete'])
-                                <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]"
-                                      title="تکمیل شده">
-                                    task_alt
-                                </span>
+                                <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
                             @elseif($dept['has_review'])
-                                <span
-                                    class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]"
-                                    title="در انتظار">
-                                    hourglass_empty
-                                </span>
+                                <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                             @endif
                         @endif
-
                     </div>
                 @endforeach
             </div>
-
         </div>
     @endif
 
     {{-- ══ REVIEWS ══ --}}
     @if($p->suggestion()->reviews->isNotEmpty())
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
-                    border border-[var(--md-sys-color-outline-variant)]">
-
+                border border-[var(--md-sys-color-outline-variant)]">
             <x-ui.title icon="rate_review" title="بازخوردها"/>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 @foreach($p->reviewItems() as $item)
-
                     <div @class([
-                        'rounded-xl p-4 space-y-3 border transition-all duration-200',
-                        "bg-[color-mix(in_srgb,var(--md-sys-color-{$item['style'][0]})_15%,transparent)]",
-                        'border-r-[3px] border-r-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)]' => $item['is_ma'],
-                        'border-[3px] border-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && $item['is_action'],
-                        'border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && !$item['is_action'],
-                    ])>
-
+                    'rounded-xl p-4 space-y-3 border transition-all duration-200',
+                    $item['bg_class'] => true,
+                    'border-r-[3px] border-r-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)]' => $item['is_ma'],
+                    'border-[3px] border-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && $item['is_action'],
+                    'border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && !$item['is_action'],
+                ])>
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 min-w-0">
-
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                            bg-[color-mix(in_srgb,var(--md-sys-color-{{ $item['style'][0] }})_40%,transparent)]">
-                                    <span class="material-symbols-rounded text-sm font-fill
-                                                 text-[var(--md-sys-color-{{ $item['style'][1] }})]">
-                                        {{ $item['style'][2] }}
-                                    </span>
-                                </div>
-
-                                <span class="text-sm font-bold truncate text-[var(--md-sys-color-on-surface)]">
-                                    {{ $item['label'] }}
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ $item['icon_bg_class'] }}">
+                                <span class="material-symbols-rounded text-sm font-fill {{ $item['icon_text_class'] }}">
+                                    {{ $item['style'][2] }}
                                 </span>
-
-                                @if($item['is_action'])
-                                    <span class="material-symbols-rounded text-xs shrink-0
-                                                 text-[var(--md-sys-color-secondary)]"
-                                          title="ارجاع برای اقدام">
-                                        forward_to_inbox
-                                    </span>
-                                @endif
-
-                            </div>
-
-                            <span class="text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0
-                                         bg-[var(--md-sys-color-{{ $item['style'][0] }})]
-                                         text-[var(--md-sys-color-{{ $item['style'][1] }})]">
-                                {{ $item['feedback_label'] }}
+                                </div>
+                                <span class="text-sm font-bold truncate text-[var(--md-sys-color-on-surface)]">
+                                {{ $item['label'] }}
                             </span>
+                                @if($item['is_action'])
+                                    <span class="material-symbols-rounded text-xs shrink-0 text-[var(--md-sys-color-secondary)]" title="ارجاع برای اقدام">
+                                    forward_to_inbox
+                                </span>
+                                @endif
+                            </div>
+                            <span class="text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0 {{ $item['badge_bg_class'] }} {{ $item['badge_text_class'] }}">
+                            {{ $item['feedback_label'] }}
+                        </span>
                         </div>
 
                         @if($item['review']->comments)
@@ -383,71 +353,51 @@
                         @endif
 
                         @if($item['review']->actions)
-                            <div class="mt-3 rounded-lg overflow-hidden border border-[var(--md-sys-color-primary)]/15
-                                     bg-[var(--md-sys-color-primary-container)]">
-
+                            <div class="mt-3 rounded-lg overflow-hidden border border-[var(--md-sys-color-primary)]/15 bg-[var(--md-sys-color-primary-container)]">
                                 <div class="flex items-center gap-2 px-2 py-2 bg-[var(--md-sys-color-primary)]/10 border-b border-[var(--md-sys-color-primary)]/10">
-                                    <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">
-                                        assignment
-                                    </span>
-                                    <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">
-                                        دستورالعمل اجرا:
-                                    </span>
+                                    <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">assignment</span>
+                                    <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">دستورالعمل اجرا:</span>
                                     @if($item['review']->referral)
                                         <div class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای موظف">
                                             @foreach($item['review']->referral as $name)
-                                                <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5
-                                                             rounded-sm leading-none bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
-                                                             ring-1 ring-[var(--md-sys-color-primary)]/30">
-                                                    {{ $name }}
-                                                </span>
+                                                <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-sm leading-none
+                                                         bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
+                                                         ring-1 ring-[var(--md-sys-color-primary)]/30">
+                                                {{ $name }}
+                                            </span>
                                             @endforeach
                                         </div>
                                     @endif
                                 </div>
-                                <p class="px-3 py-2.5 text-xs leading-6 text-[var(--md-sys-color-on-primary-container)]/85 mr-0">
+                                <p class="px-3 py-2.5 text-xs leading-6 text-[var(--md-sys-color-on-primary-container)]/85">
                                     {{ $item['review']->actions }}
                                 </p>
                             </div>
                         @endif
 
                         <div class="flex items-center justify-between pt-2
-                                    border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
-
-                            <span
-                                class="text-[10px] flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">
-                                <span class="material-symbols-rounded text-xs">schedule</span>
-                                {{ jdateOnly($item['review']->created_at) }}
-                            </span>
-
+                                border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
+                        <span class="text-[10px] flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">
+                            <span class="material-symbols-rounded text-xs">schedule</span>
+                            {{ jdateOnly($item['review']->created_at) }}
+                        </span>
                             @if($item['is_action'])
                                 <span class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
-                                             bg-[var(--md-sys-color-primary-container)]
-                                             text-[var(--md-sys-color-on-primary-container)]">
-                                    <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
-                                    ارجاع
-                                </span>
-
+                                         bg-[var(--md-sys-color-primary-container)]
+                                         text-[var(--md-sys-color-on-primary-container)]">
+                                <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
+                                ارجاع
+                            </span>
                                 @if($item['review']->complete)
-                                    <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]"
-                                          title="تکمیل شده">
-                                        task_alt
-                                    </span>
+                                    <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
                                 @else
-                                    <span
-                                        class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]"
-                                        title="در انتظار">
-                                        hourglass_empty
-                                    </span>
+                                    <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                                 @endif
                             @endif
-
                         </div>
                     </div>
-
                 @endforeach
             </div>
-
         </div>
     @endif
 
@@ -466,16 +416,15 @@
 
                         <label class="relative flex items-center gap-3 p-3.5 rounded-xl cursor-pointer select-none transition-all
                                       border-2 border-transparent hover:border-[var(--md-sys-color-outline)]
-                                      bg-[color-mix(in_srgb,var(--md-sys-color-{{ $fs[0] }})_20%,transparent)]
+                                      {{ 'bg-[color-mix(in_srgb,var(--md-sys-color-' . $fs[0] . ') 20%,transparent)]' }}
                                       has-[:checked]:border-[var(--md-sys-color-primary)]
                                       has-[:checked]:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_60%,transparent)]">
 
-                            {{-- CHANGE: Updated wire:model for Feedback Form --}}
                             <input type="radio" wire:model="feedbackForm.feedback" value="{{ $val }}"
                                    class="w-4 h-4 accent-[var(--md-sys-color-primary)]">
 
                             <span class="material-symbols-rounded text-sm font-fill
-                                         text-[var(--md-sys-color-{{ $fs[1] }})]">
+                                         {{ 'text-[var(--md-sys-color-' . $fs[1] . ')]' }}">
                                 {{ $fs[2] }}
                             </span>
 
@@ -487,7 +436,6 @@
                     @endforeach
                 </div>
 
-                {{-- CHANGE: Updated error directive key --}}
                 @error('feedbackForm.feedback')
                 <p class="text-xs text-[var(--md-sys-color-error)] flex items-center gap-1">
                     <span class="material-symbols-rounded text-sm">error</span>
@@ -495,7 +443,6 @@
                 </p>
                 @enderror
 
-                {{-- CHANGE: Updated wire:model for comment --}}
                 <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment"/>
 
                 <x-ui.buttons.form icon="send" wire:click="submitFeedback" wire:loading.attr="disabled">
@@ -524,20 +471,19 @@
 
                         <label class="relative flex items-center gap-3 p-3.5 rounded-xl cursor-pointer select-none transition-all
                                       border-2 border-transparent hover:brightness-95
-                                      bg-[var(--md-sys-color-{{ $bg }})]
-                                      has-[:checked]:border-[var(--md-sys-color-{{ $on }})]
+                                      {{ 'bg-[var(--md-sys-color-' . $bg . ')]' }}
+                                      {{ 'has-[:checked]:border-[var(--md-sys-color-' . $on . ')]' }}
                                       has-[:checked]:scale-[1.02]">
 
-                            {{-- CHANGE: Updated wire:model.live for Decision Form --}}
                             <input type="radio" wire:model.live="decisionForm.decision" value="{{ $val }}"
                                    class="w-4 h-4 accent-[var(--md-sys-color-primary)]">
 
-                            <span class="text-sm font-bold text-[var(--md-sys-color-{{ $on }})]">
+                            <span class="text-sm font-bold {{ 'text-[var(--md-sys-color-' . $on . ')]' }}">
                                 {{ $lbl }}
                             </span>
 
                             <span class="material-symbols-rounded text-base font-fill mr-auto
-                                         text-[var(--md-sys-color-{{ $on }})]">
+                                         {{ 'text-[var(--md-sys-color-' . $on . ')]' }}">
                                 {{ $ic }}
                             </span>
 
@@ -545,7 +491,6 @@
                     @endforeach
                 </div>
 
-                {{-- CHANGE: Updated error directive key --}}
                 @error('decisionForm.decision')
                 <p class="text-xs text-[var(--md-sys-color-error)] flex items-center gap-1">
                     <span class="material-symbols-rounded text-sm">error</span>
@@ -553,7 +498,6 @@
                 </p>
                 @enderror
 
-                {{-- CHANGE: Updated wire:model for decision comment --}}
                 <x-ui.forms.textarea
                     label="یادداشت تصمیم"
                     name="decisionComment"
@@ -561,7 +505,6 @@
                     wire:model="decisionForm.decisionComment"
                 />
 
-                {{-- CHANGE: Updated conditional to check form object property --}}
                 @if($decisionForm->decision === 'accepted')
                     <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]">
 
@@ -587,8 +530,8 @@
                                               has-[:checked]:border-[var(--md-sys-color-primary)]
                                               has-[:checked]:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_50%,transparent)]">
 
-                                    {{-- CHANGE: Updated wire:model.live for referralDepts --}}
-                                    <input type="checkbox" wire:model.live="decisionForm.referralDepts" value="{{ $code }}"
+                                    <input type="checkbox" wire:model.live="decisionForm.referralDepts"
+                                           value="{{ $code }}"
                                            class="w-4 h-4 accent-[var(--md-sys-color-primary)]">
 
                                     <span class="text-sm text-[var(--md-sys-color-on-surface)]">
@@ -599,11 +542,9 @@
                             @endforeach
                         </div>
 
-                        {{-- CHANGE: Updated conditional to check form object property --}}
                         @if($decisionForm->referralDepts)
                             <div
                                 class="p-4 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
-                                {{-- CHANGE: Updated wire:model for referralActions --}}
                                 <x-ui.forms.textarea
                                     label="دستورالعمل اقدام"
                                     name="referralActions"

@@ -7,8 +7,8 @@
           useVideo: localStorage.getItem('use-video') !== 'false',
           videoIndex: 0,
           videos: [
-              '{{ Vite::asset('resources/assets/video/mining-01.mp4') }}',
-              '{{ Vite::asset('resources/assets/video/mining-02.mp4') }}'
+              '{{ asset('build/assets/video/mining-01.mp4') }}',
+              '{{ asset('build/assets/video/mining-02.mp4') }}'
           ],
           playNext() {
             const nextIndex = (this.videoIndex + 1) % this.videos.length;
@@ -51,7 +51,7 @@
     <template x-if="!useVideo">
         <div class="w-full h-full"
              :style="`filter: brightness(${videoBrightness}%)`">
-            <img src="{{ Vite::asset('resources/assets/img/mining.webp') }}"
+            <img src="{{ asset('build/assets/img/mining.webp') }}"
                  alt="Background"
                  fetchpriority="high"
                  decoding="async"

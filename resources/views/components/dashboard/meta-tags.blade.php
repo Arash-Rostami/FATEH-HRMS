@@ -21,6 +21,13 @@
 <meta property="twitter:url" content="{{ request()->url() }}">
 <meta property="twitter:title" content="{{ config('app.name') }}">
 <meta property="twitter:description" content="Human Resource Management System for handling office and users' tasks">
+<link rel="stylesheet"
+      href="/build/assets/material-symbols/rounded.css"
+      media="print"
+      onload="this.media='all'">
+<noscript>
+    <link rel="stylesheet" href="/build/assets/material-symbols/rounded.css">
+</noscript>
 
 <script type="application/ld+json">
     {

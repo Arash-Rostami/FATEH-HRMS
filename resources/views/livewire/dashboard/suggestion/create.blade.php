@@ -44,7 +44,7 @@
             contentClass="max-w-5xl w-full"
         >
             <div class="space-y-4">
-                <img src="{{ Vite::asset('resources/assets/img/suggestion.png') }}"
+                <img src="{{ asset('build/assets/img/suggestion.png') }}"
                      alt="Flowchart" class="w-full h-auto rounded-xl shadow-sm">
             </div>
         </x-ui.modals.base>

@@ -15,7 +15,7 @@ use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
-use App\Livewire\Dashboard\Taskboard\Main as TaskBoard;
+use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
 use App\Livewire\Dashboard\Ths\Main as Ths;
 use Illuminate\Support\Facades\Route;
 

@@ -58,9 +58,9 @@ class Report extends Model
                 $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
 
                 return match ($extension) {
-                    'pdf' => Vite::asset('resources/assets/img/pdf.png'),
-                    'docx', 'doc' => Vite::asset('resources/assets/img/doc.png'),
-                    default => Vite::asset('resources/assets/img/report.png'),
+                    'pdf' => asset('build/assets/img/pdf.png'),
+                    'docx', 'doc' => asset('build/assets/img/doc.png'),
+                    default => asset('build/assets/img/report.png'),
                 };
             }
         );
