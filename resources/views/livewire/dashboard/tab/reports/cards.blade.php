@@ -68,9 +68,9 @@
     @endforeach
 
     @if($this->hasMorePages)
-        <div x-ref="loadTrigger" class="shrink-0 w-24 h-full flex items-center justify-center snap-center">
-            <div
-                class="w-10 h-10 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-xl animate-spin"></div>
+        <div x-ref="loadTrigger"
+             class="shrink-0 w-24 h-full flex items-center justify-center snap-center">
+            <div class="w-10 h-10 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-xl animate-spin"></div>
         </div>
     @endif
 

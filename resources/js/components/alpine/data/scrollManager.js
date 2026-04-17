@@ -8,25 +8,27 @@ export default function scrollManager() {
         init() {
             this.scrollHandler = () => {
                 if (!this.ticking) {
-                    window.requestAnimationFrame(() => this.update());
+                    requestAnimationFrame(() => this.update());
                     this.ticking = true;
                 }
             };
-
             window.addEventListener('scroll', this.scrollHandler, { passive: true });
         },
 
         update() {
-            const currentY = window.scrollY;
-            this.isVisible = currentY < 50 || currentY < this.lastY;
-            this.lastY = currentY;
+            const y = window.scrollY;
+            const delta = y - this.lastY;
+
+            if (y < 60)             this.isVisible = true;
+            else if (delta > 4)     this.isVisible = false;
+            else if (delta < -6)    this.isVisible = true;
+
+            this.lastY = y;
             this.ticking = false;
         },
 
         destroy() {
-            if (this.scrollHandler) {
-                window.removeEventListener('scroll', this.scrollHandler);
-            }
+            window.removeEventListener('scroll', this.scrollHandler);
         }
     };
 }

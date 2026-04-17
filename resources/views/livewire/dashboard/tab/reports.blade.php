@@ -1,29 +1,15 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto flex flex-col"
      dir="rtl"
-     x-data="{
-        showModal: false,
-        activeReport: null,
-        view: @entangle('view'),
-        init() {
-            const enforceListOnMobile = () => {
-                if (window.innerWidth < 768 && this.view !== 'list') {
-                    this.view = 'list';
-                    $wire.toggleView('list');
-                }
-            };
-            enforceListOnMobile();
-            window.addEventListener('resize', enforceListOnMobile);
-        },
-        scrollNext() {
-             this.$refs.reportContainer.scrollBy({ left: -350, behavior: 'smooth' });
-        },
-        scrollPrev() {
-             this.$refs.reportContainer.scrollBy({ left: 350, behavior: 'smooth' });
-        }
-     }">
+     x-data="report()"
+     wire:ignore.self>
 
     <div>
-        <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش"/>
+        <x-ui.title
+            icon="show_chart"
+            title="گزارشات"
+            :count="$this->totalReports"
+            countLabel="گزارش"
+        />
     </div>
 
     @include('livewire.dashboard.tab.reports.navigations')

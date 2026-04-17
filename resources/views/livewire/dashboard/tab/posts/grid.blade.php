@@ -7,7 +7,6 @@
         <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
     </div>
 
-    @island(name: 'posts', lazy: true)
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
         @if($this->posts->isNotEmpty())
             @foreach($this->posts as $post)
@@ -79,6 +78,5 @@
             class="text-xs font-bold px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm hover:shadow-md hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] active:scale-95 duration-300"
         />
     </div>
-    @endisland
 
 </section>

@@ -1,81 +1,30 @@
-export default function report(view, showModal) {
+
+export default function report() {
     return {
-        view: view,
-        showModal: showModal,
-        activeId: null,
+        showModal: false,
         activeReport: null,
-        loading: false,
-        observer: null,
+        view: null,
 
         init() {
-            this.$nextTick(() => {
-                this.setupIntersectionObserver();
-            });
+            this.view = this.$wire.get('view');
 
-            this.$watch('view', value => {
-                this.$nextTick(() => {
-                    this.setupIntersectionObserver();
-                });
-            });
-
-            Livewire.hook('morph.updated', ({ component, el }) => {
-                if (component.id === this.$wire.__instance.id) {
-                    this.$nextTick(() => {
-                        this.setupIntersectionObserver();
-                    });
+            const enforce = () => {
+                if (window.innerWidth < 768 && this.view !== 'list') {
+                    this.view = 'list';
+                    this.$wire.call('toggleView', 'list');
                 }
-            });
+            };
+
+            enforce();
+            window.addEventListener('resize', enforce);
         },
 
         scrollNext() {
-            if (this.$refs.reportContainer) {
-                this.$refs.reportContainer.scrollBy({ left: -300, behavior: 'smooth' });
-            }
+            this.$refs.reportContainer.scrollBy({ left: -350, behavior: 'smooth' });
         },
 
         scrollPrev() {
-            if (this.$refs.reportContainer) {
-                this.$refs.reportContainer.scrollBy({ left: 300, behavior: 'smooth' });
-            }
+            this.$refs.reportContainer.scrollBy({ left: 350, behavior: 'smooth' });
         },
-
-        handleScroll() {
-            // Placeholder
-        },
-
-        setupIntersectionObserver() {
-            if (this.observer) {
-                this.observer.disconnect();
-            }
-
-            const options = {
-                root: this.view === 'card' ? this.$refs.reportContainer : null,
-                rootMargin: '200px',
-                threshold: 0.1
-            };
-
-            this.observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !this.loading) {
-                    this.loadMore();
-                }
-            }, options);
-
-            const trigger = this.$refs.loadTrigger;
-            if (trigger) {
-                this.observer.observe(trigger);
-            }
-        },
-
-        async loadMore() {
-            if (this.loading) return;
-            this.loading = true;
-            try {
-                await this.$wire.loadMore();
-            } catch (e) {
-                console.error('Failed to load more reports', e);
-            } finally {
-                this.loading = false;
-            }
-        }
-    }
+    };
 }

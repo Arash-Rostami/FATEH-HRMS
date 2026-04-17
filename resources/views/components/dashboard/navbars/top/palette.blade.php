@@ -13,7 +13,7 @@
         <button @click="$store.theme.toggleMode()"
                 class="group relative w-10 h-10 rounded-full flex items-center justify-center bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] hover:brightness-95 transition-all mx-auto">
             <span class="material-symbols-rounded text-[22px]"
-                  x-text="$store.theme.isDark ? 'dark_mode' : 'light_mode'"></span>
+                  x-text="$store.theme.mode === 'dark' ? 'dark_mode' : 'light_mode'"></span>
             <x-ui.modals.tooltip text="تغییر حالت شب/روز" position="right"/>
         </button>
 

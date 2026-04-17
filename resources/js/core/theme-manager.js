@@ -1,18 +1,32 @@
 export default class ThemeManager {
     static init() {
+        this.applySavedPreferences();
+
+        document.addEventListener('livewire:navigated', () => {
+            this.applySavedPreferences();
+        });
+
+        window.ThemeManager = this;
+    }
+
+    static applySavedPreferences() {
         const storedTheme = localStorage.getItem('user-theme') || 'default';
         const storedMode = localStorage.getItem('user-mode');
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const activeMode = storedMode || (systemDark ? 'dark' : 'light');
 
         this.setTheme(storedTheme);
 
-        if (storedMode === 'dark' || (!storedMode && systemDark)) {
+        if (activeMode === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
 
-        window.ThemeManager = this;
+        if (window.Alpine?.store('theme')) {
+            window.Alpine.store('theme').current = storedTheme;
+            window.Alpine.store('theme').mode = activeMode;
+        }
     }
 
     static setTheme(themeName) {

@@ -1,13 +1,14 @@
 <x-ui.modals.slideover show="showModal">
     <template x-if="activeReport">
-        <div class="h-full flex flex-col">
+        <div class="h-full flex flex-col items-center justify-center p-1 sm:p-4">
             <!-- Hero Image -->
             <div class="h-64 md:h-80 w-full relative shrink-0">
                 <img :src="activeReport.thumbnail" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] to-transparent"></div>
 
                 <!-- Close Button Overlay -->
-                <button @click="showModal = false" class="absolute top-4 right-4 z-20 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors border border-white/10">
+                <button @click="showModal = false"
+                        class="absolute top-4 right-4 z-20 p-2 pb-0 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors border border-white/10">
                     <span class="material-symbols-rounded text-xl">close</span>
                 </button>
 

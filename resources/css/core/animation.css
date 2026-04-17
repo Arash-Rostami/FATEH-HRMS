@@ -1,4 +1,3 @@
-
 /* ============================================
    1. FADE ANIMATIONS
    ============================================ */
@@ -8,7 +7,7 @@
     to { opacity: 1; }
 }
 .animate-fade {
-    animation: fadeIn 0.8s ease-out forwards !important;
+    animation: fadeIn 0.8s ease-out both !important;
 }
 
 @keyframes fadeInDown {
@@ -16,7 +15,7 @@
     100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 .animate-fade-down {
-    animation: fadeInDown 1s ease-in-out forwards !important;
+    animation: fadeInDown 1s ease-in-out both !important;
 }
 
 @keyframes fadeInLeft {
@@ -24,7 +23,7 @@
     100% { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 .animate-fade-left {
-    animation: fadeInLeft 1s ease-in-out forwards !important;
+    animation: fadeInLeft 1s ease-in-out both !important;
 }
 
 @keyframes fadeInFwd {
@@ -48,7 +47,7 @@
     to { opacity: 1; }
 }
 .animate-backdrop-in {
-    animation: backdropFadeIn 0.5s ease-out forwards !important;
+    animation: backdropFadeIn 0.5s ease-out both !important;
 }
 
 @keyframes backdropFadeOut {
@@ -68,7 +67,7 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .animate-slide-scale {
-    animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes slideUp {
@@ -76,7 +75,7 @@
     100% { transform: translateY(0); opacity: 1; }
 }
 .animate-slide-up {
-    animation: slideUp 0.6s cubic-bezier(0.2, 0.0, 0, 1.0) forwards !important;
+    animation: slideUp 0.6s cubic-bezier(0.2, 0.0, 0, 1.0) both !important;
 }
 
 @keyframes slideUpFade {
@@ -92,7 +91,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 .animate-slide-down {
-    animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes slideLeftFade {
@@ -100,7 +99,7 @@
     to { opacity: 1; transform: translateX(0); }
 }
 .animate-slide-left {
-    animation: slideLeftFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: slideLeftFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes slideRightFade {
@@ -108,7 +107,7 @@
     to { opacity: 1; transform: translateX(0); }
 }
 .animate-slide-right {
-    animation: slideRightFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: slideRightFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes slideInTop {
@@ -148,7 +147,7 @@
     to { transform: translateX(0); }
 }
 .animate-slide-from-left {
-    animation: slideFromLeft 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
+    animation: slideFromLeft 0.5s cubic-bezier(0.32, 0.72, 0, 1) both !important;
 }
 
 @keyframes slideToLeft {
@@ -156,7 +155,7 @@
     to { transform: translateX(-100%); }
 }
 .animate-slide-to-left {
-    animation: slideToLeft 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
+    animation: slideToLeft 0.4s cubic-bezier(0.4, 0, 1, 1) forwards !important;
 }
 
 @keyframes slideOutTop {
@@ -193,7 +192,7 @@
     100% { opacity: 1; transform: scale(1); }
 }
 .animate-pop {
-    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
 }
 
 @keyframes springPop {
@@ -202,7 +201,7 @@
     100% { transform: scale(1); }
 }
 .animate-spring-pop {
-    animation: springPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+    animation: springPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both !important;
 }
 
 @keyframes expandIn {
@@ -210,7 +209,8 @@
     to { opacity: 1; transform: scaleY(1); }
 }
 .animate-expand {
-    animation: expandIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: expandIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    transform-origin: top;
 }
 
 /* ============================================
@@ -223,6 +223,7 @@
 }
 .animate-rotate {
     animation: rotate 4s linear infinite !important;
+    will-change: transform;
 }
 
 @keyframes rotateIn {
@@ -230,7 +231,7 @@
     to { opacity: 1; transform: rotate(0) scale(1); }
 }
 .animate-rotate-in {
-    animation: rotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: rotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes flipYIn {
@@ -238,7 +239,8 @@
     to { opacity: 1; transform: perspective(600px) rotateY(0); }
 }
 .animate-flip-y {
-    animation: flipYIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: flipYIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    backface-visibility: hidden;
 }
 
 @keyframes flipHorizontalBottom {
@@ -247,6 +249,8 @@
 }
 .animate-flip-horizontal {
     animation: flipHorizontalBottom 2s cubic-bezier(.785, .135, .15, .86) infinite alternate both !important;
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 @keyframes flipScaleDownVer {
@@ -258,6 +262,7 @@
 }
 .animate-flip-scale-1 {
     animation: flipScaleDownVer 0.5s linear both !important;
+    backface-visibility: hidden;
 }
 
 @keyframes flipScaleDownVer2 {
@@ -269,6 +274,7 @@
 }
 .animate-flip-scale-2 {
     animation: flipScaleDownVer2 0.5s linear both !important;
+    backface-visibility: hidden;
 }
 
 /* ============================================
@@ -282,7 +288,7 @@
     100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .animate-bounce-in {
-    animation: bounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    animation: bounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
 }
 
 @keyframes bounceInTop {
@@ -326,6 +332,7 @@
 }
 .animate-occasion-bounce {
     animation: occasionBounce 2s ease-in-out infinite !important;
+    will-change: transform;
 }
 
 /* ============================================
@@ -337,6 +344,7 @@
 }
 .animate-spin {
     animation: spin 1s linear infinite !important;
+    will-change: transform;
 }
 
 @keyframes pulse {
@@ -354,6 +362,7 @@
 }
 .animate-subtle-pulse {
     animation: subtlePulse 1600ms linear infinite !important;
+    will-change: transform;
 }
 
 @keyframes pulseRing {
@@ -362,6 +371,7 @@
 }
 .animate-pulse-ring {
     animation: pulseRing 2s ease-out infinite !important;
+    will-change: transform;
 }
 
 @keyframes slide {
@@ -370,6 +380,7 @@
 }
 .animate-slide-bg {
     animation: slide 3s ease-in-out infinite alternate !important;
+    will-change: transform;
 }
 
 /* Audio Equalizer */
@@ -388,11 +399,12 @@
     50% { transform: scaleY(.4); }
     75% { transform: scaleY(1.2); }
 }
-.animate-quiet { animation: quiet 1.2s ease-in-out infinite !important; }
-.animate-normal { animation: normal 1.2s ease-in-out infinite !important; }
-.animate-loud { animation: loud 1.2s ease-in-out infinite !important; }
+.animate-quiet { animation: quiet 1.2s ease-in-out infinite !important; will-change: transform; }
+.animate-normal { animation: normal 1.2s ease-in-out infinite !important; will-change: transform; }
+.animate-loud { animation: loud 1.2s ease-in-out infinite !important; will-change: transform; }
 .animate-eq {
     animation: eq 0.8s cubic-bezier(0.2, 0.9, 0.2, 0.9) infinite !important;
+    will-change: transform;
 }
 @keyframes eq {
     0%, 100% { transform: scaleY(0.35); opacity: 0.7; }
@@ -455,6 +467,7 @@
 }
 .animate-shimmer {
     animation: shimmer 1.5s infinite !important;
+    will-change: transform;
 }
 
 @keyframes sweepIn {
@@ -462,7 +475,7 @@
     to { opacity: 1; clip-path: inset(0 0 0 0); }
 }
 .animate-sweep {
-    animation: sweepIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: sweepIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes skewIn {
@@ -470,7 +483,7 @@
     to { opacity: 1; transform: skewX(0) translateY(0); }
 }
 .animate-skew {
-    animation: skewIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: skewIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 @keyframes shadowDropCenter {
@@ -481,7 +494,7 @@
     animation: shadowDropCenter 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both !important;
 }
 
-/* Confetti  */
+/* Confetti */
 @keyframes confettiFall {
     0% { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
@@ -489,8 +502,8 @@
 .animate-confetti {
     animation: confettiFall linear 1 !important;
     animation-duration: 5s !important;
+    will-change: transform;
 }
-
 
 /* ============================================
    8. UI COMPONENT ANIMATIONS
@@ -512,12 +525,14 @@
     animation: toastIn 0.35s cubic-bezier(0.2, 0, 0, 1) both !important;
 }
 
+/* replyBarIn: replaced max-height/padding animation (layout reflow) with scaleY (compositor only) */
 @keyframes replyBarIn {
-    from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
-    to { opacity: 1; max-height: 80px; }
+    from { opacity: 0; transform: scaleY(0); }
+    to { opacity: 1; transform: scaleY(1); }
 }
 .animate-reply-bar-in {
     animation: replyBarIn 0.25s cubic-bezier(0.2, 0, 0, 1) both !important;
+    transform-origin: top;
 }
 
 @keyframes typingBounce {
@@ -535,6 +550,7 @@
 }
 .animate-loading-line-v {
     animation: loadingLineVertical 1.5s ease-in-out forwards !important;
+    transform-origin: bottom;
 }
 
 @keyframes loadingLineHorizontal {
@@ -543,17 +559,20 @@
 }
 .animate-loading-line-h {
     animation: loadingLineHorizontal 1.5s ease-in-out forwards !important;
+    transform-origin: left;
 }
 
-/* Progress */
+/* Progress — replaced width animation (layout reflow) with scaleX (compositor only) */
 @keyframes indeterminateFill {
-    0% { width: 0%; opacity: 1; }
-    70% { width: 100%; opacity: 1; }
-    90% { width: 100%; opacity: 0; }
-    100% { width: 0%; opacity: 0; }
+    0% { transform: scaleX(0); opacity: 1; }
+    70% { transform: scaleX(1); opacity: 1; }
+    90% { transform: scaleX(1); opacity: 0; }
+    100% { transform: scaleX(0); opacity: 0; }
 }
 .animate-indeterminate {
     animation: indeterminateFill 2s ease-in-out infinite !important;
+    transform-origin: left;
+    will-change: transform;
 }
 
 /* Image Effects */
@@ -580,6 +599,7 @@
 }
 .animate-odsoky {
     animation: odsoky 1s ease-in-out infinite alternate !important;
+    will-change: transform;
 }
 
 /* Hide/Exit */
@@ -597,6 +617,7 @@
 }
 .animate-kenburns {
     animation: kenburnsTopLeft 25s ease-in-out infinite alternate both !important;
+    will-change: transform;
 }
 
 /* Slide Blur */
@@ -605,7 +626,7 @@
     to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 .animate-slide-blur {
-    animation: slideBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: slideBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 /* Pulsate Forward */
@@ -619,24 +640,24 @@
 .animate-pulsate {
     animation: pulsateFwd 1s ease-in-out infinite both !important;
     position: absolute !important;
+    will-change: transform;
 }
 
 /* ============================================
    ANIMATION DELAY UTILITIES
-
    ============================================ */
 
-.animate-delay-0 { animation-delay: 0ms !important; }
-.animate-delay-100 { animation-delay: 100ms !important; }
-.animate-delay-150 { animation-delay: 150ms !important; }
-.animate-delay-200 { animation-delay: 200ms !important; }
-.animate-delay-300 { animation-delay: 300ms !important; }
-.animate-delay-400 { animation-delay: 400ms !important; }
-.animate-delay-500 { animation-delay: 500ms !important; }
-.animate-delay-600 { animation-delay: 600ms !important; }
-.animate-delay-700 { animation-delay: 700ms !important; }
-.animate-delay-800 { animation-delay: 800ms !important; }
-.animate-delay-900 { animation-delay: 900ms !important; }
+.animate-delay-0    { animation-delay: 0ms !important; }
+.animate-delay-100  { animation-delay: 100ms !important; }
+.animate-delay-150  { animation-delay: 150ms !important; }
+.animate-delay-200  { animation-delay: 200ms !important; }
+.animate-delay-300  { animation-delay: 300ms !important; }
+.animate-delay-400  { animation-delay: 400ms !important; }
+.animate-delay-500  { animation-delay: 500ms !important; }
+.animate-delay-600  { animation-delay: 600ms !important; }
+.animate-delay-700  { animation-delay: 700ms !important; }
+.animate-delay-800  { animation-delay: 800ms !important; }
+.animate-delay-900  { animation-delay: 900ms !important; }
 .animate-delay-1000 { animation-delay: 1000ms !important; }
 .animate-delay-1250 { animation-delay: 1250ms !important; }
 .animate-delay-1500 { animation-delay: 1500ms !important; }
@@ -648,12 +669,8 @@
 .animate-delay-5000 { animation-delay: 5000ms !important; }
 
 /* ============================================
-   PERFORMANCE & ACCESSIBILITY
+   ACCESSIBILITY
    ============================================ */
-
-[class*="animate-"] {
-    will-change: transform, opacity;
-}
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -668,7 +685,6 @@
         animation: none !important;
         opacity: 1;
         transform: none;
-        max-height: none;
     }
 
     .animate-pulse-ring,
