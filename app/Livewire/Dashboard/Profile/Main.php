@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class Main extends Component
 {
-    #[Url]
+    #[Url(as: 'tab')]
     public string $activeTab = 'onboarding';
 
     public function confirmAction(string $event): void

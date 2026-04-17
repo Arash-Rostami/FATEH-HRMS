@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Navbar;
 
 use App\Services\NavigationSearchService;
 use Exception;
+use App\Livewire\Dashboard\Tabs;
 use Livewire\Component;
 
 class CommandPalette extends Component
@@ -14,16 +15,6 @@ class CommandPalette extends Component
     public function render()
     {
         return view('livewire.dashboard.navbar.top.command-palette');
-    }
-
-    public function updatedQuery(): void
-    {
-        if (strlen($this->query) < 2) {
-            $this->results = [];
-            return;
-        }
-
-        $this->results = app(NavigationSearchService::class)->search($this->query);
     }
 
     public function selectResult(string $action): void
@@ -51,15 +42,20 @@ class CommandPalette extends Component
         };
     }
 
-    private function handleTab(string $target): void
+    public function updatedQuery(): void
     {
-        if (request()->routeIs('dashboard')) {
-            $this->dispatch('switch-tab', tab: $target);
-            $this->resetPalette();
+        if (strlen($this->query) < 2) {
+            $this->results = [];
             return;
         }
 
-        $this->redirectRoute('dashboard', ['tab' => $target], navigate: true);
+        $this->results = app(NavigationSearchService::class)->search($this->query);
+    }
+
+    private function handleEvent(string $target): void
+    {
+        $this->dispatch($target);
+        $this->resetPalette();
     }
 
     private function handleRoute(string $target): void
@@ -70,15 +66,23 @@ class CommandPalette extends Component
         }
     }
 
+    private function handleTab(string $target): void
+    {
+        $dashboardPath = parse_url(route('dashboard'), PHP_URL_PATH);
+        $previousPath = parse_url(url()->previous(), PHP_URL_PATH);
+
+        if ($previousPath === $dashboardPath) {
+            $this->dispatch('switch-tab', tab: $target)->to(Tabs::class);
+            $this->resetPalette();
+            return;
+        }
+
+        $this->redirectRoute('dashboard', ['tab' => $target], navigate: true);
+    }
+
     private function handleUrl(string $target): void
     {
         $this->redirect($target);
-    }
-
-    private function handleEvent(string $target): void
-    {
-        $this->dispatch($target);
-        $this->resetPalette();
     }
 
     private function resetPalette(): void

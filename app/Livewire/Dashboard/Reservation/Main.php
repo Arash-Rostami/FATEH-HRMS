@@ -14,7 +14,7 @@ use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
-    #[Url]
+    #[Url(as: 'tab')]
     public $activeTab = 'seat';
     public $activeHistoryTab = 'upcoming';
     public $date;

@@ -13,13 +13,20 @@ use App\Livewire\Dashboard\Tab\Reports;
 use App\Livewire\Dashboard\Tab\Status;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Tabs extends Component
 {
+    #[Url(as: 'tab')]
     public $activeTab = 'home';
 
     public $direction = 'up';
+
+    public function mount(): void
+    {
+        $this->activeTab = $this->normalizeTab($this->activeTab);
+    }
 
     public function navigateTab(int $step)
     {
@@ -44,21 +51,17 @@ class Tabs extends Component
     #[On('switch-tab')]
     public function setTab($tab)
     {
-        if ($tab === $this->activeTab) {
-            return;
-        }
+        $tab = $this->normalizeTab($tab);
+        if ($tab === $this->activeTab) return;
 
-        $tabsKeys = array_keys($this->tabs);
-
-        if (!in_array($tab, $tabsKeys)) {
-            return;
-        }
-
-        $currentIndex = array_search($this->activeTab, $tabsKeys);
-        $newIndex = array_search($tab, $tabsKeys);
-
-        $this->direction = $newIndex > $currentIndex ? 'up' : 'down';
+        $keys = array_keys($this->tabs);
+        $this->direction = array_search($tab, $keys) > array_search($this->activeTab, $keys) ? 'up' : 'down';
         $this->activeTab = $tab;
+    }
+
+    private function normalizeTab(?string $tab): string
+    {
+        return $tab && array_key_exists($tab, $this->tabs) ? $tab : 'home';
     }
 
     #[Computed]

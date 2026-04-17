@@ -86,7 +86,7 @@ class NavigationSearchService
                 'title' => 'پست و اعلانات',
                 'subtitle' => 'اطلاعیه‌های منابع انسانی و پیام‌های مرکزی',
                 'icon' => 'campaign',
-                'action' => 'tab:announce',
+                'action' => 'tab:post',
                 'keywords' => [
                     'announce', 'announcement', 'post', 'notice', 'news', 'bulletin', 'memo', 'update', 'message', 'hr',
                     'پست', 'اعلانات', 'اطلاعیه', 'اطلاعیه‌ها', 'اعلامیه', 'خبر', 'اخبار داخلی', 'پیام', 'پیام مرکزی',
@@ -255,7 +255,7 @@ class NavigationSearchService
                 'title' => 'پیام‌رسان داخلی',
                 'subtitle' => 'گفتگوی زنده و خصوصی با همکاران',
                 'icon' => 'perm_contact_calendar',
-                'action' => 'route:contacts',
+                'action' => 'route:contact',
                 'keywords' => [
                     'contact', 'contacts', 'chat', 'message', 'messages', 'internal', 'messenger', 'dm', 'conversation',
                     'پیام', 'پیام‌رسان', 'چت', 'گفتگو', 'گفت‌وگو', 'مخاطب', 'داخلی', 'همکار', 'همکاران',
