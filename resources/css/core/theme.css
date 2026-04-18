@@ -8,8 +8,17 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'IranYekan';
+    src: url('../../assets/fonts/Iranyekan.woff') format('woff'),
+    url('../../assets/fonts/Iranyekan.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
 @theme {
-    --font-sans: 'Yekan', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Yekan', 'IranYekan', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 :root {
@@ -137,6 +146,7 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --tool-gold-text: #f7e1c6;
         --tool-gold-color: #d1a673;
     }
+
     [data-theme='grey'] {
         --md-sys-color-primary: #3f3f46;
         --md-sys-color-on-primary: #fafafa;
@@ -972,10 +982,18 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --md-sys-color-outline-variant: #BCCFCD;
         --header-bg: #002422;
         --header-border-color: #5CC8BC;
-        --tool-amethyst-bg: #eae4f5; --tool-amethyst-text: #271d38; --tool-amethyst-color: #7a60a8;
-        --tool-sapphire-bg: #deeef2; --tool-sapphire-text: #152e36; --tool-sapphire-color: #3d7d90;
-        --tool-sage-bg: #e2ede4; --tool-sage-text: #1c2e20; --tool-sage-color: #527a5c;
-        --tool-gold-bg: #f4ecd8; --tool-gold-text: #382c14; --tool-gold-color: #9e7e3a;
+        --tool-amethyst-bg: #eae4f5;
+        --tool-amethyst-text: #271d38;
+        --tool-amethyst-color: #7a60a8;
+        --tool-sapphire-bg: #deeef2;
+        --tool-sapphire-text: #152e36;
+        --tool-sapphire-color: #3d7d90;
+        --tool-sage-bg: #e2ede4;
+        --tool-sage-text: #1c2e20;
+        --tool-sage-color: #527a5c;
+        --tool-gold-bg: #f4ecd8;
+        --tool-gold-text: #382c14;
+        --tool-gold-color: #9e7e3a;
         accent-color: var(--md-sys-color-primary) !important;
     }
 
@@ -1005,9 +1023,17 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --md-sys-color-outline-variant: #2B3E3C;
         --header-bg: #071110;
         --header-border-color: #8EE0DA;
-        --tool-amethyst-bg: #2b2838; --tool-amethyst-text: #eae4f5; --tool-amethyst-color: #baa8e0;
-        --tool-sapphire-bg: #1c3038; --tool-sapphire-text: #deeef2; --tool-sapphire-color: #7ab0c0;
-        --tool-sage-bg: #213228; --tool-sage-text: #e2ede4; --tool-sage-color: #9abfa6;
-        --tool-gold-bg: #3d3020; --tool-gold-text: #f4ecd8; --tool-gold-color: #cfb270;
+        --tool-amethyst-bg: #2b2838;
+        --tool-amethyst-text: #eae4f5;
+        --tool-amethyst-color: #baa8e0;
+        --tool-sapphire-bg: #1c3038;
+        --tool-sapphire-text: #deeef2;
+        --tool-sapphire-color: #7ab0c0;
+        --tool-sage-bg: #213228;
+        --tool-sage-text: #e2ede4;
+        --tool-sage-color: #9abfa6;
+        --tool-gold-bg: #3d3020;
+        --tool-gold-text: #f4ecd8;
+        --tool-gold-color: #cfb270;
     }
 }

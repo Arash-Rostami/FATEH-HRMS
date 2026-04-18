@@ -1,0 +1,1218 @@
+/* ═══════════════════════════════════════════════════════════════
+   FILAMENT PHP 5 — MD3 ENTERPRISE THEME
+   RTL (Persian/Farsi) · Yekan · Material Design 3 Tokens
+   ───────────────────────────────────────────────────────────────
+   Register via PanelProvider:
+     ->viteTheme('resources/css/filament/admin/theme.css')
+
+   In vite.config.js inputs:
+     'resources/css/filament/admin/theme.css'
+
+   This file imports Filament's base and then overlays your
+   full MD3 token system across every fi- hook class.
+   Dark mode, named themes, and RTL are all automatic because
+   every colour references a --md-sys-color-* custom property.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+/* ─────────────────────────────────────────────────────────────
+   1. FONT & THEME TOKENS
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+    --font-sans: 'Yekan', system-ui, sans-serif;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. BASE & LAYOUT
+   ───────────────────────────────────────────────────────────── */
+
+.fi-layout,
+.fi-simple-layout {
+    direction: rtl;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-body {
+    background-color: var(--md-sys-color-background) !important;
+    color: var(--md-sys-color-on-background);
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-main,
+.fi-main-ctn {
+    background-color: var(--md-sys-color-background);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3. SIDEBAR
+   ───────────────────────────────────────────────────────────── */
+
+.fi-sidebar {
+    background-color: var(--md-sys-color-surface) !important;
+    border-inline-start: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    border-inline-end: none !important;
+}
+
+.fi-sidebar-header {
+    background-color: var(--header-bg) !important;
+    border-bottom: 2px solid var(--header-border-color) !important;
+    padding: 1rem !important;
+}
+
+.fi-sidebar-footer {
+    border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent) !important;
+    padding: 0.75rem !important;
+}
+
+/* Group label */
+.fi-sidebar-group-label {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.625rem !important;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-inline: 1rem !important;
+}
+
+/* Nav item shell */
+.fi-sidebar-item-button {
+    border-radius: 0.75rem !important;
+    margin-inline: 0.5rem;
+    padding: 0.5rem 0.75rem !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    position: relative;
+    transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.fi-sidebar-item-button:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+/* Active nav item */
+.fi-sidebar-item.fi-active .fi-sidebar-item-button {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent) !important;
+    color: var(--md-sys-color-primary) !important;
+    font-weight: 600;
+}
+
+/* RTL active stripe — inner (left) edge of sidebar */
+.fi-sidebar-item.fi-active .fi-sidebar-item-button::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 1.5rem;
+    width: 3px;
+    border-radius: 9999px;
+    background-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
+}
+
+.fi-sidebar-item-label {
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-sidebar-item-badge {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. TOPBAR
+   ───────────────────────────────────────────────────────────── */
+
+.fi-topbar {
+    background-color: var(--header-bg) !important;
+    border-bottom: 2px solid var(--header-border-color) !important;
+    direction: rtl;
+}
+
+.fi-topbar-nav {
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+/* Topbar nav items when using top navigation mode */
+.fi-topbar-item-button {
+    border-radius: 0.75rem !important;
+    color: color-mix(in srgb, white 70%, transparent) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem !important;
+    transition: background-color 200ms, color 200ms;
+}
+
+.fi-topbar-item-button:hover {
+    background-color: color-mix(in srgb, white 10%, transparent) !important;
+    color: white !important;
+}
+
+.fi-topbar-item.fi-active .fi-topbar-item-button {
+    background-color: color-mix(in srgb, var(--header-border-color) 20%, transparent) !important;
+    color: var(--header-border-color) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. PAGE HEADER & BREADCRUMBS
+   ───────────────────────────────────────────────────────────── */
+
+.fi-header {
+    padding-block: 1.25rem !important;
+}
+
+.fi-header-heading {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-header-subheading {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.875rem;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-breadcrumbs {
+    direction: rtl;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-breadcrumbs-item-label {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.8125rem;
+}
+
+.fi-breadcrumbs-item:last-child .fi-breadcrumbs-item-label {
+    color: var(--md-sys-color-primary) !important;
+    font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   6. TABLES  (fi-ta-*)
+   ───────────────────────────────────────────────────────────── */
+
+/* Outer container / card */
+.fi-ta-ctn {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: var(--md-sys-elevation-1);
+    overflow: hidden;
+    direction: rtl;
+}
+
+/* Toolbar row (search / filter / action buttons) */
+.fi-ta-header {
+    background-color: var(--md-sys-color-surface) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+/* Column header cells */
+.fi-ta-header-cell {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 35%, transparent) !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+}
+
+/* Sort icon */
+.fi-ta-col-header-sort-btn {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.fi-ta-col-header-sort-btn[aria-sort] {
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* Data rows */
+.fi-ta-row {
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 25%, transparent) !important;
+    transition: background-color 150ms;
+}
+
+.fi-ta-row:last-child {
+    border-bottom: none !important;
+}
+
+.fi-ta-row:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 4%, transparent) !important;
+}
+
+.fi-ta-row-selected,
+.fi-ta-row-selected:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent) !important;
+}
+
+/* Cells */
+.fi-ta-cell {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    padding: 0.875rem 1rem !important;
+}
+
+/* Grouped row header */
+.fi-ta-group-header-cell {
+    background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 30%, transparent) !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-weight: 700;
+    font-size: 0.8125rem;
+}
+
+/* Footer / pagination wrapper */
+.fi-ta-footer {
+    background-color: var(--md-sys-color-surface) !important;
+    border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 0.75rem 1.25rem !important;
+}
+
+/* Filter form strip */
+.fi-ta-filters-form {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 25%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+/* Filter indicator chips */
+.fi-ta-filters-indicator-badge {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600;
+}
+
+/* Empty state */
+.fi-ta-empty-state {
+    padding: 3rem 1.5rem;
+}
+
+.fi-ta-empty-state-heading {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.fi-ta-empty-state-description {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.875rem;
+}
+
+/* Bulk-action checkboxes */
+.fi-ta-header-cell-checkbox,
+.fi-ta-cell-checkbox {
+    accent-color: var(--md-sys-color-primary) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   7. SCHEMA / FORMS  (fi-sc-* and fi-fo-*)
+   ───────────────────────────────────────────────────────────── */
+
+/* Section card — shared pattern */
+.fi-sc-section,
+.fi-fo-section {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: var(--md-sys-elevation-1);
+    overflow: hidden;
+    direction: rtl;
+}
+
+/* Section header */
+.fi-sc-section-header,
+.fi-fo-section-header {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 25%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 0.875rem 1.25rem !important;
+}
+
+.fi-sc-section-header-heading,
+.fi-fo-section-header-heading {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-sc-section-header-description,
+.fi-fo-section-header-description {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.6875rem !important;
+    margin-top: 0.25rem;
+}
+
+/* Section body */
+.fi-sc-section-content,
+.fi-fo-section-content {
+    padding: 1.25rem !important;
+}
+
+/* Field wrapper label */
+.fi-fo-field-wrp-label,
+.fi-sc-entry-wrp-label,
+.fi-in-entry-wrp-label {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.375rem;
+}
+
+/* Required asterisk */
+.fi-fo-field-wrp-label-required-indicator {
+    color: var(--md-sys-color-error) !important;
+}
+
+/* Helper text */
+.fi-fo-field-wrp-helper-text {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.75rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    margin-top: 0.3rem;
+}
+
+/* Validation error */
+.fi-fo-field-wrp-error-message {
+    color: var(--md-sys-color-error) !important;
+    font-size: 0.75rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    margin-top: 0.3rem;
+}
+
+/* ─── Input wrapper ─────────────────────────────────────── */
+
+.fi-input-wrp {
+    border-radius: 0.75rem !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent) !important;
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 30%, transparent) !important;
+    transition: border-color 200ms, box-shadow 200ms, background-color 200ms;
+}
+
+.fi-input-wrp:hover {
+    border-color: var(--md-sys-color-outline) !important;
+}
+
+.fi-input-wrp:focus-within {
+    border-color: var(--md-sys-color-primary) !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent) !important;
+}
+
+/* ─── Text inputs, textareas ────────────────────────────── */
+
+.fi-input {
+    background-color: transparent !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+    caret-color: var(--md-sys-color-primary);
+}
+
+.fi-input::placeholder {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 60%, transparent) !important;
+}
+
+.fi-textarea {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 30%, transparent) !important;
+    border-radius: 0.75rem !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+    line-height: 1.8;
+    transition: border-color 200ms, box-shadow 200ms;
+}
+
+.fi-textarea:focus {
+    border-color: var(--md-sys-color-primary) !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent) !important;
+}
+
+/* ─── Select ────────────────────────────────────────────── */
+
+.fi-select-input {
+    border-radius: 0.75rem !important;
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 30%, transparent) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+}
+
+/* Choices.js / Tom Select panel */
+.fi-select-input ~ .choices .choices__list--dropdown,
+.choices__list--dropdown {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 0.75rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden;
+    direction: rtl;
+}
+
+.choices__item--selectable.is-highlighted {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
+    color: var(--md-sys-color-primary) !important;
+}
+
+/* ─── Toggle / Checkbox ─────────────────────────────────── */
+
+.fi-checkbox-input,
+.fi-fo-checkbox-list-option-label input[type="checkbox"],
+.fi-fo-radio-option-label input[type="radio"] {
+    accent-color: var(--md-sys-color-primary) !important;
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+/* ─── Tabs ──────────────────────────────────────────────── */
+
+.fi-tabs {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 40%, transparent) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.25rem !important;
+    gap: 0.25rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 30%, transparent) !important;
+    direction: rtl;
+}
+
+.fi-tabs-tab {
+    border-radius: 0.625rem !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem !important;
+    transition: background-color 200ms, color 200ms;
+}
+
+.fi-tabs-tab:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-tabs-tab[aria-selected="true"],
+.fi-active.fi-tabs-tab {
+    background-color: var(--md-sys-color-surface) !important;
+    color: var(--md-sys-color-primary) !important;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   8. WIDGETS  (fi-wi-*)
+   ───────────────────────────────────────────────────────────── */
+
+/* Stats overview card */
+.fi-wi-stats-overview-stat {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: var(--md-sys-elevation-1);
+    padding: 1.25rem !important;
+    overflow: hidden;
+    position: relative;
+    direction: rtl;
+    transition: box-shadow 200ms;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent) !important;
+}
+
+/* Featured top stripe */
+.fi-wi-stats-overview-stat::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 3px;
+    background-color: var(--md-sys-color-primary);
+    opacity: 0.6;
+}
+
+.fi-wi-stats-overview-stat-label {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.75rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.075em;
+}
+
+.fi-wi-stats-overview-stat-value {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 1.875rem !important;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+.fi-wi-stats-overview-stat-description {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.8125rem !important;
+}
+
+.fi-wi-stats-overview-stat-icon {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Chart widget */
+.fi-wi-chart {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: var(--md-sys-elevation-1);
+    overflow: hidden;
+    direction: rtl;
+}
+
+.fi-wi-chart-header {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 20%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.fi-wi-chart-heading {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem !important;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   9. MODALS  (fi-modal-*)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-modal-window {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1.5rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16) !important;
+    overflow: hidden;
+    direction: rtl;
+}
+
+.fi-modal-header {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 25%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.fi-modal-heading {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-modal-description {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.875rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    margin-top: 0.25rem;
+}
+
+.fi-modal-content {
+    padding: 1.25rem !important;
+}
+
+.fi-modal-footer {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 20%, transparent) !important;
+    border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 0.875rem 1.25rem !important;
+    gap: 0.75rem;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+/* Backdrop */
+.fi-modal-close-overlay {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   10. BUTTONS  (fi-btn, fi-icon-btn, fi-link)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-btn {
+    border-radius: 0.75rem !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    min-height: 2.5rem;
+    transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.15s cubic-bezier(0.2, 0, 0, 1),
+    filter 0.2s !important;
+}
+
+.fi-btn:active {
+    transform: scale(0.97) !important;
+}
+
+/* Primary */
+.fi-btn-color-primary {
+    background-color: var(--md-sys-color-primary) !important;
+    color: var(--md-sys-color-on-primary) !important;
+    border-color: transparent !important;
+}
+
+.fi-btn-color-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent) !important;
+}
+
+/* Secondary */
+.fi-btn-color-secondary {
+    background-color: var(--md-sys-color-secondary-container) !important;
+    color: var(--md-sys-color-on-secondary-container) !important;
+    border-color: transparent !important;
+}
+
+.fi-btn-color-secondary:hover {
+    filter: brightness(0.95);
+}
+
+/* Gray / outlined */
+.fi-btn-color-gray {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 60%, transparent) !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent) !important;
+}
+
+.fi-btn-color-gray:hover {
+    background-color: var(--md-sys-color-surface-variant) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+/* Danger */
+.fi-btn-color-danger {
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 12%, transparent) !important;
+    color: var(--md-sys-color-error) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 30%, transparent) !important;
+}
+
+.fi-btn-color-danger:hover {
+    background-color: var(--md-sys-color-error) !important;
+    color: var(--md-sys-color-on-error) !important;
+    border-color: transparent !important;
+}
+
+/* Success */
+.fi-btn-color-success {
+    background-color: color-mix(in srgb, #22c55e 12%, transparent) !important;
+    color: #15803d !important;
+    border-color: color-mix(in srgb, #22c55e 30%, transparent) !important;
+}
+
+.fi-btn-color-success:hover {
+    background-color: #22c55e !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+/* Warning */
+.fi-btn-color-warning {
+    background-color: color-mix(in srgb, #f59e0b 12%, transparent) !important;
+    color: #92400e !important;
+    border-color: color-mix(in srgb, #f59e0b 30%, transparent) !important;
+}
+
+/* Icon buttons */
+.fi-icon-btn {
+    border-radius: 0.75rem !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    transition: background-color 200ms, color 200ms !important;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+}
+
+.fi-icon-btn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+/* Links */
+.fi-link {
+    color: var(--md-sys-color-primary) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    transition: opacity 150ms;
+}
+
+.fi-link:hover {
+    opacity: 0.75;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11. NOTIFICATIONS  (fi-no-*)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-no-notification {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--md-sys-color-primary) 10%, rgba(0, 0, 0, 0.12)) !important;
+    overflow: hidden;
+    direction: rtl;
+}
+
+.fi-no-notification-title {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-weight: 700 !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-size: 0.875rem !important;
+}
+
+.fi-no-notification-body {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.8125rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    line-height: 1.6;
+}
+
+/* Color-coded inline-start border */
+.fi-no-notification-color-success {
+    border-inline-start: 3px solid #22c55e !important;
+}
+
+.fi-no-notification-color-danger {
+    border-inline-start: 3px solid var(--md-sys-color-error) !important;
+}
+
+.fi-no-notification-color-warning {
+    border-inline-start: 3px solid #f59e0b !important;
+}
+
+.fi-no-notification-color-info {
+    border-inline-start: 3px solid var(--md-sys-color-tertiary) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   12. BADGES  (fi-badge)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-badge {
+    border-radius: 0.5rem !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    padding: 0.125rem 0.5rem !important;
+    line-height: 1.4;
+}
+
+.fi-badge-color-primary {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+}
+
+.fi-badge-color-success {
+    background-color: color-mix(in srgb, #22c55e 15%, transparent) !important;
+    color: #15803d !important;
+}
+
+.dark .fi-badge-color-success {
+    background-color: color-mix(in srgb, #22c55e 20%, transparent) !important;
+    color: #86efac !important;
+}
+
+.fi-badge-color-danger {
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 14%, transparent) !important;
+    color: var(--md-sys-color-error) !important;
+}
+
+.fi-badge-color-warning {
+    background-color: color-mix(in srgb, #f59e0b 15%, transparent) !important;
+    color: #92400e !important;
+}
+
+.dark .fi-badge-color-warning {
+    background-color: color-mix(in srgb, #f59e0b 20%, transparent) !important;
+    color: #fcd34d !important;
+}
+
+.fi-badge-color-info {
+    background-color: var(--md-sys-color-tertiary-container) !important;
+    color: var(--md-sys-color-on-tertiary-container) !important;
+}
+
+.fi-badge-color-gray {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 80%, transparent) !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   13. PAGINATION  (fi-pagination-*)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-pagination {
+    font-family: 'Yekan', system-ui, sans-serif;
+    direction: rtl;
+}
+
+.fi-pagination-previous-btn,
+.fi-pagination-next-btn,
+.fi-pagination-item-btn {
+    border-radius: 0.625rem !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent) !important;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    font-family: 'Yekan', system-ui, sans-serif;
+    transition: background-color 150ms, color 150ms;
+}
+
+.fi-pagination-previous-btn:hover,
+.fi-pagination-next-btn:hover,
+.fi-pagination-item-btn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent) !important;
+    color: var(--md-sys-color-primary) !important;
+}
+
+.fi-pagination-item-btn[aria-current="page"],
+.fi-active.fi-pagination-item-btn {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+    font-weight: 700;
+    border-color: transparent !important;
+}
+
+/* Results-per-page select */
+.fi-pagination-records-per-page-select {
+    border-radius: 0.75rem !important;
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 40%, transparent) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent) !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.8125rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   14. DROPDOWN MENUS  (fi-dropdown-*)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-dropdown-panel {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden;
+    direction: rtl;
+}
+
+.fi-dropdown-header {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem 0.25rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-dropdown-list-item-btn {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem !important;
+    transition: background-color 150ms;
+}
+
+.fi-dropdown-list-item-btn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent) !important;
+}
+
+.fi-dropdown-list-item-btn-color-danger {
+    color: var(--md-sys-color-error) !important;
+}
+
+.fi-dropdown-list-item-btn-color-danger:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, transparent) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15. GLOBAL SEARCH
+   ───────────────────────────────────────────────────────────── */
+
+.fi-global-search-field-input {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 50%, transparent) !important;
+    border-radius: 0.75rem !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+}
+
+.fi-global-search-field-input::placeholder {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.fi-global-search-results-ctn {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14) !important;
+    direction: rtl;
+}
+
+.fi-global-search-result-title {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.fi-global-search-result-detail-key {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.75rem !important;
+}
+
+.fi-global-search-result-detail-value {
+    color: var(--md-sys-color-on-surface) !important;
+    font-size: 0.75rem !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   16. CALLOUTS / ALERTS
+   ───────────────────────────────────────────────────────────── */
+
+.fi-callout {
+    border-radius: 1rem !important;
+    direction: rtl;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-callout-color-info {
+    background-color: var(--md-sys-color-tertiary-container) !important;
+    color: var(--md-sys-color-on-tertiary-container) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-tertiary) 25%, transparent) !important;
+}
+
+.fi-callout-color-success {
+    background-color: color-mix(in srgb, #22c55e 12%, var(--md-sys-color-surface)) !important;
+    border-color: color-mix(in srgb, #22c55e 35%, transparent) !important;
+}
+
+.fi-callout-color-warning {
+    background-color: color-mix(in srgb, #f59e0b 12%, var(--md-sys-color-surface)) !important;
+    border-color: color-mix(in srgb, #f59e0b 35%, transparent) !important;
+}
+
+.fi-callout-color-danger {
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 10%, var(--md-sys-color-surface)) !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 25%, transparent) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   17. INFOLIST ENTRIES  (fi-in-*)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-in-section {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    box-shadow: var(--md-sys-elevation-1);
+    overflow: hidden;
+    direction: rtl;
+}
+
+.fi-in-section-header {
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 25%, transparent) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+    padding: 0.875rem 1.25rem !important;
+}
+
+.fi-in-section-header-heading {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-in-entry-wrp {
+    direction: rtl;
+}
+
+.fi-in-entry-wrp-label {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+}
+
+.fi-in-text-item {
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.7;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   18. USER MENU & AVATAR
+   ───────────────────────────────────────────────────────────── */
+
+.fi-user-avatar {
+    border-radius: 9999px !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent) !important;
+}
+
+.fi-user-name {
+    font-family: 'Yekan', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.fi-user-job-title {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: 0.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   19. TENANT SWITCHER
+   ───────────────────────────────────────────────────────────── */
+
+.fi-tenant-menu-btn {
+    border-radius: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-family: 'Yekan', system-ui, sans-serif;
+    transition: background-color 200ms;
+}
+
+.fi-tenant-menu-btn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   20. SIMPLE / AUTH PAGES  (login, register, etc.)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-simple-main {
+    background-color: var(--md-sys-color-background);
+    direction: rtl;
+    font-family: 'Yekan', system-ui, sans-serif;
+}
+
+.fi-simple-page {
+    background-color: var(--md-sys-color-surface) !important;
+    border-radius: 1.5rem !important;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1) !important;
+    padding: 2rem !important;
+    direction: rtl;
+}
+
+.fi-simple-header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   21. FOCUS VISIBLE (accessibility)
+   ───────────────────────────────────────────────────────────── */
+
+.fi-btn:focus-visible,
+.fi-icon-btn:focus-visible,
+.fi-link:focus-visible,
+.fi-sidebar-item-button:focus-visible,
+.fi-tabs-tab:focus-visible,
+.fi-pagination-item-btn:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary) !important;
+    outline-offset: 2px;
+    border-radius: 0.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   22. PAGE ENTRANCE ANIMATIONS
+   ───────────────────────────────────────────────────────────── */
+
+@keyframes fi-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fi-main .fi-header {
+    animation: fi-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both 0.04s;
+}
+
+.fi-main .fi-wi-stats-overview {
+    animation: fi-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both 0.1s;
+}
+
+.fi-main .fi-ta-ctn {
+    animation: fi-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both 0.14s;
+}
+
+.fi-main .fi-sc-section,
+.fi-main .fi-fo-section,
+.fi-main .fi-in-section {
+    animation: fi-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both 0.1s;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   23. MISC UTILITIES
+   ───────────────────────────────────────────────────────────── */
+
+/* All text selection */
+.fi-layout ::selection {
+    background: color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+/* Code / mono inside forms */
+.fi-fo-field-wrp code,
+.fi-in-text-item code {
+    font-size: 0.8125rem;
+    background-color: color-mix(in srgb, var(--md-sys-color-surface-variant) 60%, transparent);
+    border-radius: 0.375rem;
+    padding: 0.1rem 0.375rem;
+    color: var(--md-sys-color-primary);
+    font-family: ui-monospace, 'SFMono-Regular', monospace;
+    direction: ltr;
+    display: inline-block;
+}
+
+/* Separator / divider */
+.fi-fo-field-wrp-hint-icon,
+.fi-dropdown-list-item-separator {
+    background-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important;
+}
+
+/* Loading spinner */
+.fi-loading-indicator {
+    color: var(--md-sys-color-primary) !important;
+}
