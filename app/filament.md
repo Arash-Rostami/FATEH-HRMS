@@ -596,3 +596,5 @@ Section::make()->schema([
 The resource file is the main presenter for the module. The actual form, table, infolist, action, export, enum, and relationship logic should be kept in dedicated classes and only composed in the resource. Above all, all eager loaded relationships must be present where relevant to reduce system load. The design MUST be 100% technically optimized, rather than conventionally uniform.
 
 Table views should stay intentionally sparse by default, with only the absolute essentials visible. The infolist is the primary place for complete record inspection.
+
+Last point that is super important, the primary language of the entire app, particularly filament php admin panel, inputs, labels, messages, notifications, validation messages and ... is in FARSI (Persian) and direction is RTL.
