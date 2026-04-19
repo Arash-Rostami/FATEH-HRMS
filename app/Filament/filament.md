@@ -66,7 +66,7 @@ It should:
 
 * define the model
 * define the navigation icon and sort order
-* define the high-level schema composition
+* define the high-level schema composition: note schema is sections, accordion, ... sits here not inside table or form.
 * define query behavior
 * define page routes
 * delegate form/table/infolist logic to schema classes

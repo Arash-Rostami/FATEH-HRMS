@@ -62,17 +62,17 @@ class Profile extends Model
 
     public function isProbational(): bool
     {
-        return $this->employment_status === 'probational';
+        return $this->employment_type === 'probational';
     }
 
     public function isTerminated(): bool
     {
-        return $this->employment_status === 'terminated';
+        return $this->employment_type === 'terminated';
     }
 
     public function isWorking(): bool
     {
-        return $this->employment_status === 'working';
+        return $this->employment_type === 'working';
     }
 
     public function user(): BelongsTo

@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use Filament\Enums\GlobalSearchPosition;
+use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,9 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->colors([
-                'primary' => Color::Stone,
-            ])
+            ->colors(config('colors'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -66,6 +65,10 @@ class AdminPanelProvider extends PanelProvider
                 Platform::Mac => '⌘K',
                 default => null,
             })
+            ->font((app()->getLocale() == 'fa') ? 'Yekan' : 'IranYekan',
+                url: asset('resources/css/core/theme.css'),
+                provider: LocalFontProvider::class
+            )
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->globalSearchDebounce('1000ms')
             ->breadcrumbs()
