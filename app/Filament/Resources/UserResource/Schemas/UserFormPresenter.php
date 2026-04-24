@@ -11,6 +11,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
+use Livewire\Component;
 
 class UserFormPresenter
 {
@@ -21,14 +23,32 @@ class UserFormPresenter
             ->schema([
                 Toggle::make('value')
                     ->label(__('resources/user/strings.form.booking_value'))
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->live()
+                    ->afterStateUpdated(function (bool $state, Get $get, Component $livewire): void {
+                        $booking = &$livewire->data['booking'];
+
+                        if ($get('key') === 'all') {
+                            $state && array_walk($booking, fn(&$item) => $item['value'] = true);
+                            return;
+                        }
+
+                        if (!$state) {
+                            foreach ($booking as &$item) {
+                                if ($item['key'] === 'all') {
+                                    $item['value'] = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }),
                 TextInput::make('key')
                     ->label(__('resources/user/strings.form.booking_key'))
                     ->dehydrated(true)
                     ->required()
                     ->columnSpanFull()
                     ->placeholder('کلید صرفا به انگلیسی')
-                    ->extraAttributes(['dir' => 'ltr'])
+                    ->extraAttributes(['dir' => 'ltr']),
             ])
             ->columns(2)
             ->grid(5)
@@ -36,21 +56,21 @@ class UserFormPresenter
             ->deletable(true)
             ->reorderable(false)
             ->default([
+                ['key' => 'all', 'value' => false],
                 ['key' => 'car', 'value' => false],
                 ['key' => 'seat', 'value' => true],
                 ['key' => 'spot', 'value' => true],
                 ['key' => 'meeting', 'value' => true],
-                ['key' => 'all', 'value' => false],
             ])
-            // DB  → Repeater
             ->afterStateHydrated(function (Repeater $component, $state): void {
-                if (blank($state) || array_is_list($state)) return;
-                if (isset(array_values($state)[0]['key'])) return;
+                if (blank($state)) return;
 
-                $component->state(collect($state)
-                    ->map(fn($value, $key) => ['key' => $key, 'value' => (bool)$value])
-                    ->values()
-                    ->all()
+                $items = array_is_list($state) || isset(array_values($state)[0]['key'])
+                    ? collect($component->getState())
+                    : collect($state)->map(fn($v, $k) => ['key' => $k, 'value' => (bool)$v]);
+
+                $component->state(
+                    $items->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all()
                 );
             });
     }

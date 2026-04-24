@@ -45,8 +45,12 @@ class UploadCustomDocumentAction
             $currentAttachments = collect($userProfile->attachments ?? []);
 
             $userProfile->attachments = $currentAttachments
-                ->reject(fn ($path) => str_contains($path, "doc_custom_{$slug}_"))
-                ->push($newPath)
+                ->reject(fn ($item) => str_contains($item['path'] ?? '', "doc_custom_{$slug}_"))
+                ->push([
+                    'key'      => $form->customType,
+                    'path'     => $newPath,
+                    'category' => 'custom',
+                ])
                 ->values()
                 ->all();
 

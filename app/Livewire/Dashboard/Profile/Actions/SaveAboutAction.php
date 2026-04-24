@@ -11,15 +11,13 @@ class SaveAboutAction
     /**
      * Execute the about me save operation.
      */
-    public function execute(AboutForm $form): Profile
+    public function execute(AboutForm $form, array $extra = []): Profile
     {
         $form->validate();
 
-        $profile = Profile::updateOrCreate(
+        return Profile::updateOrCreate(
             ['user_id' => Auth::id()],
-            ['about_me' => $form->getAboutMeData()]
+            ['about_me' => array_merge($form->getAboutMeData(), $extra)]
         );
-
-        return $profile;
     }
 }

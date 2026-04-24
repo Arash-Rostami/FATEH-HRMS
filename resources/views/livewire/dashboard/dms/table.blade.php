@@ -1,4 +1,3 @@
-@island('docs')
 <div
     class="overflow-x-auto rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
     <table class="w-full border-collapse text-sm">
@@ -140,4 +139,3 @@
         />
     </div>
 @endif
-@endisland

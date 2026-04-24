@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use Filament\Enums\GlobalSearchPosition;
+use Filament\Enums\UserMenuPosition;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -15,6 +16,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -66,20 +68,26 @@ class AdminPanelProvider extends PanelProvider
                 default => null,
             })
             ->font((app()->getLocale() == 'fa') ? 'Yekan' : 'IranYekan',
-                url: asset('resources/css/core/theme.css'),
+                url: asset('build/assets/fonts/Yekan.woff'),
                 provider: LocalFontProvider::class
             )
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->globalSearchDebounce('1000ms')
             ->breadcrumbs()
             ->brandName('HRMS')
-            ->brandLogo(Vite::asset('resources/assets/img/logo.png'))
+            ->brandLogo(asset('build/assets/img/logo.png'))
             ->brandLogoHeight('2.5rem')
             ->maxContentWidth(Width::Full)
             ->databaseTransactions()
+            ->collapsibleNavigationGroups()
             ->sidebarCollapsibleOnDesktop()
             ->subNavigationPosition(SubNavigationPosition::End)
             ->viteTheme('resources/css/core/filament.css')
+            ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
+                fn (): string => view('components.admin.navbar.palette-controler')->render(),
+            )
+
             ->authMiddleware([Authenticate::class]);
     }
 }

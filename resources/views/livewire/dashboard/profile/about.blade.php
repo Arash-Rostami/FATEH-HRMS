@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Str')
 <div class="space-y-6" dir="rtl">
     <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] shadow-sm">
 
@@ -57,7 +58,18 @@
                     placeholder="مثلا: سایکل توریست هستم..."
                     icon="directions_bike"
                 />
+
+
+                @foreach($extraAnswers as $key => $value)
+                    <x-ui.forms.input
+                        wire:model="extraAnswers.{{ $key }}"
+                        :name="'extraAnswers.'.$key"
+                        :label="str_replace('_', ' ', mb_convert_case($key, MB_CASE_TITLE, 'UTF-8'))"
+                        icon="edit_note"
+                    />
+                @endforeach
             </div>
+
 
             <div class="flex items-center justify-end pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
                 <x-ui.buttons.form

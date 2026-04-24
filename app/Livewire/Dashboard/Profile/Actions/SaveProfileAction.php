@@ -22,32 +22,28 @@ class SaveProfileAction
         $user = Auth::user();
         $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
-        // Fill core profile data
         $profile->fill($form->getProfileData());
 
-        // Handle birthdate conversion (Jalali to Carbon)
         if ($form->birthYear && $form->birthMonth && $form->birthDay) {
-            $profile->birthdate = Jalalian::fromFormat(
-                'Y/n/j',
-                "{$form->birthYear}/{$form->birthMonth}/{$form->birthDay}"
-            )->toCarbon();
+            $profile->birthdate = (new Jalalian(
+                $form->birthYear,
+                $form->birthMonth,
+                $form->birthDay
+            ))->toCarbon();
         }
 
-        // Handle image upload
+        if (!$user->profile || !$profile->department_id) $profile->department_id = 'HR';
+
         $imagePath = null;
         if ($form->image) {
-            $imagePath = $form->image->store('profiles', 'public');
+            $imagePath = $form->image->store('profiles/images', 'public');
             $profile->image = $imagePath;
         }
 
-        // Handle favorite colors
         $profile->favorite_colors = $form->favoriteColors;
 
         $profile->save();
 
-        return [
-            'profile' => $profile,
-            'imagePath' => $imagePath,
-        ];
+        return ['profile' => $profile, 'imagePath' => $imagePath];
     }
 }

@@ -41,7 +41,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('email_verified_at')
             ->label(__('resources/user/strings.infolist.email_verified_at'))
-            ->dateTime('Y/m/d H:i')
+            ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
             ->placeholder('تأیید نشده')
             ->icon('heroicon-o-check-badge')
             ->color(fn ($state) => $state ? 'success' : 'danger');
@@ -157,7 +157,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('created_at')
             ->label(__('resources/user/strings.infolist.created_at'))
-            ->dateTime('Y/m/d H:i')
+            ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
             ->color('zinc');
     }
 
@@ -165,7 +165,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('updated_at')
             ->label(__('resources/user/strings.infolist.updated_at'))
-            ->dateTime('Y/m/d H:i')
+            ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
             ->color('zinc');
     }
 }

@@ -28,7 +28,7 @@ export default function contact() {
             const ta = document.getElementById('msg-ta');
             if (!ta) return;
             const s = ta.selectionStart, val = ta.value;
-            this.$wire.set('body', val.slice(0, s) + e + val.slice(s));
+            this.$wire.set('composer.body', val.slice(0, s) + e + val.slice(s));
             this.emojiOpen = false;
             this.$nextTick(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = s + e.length; });
         },

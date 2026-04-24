@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('type')->default('employee');
             $table->string('role')->default('user');
             $table->string('status')->default('active');
-            $table->string('presence')->default('on-leave');
+            $table->string('presence')->default('remote');
             $table->json('booking')->default('{"car": false, "seat": true, "spot": true, "meeting": true, "all": false}');
             $table->timestamp('last_seen')->nullable();
             $table->json('extra')->nullable();

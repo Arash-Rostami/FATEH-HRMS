@@ -6,10 +6,9 @@ use App\Models\User;
 
 class ProfilePresenter
 {
-    public function avatarUrl(User $user): string
+    public function avatarUrl(User $user): ?string
     {
-        return $user->profile?->image
-            ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=random';
+        return $user->profile?->image ?? null;
     }
 
     public function completion(User $user): int

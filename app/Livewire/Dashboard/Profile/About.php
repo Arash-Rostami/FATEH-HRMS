@@ -10,12 +10,20 @@ use Livewire\Component;
 class About extends Component
 {
     public AboutForm $form;
+    public array $extraAnswers = [];
+    private const CORE_KEYS = ['bio', 'movies', 'music', 'hobbies', 'food', 'sports'];
+
 
     public function mount(): void
     {
         $profile = Auth::user()->profile;
+        $aboutMe = $profile?->about_me ?? [];
 
-        if ($profile?->about_me) $this->form->fill($profile->about_me);
+        if ($aboutMe) $this->form->fill($aboutMe);
+
+        $this->extraAnswers = collect($aboutMe)
+            ->except(self::CORE_KEYS)
+            ->toArray();
     }
 
     public function render()
@@ -25,7 +33,7 @@ class About extends Component
 
     public function save(SaveAboutAction $action): void
     {
-        $action->execute($this->form);
+        $action->execute($this->form, $this->extraAnswers);
 
         $this->dispatch('toast', message: 'اطلاعات درباره من با موفقیت بروزرسانی شد', type: 'success');
     }

@@ -2,12 +2,13 @@
 @import "./theme.css";
 @import "./animation.css";
 
+
+
 /* ============================================
    BASE
    ============================================ */
-
 @layer base {
-    * {
+    *:not(.material-symbols-rounded) {
         font-family: var(--font-sans) !important;
         scrollbar-width: thin;
         scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 62%) transparent;
@@ -56,31 +57,100 @@
 
     .fi-circular{@apply !rounded-xl}
 
-    /* Sidebar */
-    .fi-sidebar-header,
-    .fi-sidebar-close-overlay {
-        @apply !bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_70%)]
-        !bg-[var(--md-sys-color-primary)]/60 will-change-[opacity];
+    .fi-main {
+        @apply !max-w-none;
     }
 
+    .fi-logo {
+        animation: fadeInDown 1s ease-in-out both !important;
+    }
+
+    /* Sidebar */
+    .fi-sidebar-close-overlay{
+        @apply !w-[20%]
+    }
+
+    .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {
+        @apply !w-full;
+    }
+    .fi-sidebar-nav{
+        @apply !w-5/6
+    }
+
+    .fi-sidebar-group-collapse-btn{
+        @apply relative left-9
+    }
+    .fi-sidebar-header,
+    .fi-sidebar-close-overlay {
+        @apply
+        !bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_70%)]
+        !bg-[var(--md-sys-color-primary)]/60 will-change-[opacity];
+    }
     /* Sidebar items */
     .fi-sidebar-item > a {
-        @apply rounded-2xl transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)] px-4 py-3;
+        @apply !text-[var(--md-sys-color-on-primary)] !w-[60%]
+        !bg-[var(--md-sys-color-primary)]
+        rounded-2xl transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)] px-4 py-3;
     }
+
+    .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item > a {
+        @apply !w-full;
+    }
+
+    .fi-sidebar-item >  a span ,  .fi-sidebar-item >  a svg {
+        @apply !text-[var(--md-sys-color-on-primary)];
+    }
+
     .fi-sidebar-item > a:hover {
-        @apply !bg-[var(--md-sys-color-primary-container)] translate-x-1;
+        @apply !bg-[var(--md-sys-color-on-primary)] shadow-lg transition-all duration-300;
     }
+    .fi-sidebar-item > a:hover > span, .fi-sidebar-item > a:hover > svg{
+        @apply !text-[var(--md-sys-color-primary)]
+    }
+
     .fi-sidebar-item.fi-active > a {
-        @apply relative !bg-[var(--md-sys-color-primary)]/60;
+        @apply relative !bg-[var(--md-sys-color-primary-container)]
     }
+
+    .fi-sidebar-item.fi-active > a span, .fi-sidebar-item.fi-active > a svg{
+        @apply !text-[var(--md-sys-color-primary)];
+    }
+
     .fi-sidebar-item.fi-active > a::after {
         content: '';
         @apply absolute right-0 top-1/2 -translate-y-1/2
         w-[3px] h-6
-        bg-[var(--md-sys-color-primary)]
+        bg-[var(--header-border-color)]
         rounded-full
-        shadow-[0_0_8px_color-mix(in_srgb,var(--md-sys-color-primary),transparent_40%)];
+        shadow-[0_0_8px_color-mix(in_srgb,var(--header-border-color),transparent_40%)];
     }
+    .fi-topbar-start{
+        direction: ltr!important;
+    }
+
+    .fi-topbar-open-collapse-sidebar-btn,
+    .fi-topbar-close-collapse-sidebar-btn,
+    .fi-sidebar-group-collapse-btn {
+        @apply inline-flex items-center justify-center
+        !w-4 !h-4 p-0 rounded-sm relative top-3
+        border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]
+        bg-[var(--md-sys-color-primary-container)]
+        text-[var(--md-sys-color-on-primary-container)]
+        shadow-sm transition-all duration-200 ease-out
+        focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/40
+        active:scale-95;
+    }
+    .fi-topbar-open-collapse-sidebar-btn > svg,
+    .fi-topbar-close-collapse-sidebar-btn > svg{
+        @apply !w-3 !h-3
+    }
+
+    .fi-topbar-open-collapse-sidebar-btn:hover,
+    .fi-topbar-close-collapse-sidebar-btn:hover,
+    .fi-sidebar-group-collapse-btn:hover {
+        @apply -translate-y-0.5 scale-105 shadow-lg;
+    }
+
 
     /* Cards & Sections */
     .fi-card,
@@ -109,6 +179,8 @@
         @apply !rounded-2xl !overflow-visible
         !shadow-[0_4px_10px_color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_70%)];
     }
+
+
 
 
     .fi-ta-header-ctn {
@@ -297,20 +369,16 @@
     }
 
     /* ── Global search ─────────────────────────────── */
-    .fi-global-search-field {
-        @apply !rounded-xl !bg-[var(--md-sys-color-surface-variant)]
-        !border !border-[var(--md-sys-color-outline-variant)]
-        !min-h-[44px]
-        transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)];
+    .fi-global-search-field, .fi-input-wrp {
+        @apply !rounded-xl cursor-pointer !bg-[var(--md-sys-color-on-primary)]
     }
     .fi-global-search-field:focus-within {
-        @apply !border-[var(--md-sys-color-primary)]
-        !ring-2 !ring-[color-mix(in_srgb,var(--md-sys-color-primary),transparent_80%)];
+        @apply !bg-[var(--md-sys-color-on-primary)]
+        !ring-2 !ring-[var(--md-sys-color-primary)];
     }
     .fi-global-search-results {
-        @apply !rounded-2xl !bg-[var(--md-sys-color-surface)]
-        !shadow-[0_25px_50px_-12px_color-mix(in_srgb,var(--md-sys-color-primary),transparent_25%)]
-        !border !border-[var(--md-sys-color-outline-variant)];
+        @apply !rounded-2xl !bg-[var(--md-sys-color-on-primary)]
+        !border !border-[var(--md-sys-color-on-primary)];
         animation: bubbleIn 0.25s cubic-bezier(0.2, 0, 0, 1) both !important;
     }
     .fi-global-search-result-group-label {
@@ -319,7 +387,21 @@
     }
     .fi-global-search-result-item {
         @apply rounded-xl transition-all duration-[200ms]
-        hover:!bg-[var(--md-sys-color-primary-container)];
+        hover:!bg-[var(--md-sys-color-on-primary)];
+    }
+    .fi-global-search-ctn [class*="fi-input-wrp"] {
+        @apply !bg-[var(--md-sys-color-primary)]/80 transition-all duration-300 !border-none cursor-pointer
+    }
+
+    .fi-global-search-ctn .fi-input-wrp-label {
+        @apply !text-xs flex !items-center !justify-center !text-center p-[3px] text-[var(--md-sys-color-primary-container)]/60
+    }
+
+    .fi-global-search-ctn .fi-input-wrp-prefix svg{
+        @apply !text-[var(--md-sys-color-primary-container)]/60
+    }
+    .fi-global-search-ctn .fi-input-wrp-content-ctn input::placeholder {
+        @apply !text-[var(--md-sys-color-primary-container)]/60
     }
 
     /* ── Empty state ───────────────────────────────── */
@@ -548,50 +630,46 @@
 /* ============================================
    LOGIN PAGE
    ============================================ */
-.fi-body .fi-simple-layout {
-    position: relative;
-    overflow: hidden;
-    min-height: 100vh;
-    isolation: isolate;
-    background: var(--md-sys-color-primary);
+@layer components {
+    .fi-simple-layout {
+        @apply relative isolate min-h-screen overflow-hidden p-[10px] bg-[var(--md-sys-color-primary)];
+    }
+
+    .fi-simple-layout::before {
+        @apply content-[''] absolute top-[-10%] right-[-5%] h-[120%] w-[70%] z-0 will-change-transform bg-[url('/resources/assets/img/mining.webp')] bg-center bg-cover bg-no-repeat;
+        mask-image: linear-gradient(to right, transparent 5%, black 35%);
+        animation: kenburnsTopLeft 25s ease-in-out infinite alternate !important;
+    }
+
+    .fi-simple-layout::after {
+        @apply content-[''] absolute inset-0 z-[1] pointer-events-none;
+        background: radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+    }
+
+    .fi-simple-main {
+        @apply relative z-10 rounded-2xl;
+    }
 }
 
-.fi-body .fi-simple-layout::before {
-    content: "";
-    position: absolute;
-    top: -10%;
-    right: -5%;
-    width: 70%;
-    height: 120%;
-    background: url('/resources/assets/img/mining.webp') center/cover no-repeat;
-    will-change: transform;
-    animation: kenburnsTopLeft 25s ease-in-out infinite alternate !important;
-    z-index: 0;
-    mask-image: linear-gradient(to right, transparent 5%, black 35%);
+.fi-simple-header > img {
+    @apply bg-[var(--md-sys-color-primary)] dark:bg-gray-900/90 shadow-xl rounded-lg p-1 w-auto border border-black/5 dark:border-white/10;
 }
 
-.fi-body .fi-simple-layout::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
-    z-index: 1;
-    pointer-events: none;
+.fi-user-avatar {
+    display: none;
 }
 
-.fi-simple-main {
-    position: relative;
-    z-index: 10;
+.fi-user-menu-trigger {
+    @apply inline-flex items-center justify-center w-[35px] h-[35px] rounded-[10px] font-bold text-white;
+    background: var(--md-sys-color-primary-container);
+}
+.no-shell{
+    @apply !z-50
+}
+.no-shell [class*="fi-"],
+.no-shell [class*="ring"],
+.no-shell [class*="shadow"],
+.no-shell [class*="border"] {
+    @apply border-0 shadow-none outline-none ring-0;
 }
 
-.fi-simple-header{
-    /*@apply bg-[var(--md-sys-color-primary)]*/
-}
-
-/* ============================================
-   LOGO
-   ============================================ */
-
-.fi-logo {
-    animation: bounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both !important;
-}

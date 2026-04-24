@@ -11,7 +11,7 @@
 
                 <x-ui.avatar
                     title="تصویر پروفایل"
-                    :existingImage="$avatarImage"
+                    :existingImage="$avatarImage ?? null"
                     :alt="$user->name"
                     class="relative !w-20 !h-20 rounded-2xl border-2 border-[var(--md-sys-color-surface)] shadow-md group-hover:scale-105 transition-all hover:grayscale duration-500"
                 />

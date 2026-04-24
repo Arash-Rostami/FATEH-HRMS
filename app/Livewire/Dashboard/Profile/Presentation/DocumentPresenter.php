@@ -11,33 +11,22 @@ class DocumentPresenter
 
     public function parseAttachments(?array $attachments): Collection
     {
-        $parsed = collect();
-
-        foreach ($attachments ?? [] as $path) {
-            if (!is_string($path)) {
-                continue;
-            }
-
-            $fileName = basename($path);
-            $normalizedFileName = str_replace('__', '_', $fileName);
-
-            if (preg_match('/doc_(standard|custom)_(.+)__?(\d{10,})\.\w+/', $normalizedFileName, $matches)) {
-                $category = $matches[1];
-                $keyOrSlug = $matches[2];
-                $timestamp = (int) $matches[3];
-
-                $parsed->push([
-                    'category' => $category,
-                    'key' => $keyOrSlug,
-                    'uploadedTime' => Carbon::createFromTimestamp($timestamp, 'Asia/Tehran')->format('Y/m/d H:i'),
-                    'path' => $path,
-                    'url' => Storage::disk('public')->url($path),
-                    'fileName' => $fileName,
-                ]);
-            }
-        }
-
-        return $parsed;
+        return collect($attachments ?? [])
+            ->filter(fn ($item) => is_array($item) && isset($item['path'], $item['category'], $item['key']))
+            ->map(fn ($item) => [
+                'category'     => $item['category'],
+                'key'          => $item['key'],
+                'path'         => $item['path'],
+                'url'          => Storage::disk('public')->url($item['path']),
+                'fileName'     => basename($item['path']),
+                'uploadedTime' => isset($item['uploaded_at'])
+                    ? Carbon::parse($item['uploaded_at'])->timezone('Asia/Tehran')->format('Y/m/d H:i')
+                    : Carbon::createFromTimestamp(
+                        (int) preg_replace('/.*_(\d{10,})\.\w+$/', '$1', basename($item['path'])),
+                        'Asia/Tehran'
+                    )->format('Y/m/d H:i'),
+            ])
+            ->values();
     }
 
 

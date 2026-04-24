@@ -9,7 +9,7 @@
             class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm ">
             @if(auth()->check())
                 <x-ui.avatar
-                    :existingImage="auth()->user()?->profile->image"
+                    :existingImage="auth()->user()?->profile?->image"
                     alt="{{ auth()->user()->name }}"
                 />
 

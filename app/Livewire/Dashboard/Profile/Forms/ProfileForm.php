@@ -85,13 +85,13 @@ class ProfileForm extends Form
     #[Validate('nullable|array')]
     public array $favoriteColors = [];
 
-    #[Validate('required|integer')]
+    #[Validate('nullable|integer')]
     public ?int $birthYear = null;
 
-    #[Validate('required|integer')]
+    #[Validate('nullable|integer')]
     public ?int $birthMonth = null;
 
-    #[Validate('required|integer')]
+    #[Validate('nullable|integer')]
     public ?int $birthDay = null;
 
     /**

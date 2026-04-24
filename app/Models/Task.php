@@ -53,7 +53,7 @@ class Task extends Model
     protected function assigneeName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->assignee?->full_name
+            get: fn () => $this->assignee?->name
         );
     }
 
@@ -91,7 +91,7 @@ class Task extends Model
     protected function delegatorName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->creator?->full_name
+            get: fn () => $this->creator?->name
         );
     }
 

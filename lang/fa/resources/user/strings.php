@@ -48,6 +48,7 @@ return [
 
     'table' => [
         'id'         => 'شناسه',
+        'avatar'     => 'تصویر',
         'name'       => 'نام',
         'email'      => 'ایمیل',
         'type'       => 'نوع',
@@ -62,15 +63,6 @@ return [
         'filter_role'     => 'نقش',
         'filter_type'     => 'نوع',
         'filter_presence' => 'حضور',
-
-        'action_view'           => 'مشاهده',
-        'action_edit'           => 'ویرایش',
-        'action_delete'         => 'حذف',
-        'action_delete_confirm' => 'آیا از حذف این کاربر اطمینان دارید؟',
-        'action_delete_body'    => 'این عملیات قابل بازگشت نیست.',
-
-        'bulk_delete' => 'حذف انتخاب‌شده‌ها',
-        'bulk_export' => 'خروجی Excel',
     ],
 
     'infolist' => [

@@ -41,8 +41,12 @@ class UploadStandardDocumentAction
             $currentAttachments = collect($userProfile->attachments ?? []);
 
             $userProfile->attachments = $currentAttachments
-                ->reject(fn ($path) => str_contains($path, "doc_standard_{$key}_"))
-                ->push($newPath)
+                ->reject(fn ($item) => str_contains($item['path'] ?? '', "doc_standard_{$key}_"))
+                ->push([
+                    'key'      => $key,
+                    'path'     => $newPath,
+                    'category' => 'standard',
+                ])
                 ->values()
                 ->all();
 

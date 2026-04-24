@@ -41,7 +41,7 @@ class Main extends Component
 
     public function mount(): void
     {
-        $this->ticket->department = data_get(auth()->user(), 'profile.department.name', 'N/A');
+        $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
         $this->loadRequestAreas();
 
@@ -84,22 +84,18 @@ class Main extends Component
 
     public function submitTicket(SubmitTicketAction $action): void
     {
-        try {
-            $action->execute($this->ticket);
+        $action->execute($this->ticket);
 
-            $this->ticket->reset();
-            $this->ticket->department = data_get(auth()->user(), 'profile.department.name', 'N/A');
-            $this->ticket->requestType = 'support';
-            $this->ticket->priority = 'low';
-            $this->ticket->fileInputs[] = uniqid('', true);
-            $this->loadRequestAreas();
+        $this->ticket->reset();
+        $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
+        $this->ticket->requestType = 'support';
+        $this->ticket->priority = 'low';
+        $this->ticket->fileInputs[] = uniqid('', true);
+        $this->loadRequestAreas();
 
-            $this->activeTab = 'log';
-            $this->direction = 'up';
-            $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
-        } catch (\Exception) {
-            $this->dispatch('toast', message: 'خطایی رخ داده است. لطفا دوباره تلاش کنید.', type: 'error');
-        }
+        $this->activeTab = 'log';
+        $this->direction = 'up';
+        $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
     }
 
     public function switchTab(string $tab): void

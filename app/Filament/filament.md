@@ -1,6 +1,7 @@
 # Filament 5 Module Structure Guide
 
 This document describes the preferred module structure for a Filament PHP 5 resource. The goal is to keep each concern isolated, reusable, easy to scan, and consistent with the Livewire module pattern used elsewhere in the codebase.
+But before reading the rest, also closely study and examine the latest documentation of filament php 5 in order not offer any hallucinated response: https://filamentphp.com/docs/5.x/resources/overview
 
 Filament’s resource model is centered on a main resource class plus dedicated `Pages`, and the framework expects tables to hold columns, filters, and actions, while forms and infolists define schema-driven UI. Relation managers are the standard way to manage related records inside a resource. citeturn0search0turn0search2turn0search11
 
@@ -66,9 +67,10 @@ It should:
 
 * define the model
 * define the navigation icon and sort order
-* define the high-level schema composition: note schema is sections, accordion, ... sits here not inside table or form.
+* define the high-level schema composition: note schema is tabs (not too many - in form and infolist only in a similar and logical way for grouping connected data) sections, accordion, ... sits here not inside table or form.
 * define query behavior
 * define page routes
+* define and configure relevant attributes for global search (e.g., getGloballySearchableAttributes) and results. Include key fields that provide real value to users, and extend search coverage by incorporating significant, well-related attributes from connected relationships where appropriate so users see all modules related.
 * delegate form/table/infolist logic to schema classes
 * connect only true cross-cutting traits when necessary
 * note that all relationships available MUST be eager-loaded inside this resource class as well as table and form for performant and less resource intensive experience.
@@ -76,25 +78,74 @@ It should:
 
 Example responsibilities:
 
+
 ```php
 class UserResource extends Resource
 {
     use HandleActivation; // only for true cross-cutting behavior
 
     protected static ?string $model = User::class;
+    
+   public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'ایمیل' => $record->email,
+        ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('edit', ['record' => $record]);
+    }
+
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        return [
+            Action::make('edit')
+                ->icon('heroicon-m-pencil')
+                ->url(static::getUrl('edit', ['record' => $record])),
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email'];
+    }
+    
+      public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['profile', 'profile.department']);
+    }
+    
+    ... the rest of resource
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->schema([
-                    UserFormPresentater::name(),
-                    UserFormPresentater::email(),
-                    UserFormPresentater::isActive(),
-                ])
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/user/strings.form.section_identity'))
+                        ->icon('heroicon-o-user-circle')
+                        ->schema([
+                            Section::make()
+                                ->schema([
+                                    UserFormPresentater::name(),
+                                    UserFormPresentater::email(),
+                                    UserFormPresentater::isActive(),
+                                ])
                 ->columnSpanFull()
                 ->columns(2),
-        ]);
+                ...
+                ])
+                ->columnSpanFull()
+                ->persistTabInQueryString(),
+        ])
     }
 }
 ```
@@ -205,6 +256,51 @@ class UserInfolistPresenter
 }
 ```
 
+Note:
+Make most of all tables, forms, and infolist options as much as practical and relevant.
+Try to make as many as no-nonsensical filters, not just a few. if you see it makes a real difference and provides ease for data filtering, makes that filter.
+Do not forget the grouping feature of table rows as it helps users classify information in relevant orders: https://filamentphp.com/docs/5.x/tables/grouping#grouping-rows
+Across all tables, info lists, and—where appropriate—forms, you may use the color combinations available in Filament PHP 5, as follows: apply colors purposefully to improve clarity, hierarchy, and usability, ensuring consistency and avoiding excessive or purely decorative use.
+
+```php
+return [
+'danger' => Color::Red,
+'gray' => Color::Zinc,
+'info' => Color::Blue,
+'primary' => Color::Amber,
+'success' => Color::Green,
+'warning' => Color::Amber,
+
+    'slate' => Color::Slate,
+    'gray-palette' => Color::Gray,
+    'zinc' => Color::Zinc,
+    'neutral' => Color::Neutral,
+    'stone' => Color::Stone,
+
+    'mauve' => Color::Mauve,
+    'olive' => Color::Olive,
+    'mist' => Color::Mist,
+    'taupe' => Color::Taupe,
+
+    'red' => Color::Red,
+    'orange' => Color::Orange,
+    'amber' => Color::Amber,
+    'yellow' => Color::Yellow,
+    'lime' => Color::Lime,
+    'green' => Color::Green,
+    'emerald' => Color::Emerald,
+    'teal' => Color::Teal,
+    'cyan' => Color::Cyan,
+    'sky' => Color::Sky,
+    'blue' => Color::Blue,
+    'indigo' => Color::Indigo,
+    'violet' => Color::Violet,
+    'purple' => Color::Purple,
+    'fuchsia' => Color::Fuchsia,
+    'pink' => Color::Pink,
+    'rose' => Color::Rose,
+];
+````
 ### 3) Actions
 
 Optionally use module actions only when a write operation is reusable or complex enough to deserve extraction.
@@ -303,6 +399,7 @@ A relation manager should:
 * define relation-specific row actions and bulk actions
 * redirect create/edit actions to the correct resource page when needed
 * note that all relationships available MUST be eager-loaded inside the table and form for performant and less resource intensive experience.
+* relationships can be multiple tables separated by tabs below form, but if they have only one record no filter or search is needed.
 
 * Example:
 
@@ -531,7 +628,8 @@ class UserResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            UserFormPresentater::name(),
+// Tab if needed
+            UserFormPresenter::name(),
         ]);
     }
 
@@ -544,14 +642,15 @@ class UserResource extends Resource
                 UserTablePresentater::email(),
             ])
             ->filters([
-                UserTablePresentater::statusFilter(),
+                UserTablePresenter::statusFilter(),
             ]);
     }
 
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            UserInfolistPresentater::name(),
+// similar Tab if needed
+            UserInfolistPresenter::name(),
         ]);
     }
 }

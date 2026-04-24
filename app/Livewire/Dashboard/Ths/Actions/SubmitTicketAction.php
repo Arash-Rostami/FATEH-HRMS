@@ -14,15 +14,13 @@ class SubmitTicketAction
             ->map(fn($f) => is_array($f) ? reset($f) : $f)
             ->filter()->toArray();
 
-        $form->validate();
-
         Ticket::create([
             'request_type'    => $form->requestType,
             'request_area'    => $form->requestArea,
             'priority'        => $form->priority,
             'request_subject' => $form->subject,
             'description'     => $form->description,
-            'requester_files' => $this->storeFiles($form->files),
+            'requester_files' => $this->storeFiles($form->files) ?? null,
             'requester_id'    => auth()->id(),
             'extra'           => ['department' => $form->department ?? 'N/A'],
         ]);

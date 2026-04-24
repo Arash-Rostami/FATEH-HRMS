@@ -3,19 +3,13 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Traits\FilamentHeaderActions;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListUsers extends ListRecords
 {
-    protected static string $resource = UserResource::class;
+    use FilamentHeaderActions;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make()
-                ->icon('heroicon-o-sparkles')
-                ->label('افزودن کاربر'),
-        ];
-    }
+    protected static string $resource = UserResource::class;
 }

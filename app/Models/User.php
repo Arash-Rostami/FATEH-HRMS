@@ -82,7 +82,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'developer';
     }
 
     public function isOnline(int $minutes = 5): bool

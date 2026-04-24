@@ -1,13 +1,17 @@
 <div x-data="{
         user: null,
         aboutMe: {},
-        resetData() { setTimeout(() => this.user = null, 300) }
+        resetData() { setTimeout(() => this.user = null, 300) },
+        get extraKeys() {
+                const core = ['bio','movies','music','hobbies','food','sports'];
+                return Object.keys(this.aboutMe).filter(k => !core.includes(k) && this.aboutMe[k]);
+            }
      }"
      @open-about-me.window="user = $event.detail.user; aboutMe = $event.detail.aboutMe || {}; $wire.showAboutModal = true;">
 
     <x-ui.modals.base
         wire:model="showAboutModal"
-        contentClass="w-full max-w-2xl bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
+        contentClass="w-full max-w-2xl bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl overflow-x-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
 
         <div class="absolute inset-0 pointer-events-none z-0 opacity-[0.03] dark:opacity-[0.05]"
              style="background-image: radial-gradient(circle, var(--md-sys-color-on-surface) 1px, transparent 1px); background-size: 28px 28px;">
@@ -155,8 +159,24 @@
                             </div>
                         </template>
                     </div>
+                    <div x-show="extraKeys.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <template x-for="key in extraKeys" :key="key">
+                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/50 shadow-sm hover:shadow-[0_8px_25px_color-mix(in_srgb,var(--md-sys-color-secondary)_15%,transparent)] transition-all duration-300 relative overflow-hidden group">
+                                <div class="absolute top-0 inset-x-0 h-[3px] bg-[var(--md-sys-color-outline-variant)] opacity-0 group-hover:opacity-60 transition-all duration-300"></div>
+                                <div class="flex items-start gap-4">
+                                    <div class="w-11 h-11 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110">
+                                        <span class="material-symbols-rounded text-xl font-fill">edit_note</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-widest mb-1.5" x-text="key.replace(/_/g, ' ')"></h5>
+                                        <p class="text-sm text-[var(--md-sys-color-on-surface)] leading-relaxed font-medium" x-text="aboutMe[key]"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
 
-                    <div x-show="!aboutMe.bio && !aboutMe.movies && !aboutMe.music && !aboutMe.hobbies && !aboutMe.food && !aboutMe.sports"
+                    <div x-show="!aboutMe.bio && !aboutMe.movies && !aboutMe.music && !aboutMe.hobbies && !aboutMe.food && !aboutMe.sports && !extraKeys.length"
                          class="flex flex-col items-center justify-center py-20 px-4 text-center">
                         <div class="w-24 h-24 rounded-3xl bg-[var(--md-sys-color-surface-variant)]/30 flex items-center justify-center mb-6 relative overflow-hidden">
                             <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)]/40 font-fill">contact_page</span>

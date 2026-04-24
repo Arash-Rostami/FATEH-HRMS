@@ -14,7 +14,6 @@ class CreateCredentialsTable extends Migration
     public function up()
     {
         Schema::create('credentials', function (Blueprint $table) {
-            Schema::create('app_credentials', function (Blueprint $table) {
 
                 $table->id();
                 $table->foreignId('user_id')
@@ -32,7 +31,6 @@ class CreateCredentialsTable extends Migration
                 $table->index(['user_id', 'app_name']);
                 $table->index(['user_id', 'username']);
             });
-        });
     }
 
     /**

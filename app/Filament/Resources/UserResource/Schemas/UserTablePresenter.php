@@ -6,51 +6,38 @@ use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Filament\Resources\UserResource\Exports\UserExporter;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ExportBulkAction;
-use Filament\Actions\ViewAction;
+use App\Models\User;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 
 class UserTablePresenter
 {
-    public static function bulkActions(): array
+    public static function avatar(): ImageColumn
     {
-        return [
-            DeleteBulkAction::make()
-                ->label(__('resources/user/strings.table.bulk_delete')),
-            ExportBulkAction::make()
-                ->label(__('resources/user/strings.table.bulk_export'))
-                ->exporter(UserExporter::class)
-        ];
+        return ImageColumn::make('profile.image')
+            ->label(__('resources/user/strings.table.avatar'))
+            ->circular()
+            ->imageSize(40)
+            ->disk('public')
+            ->defaultImageUrl(
+                fn($record): string => 'https://ui-avatars.com/api/?name='
+                    . urlencode($record->name ?? 'User')
+                    . '&background=0D8ABC&color=fff&size=128'
+            )
+            ->toggleable(isToggledHiddenByDefault: false);
     }
+
 
     public static function createdAt(): TextColumn
     {
         return TextColumn::make('created_at')
             ->label(__('resources/user/strings.table.created_at'))
-            ->dateTime('Y/m/d')
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true)
             ->color('zinc');
-    }
-
-    public static function deleteAction(): DeleteAction
-    {
-        return DeleteAction::make()
-            ->label(__('resources/user/strings.table.action_delete'))
-            ->requiresConfirmation()
-            ->modalHeading(__('resources/user/strings.table.action_delete_confirm'))
-            ->modalDescription(__('resources/user/strings.table.action_delete_body'));
-    }
-
-    public static function editAction(): EditAction
-    {
-        return EditAction::make()
-            ->label(__('resources/user/strings.table.action_edit'));
     }
 
     public static function email(): TextColumn
@@ -82,6 +69,30 @@ class UserTablePresenter
             ->placeholder('-')
             ->toggleable(isToggledHiddenByDefault: true)
             ->color('sky');
+    }
+
+    public static function statusGroup(): Group
+    {
+        return Group::make('status')
+            ->label(__('resources/user/strings.table.filter_status'))
+            ->getTitleFromRecordUsing(fn(User $record): string => UserStatus::tryFrom($record->status)?->getLabel() ?? $record->status ?? '-')
+            ->collapsible();
+    }
+
+    public static function roleGroup(): Group
+    {
+        return Group::make('role')
+            ->label(__('resources/user/strings.table.filter_role'))
+            ->getTitleFromRecordUsing(fn(User $record): string => UserRole::tryFrom($record->role)?->getLabel() ?? $record->role ?? '-')
+            ->collapsible();
+    }
+
+    public static function presenceGroup(): Group
+    {
+        return Group::make('presence')
+            ->label(__('resources/user/strings.table.filter_presence'))
+            ->getTitleFromRecordUsing(fn(User $record): string => $record->presence instanceof PresenceStatus ? $record->presence->label() : ($record->presence ?? '-'))
+            ->collapsible();
     }
 
     public static function maximum(): TextColumn
@@ -179,12 +190,5 @@ class UserTablePresenter
         return SelectFilter::make('type')
             ->label(__('resources/user/strings.table.filter_type'))
             ->options(UserType::class);
-    }
-
-    public static function viewAction(): ViewAction
-    {
-        return ViewAction::make()
-            ->label(__('resources/user/strings.table.action_view'))
-            ->slideOver();
     }
 }
