@@ -14,13 +14,13 @@
             <div class="flex items-center gap-1">
                 <button
                     wire:click="prevMonth"
-                    class="group flex items-center justify-center w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
+                    class="group flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
                 >
                     <span class="material-symbols-rounded text-sm">chevron_right</span>
                 </button>
                 <button
                     wire:click="nextMonth"
-                    class="group flex items-center justify-center w-8 h-8 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
+                    class="group flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all duration-200 active:scale-90"
                 >
                     <span class="material-symbols-rounded text-sm">chevron_left</span>
                 </button>

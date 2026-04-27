@@ -3,7 +3,6 @@
 namespace App\Providers\Filament;
 
 use Filament\Enums\GlobalSearchPosition;
-use Filament\Enums\UserMenuPosition;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -13,7 +12,6 @@ use Filament\Pages\Dashboard;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
@@ -24,7 +22,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -45,7 +43,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -84,10 +81,19 @@ class AdminPanelProvider extends PanelProvider
             ->subNavigationPosition(SubNavigationPosition::End)
             ->viteTheme('resources/css/core/filament.css')
             ->renderHook(
+                PanelsRenderHook::SCRIPTS_BEFORE,
+                fn (): string => Blade::render("@vite('resources/js/admin/filament-theme-adapter.js')")
+            )
+//            ->renderHook(
+//                PanelsRenderHook::HEAD_START,
+//                fn (): string => view('components.admin.theme')->render(),
+//            )
+
+
+            ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => view('components.admin.navbar.palette-controler')->render(),
             )
-
             ->authMiddleware([Authenticate::class]);
     }
 }

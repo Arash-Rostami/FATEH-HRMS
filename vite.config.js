@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
+import {defineConfig} from 'vite'
 import laravel from 'laravel-vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { VitePWA } from 'vite-plugin-pwa'
+import {viteStaticCopy} from 'vite-plugin-static-copy'
+import {VitePWA} from 'vite-plugin-pwa'
 
 export default defineConfig({
     plugins: [
@@ -12,17 +12,18 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/core/filament.css',
-                'resources/js/app.js'
+                'resources/js/app.js',
+                'resources/js/admin/filament.js'
             ],
             refresh: true,
         }),
 
         viteStaticCopy({
             targets: [
-                { src: 'resources/assets/audio', dest: 'assets' },
-                { src: 'resources/assets/video', dest: 'assets' },
-                { src: 'resources/assets/img',   dest: 'assets' },
-                { src: 'resources/assets/fonts', dest: 'assets' },
+                {src: 'resources/assets/audio', dest: 'assets'},
+                {src: 'resources/assets/video', dest: 'assets'},
+                {src: 'resources/assets/img', dest: 'assets'},
+                {src: 'resources/assets/fonts', dest: 'assets'},
                 {
                     src: 'node_modules/material-symbols/rounded.css',
                     dest: 'assets/material-symbols'

@@ -171,3 +171,16 @@ if (!function_exists('toJalali')) {
         return Jalalian::fromCarbon(Carbon::parse($dateString))->format($format);
     }
 }
+
+if (!function_exists('toJalaliSmart')) {
+    function toJalaliSmart(mixed $date): string
+    {
+        if (blank($date)) return '—';
+
+        $carbon = $date instanceof Carbon ? $date : Carbon::parse($date);
+
+        return $carbon->format('H:i') === '00:00'
+            ? toJalali($carbon, 'Y/m/d')
+            : toJalali($carbon, 'Y/m/d H:i');
+    }
+}
