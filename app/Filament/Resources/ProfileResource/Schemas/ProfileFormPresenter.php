@@ -181,7 +181,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.department_id'))
             ->options(fn() => Cache::remember(
                 'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('name', 'code')->toArray()
+                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
             ))
             ->searchable()
             ->native(false);

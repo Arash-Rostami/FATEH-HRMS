@@ -75,7 +75,7 @@ class ProfileTablePresenter
             ->label(__('resources/profile/strings.table.filter_department'))
             ->options(fn() => Cache::remember(
                 'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('name', 'code')->toArray()
+                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
             ));
     }
 

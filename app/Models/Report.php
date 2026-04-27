@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Vite;
 
 class Report extends Model
 {
@@ -23,47 +23,9 @@ class Report extends Model
         'active'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'active' => 'boolean',
-        ];
-    }
-
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id', 'code');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    protected function fileType(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : 'unknown'
-        );
-    }
-
-    protected function thumbnail(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                if ($this->cover_image) {
-                    return Storage::url($this->cover_image);
-                }
-
-                $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
-
-                return match ($extension) {
-                    'pdf' => asset('build/assets/img/pdf.png'),
-                    'docx', 'doc' => asset('build/assets/img/doc.png'),
-                    default => asset('build/assets/img/report.png'),
-                };
-            }
-        );
     }
 
     public function scopeActive($query)
@@ -84,5 +46,51 @@ class Report extends Model
     public function scopeInactive($query)
     {
         return $query->where('active', false);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'active' => 'boolean',
+        ];
+    }
+
+    protected function description(): Attribute
+    {
+        return Attribute::make(
+            get: fn(?string $value): ?string => $value,
+            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
+        );
+    }
+
+    protected function fileType(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : 'unknown'
+        );
+    }
+
+    protected function thumbnail(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->cover_image) {
+                    return Storage::url($this->cover_image);
+                }
+
+                $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
+
+                return match ($extension) {
+                    'pdf' => asset('build/assets/img/pdf.png'),
+                    'docx', 'doc' => asset('build/assets/img/doc.png'),
+                    default => asset('build/assets/img/report.png'),
+                };
+            }
+        );
     }
 }

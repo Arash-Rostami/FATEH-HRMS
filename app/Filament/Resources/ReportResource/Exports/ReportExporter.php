@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Filament\Resources\ReportResource\Exports;
+
+use App\Models\Report;
+use Filament\Actions\Exports\ExportColumn;
+use Filament\Actions\Exports\Exporter;
+use Filament\Actions\Exports\Models\Export;
+
+class ReportExporter extends Exporter
+{
+    protected static ?string $model = Report::class;
+
+    public static function getColumns(): array
+    {
+        return [
+            ExportColumn::make('id')
+                ->label(__('resources/report/strings.export.id')),
+
+            ExportColumn::make('title')
+                ->label(__('resources/report/strings.export.title')),
+
+            ExportColumn::make('description')
+                ->label(__('resources/report/strings.export.description')),
+
+            ExportColumn::make('department.name')
+                ->label(__('resources/report/strings.export.department')),
+
+            ExportColumn::make('user.name')
+                ->label(__('resources/report/strings.export.user')),
+
+            ExportColumn::make('file_type')
+                ->label(__('resources/report/strings.export.file_type')),
+
+            ExportColumn::make('active')
+                ->label(__('resources/report/strings.export.active'))
+                ->formatStateUsing(fn(bool $state): string => $state
+                    ? __('resources/report/strings.filters.active_active')
+                    : __('resources/report/strings.filters.active_inactive')),
+
+            ExportColumn::make('created_at')
+                ->label(__('resources/report/strings.export.created_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-'),
+        ];
+    }
+
+    public static function getCompletedNotificationBody(Export $export): string
+    {
+        $count = number_format($export->successful_rows);
+
+        return __('resources/general/strings.notifications.export_completed', ['count' => $count]);
+    }
+}
