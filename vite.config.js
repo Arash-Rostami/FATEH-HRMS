@@ -12,7 +12,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/core/filament.css',
-                'resources/js/app.js'
+                'resources/js/app.js',
+                'resources/js/admin/filament-theme-adapter.js'
             ],
             refresh: true,
         }),
