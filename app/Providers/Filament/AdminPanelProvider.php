@@ -82,14 +82,8 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/core/filament.css')
             ->renderHook(
                 PanelsRenderHook::SCRIPTS_BEFORE,
-                fn (): string => Blade::render("@vite('resources/js/admin/filament-theme-adapter.js')")
+                fn (): string => Blade::render("@vite('resources/js/core/filament.js')")
             )
-//            ->renderHook(
-//                PanelsRenderHook::HEAD_START,
-//                fn (): string => view('components.admin.theme')->render(),
-//            )
-
-
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => view('components.admin.navbar.palette-controler')->render(),
