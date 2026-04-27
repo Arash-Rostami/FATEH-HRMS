@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\DB;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 
-class ModuleAnalyticsWidget extends Widget implements HasSchemas
+class ModuleAnalytics extends Widget implements HasSchemas
 {
     use InteractsWithSchemas;
 
-    protected string $view = 'filament.widgets.module-analytics-widget';
+    protected string $view = 'components.admin.widgets.analytics';
 
     protected static ?int $sort = 10;
 
@@ -48,7 +48,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
         };
 
         return $schema->components([
-            Section::make()
+            Grid::make()
                 ->schema($stats)
                 ->columns([
                     'default' => 1,
@@ -56,8 +56,6 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
                     'md' => 3,
                     'xl' => 4,
                 ])
-                ->contained(false)
-                ->gridContainer()
         ]);
     }
 
