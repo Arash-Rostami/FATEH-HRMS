@@ -84,7 +84,7 @@ class AdminPanelProvider extends PanelProvider
             ->subNavigationPosition(SubNavigationPosition::End)
             ->viteTheme('resources/css/core/filament.css')
             ->renderHook(
-                PanelsRenderHook::BODY_END,
+                PanelsRenderHook::SCRIPTS_BEFORE,
                 fn (): string => \Illuminate\Support\Facades\Blade::render("@vite('resources/js/admin/filament-theme-adapter.js')")
             )
             ->renderHook(

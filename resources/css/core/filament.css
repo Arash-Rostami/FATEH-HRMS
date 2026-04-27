@@ -53,7 +53,7 @@
         animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
     }
 
-    .fi-avatar.fi-user-avatar{@apply !rounded-lg border-none}
+    .fi-avatar.fi-user-avatar{@apply rounded-lg border-none}
 
     .fi-circular{@apply !rounded-xl}
 
@@ -324,7 +324,7 @@
     }
     .fi-checkbox-input,
     .fi-radio-input {
-        @apply !rounded-lg !border-[var(--md-sys-color-outline-variant)]
+        @apply rounded-lg !border-[var(--md-sys-color-outline-variant)]
         !text-[var(--md-sys-color-primary)]
         !w-5 !h-5;
     }
@@ -593,7 +593,7 @@
 
     /* ── Notification badge on sidebar icons ───────── */
     .fi-sidebar-item-badge {
-        @apply !rounded-lg text-[10px] font-bold px-1.5 py-0.5
+        @apply rounded-lg text-[10px] font-bold px-1.5 py-0.5
         !bg-[var(--md-sys-color-error)]
         !text-white;
     }

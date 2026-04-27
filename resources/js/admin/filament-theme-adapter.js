@@ -1,35 +1,37 @@
 import themeStore from '../components/alpine/stores/theme.js';
 
-document.addEventListener('alpine:init', () => {
-    // Register our theme store
-    themeStore(window.Alpine);
+const getSystemMode = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+const getUserMode = () => localStorage.getItem('user-mode') || getSystemMode();
+const getUserTheme = () => localStorage.getItem('user-theme') || 'default';
 
-    // Filament uses a global theme setting. We can optionally sync our user-mode to Filament's 'theme' key
-    // so that Filament's own components (if any rely on it) are in sync.
-    const originalToggleMode = window.Alpine.store('theme').toggleMode;
-    window.Alpine.store('theme').toggleMode = function() {
+const userTheme = getUserTheme();
+const userMode = getUserMode();
+
+if (userTheme !== 'default') document.documentElement.setAttribute('data-theme', userTheme);
+
+document.documentElement.classList.toggle('dark', userMode === 'dark');
+
+const initTheme = (Alpine) => {
+    if (Alpine.store('theme')) return;
+
+    themeStore(Alpine);
+
+    const theme = Alpine.store('theme');
+    const originalToggleMode = theme.toggleMode;
+
+    theme.toggleMode = function () {
         originalToggleMode.call(this);
-        localStorage.setItem('theme', this.mode);
 
-        // Filament also dispatches a dark-mode-toggled event
-        window.dispatchEvent(new CustomEvent('dark-mode-toggled', { detail: this.mode }));
+        const {mode} = this;
+        localStorage.setItem('theme', mode);
+        window.dispatchEvent(new CustomEvent('dark-mode-toggled', {detail: mode}));
     };
 
-    // Sync on initial load
-    const currentMode = localStorage.getItem('user-mode') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    localStorage.setItem('theme', currentMode);
-});
+    localStorage.setItem('theme', getUserMode());
+};
 
-// To ensure our theme is applied even before Alpine initializes completely:
-const storedTheme = localStorage.getItem('user-theme') || 'default';
-const storedMode = localStorage.getItem('user-mode') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
-if (storedTheme !== 'default') {
-    document.documentElement.setAttribute('data-theme', storedTheme);
-}
-
-if (storedMode === 'dark') {
-    document.documentElement.classList.add('dark');
+if (window.Alpine) {
+    initTheme(window.Alpine);
 } else {
-    document.documentElement.classList.remove('dark');
+    document.addEventListener('alpine:init', () => initTheme(window.Alpine));
 }
