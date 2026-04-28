@@ -4,15 +4,41 @@
 @import "./animation.css";
 @import 'material-symbols/rounded.css';
 
-
 @source "../../../app/**/*.php";
 @source "../../../resources/**/*.blade.php";
 
-
+/* @formatter:off */
 
 /* ============================================
    BASE
    ============================================ */
+
+:root {
+    --primary-50: var(--md-sys-color-primary-container);
+    --primary-100: var(--md-sys-color-primary-container);
+    --primary-200: var(--md-sys-color-primary-container);
+    --primary-300: color-mix(in srgb, var(--md-sys-color-primary), white 40%);
+    --primary-400: color-mix(in srgb, var(--md-sys-color-primary), white 20%);
+    --primary-500: var(--md-sys-color-primary);
+    --primary-600: color-mix(in srgb, var(--md-sys-color-primary), black 10%);
+    --primary-700: color-mix(in srgb, var(--md-sys-color-primary), black 20%);
+    --primary-800: color-mix(in srgb, var(--md-sys-color-primary), black 35%);
+    --primary-900: color-mix(in srgb, var(--md-sys-color-primary), black 50%);
+    --primary-950: color-mix(in srgb, var(--md-sys-color-primary), black 65%);
+
+    --secondary-50:  var(--md-sys-color-secondary-container);
+    --secondary-100: var(--md-sys-color-secondary-container);
+    --secondary-200: var(--md-sys-color-secondary-container);
+    --secondary-300: color-mix(in srgb, var(--md-sys-color-secondary), white 40%);
+    --secondary-400: color-mix(in srgb, var(--md-sys-color-secondary), white 20%);
+    --secondary-500: var(--md-sys-color-secondary);
+    --secondary-600: color-mix(in srgb, var(--md-sys-color-secondary), black 10%);
+    --secondary-700: color-mix(in srgb, var(--md-sys-color-secondary), black 20%);
+    --secondary-800: color-mix(in srgb, var(--md-sys-color-secondary), black 35%);
+    --secondary-900: color-mix(in srgb, var(--md-sys-color-secondary), black 50%);
+    --secondary-950: color-mix(in srgb, var(--md-sys-color-secondary), black 65%);
+}
+
 @layer base {
     *:not(.material-symbols-rounded) {
         font-family: var(--font-sans) !important;
@@ -49,6 +75,8 @@
     /* Body */
     .fi-body { @apply bg-[var(--md-sys-color-background)]; }
 
+    .fi-btn.fi-color-primary{@apply !text-[var(--md-sys-color-on-primary)]; }
+
     /* Top bar – slides down on load */
     .fi-topbar {
         @apply !bg-[var(--md-sys-color-primary)]
@@ -57,6 +85,10 @@
         !shadow-[var(--md-sys-elevation-1)]
         !max-h-none;
         animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    }
+
+    .material-symbols-rounded[data-icon="palette"] {
+        @apply text-[var(--md-sys-color-primary-container)]
     }
 
     .fi-avatar.fi-user-avatar{@apply !rounded-xl border-none}
@@ -185,6 +217,23 @@
         !shadow-[0_4px_10px_color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_70%)];
     }
 
+    .fi-ta-row {
+        @apply bg-[var(--md-sys-color-surface)] transition-colors duration-200;
+    }
+
+
+    .fi-ta-row:nth-child(even) {
+        @apply bg-[var(--md-sys-color-surface-variant)]/40;
+    }
+
+
+    .fi-ta-record:hover {
+        @apply bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_40%)];
+    }
+
+    .fi-ta-record:last-child {
+        @apply border-b-0;
+    }
 
     .fi-ta-header-ctn {
         @apply !bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),transparent_40%)] !rounded-t-2xl;
@@ -487,7 +536,7 @@
         animation: slideUpFade 0.35s cubic-bezier(0.4, 0, 0.2, 1) both !important;
     }
 
-     /*── Key-value / List ────────────────────────────*/
+    /*── Key-value / List ────────────────────────────*/
     .fi-fo-key-value-item {
         @apply !rounded-xl !border !border-[var(--md-sys-color-outline-variant)]/50
         !p-3;
@@ -681,3 +730,4 @@
     @apply border-0 shadow-none outline-none ring-0;
 }
 
+/* @formatter:on */

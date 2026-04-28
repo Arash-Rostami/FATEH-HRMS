@@ -2,7 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Livewire\Admin\ManagePreferences;
+use Filament\Actions\Action;
 use Filament\Enums\GlobalSearchPosition;
+use Filament\Enums\UserMenuPosition;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -14,15 +17,13 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
-use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -37,13 +38,9 @@ class AdminPanelProvider extends PanelProvider
             ->colors(config('colors'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
+            ->pages([ManagePreferences::class, Dashboard::class,])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
+            ->widgets([AccountWidget::class])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -56,7 +53,6 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->maxContentWidth(Width::Full)
-            ->spa()
             ->globalSearch(true, position: GlobalSearchPosition::Topbar)
             ->globalSearchFieldSuffix(fn(): ?string => match (Platform::detect()) {
                 Platform::Windows,
@@ -68,26 +64,45 @@ class AdminPanelProvider extends PanelProvider
                 url: asset('build/assets/fonts/Yekan.woff'),
                 provider: LocalFontProvider::class
             )
+            ->userMenu(position: UserMenuPosition::Topbar)
+            ->userMenuItems([
+                Action::make('dashboard')
+                    ->label('پنل کاربر')
+                    ->url(fn() => route('dashboard'), shouldOpenInNewTab: true)
+                    ->icon('heroicon-o-squares-2x2'),
+                Action::make('preferences')
+                    ->label('تنظیمات')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->url(fn(): string => ManagePreferences::getUrl()),
+            ])
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->globalSearchDebounce('1000ms')
-            ->breadcrumbs()
             ->brandName('HRMS')
             ->brandLogo(asset('build/assets/img/logo.png'))
             ->brandLogoHeight('2.5rem')
             ->maxContentWidth(Width::Full)
             ->databaseTransactions()
-            ->collapsibleNavigationGroups()
-            ->sidebarCollapsibleOnDesktop()
+            ->darkMode(false)
             ->subNavigationPosition(SubNavigationPosition::End)
             ->viteTheme('resources/css/core/filament.css')
-            ->renderHook(
-                PanelsRenderHook::SCRIPTS_BEFORE,
-                fn (): string => Blade::render("@vite('resources/js/core/filament.js')")
-            )
-            ->renderHook(
-                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-                fn (): string => view('components.admin.navbar.palette-controler')->render(),
+            ->sidebarCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_collapsible', false))
+            ->sidebarFullyCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_fully_collapsible', false))
+            ->breadcrumbs(fn() => $this->getPreference('breadcrumbs', true))
+            ->collapsibleNavigationGroups(fn() => $this->getPreference('collapsible_groups', true))
+            ->topNavigation(fn() => $this->getPreference('top_nav', false))
+            ->unsavedChangesAlerts(fn() => $this->getPreference('unsaved_changes_alerts', true))
+            ->topbar(fn() => $this->getPreference('topbar', true))
+            ->spa(fn() => $this->getPreference('spa_enabled', true))
+            ->userMenu(position: fn() => $this->getPreference('user_menu_topbar', false)
+                ? UserMenuPosition::Topbar : UserMenuPosition::Sidebar
             )
             ->authMiddleware([Authenticate::class]);
+    }
+
+    private function getPreference(string $key, mixed $default = false): mixed
+    {
+        $preferences = Auth::check() ? (Auth::user()->extra['preferences'] ?? []) : [];
+
+        return $preferences[$key] ?? $default;
     }
 }

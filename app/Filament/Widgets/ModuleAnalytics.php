@@ -19,9 +19,9 @@ class ModuleAnalytics extends Widget implements HasSchemas
 {
     use InteractsWithSchemas;
 
-    protected string $view = 'components.admin.widgets.analytics';
+    protected string $view = 'livewire.admin.widgets.filament-analytics';
 
-    protected static ?int $sort = 10;
+    protected static ?int $sort = 3;
 
     protected int | string | array $columnSpan = 'full';
 
@@ -35,6 +35,17 @@ class ModuleAnalytics extends Widget implements HasSchemas
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    public function getActiveStatsCount(): int
+    {
+        return match ($this->activeTab) {
+            'users'       => count($this->usersData),
+            'departments' => count($this->departmentsData),
+            'ads'         => count($this->adsData),
+            'reports'     => count($this->reportsData),
+            default       => 0,
+        };
     }
 
     public function statsSchema(Schema $schema): Schema

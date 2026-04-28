@@ -1,6 +1,11 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <x-slot name="heading"><span class="text-[var(--md-sys-color-primary)] animate-pulse">✦</span></x-slot>
+        <x-ui.title
+            icon="analytics"
+            title="{{ __('آمار و اطلاعات سیستم') }}"
+            :count="$this->getActiveStatsCount()"
+            countLabel="آیتم آماری"
+        />
 
         <x-filament::tabs label="Content tabs">
             <x-filament::tabs.item

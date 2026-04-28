@@ -13,7 +13,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/core/filament.css',
                 'resources/js/app.js',
-                'resources/js/admin/filament.js'
+                'resources/js/core/filament.js'
             ],
             refresh: true,
         }),

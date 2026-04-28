@@ -36,9 +36,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-//    protected $attributes = [
-//        'booking' => '{"car": false, "seat": true, "spot": true, "meeting": true, "all": false}',
-//    ];
+
 
     public function comments(): HasMany
     {
