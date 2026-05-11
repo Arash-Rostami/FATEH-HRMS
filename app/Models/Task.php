@@ -33,13 +33,6 @@ class Task extends Model
         'can_delete',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'deadline' => 'datetime',
-        ];
-    }
-
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
@@ -50,10 +43,32 @@ class Task extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public static function getInProgressCount(int $userId): int
+    {
+        return self::query()->forUser($userId)->status('in-progress')->count();
+    }
+
+    public static function getTodoCount(int $userId): int
+    {
+        return self::query()->forUser($userId)->status('todo')->count();
+    }
+
+    public function scopeForUser(Builder $query, int $userId): void
+    {
+        $query->where(fn(Builder $q) => $q->where('assigned_to', $userId)
+            ->orWhere(fn(Builder $sq) => $sq->where('user_id', $userId)->whereNull('assigned_to'))
+        );
+    }
+
+    public function scopeStatus(Builder $query, string $status): void
+    {
+        $query->where('status', $status);
+    }
+
     protected function assigneeName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->assignee?->name
+            get: fn() => $this->assignee?->name
         );
     }
 
@@ -70,28 +85,35 @@ class Task extends Model
     protected function canDelete(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->user_id === auth()->id()
+            get: fn() => $this->user_id === auth()->id()
         );
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'deadline' => 'datetime',
+        ];
     }
 
     protected function createdFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn () => Jalalian::fromCarbon($this->created_at)->format('Y/m/d')
+            get: fn() => Jalalian::fromCarbon($this->created_at)->format('Y/m/d')
         );
     }
 
     protected function deadlineFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->deadline ? Jalalian::fromCarbon($this->deadline)->format('Y/m/d') : null
+            get: fn() => $this->deadline ? Jalalian::fromCarbon($this->deadline)->format('Y/m/d') : null
         );
     }
 
     protected function delegatorName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->creator?->name
+            get: fn() => $this->creator?->name
         );
     }
 
@@ -105,26 +127,10 @@ class Task extends Model
         );
     }
 
-    public function scopeForUser(Builder $query, int $userId): void
+    protected function status(): Attribute
     {
-        $query->where(fn (Builder $q) =>
-        $q->where('assigned_to', $userId)
-            ->orWhere(fn (Builder $sq) => $sq->where('user_id', $userId)->whereNull('assigned_to'))
+        return Attribute::make(
+            set: fn(mixed $value) => $value instanceof \BackedEnum ? $value->value : $value,
         );
-    }
-
-    public function scopeStatus(Builder $query, string $status): void
-    {
-        $query->where('status', $status);
-    }
-
-    public static function getInProgressCount(int $userId): int
-    {
-        return self::query()->forUser($userId)->status('in-progress')->count();
-    }
-
-    public static function getTodoCount(int $userId): int
-    {
-        return self::query()->forUser($userId)->status('todo')->count();
     }
 }

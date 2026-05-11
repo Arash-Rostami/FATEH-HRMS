@@ -11,6 +11,7 @@ use App\Filament\Resources\ReportResource\Schemas\ReportInfolistPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
 use App\Models\Report;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, FilamentFilters;
 
     protected static ?string $model = Report::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-document-text';
@@ -171,7 +172,7 @@ class ReportResource extends Resource
             ->filters([
                 ReportTablePresenter::activeFilter(),
                 ReportTablePresenter::departmentFilter(),
-                ReportTablePresenter::createdAtFilter(),
+                self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

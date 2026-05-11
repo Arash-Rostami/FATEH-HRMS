@@ -3,11 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Exports\EventExporter;
-use BackedEnum;
 use App\Filament\Resources\EventResource\Pages\{CreateEvent, EditEvent, ListEvents};
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
 use App\Models\Event;
 use App\Traits\FilamentActions;
+use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -59,6 +60,15 @@ class EventResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('user');
+    }
+
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        return [
+            Action::make('edit')
+                ->icon('heroicon-m-pencil')
+                ->url(static::getUrl('edit', ['record' => $record])),
+        ];
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

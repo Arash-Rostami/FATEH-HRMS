@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\ContentSanitizerService;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,11 +26,6 @@ class Comment extends Model
         return $this->hasMany(Comment::class, 'parent_id')->with('user');
     }
 
-    public function replies(): HasMany
-    {
-        return $this->hasMany(Comment::class, 'parent_id');
-    }
-
     public function feed(): BelongsTo
     {
         return $this->belongsTo(Feed::class);
@@ -39,8 +36,26 @@ class Comment extends Model
         return $this->belongsTo(Comment::class, 'parent_id');
     }
 
+    public function replies(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'parent_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getTypeLabelAttribute()
+    {
+        return $this->parent_id ? 'reply' : 'comment';
+    }
+
+    protected function content(): Attribute
+    {
+        return Attribute::make(
+            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
+        );
+    }
+
 }

@@ -1,0 +1,61 @@
+<?php
+
+return [
+    'label'        => 'لینک',
+    'plural_label' => 'لینک‌ها',
+    'nav_group'    => 'مدیریت محتوا',
+
+    'fields' => [
+        'url_title'              => 'عنوان',
+        'url_description'        => 'توضیحات',
+        'url'                    => 'آدرس خارجی',
+        'url_hint'               => 'آدرس کامل را همانند الگو https://example.com وارد کنید',
+        'internal_url'           => 'آدرس داخلی',
+        'internal_url_hint'      => 'در صورت تنظیم، کاربران داخلی شبکه به این آدرس هدایت می‌شوند',
+        'extra'                  => 'آی‌پی‌های شبکه داخلی',
+        'extra_placeholder'      => 'آی‌پی را وارد کرده و Enter بزنید',
+        'extra_hint'             => 'آی‌پی‌های داخلی که مسیریابی هوشمند بر اساس آن‌ها انجام می‌شود',
+        'link_type'              => 'نوع لینک',
+        'sequence'               => 'ترتیب نمایش',
+        'sequence_hint'          => 'عدد کمتر = نمایش زودتر. برای ترتیب‌بندی دستی از جدول استفاده کنید.',
+        'image'                  => 'تصویر بنر',
+        'image_description'      => 'توضیح تصویر (alt)',
+        'icon'                   => 'آیکون',
+        'icon_description'       => 'توضیح آیکون (alt)',
+        'smart_routing'          => 'مسیریابی هوشمند',
+        'smart_routing_active'   => ':count آی‌پی ثبت‌شده',
+        'created_at'             => 'تاریخ ایجاد',
+        'updated_at'             => 'آخرین بروزرسانی',
+    ],
+
+    'validation' => [
+        'required'   => 'وارد کردن این فیلد الزامی است.',
+        'url'        => 'فرمت آدرس اینترنتی نامعتبر است.',
+        'max_string' => 'حداکثر طول مجاز :max کاراکتر است.',
+        'max_file'   => 'حداکثر حجم مجاز فایل :max کیلوبایت است.',
+        'image'      => 'فایل انتخابی باید یک تصویر باشد.',
+        'mimetypes'  => 'فرمت فایل انتخابی مجاز نیست.',
+    ],
+
+    'form' => [
+        'section_info'    => 'اطلاعات لینک',
+        'section_routing' => 'مسیریابی',
+        'section_media'   => 'رسانه',
+    ],
+
+    'infolist' => [
+        'section_info'    => 'اطلاعات لینک',
+        'section_routing' => 'مسیریابی',
+        'section_media'   => 'رسانه',
+        'section_meta'    => 'اطلاعات سیستمی',
+    ],
+
+    'filters' => [
+        'smart_routing_on'  => 'دارای مسیریابی هوشمند',
+        'smart_routing_off' => 'بدون مسیریابی هوشمند',
+    ],
+
+    'export' => [
+        'completed' => ':count ردیف با موفقیت صادر شد.',
+    ],
+];

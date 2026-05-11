@@ -71,30 +71,6 @@ class UserTablePresenter
             ->color('sky');
     }
 
-    public static function statusGroup(): Group
-    {
-        return Group::make('status')
-            ->label(__('resources/user/strings.table.filter_status'))
-            ->getTitleFromRecordUsing(fn(User $record): string => UserStatus::tryFrom($record->status)?->getLabel() ?? $record->status ?? '-')
-            ->collapsible();
-    }
-
-    public static function roleGroup(): Group
-    {
-        return Group::make('role')
-            ->label(__('resources/user/strings.table.filter_role'))
-            ->getTitleFromRecordUsing(fn(User $record): string => UserRole::tryFrom($record->role)?->getLabel() ?? $record->role ?? '-')
-            ->collapsible();
-    }
-
-    public static function presenceGroup(): Group
-    {
-        return Group::make('presence')
-            ->label(__('resources/user/strings.table.filter_presence'))
-            ->getTitleFromRecordUsing(fn(User $record): string => $record->presence instanceof PresenceStatus ? $record->presence->label() : ($record->presence ?? '-'))
-            ->collapsible();
-    }
-
     public static function maximum(): TextColumn
     {
         return TextColumn::make('maximum')
@@ -135,6 +111,14 @@ class UserTablePresenter
             );
     }
 
+    public static function presenceGroup(): Group
+    {
+        return Group::make('presence')
+            ->label(__('resources/user/strings.table.filter_presence'))
+            ->getTitleFromRecordUsing(fn(User $record): string => $record->presence instanceof PresenceStatus ? $record->presence->label() : ($record->presence ?? '-'))
+            ->collapsible();
+    }
+
     public static function role(): TextColumn
     {
         return TextColumn::make('role')
@@ -154,6 +138,14 @@ class UserTablePresenter
             ->options(UserRole::class);
     }
 
+    public static function roleGroup(): Group
+    {
+        return Group::make('role')
+            ->label(__('resources/user/strings.table.filter_role'))
+            ->getTitleFromRecordUsing(fn(User $record): string => UserRole::tryFrom($record->role)?->getLabel() ?? $record->role ?? '-')
+            ->collapsible();
+    }
+
     public static function status(): TextColumn
     {
         return TextColumn::make('status')
@@ -171,6 +163,14 @@ class UserTablePresenter
         return SelectFilter::make('status')
             ->label(__('resources/user/strings.table.filter_status'))
             ->options(UserStatus::class);
+    }
+
+    public static function statusGroup(): Group
+    {
+        return Group::make('status')
+            ->label(__('resources/user/strings.table.filter_status'))
+            ->getTitleFromRecordUsing(fn(User $record): string => UserStatus::tryFrom($record->status)?->getLabel() ?? $record->status ?? '-')
+            ->collapsible();
     }
 
     public static function type(): TextColumn

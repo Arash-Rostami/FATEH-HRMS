@@ -2,25 +2,27 @@
 
     {{-- ── Section 1: Classification ── --}}
     <div class="space-y-4">
-        <x-ui.title icon="tune" title="دسته‌بندی تیکت" />
+        <x-ui.title icon="tune" title="دسته‌بندی تیکت"/>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
             <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                                     wire:model.live="ticket.requestType" icon="category">
-                <option value="support">پشتیبانی</option>
-                <option value="access">دسترسی</option>
+                               wire:model.live="ticket.requestType" icon="category">
+                @foreach ($ticket->requestTypeOptions as  $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
             </x-ui.forms.select>
 
             <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                     wire:model="ticket.requestArea" icon="location_on">
+                               wire:model="ticket.requestArea" icon="location_on">
                 @foreach($requestAreas as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </x-ui.forms.select>
 
             <div class="space-y-1.5">
-                <label class="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
+                <label
+                        class="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">flag</span>
                     اولویت
                 </label>
@@ -32,8 +34,9 @@
                     ] as $val => [$label, $icon, $border, $bg, $text, $bgOpacity])
                         <label class="cursor-pointer" x-data>
                             <input type="radio" wire:model.live="ticket.priority" value="{{ $val }}" class="sr-only">
-                            <div class="h-11 flex flex-col items-center justify-center rounded-xl border text-[10px] font-bold gap-0.5 transition-all hover:border-[var(--md-sys-color-outline)]"
-                                 :style="$wire.ticket.priority === '{{ $val }}'
+                            <div
+                                    class="h-11 flex flex-col items-center justify-center rounded-xl border text-[10px] font-bold gap-0.5 transition-all hover:border-[var(--md-sys-color-outline)]"
+                                    :style="$wire.ticket.priority === '{{ $val }}'
                                      ? 'border-color:var({{ $border }});background-color:color-mix(in srgb,var({{ $bg }}) {{ $bgOpacity }},transparent);color:var({{ $text }})'
                                      : 'border-color:var(--md-sys-color-outline-variant);background-color:var(--md-sys-color-surface-container-low);color:var(--md-sys-color-on-surface-variant)'">
                                 <span class="material-symbols-rounded text-[16px]">{{ $icon }}</span>
@@ -42,7 +45,8 @@
                         </label>
                     @endforeach
                 </div>
-                @error('ticket.priority') <p class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
+                @error('ticket.priority') <p
+                        class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
             </div>
 
         </div>
@@ -50,23 +54,27 @@
 
     {{-- ── Section 2: Content + Attachments ── --}}
     <div class="space-y-4">
-        <x-ui.title icon="edit_note" title="محتوای تیکت" />
+        <x-ui.title icon="edit_note" title="محتوای تیکت"/>
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
             <div class="lg:col-span-3 space-y-5">
                 <x-ui.forms.input label=" موضوع تیکت *" name="ticket.subject"
-                                        wire:model="ticket.subject" icon="label"/>
+                                  wire:model="ticket.subject" icon="label"/>
                 <x-ui.forms.textarea label="توضیحات تکمیلی *" name="ticket.description"
-                                           wire:model="ticket.description" icon="description" rows="5"/>
+                                     wire:model="ticket.description" icon="description" rows="5"/>
             </div>
 
-            <div class="lg:col-span-2 bg-[var(--md-sys-color-surface-variant)]/20 border border-[var(--md-sys-color-outline-variant)]/60 rounded-xl overflow-hidden">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--md-sys-color-outline-variant)]/60">
+            <div
+                    class="lg:col-span-2 bg-[var(--md-sys-color-surface-variant)]/20 border border-[var(--md-sys-color-outline-variant)]/60 rounded-xl overflow-hidden">
+                <div
+                        class="flex items-center justify-between px-4 py-3 border-b border-[var(--md-sys-color-outline-variant)]/60">
                     <div class="flex items-center gap-2">
-                        <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-base">attach_file</span>
+                        <span
+                                class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-base">attach_file</span>
                         <span class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">ضمائم</span>
-                        <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] px-2 py-0.5 rounded-lg">اختیاری</span>
+                        <span
+                                class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] px-2 py-0.5 rounded-lg">اختیاری</span>
                     </div>
                     <button type="button" wire:click="addFileInput"
                             class="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] active:scale-95 transition-all">
@@ -92,25 +100,33 @@
                                            : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]'">
 
                                     <template x-if="url && type.startsWith('image/')">
-                                        <div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-[var(--md-sys-color-outline-variant)]">
+                                        <div
+                                                class="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-[var(--md-sys-color-outline-variant)]">
                                             <img :src="url" class="w-full h-full object-cover">
                                         </div>
                                     </template>
                                     <template x-if="url && !type.startsWith('image/')">
-                                        <div class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center shrink-0">
-                                            <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-secondary-container)]">description</span>
+                                        <div
+                                                class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-secondary-container)] flex items-center justify-center shrink-0">
+                                            <span
+                                                    class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-secondary-container)]">description</span>
                                         </div>
                                     </template>
                                     <template x-if="!url">
-                                        <div class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container)] flex items-center justify-center shrink-0">
-                                            <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">cloud_upload</span>
+                                        <div
+                                                class="w-8 h-8 rounded-lg bg-[var(--md-sys-color-surface-container)] flex items-center justify-center shrink-0">
+                                            <span
+                                                    class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">cloud_upload</span>
                                         </div>
                                     </template>
 
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="name || 'انتخاب فایل'"></p>
-                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]" x-show="size" x-text="size + ' MB'"></p>
-                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]" x-show="!size">حداکثر ۱۰ مگابایت</p>
+                                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate"
+                                           x-text="name || 'انتخاب فایل'"></p>
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]"
+                                           x-show="size" x-text="size + ' MB'"></p>
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]"
+                                           x-show="!size">حداکثر ۱۰ مگابایت</p>
                                     </div>
 
                                     <button type="button" x-show="url"
@@ -122,7 +138,7 @@
                                     </button>
 
                                     <input id="dropzone-file-{{ $key }}" type="file" class="hidden"
-                                           wire:model="ticket.files.{{ $key }}" @change="initFile" />
+                                           wire:model="ticket.files.{{ $key }}" @change="initFile"/>
                                 </label>
 
                                 @if($index > 0)
@@ -132,7 +148,8 @@
                                     </button>
                                 @endif
                             </div>
-                            @error('ticket.files.' . $key) <p class="text-[10px] text-[var(--md-sys-color-error)] mt-1 pr-1">{{ $message }}</p> @enderror
+                            @error('ticket.files.' . $key) <p
+                                    class="text-[10px] text-[var(--md-sys-color-error)] mt-1 pr-1">{{ $message }}</p> @enderror
                         </div>
                     @endforeach
                 </div>
@@ -145,7 +162,7 @@
     <div class="flex items-center justify-between gap-3 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/50">
         <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:flex items-center gap-1.5">
             <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">info</span>
-            فیلدهای  * (ضروری) را تکمیل کنید
+            فیلدهای * (ضروری) را تکمیل کنید
         </p>
         <x-ui.buttons.submit
             target="submitTicket"

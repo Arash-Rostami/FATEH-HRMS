@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasTicketCountHelpers;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,37 +13,47 @@ class Ticket extends Model
     use HasTicketCountHelpers;
 
     public static $requestTypeOptions = [
-        'support' => 'Support',
-        'access' => 'Access',
+        'support' => 'پشتیبانی',
+        'access' => 'دسترسی',
+        'development' => 'توسعه',
     ];
+
     public static $requestAreaOptions = [
         'support' => [
             '' => 'انتخاب نمایید',
-            'windows_office' => 'Windows & Software',
-            'vpn' => 'Internet, Wifi & VPN',
-            'voip_telephone' => 'Telephone, VoIP & SIM Card',
-            'printer_scanner' => 'Printer, Scanner & Copier Devices',
-            'remote_working' => 'Remote Working & Forticlient',
-            'host_domain' => 'Host, Domain & Website',
-            'backups_restore' => 'Backup, Restore & Archive',
-            'purchase_requests' => 'Item & Purchase Requests or Maintenance',
-            'generate_bi_reports' => 'Generate or Modify Organizational Reports',
-            'other' => 'Other'
+            'windows_office' => 'ویندوز و نرم‌افزار',
+            'vpn' => 'اینترنت، وای‌فای و VPN',
+            'voip_telephone' => 'تلفن، VoIP و سیم‌کارت',
+            'printer_scanner' => 'پرینتر، اسکنر و دستگاه‌های کپی',
+            'remote_working' => 'دورکاری و FortiClient',
+            'host_domain' => 'هاست، دامنه و وب‌سایت',
+            'backups_restore' => 'پشتیبان‌گیری، بازیابی و بایگانی',
+            'purchase_requests' => 'درخواست اقلام، خرید یا تعمیرات',
+            'generate_bi_reports' => 'تولید یا ویرایش گزارش‌های سازمانی',
+            'other' => 'سایر',
         ],
         'access' => [
             '' => 'انتخاب نمایید',
-            'bi' => 'BI',
-            'rahkaran' => 'Rahkaran',
-            'file_server' => 'File Server',
-            'mizito' => 'Mizito',
-            'chargoon' => 'Chargoon',
-            'hrms' => 'HRMS',
-            'bms' => 'BMS',
+            'bi' => 'BI (هوش تجاری)',
+            'rahkaran' => 'راهکاران',
+            'file_server' => 'فایل سرور',
+            'mizito' => 'میزیتو',
+            'chargoon' => 'چارگون',
+            'hrms' => 'HRMS (منابع انسانی)',
+            'bms' => 'BMS (مدیریت ساختمان)',
             'sarv_crm' => 'CRM',
-            'email' => 'Email',
-            'other' => 'Other',
+            'email' => 'ایمیل',
+            'other' => 'سایر',
+        ],
+        'development' => [
+            '' => 'انتخاب نمایید',
+            'microservice' => 'میکروسرویس',
+            'application' => 'اپلیکیشن',
+            'automation' => 'اتوماسیون',
+            'other' => 'سایر',
         ],
     ];
+
     protected $fillable = [
         'requester_id',
         'request_type',
@@ -69,40 +80,16 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-
     public function getRequestAreaOptions($requestType, $requestArea)
     {
-        return self::$requestAreaOptions[$requestType][$requestArea] ?? 'Not Found';
+        return self::$requestAreaOptions[$requestType][$requestArea] ?? 'یافت نشد';
     }
-
 
     public function requester()
     {
         return $this->belongsTo(User::class, 'requester_id');
     }
 
-    public function setPriorityAttribute($value)
-    {
-        $this->attributes['priority'] = in_array(strtolower($value), ['low', 'medium', 'high'])
-            ? strtolower($value) : 'low';
-    }
-
-    public function setRequestTypeAttribute($value)
-    {
-        $this->attributes['request_type'] = in_array(strtolower($value), ['support', 'access'])
-            ? strtolower($value) : 'support';
-    }
-
-    public function setSatisfactionScoreAttribute($value)
-    {
-        $this->attributes['satisfaction_score'] = ($value >= 0 && $value <= 5) ? (float)$value : null;
-    }
-
-    public function setStatusAttribute($value)
-    {
-        $this->attributes['status'] = in_array(strtolower($value), ['open', 'closed', 'in-progress'])
-            ? strtolower($value) : 'open';
-    }
 
     protected function casts(): array
     {
@@ -114,5 +101,49 @@ class Ticket extends Model
             'requester_files' => 'array',
             'assignee_files' => 'array',
         ];
+    }
+
+
+    protected function satisfactionScore(): Attribute
+    {
+        return Attribute::make(
+            set: fn($value) => ($value >= 0 && $value <= 5) ? (float)$value : null
+        );
+    }
+
+    protected function priority(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                $scalar = $value instanceof \BackedEnum ? $value->value : (string) $value;
+                return in_array(strtolower($scalar), ['low', 'medium', 'high'])
+                    ? strtolower($scalar)
+                    : 'low';
+            }
+        );
+    }
+
+    protected function requestType(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                $scalar = $value instanceof \BackedEnum ? $value->value : (string) $value;
+                return in_array(strtolower($scalar), ['support', 'access', 'development'])
+                    ? strtolower($scalar)
+                    : 'support';
+            }
+        );
+    }
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                $scalar = $value instanceof \BackedEnum ? $value->value : (string) $value;
+                return in_array(strtolower($scalar), ['open', 'closed', 'in-progress'])
+                    ? strtolower($scalar)
+                    : 'open';
+            }
+        );
     }
 }

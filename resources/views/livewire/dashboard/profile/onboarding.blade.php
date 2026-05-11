@@ -245,7 +245,7 @@
             </section>
         @endif
 
-        {{-- Card 6: Extras (Uniform Card Design) --}}
+        {{-- Card 6: Extras  --}}
         @if($extras = $presenter->formatExtras($onboarding->extras))
             <section
                 class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">

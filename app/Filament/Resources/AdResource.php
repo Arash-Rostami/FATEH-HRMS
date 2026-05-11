@@ -13,6 +13,7 @@ use App\Filament\Resources\AdResource\Schemas\AdInfolistPresenter;
 use App\Filament\Resources\AdResource\Schemas\AdTablePresenter;
 use App\Models\Ad;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, FilamentFilters;
 
     protected static ?string $model = Ad::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
@@ -131,7 +132,7 @@ class AdResource extends Resource
                 AdTablePresenter::hasExperienceFilter(),
                 AdTablePresenter::hasCertificateFilter(),
                 AdTablePresenter::hasSkillFilter(),
-                AdTablePresenter::createdAtFilter(),
+                self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

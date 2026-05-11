@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\ContentSanitizerService;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Feed extends Model
 {
     use HasFactory;
+
+    public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    public const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'avi', 'mkv'];
 
     protected $fillable = [
         'user_id',
@@ -32,6 +37,11 @@ class Feed extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class)->latest();
+    }
+
+    public function commentsRel(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 
     public static function getTodayCount(): int
@@ -60,5 +70,32 @@ class Feed extends Model
             'media_paths' => 'array',
             'poll_options' => 'array',
         ];
+    }
+
+    protected function content(): Attribute
+    {
+        return Attribute::make(
+            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
+        );
+    }
+
+    protected function images(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => array_values(array_filter(
+                $this->media_paths ?? [],
+                fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), self::IMAGE_EXTENSIONS)
+            ))
+        );
+    }
+
+    protected function videos(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => array_values(array_filter(
+                $this->media_paths ?? [],
+                fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS)
+            ))
+        );
     }
 }

@@ -12,6 +12,7 @@ use App\Filament\Resources\DepartmentResource\Schemas\DepartmentInfolistPresente
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentTablePresenter;
 use App\Models\Department;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -24,63 +25,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepartmentResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, FilamentFilters;
 
     protected static ?string $model = Department::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 5;
-
-
-    public static function getModelLabel(): string
-    {
-        return __('resources/department/strings.label');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('resources/department/strings.plural_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('resources/department/strings.nav_group');
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['code', 'name', 'description'];
-    }
-
-    public static function getGlobalSearchResultTitle(Model $record): string
-    {
-        return $record->name;
-    }
-
-    public static function getGlobalSearchResultDetails(Model $record): array
-    {
-        return [
-            __('resources/department/strings.fields.code') => $record->code,
-        ];
-    }
-
-    public static function getGlobalSearchResultUrl(Model $record): string
-    {
-        return static::getUrl('edit', ['record' => $record]);
-    }
-
-    public static function getGlobalSearchResultActions(Model $record): array
-    {
-        return [
-            Action::make('edit')
-                ->icon('heroicon-m-pencil')
-                ->url(static::getUrl('edit', ['record' => $record])),
-        ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->withCount('users');
-    }
 
     public static function form(Schema $schema): Schema
     {
@@ -98,30 +47,71 @@ class DepartmentResource extends Resource
         ]);
     }
 
-    public static function table(Table $table): Table
+    public static function getEloquentQuery(): Builder
     {
-        return $table
-            ->columns([
-                DepartmentTablePresenter::id(),
-                DepartmentTablePresenter::code(),
-                DepartmentTablePresenter::name(),
-                DepartmentTablePresenter::description(),
-                DepartmentTablePresenter::usersCount(),
-                DepartmentTablePresenter::createdAt(),
-            ])
-            ->groups([DepartmentTablePresenter::usersCountGroup()])
-            ->filters([
-                DepartmentTablePresenter::hasUsersFilter(),
-                DepartmentTablePresenter::createdAtFilter(),
-            ])
-            ->recordActions([
-                self::viewAction(),
-                self::editAction(),
-                self::deleteAction(),
-            ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(DepartmentExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('name');
+        return parent::getEloquentQuery()->withCount('users');
+    }
+
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        return [
+            Action::make('edit')
+                ->icon('heroicon-m-pencil')
+                ->url(static::getUrl('edit', ['record' => $record])),
+        ];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            __('resources/department/strings.fields.code') => $record->code,
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('edit', ['record' => $record]);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['code', 'name', 'description'];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('resources/department/strings.label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources/department/strings.nav_group');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListDepartments::route('/'),
+            'create' => CreateDepartment::route('/create'),
+            'edit' => EditDepartment::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources/department/strings.plural_label');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            UsersRelationManager::class,
+        ];
     }
 
     public static function infolist(Schema $schema): Schema
@@ -142,19 +132,29 @@ class DepartmentResource extends Resource
         ]);
     }
 
-    public static function getRelations(): array
+    public static function table(Table $table): Table
     {
-        return [
-            UsersRelationManager::class,
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListDepartments::route('/'),
-            'create' => CreateDepartment::route('/create'),
-            'edit' => EditDepartment::route('/{record}/edit'),
-        ];
+        return $table
+            ->columns([
+                DepartmentTablePresenter::id(),
+                DepartmentTablePresenter::code(),
+                DepartmentTablePresenter::name(),
+                DepartmentTablePresenter::description(),
+                DepartmentTablePresenter::usersCount(),
+                DepartmentTablePresenter::createdAt(),
+            ])
+            ->groups([DepartmentTablePresenter::usersCountGroup()])
+            ->filters([
+                DepartmentTablePresenter::hasUsersFilter(),
+                self::createdAtFilter(),
+            ])
+            ->recordActions([
+                self::viewAction(),
+                self::editAction(),
+                self::deleteAction(),
+            ], RecordActionsPosition::AfterCells)
+            ->groupedBulkActions(self::bulkActions(DepartmentExporter::class))
+            ->emptyStateIcon('heroicon-o-bookmark')
+            ->defaultSort('name');
     }
 }

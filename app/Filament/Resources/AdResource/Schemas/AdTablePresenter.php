@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\AdResource\Schemas;
 
 use App\Filament\Resources\AdResource\Enums\AdGender;
-use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
@@ -63,18 +61,6 @@ class AdTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
-    public static function createdAtFilter(): Filter
-    {
-        return Filter::make('created_at')
-            ->label(__('resources/ad/strings.fields.created_at'))
-            ->schema([
-                DatePicker::make('from')->label(__('resources/ad/strings.filters.from')),
-                DatePicker::make('until')->label(__('resources/ad/strings.filters.until')),
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'],  fn($q) => $q->whereDate('created_at', '>=', $data['from']))
-                ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until'])));
-    }
 
     public static function experience(): TextColumn
     {
@@ -118,7 +104,7 @@ class AdTablePresenter
         return TernaryFilter::make('has_certificate')
             ->label(__('resources/ad/strings.filters.has_certificate'))
             ->queries(
-                true:  fn(Builder $query) => $query->whereNotNull('certificate'),
+                true: fn(Builder $query) => $query->whereNotNull('certificate'),
                 false: fn(Builder $query) => $query->whereNull('certificate'),
             );
     }
@@ -128,7 +114,7 @@ class AdTablePresenter
         return TernaryFilter::make('has_experience')
             ->label(__('resources/ad/strings.filters.has_experience'))
             ->queries(
-                true:  fn(Builder $query) => $query->whereNotNull('experience'),
+                true: fn(Builder $query) => $query->whereNotNull('experience'),
                 false: fn(Builder $query) => $query->whereNull('experience'),
             );
     }
@@ -138,7 +124,7 @@ class AdTablePresenter
         return TernaryFilter::make('has_skill')
             ->label(__('resources/ad/strings.filters.has_skill'))
             ->queries(
-                true:  fn(Builder $query) => $query->whereNotNull('skill'),
+                true: fn(Builder $query) => $query->whereNotNull('skill'),
                 false: fn(Builder $query) => $query->whereNull('skill'),
             );
     }

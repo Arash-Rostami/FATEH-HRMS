@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasExtraCatalog;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Onboarding extends Model
 {
-    use HasFactory;
+    use HasFactory, HasExtraCatalog;
 
     protected $fillable = [
         'welcome',

@@ -11,6 +11,7 @@ use App\Filament\Resources\FAQResource\Schemas\FAQInfolistPresenter;
 use App\Filament\Resources\FAQResource\Schemas\FAQTablePresenter;
 use App\Models\FAQ;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FAQResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, FilamentFilters;
 
     protected static ?string $model = FAQ::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';
@@ -172,7 +173,7 @@ class FAQResource extends Resource
                 FAQTablePresenter::categoryFilter(),
                 FAQTablePresenter::departmentFilter(),
                 FAQTablePresenter::userFilter(),
-                FAQTablePresenter::createdAtFilter(),
+                self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

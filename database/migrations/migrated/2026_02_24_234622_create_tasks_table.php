@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('status', ['todo', 'in-progress', 'done'])->default('todo');
-            $table->date('deadline')->nullable();
+            $table->dateTime('deadline')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
             $table->softDeletes();

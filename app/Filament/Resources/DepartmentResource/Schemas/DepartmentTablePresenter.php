@@ -3,11 +3,9 @@
 namespace App\Filament\Resources\DepartmentResource\Schemas;
 
 use App\Filament\Resources\DepartmentResource\Schemas\Grouping\UserCountGroup;
-use Filament\Forms\Components\DatePicker;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,26 +35,6 @@ class DepartmentTablePresenter
             ->sortable()
             ->color('gray')
             ->toggleable(isToggledHiddenByDefault: true);
-    }
-
-    public static function createdAtFilter(): Filter
-    {
-        return Filter::make('created_at')
-            ->label(__('resources/department/strings.filters.created_at'))
-            ->schema([
-                DatePicker::make('from')->label(__('resources/department/strings.filters.from'))->native(false),
-                DatePicker::make('until')->label(__('resources/department/strings.filters.until'))->native(false),
-            ])
-            ->query(fn(Builder $q, array $data) => $q
-                ->when($data['from'], fn(Builder $q, $d) => $q->whereDate('created_at', '>=', $d))
-                ->when($data['until'], fn(Builder $q, $d) => $q->whereDate('created_at', '<=', $d))
-            )
-            ->indicateUsing(function (array $data): array {
-                $indicators = [];
-                if ($data['from']) $indicators[] = __('resources/department/strings.filters.from') . ': ' . $data['from'];
-                if ($data['until']) $indicators[] = __('resources/department/strings.filters.until') . ': ' . $data['until'];
-                return $indicators;
-            });
     }
 
     public static function description(): TextColumn

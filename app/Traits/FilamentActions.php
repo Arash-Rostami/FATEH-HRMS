@@ -8,6 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
@@ -86,6 +87,15 @@ trait FilamentActions
         return EditAction::make()
             ->tooltip(__('resources/general/strings.table.action_edit'))
             ->iconButton();
+    }
+
+    public static function restoreAction(): RestoreAction
+    {
+        return RestoreAction::make()
+            ->tooltip(__('resources/general/strings.table.action_restore'))
+            ->visible(fn($record) => $record->trashed())
+            ->iconButton();
+
     }
 
     public static function unassignAction(callable $handler): Action

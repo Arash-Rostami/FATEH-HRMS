@@ -2,19 +2,13 @@
 
 namespace App\Filament\Resources\CredentialResource\Schemas;
 
-use App\Filament\Resources\CredentialResource\Exports\CredentialExporter;
 use App\Models\Credential;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ExportBulkAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
-use Illuminate\Database\Eloquent\Builder;
 
 class CredentialTablePresenter
 {
@@ -45,32 +39,6 @@ class CredentialTablePresenter
             ->sortable()
             ->color('gray')
             ->toggleable(isToggledHiddenByDefault: true);
-    }
-
-    public static function createdAtFilter(): Filter
-    {
-        return Filter::make('created_at')
-            ->label(__('resources/credential/strings.filters.created_at'))
-            ->schema([
-                DatePicker::make('from')
-                    ->label(__('resources/credential/strings.filters.from'))
-                    ->locale('fa')
-                    ->native(false),
-                DatePicker::make('until')
-                    ->label(__('resources/credential/strings.filters.until'))
-                    ->locale('fa')
-                    ->native(false),
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'], fn(Builder $q, string $d) => $q->whereDate('created_at', '>=', $d))
-                ->when($data['until'], fn(Builder $q, string $d) => $q->whereDate('created_at', '<=', $d))
-            )
-            ->indicateUsing(function (array $data): array {
-                $indicators = [];
-                if ($data['from']) $indicators[] = __('resources/credential/strings.filters.from') . ': ' . $data['from'];
-                if ($data['until']) $indicators[] = __('resources/credential/strings.filters.until') . ': ' . $data['until'];
-                return $indicators;
-            });
     }
 
 

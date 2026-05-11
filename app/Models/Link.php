@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Link extends Model
 {
@@ -19,7 +20,8 @@ class Link extends Model
         'icon',
         'icon_description',
         'link',
-        'sequence'
+        'sequence',
+        'extra'
     ];
 
     public static function countDoubleLinks()
@@ -37,6 +39,14 @@ class Link extends Model
         return self::where('link', 'internal')->count();
     }
 
+    public function isExtraEmptyInDatabase(): bool
+    {
+        return (bool)DB::scalar(
+            "SELECT 1 FROM links WHERE id = ? AND (extra IS NULL OR JSON_LENGTH(extra) = 0) LIMIT 1",
+            [$this->id]
+        );
+    }
+
     public function scopeExternal($query)
     {
         return $query->where('link', 'external');
@@ -47,10 +57,16 @@ class Link extends Model
         return $query->where('link', 'internal');
     }
 
-
     public function scopeSorted($query)
     {
         return $query->orderBy('sequence');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'extra' => 'array',
+        ];
     }
 }
 

@@ -5,13 +5,10 @@ namespace App\Filament\Resources\FAQResource\Schemas;
 use App\Models\Department;
 use App\Models\FAQ;
 use App\Models\User;
-use Filament\Forms\Components\DatePicker;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -68,19 +65,6 @@ class FAQTablePresenter
             ->sortable()
             ->color('gray')
             ->toggleable(isToggledHiddenByDefault: true);
-    }
-
-    public static function createdAtFilter(): Filter
-    {
-        return Filter::make('created_at')
-            ->label(__('resources/faq/strings.fields.created_at'))
-            ->schema([
-                DatePicker::make('from')->native(false)->label(__('resources/faq/strings.filters.from')),
-                DatePicker::make('until')->native(false)->label(__('resources/faq/strings.filters.until')),
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'], fn($q) => $q->whereDate('created_at', '>=', $data['from']))
-                ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until'])));
     }
 
     public static function department(): TextColumn

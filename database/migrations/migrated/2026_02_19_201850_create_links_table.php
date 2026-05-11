@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('icon_description')->nullable();
             $table->enum('link', ['internal', 'external'])->default('external');
             $table->integer('sequence')->default(0);
+            $table->json('extra')->nullable();
             $table->timestamps();
 
             // Indexes for performance optimization

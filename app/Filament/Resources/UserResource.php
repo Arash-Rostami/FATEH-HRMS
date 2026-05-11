@@ -13,6 +13,7 @@ use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Models\User;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions,FilamentFilters;
 
     protected static ?string $model = User::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
@@ -214,6 +215,7 @@ class UserResource extends Resource
                 UserTablePresenter::roleFilter(),
                 UserTablePresenter::typeFilter(),
                 UserTablePresenter::presenceFilter(),
+                self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

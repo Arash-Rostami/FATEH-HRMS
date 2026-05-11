@@ -12,14 +12,19 @@ class Onboarding extends Component
     #[Computed(persist: true)]
     public function onboarding(): ?OnboardingModel
     {
-        return OnboardingModel::where('is_active', true)->first();
+        $userId = auth()->id();
+
+        return OnboardingModel::where('is_active', true)
+            ->where(fn($q) => $q->where('user_id', $userId)->orWhereNull('user_id'))
+            ->orderByRaw('CASE WHEN user_id = ? THEN 0 ELSE 1 END', [$userId])
+            ->first();
     }
 
     public function render()
     {
         return view('livewire.dashboard.profile.onboarding', [
             'onboarding' => $this->onboarding,
-            'presenter'  => new OnboardingPresenter(),
+            'presenter' => new OnboardingPresenter(),
         ]);
     }
 }

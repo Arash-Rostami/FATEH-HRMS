@@ -10,6 +10,7 @@ class TicketForm extends Form
     public string $requester = '';
     public string $department = '';
     public array $fileInputs = [];
+    public array $requestTypeOptions = [];
 
     #[Validate('required|string')]
     public string $requestType = 'support';
@@ -26,11 +27,11 @@ class TicketForm extends Form
     #[Validate('required|string')]
     public string $description = '';
 
-    #[Validate('array')]
-    #[Validate('nullable')]
-    #[Validate('file')]
-    #[Validate('max:4096')]
-    #[Validate('mimes:jpeg,png,gif,bmp,svg,webp,pdf,doc,docx,xls,xlsx,ods,odt')]
+
+    #[Validate([
+        'files' => 'nullable|array',
+        'files.*' => 'file|max:4096|mimes:jpeg,png,gif,bmp,svg,webp,pdf,doc,docx,xls,xlsx,ods,odt',
+    ])]
     public array $files = [];
 
     protected function messages(): array
@@ -47,6 +48,7 @@ class TicketForm extends Form
             'files.*.mimes' => 'فرمت فایل مجاز نیست.',
         ];
     }
+
 
     public function validated(): array
     {

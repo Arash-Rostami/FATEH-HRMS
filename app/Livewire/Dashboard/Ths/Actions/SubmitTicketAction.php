@@ -20,7 +20,7 @@ class SubmitTicketAction
             'priority'        => $form->priority,
             'request_subject' => $form->subject,
             'description'     => $form->description,
-            'requester_files' => $this->storeFiles($form->files) ?? null,
+            'requester_files' => $this->storeFiles($form->files) ?: null,
             'requester_id'    => auth()->id(),
             'extra'           => ['department' => $form->department ?? 'N/A'],
         ]);
@@ -30,7 +30,8 @@ class SubmitTicketAction
     {
         return collect($files)->map(function ($file) {
             $name = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            return ['file' => '/storage/' . $file->storeAs('files/ticketing/requester', $name, 'public')];
+            $path = $file->storeAs('ticket/requester', $name, 'public');
+            return ['file' => $path];
         })->values()->all();
     }
 }

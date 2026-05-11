@@ -1,8 +1,8 @@
 @if($selectedTicket)
     <div x-data="{ isClosing: false }" x-cloak>
-        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-slide-down"
+        <div class="fixed inset-0 !z-[100000] flex items-center justify-center p-4 sm:p-6 animate-slide-down"
              x-show="!isClosing"
-             class="bg-[var(--md-sys-color-scrim)]/40"
+             class="bg-[var(--md-sys-color-scr0im)]/40"
              dir="rtl">
 
             {{-- Modal Backdrop Click --}}
@@ -121,11 +121,11 @@
                                     </h5>
                                     <div class="flex flex-wrap gap-3">
                                         @foreach($selectedTicket['requester_files'] as $file)
-                                            <a href="{{ asset($file['file']) }}" target="_blank"
+                                            <a href="{{ Storage::url($file['file']) }}" target="_blank"
                                                class="group flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] transition-colors overflow-hidden relative shadow-sm hover:shadow-md">
                                                 @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                                    <img src="{{ asset($file['file']) }}" alt="Attachment"
-                                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                                    <img src="{{ Storage::url($file['file']) }}" alt="Attachment"
+                                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                                 @else
                                                     <span
                                                         class="material-symbols-rounded text-3xl text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors">description</span>
@@ -203,10 +203,10 @@
                                     </h5>
                                     <div class="flex flex-wrap gap-3">
                                         @foreach($selectedTicket['assignee_files'] as $file)
-                                            <a href="{{ asset($file['file']) }}" target="_blank"
+                                            <a href="{{ Storage::url($file['file']) }}" target="_blank"
                                                class="group flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] transition-colors overflow-hidden relative shadow-sm hover:shadow-md">
                                                 @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                                    <img src="{{ asset($file['file']) }}" alt="Attachment"
+                                                    <img src="{{ Storage::url($file['file']) }}" alt="Attachment"
                                                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                                 @else
                                                     <span

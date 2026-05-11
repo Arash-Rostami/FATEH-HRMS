@@ -11,6 +11,7 @@ use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresente
 use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
 use App\Models\Credential;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CredentialResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, FilamentFilters;
 
     protected static ?string $model = Credential::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';
@@ -152,7 +153,7 @@ class CredentialResource extends Resource
             ->filters([
                 CredentialTablePresenter::userFilter(),
                 CredentialTablePresenter::hasLinkFilter(),
-                CredentialTablePresenter::createdAtFilter(),
+                self::createdAtFilter(),
             ])
             ->recordActions([
                 self::viewAction(),

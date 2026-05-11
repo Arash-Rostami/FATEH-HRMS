@@ -43,6 +43,7 @@ class Main extends Component
     {
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
+        $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
         $this->loadRequestAreas();
 
         $this->ticketToRate = Ticket::where('requester_id', auth()->id())
