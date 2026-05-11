@@ -33,53 +33,6 @@ class AdResource extends Resource
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
     protected static ?int $navigationSort = 10;
 
-    public static function getModelLabel(): string
-    {
-        return __('resources/ad/strings.label');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('resources/ad/strings.plural_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('resources/ad/strings.nav_group');
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['position', 'skill', 'certificate'];
-    }
-
-    public static function getGlobalSearchResultTitle(Model $record): string
-    {
-        return $record->position ?? __('resources/ad/strings.untitled');
-    }
-
-    public static function getGlobalSearchResultDetails(Model $record): array
-    {
-        return [
-            __('resources/ad/strings.fields.gender') => AdGender::from($record->gender)->getLabel(),
-            __('resources/ad/strings.fields.active') => AdStatus::fromBool($record->active)->getLabel(),
-        ];
-    }
-
-    public static function getGlobalSearchResultUrl(Model $record): string
-    {
-        return static::getUrl('edit', ['record' => $record]);
-    }
-
-    public static function getGlobalSearchResultActions(Model $record): array
-    {
-        return [
-            Action::make('edit')
-                ->icon('heroicon-m-pencil')
-                ->url(static::getUrl('edit', ['record' => $record])),
-        ];
-    }
-
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -108,42 +61,60 @@ class AdResource extends Resource
         ]);
     }
 
-    public static function table(Table $table): Table
+    public static function getGlobalSearchResultActions(Model $record): array
     {
-        return $table
-            ->columns([
-                AdTablePresenter::id(),
-                AdTablePresenter::position(),
-                AdTablePresenter::gender(),
-                AdTablePresenter::active(),
-                AdTablePresenter::link(),
-                AdTablePresenter::certificate(),
-                AdTablePresenter::skill(),
-                AdTablePresenter::experience(),
-                AdTablePresenter::createdAt(),
-            ])
-            ->groups([
-                AdTablePresenter::genderGroup(),
-                AdTablePresenter::activeGroup(),
-            ])
-            ->filters([
-                AdTablePresenter::activeFilter(),
-                AdTablePresenter::genderFilter(),
-                AdTablePresenter::hasExperienceFilter(),
-                AdTablePresenter::hasCertificateFilter(),
-                AdTablePresenter::hasSkillFilter(),
-                self::createdAtFilter(),
-            ])
-            ->filtersFormColumns(2)
-            ->recordActions([
-                self::viewAction(),
-                self::editAction(),
-                self::deleteAction(),
-            ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(AdExporter::class))
-            ->striped()
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('id', 'desc');
+        return [
+            Action::make('edit')
+                ->icon('heroicon-m-pencil')
+                ->url(static::getUrl('edit', ['record' => $record])),
+        ];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            __('resources/ad/strings.fields.gender') => AdGender::from($record->gender)->getLabel(),
+            __('resources/ad/strings.fields.active') => AdStatus::fromBool($record->active)->getLabel(),
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->position ?? __('resources/ad/strings.untitled');
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('edit', ['record' => $record]);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['position', 'skill', 'certificate'];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('resources/ad/strings.label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('resources/ad/strings.nav_group');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListAds::route('/'),
+            'create' => CreateAd::route('/create'),
+            'edit' => EditAd::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('resources/ad/strings.plural_label');
     }
 
     public static function infolist(Schema $schema): Schema
@@ -193,12 +164,41 @@ class AdResource extends Resource
         ]);
     }
 
-    public static function getPages(): array
+    public static function table(Table $table): Table
     {
-        return [
-            'index' => ListAds::route('/'),
-            'create' => CreateAd::route('/create'),
-            'edit' => EditAd::route('/{record}/edit'),
-        ];
+        return $table
+            ->columns([
+                AdTablePresenter::id(),
+                AdTablePresenter::position(),
+                AdTablePresenter::gender(),
+                AdTablePresenter::active(),
+                AdTablePresenter::link(),
+                AdTablePresenter::certificate(),
+                AdTablePresenter::skill(),
+                AdTablePresenter::experience(),
+                AdTablePresenter::createdAt(),
+            ])
+            ->groups([
+                AdTablePresenter::genderGroup(),
+                AdTablePresenter::activeGroup(),
+            ])
+            ->filters([
+                AdTablePresenter::activeFilter(),
+                AdTablePresenter::genderFilter(),
+                AdTablePresenter::hasExperienceFilter(),
+                AdTablePresenter::hasCertificateFilter(),
+                AdTablePresenter::hasSkillFilter(),
+                self::createdAtFilter(),
+            ])
+            ->filtersFormColumns(2)
+            ->recordActions([
+                self::viewAction(),
+                self::editAction(),
+                self::deleteAction(),
+            ], RecordActionsPosition::AfterCells)
+            ->groupedBulkActions(self::bulkActions(AdExporter::class))
+            ->striped()
+            ->emptyStateIcon('heroicon-o-bookmark')
+            ->defaultSort('id', 'desc');
     }
 }

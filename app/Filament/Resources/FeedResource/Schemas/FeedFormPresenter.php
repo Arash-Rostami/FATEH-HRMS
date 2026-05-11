@@ -23,7 +23,10 @@ class FeedFormPresenter
             ->label(__('resources/feed/strings.fields.category'))
             ->options(FeedCategory::class)
             ->required()
-            ->live();
+            ->live()
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.category.required'),
+            ]);
     }
 
     public static function content(): RichEditor
@@ -59,8 +62,8 @@ class FeedFormPresenter
                 'heading' => ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
             ])
             ->validationMessages([
-                'required' => __('resources/feed/strings.validation.content_required'),
-                'max' => __('resources/feed/strings.validation.content_max', ['length' => 10000]),
+                'required' => __('resources/feed/strings.validation.content.required'),
+                'max' => __('resources/feed/strings.validation.content.max_length'),
             ]);
     }
 
@@ -176,7 +179,6 @@ class FeedFormPresenter
         return $data;
     }
 
-
     public static function userId(): Select
     {
         return Select::make('user_id')
@@ -186,6 +188,9 @@ class FeedFormPresenter
             ->disabledOn('edit')
             ->searchable()
             ->preload()
-            ->required();
+            ->required()
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.user_id.required'),
+            ]);
     }
 }

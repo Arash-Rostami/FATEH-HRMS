@@ -26,7 +26,10 @@ class EventFormPresenter
             ->native(false)
             ->columnSpan(2)
             ->required()
-            ->default('08:00');
+            ->default('08:00')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.date_time_part.required'),
+            ]);
     }
 
     public static function description(): Textarea
@@ -35,6 +38,9 @@ class EventFormPresenter
             ->label(__('resources/event/strings.fields.description'))
             ->rows(5)
             ->maxLength(3000)
+            ->validationMessages([
+                'max' => __('resources/event/strings.validation.description.max_length'),
+            ])
             ->columnSpanFull();
     }
 
@@ -54,7 +60,10 @@ class EventFormPresenter
             ->label(__('resources/event/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->validationMessages(['required' => __('resources/event/strings.validation.title_required')]);
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.title.required'),
+                'max'      => __('resources/event/strings.validation.title.max_length'),
+            ]);
     }
 
     public static function userId(): Select
@@ -67,6 +76,9 @@ class EventFormPresenter
             ->preload()
             ->nullable()
             ->required(fn($get) => (bool)$get('private'))
-            ->visible(fn($get) => (bool)$get('private'));
+            ->visible(fn($get) => (bool)$get('private'))
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.user_id.required'),
+            ]);
     }
 }

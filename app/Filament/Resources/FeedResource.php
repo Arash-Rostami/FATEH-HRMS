@@ -3,12 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeedResource\Exports\FeedExporter;
-use App\Traits\FilamentFilters;
+use BackedEnum;
 use App\Filament\Resources\FeedResource\Pages\{CreateFeed, EditFeed, ListFeeds};
 use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManager, ReactionsRelationManager};
 use App\Filament\Resources\FeedResource\Schemas\{FeedFormPresenter, FeedInfolistPresenter, FeedTablePresenter};
 use App\Models\Feed;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -22,7 +23,7 @@ class FeedResource extends Resource
     use FilamentActions, FilamentFilters;
 
     protected static ?string $model = Feed::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-newspaper';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-newspaper';
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema

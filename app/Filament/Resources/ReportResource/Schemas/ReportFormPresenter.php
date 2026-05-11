@@ -8,7 +8,6 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Illuminate\Support\Facades\Cache;
@@ -50,7 +49,6 @@ class ReportFormPresenter
             ->nullable();
     }
 
-
     public static function description(): RichEditor
     {
         return RichEditor::make('description')
@@ -91,11 +89,10 @@ class ReportFormPresenter
                 ],
             ])
             ->validationMessages([
-                'required' => __('resources/report/strings.validation.report_required'),
-                'max' => __('resources/report/strings.validation.report_max_length', ['length' => 5000]),
+                'required' => __('resources/report/strings.validation.description.required'),
+                'max' => __('resources/report/strings.validation.description.max_length'),
             ]);
     }
-
 
     public static function filePath(): FileUpload
     {
@@ -114,7 +111,7 @@ class ReportFormPresenter
             ->maxSize(5048)
             ->required()
             ->validationMessages([
-                'required' => __('resources/report/strings.form.file_path_required'),
+                'required' => __('resources/report/strings.validation.file_path.required'),
             ]);
     }
 
@@ -125,7 +122,8 @@ class ReportFormPresenter
             ->required()
             ->maxLength(255)
             ->validationMessages([
-                'required' => __('resources/report/strings.form.title_required'),
+                'required' => __('resources/report/strings.validation.title.required'),
+                'max' => __('resources/report/strings.validation.title.max_length'),
             ]);
     }
 
@@ -136,6 +134,9 @@ class ReportFormPresenter
             ->relationship('user', 'name')
             ->searchable()
             ->preload()
-            ->required();
+            ->required()
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.user_id.required'),
+            ]);
     }
 }

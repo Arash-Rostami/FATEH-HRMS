@@ -36,7 +36,7 @@ class ProfileFormPresenter
                     ->dehydrated()
                     ->required()
                     ->validationMessages([
-                        'required' => 'فیلد :attribute الزامی است.',
+                        'required' => __('resources/profile/strings.validation.about_me_key.required'),
                     ]),
                 TextInput::make('value')
                     ->label('مقدار'),
@@ -87,17 +87,15 @@ class ProfileFormPresenter
             ->schema([
                 TextInput::make('key')
                     ->label('نام پیوست')
-                    ->validationAttribute('نام پیوست')
                     ->required()
                     ->maxLength(255)
                     ->validationMessages([
-                        'required' => 'فیلد :attribute الزامی است.',
-                        'max' => 'طول :attribute نباید بیشتر از :max کاراکتر باشد.',
+                        'required' => __('resources/profile/strings.validation.attachment_key.required'),
+                        'max' => __('resources/profile/strings.validation.attachment_key.max'),
                     ]),
 
                 Select::make('category')
                     ->label('نوع پیوست')
-                    ->validationAttribute('نوع پیوست')
                     ->options([
                         'pdf' => 'PDF',
                         'image' => 'تصویر',
@@ -108,12 +106,11 @@ class ProfileFormPresenter
                     ->required()
                     ->native(false)
                     ->validationMessages([
-                        'required' => 'فیلد :attribute الزامی است.',
+                        'required' => __('resources/profile/strings.validation.attachment_category.required'),
                     ]),
 
                 FileUpload::make('path')
                     ->label('فایل پیوست')
-                    ->validationAttribute('فایل پیوست')
                     ->disk('public')
                     ->downloadable()
                     ->openable()
@@ -129,8 +126,8 @@ class ProfileFormPresenter
                     ->required()
                     ->columnSpanFull()
                     ->validationMessages([
-                        'required' => 'فیلد :attribute الزامی است.',
-                        'max' => 'حجم :attribute نباید بیشتر از :max کیلوبایت باشد.',
+                        'required' => __('resources/profile/strings.validation.attachment_path.required'),
+                        'max' => __('resources/profile/strings.validation.attachment_path.max'),
                     ]),
             ])
             ->columns(2)
@@ -171,7 +168,7 @@ class ProfileFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.degree_required'),
+                'required' => __('resources/profile/strings.validation.degree.required'),
             ]);
     }
 
@@ -210,7 +207,7 @@ class ProfileFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.employment_status_required'),
+                'required' => __('resources/profile/strings.validation.employment_status.required'),
             ]);
     }
 
@@ -222,7 +219,7 @@ class ProfileFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.employment_type_required'),
+                'required' => __('resources/profile/strings.validation.employment_type.required'),
             ]);
     }
 
@@ -244,7 +241,7 @@ class ProfileFormPresenter
                 ColorPicker::make('color')
                     ->label(__('resources/profile/strings.form.favorite_color_item'))
                     ->validationMessages([
-                        'required' => 'فیلد :attribute الزامی است.',
+                        'required' => __('resources/profile/strings.validation.favorite_color.required'),
                     ])
             ])
             ->grid(4)
@@ -292,7 +289,7 @@ class ProfileFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.gender_required'),
+                'required' => __('resources/profile/strings.validation.gender.required'),
             ]);
     }
 
@@ -303,7 +300,7 @@ class ProfileFormPresenter
             ->unique(ignoreRecord: true)
             ->maxLength(20)
             ->validationMessages([
-                'unique' => __('resources/profile/strings.form.id_booklet_number_unique'),
+                'unique' => __('resources/profile/strings.validation.id_booklet_number.unique'),
             ]);
     }
 
@@ -314,7 +311,7 @@ class ProfileFormPresenter
             ->unique(ignoreRecord: true)
             ->maxLength(20)
             ->validationMessages([
-                'unique' => __('resources/profile/strings.form.id_card_number_unique'),
+                'unique' => __('resources/profile/strings.validation.id_card_number.unique'),
             ]);
     }
 
@@ -371,7 +368,7 @@ class ProfileFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.marital_status_required'),
+                'required' => __('resources/profile/strings.validation.marital_status.required'),
             ]);
     }
 
@@ -391,7 +388,7 @@ class ProfileFormPresenter
             ->unique(ignoreRecord: true)
             ->maxLength(50)
             ->validationMessages([
-                'unique' => __('resources/profile/strings.form.personnel_id_unique'),
+                'unique' => __('resources/profile/strings.validation.personnel_id.unique'),
             ]);
     }
 
@@ -404,7 +401,7 @@ class ProfileFormPresenter
             ->default(Position::Employee->value)
             ->preload()
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.position_required'),
+                'required' => __('resources/profile/strings.validation.position.required'),
             ]);
     }
 
@@ -429,7 +426,7 @@ class ProfileFormPresenter
             ->columnSpanFull()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/profile/strings.form.user_id_required'),
+                'required' => __('resources/profile/strings.validation.user_id.required'),
             ]);
     }
 

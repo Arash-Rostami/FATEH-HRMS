@@ -3,11 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Exports\PostExporter;
-use App\Traits\FilamentFilters;
 use App\Filament\Resources\PostResource\Pages\{CreatePost, EditPost, ListPosts};
 use App\Filament\Resources\PostResource\Schemas\{PostFormPresenter, PostInfolistPresenter, PostTablePresenter};
 use App\Models\Post;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;

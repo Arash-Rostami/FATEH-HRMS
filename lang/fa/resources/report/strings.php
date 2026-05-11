@@ -1,32 +1,30 @@
 <?php
 
 return [
-    'label'        => 'گزارش',
+    'label' => 'گزارش',
     'plural_label' => 'گزارش‌ها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group' => 'مدیریت محتوا',
 
     'fields' => [
-        'title'       => 'عنوان',
+        'title' => 'عنوان',
         'description' => 'توضیحات',
         'cover_image' => 'تصویر جلد',
-        'department'  => 'واحد سازمانی',
-        'file_path'   => 'فایل گزارش',
-        'file_type'   => 'نوع فایل',
-        'active'      => 'وضعیت',
-        'user'        => 'کاربر',
-        'thumbnail'   => 'پیش‌نمایش',
-        'created_at'  => 'تاریخ ایجاد',
-        'updated_at'  => 'تاریخ ویرایش',
+        'department' => 'واحد سازمانی',
+        'file_path' => 'فایل گزارش',
+        'file_type' => 'نوع فایل',
+        'active' => 'وضعیت',
+        'user' => 'کاربر',
+        'thumbnail' => 'پیش‌نمایش',
+        'created_at' => 'تاریخ ایجاد',
+        'updated_at' => 'تاریخ ویرایش',
     ],
 
     'form' => [
-        'section_main'        => 'اطلاعات گزارش',
+        'section_main' => 'اطلاعات گزارش',
         'section_description' => 'اطلاعات پایه گزارش را وارد کنید.',
-        'section_files'       => 'فایل‌ها',
-        'tab_main'            => 'اطلاعات اصلی',
-        'tab_files'           => 'فایل‌ها',
-        'title_required'      => 'عنوان گزارش الزامی است.',
-        'file_path_required'  => 'فایل گزارش الزامی است.',
+        'section_files' => 'فایل‌ها',
+        'tab_main' => 'اطلاعات اصلی',
+        'tab_files' => 'فایل‌ها',
     ],
 
     'placeholders' => [
@@ -38,16 +36,28 @@ return [
     ],
 
     'validation' => [
-        'report_required'      => 'شرح گزارش الزامی است و نمی‌تواند خالی باشد.',
-        'report_max_length'    => 'طول متن گزارش نباید بیشتر از :length کاراکتر باشد (تگ‌های HTML نیز محاسبه می‌شوند).',
+        'title' => [
+            'required' => 'عنوان گزارش الزامی است.',
+            'max_length' => 'عنوان گزارش نباید بیش از ۲۵۵ کاراکتر باشد.',
+        ],
+        'description' => [
+            'required' => 'شرح گزارش الزامی است و نمی‌تواند خالی باشد.',
+            'max_length' => 'طول متن گزارش نباید بیش از ۶۵۵۳۵ کاراکتر باشد (تگ‌های HTML نیز محاسبه می‌شوند).',
+        ],
+        'file_path' => [
+            'required' => 'فایل گزارش الزامی است.',
+        ],
+        'user_id' => [
+            'required' => 'انتخاب کاربر گزارش الزامی است.',
+        ],
     ],
 
     'table' => [
-        'title'      => 'عنوان',
+        'title' => 'عنوان',
         'department' => 'واحد',
-        'user'       => 'کاربر',
-        'file_type'  => 'نوع فایل',
-        'active'     => 'وضعیت',
+        'user' => 'کاربر',
+        'file_type' => 'نوع فایل',
+        'active' => 'وضعیت',
         'created_at' => 'تاریخ ایجاد',
     ],
 
@@ -56,16 +66,16 @@ return [
     ],
 
     'filters' => [
-        'active'          => 'وضعیت',
-        'active_active'   => 'فعال',
+        'active' => 'وضعیت',
+        'active_active' => 'فعال',
         'active_inactive' => 'غیرفعال',
-        'department'      => 'واحد سازمانی',
-        'created_from'    => 'از تاریخ',
-        'created_until'   => 'تا تاریخ',
+        'department' => 'واحد سازمانی',
+        'created_from' => 'از تاریخ',
+        'created_until' => 'تا تاریخ',
     ],
 
     'groups' => [
-        'active'     => 'وضعیت',
+        'active' => 'وضعیت',
         'department' => 'واحد سازمانی',
     ],
 
@@ -74,13 +84,13 @@ return [
     ],
 
     'export' => [
-        'id'          => 'شناسه',
-        'title'       => 'عنوان',
+        'id' => 'شناسه',
+        'title' => 'عنوان',
         'description' => 'توضیحات',
-        'department'  => 'واحد سازمانی',
-        'user'        => 'کاربر',
-        'file_type'   => 'نوع فایل',
-        'active'      => 'وضعیت',
-        'created_at'  => 'تاریخ ایجاد',
+        'department' => 'واحد سازمانی',
+        'user' => 'کاربر',
+        'file_type' => 'نوع فایل',
+        'active' => 'وضعیت',
+        'created_at' => 'تاریخ ایجاد',
     ],
 ];

@@ -26,6 +26,9 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.certificate'))
             ->rows(4)
             ->maxLength(2000)
+            ->validationMessages([
+                'max' => __('resources/ad/strings.validation.certificate.max_length'),
+            ])
             ->columnSpanFull();
     }
 
@@ -35,6 +38,9 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.experience'))
             ->rows(4)
             ->maxLength(2000)
+            ->validationMessages([
+                'max' => __('resources/ad/strings.validation.experience.max_length'),
+            ])
             ->columnSpanFull();
     }
 
@@ -47,7 +53,7 @@ class AdFormPresenter
             ->required()
             ->native(false)
             ->validationMessages([
-                'required' => __('resources/ad/strings.validation.gender_required'),
+                'required' => __('resources/ad/strings.validation.gender.required'),
             ]);
     }
 
@@ -59,8 +65,8 @@ class AdFormPresenter
             ->url()
             ->maxLength(500)
             ->validationMessages([
-                'required' => __('resources/ad/strings.validation.link_required'),
-                'url'      => __('resources/ad/strings.validation.link_url'),
+                'required' => __('resources/ad/strings.validation.link.required'),
+                'url' => __('resources/ad/strings.validation.link.url'),
             ]);
     }
 
@@ -68,7 +74,10 @@ class AdFormPresenter
     {
         return TextInput::make('position')
             ->label(__('resources/ad/strings.fields.position'))
-            ->maxLength(255);
+            ->maxLength(255)
+            ->validationMessages([
+                'max' => __('resources/ad/strings.validation.position.max_length'),
+            ]);
     }
 
     public static function skill(): Textarea
@@ -77,6 +86,9 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.skill'))
             ->rows(4)
             ->maxLength(2000)
+            ->validationMessages([
+                'max' => __('resources/ad/strings.validation.skill.max_length'),
+            ])
             ->columnSpanFull();
     }
 }
