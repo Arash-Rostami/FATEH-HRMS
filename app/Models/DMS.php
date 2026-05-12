@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasDepartmentHelpers;
 use App\Models\Traits\HasDmsCountHelpers;
+use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class DMS extends Model
 {
     use HasFactory;
+    use HasUserHelpers;
     use HasDepartmentHelpers;
     use HasDmsCountHelpers;
 

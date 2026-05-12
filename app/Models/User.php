@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
@@ -37,7 +39,6 @@ class User extends Authenticatable
     ];
 
 
-
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
@@ -61,6 +62,30 @@ class User extends Authenticatable
     public function feeds(): HasMany
     {
         return $this->hasMany(Feed::class);
+    }
+
+    public static function getCachedActiveOptions(): Collection
+    {
+        return once(fn() => Cache::remember('user_active_options',
+            now()->addHour(),
+            fn() => self::active()->orderBy('name')->pluck('name', 'id')
+        ));
+    }
+
+    public static function getCachedAllOptions(): Collection
+    {
+        return once(fn() => Cache::remember('user_all_options',
+            now()->addHours(6),
+            fn() => self::orderBy('name')->pluck('name', 'id')
+        ));
+    }
+
+    public static function getCachedNames(): Collection
+    {
+        return once(fn() => Cache::remember('user_names_map',
+            now()->addHour(),
+            fn() => self::orderBy('name')->pluck('name', 'id')
+        ));
     }
 
     public function getExtraValue(string $key, mixed $default = null): mixed
@@ -171,6 +196,21 @@ class User extends Authenticatable
     public function touchLastSeen(): void
     {
         $this->update(['last_seen' => now()]);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            Cache::forget('user_active_options');
+            Cache::forget('user_all_options');
+            Cache::forget('user_names_map');
+        });
+
+        static::deleted(function () {
+            Cache::forget('user_active_options');
+            Cache::forget('user_all_options');
+            Cache::forget('user_names_map');
+        });
     }
 
     protected function casts(): array

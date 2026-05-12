@@ -2,8 +2,12 @@
 
 namespace App\Models\Traits;
 
+use App\Models\Department;
+
 trait HasDepartmentHelpers
 {
+    protected static array $departmentsCache = [];
+
     public function getDepartmentDescriptions()
     {
         return $this->getDepartmentsData('description', 'توضیحات برای همه واحد ها');
@@ -16,10 +20,16 @@ trait HasDepartmentHelpers
 
     private function getDepartmentsData(string $attribute, string $message)
     {
-        if (collect($this->owners)->contains('ALL')) return $message;
+        if (collect($this->owners)->contains('ALL')) {
+            return $message;
+        }
 
-        $departments = $this->departments()->pluck($attribute, 'code');
+        if (empty(static::$departmentsCache)) {
+            static::$departmentsCache = Department::all()->keyBy('code')->toArray();
+        }
 
-        return collect($this->owners)->map(fn($ownerCode) => $departments[$ownerCode] ?? '')->implode(', ');
+        return collect($this->owners)
+            ->map(fn($ownerCode) => static::$departmentsCache[$ownerCode][$attribute] ?? '')
+            ->implode(' ┆ ');
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class Department extends Model
 {
@@ -22,9 +24,18 @@ class Department extends Model
     {
         return $this->hasMany(Authority::class, 'department_id', 'code');
     }
+
     public function faqs(): HasMany
     {
         return $this->hasMany(FAQ::class, 'department_id', 'code');
+    }
+
+    public static function getCachedOptions(): Collection
+    {
+        return once(fn() => Cache::remember('department_options',
+            now()->addYear(),
+            fn() => self::orderBy('name')->pluck('description', 'code'))
+        );
     }
 
     public function photos(): HasMany
@@ -41,6 +52,7 @@ class Department extends Model
     {
         return $this->hasMany(Report::class, 'department_id', 'code');
     }
+
     public function user(): HasOneThrough
     {
         return $this->hasOneThrough(User::class, Profile::class, 'department_id', 'id', 'code');
@@ -48,6 +60,12 @@ class Department extends Model
 
     public function users(): HasManyThrough
     {
-        return $this->hasManyThrough(User::class, Profile::class, 'department_id', 'id', 'code' , 'user_id');
+        return $this->hasManyThrough(User::class, Profile::class, 'department_id', 'id', 'code', 'user_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn() => Cache::forget('department_options'));
+        static::deleted(fn() => Cache::forget('department_options'));
     }
 }

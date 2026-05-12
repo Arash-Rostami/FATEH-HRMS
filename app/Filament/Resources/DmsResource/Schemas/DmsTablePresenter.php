@@ -1,1 +1,170 @@
 <?php
+
+namespace App\Filament\Resources\DmsResource\Schemas;
+
+use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Models\Department;
+use App\Models\Read;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Grouping\Group;
+use Illuminate\Database\Eloquent\Builder;
+
+class DmsTablePresenter
+{
+    public static function code(): TextColumn
+    {
+        return TextColumn::make('code')
+            ->label(__('resources/dms/strings.fields.code'))
+            ->searchable()
+            ->sortable()
+            ->copyable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function createdAt(): TextColumn
+    {
+        return TextColumn::make('created_at')
+            ->label(__('resources/dms/strings.fields.created_at'))
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function id(): TextColumn
+    {
+        return TextColumn::make('id')
+            ->label('ID')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function owners(): TextColumn
+    {
+        return TextColumn::make('owners_display')
+            ->label(__('resources/dms/strings.fields.owners'))
+            ->getStateUsing(fn($record) => in_array('ALL', $record->owners ?? [])
+                ? __('resources/dms/strings.fields.all_departments') : count($record->owners ?? []) . ' ' . __('resources/dms/strings.fields.departments')
+            )
+            ->badge()
+            ->color(fn($record) => in_array('ALL', $record->owners ?? []) ? 'success' : 'primary')
+            ->tooltip(fn($record) => $record->getDepartmentDescriptions() ?? $record->getDepartmentDescriptions())
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function ownersFilter(): Filter
+    {
+        $departmentOptions = Department::getCachedOptions();
+
+        return Filter::make('owners')
+            ->label(__('resources/dms/strings.filters.owners'))
+            ->schema([
+                Select::make('departments')
+                    ->label(__('resources/dms/strings.fields.owners'))
+                    ->options($departmentOptions)
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
+            ])
+            ->query(fn(Builder $query, array $data) => $query
+                ->when($data['departments'] ?? null, function (Builder $query, array $codes) {
+                    $query->where(function (Builder $inner) use ($codes) {
+                        foreach ($codes as $code) {
+                            $inner->orWhereJsonContains('owners', $code);
+                        }
+                    });
+                })
+            )
+            ->indicateUsing(function (array $data) use ($departmentOptions): array {
+                if (empty($data['departments'])) return [];
+
+                $names = collect($data['departments'])
+                    ->map(fn($code) => $departmentOptions[$code] ?? $code)
+                    ->implode(' ┆ ');
+
+                return [__('resources/dms/strings.fields.owners') . ': ' . $names];
+            });
+    }
+
+    public static function ownersGroup(): Group
+    {
+        return Group::make('owners')
+            ->label(__('resources/dms/strings.fields.owners'))
+            ->getTitleFromRecordUsing(
+                fn($record): string => in_array('ALL', $record->owners ?? [])
+                    ? __('resources/dms/strings.fields.all_departments') : ($record->getDepartmentDescriptions() ?: '—')
+            )
+            ->getKeyFromRecordUsing(fn($record): string => implode(',', $record->owners ?? []))
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
+    public static function readCount(): TextColumn
+    {
+        return TextColumn::make('combined_read_count')
+            ->label(__('resources/dms/strings.fields.read_count'))
+            ->badge()
+            ->color('success')
+            ->tooltip(fn($record) => Read::getReaderNamesTooltipForDocument($record->id))
+            ->default(0)
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function status(): TextColumn
+    {
+        return TextColumn::make('status')
+            ->label(__('resources/dms/strings.fields.status'))
+            ->getStateUsing(fn($record) => DocumentStatus::tryFrom($record->status))
+            ->badge()
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function statusGroup(): Group
+    {
+        return Group::make('status')
+            ->label(__('resources/dms/strings.fields.status'))
+            ->getTitleFromRecordUsing(
+                fn($record): string => DocumentStatus::tryFrom($record?->status)?->getLabel()
+                    ?? (string)$record?->status
+            )
+            ->getKeyFromRecordUsing(fn($record): string => (string)$record?->status)
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
+    public static function title(): TextColumn
+    {
+        return TextColumn::make('title')
+            ->label(__('resources/dms/strings.fields.title'))
+            ->searchable()
+            ->sortable()
+            ->limit(50)
+            ->tooltip(fn($state) => strlen($state ?? '') > 50 ? $state : null)
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function usersCount(): TextColumn
+    {
+        return TextColumn::make('users_count')
+            ->label(__('resources/dms/strings.fields.users_count'))
+            ->getStateUsing(fn($record) => count($record->users ?? []))
+            ->badge()
+            ->color('info')
+            ->tooltip(fn($record) => $record?->user_names_tooltip)
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function version(): TextColumn
+    {
+        return TextColumn::make('version')
+            ->label(__('resources/dms/strings.fields.version'))
+            ->badge()
+            ->color('gray')
+            ->searchable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+}

@@ -15,11 +15,6 @@ class ListTickets extends ListRecords
 
     protected static string $resource = ThsResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
-
     public function getTabs(): array
     {
         return [
@@ -61,9 +56,9 @@ class ListTickets extends ListRecords
                 ->badgeColor('danger')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query
-                    ->whereNotNull('completion_deadline')
-                    ->where('completion_deadline', '<', now())
-                    ->where('status', '!=', 'closed')
+                        ->whereNotNull('completion_deadline')
+                        ->where('completion_deadline', '<', now())
+                        ->where('status', '!=', 'closed')
                 ),
         ];
     }

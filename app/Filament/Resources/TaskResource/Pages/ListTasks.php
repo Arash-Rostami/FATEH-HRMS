@@ -15,11 +15,6 @@ class ListTasks extends ListRecords
 
     protected static string $resource = TaskResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
-
     public function getTabs(): array
     {
         return [
