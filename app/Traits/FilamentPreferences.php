@@ -4,6 +4,8 @@ namespace App\Traits;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Slider;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
@@ -122,6 +124,23 @@ trait FilamentPreferences
                 ->helperText('نمایش پیغام تایید هنگام خروج از صفحه در صورت وجود فرم‌های ذخیره‌نشده.')
                 ->onIcon('heroicon-o-shield-exclamation')
                 ->offIcon('heroicon-o-shield-check'),
+
+            Toggle::make('screen_saver')
+                ->label('محافظ صفحه')
+                ->helperText('فعال‌سازی محافظ صفحه پس از مدتی عدم فعالیت.')
+                ->onIcon('heroicon-o-computer-desktop')
+                ->offIcon('heroicon-o-computer-desktop')
+                ->reactive()
+                ->default(true),
+
+            Slider::make('screen_saver_timeout')
+                ->label('زمان محافظ صفحه (ثانیه)')
+                ->helperText('مدت زمان عدم فعالیت پیش از فعال شدن محافظ صفحه.')
+                ->min(15)
+                ->max(3600)
+                ->step(15)
+                ->default(60)
+                ->visible(fn (Get $get) => $get('screen_saver')),
         ];
     }
 

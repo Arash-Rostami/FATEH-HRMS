@@ -29,8 +29,20 @@ class FilamentServiceProvider extends ServiceProvider
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
-            fn(): string => view('components.ui.loaders.screen-saver', ['timeout' => 60])
-                ->render(),
+            function (): string {
+                $user = auth()->user();
+                $preferences = $user?->extra['preferences'] ?? [];
+
+                $isScreenSaverEnabled = $user && (isset($preferences['screen_saver']) ? $preferences['screen_saver'] : true);
+
+                if (!$isScreenSaverEnabled) {
+                    return '';
+                }
+
+                $timeout = isset($preferences['screen_saver_timeout']) ? (int)$preferences['screen_saver_timeout'] : 60;
+
+                return view('components.ui.loaders.screen-saver', ['timeout' => $timeout])->render();
+            }
         );
     }
 }
