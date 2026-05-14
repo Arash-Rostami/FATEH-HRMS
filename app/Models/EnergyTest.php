@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class EnergyTest extends Model
@@ -40,6 +41,38 @@ class EnergyTest extends Model
             ->pluck('average_score', 'department');
     }
 
+    public static function getAverageScoresForUser(int $userId): array
+    {
+        return Cache::remember(
+            "energy_tests.user_averages.{$userId}",
+            now()->addHour(),
+            function () use ($userId): array {
+                $row = static::query()
+                    ->where('user_id', $userId)
+                    ->selectRaw('
+                    COUNT(*) AS records_count,
+                    COALESCE(AVG(mind_score),0) AS mind_avg,
+                    COALESCE(AVG(emotion_score),0) AS emotion_avg,
+                    COALESCE(AVG(physique_score), 0) AS physique_avg,
+                    COALESCE(AVG(soul_score),     0) AS soul_avg,
+                    COALESCE(AVG(overall_score),  0) AS overall_avg
+                ')
+                    ->first();
+
+                return [
+                    'records_count' => (int)$row->records_count,
+                    'overall' => round((float)$row->overall_avg, 1),
+                    'categories' => [
+                        'physique' => round((float)$row->physique_avg, 1),
+                        'emotion' => round((float)$row->emotion_avg, 1),
+                        'mind' => round((float)$row->mind_avg, 1),
+                        'soul' => round((float)$row->soul_avg, 1),
+                    ],
+                ];
+            }
+        );
+    }
+
     public static function getDistribution(array $ranges, bool $lastMonth = false): Builder
     {
         $selects = [];
@@ -56,6 +89,17 @@ class EnergyTest extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    protected static function booted(): void
+    {
+        $forgetCache = fn(self $test) => Cache::forget(
+            "energy_tests.user_averages.{$test->user_id}"
+        );
+
+        static::saved($forgetCache);
+        static::deleted($forgetCache);
+    }
+
 
     protected function casts(): array
     {

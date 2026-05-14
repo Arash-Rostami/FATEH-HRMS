@@ -36,20 +36,25 @@
                 {{ jdate($photo->event_date)->format('%d %B %Y') }}
             </span>
         </div>
-        <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm">
+        <div
+            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm">
             <span class="material-symbols-rounded text-base">photo_library</span>
         </div>
     </div>
 
     {{-- Collage (Original Logic Restored) --}}
-    <div class="flex-1 relative flex items-center justify-center min-h-[200px] w-full perspective-1000 py-4 feed-scrollbar overflow-y-auto">
+    <div
+        class="flex-1 relative flex items-center justify-center min-h-[200px] w-full perspective-1000 py-4 feed-scrollbar overflow-y-auto">
         @foreach($visibleImages as $index => $imagePath)
-            @php $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => '']; @endphp
-            <a href="{{ asset($imagePath) }}"
+            @php
+                $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => ''];
+                $url = Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath);
+            @endphp
+            <a href="{{ $url }}"
                data-fancybox="gallery-{{ $photo->id }}"
                class="absolute w-40 h-40 md:w-56 md:h-56 rounded-xl shadow-md overflow-hidden border-4 border-[var(--md-sys-color-surface)] transition-all duration-500 ease-out cursor-zoom-in {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
             >
-                <img src="{{ asset($imagePath) }}" alt="{{ $photo->title }}" class="w-full h-full object-cover" loading="lazy">
+                <img src="{{ $url }}" alt="{{ $photo->title }}" class="w-full h-full object-cover" loading="lazy">
             </a>
         @endforeach
 
@@ -69,7 +74,8 @@
 
     {{-- Description --}}
     @if(!empty($photo->description))
-        <div class="mt-auto shrink-0 relative z-20 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/10 p-4 mx-4 mb-4 rounded-xl">
+        <div
+            class="mt-auto shrink-0 relative z-20 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/10 p-4 mx-4 mb-4 rounded-xl">
             <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 text-justify">
                 {{ strip_tags($photo->description) }}
             </p>

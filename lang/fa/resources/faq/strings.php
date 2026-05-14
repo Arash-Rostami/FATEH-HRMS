@@ -4,14 +4,14 @@ return [
     'label'         => 'سوال متداول',
     'plural_label'  => 'سوالات متداول',
     'nav_group'    => 'مدیریت محتوا',
-    'no_department' => 'بدون دپارتمان',
+    'no_department' => 'بدون واحد',
 
     'fields' => [
         'category'    => 'دسته‌بندی',
         'question'    => 'سوال',
         'answer'      => 'پاسخ',
         'user'        => 'ثبت‌کننده',
-        'department'  => 'دپارتمان',
+        'department'  => 'واحد',
         'created_at'  => 'تاریخ ایجاد',
         'updated_at'  => 'آخرین ویرایش',
     ],
@@ -33,7 +33,7 @@ return [
 
     'form' => [
         'section_meta'                 => 'اطلاعات دسته‌بندی',
-        'section_meta_description'     => 'دسته‌بندی، ثبت‌کننده و دپارتمان مرتبط با این سوال',
+        'section_meta_description'     => 'دسته‌بندی، ثبت‌کننده و واحد مرتبط با این سوال',
         'section_content'              => 'محتوای سوال و پاسخ',
         'section_content_description'  => 'متن کامل سوال و پاسخ را وارد کنید. پاسخ می‌تواند شامل متن قالب‌بندی‌شده، تصویر، لینک و جدول باشد.',
     ],

@@ -88,9 +88,9 @@ class FAQTablePresenter
 
     public static function departmentGroup(): Group
     {
-        return Group::make('department.name')
+        return Group::make('department.description')
             ->label(__('resources/faq/strings.fields.department'))
-            ->getTitleFromRecordUsing(fn($record): string => $record->department?->name ?? __('resources/faq/strings.no_department'))
+            ->getTitleFromRecordUsing(fn($record): string => $record->department?->description ?? __('resources/faq/strings.no_department'))
             ->collapsible();
     }
 

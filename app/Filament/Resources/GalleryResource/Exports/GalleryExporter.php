@@ -30,8 +30,8 @@ class GalleryExporter extends Exporter
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        return __('resources/gallery/strings.export.completed', [
-            'count' => number_format($export->successful_rows),
-        ]);
+        $count = number_format($export->successful_rows);
+
+        return __('resources/gallery/strings.export.completed', ['count' => $count]);
     }
 }

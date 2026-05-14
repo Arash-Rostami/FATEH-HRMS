@@ -3,7 +3,7 @@
     searchModel="search"
     activeCondition="this.$wire.get('search') !== ''"
     clearAction="this.$wire.set('search', '')"
-    filterTitle="دپارتمان‌ها"
+    filterTitle="واحدها"
     :open="true"
 >
     <div class="overflow-x-auto pb-2"

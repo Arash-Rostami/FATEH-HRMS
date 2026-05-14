@@ -65,7 +65,9 @@ class Department extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn() => Cache::forget('department_options'));
-        static::deleted(fn() => Cache::forget('department_options'));
+        $forgetCache = fn() => Cache::forget('department_options');
+
+        static::saved($forgetCache);
+        static::deleted($forgetCache);
     }
 }

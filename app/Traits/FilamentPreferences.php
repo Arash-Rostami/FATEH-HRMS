@@ -3,10 +3,15 @@
 namespace App\Traits;
 
 use Filament\Actions\Action;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Slider;
+use Filament\Forms\Components\Slider\Enums\Behavior;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\RawJs;
 use Illuminate\Support\Facades\Auth;
 
 trait FilamentPreferences
@@ -122,6 +127,32 @@ trait FilamentPreferences
                 ->helperText('نمایش پیغام تایید هنگام خروج از صفحه در صورت وجود فرم‌های ذخیره‌نشده.')
                 ->onIcon('heroicon-o-shield-exclamation')
                 ->offIcon('heroicon-o-shield-check'),
+
+
+            Toggle::make('screen_saver')
+                ->label('اسکرین سیور')
+                ->helperText('فعال‌سازی اسکرین سیور پس از مدتی عدم فعالیت.')
+                ->onIcon('heroicon-o-computer-desktop')
+                ->offIcon('heroicon-o-computer-desktop')
+                ->reactive()
+                ->default(true),
+
+            Slider::make('screen_saver_timeout')
+                ->hiddenLabel()
+                ->helperText('مدت زمان عدم فعالیت پیش از فعال شدن')
+                ->range(minValue: 1, maxValue: 60)
+                ->step(1)
+                ->live()
+                ->rtl()
+                ->pips()
+                ->extraAttributes(['style' => 'transform: scale(0.8); transform-origin: center;'])
+                ->behavior([Behavior::Tap, Behavior::Drag, Behavior::SmoothSteps])
+                ->default(2)
+                ->afterStateHydrated(fn (Slider $component, ?int $state) => $component->state($state ? (int) round($state / 60) : 2))
+                ->dehydrateStateUsing(fn (?int $state) => $state ? $state * 60 : null)
+                ->beforeContent(fn (Get $get): string => ((int) ($get('screen_saver_timeout') ?? 0)) . ' دقیقه')
+                ->visible(fn (Get $get) => $get('screen_saver')),
+
         ];
     }
 

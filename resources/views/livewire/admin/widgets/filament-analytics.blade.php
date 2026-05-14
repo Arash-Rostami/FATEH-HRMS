@@ -21,7 +21,7 @@
                 wire:click="setTab('departments')"
                 icon="heroicon-o-building-office"
             >
-                {{ __('دپارتمان‌ها') }}
+                {{ __('واحدها') }}
             </x-filament::tabs.item>
 
             <x-filament::tabs.item
@@ -38,6 +38,15 @@
                 icon="heroicon-o-document-text"
             >
                 {{ __('گزارش‌ها') }}
+            </x-filament::tabs.item>
+
+            {{-- Add this block below --}}
+            <x-filament::tabs.item
+                :active="$activeTab === 'energy'"
+                wire:click="setTab('energy')"
+                icon="heroicon-o-bolt"
+            >
+                {{ __('آنالیز انرژی') }}
             </x-filament::tabs.item>
         </x-filament::tabs>
 

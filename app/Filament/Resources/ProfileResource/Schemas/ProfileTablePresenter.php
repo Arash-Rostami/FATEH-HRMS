@@ -58,7 +58,7 @@ class ProfileTablePresenter
 
     public static function department(): TextColumn
     {
-        return TextColumn::make('department.name')
+        return TextColumn::make('department.description')
             ->label(__('resources/profile/strings.table.department'))
             ->sortable()
             ->searchable()

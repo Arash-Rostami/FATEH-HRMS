@@ -27,7 +27,7 @@
         </div>
 
         <div class="flex flex-col gap-2">
-            <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] px-1">دپارتمان‌ها</span>
+            <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] px-1">واحدها</span>
             <div class="flex flex-wrap items-center gap-2 justify-start w-full scale-[0.8] md:scale-[1]">
                 <button
                     wire:click="filterByDepartment(null)"

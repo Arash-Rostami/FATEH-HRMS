@@ -70,7 +70,7 @@ class DepartmentResource extends Resource
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return $record->name;
+        return $record->description ?? $record->name;
     }
 
     public static function getGlobalSearchResultUrl(Model $record): string

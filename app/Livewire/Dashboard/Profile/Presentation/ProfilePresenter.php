@@ -30,7 +30,7 @@ class ProfilePresenter
 
     public function departmentName(User $user): string
     {
-        return $user->profile?->department?->name ?? 'دپارتمان عمومی';
+        return $user->profile?->department?->name ?? 'واحد عمومی';
     }
 
     public function lastSeen(User $user): string

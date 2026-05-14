@@ -29,7 +29,7 @@ class FilamentServiceProvider extends ServiceProvider
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
-            fn(): string => view('components.ui.loaders.screen-saver', ['timeout' => 60])
+            fn(): string => view('components.ui.loaders.screen-saver')
                 ->render(),
         );
     }

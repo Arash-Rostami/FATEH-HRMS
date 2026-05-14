@@ -46,6 +46,6 @@ class DepartmentExporter extends Exporter
     public static function getCompletedNotificationBody(Export $export): string
     {
         $count = number_format($export->successful_rows);
-        return "خروجی {$count} دپارتمان با موفقیت آماده شد.";
+        return "خروجی {$count} واحدها با موفقیت آماده شد.";
     }
 }
