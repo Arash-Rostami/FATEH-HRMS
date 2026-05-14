@@ -1,3 +1,11 @@
+@php
+    $user = auth()->user();
+    $preferences = $user?->extra['preferences'] ?? [];
+    $isScreenSaverEnabled = $user && (isset($preferences['screen_saver']) ? $preferences['screen_saver'] : true);
+    $timeout = isset($preferences['screen_saver_timeout']) ? (int)$preferences['screen_saver_timeout'] : 60;
+@endphp
+
+@if($isScreenSaverEnabled)
 <script>
     (((timeout) => {
         let idleTimer, raf, resizeTimer, active = false;
@@ -179,5 +187,6 @@
         document.addEventListener('livewire:navigated', reset);
         document.addEventListener('livewire:request',   reset);
         reset();
-    }))({{ $timeout ?? 60 }});
+    }))({{ $timeout }});
 </script>
+@endif
