@@ -23,8 +23,14 @@ class FilamentServiceProvider extends ServiceProvider
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-            fn(): string => view('components.dashboard.navbars.top.palette')->render(),
+            fn(): string => view('components.dashboard.navbars.top.palette')
+                ->render(),
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn(): string => view('components.ui.loaders.screen-saver', ['timeout' => 60])
+                ->render(),
         );
     }
-
 }

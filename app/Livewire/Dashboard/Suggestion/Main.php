@@ -51,7 +51,7 @@ class Main extends Component
     #[Computed(persist: true, seconds: 1)]
     public function departmentNames(): array
     {
-        return Department::orderBy('code')->pluck('description', 'code')->all();
+        return Department::getCachedOptions()->toArray();
     }
 
     public function loadMore(): void

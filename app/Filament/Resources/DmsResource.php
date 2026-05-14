@@ -36,6 +36,9 @@ class DmsResource extends Resource
                     DmsFormPresenter::code(),
                     DmsFormPresenter::version(),
                     DmsFormPresenter::status(),
+
+                    DmsFormPresenter::file(),
+                    DmsFormPresenter::revision(),
                 ])
                 ->columns(2),
 
@@ -45,26 +48,9 @@ class DmsResource extends Resource
                     DmsFormPresenter::owners(),
                     DmsFormPresenter::users(),
                     DmsFormPresenter::ownersPreview(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/dms/strings.form.section_file'))
-                ->icon('heroicon-o-paper-clip')
-                ->schema([
-                    DmsFormPresenter::file(),
-                    DmsFormPresenter::revision(),
-                ])
-                ->columns(1),
-
-            Section::make(__('resources/dms/strings.form.section_extra'))
-                ->icon('heroicon-o-information-circle')
-                ->description('اطلاعات اضافی مانند دسته‌بندی، نوع سند یا سند والد را در اینجا وارد کنید.')
-                ->schema([
                     DmsFormPresenter::extra(),
                 ])
-                ->columnSpanFull()
-                ->collapsible()
-                ->collapsed(),
+                ->columns(2),
         ]);
     }
 

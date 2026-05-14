@@ -72,7 +72,7 @@ class DmsFormPresenter
             ->live()
             ->afterStateUpdated(function (Set $set, ?array $state) {
                 $preview = app(GenerateOwnerPreview::class)->handle($state ?? []);
-                $set('extra.users', $preview);
+                $set('owners_preview_display', $preview);
             })
             ->required()
             ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required')]);
@@ -80,9 +80,14 @@ class DmsFormPresenter
 
     public static function ownersPreview(): Textarea
     {
-        return Textarea::make('extra.users')
+        return Textarea::make('owners_preview_display')
             ->label(__('resources/dms/strings.fields.owners_preview'))
             ->disabled()
+            ->dehydrated(false)
+            ->afterStateHydrated(fn($component, $record) => $component->state($record
+                ? app(GenerateOwnerPreview::class)->handle($record->owners ?? [])
+                : null)
+            )
             ->rows(5)
             ->placeholder(__('resources/dms/strings.fields.owners_preview_placeholder'))
             ->columnSpanFull();
@@ -92,7 +97,7 @@ class DmsFormPresenter
     {
         return Textarea::make('revision')
             ->label(__('resources/dms/strings.fields.revision'))
-            ->rows(3)
+            ->rows(6)
             ->maxLength(3000)
             ->nullable()
             ->placeholder(__('resources/dms/strings.fields.revision_placeholder'))

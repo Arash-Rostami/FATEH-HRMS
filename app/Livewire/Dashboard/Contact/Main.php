@@ -208,7 +208,7 @@ class Main extends Component
 
     public function selectContact(int $userId, MarkMessagesAsReadAction $markRead): void
     {
-        if (!User::where('id', $userId)->exists()) return;
+        if (!User::getCachedAllOptions()->has($userId)) return;
 
         $this->activeUserId = $userId;
         $this->mobileShowChat = true;

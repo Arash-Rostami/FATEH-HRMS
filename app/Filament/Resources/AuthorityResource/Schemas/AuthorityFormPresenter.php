@@ -11,7 +11,6 @@ use Filament\Forms\Components\{RichEditor,
     Select,
     TextInput,
     Toggle};
-use Illuminate\Support\Facades\Cache;
 
 class AuthorityFormPresenter
 {
@@ -35,10 +34,7 @@ class AuthorityFormPresenter
     {
         return Select::make('department_id')
             ->label(__('resources/authority/strings.fields.department'))
-            ->options(fn() => Cache::remember(
-                'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
-            ))
+            ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->preload()
             ->nullable();

@@ -48,7 +48,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/reservation', Reservation::class)->name('reservation');
 
-    Route::get('/authorized/{filename}', [DMS::class, 'getAuthorizedFile'])
+    Route::get('/authorized/{filename}', [Dms::class, 'getAuthorizedFile'])
         ->where('filename', '.*')
         ->name('secure-file');
 

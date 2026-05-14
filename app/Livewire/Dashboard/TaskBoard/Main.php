@@ -113,12 +113,12 @@ class Main extends Component
 
     public function mount(): void
     {
-        $this->staffMembers = Cache::remember('staff_members_' . auth()->id(), 3600, fn() => User::where('status', 'active')->where('id', '!=', auth()->id())
-            ->whereNotIn('id', [auth()->id()])
-            ->get(['id', 'name'])
-            ->map(fn($u) => ['id' => $u->id, 'full_name' => $u->name])
-            ->values()->toArray()
-        );
+        $authId = auth()->id();
+        $this->staffMembers = User::getCachedActiveOptions()
+            ->except($authId)
+            ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name])
+            ->values()
+            ->toArray();
 
         $this->loadTasks();
     }

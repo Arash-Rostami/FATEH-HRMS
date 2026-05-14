@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\AuthorityResource\Schemas;
 
 use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
-use App\Filament\Resources\AuthorityResource\Schemas\Grouping\DelegationGroup;
 use App\Filament\Resources\AuthorityResource\Schemas\Grouping\JsonEnumGroup;
 use App\Models\Department;
 use Filament\Tables\Columns\{TextColumn, ToggleColumn};
@@ -11,7 +10,6 @@ use Filament\Tables\Filters\{SelectFilter, TernaryFilter};
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class AuthorityTablePresenter
 {
@@ -70,10 +68,7 @@ class AuthorityTablePresenter
             ->label(__('resources/authority/strings.fields.department'))
             ->searchable()
             ->preload()
-            ->options(fn() => Cache::remember(
-                'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
-            ));
+            ->options(fn() => Department::getCachedOptions()->toArray());
     }
 
     public static function departmentGroup(): Group

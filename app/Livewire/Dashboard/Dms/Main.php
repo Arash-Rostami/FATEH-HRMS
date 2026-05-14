@@ -6,9 +6,12 @@ use App\Livewire\Dashboard\Dms\Actions\ConfirmReadAction;
 use App\Models\DMS;
 use App\Models\Read;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\Response;
 
 class Main extends Component
 {
@@ -49,13 +52,20 @@ class Main extends Component
             ->get();
     }
 
-    public function getAuthorizedFile(string $filename)
+    public function getAuthorizedFile(string $filename): Response
     {
-        $filePath = storage_path("app/public/dms/{$filename}");
+        $doc = DMS::visibleToUser()->where('file', $filename)->first();
+        if (!$doc) return response()->view('errors.document-not-found', [], 404);
 
-        return file_exists($filePath) && is_file($filePath)
+
+        $filePath = Storage::disk('public')->path($filename);
+        if (!file_exists($filePath) || !is_file($filePath)) {
+            return response()->view('errors.document-not-found', [], 404);
+        }
+
+        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf'
             ? response()->file($filePath)
-            : response()->view('errors.document-not-found', [], 404);
+            : response()->download($filePath);
     }
 
     public function incrementRead(int $docId, ConfirmReadAction $action): void
@@ -93,6 +103,13 @@ class Main extends Component
     public function mount(): void
     {
         $this->loadInitialDocs();
+    }
+
+    #[On('confirmation-confirmed')]
+    public function onConfirmationConfirmed(string $method, int $params, ConfirmReadAction $action): void
+    {
+        $action->execute($params);
+        unset($this->confirmedDocs, $this->readDocs);
     }
 
     #[Computed]
@@ -151,7 +168,6 @@ class Main extends Component
             ->when($this->activeFilter !== 'all', fn($query) => $query->where(fn($q) => $q->whereJsonContains('extra->type', $this->activeFilter)
                 ->orWhereJsonContains('extra->Type', $this->activeFilter)
             )
-            )
-            ->latest();
+            )->latest();
     }
 }

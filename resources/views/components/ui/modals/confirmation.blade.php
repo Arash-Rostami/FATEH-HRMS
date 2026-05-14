@@ -67,11 +67,21 @@
                     </button>
                 </template>
 
+{{--                <template x-if="type === 'livewire'">--}}
+{{--                    <button--}}
+{{--                        type="button"--}}
+{{--                        class="modal-btn modal-btn-confirm"--}}
+{{--                        @click="$wire.call(confirmMethod, confirmParams); show = false"--}}
+{{--                    >--}}
+{{--                        تایید--}}
+{{--                    </button>--}}
+{{--                </template>--}}
+
                 <template x-if="type === 'livewire'">
                     <button
                         type="button"
                         class="modal-btn modal-btn-confirm"
-                        @click="$wire.call(confirmMethod, confirmParams); show = false"
+                        @click="Livewire.dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
                     >
                         تایید
                     </button>

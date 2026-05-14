@@ -10,7 +10,6 @@ use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Illuminate\Support\Facades\Cache;
 
 class ReportFormPresenter
 {
@@ -41,10 +40,7 @@ class ReportFormPresenter
     {
         return Select::make('department_id')
             ->label(__('resources/report/strings.fields.department'))
-            ->options(fn() => Cache::remember(
-                'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
-            ))
+            ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->nullable();
     }

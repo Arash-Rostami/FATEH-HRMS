@@ -37,7 +37,7 @@ class Info extends Component
     #[Computed]
     public function departments(): array
     {
-        return Department::pluck('name', 'code')->toArray();
+        return Department::getCachedOptions()->toArray();
     }
 
     public function mount(): void

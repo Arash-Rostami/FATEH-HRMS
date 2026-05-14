@@ -4,6 +4,7 @@
 namespace App\Filament\Resources\DmsResource\Schemas;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
+use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -63,14 +64,17 @@ class DmsInfolistPresenter
         return TextEntry::make('owners_names')
             ->label(__('resources/dms/strings.fields.owners'))
             ->getStateUsing(fn($record) => $record->getDepartmentDescriptions() ?? $record->getDepartmentNames() ?: '—')
+            ->markdown()
             ->icon('heroicon-o-building-office')
             ->columnSpanFull();
     }
 
     public static function ownersPreview(): TextEntry
     {
-        return TextEntry::make('extra.users')
+        return TextEntry::make('owners_preview')
             ->label(__('resources/dms/strings.fields.owners_preview'))
+            ->getStateUsing(fn($record) => app(GenerateOwnerPreview::class)->handle($record->owners ?? []))
+            ->markdown()
             ->placeholder('—')
             ->columnSpanFull();
     }

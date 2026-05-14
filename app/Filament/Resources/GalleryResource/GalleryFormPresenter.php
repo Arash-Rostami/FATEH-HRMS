@@ -14,13 +14,15 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class GalleryFormPresenter
 {
-    public static function title(): TextInput
+    public static function departmentId(): Select
     {
-        return TextInput::make('title')
-            ->label(__('resources/gallery/strings.fields.title'))
-            ->required()
-            ->maxLength(255)
-            ->validationMessages(['required' => __('resources/gallery/strings.validation.title_required')]);
+        return Select::make('department_id')
+            ->label(__('resources/gallery/strings.fields.department'))
+            ->helperText(__('resources/gallery/strings.fields.department_hint'))
+            ->options(fn() => Department::getCachedOptions()->toArray())
+            ->searchable()
+            ->preload()
+            ->nullable();
     }
 
     public static function description(): Textarea
@@ -30,17 +32,6 @@ class GalleryFormPresenter
             ->rows(2)
             ->maxLength(2000)
             ->columnSpanFull();
-    }
-
-    public static function departmentId(): Select
-    {
-        return Select::make('department_id')
-            ->label(__('resources/gallery/strings.fields.department'))
-            ->helperText(__('resources/gallery/strings.fields.department_hint'))
-            ->options(fn() => Department::pluck('name', 'code'))
-            ->searchable()
-            ->preload()
-            ->nullable();
     }
 
     public static function eventDate(): FusedGroup
@@ -65,8 +56,7 @@ class GalleryFormPresenter
             ->maxSize(5120)
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string =>
-                    Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
             )
             ->image()
             ->imagePreviewHeight('100')
@@ -74,5 +64,14 @@ class GalleryFormPresenter
             ->reorderable()
             ->required()
             ->columnSpanFull();
+    }
+
+    public static function title(): TextInput
+    {
+        return TextInput::make('title')
+            ->label(__('resources/gallery/strings.fields.title'))
+            ->required()
+            ->maxLength(255)
+            ->validationMessages(['required' => __('resources/gallery/strings.validation.title_required')]);
     }
 }

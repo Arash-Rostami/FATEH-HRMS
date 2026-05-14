@@ -9,7 +9,6 @@ use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Support\Facades\Cache;
 
 class FAQFormPresenter
 {
@@ -85,10 +84,7 @@ class FAQFormPresenter
         return Select::make('department_id')
             ->label(__('resources/faq/strings.fields.department'))
             ->searchable()
-            ->options(fn() => Cache::remember(
-                'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
-            ))
+            ->options(fn() => Department::getCachedOptions()->toArray())
             ->nullable();
     }
 

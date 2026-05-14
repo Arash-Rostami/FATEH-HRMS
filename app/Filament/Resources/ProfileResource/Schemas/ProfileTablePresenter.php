@@ -7,15 +7,11 @@ use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
 use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\Position;
-use App\Filament\Resources\ProfileResource\Exports\ProfileExporter;
 use App\Models\Department;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ExportBulkAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
-use Illuminate\Support\Facades\Cache;
 
 class ProfileTablePresenter
 {
@@ -73,10 +69,15 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('department_id')
             ->label(__('resources/profile/strings.table.filter_department'))
-            ->options(fn() => Cache::remember(
-                'department_filter_options', now()->addDay(),
-                fn() => Department::orderBy('name')->pluck('description', 'code')->toArray()
-            ));
+            ->options(fn() => Department::getCachedOptions()->toArray());
+    }
+
+    public static function departmentGroup(): Group
+    {
+        return Group::make('department.name')
+            ->label(__('resources/profile/strings.form.department_id'))
+            ->getTitleFromRecordUsing(fn($record): string => $record->department?->description ?? $record->department?->code ?? '-')
+            ->collapsible();
     }
 
     public static function employmentStatus(): TextColumn
@@ -98,6 +99,14 @@ class ProfileTablePresenter
             ->options(EmploymentStatus::class);
     }
 
+    public static function employmentStatusGroup(): Group
+    {
+        return Group::make('employment_status')
+            ->label(__('resources/profile/strings.form.employment_status'))
+            ->getTitleFromRecordUsing(fn($record): string => EmploymentStatus::tryFrom($record->employment_status)?->getLabel() ?? $record->employment_status ?? '-')
+            ->collapsible();
+    }
+
     public static function employmentType(): TextColumn
     {
         return TextColumn::make('employment_type')
@@ -117,6 +126,14 @@ class ProfileTablePresenter
             ->options(EmploymentType::class);
     }
 
+    public static function employmentTypeGroup(): Group
+    {
+        return Group::make('employment_type')
+            ->label(__('resources/profile/strings.form.employment_type'))
+            ->getTitleFromRecordUsing(fn($record): string => EmploymentType::tryFrom($record->employment_type)?->getLabel() ?? $record->employment_type ?? '-')
+            ->collapsible();
+    }
+
     public static function gender(): TextColumn
     {
         return TextColumn::make('gender')
@@ -132,6 +149,14 @@ class ProfileTablePresenter
         return SelectFilter::make('gender')
             ->label(__('resources/profile/strings.table.filter_gender'))
             ->options(Gender::class);
+    }
+
+    public static function genderGroup(): Group
+    {
+        return Group::make('gender')
+            ->label(__('resources/profile/strings.form.gender'))
+            ->getTitleFromRecordUsing(fn($record): string => Gender::tryFrom($record->gender)?->getLabel() ?? $record->gender ?? '-')
+            ->collapsible();
     }
 
     public static function id(): TextColumn
@@ -162,6 +187,14 @@ class ProfileTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
+    public static function positionGroup(): Group
+    {
+        return Group::make('position')
+            ->label(__('resources/profile/strings.form.position'))
+            ->getTitleFromRecordUsing(fn($record): string => Position::tryFrom($record->position)?->getLabel() ?? $record->position ?? '-')
+            ->collapsible();
+    }
+
     public static function startDate(): TextColumn
     {
         return TextColumn::make('start_date')
@@ -178,45 +211,5 @@ class ProfileTablePresenter
             ->sortable()
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);
-    }
-
-    public static function departmentGroup(): Group
-    {
-        return Group::make('department.name')
-            ->label(__('resources/profile/strings.form.department_id'))
-            ->getTitleFromRecordUsing(fn($record): string => $record->department?->description ?? $record->department?->code ?? '-')
-            ->collapsible();
-    }
-
-    public static function positionGroup(): Group
-    {
-        return Group::make('position')
-            ->label(__('resources/profile/strings.form.position'))
-            ->getTitleFromRecordUsing(fn($record): string => Position::tryFrom($record->position)?->getLabel() ?? $record->position ?? '-')
-            ->collapsible();
-    }
-
-    public static function employmentStatusGroup(): Group
-    {
-        return Group::make('employment_status')
-            ->label(__('resources/profile/strings.form.employment_status'))
-            ->getTitleFromRecordUsing(fn($record): string => EmploymentStatus::tryFrom($record->employment_status)?->getLabel() ?? $record->employment_status ?? '-')
-            ->collapsible();
-    }
-
-    public static function employmentTypeGroup(): Group
-    {
-        return Group::make('employment_type')
-            ->label(__('resources/profile/strings.form.employment_type'))
-            ->getTitleFromRecordUsing(fn($record): string => EmploymentType::tryFrom($record->employment_type)?->getLabel() ?? $record->employment_type ?? '-')
-            ->collapsible();
-    }
-
-    public static function genderGroup(): Group
-    {
-        return Group::make('gender')
-            ->label(__('resources/profile/strings.form.gender'))
-            ->getTitleFromRecordUsing(fn($record): string => Gender::tryFrom($record->gender)?->getLabel() ?? $record->gender ?? '-')
-            ->collapsible();
     }
 }

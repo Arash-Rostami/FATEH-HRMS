@@ -74,7 +74,7 @@
                     @if ($doc->file)
                         @if($isConfirmed)
                             <a href="{{ route('secure-file', $doc->file) }}" target="_blank"
-                               wire:click.prevent="incrementRead({{ $doc->id }})"
+                               wire:click="incrementRead({{ $doc->id }})"
                                class="inline-flex flex-col items-center justify-center gap-1.5 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] p-2.5 rounded-xl transition-colors">
                                 <span class="material-symbols-rounded text-2xl">search</span>
                                 <span class="text-xs font-medium">مشاهده سند</span>

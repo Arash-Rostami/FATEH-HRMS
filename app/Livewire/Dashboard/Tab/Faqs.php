@@ -30,7 +30,7 @@ class Faqs extends Component
     #[Computed(seconds: 3600, cache: true, key: 'faq-departments')]
     public function departments()
     {
-        return Department::select(['id', 'code', 'name', 'description'])->get();
+        return Department::getCachedOptions()->toArray();
     }
 
     #[Computed]

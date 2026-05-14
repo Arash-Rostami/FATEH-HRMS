@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PresenceStatus;
 use App\Models\Traits\HasProfileHierarchy;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,8 +15,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasAvatar
 {
     use HasFactory, Notifiable, HasProfileHierarchy;
 
@@ -91,6 +93,19 @@ class User extends Authenticatable
     public function getExtraValue(string $key, mixed $default = null): mixed
     {
         return Arr::get($this->extra ?? [], $key, $default);
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        $image = $this->profile?->image;
+
+        if (!$image) return null;
+
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        return Storage::disk('public')->url($image);
     }
 
     public function getTodaysDeskExtension(): ?string
@@ -200,18 +215,16 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
-        static::saved(function () {
-            Cache::forget('user_active_options');
-            Cache::forget('user_all_options');
-            Cache::forget('user_names_map');
-        });
+        $flushCache = fn() => collect([
+            'user_active_options',
+            'user_all_options',
+            'user_names_map',
+        ])->each(Cache::forget(...));
 
-        static::deleted(function () {
-            Cache::forget('user_active_options');
-            Cache::forget('user_all_options');
-            Cache::forget('user_names_map');
-        });
+        static::saved($flushCache);
+        static::deleted($flushCache);
     }
+
 
     protected function casts(): array
     {

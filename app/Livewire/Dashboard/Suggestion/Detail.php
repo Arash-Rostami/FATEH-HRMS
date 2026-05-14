@@ -24,7 +24,7 @@ class Detail extends Component
     #[Computed]
     public function allDepartments(): array
     {
-        return Department::orderBy('code')->pluck('description', 'code')->all();
+        return Department::getCachedOptions()->toArray();
     }
 
     #[Computed]

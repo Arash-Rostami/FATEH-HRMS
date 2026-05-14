@@ -15,8 +15,8 @@ export default function dms() {
                 return;
             }
 
-            const isPdf = typeof file === 'string' && file.toLowerCase().includes('.pdf');
-            const documentUrl = this.baseUrl + 'authorized/' + file;
+            const isPdf = file.toLowerCase().endsWith('.pdf');
+            const documentUrl = `${this.baseUrl}authorized/${file}`;
 
             if (isPdf) {
                 this.$dispatch('open-pdf-viewer', {
