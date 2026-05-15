@@ -5,7 +5,7 @@
 <head>
     <x-dashboard.meta-tags/>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/core/filament.css'])
     @livewireStyles
 </head>
 <body
@@ -31,5 +31,6 @@
 @endunless
 
 @livewireScripts
+@livewire('notifications')
 </body>
 </html>

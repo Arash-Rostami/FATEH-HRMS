@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\EventResource\RelationManagers;
+namespace App\Filament\Resources\EventResource;
 
 use App\Filament\Resources\EventResource\Exports\EventExporter;
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
