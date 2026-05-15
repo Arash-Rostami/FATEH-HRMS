@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Exports\DmsExporter;
+use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\DmsResource\Pages\{CreateDms, EditDms, ListDms};
 use App\Filament\Resources\DmsResource\Schemas\{DmsFormPresenter, DmsInfolistPresenter, DmsTablePresenter};
 use App\Models\DMS;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DmsResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = DMS::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';

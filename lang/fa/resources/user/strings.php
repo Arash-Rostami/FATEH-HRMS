@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'plural_label' => 'کاربران',
+
     'navigation' => [
         'label'    => 'کاربران',
         'group'    => 'مدیریت کاربران',

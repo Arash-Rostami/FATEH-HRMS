@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FeedResource\Exports\FeedExporter;
+use App\Traits\AuthorizesByPermission;
 use BackedEnum;
 use App\Filament\Resources\FeedResource\Pages\{CreateFeed, EditFeed, ListFeeds};
 use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManager, ReactionsRelationManager};
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FeedResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Feed::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-newspaper';

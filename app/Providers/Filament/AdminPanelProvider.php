@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\EnsureHasPermission;
 use App\Livewire\Admin\ManagePreferences;
 use Filament\Actions\Action;
 use Filament\Enums\GlobalSearchPosition;
@@ -96,7 +97,7 @@ class AdminPanelProvider extends PanelProvider
             ->userMenu(position: fn() => $this->getPreference('user_menu_topbar', false)
                 ? UserMenuPosition::Topbar : UserMenuPosition::Sidebar
             )
-            ->authMiddleware([Authenticate::class]);
+            ->authMiddleware([Authenticate::class, EnsureHasPermission::class]);
     }
 
     private function getPreference(string $key, mixed $default = false): mixed

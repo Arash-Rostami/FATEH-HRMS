@@ -41,6 +41,11 @@ class User extends Authenticatable implements HasAvatar
     ];
 
 
+    public function permits(string $module, string $action): bool
+    {
+        return (bool) Permission::forUser($this->id)?->can($module, $action);
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
@@ -131,6 +136,11 @@ class User extends Authenticatable implements HasAvatar
     public function latestEnergyTest()
     {
         return $this->hasOne(EnergyTest::class)->latestOfMany('completed_at');
+    }
+
+    public function permissions(): HasOne
+    {
+        return $this->hasOne(Permission::class);
     }
 
     public function posts(): HasMany

@@ -11,6 +11,7 @@ use App\Filament\Resources\DepartmentResource\Schemas\DepartmentFormPresenter;
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentInfolistPresenter;
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentTablePresenter;
 use App\Models\Department;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepartmentResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Department::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';

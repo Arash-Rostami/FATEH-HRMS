@@ -6,6 +6,7 @@ use App\Filament\Resources\LinkResource\Exports\LinkExporter;
 use App\Filament\Resources\LinkResource\Pages\{CreateLink, EditLink, ListLinks};
 use App\Filament\Resources\LinkResource\Schemas\{LinkFormPresenter, LinkInfolistPresenter, LinkTablePresenter};
 use App\Models\Link;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LinkResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Link::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-link';

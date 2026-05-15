@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Exports\PostExporter;
+use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\PostResource\Pages\{CreatePost, EditPost, ListPosts};
 use App\Filament\Resources\PostResource\Schemas\{PostFormPresenter, PostInfolistPresenter, PostTablePresenter};
 use App\Models\Post;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Post::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-document-text';

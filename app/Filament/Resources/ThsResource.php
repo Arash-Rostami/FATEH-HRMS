@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ThsResource\Exports\ThsExporter;
+use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\ThsResource\Pages\{CreateTicket, EditTicket, ListTickets};
 use App\Filament\Resources\ThsResource\Schemas\{TicketFormPresenter, TicketInfolistPresenter, TicketTablePresenter};
 use App\Models\Ticket;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThsResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ticket::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-ticket';

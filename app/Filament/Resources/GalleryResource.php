@@ -3,11 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\GalleryResource\Exports\GalleryExporter;
-use App\Filament\Resources\GalleryResource\Pages\{CreateGallery, EditGallery, ListGalleries, ListGallery};
+use App\Filament\Resources\GalleryResource\Pages\{CreateGallery, EditGallery, ListGallery};
 use App\Filament\Resources\GalleryResource\Schemas\{GalleryFormPresenter,
     GalleryInfolistPresenter,
     GalleryTablePresenter};
 use App\Models\Photo;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GalleryResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Photo::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-photo';

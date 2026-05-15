@@ -40,6 +40,20 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'ads' => count($this->adsData),
             'reports' => count($this->reportsData),
             'energy' => count($this->energyData),
+            'authorities' => count($this->authoritiesData),
+            'contacts' => count($this->contactsData),
+            'credentials' => count($this->credentialsData),
+            'dms' => count($this->dmsData),
+            'events' => count($this->eventsData),
+            'faqs' => count($this->faqsData),
+            'feeds' => count($this->feedsData),
+            'galleries' => count($this->galleriesData),
+            'links' => count($this->linksData),
+            'onboardings' => count($this->onboardingsData),
+            'posts' => count($this->postsData),
+            'profiles' => count($this->profilesData),
+            'tasks' => count($this->tasksData),
+            'ths' => count($this->thsData),
             default => 0,
         };
     }
@@ -52,6 +66,20 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'ads' => $this->adsData,
             'reports' => $this->reportsData,
             'energy' => $this->energyData,
+            'authorities' => $this->authoritiesData,
+            'contacts' => $this->contactsData,
+            'credentials' => $this->credentialsData,
+            'dms' => $this->dmsData,
+            'events' => $this->eventsData,
+            'faqs' => $this->faqsData,
+            'feeds' => $this->feedsData,
+            'galleries' => $this->galleriesData,
+            'links' => $this->linksData,
+            'onboardings' => $this->onboardingsData,
+            'posts' => $this->postsData,
+            'profiles' => $this->profilesData,
+            'tasks' => $this->tasksData,
+            'ths' => $this->thsData,
             default => [],
         };
 
@@ -66,6 +94,32 @@ class ModuleAnalytics extends Widget implements HasSchemas
                     '2xl' => 5,
                 ]),
         ]);
+    }
+
+    #[Computed]
+    public function getAllTabs(): array
+    {
+        return [
+            'users'       => ['icon' => 'heroicon-o-users', 'label' => __('کاربران')],
+            'profiles'    => ['icon' => 'heroicon-o-identification', 'label' => __('resources/profile/strings.navigation.plural')],
+            'departments' => ['icon' => 'heroicon-o-building-office', 'label' => __('resources/department/strings.plural_label')],
+            'authorities' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/authority/strings.plural_label')],
+            'credentials' => ['icon' => 'heroicon-o-key', 'label' => __('resources/credential/strings.plural_label')],
+            'ads'         => ['icon' => 'heroicon-o-megaphone', 'label' => __('resources/ad/strings.plural_label')],
+            'posts'       => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
+            'reports'     => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
+            'events'      => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
+            'tasks'       => ['icon' => 'heroicon-o-clipboard-document-list', 'label' => __('resources/task/strings.plural_label')],
+            'dms'         => ['icon' => 'heroicon-o-document-duplicate', 'label' => __('resources/dms/strings.plural_label')],
+            'energy'      => ['icon' => 'heroicon-o-bolt', 'label' => __('resources/energy/strings.label')],
+            'contacts'    => ['icon' => 'heroicon-o-chat-bubble-left-ellipsis', 'label' => __('resources/contact/strings.plural_label')],
+            'feeds'       => ['icon' => 'heroicon-o-rss', 'label' => __('resources/feed/strings.plural_label')],
+            'galleries'   => ['icon' => 'heroicon-o-photo', 'label' => __('resources/gallery/strings.plural_label')],
+            'links'       => ['icon' => 'heroicon-o-link', 'label' => __('resources/link/strings.plural_label')],
+            'onboardings' => ['icon' => 'heroicon-o-academic-cap', 'label' => __('resources/onboarding/strings.plural_label')],
+            'faqs'        => ['icon' => 'heroicon-o-question-mark-circle', 'label' => __('resources/faq/strings.plural_label')],
+            'ths'         => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
+        ];
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -217,6 +271,334 @@ class ModuleAnalytics extends Widget implements HasSchemas
             Stat::make('گزارش‌های فعال', $stats->active)
                 ->icon('heroicon-o-document-check')
                 ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function authoritiesData(): array
+    {
+        $stats = DB::table('authorities')->selectRaw("
+            COUNT(*) as total,
+            COUNT(DISTINCT department_id) as depts_with_authorities,
+            SUM(CASE WHEN sub_duty = 1 THEN 1 ELSE 0 END) as sub_duties
+        ")->first();
+
+        return [
+            Stat::make(__('resources/authority/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-shield-check')
+                ->color('primary'),
+            Stat::make(__('resources/department/strings.plural_label'), $stats->depts_with_authorities)
+                ->icon('heroicon-o-building-office')
+                ->color('info'),
+            Stat::make(__('resources/authority/strings.fields.sub_duty'), $stats->sub_duties)
+                ->icon('heroicon-o-queue-list')
+                ->color('gray'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function contactsData(): array
+    {
+        $stats = DB::table('messages')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread,
+            SUM(CASE WHEN reply_to_id IS NOT NULL THEN 1 ELSE 0 END) as replies
+        ")->whereNull('deleted_at')->first();
+
+
+        return [
+            Stat::make(__('resources/contact/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                ->color('primary'),
+            Stat::make(__('resources/contact/strings.fields.unread'), $stats->unread)
+                ->icon('heroicon-o-envelope')
+                ->color('warning'),
+            Stat::make(__('resources/contact/strings.fields.has_reply'), $stats->replies)
+                ->icon('heroicon-o-arrow-uturn-left')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function credentialsData(): array
+    {
+        $stats = DB::table('credentials')->selectRaw("
+            COUNT(*) as total,
+            COUNT(DISTINCT app_name) as apps,
+            SUM(CASE WHEN link IS NOT NULL THEN 1 ELSE 0 END) as with_links
+        ")->first();
+
+        return [
+            Stat::make(__('resources/credential/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-key')
+                ->color('primary'),
+            Stat::make(__('resources/credential/strings.fields.app_name'), $stats->apps)
+                ->icon('heroicon-o-computer-desktop')
+                ->color('info'),
+            Stat::make(__('resources/credential/strings.filters.has_link'), $stats->with_links)
+                ->icon('heroicon-o-link')
+                ->color('gray'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function dmsData(): array
+    {
+        $stats = DB::table('dms')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'live' THEN 1 ELSE 0 END) as live,
+            SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) as under_review,
+            SUM(combined_read_count) as total_reads
+        ")->first();
+
+        return [
+            Stat::make(__('resources/dms/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-document-duplicate')
+                ->color('primary'),
+            Stat::make(__('resources/dms/strings.enums.status.live'), $stats->live)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/dms/strings.enums.status.under_review'), $stats->under_review)
+                ->icon('heroicon-o-clock')
+                ->color('warning'),
+            Stat::make(__('resources/dms/strings.fields.read_count'), $stats->total_reads ?? 0)
+                ->icon('heroicon-o-eye')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function eventsData(): array
+    {
+        $stats = DB::table('events')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN date >= CURRENT_DATE THEN 1 ELSE 0 END) as upcoming,
+            SUM(CASE WHEN private = 1 THEN 1 ELSE 0 END) as private
+        ")->first();
+
+        return [
+            Stat::make(__('resources/event/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-calendar-days')
+                ->color('primary'),
+            Stat::make(__('resources/event/strings.filters.upcoming'), $stats->upcoming)
+                ->icon('heroicon-o-clock')
+                ->color('success'),
+            Stat::make(__('resources/event/strings.fields.private'), $stats->private)
+                ->icon('heroicon-o-lock-closed')
+                ->color('warning'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function faqsData(): array
+    {
+        $stats = DB::table('faqs')->selectRaw("
+            COUNT(*) as total,
+            COUNT(DISTINCT category) as categories,
+            COUNT(DISTINCT department_id) as depts
+        ")->first();
+
+        return [
+            Stat::make(__('resources/faq/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-question-mark-circle')
+                ->color('primary'),
+            Stat::make(__('resources/faq/strings.fields.category'), $stats->categories)
+                ->icon('heroicon-o-tag')
+                ->color('info'),
+            Stat::make(__('resources/department/strings.plural_label'), $stats->depts)
+                ->icon('heroicon-o-building-office')
+                ->color('gray'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function feedsData(): array
+    {
+        $stats = DB::table('feeds')->selectRaw("
+            COUNT(*) as total,
+            COUNT(DISTINCT category) as categories,
+            SUM(CASE WHEN media_paths IS NOT NULL AND JSON_LENGTH(media_paths) > 0 THEN 1 ELSE 0 END) as with_media
+        ")->first();
+
+        $reactionsCount = DB::table('reactions')->count();
+
+        return [
+            Stat::make(__('resources/feed/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-rss')
+                ->color('primary'),
+            Stat::make(__('resources/feed/strings.filters.has_media'), $stats->with_media)
+                ->icon('heroicon-o-photo')
+                ->color('info'),
+            Stat::make(__('resources/feed/strings.fields.reactions_count'), $reactionsCount)
+                ->icon('heroicon-o-heart')
+                ->color('danger'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function galleriesData(): array
+    {
+        $stats = DB::table('photos')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN department_id IS NULL THEN 1 ELSE 0 END) as public_galleries,
+            SUM(JSON_LENGTH(path)) as total_photos
+        ")->first();
+
+        return [
+            Stat::make(__('resources/gallery/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-photo')
+                ->color('primary'),
+            Stat::make(__('resources/gallery/strings.fields.public_gallery'), $stats->public_galleries)
+                ->icon('heroicon-o-globe-alt')
+                ->color('info'),
+            Stat::make(__('resources/gallery/strings.fields.count'), $stats->total_photos ?? 0)
+                ->icon('heroicon-o-camera')
+                ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function linksData(): array
+    {
+        $stats = DB::table('links')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN link = 'internal' THEN 1 ELSE 0 END) as internal,
+            SUM(CASE WHEN link = 'external' THEN 1 ELSE 0 END) as external,
+            SUM(CASE WHEN extra IS NOT NULL AND JSON_LENGTH(extra) > 0 THEN 1 ELSE 0 END) as smart_routing
+        ")->first();
+
+        return [
+            Stat::make(__('resources/link/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-link')
+                ->color('primary'),
+            Stat::make(__('resources/link/strings.fields.internal_url'), $stats->internal)
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('info'),
+            Stat::make(__('resources/link/strings.fields.url'), $stats->external)
+                ->icon('heroicon-o-arrow-up-right')
+                ->color('warning'),
+            Stat::make(__('resources/link/strings.fields.smart_routing'), $stats->smart_routing)
+                ->icon('heroicon-o-cpu-chip')
+                ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function onboardingsData(): array
+    {
+        $stats = DB::table('onboardings')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) as global_audience
+        ")->first();
+
+        return [
+            Stat::make(__('resources/onboarding/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-academic-cap')
+                ->color('primary'),
+            Stat::make(__('resources/onboarding/strings.fields.is_active'), $stats->active)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/onboarding/strings.fields.global_audience'), $stats->global_audience)
+                ->icon('heroicon-o-globe-alt')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function postsData(): array
+    {
+        $stats = DB::table('posts')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN pinned = 1 THEN 1 ELSE 0 END) as pinned,
+            SUM(CASE WHEN image IS NOT NULL THEN 1 ELSE 0 END) as with_image
+        ")->first();
+
+        return [
+            Stat::make(__('resources/post/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-document-text')
+                ->color('primary'),
+            Stat::make(__('resources/post/strings.fields.pinned'), $stats->pinned)
+                ->icon('heroicon-o-paper-clip')
+                ->color('warning'),
+            Stat::make(__('resources/post/strings.filters.has_image'), $stats->with_image)
+                ->icon('heroicon-o-photo')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function profilesData(): array
+    {
+        $stats = DB::table('profiles')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN employment_status = 'active' THEN 1 ELSE 0 END) as active_employees,
+            SUM(CASE WHEN gender = 'female' THEN 1 ELSE 0 END) as females,
+            SUM(CASE WHEN gender = 'male' THEN 1 ELSE 0 END) as males
+        ")->first();
+
+        return [
+            Stat::make(__('resources/profile/strings.navigation.plural'), $stats->total)
+                ->icon('heroicon-o-identification')
+                ->color('primary'),
+            Stat::make(__('resources/profile/strings.table.employment_status'), $stats->active_employees)
+                ->icon('heroicon-o-check-badge')
+                ->color('success'),
+            Stat::make(__('resources/ad/strings.gender.any'), $stats->males . ' ┆ ' . $stats->females)
+                ->icon('heroicon-o-users')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function tasksData(): array
+    {
+        $stats = DB::table('tasks')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'todo' THEN 1 ELSE 0 END) as todo,
+            SUM(CASE WHEN status = 'in-progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN deadline < NOW() AND status != 'done' THEN 1 ELSE 0 END) as overdue
+        ")->whereNull('deleted_at')->first();
+
+        return [
+            Stat::make(__('resources/task/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-clipboard-document-list')
+                ->color('primary'),
+            Stat::make(__('resources/task/strings.tabs.in_progress'), $stats->in_progress)
+                ->icon('heroicon-o-arrow-path')
+                ->color('info'),
+            Stat::make(__('resources/task/strings.tabs.todo'), $stats->todo)
+                ->icon('heroicon-o-clock')
+                ->color('gray'),
+            Stat::make(__('resources/task/strings.tabs.overdue'), $stats->overdue)
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color('danger'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function thsData(): array
+    {
+        $stats = DB::table('tickets')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open_tickets,
+            SUM(CASE WHEN status = 'in-progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN assigned_to IS NULL THEN 1 ELSE 0 END) as unassigned
+        ")->first();
+
+        return [
+            Stat::make(__('resources/ths/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-ticket')
+                ->color('primary'),
+            Stat::make(__('resources/ths/strings.tabs.open'), $stats->open_tickets)
+                ->icon('heroicon-o-envelope-open')
+                ->color('danger'),
+            Stat::make(__('resources/ths/strings.tabs.in_progress'), $stats->in_progress)
+                ->icon('heroicon-o-arrow-path')
+                ->color('info'),
+            Stat::make(__('resources/ths/strings.tabs.unassigned'), $stats->unassigned)
+                ->icon('heroicon-o-user-minus')
+                ->color('warning'),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EnergyResource\Exports\EnergyTestExporter;
+use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\EnergyResource\Pages\{ListEnergyTests, ViewEnergyTest};
 use App\Filament\Resources\EnergyResource\Schemas\{EnergyTestInfolistPresenter, EnergyTestTablePresenter};
 use App\Models\EnergyTest;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EnergyTestResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = EnergyTest::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-bolt';

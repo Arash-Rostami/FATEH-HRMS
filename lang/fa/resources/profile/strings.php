@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'plural_label' => 'پروفایل‌ها',
+
     'navigation' => [
         'label' => 'پروفایل‌ها',
         'group' => 'مدیریت کاربران',

@@ -12,6 +12,7 @@ use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Models\User;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
-    use FilamentActions,FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = User::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';

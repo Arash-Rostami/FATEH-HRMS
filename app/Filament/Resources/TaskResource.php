@@ -6,6 +6,7 @@ use App\Filament\Resources\TaskResource\Exports\TaskExporter;
 use App\Filament\Resources\TaskResource\Pages\{CreateTask, EditTask, ListTasks};
 use App\Filament\Resources\TaskResource\Schemas\{TaskFormPresenter, TaskInfolistPresenter, TaskTablePresenter};
 use App\Models\Task;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaskResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Task::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-clipboard-document-list';

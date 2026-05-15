@@ -3,11 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AuthorityResource\Exports\AuthorityExporter;
-use App\Filament\Resources\AuthorityResource\Pages\{CreateAuthority, EditAuthority, ListAuthorities, ViewAuthority};
+use App\Filament\Resources\AuthorityResource\Pages\{CreateAuthority, EditAuthority, ListAuthorities};
 use App\Filament\Resources\AuthorityResource\Schemas\{AuthorityFormPresenter,
     AuthorityInfolistPresenter,
     AuthorityTablePresenter};
 use App\Models\Authority;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuthorityResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Authority::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-shield-check';

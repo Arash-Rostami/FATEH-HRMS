@@ -8,6 +8,7 @@ use App\Filament\Resources\OnboardingResource\Schemas\{OnboardingFormPresenter,
     OnboardingInfolistPresenter,
     OnboardingTablePresenter};
 use App\Models\Onboarding;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OnboardingResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Onboarding::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-academic-cap';

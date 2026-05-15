@@ -1,8 +1,9 @@
+@import "swiper/swiper-bundle.css";
 @import "tailwindcss";
 @import "../../../vendor/filament/filament/resources/css/theme.css";
 @import "./theme.css";
 @import "./animation.css";
-@import 'material-symbols/rounded.css';
+@import "material-symbols/rounded.css";
 
 @source "../../../app/**/*.php";
 @source "../../../resources/**/*.blade.php";

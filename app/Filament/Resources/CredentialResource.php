@@ -10,6 +10,7 @@ use App\Filament\Resources\CredentialResource\Schemas\CredentialFormPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
 use App\Models\Credential;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CredentialResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Credential::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';

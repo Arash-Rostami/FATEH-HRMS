@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Exports\EventExporter;
+use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\EventResource\Pages\{CreateEvent, EditEvent, ListEvents};
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
 use App\Models\Event;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Event::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';

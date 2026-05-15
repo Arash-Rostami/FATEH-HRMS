@@ -6,14 +6,13 @@ use App\Filament\Resources\ProfileResource\Exports\ProfileExporter;
 use App\Filament\Resources\ProfileResource\Pages\CreateProfile;
 use App\Filament\Resources\ProfileResource\Pages\EditProfile;
 use App\Filament\Resources\ProfileResource\Pages\ListProfiles;
-use App\Filament\Resources\ProfileResource\RelationManagers\CredentialRelationManager;
 use App\Filament\Resources\ProfileResource\RelationManagers\UserRelationManager;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileFormPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
 use App\Models\Profile;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
-use App\Traits\HandlePersianDates;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -28,7 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfileResource extends Resource
 {
-    use FilamentActions;
+    use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Profile::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-identification';

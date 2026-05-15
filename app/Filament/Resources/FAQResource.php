@@ -10,6 +10,7 @@ use App\Filament\Resources\FAQResource\Schemas\FAQFormPresenter;
 use App\Filament\Resources\FAQResource\Schemas\FAQInfolistPresenter;
 use App\Filament\Resources\FAQResource\Schemas\FAQTablePresenter;
 use App\Models\FAQ;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FAQResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = FAQ::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';

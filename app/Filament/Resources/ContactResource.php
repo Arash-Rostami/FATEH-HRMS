@@ -8,6 +8,7 @@ use App\Filament\Resources\ContactResource\Schemas\{ContactFormPresenter,
     ContactInfolistPresenter,
     ContactTablePresenter};
 use App\Models\Message;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ContactResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Message::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';

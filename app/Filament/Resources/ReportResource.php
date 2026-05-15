@@ -10,6 +10,7 @@ use App\Filament\Resources\ReportResource\Schemas\ReportFormPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportInfolistPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
 use App\Models\Report;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportResource extends Resource
 {
-    use FilamentActions, FilamentFilters;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-document-text';
