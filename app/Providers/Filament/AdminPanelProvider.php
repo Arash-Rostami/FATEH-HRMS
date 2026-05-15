@@ -97,6 +97,8 @@ class AdminPanelProvider extends PanelProvider
             ->userMenu(position: fn() => $this->getPreference('user_menu_topbar', false)
                 ? UserMenuPosition::Topbar : UserMenuPosition::Sidebar
             )
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('60s')
             ->authMiddleware([Authenticate::class, EnsureHasPermission::class]);
     }
 

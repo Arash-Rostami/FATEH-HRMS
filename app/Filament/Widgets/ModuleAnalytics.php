@@ -52,6 +52,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'onboardings' => count($this->onboardingsData),
             'posts' => count($this->postsData),
             'profiles' => count($this->profilesData),
+            'suggestions' => count($this->suggestionsData),
             'tasks' => count($this->tasksData),
             'ths' => count($this->thsData),
             default => 0,
@@ -78,6 +79,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'onboardings' => $this->onboardingsData,
             'posts' => $this->postsData,
             'profiles' => $this->profilesData,
+            'suggestions' => $this->suggestionsData,
             'tasks' => $this->tasksData,
             'ths' => $this->thsData,
             default => [],
@@ -109,6 +111,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'posts'       => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
             'reports'     => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
             'events'      => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
+            'suggestions' => ['icon' => 'heroicon-o-light-bulb', 'label' => __('resources/suggestion/strings.plural_label')],
             'tasks'       => ['icon' => 'heroicon-o-clipboard-document-list', 'label' => __('resources/task/strings.plural_label')],
             'dms'         => ['icon' => 'heroicon-o-document-duplicate', 'label' => __('resources/dms/strings.plural_label')],
             'energy'      => ['icon' => 'heroicon-o-bolt', 'label' => __('resources/energy/strings.label')],
@@ -546,6 +549,43 @@ class ModuleAnalytics extends Widget implements HasSchemas
                 ->color('success'),
             Stat::make(__('resources/ad/strings.gender.any'), $stats->males . ' ┆ ' . $stats->females)
                 ->icon('heroicon-o-users')
+                ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function suggestionsData(): array
+    {
+        $stats = DB::table('suggestions')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN stage IN ('pending', 'team_remarks', 'dept_remarks', 'awaiting_decision', 'under_review') THEN 1 ELSE 0 END) as in_process,
+            SUM(CASE WHEN stage = 'awaiting_decision' THEN 1 ELSE 0 END) as awaiting_decision,
+            SUM(CASE WHEN stage = 'accepted' THEN 1 ELSE 0 END) as accepted,
+            SUM(CASE WHEN stage = 'rejected' THEN 1 ELSE 0 END) as rejected,
+            SUM(CASE WHEN self_fill = 1 THEN 1 ELSE 0 END) as self_filled,
+            SUM(CASE WHEN attachment IS NOT NULL THEN 1 ELSE 0 END) as with_attachment
+        ")->first();
+
+        $referralCount = DB::table('reviews')
+            ->where('department_id', 'MA')
+            ->whereNotNull('referral')
+            ->count();
+
+        return [
+            Stat::make(__('resources/suggestion/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-light-bulb')
+                ->color('primary'),
+            Stat::make(__('resources/suggestion/strings.tabs.awaiting_decision'), $stats->awaiting_decision)
+                ->icon('heroicon-o-scale')
+                ->color('warning'),
+            Stat::make(__('resources/suggestion/strings.tabs.accepted'), $stats->accepted)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/suggestion/strings.tabs.rejected'), $stats->rejected)
+                ->icon('heroicon-o-x-circle')
+                ->color('danger'),
+            Stat::make(__('resources/suggestion/strings.filters.has_referral'), $referralCount)
+                ->icon('heroicon-o-arrow-uturn-right')
                 ->color('info'),
         ];
     }

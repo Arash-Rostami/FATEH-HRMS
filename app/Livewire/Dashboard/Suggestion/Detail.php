@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Suggestion;
 
 use App\Livewire\Dashboard\Suggestion\Actions\SubmitDecisionAction;
 use App\Livewire\Dashboard\Suggestion\Actions\SubmitFeedbackAction;
+use App\Livewire\Dashboard\Suggestion\Actions\MarkImplementationCompleteAction;
 use App\Livewire\Dashboard\Suggestion\Forms\DecisionForm;
 use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
 use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
@@ -31,6 +32,36 @@ class Detail extends Component
     public function canDecide(): bool
     {
         return $this->isCeo() && $this->suggestion?->stage === 'awaiting_decision';
+    }
+
+    #[Computed]
+    public function canMarkComplete(): bool
+    {
+        $user = Auth::user();
+        if (!$user) return false;
+
+        $s = $this->suggestion;
+        if (!$s) return false;
+
+        $deptId = $user->profile?->department_id;
+        if (!$deptId) return false;
+
+        $ceoReview = $s->reviews->firstWhere('department_id', 'MA');
+        if (!$ceoReview || !in_array($deptId, $ceoReview->referral ?? [], true)) return false;
+
+        $deptReview = $s->reviews->firstWhere('department_id', $deptId);
+        return $deptReview !== null && !$deptReview->isComplete();
+    }
+
+    public function markComplete(MarkImplementationCompleteAction $action): void
+    {
+        $s = $this->suggestion;
+        if (!$s) return;
+        $action->execute($s);
+
+        unset($this->suggestion, $this->myReview, $this->canMarkComplete);
+        $this->dispatch('completion-marked');
+        $this->dispatch('toast', message: 'اقدام به عنوان تکمیل‌شده ثبت شد.', type: 'success');
     }
 
     #[Computed]

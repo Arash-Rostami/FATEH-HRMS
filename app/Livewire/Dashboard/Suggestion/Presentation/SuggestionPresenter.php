@@ -223,6 +223,20 @@ class SuggestionPresenter
         );
     }
 
+    public static function workflowSteps(): array
+    {
+        return array_map(
+            fn(int $step, array $config): array => [
+                'step'        => $step,
+                'title'       => $config[0],
+                'description' => $config[1],
+                'icon'        => $config[2],
+            ],
+            array_keys(self::WORKFLOW_STEPS),
+            self::WORKFLOW_STEPS,
+        );
+    }
+
     protected function ceoReview(): ?Review
     {
         return $this->ceoReview ??= $this->getReviewByDeptId(self::CEO_DEPT_ID);
@@ -237,7 +251,6 @@ class SuggestionPresenter
             default => 'pending',
         };
     }
-
     protected function stepMap(): array
     {
         if ($this->stepMapCache !== null) return $this->stepMapCache;
@@ -245,7 +258,7 @@ class SuggestionPresenter
         $this->stepMapCache = [
             'pending' => 1, 'team_remarks' => 2, 'dept_remarks' => 3,
             'awaiting_decision' => 4, 'accepted' => 5, 'rejected' => 5,
-            'under_review' => 5, 'closed' => 7,
+            'under_review' => 5, 'closed' => 8,
         ];
 
         if ($this->suggestion->stage === 'accepted' && $this->hasReferral()) {

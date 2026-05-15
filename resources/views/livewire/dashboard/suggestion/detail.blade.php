@@ -401,6 +401,28 @@
         </div>
     @endif
 
+    {{-- ══ MARK IMPLEMENTATION COMPLETE ══ --}}
+    @if($this->canMarkComplete)
+        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
+                    border border-[var(--md-sys-color-outline-variant)]">
+            <x-ui.title icon="task_alt" title="تکمیل اقدام واحد"/>
+            <p class="mt-3 text-sm leading-7 text-[var(--md-sys-color-on-surface-variant)]">
+                واحد شما به عنوان مسئول اقدام ارجاع داده شده است. در صورت اتمام اجرای دستورالعمل، اقدام را تکمیل‌شده اعلام کنید.
+            </p>
+            <div class="mt-4 flex justify-end">
+                <button type="button"
+                        wire:click="markComplete"
+                        wire:loading.attr="disabled"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold
+                               bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
+                               hover:opacity-90 transition disabled:opacity-50">
+                    <span class="material-symbols-rounded text-base">check_circle</span>
+                    ثبت تکمیل اقدام
+                </button>
+            </div>
+        </div>
+    @endif
+
     {{-- ══ DEPT FEEDBACK ══ --}}
     @if($this->canGiveFeedback)
         <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]

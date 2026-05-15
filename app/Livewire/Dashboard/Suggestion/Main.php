@@ -74,7 +74,10 @@ class Main extends Component
     public function render()
     {
         return view('livewire.dashboard.suggestion', [
-            'rules' => Suggestion::RULES, 'purposes' => Suggestion::PURPOSES, 'reviewFeedback' => Review::FEEDBACKS,
+            'rules' => Suggestion::RULES,
+            'purposes' => Suggestion::PURPOSES,
+            'reviewFeedback' => Review::FEEDBACKS,
+            'workFlow' => SuggestionPresenter::workflowSteps()
         ])->extends('layouts.app')->section('content');
     }
 

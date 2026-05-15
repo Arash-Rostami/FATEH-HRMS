@@ -45,7 +45,11 @@ trait HasSuggestionAlert
                     // Referral action
                     ->orWhere(fn($q) => $q
                         ->whereHas('reviews', fn($r) => $r
+                            ->where('department_id', 'MA')
                             ->whereJsonContains('referral', $deptId)
+                        )
+                        ->whereHas('reviews', fn($r) => $r
+                            ->where('department_id', $deptId)
                             ->where('complete', false)
                         )
                     );

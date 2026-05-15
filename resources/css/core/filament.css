@@ -88,6 +88,10 @@
         animation: slideDownFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
     }
 
+    .fi-topbar-database-notifications-btn {
+        @apply text-[var(--md-sys-color-primary-container)] opacity-70 font-bold
+    }
+
     .material-symbols-rounded[data-icon="palette"] {
         @apply text-[var(--md-sys-color-primary-container)]
     }

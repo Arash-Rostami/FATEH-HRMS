@@ -50,7 +50,7 @@ trait HasStageHelpers
             !$allDeptsReviewed => 'dept_remarks',
             !$maReview => 'awaiting_decision',
             default => match ($maReview->feedback) {
-                'agree' => 'accepted',
+                'agree' => $this->resolveAcceptedStage($reviews, $maReview),
                 'disagree' => 'rejected',
                 'incomplete' => 'under_review',
                 default => 'awaiting_decision',
@@ -58,6 +58,20 @@ trait HasStageHelpers
         };
 
         $this->updateStageIfChanged($newStage);
+    }
+
+    private function resolveAcceptedStage($reviews, $maReview): string
+    {
+        $referrals = (array) ($maReview->referral ?? []);
+        if (empty($referrals)) return 'accepted';
+
+        $completedDepts = $reviews
+            ->whereIn('department_id', $referrals)
+            ->where('complete', true)
+            ->pluck('department_id')
+            ->all();
+
+        return empty(array_diff($referrals, $completedDepts)) ? 'closed' : 'accepted';
     }
 
 
