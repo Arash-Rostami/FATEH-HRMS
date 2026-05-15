@@ -17,3 +17,13 @@
 
 
 
+
+/* Fix for Filament Modal Z-Index in User Dashboard */
+.fi-modal {
+    z-index: 9999 !important;
+}
+
+.fi-modal-close-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+}
