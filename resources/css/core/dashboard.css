@@ -995,3 +995,19 @@
     opacity: 1;
     animation: loadingLineHorizontal 1.5s ease-in-out forwards !important;
 }
+
+/* Fix for Filament Modal Z-Index in User Dashboard */
+.fi-modal-window-ctn, .fi-modal {
+    z-index: 9999 !important;
+}
+
+.fi-modal-close-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 9998 !important;
+}
+
+/* Ensure dropdowns within the top bar or notifications stay on top */
+.fi-dropdown-panel {
+    z-index: 10000 !important;
+}
