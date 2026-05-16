@@ -34,7 +34,6 @@
 
 @filamentScripts
 @livewireScripts
-@livewire('notifications')
-@livewire('database-notifications')
+@livewire(\App\Livewire\Dashboard\UnreadNotifications::class)
 </body>
 </html>

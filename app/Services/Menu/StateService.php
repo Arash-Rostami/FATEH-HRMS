@@ -47,7 +47,7 @@ class StateService
         if ($user) {
             foreach ($this->indicators as $indicatorClass) {
                 $indicator = app($indicatorClass);
-                $this->syncService->sync($user, $indicator, $state[$indicator->getKey()] ?? false);
+                $this->syncService->sync($user, $indicator, $state[$indicator->getKey()] ?? false, $version);
             }
         }
 

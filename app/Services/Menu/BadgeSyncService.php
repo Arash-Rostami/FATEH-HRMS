@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class BadgeSyncService
 {
-    public function sync($user, MenuBadge $indicator, bool $isActive): void
+    public function sync($user, MenuBadge $indicator, bool $isActive, ?int $version = null): void
     {
         if (!$user) return;
 
@@ -18,39 +18,44 @@ class BadgeSyncService
             ->where('type', FilamentDatabaseNotification::class)
             ->where('data->menu_key', $indicator->getKey());
 
-        if ($isActive) {
-            if (!$query->exists()) {
-                $message = Notification::make()
-                    ->title($indicator->getTitle())
-                    ->body($indicator->getBody())
-                    ->warning()
-                    ->persistent()
-                    ->actions([
-                        Action::make('read')
-                            ->label('خواندم')
-                            ->markAsRead()
-                            ->button(),
-                        Action::make('clear')
-                            ->label('پاک کردن')
-                            ->markAsRead()
-                            ->button()
-                            ->color('danger'),
-                    ])
-                    ->getDatabaseMessage();
-
-                $user->notifications()->create([
-                    'id' => (string)Str::uuid(),
-                    'type' => FilamentDatabaseNotification::class,
-                    'data' => [
-                        ...$message,
-                        'menu_key' => $indicator->getKey(),
-                    ],
-                ]);
-            }
-
+        if (!$isActive) {
+            $query->delete();
             return;
         }
 
-        $query->delete();
+        $notification = (clone $query)->latest()->first();
+
+        (clone $query)->when($notification, fn($q) => $q->whereKeyNot($notification->getKey()))->delete();
+
+        if ($notification && ($notification->data['version'] ?? null) === $version) {
+            return;
+        }
+
+        $payload = [
+            ...Notification::make()
+                ->title($indicator->getTitle())
+                ->body($indicator->getBody())
+                ->warning()
+                ->persistent()
+                ->actions([
+                    Action::make('read')
+                        ->label('حذف اعلان')
+                        ->color('primary')
+                        ->markAsRead()
+                        ->button(),
+                ])
+                ->getDatabaseMessage(),
+            'menu_key' => $indicator->getKey(),
+            'version' => $version,
+            'cleared' => false,
+        ];
+
+        $notification
+            ? $notification->update(['data' => $payload, 'read_at' => null])
+            : $user->notifications()->create([
+            'id' => (string)Str::uuid(),
+            'type' => FilamentDatabaseNotification::class,
+            'data' => $payload,
+        ]);
     }
 }
