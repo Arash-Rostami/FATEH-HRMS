@@ -32,5 +32,10 @@ class FilamentServiceProvider extends ServiceProvider
             fn(): string => view('components.ui.loaders.screen-saver')
                 ->render(),
         );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn(): string => Blade::render('@livewire("menu.badge-manager")')
+        );
     }
 }

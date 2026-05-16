@@ -14,13 +14,21 @@ class BadgeSyncService
     {
         if (!$user) return;
 
+        $clearedBadges = $user->extra['cleared_badges'] ?? [];
+        if (in_array($indicator->getKey(), $clearedBadges)) {
+            return;
+        }
+
         $query = $user->notifications()
-            ->whereIn('type', [FilamentDatabaseNotification::class, 'cleared_badge'])
+            ->where('type', FilamentDatabaseNotification::class)
             ->where('data->menu_key', $indicator->getKey());
 
         if ($isActive) {
             if (!$query->exists()) {
+                $notificationId = (string)Str::uuid();
+
                 $message = Notification::make()
+                    ->id($notificationId)
                     ->title($indicator->getTitle())
                     ->body($indicator->getBody())
                     ->warning()
@@ -34,14 +42,12 @@ class BadgeSyncService
                             ->label('پاک کردن')
                             ->button()
                             ->color('danger')
-                            ->action(function ($record) {
-                                $record->update(['type' => 'cleared_badge']);
-                            }),
+                            ->dispatch('clearBadge', ['notificationId' => $notificationId, 'menuKey' => $indicator->getKey()]),
                     ])
                     ->getDatabaseMessage();
 
                 $user->notifications()->create([
-                    'id' => (string)Str::uuid(),
+                    'id' => $notificationId,
                     'type' => FilamentDatabaseNotification::class,
                     'data' => [
                         ...$message,
