@@ -15,7 +15,7 @@ class BadgeSyncService
         if (!$user) return;
 
         $query = $user->notifications()
-            ->where('type', FilamentDatabaseNotification::class)
+            ->whereIn('type', [FilamentDatabaseNotification::class, 'cleared_badge'])
             ->where('data->menu_key', $indicator->getKey());
 
         if ($isActive) {
@@ -32,9 +32,11 @@ class BadgeSyncService
                             ->button(),
                         Action::make('clear')
                             ->label('پاک کردن')
-                            ->markAsRead()
                             ->button()
-                            ->color('danger'),
+                            ->color('danger')
+                            ->action(function ($record) {
+                                $record->update(['type' => 'cleared_badge']);
+                            }),
                     ])
                     ->getDatabaseMessage();
 
