@@ -4,7 +4,7 @@ namespace App\Livewire\Dashboard\Suggestion\Actions;
 
 use App\Models\Review;
 use App\Models\Suggestion;
-use App\Services\MenuStateService;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Auth;
 
 class MarkImplementationCompleteAction
@@ -25,7 +25,7 @@ class MarkImplementationCompleteAction
 
         $suggestion->load('reviews')->syncStage();
 
-        MenuStateService::flush();
+        StateService::flush();
 
         return $review->refresh();
     }

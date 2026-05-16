@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Suggestion\Actions;
 use App\Livewire\Dashboard\Suggestion\Forms\SuggestionForm;
 use App\Models\Review;
 use App\Models\Suggestion;
-use App\Services\MenuStateService;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +38,7 @@ class CreateSuggestionAction
             $suggestion->load('reviews')->syncStage();
         });
 
-        MenuStateService::flush();
+        StateService::flush();
     }
 
     private function mergeDepartments(SuggestionForm $form, ?string $authDeptCode): array

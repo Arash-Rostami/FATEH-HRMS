@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Dashboard\Suggestion\Actions;
 
+use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
 use App\Models\Review;
 use App\Models\Suggestion;
-use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
-use App\Services\MenuStateService;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Auth;
 
 class SubmitFeedbackAction
@@ -29,6 +29,6 @@ class SubmitFeedbackAction
 
         $suggestion->load('reviews')->syncStage();
 
-        MenuStateService::flush();
+        StateService::flush();
     }
 }

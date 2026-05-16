@@ -6,7 +6,7 @@ use App\Livewire\Dashboard\Suggestion\Forms\DecisionForm;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\User;
-use App\Services\MenuStateService;
+use App\Services\Menu\StateService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +38,7 @@ class SubmitDecisionAction
 
         $suggestion->load('reviews')->syncStage();
 
-        MenuStateService::flush();
+        StateService::flush();
     }
 
     private function ensureReferralReviews(Suggestion $suggestion, DecisionForm $form): void

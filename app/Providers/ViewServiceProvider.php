@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\MenuStateService;
+use App\Services\Menu\StateService as MenuStateService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 

@@ -1,6 +1,10 @@
 @import '../../../vendor/filament/support/resources/css/base.css' layer(base);
 @import '../../../vendor/filament/support/resources/css/utilities.css' layer(utilities);
-@import '../../../vendor/filament/support/dist/index.css' layer(components);
+
+@import '../../../vendor/filament/support/resources/css/components/badge.css' layer(components);
+@import '../../../vendor/filament/support/resources/css/components/button.css' layer(components);
+@import '../../../vendor/filament/support/resources/css/components/link.css' layer(components);
+
 @import '../../../vendor/filament/support/resources/css/components/icon.css' layer(components);
 @import '../../../vendor/filament/support/resources/css/components/icon-button.css' layer(components);
 @import '../../../vendor/filament/support/resources/css/components/modal.css' layer(components);
@@ -107,3 +111,66 @@
     --color-custom-900: var(--md-sys-color-on-primary-container);
     --color-custom-950: color-mix(in oklab, var(--md-sys-color-on-primary-container) 70%, black);
 }
+
+
+:root {
+    --sys-z-overlay: 9998;
+    --sys-z-modal: 9999;
+    --sys-z-dropdown: 10000;
+    --sys-color-glass: color-mix(in srgb, var(--md-sys-color-outline-variant), transparent 55%);
+    --sys-anim-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer components {
+    .fi-modal-window {
+        direction: rtl;
+        text-align: right;
+        background-color: var(--md-sys-color-primary-container) !important;
+        border: 1px solid var(--sys-color-glass);
+        border-radius: 0 1rem 1rem 0 !important;
+        will-change: transform, opacity;
+        animation: slideUpFade 0.25s var(--sys-anim-standard) both !important;
+        transition: opacity 0.22s ease, transform 0.22s var(--sys-anim-standard);
+    }
+
+    .fi-modal,
+    .fi-modal-window-ctn {
+        z-index: var(--sys-z-modal) !important;
+    }
+
+    .fi-modal-close-overlay {
+        z-index: var(--sys-z-overlay) !important;
+        background-color: var(--sys-color-glass) !important;
+    }
+
+    .fi-dropdown-panel {
+        z-index: var(--sys-z-dropdown) !important;
+    }
+
+    .fi-link {
+        margin: 0 2px !important;
+        padding: 3px;
+    }
+
+    .fi-no-notification-date {
+        position: relative;
+        width: fit-content;
+        margin-left: auto;
+        padding-right: 1.5rem;
+        transform: scale(0.7);
+        transform-origin: right center;
+    }
+
+    .fi-no-notification-date::before {
+        content: "🗓️";
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
