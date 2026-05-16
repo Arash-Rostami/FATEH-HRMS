@@ -5,7 +5,8 @@
 <head>
     <x-dashboard.meta-tags/>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/core/filament.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @filamentStyles
     @livewireStyles
 </head>
 <body
@@ -30,7 +31,10 @@
     <x-dashboard.footer/>
 @endunless
 
+
+@filamentScripts
 @livewireScripts
 @livewire('notifications')
+@livewire('database-notifications')
 </body>
 </html>

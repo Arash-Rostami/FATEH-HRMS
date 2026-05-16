@@ -803,7 +803,26 @@
         animation: reply-bar-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
         overflow: hidden;
     }
+
+    .fi-modal-window {
+        background-color: var(--md-sys-color-primary-container) !important
+    }
+
+    .fi-modal-window-ctn, .fi-modal {
+        z-index: 9999 !important;
+    }
+
+    .fi-modal-close-overlay {
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        /*backdrop-filter: blur(4px) !important;*/
+        z-index: 9998 !important;
+    }
+
+    .fi-dropdown-panel {
+        z-index: 10000 !important;
+    }
 }
+
 
 @layer utilities {
     .font-fill {

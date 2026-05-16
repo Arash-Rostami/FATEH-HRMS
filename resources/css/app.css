@@ -5,6 +5,7 @@
 @import './core/theme.css';
 @import './core/animation.css';
 @import './core/dashboard.css';
+@import './core/notification.css';
 
 
 @variant dark (&:where(.dark, .dark *));

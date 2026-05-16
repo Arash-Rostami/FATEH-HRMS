@@ -1,0 +1,109 @@
+@import '../../../vendor/filament/support/resources/css/base.css' layer(base);
+@import '../../../vendor/filament/support/resources/css/utilities.css' layer(utilities);
+@import '../../../vendor/filament/support/dist/index.css' layer(components);
+@import '../../../vendor/filament/support/resources/css/components/icon.css' layer(components);
+@import '../../../vendor/filament/support/resources/css/components/icon-button.css' layer(components);
+@import '../../../vendor/filament/support/resources/css/components/modal.css' layer(components);
+
+@import '../../../vendor/filament/notifications/resources/css/database-notifications.css' layer(components);
+@import '../../../vendor/filament/notifications/resources/css/notification.css' layer(components);
+@import '../../../vendor/filament/notifications/resources/css/notifications.css' layer(components);
+
+
+@theme inline {
+    --color-color-50: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, white);
+    --color-color-100: var(--md-sys-color-primary-container);
+    --color-color-200: color-mix(in oklab, var(--md-sys-color-primary-container) 75%, var(--md-sys-color-primary));
+    --color-color-300: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, var(--md-sys-color-primary));
+    --color-color-400: color-mix(in oklab, var(--md-sys-color-primary-container) 25%, var(--md-sys-color-primary));
+    --color-color-500: var(--md-sys-color-primary);
+    --color-color-600: color-mix(in oklab, var(--md-sys-color-primary) 75%, var(--md-sys-color-on-primary-container));
+    --color-color-700: color-mix(in oklab, var(--md-sys-color-primary) 50%, var(--md-sys-color-on-primary-container));
+    --color-color-800: color-mix(in oklab, var(--md-sys-color-primary) 25%, var(--md-sys-color-on-primary-container));
+    --color-color-900: var(--md-sys-color-primary-container);
+    --color-color-950: color-mix(in oklab, var(--md-sys-color-on-primary-container) 70%, black);
+
+    --color-danger-50: #fef2f2;
+    --color-danger-100: #fee2e2;
+    --color-danger-200: #fecaca;
+    --color-danger-300: #fca5a5;
+    --color-danger-400: #f87171;
+    --color-danger-500: #ef4444;
+    --color-danger-600: #dc2626;
+    --color-danger-700: #b91c1c;
+    --color-danger-800: #991b1b;
+    --color-danger-900: #7f1d1d;
+    --color-danger-950: #450a0a;
+
+    --color-gray-50: #f8fafc;
+    --color-gray-100: #f1f5f9;
+    --color-gray-200: #e2e8f0;
+    --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #64748b;
+    --color-gray-600: #475569;
+    --color-gray-700: #334155;
+    --color-gray-800: #1e293b;
+    --color-gray-900: var(--md-sys-color-primary-container);
+    --color-gray-950: #020617;
+
+    --color-info-50: #f0f9ff;
+    --color-info-100: #e0f2fe;
+    --color-info-200: #bae6fd;
+    --color-info-300: #7dd3fc;
+    --color-info-400: #38bdf8;
+    --color-info-500: #0ea5e9;
+    --color-info-600: #0284c7;
+    --color-info-700: #0369a1;
+    --color-info-800: #075985;
+    --color-info-900: #0c4a6e;
+    --color-info-950: #082f49;
+
+    --color-primary-50: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, white);
+    --color-primary-100: var(--md-sys-color-primary-container);
+    --color-primary-200: color-mix(in oklab, var(--md-sys-color-primary-container) 75%, var(--md-sys-color-primary));
+    --color-primary-300: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, var(--md-sys-color-primary));
+    --color-primary-400: color-mix(in oklab, var(--md-sys-color-primary-container) 25%, var(--md-sys-color-primary));
+    --color-primary-500: var(--md-sys-color-primary);
+    --color-primary-600: color-mix(in oklab, var(--md-sys-color-primary) 75%, var(--md-sys-color-on-primary-container));
+    --color-primary-700: color-mix(in oklab, var(--md-sys-color-primary) 50%, var(--md-sys-color-on-primary-container));
+    --color-primary-800: color-mix(in oklab, var(--md-sys-color-primary) 25%, var(--md-sys-color-on-primary-container));
+    --color-primary-900: var(--md-sys-color-on-primary-container);
+    --color-primary-950: color-mix(in oklab, var(--md-sys-color-on-primary-container) 70%, black);
+
+    --color-success-50: #ecfdf5;
+    --color-success-100: #d1fae5;
+    --color-success-200: #a7f3d0;
+    --color-success-300: #6ee7b7;
+    --color-success-400: #34d399;
+    --color-success-500: #10b981;
+    --color-success-600: #059669;
+    --color-success-700: #047857;
+    --color-success-800: #065f46;
+    --color-success-900: #064e3b;
+    --color-success-950: #022c22;
+
+    --color-warning-50: #fffbeb;
+    --color-warning-100: #fef3c7;
+    --color-warning-200: #fde68a;
+    --color-warning-300: #fcd34d;
+    --color-warning-400: #fbbf24;
+    --color-warning-500: #f59e0b;
+    --color-warning-600: #d97706;
+    --color-warning-700: #b45309;
+    --color-warning-800: #92400e;
+    --color-warning-900: #78350f;
+    --color-warning-950: #451a03;
+
+    --color-custom-50: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, white);
+    --color-custom-100: var(--md-sys-color-primary-container);
+    --color-custom-200: color-mix(in oklab, var(--md-sys-color-primary-container) 75%, var(--md-sys-color-primary));
+    --color-custom-300: color-mix(in oklab, var(--md-sys-color-primary-container) 50%, var(--md-sys-color-primary));
+    --color-custom-400: color-mix(in oklab, var(--md-sys-color-primary-container) 25%, var(--md-sys-color-primary));
+    --color-custom-500: var(--md-sys-color-primary);
+    --color-custom-600: color-mix(in oklab, var(--md-sys-color-primary) 75%, var(--md-sys-color-on-primary-container));
+    --color-custom-700: color-mix(in oklab, var(--md-sys-color-primary) 50%, var(--md-sys-color-on-primary-container));
+    --color-custom-800: color-mix(in oklab, var(--md-sys-color-primary) 25%, var(--md-sys-color-on-primary-container));
+    --color-custom-900: var(--md-sys-color-on-primary-container);
+    --color-custom-950: color-mix(in oklab, var(--md-sys-color-on-primary-container) 70%, black);
+}
