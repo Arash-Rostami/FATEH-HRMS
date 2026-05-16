@@ -5,7 +5,8 @@
 @import './core/theme.css';
 @import './core/animation.css';
 @import './core/dashboard.css';
-@import './core/filament-notifications-bridge.css';
+@import './core/filament-overrides.css';
+
 
 
 @variant dark (&:where(.dark, .dark *));

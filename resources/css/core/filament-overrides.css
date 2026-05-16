@@ -1,0 +1,35 @@
+/*
+ * Apply essential styles specifically for Filament's database notification modal
+ * ensuring it appears above all other dashboard elements.
+ */
+
+/* Force the container to cover the screen and be on top */
+.fi-modal-window-ctn,
+.fi-modal,
+[x-data*="filamentModal"] {
+    z-index: 99999 !important;
+}
+
+/* Modal overlay background */
+.fi-modal-close-overlay {
+    z-index: 99998 !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+/* Make sure modal content itself is clearly visible */
+.fi-modal-window {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Ensure notifications dropdown/toast is also on top */
+.fi-ta-toast-ctn,
+.fi-dropdown-panel {
+    z-index: 999999 !important;
+}
+
+/* Isolate filament modal from potential dashboard scale transforms */
+.fi-modal-window {
+    transform: none !important;
+    max-width: 32rem !important;
+}
