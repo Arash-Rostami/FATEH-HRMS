@@ -22,135 +22,6 @@ class ModuleAnalytics extends Widget implements HasSchemas
     protected string $view = 'livewire.admin.widgets.filament-analytics';
     protected int|string|array $columnSpan = 'full';
 
-
-    public function mount(): void
-    {
-        $this->activeTab = 'users';
-    }
-
-    public function setTab(string $tab): void
-    {
-        $this->activeTab = $tab;
-    }
-    public function getActiveStatsCount(): int
-    {
-        return match ($this->activeTab) {
-            'users' => count($this->usersData),
-            'departments' => count($this->departmentsData),
-            'ads' => count($this->adsData),
-            'reports' => count($this->reportsData),
-            'energy' => count($this->energyData),
-            'authorities' => count($this->authoritiesData),
-            'contacts' => count($this->contactsData),
-            'credentials' => count($this->credentialsData),
-            'dms' => count($this->dmsData),
-            'events' => count($this->eventsData),
-            'faqs' => count($this->faqsData),
-            'feeds' => count($this->feedsData),
-            'galleries' => count($this->galleriesData),
-            'links' => count($this->linksData),
-            'onboardings' => count($this->onboardingsData),
-            'posts' => count($this->postsData),
-            'profiles' => count($this->profilesData),
-            'suggestions' => count($this->suggestionsData),
-            'tasks' => count($this->tasksData),
-            'ths' => count($this->thsData),
-            default => 0,
-        };
-    }
-
-    public function statsSchema(Schema $schema): Schema
-    {
-        $stats = match ($this->activeTab) {
-            'users' => $this->usersData,
-            'departments' => $this->departmentsData,
-            'ads' => $this->adsData,
-            'reports' => $this->reportsData,
-            'energy' => $this->energyData,
-            'authorities' => $this->authoritiesData,
-            'contacts' => $this->contactsData,
-            'credentials' => $this->credentialsData,
-            'dms' => $this->dmsData,
-            'events' => $this->eventsData,
-            'faqs' => $this->faqsData,
-            'feeds' => $this->feedsData,
-            'galleries' => $this->galleriesData,
-            'links' => $this->linksData,
-            'onboardings' => $this->onboardingsData,
-            'posts' => $this->postsData,
-            'profiles' => $this->profilesData,
-            'suggestions' => $this->suggestionsData,
-            'tasks' => $this->tasksData,
-            'ths' => $this->thsData,
-            default => [],
-        };
-
-        return $schema->components([
-            Grid::make()
-                ->schema($stats)
-                ->columns([
-                    'default' => 1,
-                    'sm' => 2,
-                    'md' => 3,
-                    'lg' => 4,
-                    '2xl' => 5,
-                ]),
-        ]);
-    }
-
-    #[Computed]
-    public function getAllTabs(): array
-    {
-        return [
-            'users'       => ['icon' => 'heroicon-o-users', 'label' => __('کاربران')],
-            'profiles'    => ['icon' => 'heroicon-o-identification', 'label' => __('resources/profile/strings.navigation.plural')],
-            'departments' => ['icon' => 'heroicon-o-building-office', 'label' => __('resources/department/strings.plural_label')],
-            'authorities' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/authority/strings.plural_label')],
-            'credentials' => ['icon' => 'heroicon-o-key', 'label' => __('resources/credential/strings.plural_label')],
-            'ads'         => ['icon' => 'heroicon-o-megaphone', 'label' => __('resources/ad/strings.plural_label')],
-            'posts'       => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
-            'reports'     => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
-            'events'      => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
-            'suggestions' => ['icon' => 'heroicon-o-light-bulb', 'label' => __('resources/suggestion/strings.plural_label')],
-            'tasks'       => ['icon' => 'heroicon-o-clipboard-document-list', 'label' => __('resources/task/strings.plural_label')],
-            'dms'         => ['icon' => 'heroicon-o-document-duplicate', 'label' => __('resources/dms/strings.plural_label')],
-            'energy'      => ['icon' => 'heroicon-o-bolt', 'label' => __('resources/energy/strings.label')],
-            'contacts'    => ['icon' => 'heroicon-o-chat-bubble-left-ellipsis', 'label' => __('resources/contact/strings.plural_label')],
-            'feeds'       => ['icon' => 'heroicon-o-rss', 'label' => __('resources/feed/strings.plural_label')],
-            'galleries'   => ['icon' => 'heroicon-o-photo', 'label' => __('resources/gallery/strings.plural_label')],
-            'links'       => ['icon' => 'heroicon-o-link', 'label' => __('resources/link/strings.plural_label')],
-            'onboardings' => ['icon' => 'heroicon-o-academic-cap', 'label' => __('resources/onboarding/strings.plural_label')],
-            'faqs'        => ['icon' => 'heroicon-o-question-mark-circle', 'label' => __('resources/faq/strings.plural_label')],
-            'ths'         => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
-        ];
-    }
-
-    #[Computed(seconds: 300, cache: true)]
-    public function usersData(): array
-    {
-        $stats = DB::table('users')->selectRaw("
-            COUNT(*) as total,
-            COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
-            COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,
-            COUNT(CASE WHEN last_seen >= ? OR presence = 'onsite' THEN 1 END) as online
-        ", [now()->subMinutes(15)])->first();
-
-        return [
-            Stat::make('کل کاربران', $stats->total)
-                ->icon('heroicon-o-users')
-                ->color('primary'),
-            Stat::make('کاربران فعال', $stats->active)
-                ->icon('heroicon-o-check-circle')
-                ->color('success'),
-            Stat::make('ادمین‌ها', $stats->admins)
-                ->icon('heroicon-o-shield-check')
-                ->color('danger'),
-            Stat::make('کاربران آنلاین', $stats->online)
-                ->icon('heroicon-o-signal')
-                ->color('info'),
-        ];
-    }
-
     #[Computed(seconds: 300, cache: true)]
     public function adsData(): array
     {
@@ -175,105 +46,6 @@ class ModuleAnalytics extends Widget implements HasSchemas
             Stat::make('بدون محدودیت جنسیت', $stats->both_gender)
                 ->icon('heroicon-o-users')
                 ->color('gray'),
-        ];
-    }
-
-    #[Computed(seconds: 300, cache: true)]
-    public function departmentsData(): array
-    {
-        $departments = Department::withCount('users')->get();
-
-        $total = $departments->count();
-        $withUsers = $departments->filter(fn($d) => $d->users_count > 0)->count();
-        $mostDense = $departments->sortByDesc('users_count')->first()?->name ?? 'نامشخص';
-
-        return [
-            Stat::make('کل واحدها', $total)
-                ->icon('heroicon-o-building-office')
-                ->color('primary'),
-            Stat::make('دارای کاربر', $withUsers)
-                ->icon('heroicon-o-user-group')
-                ->color('success'),
-            Stat::make('پرتراکم‌ترین واحدها', $mostDense)
-                ->icon('heroicon-o-chart-bar')
-                ->color('warning'),
-        ];
-    }
-
-    #[Computed(seconds: 300, cache: true)]
-    public function energyData(): array
-    {
-        $stats = DB::table('energy_tests')
-            ->selectRaw("
-            COUNT(*) AS total,
-            COALESCE(ROUND(AVG(overall_score), 1), 0) AS avg_overall,
-            COALESCE(ROUND(AVG(mind_score), 1), 0) AS avg_mind,
-            COALESCE(ROUND(AVG(emotion_score), 1), 0) AS avg_emotion,
-            COALESCE(ROUND(AVG(physique_score), 1), 0) AS avg_physique,
-            COALESCE(ROUND(AVG(soul_score), 1), 0) AS avg_soul,
-            SUM(CASE WHEN overall_score >= 12 THEN 1 ELSE 0 END) AS high_risk_count,
-            SUM(CASE WHEN completed_at >= ? THEN 1 ELSE 0 END) AS last_month_count
-        ", [now()->subDays(30)])
-            ->first();
-
-        return [
-            Stat::make(__('resources/energy/strings.stats.total'), $stats->total)
-                ->icon('heroicon-o-bolt')
-                ->color('primary'),
-
-            Stat::make(__('resources/energy/strings.stats.avg_overall'), $stats->avg_overall)
-                ->icon('heroicon-o-chart-bar')
-                ->color($stats->avg_overall >= 12 ? 'danger' : ($stats->avg_overall > 8 ? 'warning' : 'success')),
-
-            Stat::make(
-                __('resources/energy/strings.stats.dimension_averages'),
-                new HtmlString("
-               <div class='text-[14px] sm:text-md font-medium tracking-tighter flex items-center gap-1'>
-                    <span>🏋️ {$stats->avg_physique}</span>
-                    <span class='text-gray-300'></span>
-                    <span>❤️ {$stats->avg_emotion}</span>
-                    <span class='text-gray-300'>|</span>
-                    <span>🧠 {$stats->avg_mind}</span>
-                    <span class='text-gray-300'>|</span>
-                    <span>✨ {$stats->avg_soul}</span>
-                </div>
-            ")
-            )
-                ->icon('heroicon-o-squares-2x2')
-                ->color('info'),
-
-            Stat::make(__('resources/energy/strings.stats.low_scores'), $stats->high_risk_count)
-                ->icon('heroicon-o-exclamation-triangle')
-                ->color($stats->high_risk_count > 0 ? 'danger' : 'success')
-                ->description(__('resources/energy/strings.stats.above_12')),
-
-            Stat::make(__('resources/energy/strings.stats.last_month'), $stats->last_month_count)
-                ->icon('heroicon-o-calendar')
-                ->color('gray'),
-        ];
-    }
-
-
-    #[Computed(seconds: 300, cache: true)]
-    public function reportsData(): array
-    {
-        $stats = DB::table('reports')
-            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
-            ->first();
-
-        $mostDense = Department::withCount('reports')->get()->sortByDesc('reports_count')->first()?->description ?? 'نامشخص';
-
-        return [
-            Stat::make('واحدها با بیشترین گزارش', $mostDense)
-                ->icon('heroicon-o-chart-bar')
-                ->extraAttributes(['class' => '!text-xs'])
-                ->color('warning'),
-            Stat::make('کل گزارش‌ها', $stats->total)
-                ->icon('heroicon-o-document-text')
-                ->color('primary'),
-            Stat::make('گزارش‌های فعال', $stats->active)
-                ->icon('heroicon-o-document-check')
-                ->color('success'),
         ];
     }
 
@@ -345,6 +117,34 @@ class ModuleAnalytics extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function departmentsData(): array
+    {
+        $departments = Department::withCount('users')->get();
+
+        $total = $departments->count();
+        $withUsers = $departments->filter(fn($d) => $d->users_count > 0)->count();
+        $mostDense = $departments->sortByDesc('users_count')->first()?->description ?? 'نامشخص';
+
+        return [
+            Stat::make('کل واحدها', $total)
+                ->icon('heroicon-o-building-office')
+                ->color('primary'),
+            Stat::make('دارای کاربر', $withUsers)
+                ->icon('heroicon-o-user-group')
+                ->color('success'),
+            Stat::make(
+                'پرتراکم‌ترین واحدها',
+                        new HtmlString("
+                            <div class='text-[14px] sm:text-md font-medium tracking-tighter flex items-center gap-1'>
+                                 <span>{$mostDense}</span>
+                            </div>
+                    "))
+                ->icon('heroicon-o-chart-bar')
+                ->color('warning'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function dmsData(): array
     {
         $stats = DB::table('dms')->selectRaw("
@@ -367,6 +167,59 @@ class ModuleAnalytics extends Widget implements HasSchemas
             Stat::make(__('resources/dms/strings.fields.read_count'), $stats->total_reads ?? 0)
                 ->icon('heroicon-o-eye')
                 ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function energyData(): array
+    {
+        $stats = DB::table('energy_tests')
+            ->selectRaw("
+            COUNT(*) AS total,
+            COALESCE(ROUND(AVG(overall_score), 1), 0) AS avg_overall,
+            COALESCE(ROUND(AVG(mind_score), 1), 0) AS avg_mind,
+            COALESCE(ROUND(AVG(emotion_score), 1), 0) AS avg_emotion,
+            COALESCE(ROUND(AVG(physique_score), 1), 0) AS avg_physique,
+            COALESCE(ROUND(AVG(soul_score), 1), 0) AS avg_soul,
+            SUM(CASE WHEN overall_score >= 12 THEN 1 ELSE 0 END) AS high_risk_count,
+            SUM(CASE WHEN completed_at >= ? THEN 1 ELSE 0 END) AS last_month_count
+        ", [now()->subDays(30)])
+            ->first();
+
+        return [
+            Stat::make(__('resources/energy/strings.stats.total'), $stats->total)
+                ->icon('heroicon-o-bolt')
+                ->color('primary'),
+
+            Stat::make(__('resources/energy/strings.stats.avg_overall'), $stats->avg_overall)
+                ->icon('heroicon-o-chart-bar')
+                ->color($stats->avg_overall >= 12 ? 'danger' : ($stats->avg_overall > 8 ? 'warning' : 'success')),
+
+            Stat::make(
+                __('resources/energy/strings.stats.dimension_averages'),
+                new HtmlString("
+               <div class='text-[14px] sm:text-md font-medium tracking-tighter flex items-center gap-1'>
+                    <span>🏋️ {$stats->avg_physique}</span>
+                    <span class='text-gray-300'></span>
+                    <span>❤️ {$stats->avg_emotion}</span>
+                    <span class='text-gray-300'>|</span>
+                    <span>🧠 {$stats->avg_mind}</span>
+                    <span class='text-gray-300'>|</span>
+                    <span>✨ {$stats->avg_soul}</span>
+                </div>
+            ")
+            )
+                ->icon('heroicon-o-squares-2x2')
+                ->color('info'),
+
+            Stat::make(__('resources/energy/strings.stats.low_scores'), $stats->high_risk_count)
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color($stats->high_risk_count > 0 ? 'danger' : 'success')
+                ->description(__('resources/energy/strings.stats.above_12')),
+
+            Stat::make(__('resources/energy/strings.stats.last_month'), $stats->last_month_count)
+                ->icon('heroicon-o-calendar')
+                ->color('gray'),
         ];
     }
 
@@ -460,6 +313,60 @@ class ModuleAnalytics extends Widget implements HasSchemas
         ];
     }
 
+    public function getActiveStatsCount(): int
+    {
+        return match ($this->activeTab) {
+            'users' => count($this->usersData),
+            'departments' => count($this->departmentsData),
+            'ads' => count($this->adsData),
+            'reports' => count($this->reportsData),
+            'energy' => count($this->energyData),
+            'authorities' => count($this->authoritiesData),
+            'contacts' => count($this->contactsData),
+            'credentials' => count($this->credentialsData),
+            'dms' => count($this->dmsData),
+            'events' => count($this->eventsData),
+            'faqs' => count($this->faqsData),
+            'feeds' => count($this->feedsData),
+            'galleries' => count($this->galleriesData),
+            'links' => count($this->linksData),
+            'onboardings' => count($this->onboardingsData),
+            'posts' => count($this->postsData),
+            'profiles' => count($this->profilesData),
+            'suggestions' => count($this->suggestionsData),
+            'tasks' => count($this->tasksData),
+            'ths' => count($this->thsData),
+            default => 0,
+        };
+    }
+
+    #[Computed]
+    public function getAllTabs(): array
+    {
+        return [
+            'users' => ['icon' => 'heroicon-o-users', 'label' => __('کاربران')],
+            'profiles' => ['icon' => 'heroicon-o-identification', 'label' => __('resources/profile/strings.navigation.plural')],
+            'departments' => ['icon' => 'heroicon-o-building-office', 'label' => __('resources/department/strings.plural_label')],
+            'authorities' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/authority/strings.plural_label')],
+            'credentials' => ['icon' => 'heroicon-o-key', 'label' => __('resources/credential/strings.plural_label')],
+            'ads' => ['icon' => 'heroicon-o-megaphone', 'label' => __('resources/ad/strings.plural_label')],
+            'posts' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/post/strings.plural_label')],
+            'reports' => ['icon' => 'heroicon-o-document-text', 'label' => __('resources/report/strings.plural_label')],
+            'events' => ['icon' => 'heroicon-o-calendar-days', 'label' => __('resources/event/strings.plural_label')],
+            'suggestions' => ['icon' => 'heroicon-o-light-bulb', 'label' => __('resources/suggestion/strings.plural_label')],
+            'tasks' => ['icon' => 'heroicon-o-clipboard-document-list', 'label' => __('resources/task/strings.plural_label')],
+            'dms' => ['icon' => 'heroicon-o-document-duplicate', 'label' => __('resources/dms/strings.plural_label')],
+            'energy' => ['icon' => 'heroicon-o-bolt', 'label' => __('resources/energy/strings.label')],
+            'contacts' => ['icon' => 'heroicon-o-chat-bubble-left-ellipsis', 'label' => __('resources/contact/strings.plural_label')],
+            'feeds' => ['icon' => 'heroicon-o-rss', 'label' => __('resources/feed/strings.plural_label')],
+            'galleries' => ['icon' => 'heroicon-o-photo', 'label' => __('resources/gallery/strings.plural_label')],
+            'links' => ['icon' => 'heroicon-o-link', 'label' => __('resources/link/strings.plural_label')],
+            'onboardings' => ['icon' => 'heroicon-o-academic-cap', 'label' => __('resources/onboarding/strings.plural_label')],
+            'faqs' => ['icon' => 'heroicon-o-question-mark-circle', 'label' => __('resources/faq/strings.plural_label')],
+            'ths' => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
+        ];
+    }
+
     #[Computed(seconds: 300, cache: true)]
     public function linksData(): array
     {
@@ -484,6 +391,11 @@ class ModuleAnalytics extends Widget implements HasSchemas
                 ->icon('heroicon-o-cpu-chip')
                 ->color('success'),
         ];
+    }
+
+    public function mount(): void
+    {
+        $this->activeTab = 'users';
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -551,6 +463,73 @@ class ModuleAnalytics extends Widget implements HasSchemas
                 ->icon('heroicon-o-users')
                 ->color('info'),
         ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function reportsData(): array
+    {
+        $stats = DB::table('reports')
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
+            ->first();
+
+        $mostDense = Department::withCount('reports')->get()->sortByDesc('reports_count')->first()?->description ?? 'نامشخص';
+
+        return [
+            Stat::make('واحدها با بیشترین گزارش', $mostDense)
+                ->icon('heroicon-o-chart-bar')
+                ->extraAttributes(['class' => '!text-xs'])
+                ->color('warning'),
+            Stat::make('کل گزارش‌ها', $stats->total)
+                ->icon('heroicon-o-document-text')
+                ->color('primary'),
+            Stat::make('گزارش‌های فعال', $stats->active)
+                ->icon('heroicon-o-document-check')
+                ->color('success'),
+        ];
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function statsSchema(Schema $schema): Schema
+    {
+        $stats = match ($this->activeTab) {
+            'users' => $this->usersData,
+            'departments' => $this->departmentsData,
+            'ads' => $this->adsData,
+            'reports' => $this->reportsData,
+            'energy' => $this->energyData,
+            'authorities' => $this->authoritiesData,
+            'contacts' => $this->contactsData,
+            'credentials' => $this->credentialsData,
+            'dms' => $this->dmsData,
+            'events' => $this->eventsData,
+            'faqs' => $this->faqsData,
+            'feeds' => $this->feedsData,
+            'galleries' => $this->galleriesData,
+            'links' => $this->linksData,
+            'onboardings' => $this->onboardingsData,
+            'posts' => $this->postsData,
+            'profiles' => $this->profilesData,
+            'suggestions' => $this->suggestionsData,
+            'tasks' => $this->tasksData,
+            'ths' => $this->thsData,
+            default => [],
+        };
+
+        return $schema->components([
+            Grid::make()
+                ->schema($stats)
+                ->columns([
+                    'default' => 1,
+                    'sm' => 2,
+                    'md' => 3,
+                    'lg' => 4,
+                    '2xl' => 5,
+                ]),
+        ]);
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -639,6 +618,32 @@ class ModuleAnalytics extends Widget implements HasSchemas
             Stat::make(__('resources/ths/strings.tabs.unassigned'), $stats->unassigned)
                 ->icon('heroicon-o-user-minus')
                 ->color('warning'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function usersData(): array
+    {
+        $stats = DB::table('users')->selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
+            COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,
+            COUNT(CASE WHEN last_seen >= ? OR presence = 'onsite' THEN 1 END) as online
+        ", [now()->subMinutes(15)])->first();
+
+        return [
+            Stat::make('کل کاربران', $stats->total)
+                ->icon('heroicon-o-users')
+                ->color('primary'),
+            Stat::make('کاربران فعال', $stats->active)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make('ادمین‌ها', $stats->admins)
+                ->icon('heroicon-o-shield-check')
+                ->color('danger'),
+            Stat::make('کاربران آنلاین', $stats->online)
+                ->icon('heroicon-o-signal')
+                ->color('info'),
         ];
     }
 }

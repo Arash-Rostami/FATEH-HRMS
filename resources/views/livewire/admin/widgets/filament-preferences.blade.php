@@ -1,5 +1,5 @@
 <x-filament-widgets::widget>
-    <x-filament::section >
+    <x-filament::fieldset>
         <x-admin.preferences-form :form="$this->form"/>
-    </x-filament::section>
+    </x-filament::fieldset>
 </x-filament-widgets::widget>

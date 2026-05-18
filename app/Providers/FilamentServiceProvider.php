@@ -11,31 +11,40 @@ class FilamentServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::SCRIPTS_BEFORE,
-            fn(): string => Blade::render("@vite('resources/js/core/theme-manager.js')")
-        );
+        $this->registerCoreScripts();
+        $this->registerComponentHooks();
+    }
 
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::SCRIPTS_BEFORE,
-            fn(): string => Blade::render("@vite('resources/js/core/filament.js')")
-        );
+    private function registerComponentHooks(): void
+    {
+        $hooks = [
+            [PanelsRenderHook::GLOBAL_SEARCH_AFTER, 'components.dashboard.navbars.top.palette'],
+            [PanelsRenderHook::BODY_END, 'components.ui.loaders.screen-saver'],
+            [PanelsRenderHook::BODY_START, 'components.ui.decor.panel-ghost'],
+            [PanelsRenderHook::BODY_END, 'components.ui.loaders.spinner'],
+        ];
 
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::SCRIPTS_BEFORE,
-            fn(): string => Blade::render("@vite('resources/js/components/alpine/stores/filament-menu.js')")
-        );
+        foreach ($hooks as [$hook, $view]) {
+            FilamentView::registerRenderHook(
+                $hook,
+                fn(): string => view($view)->render()
+            );
+        }
+    }
 
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-            fn(): string => view('components.dashboard.navbars.top.palette')
-                ->render(),
-        );
+    private function registerCoreScripts(): void
+    {
+        $scripts = [
+            'resources/js/core/theme-manager.js',
+            'resources/js/core/filament.js',
+            'resources/js/components/alpine/stores/filament-menu.js',
+        ];
 
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::BODY_END,
-            fn(): string => view('components.ui.loaders.screen-saver')
-                ->render(),
-        );
+        foreach ($scripts as $script) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::SCRIPTS_BEFORE,
+                fn(): string => Blade::render(sprintf("@vite('%s')", $script))
+            );
+        }
     }
 }

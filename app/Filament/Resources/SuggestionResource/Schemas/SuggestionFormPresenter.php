@@ -4,14 +4,12 @@ namespace App\Filament\Resources\SuggestionResource\Schemas;
 
 use App\Models\Department;
 use App\Models\Suggestion;
-use App\Models\User;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;

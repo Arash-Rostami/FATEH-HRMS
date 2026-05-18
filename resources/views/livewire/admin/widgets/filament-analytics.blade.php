@@ -1,6 +1,6 @@
 @php($tabs = $this->getAllTabs())
 <x-filament-widgets::widget>
-    <x-filament::section>
+    <x-filament::fieldset class="min-w-0 w-full">
         <x-ui.title
             icon="analytics"
             title="{{ __('آمار و اطلاعات سیستم') }}"
@@ -111,5 +111,5 @@
         <div class="mt-6">
             {{ $this->getSchema('stats') }}
         </div>
-    </x-filament::section>
+    </x-filament::fieldset>
 </x-filament-widgets::widget>
