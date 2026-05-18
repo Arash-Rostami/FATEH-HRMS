@@ -29,7 +29,7 @@
                 }
             })
         "
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--md-sys-color-scrim)]/50 animate-slide-down"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--md-sys-color-primary)]/60 animate-slide-down"
         style="display: none;"
         x-show="show"
         dir="rtl"

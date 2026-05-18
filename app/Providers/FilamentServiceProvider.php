@@ -22,6 +22,11 @@ class FilamentServiceProvider extends ServiceProvider
         );
 
         FilamentView::registerRenderHook(
+            PanelsRenderHook::SCRIPTS_BEFORE,
+            fn(): string => Blade::render("@vite('resources/js/components/alpine/stores/filament-menu.js')")
+        );
+
+        FilamentView::registerRenderHook(
             PanelsRenderHook::GLOBAL_SEARCH_AFTER,
             fn(): string => view('components.dashboard.navbars.top.palette')
                 ->render(),

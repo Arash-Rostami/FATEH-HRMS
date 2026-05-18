@@ -9,6 +9,7 @@ use App\Models\Suggestion;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,7 +22,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('success')
             ->icon('heroicon-o-hand-thumb-up')
-            ->getStateUsing(fn($record): int => (int)($record->agree_count ?? 0));
+            ->getStateUsing(fn($record): int => (int) ($record->agree_count ?? 0));
     }
 
     public static function attachment(): TextEntry
@@ -32,7 +33,7 @@ class SuggestionInfolistPresenter
             ->icon('heroicon-o-paper-clip')
             ->color('info')
             ->url(fn($record): ?string => $record->attachment ? Storage::disk('public')->url($record->attachment) : null, shouldOpenInNewTab: true)
-            ->formatStateUsing(fn($state): string => $state ? basename((string)$state) : '—');
+            ->formatStateUsing(fn($state): string => $state ? basename((string) $state) : '—');
     }
 
     public static function comments(): TextEntry
@@ -57,8 +58,10 @@ class SuggestionInfolistPresenter
         return TextEntry::make('deadline')
             ->label(__('resources/suggestion/strings.fields.deadline'))
             ->getStateUsing(fn($record) => (new SuggestionPresenter($record))->deadlineConfig())
-            ->formatStateUsing(fn(array $state): string => $state['formatted'] ?? '—')
-            ->color(fn(array $state): string => ($state['passed'] ?? false) ? 'danger' : 'primary')
+            ->formatStateUsing(fn($state): string => is_array($state) ? ($state['formatted'] ?? '—') : '—')
+            ->color(fn($state): string => (is_array($state) && ($state['passed'] ?? false)) ? 'danger' : 'primary')
+            ->alignRight()
+            ->icon(IconPosition::After)
             ->icon('heroicon-o-calendar-days')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;']);
     }
@@ -70,9 +73,10 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('info')
             ->getStateUsing(function ($record): array {
-                $map = \App\Models\Department::getCachedOptions()->toArray();
+                $map = Department::getCachedOptions()->toArray();
+
                 return collect($record->departments ?? [])
-                    ->map(fn(string $code): string => $map[$code] ?? $code)
+                    ->map(fn($code): string => $map[$code] ?? (string) $code)
                     ->values()
                     ->all();
             })
@@ -96,7 +100,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('danger')
             ->icon('heroicon-o-hand-thumb-down')
-            ->getStateUsing(fn($record): int => (int)($record->disagree_count ?? 0));
+            ->getStateUsing(fn($record): int => (int) ($record->disagree_count ?? 0));
     }
 
     public static function neutralCount(): TextEntry
@@ -106,7 +110,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('gray')
             ->icon('heroicon-o-minus-circle')
-            ->getStateUsing(fn($record): int => (int)($record->neutral_count ?? 0));
+            ->getStateUsing(fn($record): int => (int) ($record->neutral_count ?? 0));
     }
 
     public static function purpose(): TextEntry
@@ -116,7 +120,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('warning')
             ->getStateUsing(fn($record): array => collect($record->purpose ?? [])
-                ->map(fn(string $key): string => Suggestion::PURPOSES[$key] ?? $key)
+                ->map(fn($key): string => Suggestion::PURPOSES[$key] ?? (string) $key)
                 ->values()
                 ->all())
             ->placeholder('—');
@@ -127,7 +131,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('referral_actions')
             ->label(__('resources/suggestion/strings.fields.referral_actions'))
             ->placeholder('—')
-            ->getStateUsing(fn($record): ?string => $record->reviews->firstWhere('department_id', 'MA')?->actions)
+            ->getStateUsing(fn($record): ?string => $record->reviews?->firstWhere('department_id', 'MA')?->actions)
             ->columnSpanFull();
     }
 
@@ -139,13 +143,17 @@ class SuggestionInfolistPresenter
             ->color('primary')
             ->icon('heroicon-o-arrow-uturn-right')
             ->getStateUsing(function ($record): array {
-                $ceoReview = $record->reviews->firstWhere('department_id', 'MA');
-                if (!$ceoReview) return [];
+                $ceoReview = $record->reviews?->firstWhere('department_id', 'MA');
+
+                if (! $ceoReview) {
+                    return [];
+                }
 
                 $referrals = $ceoReview->referral ?? [];
                 $map = Department::getCachedOptions()->toArray();
+
                 return collect($referrals)
-                    ->map(fn(string $code): string => $map[$code] ?? $code)
+                    ->map(fn($code): string => $map[$code] ?? (string) $code)
                     ->values()
                     ->all();
             })
@@ -172,7 +180,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('info')
             ->getStateUsing(fn($record): array => collect($record->rule ?? [])
-                ->map(fn(string $key): string => Suggestion::RULES[$key] ?? $key)
+                ->map(fn($key): string => Suggestion::RULES[$key] ?? (string) $key)
                 ->values()
                 ->all())
             ->placeholder('—');
@@ -200,6 +208,7 @@ class SuggestionInfolistPresenter
             ->badge()
             ->color('gray')
             ->copyable()
+            ->alignRight()
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->getStateUsing(fn($record): string => sprintf(
                 'SN-%s-%06d',

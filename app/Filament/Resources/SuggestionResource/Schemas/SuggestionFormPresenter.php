@@ -7,10 +7,15 @@ use App\Models\Suggestion;
 use App\Models\User;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\RichEditor\TextColor;
+use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\TextEntry;
+use Illuminate\Support\HtmlString;
 
 class SuggestionFormPresenter
 {
@@ -27,7 +32,7 @@ class SuggestionFormPresenter
             ->maxSize(2048)
             ->validationMessages([
                 'mimes' => __('resources/suggestion/strings.validation.attachment.mimes'),
-                'max'   => __('resources/suggestion/strings.validation.attachment.max'),
+                'max' => __('resources/suggestion/strings.validation.attachment.max'),
             ])
             ->columnSpanFull();
     }
@@ -44,18 +49,55 @@ class SuggestionFormPresenter
             ->columnSpanFull();
     }
 
-    public static function description(): Textarea
+    public static function description(): RichEditor
     {
-        return Textarea::make('description')
+        return RichEditor::make('description')
             ->label(__('resources/suggestion/strings.fields.description'))
-            ->rows(5)
             ->required()
             ->minLength(10)
+            ->maxLength(50000)
+            ->columnSpanFull()
+            ->textColors([
+                'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),
+                'success' => TextColor::make('Success', '#22c55e', darkColor: '#4ade80'),
+                'warning' => TextColor::make('Warning', '#f59e0b', darkColor: '#fbbf24'),
+                'danger' => TextColor::make('Danger', '#ef4444', darkColor: '#f87171'),
+                ...TextColor::getDefaults(),
+            ])
+            ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 320px;'])
+            ->customTextColors()
+            ->toolbarButtons([
+                ['textColor', 'bold', 'italic', 'underline', 'strike', 'code', 'clearFormatting'],
+                [ToolbarButtonGroup::make('Headings', ['paragraph', 'h2', 'h3', 'h4'])
+                    ->icon('fi-o-heading')
+                    ->textualButtons()],
+                [ToolbarButtonGroup::make('Alignment', ['alignStart', 'alignCenter', 'alignEnd', 'alignJustify'])],
+                ['blockquote', 'bulletList', 'orderedList'],
+                ['highlight', 'link', 'horizontalRule'],
+                ['table'],
+                ['undo', 'redo'],
+            ])
+            ->floatingToolbars([
+                'paragraph' => ['textColor', 'bold', 'italic', 'underline', 'strike', 'link', 'highlight'],
+                'heading' => ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
+                'table' => [
+                    'tableAddColumnBefore', 'tableAddColumnAfter', 'tableDeleteColumn',
+                    'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
+                    'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
+                ],
+            ])
             ->validationMessages([
                 'required' => __('resources/suggestion/strings.validation.description.required'),
-                'min'      => __('resources/suggestion/strings.validation.description.min'),
-            ])
-            ->columnSpanFull();
+                'min' => __('resources/suggestion/strings.validation.description.min'),
+            ]);
+    }
+
+    public static function divider(): TextEntry
+    {
+        return TextEntry::make('divider')
+            ->hiddenLabel()
+            ->columnSpanFull()
+            ->state(new HtmlString('<div class="w-2/3 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent opacity-80 mx-auto"></div>'));
     }
 
     public static function priority(): Select
@@ -75,9 +117,7 @@ class SuggestionFormPresenter
             ->required()
             ->columns(3)
             ->bulkToggleable()
-            ->validationMessages([
-                'required' => __('resources/suggestion/strings.validation.purpose.required'),
-            ])
+            ->validationMessages(['required' => __('resources/suggestion/strings.validation.purpose.required')])
             ->columnSpanFull();
     }
 
@@ -89,9 +129,7 @@ class SuggestionFormPresenter
             ->required()
             ->columns(2)
             ->bulkToggleable()
-            ->validationMessages([
-                'required' => __('resources/suggestion/strings.validation.rule.required'),
-            ])
+            ->validationMessages(['required' => __('resources/suggestion/strings.validation.rule.required')])
             ->columnSpanFull();
     }
 
@@ -101,6 +139,7 @@ class SuggestionFormPresenter
             ->label(__('resources/suggestion/strings.fields.self_fill'))
             ->helperText(__('resources/suggestion/strings.form.self_fill_helper'))
             ->inline(false)
+            ->disabled()
             ->default(false);
     }
 
@@ -113,8 +152,8 @@ class SuggestionFormPresenter
             ->maxLength(255)
             ->validationMessages([
                 'required' => __('resources/suggestion/strings.validation.title.required'),
-                'min'      => __('resources/suggestion/strings.validation.title.min'),
-                'max'      => __('resources/suggestion/strings.validation.title.max'),
+                'min' => __('resources/suggestion/strings.validation.title.min'),
+                'max' => __('resources/suggestion/strings.validation.title.max'),
             ])
             ->columnSpanFull();
     }
@@ -124,10 +163,15 @@ class SuggestionFormPresenter
         return Select::make('user_id')
             ->label(__('resources/suggestion/strings.fields.submitter'))
             ->relationship('user', 'name')
-            ->getOptionLabelFromRecordUsing(fn(User $record): string => $record->name)
             ->searchable(['name', 'email'])
+            ->afterStateHydrated(fn($state, callable $set) => $set('user_id', $state ?? auth()->id()))
+            ->default(fn() => auth()->id())
+            ->disabled()
+            ->dehydrated(true)
+            ->helperText(__('resources/suggestion/strings.fields.user_locked'))
             ->preload()
             ->required()
+            ->validationMessages(['required' => __('resources/suggestion/strings.validation.user_id.required')])
             ->default(fn() => auth()->id());
     }
 }

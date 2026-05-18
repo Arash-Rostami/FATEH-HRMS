@@ -2,7 +2,7 @@
     <div x-data="{ isClosing: false }" x-cloak>
         <div class="fixed inset-0 !z-[100000] flex items-center justify-center p-4 sm:p-6 animate-slide-down"
              x-show="!isClosing"
-             class="bg-[var(--md-sys-color-scr0im)]/40"
+             class="bg-[var(--md-sys-color-primary)]/60"
              dir="rtl">
 
             {{-- Modal Backdrop Click --}}

@@ -1,7 +1,7 @@
 <template x-teleport="body">
     <div x-show="menuOpen" x-cloak>
         <div @keydown.window.escape="closeMenu"
-             class="transition-all duration-1000 fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-0 sm:items-center sm:p-6 animate-slide-down"
+             class="transition-all duration-1000 fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-0 sm:items-center sm:p-6 animate-slide-down bg-[var(--md-sys-color-primary)]/60"
              role="dialog" aria-modal="true">
             <div class="w-full h-full sm:h-auto sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
                 <div dir="rtl" class="flex flex-col h-full">

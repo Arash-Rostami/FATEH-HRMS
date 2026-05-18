@@ -28,6 +28,7 @@ return [
         'sent_to_ceo'      => 'ارجاع به مدیریت ارشد',
         'referral_depts'   => 'واحدهای موظف به اقدام',
         'referral_actions' => 'دستورالعمل اجرا',
+        'user_locked' => 'پیشنهاد دهنده به‌طور خودکار شما هستید و قابل تغییر نیست.',
     ],
 
     'form' => [
@@ -35,19 +36,16 @@ return [
         'section_meta'       => 'دسته‌بندی و قواعد',
         'section_targets'    => 'واحدهای ذی‌نفع',
         'section_attachment' => 'پیوست',
-        'section_submitter'  => 'پیشنهاددهنده',
-        'self_fill_helper'   => 'در صورت فعال بودن، بازخورد سایر واحدها به نمایندگی از آن‌ها ثبت می‌شود.',
+        'self_fill_helper' => 'استفاده از این قابلیت در پنل مدیریت امکان‌پذیر نیست.',
         'departments_helper' => 'واحد پیشنهاددهنده به‌صورت خودکار به فهرست اضافه می‌شود.',
     ],
 
     'infolist' => [
         'section_overview' => 'خلاصه پیشنهاد',
         'section_content'  => 'محتوای پیشنهاد',
-        'section_meta'     => 'دسته‌بندی و واحدها',
         'section_workflow' => 'گردش کار',
         'section_reviews'  => 'بازخوردها',
         'section_decision' => 'تصمیم مدیریت ارشد',
-        'section_system'   => 'اطلاعات سیستمی',
         'no_reviews'       => 'هنوز بازخوردی ثبت نشده است.',
         'no_referral'      => 'بدون ارجاع برای اقدام',
     ],
@@ -138,6 +136,9 @@ return [
         ],
         'feedback' => [
             'required' => 'انتخاب بازخورد الزامی است.',
+        ],
+        'user_id' => [
+            'required' => 'انتخاب پیشنهاددهنده الزامی است.',
         ],
     ],
 

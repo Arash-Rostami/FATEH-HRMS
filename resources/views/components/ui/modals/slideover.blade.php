@@ -7,7 +7,7 @@
         x-cloak
     >
         <div
-            class="fixed inset-0 bg-black/40"
+            class="fixed inset-0 bg-[var(--md-sys-color-primary)]/60"
             x-show="{{ $show }}"
             x-transition:enter="animate-backdrop-in"
             x-transition:leave="animate-backdrop-out"

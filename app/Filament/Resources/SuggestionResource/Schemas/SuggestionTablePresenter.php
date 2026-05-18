@@ -47,7 +47,7 @@ class SuggestionTablePresenter
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->sortable()
-            ->toggleable(isToggledHiddenByDefault: false);
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function departmentFilter(): SelectFilter
@@ -57,7 +57,7 @@ class SuggestionTablePresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->query(fn(Builder $query, array $data) => $query
-                ->when($data['value'] ?? null, fn($q, $code) => $q->whereJsonContains('departments', $code))
+                ->when($data['value'] ?? null, fn($query, $code) => $query->whereJsonContains('departments', $code))
             );
     }
 
@@ -78,8 +78,8 @@ class SuggestionTablePresenter
         return TernaryFilter::make('has_attachment')
             ->label(__('resources/suggestion/strings.filters.has_file'))
             ->queries(
-                true: fn(Builder $q) => $q->whereNotNull('attachment'),
-                false: fn(Builder $q) => $q->whereNull('attachment'),
+                true: fn(Builder $query) => $query->whereNotNull('attachment'),
+                false: fn(Builder $query) => $query->whereNull('attachment'),
             );
     }
 
@@ -87,7 +87,7 @@ class SuggestionTablePresenter
     {
         return Filter::make('has_referral')
             ->label(__('resources/suggestion/strings.filters.has_referral'))
-            ->query(fn(Builder $query) => $query->whereHas('reviews', fn(Builder $q) => $q
+            ->query(fn(Builder $query) => $query->whereHas('reviews', fn(Builder $query) => $query
                 ->where('department_id', 'MA')
                 ->whereNotNull('referral')
             ))
@@ -127,7 +127,7 @@ class SuggestionTablePresenter
             ->copyable()
             ->searchable(query: function (Builder $query, string $search): Builder {
                 $term = "%{$search}%";
-                return $query->where(fn(Builder $q) => $q
+                return $query->where(fn(Builder $query) => $query
                     ->where('title', 'like', $term)
                     ->orWhereRaw(
                         "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
@@ -146,13 +146,6 @@ class SuggestionTablePresenter
             ->badge()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
-    }
-
-    public static function stageFilter(): SelectFilter
-    {
-        return SelectFilter::make('stage')
-            ->label(__('resources/suggestion/strings.filters.stage'))
-            ->options(Suggestion::STAGES);
     }
 
     public static function stageGroup(): Group

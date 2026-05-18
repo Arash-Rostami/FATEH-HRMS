@@ -23,4 +23,10 @@ class TicketPresenter
     {
         return (Ticket::$requestAreaOptions[$requestType] ?? [])[$requestArea] ?? 'یافت نشد';
     }
+
+    public function requestAreaIcon(?string $area, string $fallback = 'location_on'): string
+    {
+        return $area ? Ticket::getMaterialIconForArea($area) : $fallback;
+    }
+
 }

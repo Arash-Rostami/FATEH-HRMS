@@ -7,7 +7,7 @@
     x-on:close-modal.window="show = false"
     x-on:keydown.escape.window="show = false"
     style="display: none;"
-    class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0 bg-[var(--md-sys-color-primary-container)]"
+    class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0 bg-[var(--md-sys-color-primary)]/60"
     x-cloak
 >
     <div x-show="show" class="fixed inset-0 transform transition-all" x-on:click="show = false" x-transition:enter="ease-out duration-300"
@@ -16,7 +16,7 @@
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0">
-        <div class="absolute inset-0 bg-[var(--md-sys-color-scrim)]/60"></div>
+        <div class="absolute inset-0 bg-[var(--md-sys-color-primary)]/60"></div>
     </div>
 
     <div x-show="show" class="mb-6 relative transform rounded-2xl overflow-hidden glass-panel transition-all sm:w-full sm:max-w-2xl sm:mx-auto bg-[var(--md-sys-color-surface)]"

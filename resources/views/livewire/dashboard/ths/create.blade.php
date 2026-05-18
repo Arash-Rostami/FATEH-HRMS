@@ -13,8 +13,10 @@
                 @endforeach
             </x-ui.forms.select>
 
+
             <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                               wire:model="ticket.requestArea" icon="location_on">
+                               wire:model.live="ticket.requestArea"
+                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea)">
                 @foreach($requestAreas as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach

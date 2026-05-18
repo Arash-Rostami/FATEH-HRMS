@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -164,14 +165,18 @@ class TicketFormPresenter
     {
         return Select::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->options(function (callable $get) {
+            ->options(function (Get $get) {
                 $type = $get('request_type');
                 $key = $type instanceof \BackedEnum ? $type->value : (string)$type;
 
                 return collect(Ticket::$requestAreaOptions[$key] ?? [])
-                    ->filter(fn($v, $k) => $k !== '')
+                    ->filter(fn($label, $areaKey) => $areaKey !== '')
+                    ->map(fn($label, $areaKey) => Ticket::getAdminAreaLabelHtml($key, $areaKey))
                     ->toArray();
             })
+            ->preload()
+            ->native(false)
+            ->allowHtml()
             ->required()
             ->live()
             ->validationMessages([
@@ -199,6 +204,7 @@ class TicketFormPresenter
             ->options(RequestType::class)
             ->required()
             ->live()
+            ->native(false)
             ->afterStateUpdated(fn(callable $set) => $set('request_area', null))
             ->validationMessages(['required' => __('resources/ths/strings.validation.request_type.required')]);
     }

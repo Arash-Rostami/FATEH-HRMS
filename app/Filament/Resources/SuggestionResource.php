@@ -14,6 +14,7 @@ use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -32,6 +33,34 @@ class SuggestionResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
+            Grid::make(2)
+                ->schema([
+                    Section::make(__('resources/suggestion/strings.form.section_targets'))
+                        ->icon('heroicon-o-building-office-2')
+                        ->schema([
+                            SuggestionFormPresenter::departments(),
+                            SuggestionFormPresenter::userId(),
+                            SuggestionFormPresenter::selfFill(),
+                            SuggestionFormPresenter::attachment(),
+
+                        ])
+                        ->columnSpan(1)
+                        ->columns(2),
+
+                    Section::make(__('resources/suggestion/strings.form.section_meta'))
+                        ->icon('heroicon-o-adjustments-horizontal')
+                        ->schema([
+                            SuggestionFormPresenter::purpose(),
+                            SuggestionFormPresenter::divider(),
+                            SuggestionFormPresenter::rule(),
+                            SuggestionFormPresenter::divider(),
+                            SuggestionFormPresenter::priority(),
+                        ])
+                        ->columnSpan(1)
+                        ->columns(3),
+                ])
+                ->columnSpanFull(),
+
             Section::make(__('resources/suggestion/strings.form.section_main'))
                 ->icon('heroicon-o-document-text')
                 ->schema([
@@ -40,41 +69,6 @@ class SuggestionResource extends Resource
                 ])
                 ->columnSpanFull()
                 ->columns(1),
-
-            Section::make(__('resources/suggestion/strings.form.section_meta'))
-                ->icon('heroicon-o-adjustments-horizontal')
-                ->schema([
-                    SuggestionFormPresenter::purpose(),
-                    SuggestionFormPresenter::rule(),
-                    SuggestionFormPresenter::priority(),
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-
-            Section::make(__('resources/suggestion/strings.form.section_targets'))
-                ->icon('heroicon-o-building-office-2')
-                ->schema([
-                    SuggestionFormPresenter::departments(),
-                    SuggestionFormPresenter::selfFill(),
-                ])
-                ->columnSpanFull()
-                ->columns(1),
-
-            Section::make(__('resources/suggestion/strings.form.section_submitter'))
-                ->icon('heroicon-o-user')
-                ->schema([
-                    SuggestionFormPresenter::userId(),
-                ])
-                ->columnSpanFull()
-                ->columns(1),
-
-            Section::make(__('resources/suggestion/strings.form.section_attachment'))
-                ->icon('heroicon-o-paper-clip')
-                ->schema([
-                    SuggestionFormPresenter::attachment(),
-                ])
-                ->columnSpanFull()
-                ->collapsed(),
         ]);
     }
 
@@ -154,6 +148,16 @@ class SuggestionResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
+
+            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
+                ->icon('heroicon-o-arrow-path-rounded-square')
+                ->schema([
+                    SuggestionInfolistPresenter::workflow(),
+                ])
+                ->columnSpanFull()
+                ->collapsible(),
+
+
             Section::make(__('resources/suggestion/strings.infolist.section_overview'))
                 ->icon('heroicon-o-light-bulb')
                 ->schema([
@@ -162,10 +166,16 @@ class SuggestionResource extends Resource
                     SuggestionInfolistPresenter::stage(),
                     SuggestionInfolistPresenter::submitter(),
                     SuggestionInfolistPresenter::submitterDept(),
-                    SuggestionInfolistPresenter::createdAt(),
-                    SuggestionInfolistPresenter::deadline(),
                     SuggestionInfolistPresenter::selfFill(),
                     SuggestionInfolistPresenter::sentToCeo(),
+
+                    SuggestionInfolistPresenter::purpose(),
+                    SuggestionInfolistPresenter::rule(),
+                    SuggestionInfolistPresenter::departments(),
+
+                    SuggestionInfolistPresenter::deadline(),
+                    SuggestionInfolistPresenter::createdAt(),
+                    SuggestionInfolistPresenter::updatedAt(),
                 ])
                 ->columnSpanFull()
                 ->columns(3),
@@ -179,23 +189,6 @@ class SuggestionResource extends Resource
                 ->columnSpanFull()
                 ->columns(2),
 
-            Section::make(__('resources/suggestion/strings.infolist.section_meta'))
-                ->icon('heroicon-o-adjustments-horizontal')
-                ->schema([
-                    SuggestionInfolistPresenter::purpose(),
-                    SuggestionInfolistPresenter::rule(),
-                    SuggestionInfolistPresenter::departments(),
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-
-            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
-                ->icon('heroicon-o-arrow-path-rounded-square')
-                ->schema([
-                    SuggestionInfolistPresenter::workflow(),
-                ])
-                ->columnSpanFull()
-                ->collapsible(),
 
             Section::make(__('resources/suggestion/strings.infolist.section_reviews'))
                 ->icon('heroicon-o-chat-bubble-left-right')
@@ -219,15 +212,6 @@ class SuggestionResource extends Resource
                 ->columns(1)
                 ->collapsed(),
 
-            Section::make(__('resources/suggestion/strings.infolist.section_system'))
-                ->icon('heroicon-o-clock')
-                ->schema([
-                    SuggestionInfolistPresenter::createdAt(),
-                    SuggestionInfolistPresenter::updatedAt(),
-                ])
-                ->columnSpanFull()
-                ->columns(2)
-                ->collapsed(),
         ]);
     }
 
@@ -250,13 +234,12 @@ class SuggestionResource extends Resource
                 SuggestionTablePresenter::submitterGroup(),
             ])
             ->filters([
-                SuggestionTablePresenter::stageFilter(),
                 SuggestionTablePresenter::submitterFilter(),
                 SuggestionTablePresenter::departmentFilter(),
                 SuggestionTablePresenter::selfFillFilter(),
                 SuggestionTablePresenter::hasFileFilter(),
-                SuggestionTablePresenter::hasReferralFilter(),
                 self::createdAtFilter(),
+                SuggestionTablePresenter::hasReferralFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

@@ -1,152 +1,43 @@
 <?php
 
 return [
-    'label'        => 'پیشنهاد',
-    'plural_label' => 'پیشنهادها',
-    'nav_group'    => 'مدیریت محتوا',
 
-    'fields' => [
-        'serial'           => 'شناسه',
-        'title'            => 'عنوان',
-        'description'      => 'متن پیشنهاد',
-        'departments'      => 'واحدهای ذی‌نفع',
-        'purpose'          => 'اهداف پیشنهاد',
-        'rule'             => 'اصول حاکم',
-        'attachment'       => 'پیوست',
-        'self_fill'        => 'تکمیل شخصی نظرات واحدها',
-        'priority'         => 'اولویت',
-        'stage'            => 'مرحله',
-        'submitter'        => 'پیشنهاددهنده',
-        'submitter_dept'   => 'واحد پیشنهاددهنده',
-        'comments'         => 'یادداشت مدیریت',
-        'created_at'       => 'تاریخ ثبت',
-        'updated_at'       => 'آخرین بروزرسانی',
-        'deadline'         => 'مهلت بررسی',
-        'stats'            => 'پاسخ‌ها',
-        'agree_count'      => 'موافق',
-        'disagree_count'   => 'مخالف',
-        'neutral_count'    => 'نیمه موافق',
-        'responses'        => 'پاسخ‌های دریافتی',
-        'sent_to_ceo'      => 'ارجاع به مدیریت ارشد',
-        'referral_depts'   => 'واحدهای موظف به اقدام',
-        'referral_actions' => 'دستورالعمل اجرا',
-    ],
+    'table' => [
+        'action_view' => 'مشاهده',
+        'action_edit' => 'ویرایش',
+        'action_restore' => 'بازگرداندن',
+        'action_delete' => 'حذف',
+        'action_delete_confirm' => 'آیا از حذف این رکورد اطمینان دارید؟',
+        'action_delete_body' => 'این عملیات قابل بازگشت نیست.',
 
-    'form' => [
-        'section_main'        => 'محتوای پیشنهاد',
-        'section_meta'        => 'دسته‌بندی و قواعد',
-        'section_targets'     => 'واحدهای ذی‌نفع',
-        'section_attachment'  => 'پیوست',
-        'section_submitter'   => 'پیشنهاددهنده',
-        'self_fill_helper'    => 'در صورت فعال بودن، بازخورد سایر واحدها به نمایندگی از آن‌ها ثبت می‌شود.',
-        'departments_helper'  => 'واحد پیشنهاددهنده به‌صورت خودکار به فهرست اضافه می‌شود.',
-    ],
+        'action_assign' => 'تخصیص',
+        'action_assign_heading' => 'تخصیص رکورد',
+        'action_assign_description' => 'آیا از تخصیص این رکورد اطمینان دارید؟',
 
-    'infolist' => [
-        'section_overview'    => 'خلاصه پیشنهاد',
-        'section_content'     => 'محتوای پیشنهاد',
-        'section_meta'        => 'دسته‌بندی و واحدها',
-        'section_workflow'    => 'گردش کار',
-        'section_reviews'     => 'بازخوردها',
-        'section_decision'    => 'تصمیم مدیریت ارشد',
-        'section_system'      => 'اطلاعات سیستمی',
-        'no_reviews'          => 'هنوز بازخوردی ثبت نشده است.',
-        'no_referral'         => 'بدون ارجاع برای اقدام',
-    ],
+        'action_unassign' => 'حذف تخصیص',
+        'action_unassign_heading' => 'حذف تخصیص رکورد',
+        'action_unassign_description' => 'آیا از حذف تخصیص این رکورد اطمینان دارید؟',
 
-    'tabs' => [
-        'all'               => 'همه',
-        'pending'           => 'ارسال شده',
-        'team_remarks'      => 'منتظر هم‌تیمی‌ها',
-        'dept_remarks'      => 'منتظر ذینفعان',
-        'awaiting_decision' => 'منتظر تصمیم',
-        'accepted'          => 'پذیرفته شده',
-        'rejected'          => 'پذیرفته نشده',
-        'under_review'      => 'نیازمند تکمیل',
-        'closed'            => 'پایان‌یافته',
-    ],
+        'action_bulk_unassign' => 'حذف تخصیص انتخاب‌شده‌ها',
 
-    'filters' => [
-        'stage'        => 'مرحله',
-        'department'   => 'واحد ذی‌نفع',
-        'submitter'    => 'پیشنهاددهنده',
-        'has_referral' => 'دارای ارجاع برای اقدام',
-        'self_fill'    => 'تکمیل شخصی',
-        'has_file'     => 'دارای پیوست',
-    ],
+        'action_create' => 'افزودن رکورد',
 
-    'actions' => [
-        'feedback'                  => 'ثبت بازخورد',
-        'feedback_heading'          => 'ثبت بازخورد واحد',
-        'feedback_description'      => 'پس از ثبت بازخورد، مرحله پیشنهاد به‌روزرسانی می‌شود.',
-        'decision'                  => 'تصمیم نهایی',
-        'decision_heading'          => 'تصمیم مدیریت ارشد',
-        'decision_description'      => 'پس از ثبت تصمیم، در صورت پذیرش می‌توان واحدهای موظف به اقدام را تعیین کرد.',
-        'mark_complete'             => 'تکمیل اقدام',
-        'mark_complete_heading'     => 'تکمیل اقدام واحد',
-        'mark_complete_description' => 'این اقدام را به عنوان «انجام‌شده» علامت می‌زنید؟',
-        'mark_complete_done'        => 'اقدام واحد شما به عنوان تکمیل‌شده ثبت شد.',
-        'open_user_panel'           => 'مشاهده در داشبورد کاربر',
-    ],
-
-    'feedback' => [
-        'agree'      => 'موافق',
-        'neutral'    => 'نیمه موافق',
-        'disagree'   => 'مخالف',
-        'incomplete' => 'ناقص',
-        'unknown'    => 'نامشخص',
-        'label'      => 'بازخورد',
-        'comment'    => 'توضیحات بازخورد',
-    ],
-
-    'decision' => [
-        'options' => [
-            'accepted'     => 'پذیرفته شده',
-            'rejected'     => 'پذیرفته نشده',
-            'under_review' => 'نیازمند تکمیل',
-        ],
-        'decision'         => 'تصمیم',
-        'comment'          => 'یادداشت مدیریت',
-        'referral_depts'   => 'ارجاع به واحدها',
-        'referral_actions' => 'دستورالعمل اجرا',
+        'bulk_delete' => 'حذف انتخاب‌شده‌ها',
+        'bulk_export' => 'خروجی Excel',
     ],
 
     'notifications' => [
-        'created'           => 'پیشنهاد با موفقیت ثبت شد.',
-        'feedback_saved'    => 'بازخورد ثبت شد.',
-        'decision_saved'    => 'تصمیم نهایی ثبت شد.',
-        'completion_saved'  => 'اقدام تکمیل‌شده ثبت شد.',
+        'created' => 'رکورد با موفقیت ایجاد شد.',
+        'saved' => 'اطلاعات رکورد با موفقیت ذخیره شد.',
+        'assigned' => 'رکورد با موفقیت تخصیص یافت.',
+        'unassigned' => 'تخصیص رکورد با موفقیت حذف شد.',
+        'bulk_unassigned' => 'تخصیص رکوردهای انتخاب‌شده با موفقیت حذف شد.',
     ],
 
-    'validation' => [
-        'title' => [
-            'required' => 'وارد کردن عنوان الزامی است.',
-            'min'      => 'عنوان باید حداقل ۳ کاراکتر باشد.',
-            'max'      => 'عنوان نباید بیشتر از ۲۵۵ کاراکتر باشد.',
-        ],
-        'description' => [
-            'required' => 'وارد کردن توضیحات الزامی است.',
-            'min'      => 'توضیحات باید حداقل ۱۰ کاراکتر باشد.',
-        ],
-        'purpose' => [
-            'required' => 'حداقل یک هدف باید انتخاب شود.',
-        ],
-        'rule' => [
-            'required' => 'حداقل یک اصل باید انتخاب شود.',
-        ],
-        'attachment' => [
-            'mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
-            'max'   => 'حجم فایل نباید بیشتر از ۲ مگابایت باشد.',
-        ],
-        'decision' => [
-            'required' => 'انتخاب تصمیم الزامی است.',
-        ],
-        'feedback' => [
-            'required' => 'انتخاب بازخورد الزامی است.',
-        ],
+    'filters' => [
+        'date_range' => 'بازه تاریخ',
+        'date_from' => 'از تاریخ',
+        'date_until' => 'تا تاریخ',
     ],
 
-    'export' => [
-        'completed' => ':count ردیف با موفقیت صادر شد.',
-    ],
 ];

@@ -4,7 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Http\Middleware\EnsureHasPermission;
 use App\Livewire\Admin\ManagePreferences;
-use Filament\Actions\Action;
+use App\Services\FilamentMenuService;
 use Filament\Enums\GlobalSearchPosition;
 use Filament\Enums\UserMenuPosition;
 use Filament\FontProviders\LocalFontProvider;
@@ -18,6 +18,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -66,16 +67,7 @@ class AdminPanelProvider extends PanelProvider
                 provider: LocalFontProvider::class
             )
             ->userMenu(position: UserMenuPosition::Topbar)
-            ->userMenuItems([
-                Action::make('dashboard')
-                    ->label('پنل کاربر')
-                    ->url(fn() => route('dashboard'), shouldOpenInNewTab: true)
-                    ->icon('heroicon-o-squares-2x2'),
-                Action::make('preferences')
-                    ->label('تنظیمات')
-                    ->icon('heroicon-o-adjustments-horizontal')
-                    ->url(fn(): string => ManagePreferences::getUrl()),
-            ])
+            ->userMenuItems(FilamentMenuService::getActions())
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->globalSearchDebounce('1000ms')
             ->brandName('HRMS')

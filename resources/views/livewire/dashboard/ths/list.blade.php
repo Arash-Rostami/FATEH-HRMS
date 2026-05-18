@@ -17,10 +17,13 @@
     <div class="overflow-x-auto w-full">
         <table
             class="min-w-full text-sm text-right whitespace-nowrap lg:whitespace-normal text-[var(--md-sys-color-on-surface)]">
-            <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs border-b border-[var(--md-sys-color-outline-variant)]">
+            <thead
+                class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs border-b border-[var(--md-sys-color-outline-variant)]">
             <tr x-show="openSearch" x-collapse>
                 <th colspan="6" class="px-5 pb-3 py-2">
-                    <div class="flex justify-end border-b border-[var(--md-sys-color-outline-variant)]/30 bg-transparent" @click.stop>
+                    <div
+                        class="flex justify-end border-b border-[var(--md-sys-color-outline-variant)]/30 bg-transparent"
+                        @click.stop>
                         <div class="w-72">
                             <x-ui.forms.search
                                 name="ticket_search"
@@ -60,11 +63,11 @@
                     $stat = $statusMap[$ticket->status] ?? null;
                     $fId = 'TN-' . $ticket->created_at->format('ym') . '-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT);
                 @endphp
-                <tr class="hover:bg-[var(--md-sys-color-surface-container-lowest)] transition-colors group cursor-pointer"
+                <tr class="hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer"
                     wire:click="viewTicket({{ $ticket->id }}); $dispatch('ths-modal')">
                     <td class="px-6 py-4 flex items-center gap-3">
                         <div
-                            class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] shrink-0 border border-[var(--md-sys-color-outline-variant)]/30 group-hover:border-[var(--md-sys-color-primary)]/30 transition-colors"
+                            class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] shrink-0 ring-1 ring-[var(--md-sys-color-outline-variant)]/20 group-hover:ring-[var(--md-sys-color-primary)]/30 transition-colors"
                             title="{{ $prio['title'] ?? '' }}">
                             @if($prio)
                                 <span class="material-symbols-rounded text-xl {{ $prio['color'] }}">
@@ -76,7 +79,8 @@
                         <div class="flex flex-col cursor-help"
                              title="{{ jdate($ticket->created_at) }}"
                              dir="ltr">
-                            <span class="font-bold text-[var(--md-sys-color-on-surface)] text-[13px] tracking-wider font-mono flex-row-reverse flex">{{ $fId }}</span>
+                            <span
+                                class="font-bold text-[var(--md-sys-color-on-surface)] text-[13px] tracking-wider font-mono flex-row-reverse flex">{{ $fId }}</span>
                             <span
                                 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 mt-0.5">
                                     <span class="material-symbols-rounded text-[12px]">schedule</span>
@@ -88,8 +92,9 @@
                     <td class="px-6 py-4">
                         @if($stat)
                             <div title="{{ jdate($ticket->completion_date ?? now()) }}"
-                                 class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide {{ $stat['color'] }}">
-                                <span class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
+                                 class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['color'] }}">
+                                <span
+                                    class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
                                 {{ $stat['title'] }}
                             </div>
                         @endif
@@ -97,18 +102,23 @@
 
                     <td class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
                         <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-primary)]"></span>
+                            <span class="material-symbols-rounded">
+                                {{ $presenter->requestAreaIcon($ticket->request_area) }}
+                            </span>
+
                             {{ $ticket->getRequestAreaOptions($ticket->request_type, $ticket->request_area) }}
                         </div>
                     </td>
 
                     <td class="px-6 py-4 hidden sm:table-cell">
                         <div class="flex flex-col">
-                                <span
-                                    class="font-bold text-[13px] text-[var(--md-sys-color-on-surface)] truncate max-w-[200px] lg:max-w-[300px]"
-                                    title="{{ $ticket->request_subject }}">
-                                    {{ Str::limit($ticket->request_subject, 40) }}
-                                </span>
+                            <span
+                                class="inline-flex items-center gap-2 font-bold text-[13px] text-[var(--md-sys-color-on-surface)] truncate max-w-[200px] lg:max-w-[300px]"
+                                title="{{ $ticket->request_subject }}"
+                            >
+                                <span class="shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-primary)]"></span>
+                                <span class="truncate">{{ Str::limit($ticket->request_subject, 40) }}</span>
+                            </span>
                             <span
                                 class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] truncate max-w-[200px] lg:max-w-[300px] mt-0.5"
                                 title="{{ $ticket->description }}">
@@ -129,7 +139,9 @@
                             </div>
                         @else
                             <span
-                                class="text-[var(--md-sys-color-on-surface-variant)] italic text-[11px] px-2 py-0.5 bg-[var(--md-sys-color-surface-container-low)] rounded border border-dashed border-[var(--md-sys-color-outline-variant)]">در انتظار تخصیص</span>
+                                class="inline-flex items-center gap-1.5 text-[var(--md-sys-color-on-surface-variant)] italic text-[11px] px-2 py-0.5 bg-[var(--md-sys-color-surface-container-low)] rounded border border-dashed border-[var(--md-sys-color-outline-variant)]">
+                                <span class="material-symbols-rounded text-[12px]">hourglass_empty</span>    در انتظار تخصیص
+                            </span>
                         @endif
                     </td>
 
@@ -145,11 +157,14 @@
             @empty
                 <tr>
                     <td colspan="6" class="px-6 py-12 text-center text-[var(--md-sys-color-on-surface-variant)]">
-                        <div class="flex flex-col items-center justify-center">
-                            <span class="material-symbols-rounded text-4xl mb-3 opacity-50">inbox</span>
-                            <p class="text-sm font-medium">هیچ تیکتی یافت نشد.</p>
-                            <p class="text-[11px] mt-1 opacity-70">درخواست‌های ارسالی شما در اینجا نمایش داده
-                                می‌شوند.</p>
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <div class="w-16 h-16 rounded-3xl bg-[var(--md-sys-color-surface-container-high)]/60 flex items-center justify-center">
+                                <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-on-surface-variant)]/30">inbox</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <p class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]/70">هیچ تیکتی یافت نشد.</p>
+                                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]/50">درخواست‌های ارسالی شما در اینجا نمایش داده می‌شوند.</p>
+                            </div>
                         </div>
                     </td>
                 </tr>

@@ -140,7 +140,7 @@
 
     .fi-modal-close-overlay {
         z-index: var(--sys-z-overlay) !important;
-        background-color: var(--sys-color-glass) !important;
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent) !important;
     }
 
     .fi-dropdown-panel {
