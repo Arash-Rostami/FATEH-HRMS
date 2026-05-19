@@ -998,3 +998,10 @@
 .fi-topbar .fi-topbar-item-btn {
     @apply !w-10 !h-10 flex items-center justify-center;
 }
+
+/* Custom Topbar Shapes and Hover */
+.fi-topbar .fi-icon-btn,
+.fi-topbar .fi-global-search-field,
+.fi-topbar .fi-topbar-item-btn {
+    @apply !rounded-xl;
+}
