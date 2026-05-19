@@ -20,7 +20,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="window.filamentMenu.share()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100">share</span>
                     <x-ui.modals.tooltip text="اشتراک‌گذاری" position="bottom" />
                 </button>
@@ -30,7 +30,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="window.filamentMenu.printPage()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100">print</span>
                     <x-ui.modals.tooltip text="چاپ صفحه" position="bottom" />
                 </button>
@@ -40,7 +40,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="$store.filamentMenu.toggleZen()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100"
                           x-text="$store.filamentMenu.zen ? 'visibility_off' : 'visibility'"></span>
                     <x-ui.modals.tooltip text="حالت تمرکز" position="bottom" />
@@ -51,7 +51,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="$store.filamentMenu.toggleFullscreen()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100"
                           x-text="$store.filamentMenu.fullscreen ? 'close_fullscreen' : 'fullscreen'"></span>
                     <x-ui.modals.tooltip text="تمام صفحه" position="bottom" />
@@ -62,7 +62,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="window.filamentMenu.requestPiP()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100">picture_in_picture_alt</span>
                     <x-ui.modals.tooltip text="پنجره شناور" position="bottom" />
                 </button>
@@ -72,7 +72,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="$store.filamentMenu.toggleWakeLock()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100"
                           x-text="$store.filamentMenu.wakeLock ? 'bedtime' : 'light_mode'"></span>
                     <x-ui.modals.tooltip text="روشن نگه‌داشتن صفحه" position="bottom" />
@@ -83,7 +83,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="window.filamentMenu.clearStorage()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100">bolt</span>
                     <x-ui.modals.tooltip text="پاک‌سازی کش" position="bottom" />
                 </button>
@@ -93,7 +93,7 @@
             <div class="swiper-slide !w-auto">
                 <button type="button"
                         @click="window.filamentMenu.showShortcuts()"
-                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="group relative flex w-9 h-9 active:scale-95 transition-all duration-200 items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-[var(--md-sys-color-primary-container)]">
                     <span class="material-symbols-rounded text-[20px] opacity-80 group-hover:opacity-100">keyboard_command_key</span>
                     <x-ui.modals.tooltip text="میانبرها" position="bottom" />
                 </button>
