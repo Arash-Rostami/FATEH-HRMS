@@ -19,6 +19,7 @@ class FilamentServiceProvider extends ServiceProvider
     {
         $hooks = [
             [PanelsRenderHook::GLOBAL_SEARCH_AFTER, 'components.dashboard.navbars.top.palette'],
+            [PanelsRenderHook::GLOBAL_SEARCH_AFTER, 'components.admin.topbar.utilities'],
             [PanelsRenderHook::BODY_END, 'components.ui.loaders.screen-saver'],
             [PanelsRenderHook::BODY_START, 'components.ui.decor.panel-ghost'],
             [PanelsRenderHook::BODY_END, 'components.ui.loaders.spinner'],
