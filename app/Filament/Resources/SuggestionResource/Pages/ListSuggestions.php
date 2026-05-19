@@ -17,6 +17,10 @@ class ListSuggestions extends ListRecords
 
     public function getTabs(): array
     {
+        if (!(auth()->user()?->extra['preferences']['show_list_tabs'] ?? true)) {
+            return [];
+        }
+
         $stats = $this->getStats();
 
         return [

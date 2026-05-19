@@ -17,6 +17,10 @@ class ListTasks extends ListRecords
 
     public function getTabs(): array
     {
+        if (!(auth()->user()?->extra['preferences']['show_list_tabs'] ?? true)) {
+            return [];
+        }
+
         return [
             'all' => Tab::make(__('resources/task/strings.tabs.all'))
                 ->icon('heroicon-o-list-bullet'),

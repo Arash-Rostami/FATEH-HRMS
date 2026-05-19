@@ -22,6 +22,10 @@ class ListContacts extends ListRecords
 
     public function getTabs(): array
     {
+        if (!(auth()->user()?->extra['preferences']['show_list_tabs'] ?? true)) {
+            return [];
+        }
+
         $pruningThreshold = now()->subDays(30);
 
         return [
