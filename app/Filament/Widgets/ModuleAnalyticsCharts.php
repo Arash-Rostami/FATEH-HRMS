@@ -11,23 +11,43 @@ use Carbon\Carbon;
 
 class ModuleAnalyticsCharts extends ChartWidget
 {
-    protected static ?string $heading = 'Analytics Diagrams';
+    protected static ?string $heading = 'نمودارهای تحلیلی سیستم';
     protected static bool $isLazy = true;
     public ?string $filter = null;
 
     protected function getFilters(): ?array
     {
         return [
-            'module_a' => 'Human Capital Burnout Predictor',
-            'module_b' => 'Inter-Departmental Friction Index',
-            'module_c' => 'Innovation Funnel',
-            'module_d' => 'Asset Saturation',
-            'module_e' => 'Workload Distribution',
-            'module_f' => 'Demographic Activity',
-            'module_g' => 'Engagement Timeline',
-            'module_h' => 'Compliance Density',
-            'module_i' => 'Recruitment Funnel',
+            'module_a' => 'شاخص پیش‌بینی فرسودگی سرمایه انسانی',
+            'module_b' => 'شاخص اصطکاک و تاخیر بین واحدها',
+            'module_c' => 'قیف پیشرفت نوآوری و پیشنهادات',
+            'module_d' => 'پراکندگی و تراکم استفاده از منابع',
+            'module_e' => 'توزیع بار کاری (وظایف و تیکت‌ها)',
+            'module_f' => 'ترکیب جمعیتی و وضعیت اشتغال',
+            'module_g' => 'روند تعاملات و تولید محتوا',
+            'module_h' => 'تراکم گزارشات و نظارت پذیری',
+            'module_i' => 'قیف جذب و آنبوردینگ نیروها',
         ];
+    }
+
+    public function getDescription(): ?string
+    {
+        if (!$this->filter) {
+            return 'لطفاً برای مشاهده آمار دقیق، یکی از ماژول‌های تحلیلی را از منوی بالا انتخاب کنید.';
+        }
+
+        return match ($this->filter) {
+            'module_a' => 'این نمودار ارتباط بین میزان انرژی ثبت شده پرسنل و حجم وظایف باز در هر واحد را نشان می‌دهد. افت انرژی همزمان با افزایش وظایف، زنگ خطر فرسودگی است.',
+            'module_b' => 'نمایشگر زمان صرف شده برای حل تیکت‌ها بین واحدهای مختلف. رنگ‌های متمایل به قرمز نشان‌دهنده گلوگاه‌های ارتباطی و تاخیر در پاسخگویی است.',
+            'module_c' => 'نمایش وضعیت فعلی ایده‌ها و پیشنهادات ثبت شده در مراحل مختلف تایید تا اجرا، جهت بررسی سرعت چرخه نوآوری سازمان.',
+            'module_d' => 'نمایش ساعات اوج استفاده از منابع و اتاق‌های جلسات در طول شبانه‌روز، جهت بهینه‌سازی مصرف انرژی و زمان‌بندی بهتر.',
+            'module_e' => 'مقایسه حجم تیکت‌های باز (درخواست‌ها) و وظایف در حال انجام به تفکیک هر واحد، جهت شناسایی واحدهای دارای بار کاری نامتوازن.',
+            'module_f' => 'بررسی ساختار جمعیتی پرسنل شامل جنسیت و وضعیت قراردادها جهت تصمیم‌گیری بهتر در سیاست‌های منابع انسانی.',
+            'module_g' => 'روند انتشار پست‌ها و اخبار در ۳۰ روز گذشته که نشان‌دهنده میزان پویایی و ارتباطات داخلی سازمان است.',
+            'module_h' => 'نسبت کاربران فعال به تعداد گزارشات ثبت شده در هر واحد، که نشانگر سطح قانون‌مداری و شفافیت عملکردی است.',
+            'module_i' => 'مقایسه تعداد آگهی‌های استخدامی فعال با تعداد پرونده‌های در جریان آنبوردینگ، جهت سنجش سرعت فرآیند جذب استعدادها.',
+            default => '',
+        };
     }
 
     protected function getData(): array
@@ -69,27 +89,49 @@ class ModuleAnalyticsCharts extends ChartWidget
 
     protected function getOptions(): array
     {
+        $fontFamily = 'Yekan Bakh, Yekan, Tahoma, sans-serif';
+
+        $baseOptions = [
+            'plugins' => [
+                'legend' => [
+                    'labels' => [
+                        'font' => ['family' => $fontFamily]
+                    ]
+                ]
+            ],
+            'scales' => [
+                'x' => [
+                    'ticks' => ['font' => ['family' => $fontFamily]]
+                ],
+                'y' => [
+                    'ticks' => ['font' => ['family' => $fontFamily]]
+                ]
+            ]
+        ];
+
         if (in_array($this->filter, ['module_c', 'module_i'])) {
-            return ['indexAxis' => 'y'];
+            $baseOptions['indexAxis'] = 'y';
+            return $baseOptions;
         }
 
         if ($this->filter === 'module_d') {
-             return [
-                'scales' => ['y' => ['beginAtZero' => true]],
-                'plugins' => ['filler' => ['propagate' => false]],
-             ];
+             $baseOptions['scales']['y']['beginAtZero'] = true;
+             $baseOptions['plugins']['filler'] = ['propagate' => false];
+             return $baseOptions;
         }
 
         if ($this->filter === 'module_e') {
-            return [
-                'scales' => [
-                    'x' => ['stacked' => true],
-                    'y' => ['stacked' => true],
-                ],
-            ];
+            $baseOptions['scales']['x']['stacked'] = true;
+            $baseOptions['scales']['y']['stacked'] = true;
+            return $baseOptions;
         }
 
-        return [];
+        if ($this->filter === 'module_f' || $this->filter === 'module_h') {
+             unset($baseOptions['scales']);
+             return $baseOptions;
+        }
+
+        return $baseOptions;
     }
 
     public function render(): \Illuminate\Contracts\View\View
@@ -98,6 +140,7 @@ class ModuleAnalyticsCharts extends ChartWidget
             return view('livewire.filament.widgets.module-analytics-charts-friction', [
                 'frictionData' => $this->getModuleBData($this->getScopeCondition()),
                 'filter' => $this->filter,
+                'description' => $this->getDescription()
             ]);
         }
 
@@ -138,8 +181,8 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Average Energy (30 Days)', 'data' => $results->pluck('avg_energy')->toArray(), 'type' => 'line', 'borderColor' => '#10b981'],
-                ['label' => 'Pending/In-Progress Tasks', 'data' => $results->pluck('pending_tasks')->toArray(), 'type' => 'bar', 'backgroundColor' => '#f59e0b'],
+                ['label' => 'میانگین انرژی (۳۰ روز اخیر)', 'data' => $results->pluck('avg_energy')->toArray(), 'type' => 'line', 'borderColor' => '#10b981'],
+                ['label' => 'وظایف باز یا در حال انجام', 'data' => $results->pluck('pending_tasks')->toArray(), 'type' => 'bar', 'backgroundColor' => '#f59e0b'],
             ],
             'labels' => $results->pluck('department_name')->toArray(),
         ];
@@ -182,17 +225,31 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         $results = $query->get()->pluck('count', 'stage')->toArray();
 
-        $stages = ['pending', 'team_remarks', 'dept_remarks', 'awaiting_decision', 'accepted', 'rejected', 'under_review', 'closed'];
+        $stageTranslations = [
+            'pending' => 'در انتظار بررسی',
+            'team_remarks' => 'نظرات تیم',
+            'dept_remarks' => 'نظرات واحد',
+            'awaiting_decision' => 'در انتظار تصمیم',
+            'accepted' => 'تایید شده',
+            'rejected' => 'رد شده',
+            'under_review' => 'در حال بررسی',
+            'closed' => 'بسته شده'
+        ];
+
+        $stages = array_keys($stageTranslations);
         $data = [];
+        $labels = [];
+
         foreach ($stages as $stage) {
             $data[] = $results[$stage] ?? 0;
+            $labels[] = $stageTranslations[$stage];
         }
 
         return [
             'datasets' => [
-                ['label' => 'Suggestions Count', 'data' => $data, 'backgroundColor' => '#3b82f6'],
+                ['label' => 'تعداد پیشنهادات', 'data' => $data, 'backgroundColor' => '#3b82f6'],
             ],
-            'labels' => array_map('ucfirst', str_replace('_', ' ', $stages)),
+            'labels' => $labels,
         ];
     }
 
@@ -214,7 +271,7 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Reservations Heatmap', 'data' => $data, 'backgroundColor' => '#8b5cf6', 'fill' => true],
+                ['label' => 'تراکم رزرو منابع (ساعت)', 'data' => $data, 'backgroundColor' => 'rgba(139, 92, 246, 0.4)', 'borderColor' => '#8b5cf6', 'fill' => true],
             ],
             'labels' => $labels,
         ];
@@ -238,8 +295,8 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Open Tasks', 'data' => $results->pluck('task_count')->toArray(), 'backgroundColor' => '#3b82f6'],
-                ['label' => 'Open Tickets', 'data' => $results->pluck('ticket_count')->toArray(), 'backgroundColor' => '#ef4444'],
+                ['label' => 'وظایف باز', 'data' => $results->pluck('task_count')->toArray(), 'backgroundColor' => '#3b82f6'],
+                ['label' => 'تیکت‌های باز', 'data' => $results->pluck('ticket_count')->toArray(), 'backgroundColor' => '#ef4444'],
             ],
             'labels' => $results->pluck('department_name')->toArray(),
         ];
@@ -258,16 +315,21 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         $results = $query->get();
 
+        $genderMap = ['male' => 'آقا', 'female' => 'خانم'];
+        $statusMap = ['active' => 'فعال', 'inactive' => 'غیرفعال', 'probation' => 'آزمایشی'];
+
         $labels = [];
         $data = [];
         foreach ($results as $row) {
-            $labels[] = ($row->gender ?? 'Unknown') . ' - ' . ($row->employment_status ?? 'Unknown');
+            $g = $genderMap[$row->gender] ?? 'نامشخص';
+            $s = $statusMap[$row->employment_status] ?? 'نامشخص';
+            $labels[] = $g . ' - ' . $s;
             $data[] = $row->count;
         }
 
         return [
             'datasets' => [
-                ['label' => 'Demographics', 'data' => $data, 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']],
+                ['label' => 'بافت جمعیتی', 'data' => $data, 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']],
             ],
             'labels' => $labels,
         ];
@@ -297,7 +359,7 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Posts Created', 'data' => $data, 'borderColor' => '#0ea5e9', 'fill' => true],
+                ['label' => 'پست‌های منتشر شده', 'data' => $data, 'borderColor' => '#0ea5e9', 'backgroundColor' => 'rgba(14, 165, 233, 0.2)', 'fill' => true],
             ],
             'labels' => $labels,
         ];
@@ -322,8 +384,8 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Users', 'data' => $results->pluck('users_count')->toArray(), 'borderColor' => '#10b981', 'backgroundColor' => 'rgba(16, 185, 129, 0.2)'],
-                ['label' => 'Reports', 'data' => $results->pluck('reports_count')->toArray(), 'borderColor' => '#ef4444', 'backgroundColor' => 'rgba(239, 68, 68, 0.2)'],
+                ['label' => 'پرسنل', 'data' => $results->pluck('users_count')->toArray(), 'borderColor' => '#10b981', 'backgroundColor' => 'rgba(16, 185, 129, 0.2)'],
+                ['label' => 'گزارشات', 'data' => $results->pluck('reports_count')->toArray(), 'borderColor' => '#ef4444', 'backgroundColor' => 'rgba(239, 68, 68, 0.2)'],
             ],
             'labels' => $results->pluck('department_name')->toArray(),
         ];
@@ -337,9 +399,9 @@ class ModuleAnalyticsCharts extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Counts', 'data' => [$adsCount, $onboardingCount], 'backgroundColor' => ['#3b82f6', '#f59e0b']],
+                ['label' => 'تعداد', 'data' => [$adsCount, $onboardingCount], 'backgroundColor' => ['#3b82f6', '#f59e0b']],
             ],
-            'labels' => ['Active Job Ads', 'Active Onboardings'],
+            'labels' => ['آگهی‌های فعال', 'آنبوردینگ‌های در جریان'],
         ];
     }
 }
