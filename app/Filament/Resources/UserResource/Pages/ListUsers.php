@@ -18,7 +18,7 @@ class ListUsers extends ListRecords
 
     public function getTabs(): array
     {
-        if (!(auth()->user()?->extra['preferences']['show_list_tabs'] ?? true)) {
+        if (!(auth()->user()?->getPreference('show_list_tabs', true) ?? true)) {
             return [];
         }
 
