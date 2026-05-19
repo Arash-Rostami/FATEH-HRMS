@@ -129,6 +129,13 @@ trait FilamentPreferences
                 ->offIcon('heroicon-o-shield-check'),
 
 
+            Toggle::make('show_list_tabs')
+                ->label('نمایش آمارهای بالای جداول')
+                ->helperText('نمایش یا عدم نمایش تب‌های آماری در صفحات لیست.')
+                ->onIcon('heroicon-o-chart-bar')
+                ->offIcon('heroicon-o-chart-bar-square')
+                ->default(true),
+
             Toggle::make('screen_saver')
                 ->label('اسکرین سیور')
                 ->helperText('فعال‌سازی اسکرین سیور پس از مدتی عدم فعالیت.')
