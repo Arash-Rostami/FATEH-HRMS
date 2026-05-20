@@ -129,8 +129,29 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
+
             ProfileRelationManager::class,
             CredentialRelationManager::class,
+            RelationManagers\AssignedTasksRelationManager::class,
+            RelationManagers\AssignedTicketsRelationManager::class,
+            RelationManagers\AuthorityRelationManager::class,
+            RelationManagers\CancelledReservationsRelationManager::class,
+            RelationManagers\CommentsRelationManager::class,
+            RelationManagers\CreatedTasksRelationManager::class,
+            RelationManagers\CredentialsRelationManager::class,
+            RelationManagers\EventsRelationManager::class,
+            RelationManagers\FaqsRelationManager::class,
+            RelationManagers\FeedsRelationManager::class,
+            RelationManagers\OnboardingsRelationManager::class,
+            RelationManagers\PermissionsRelationManager::class,
+            RelationManagers\PostsRelationManager::class,
+            RelationManagers\ReactionsRelationManager::class,
+            RelationManagers\ReceivedMessagesRelationManager::class,
+            RelationManagers\ReportsRelationManager::class,
+            RelationManagers\RequestedTicketsRelationManager::class,
+            RelationManagers\ReservationsRelationManager::class,
+            RelationManagers\ReviewsRelationManager::class,
+            RelationManagers\SuggestionsRelationManager::class,
         ];
     }
 

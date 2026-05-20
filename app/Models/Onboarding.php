@@ -25,7 +25,7 @@ class Onboarding extends Model
         'user_id'
     ];
 
-    public function user(): BelongsTo
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo: BelongsTo
     {
         return $this->belongsTo(User::class);
     }

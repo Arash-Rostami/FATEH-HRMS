@@ -35,12 +35,12 @@ class Ticket extends Model
         'extra',
     ];
 
-    public function assignee()
+    public function assignee(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function requester()
+    public function requester(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'requester_id');
     }

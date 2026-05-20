@@ -24,45 +24,85 @@ class Reservation extends Model
         'parent_id',
     ];
 
-    public function cancelledBy()
+    public function cancelledBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by_id');
-    }
 
-    public function parent()
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
+
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Reservation::class, 'parent_id');
-    }
 
-    public function resource()
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
+
+    public function resource(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Resource::class);
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     public function scopeCancelled(Builder $q): Builder
     {
         return $q->whereIn('status', ['cancelled_user', 'cancelled_admin']);
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     public function scopePrevious(Builder $q): Builder
     {
         return $q->where('status', 'active')->where('start_time', '<', now());
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     public function scopeUpcoming(Builder $q): Builder
     {
         return $q->where('status', 'active')->where('start_time', '>=', now());
-    }
 
-    public function user()
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     protected function casts(): array
     {
@@ -72,7 +112,12 @@ class Reservation extends Model
             'cancelled_at' => 'datetime',
             'is_full_day' => 'boolean',
         ];
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
+}
 
     protected function displayTime(): Attribute
     {
@@ -82,13 +127,33 @@ class Reservation extends Model
 
                 if ($this->is_full_day) {
                     return $bookingDate . ' (تمام روز)';
-                }
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
 
                 $startTime = convertToPersian(toJalali($this->start_time, 'H:i'));
                 $endTime = convertToPersian(toJalali($this->end_time, 'H:i'));
 
                 return $bookingDate . ' • ' . $startTime . ' تا ' . $endTime;
-            }
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
         );
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
+    }
+}
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
 }

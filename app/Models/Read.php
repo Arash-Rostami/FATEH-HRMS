@@ -20,7 +20,7 @@ class Read extends Model
         'combined_read_count'
     ];
 
-    public function dms()
+    public function dms(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(DMS::class, 'document_id');
     }
@@ -33,7 +33,7 @@ class Read extends Model
             ->count();
     }
 
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

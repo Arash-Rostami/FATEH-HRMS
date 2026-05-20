@@ -3,10 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SuggestionResource\Exports\SuggestionExporter;
-use App\Filament\Resources\SuggestionResource\Pages\{CreateSuggestion, EditSuggestion, ListSuggestions, ViewSuggestion};
+use App\Filament\Resources\SuggestionResource\Pages\{CreateSuggestion, EditSuggestion, ListSuggestions, ViewSuggestion
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
+    }
+};
 use App\Filament\Resources\SuggestionResource\Schemas\{SuggestionFormPresenter,
     SuggestionInfolistPresenter,
-    SuggestionTablePresenter};
+    SuggestionTablePresenter
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
+    }
+};
 use App\Models\Suggestion;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
@@ -70,7 +84,14 @@ class SuggestionResource extends Resource
                 ->columnSpanFull()
                 ->columns(1),
         ]);
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getEloquentQuery(): Builder
     {
@@ -86,7 +107,14 @@ class SuggestionResource extends Resource
                 'reviews as neutral_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['neutral']),
                 'reviews as disagree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['disagree']),
             ]);
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getGlobalSearchResultActions(Model $record): array
     {
@@ -95,7 +123,14 @@ class SuggestionResource extends Resource
                 ->icon('heroicon-m-eye')
                 ->url(static::getUrl('view', ['record' => $record])),
         ];
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getGlobalSearchResultDetails(Model $record): array
     {
@@ -103,47 +138,117 @@ class SuggestionResource extends Resource
             __('resources/suggestion/strings.fields.submitter') => $record->user?->name ?? '—',
             __('resources/suggestion/strings.fields.stage') => Suggestion::STAGES[$record->stage] ?? $record->stage,
         ];
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
         return $record->title;
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getGlobalSearchResultUrl(Model $record): string
     {
         return static::getUrl('view', ['record' => $record]);
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getGloballySearchableAttributes(): array
     {
         return ['title', 'description', 'user.name'];
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getModelLabel(): string
     {
         return __('resources/suggestion/strings.label');
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getNavigationGroup(): ?string
     {
         return __('resources/suggestion/strings.nav_group');
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function getPages(): array
     {
         return [
             'index' => ListSuggestions::route('/'),
             'create' => CreateSuggestion::route('/create'),
-            'view' => ViewSuggestion::route('/{record}'),
-            'edit' => EditSuggestion::route('/{record}/edit'),
+            'view' => ViewSuggestion::route('/{record
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
         ];
     }
+}'),
+            'edit' => EditSuggestion::route('/{record
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
+    }
+}/edit'),
+        ];
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
+    }
+}
 
     public static function getPluralModelLabel(): string
     {
         return __('resources/suggestion/strings.plural_label');
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function infolist(Schema $schema): Schema
     {
@@ -213,7 +318,14 @@ class SuggestionResource extends Resource
                 ->collapsed(),
 
         ]);
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
+}
 
     public static function table(Table $table): Table
     {
@@ -251,5 +363,19 @@ class SuggestionResource extends Resource
             ->emptyStateIcon('heroicon-o-light-bulb')
             ->defaultSort('created_at', 'desc')
             ->striped();
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
+    }
+}
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ReviewsRelationManager::class,
+        ];
     }
 }
