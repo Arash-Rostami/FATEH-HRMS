@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class ModuleAnalyticsCharts extends ChartWidget
 {
-    protected static ?string $heading = 'نمودارهای تحلیلی سیستم';
+    protected ?string $heading = 'نمودارهای تحلیلی سیستم';
     protected static bool $isLazy = true;
     public ?string $filter = null;
 
