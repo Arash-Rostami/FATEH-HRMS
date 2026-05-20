@@ -10,16 +10,16 @@ final class FilamentMenuService
     public static function getActions(): array
     {
         return [
-            self::group('ابزار'),
-            self::share(),
-            self::printPage(),
-            ...self::focusMode(),
-            ...self::fullscreen(),
-            self::pictureInPicture(),
-            ...self::wakeLock(),
-            self::clearStorage(),
-            self::shortcuts(),
-            self::support(),
+//            self::group('ابزار'),
+//            self::share(),
+//            self::printPage(),
+//            ...self::focusMode(),
+//            ...self::fullscreen(),
+//            self::pictureInPicture(),
+//            ...self::wakeLock(),
+//            self::clearStorage(),
+//            self::shortcuts(),
+//            self::support(),
 
             self::group('پیمایش'),
             self::dashboard(),

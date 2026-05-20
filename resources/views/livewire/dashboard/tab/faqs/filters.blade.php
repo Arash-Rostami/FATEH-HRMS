@@ -35,12 +35,12 @@
                     :class="$wire.selectedDepartment === null ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
                 >همه
                 </button>
-                @foreach($this->departments as $dept)
+                @foreach($this->departments as $code => $label)
                     <button
-                        wire:click="filterByDepartment('{{ $dept->code}}')"
+                        wire:click="filterByDepartment('{{ $code }}')"
                         class="flex shrink-0 items-center gap-2 h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200"
-                        :class="$wire.selectedDepartment === '{{ $dept->code }}' ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
-                    >{{ $dept->name }}</button>
+                        :class="$wire.selectedDepartment === '{{ $code }}' ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
+                    >{{ $label }}</button>
                 @endforeach
             </div>
         </div>

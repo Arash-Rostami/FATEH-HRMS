@@ -24,6 +24,24 @@ return new class extends Migration
             $table->text('cancel_reason')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('reservations')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->index('start_time');
+            $table->index('end_time');
+            $table->index('status');
+            $table->index('parent_id');
+
+            $table->index(['status', 'start_time']);
+            $table->index(['status', 'end_time']);
+            $table->index(['user_id', 'status']);
+            $table->index(['resource_id', 'start_time']);
+            $table->index(['resource_id', 'end_time']);
+
+            $table->index([
+                'resource_id',
+                'start_time',
+                'end_time',
+                'status',
+            ]);
         });
     }
 

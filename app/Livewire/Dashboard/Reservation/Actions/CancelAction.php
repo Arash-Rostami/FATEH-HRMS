@@ -4,25 +4,21 @@ namespace App\Livewire\Dashboard\Reservation\Actions;
 
 use App\Models\Reservation;
 use App\Models\User;
-use Exception;
+use App\Services\Reservation\ValidationService;
 
 class CancelAction
 {
-    public function execute(Reservation $reservation, User $user): void
+    public function __construct(private ValidationService $validator) { }
+
+    public function execute(Reservation $reservation, User $user, ?string $cancelReason = null): void
     {
-        if ($reservation->status !== 'active')
-            throw new Exception("این رزرو در حال حاضر فعال نیست.");
-
-        $isAdmin = $user->isAdmin();
-
-        if (!$isAdmin && $reservation->user_id !== $user->id)
-            throw new Exception("شما اجازه لغو این رزرو را ندارید.");
+        $this->validator->validateCancellation($reservation, $user);
 
         $reservation->update([
-            'status'          => $isAdmin ? 'cancelled_admin' : 'cancelled_user',
+            'status' => $user->isAdmin() ? 'cancelled_admin' : 'cancelled_user',
             'cancelled_by_id' => $user->id,
-            'cancelled_at'    => now(),
-            'cancel_reason'   => null,
+            'cancelled_at' => now(),
+            'cancel_reason' => $cancelReason,
         ]);
     }
 }

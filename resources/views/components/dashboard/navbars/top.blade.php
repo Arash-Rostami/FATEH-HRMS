@@ -70,7 +70,7 @@
 
             <button type="button"
                     @click="showSecondary = !showSecondary"
-                    class="group relative w-6 h-6 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] shadow-md shadow-black/20 border-[2px] border-[var(--md-sys-color-primary)] transition-all duration-300 hover:scale-110 active:scale-95 z-20">
+                    class="group scale-90 relative w-8 h-6 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] shadow-md shadow-black/20 border-[2px] border-[var(--md-sys-color-primary)] transition-all duration-300 hover:scale-110 active:scale-95 z-20">
 
                 <span class="material-symbols-rounded !text-[16px] transition-transform duration-500"
                       :class="showSecondary ? 'rotate-180' : 'rotate-0'">

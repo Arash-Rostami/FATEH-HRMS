@@ -99,6 +99,10 @@ class User extends Authenticatable implements HasAvatar
     {
         return Arr::get($this->extra ?? [], $key, $default);
     }
+    public function getPreference(string $key, mixed $default = null): mixed
+    {
+        return $this->getExtraValue("preferences.{$key}", $default);
+    }
 
     public function getFilamentAvatarUrl(): ?string
     {

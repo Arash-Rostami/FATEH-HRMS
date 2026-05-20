@@ -6,25 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('reservation_policies', function (Blueprint $table) {
             $table->id();
-            $table->string('resource_type')->unique();
+            $table->string('resource_type');
             $table->string('key');
             $table->json('value');
-            $table->dropUnique(['resource_type']);
-
             $table->timestamps();
+
+            $table->unique(['resource_type', 'key']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('reservation_policies');

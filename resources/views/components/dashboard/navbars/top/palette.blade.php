@@ -1,8 +1,11 @@
 <div class="relative" x-data="{ open: false, page: 0, perPage: 5, groupTitles: ['تیره', 'میانه', 'روشن'] }">
     <button @click="open = !open"
-            class="group relative w-10 h-10 rounded-full active:scale-95 transition-all duration-200 flex items-center justify-center"
+            @class([
+                'group relative w-10 h-10 active:scale-95 transition flex items-center justify-center',
+                'rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]' => request()->is('admin*'),
+            ])
             :class="open ? 'bg-[var(--md-sys-color-on-primary)]/10' : ''">
-        <span class="material-symbols-rounded text-[22px] opacity-70 group-hover:opacity-100"
+        <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100"
               data-icon="palette">
             palette
         </span>

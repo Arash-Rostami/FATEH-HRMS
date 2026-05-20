@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'label'        => 'منبع',
+    'plural_label' => 'منابع',
+    'nav_group'    => 'رزرواسیون',
+    'fields'       => [
+        'id'                 => 'شناسه',
+        'name'               => 'نام',
+        'type'               => 'نوع',
+        'status'             => 'وضعیت',
+        'image'              => 'تصویر',
+        'floor'              => 'طبقه',
+        'extension'          => 'داخلی',
+        'capacity'           => 'ظرفیت',
+        'notes'              => 'یادداشت',
+        'created_at'         => 'تاریخ ایجاد',
+        'updated_at'         => 'آخرین ویرایش',
+        'reservations_count' => 'تعداد رزروها',
+    ],
+    'form'       => [
+        'section_main'     => 'اطلاعات منبع',
+        'section_metadata' => 'مشخصات فیزیکی',
+        'section_image'    => 'تصویر',
+    ],
+    'filters'    => [
+        'type'             => 'نوع',
+        'status'           => 'وضعیت',
+        'has_reservations' => 'دارای رزرو',
+    ],
+    'validation' => [
+        'name_required'    => 'نام منبع الزامی است.',
+        'name_max'         => 'نام منبع نباید بیشتر از ۲۵۵ کاراکتر باشد.',
+        'type_required'    => 'نوع منبع الزامی است.',
+        'type_in'          => 'نوع انتخاب شده معتبر نیست.',
+        'status_required'  => 'وضعیت منبع الزامی است.',
+        'status_in'        => 'وضعیت انتخاب شده معتبر نیست.',
+        'capacity_numeric' => 'ظرفیت باید یک عدد معتبر باشد.',
+        'extension_max'    => 'داخلی نباید بیشتر از ۲۵۵ کاراکتر باشد.',
+        'floor_max'        => 'طبقه نباید بیشتر از ۲۵۵ کاراکتر باشد.',
+        'image_image'      => 'فایل انتخاب شده باید یک تصویر معتبر باشد.',
+        'notes_max'        => 'یادداشت نباید بیشتر از ۱۰۰۰ کاراکتر باشد.',
+    ],
+    'export'     => [
+        'id'         => 'شناسه',
+        'name'       => 'نام',
+        'type'       => 'نوع',
+        'status'     => 'وضعیت',
+        'floor'      => 'طبقه',
+        'extension'  => 'داخلی',
+        'capacity'   => 'ظرفیت',
+        'created_at' => 'تاریخ ایجاد',
+        'filename'   => 'منابع',
+    ],
+    'relations'  => [
+        'reservations' => 'رزروها',
+    ],
+];

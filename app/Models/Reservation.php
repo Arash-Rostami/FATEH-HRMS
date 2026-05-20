@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\ResourceType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
@@ -24,9 +26,18 @@ class Reservation extends Model
         'parent_id',
     ];
 
+    protected $appends = [
+        'display_time',
+    ];
+
     public function cancelledBy()
     {
         return $this->belongsTo(User::class, 'cancelled_by_id');
+    }
+
+    public function occurrences()
+    {
+        return $this->hasMany(Reservation::class, 'parent_id');
     }
 
     public function parent()
@@ -51,7 +62,13 @@ class Reservation extends Model
 
     public function scopePrevious(Builder $q): Builder
     {
-        return $q->where('status', 'active')->where('start_time', '<', now());
+        return $q->where('status', 'active')
+            ->where('end_time', '<', now());
+    }
+
+    public function scopeRoots(Builder $q): Builder
+    {
+        return $q->whereNull('parent_id');
     }
 
     public function scopeUpcoming(Builder $q): Builder
@@ -59,7 +76,7 @@ class Reservation extends Model
         return $q->where('status', 'active')->where('start_time', '>=', now());
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -78,17 +95,38 @@ class Reservation extends Model
     {
         return Attribute::make(
             get: function () {
-                $bookingDate = convertToPersian(toJalali($this->start_time, 'Y/m/d'));
+                $start = $this->start_time;
+                $end = $this->end_time;
+
+                $date = convertToPersian(toJalali($start, 'Y/m/d'));
 
                 if ($this->is_full_day) {
-                    return $bookingDate . ' (تمام روز)';
+                    return $date . ' (تمام روز)';
                 }
 
-                $startTime = convertToPersian(toJalali($this->start_time, 'H:i'));
-                $endTime = convertToPersian(toJalali($this->end_time, 'H:i'));
+                $startTime = convertToPersian(toJalali($start, 'H:i'));
+                $endTime = convertToPersian(toJalali($end, 'H:i'));
 
-                return $bookingDate . ' • ' . $startTime . ' تا ' . $endTime;
+                return $date . ' • ' . $startTime . ' تا ' . $endTime;
             }
         );
+    }
+
+    protected function resourceDropdownLabel(): Attribute
+    {
+        return Attribute::make(get: function () {
+            $type = $this->resource?->type;
+            $resolved     = $type instanceof ResourceType ? $type : ResourceType::tryFrom($type);
+            $typeLabel    = $resolved ? "{$resolved->getEmoji()} {$resolved->getLabel()}" : $type;
+            $resourceName = $this->resource ? "{$typeLabel} ⇄ {$this->resource->name} " : 'منبع نامشخص';
+            $reserver = $this->user?->name ?? 'کاربر نامشخص';
+            $date = $this->start_time ? toJalali($this->start_time, 'Y/m/d') : null;
+
+            return implode(' ┆ ', array_filter([
+                "{$this->id}#",
+                $resourceName,
+                " رزروکننده: {$reserver} 📆 {$date} ",
+                ]));
+        });
     }
 }

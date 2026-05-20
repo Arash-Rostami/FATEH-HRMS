@@ -22,6 +22,10 @@ class ListEnergyTests extends ListRecords
 
     public function getTabs(): array
     {
+        if (!(auth()->user()?->getPreference('show_list_tabs', true) ?? true)) {
+            return [];
+        }
+
         return [
             'all' => Tab::make(__('resources/energy/strings.tabs.all'))
                 ->icon('heroicon-o-list-bullet'),

@@ -24,6 +24,9 @@ class Main extends Component
     public $zoomImageUrl = null;
     public $resourcesLimit = 6;
     public $historyLimit = 5;
+    public $isRecurring = false;
+    public $recurPattern = 'daily';
+    public $recurCount = 4;
 
     public function mount(): void
     {
@@ -127,8 +130,10 @@ class Main extends Component
     {
         [$start, $end, $isFullDay] = $this->timeRange();
 
+        $recurrence = $this->isRecurring ? ['pattern' => $this->recurPattern, 'count' => $this->recurCount] : null;
+
         try {
-            $action->execute(auth()->user(), Resource::findOrFail($resourceId), $start, $end, $isFullDay);
+            $action->execute(auth()->user(), Resource::findOrFail($resourceId), $start, $end, $isFullDay, $recurrence);
             $this->dispatch('toast', message: 'رزرو با موفقیت انجام شد', type: 'success');
         } catch (\Exception $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');

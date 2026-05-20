@@ -21,14 +21,11 @@ class AccountWidget extends Widget
         $role = $user?->role ? UserRole::tryFrom($user->role) : null;
 
         return [
-            'user'       => $user,
-            'greeting'   => shortGreeting(),
-            'roleLabel'  => $role?->getLabel(),
-            'department' => $user?->profile?->department?->description
-                ?? $user?->profile?->department?->name,
-            'jalaliDate' => convertToPersian(
-                Jalalian::now()->format('l، d F')
-            ),
+            'user' => $user,
+            'greeting' => shortGreeting(),
+            'roleLabel' => $role?->getLabel(),
+            'department' => $user?->profile?->department?->description ?? $user?->profile?->department?->name,
+            'jalaliDate' => convertToPersian(Jalalian::now()->format('l | d F')),
         ];
     }
 }

@@ -17,6 +17,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
 {
     use InteractsWithSchemas;
 
+    protected static bool $isLazy = true;
     protected static ?int $sort = 3;
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';

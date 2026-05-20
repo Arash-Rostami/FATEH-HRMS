@@ -42,20 +42,22 @@ class Permission extends Model
         return once(fn() => Cache::remember('permission_modules', now()->addDay(), function () {
             $modules = [];
 
-            foreach (glob(app_path('Filament/Resources/*Resource'), GLOB_ONLYDIR) as $dir) {
-                $english = basename($dir, 'Resource');
+            foreach (glob(app_path('Filament/Resources/*Resource.php')) as $dir) {
+                $english = basename($dir, 'Resource.php');
                 $key = Str::snake($english);
 
                 $pathSnake = lang_path("fa/resources/{$key}/strings.php");
                 $pathLower = lang_path("fa/resources/" . strtolower($english) . "/strings.php");
+                $pathSecondWord = lang_path("fa/resources/" . Str::afterLast($key, '_') . "/strings.php");
 
                 $strings = [];
-
 
                 if (file_exists($pathSnake)) {
                     $strings = require $pathSnake;
                 } elseif (file_exists($pathLower)) {
                     $strings = require $pathLower;
+                } elseif (file_exists($pathSecondWord)) {
+                    $strings = require $pathSecondWord;
                 }
 
                 $farsi = $strings['plural_label'] ?? $strings['label'] ?? null;

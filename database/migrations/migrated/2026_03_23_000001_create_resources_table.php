@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('status')->default('active');
             $table->string('image')->nullable();
             $table->timestamps();
+
+            $table->index('name', 'idx_resources_name');
+            $table->index(['type', 'status'], 'idx_resources_type_status');
         });
     }
 
