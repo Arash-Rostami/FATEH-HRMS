@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\FeedResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\FeedResource\Schemas\CommentFormPresenter;
+use App\Filament\Resources\FeedResource\Schemas\CommentInfolistPresenter;
+use App\Filament\Resources\FeedResource\Schemas\CommentTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,15 @@ class CommentsRelRelationManager extends RelationManager
     protected static string $relationship = 'commentsRel';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Comment/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +40,22 @@ class CommentsRelRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Comment/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Comment/strings.navigation.singular')),

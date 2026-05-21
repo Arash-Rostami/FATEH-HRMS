@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\PermissionResource\Schemas\PermissionFormPresenter;
+use App\Filament\Resources\PermissionResource\Schemas\PermissionInfolistPresenter;
+use App\Filament\Resources\PermissionResource\Schemas\PermissionTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,18 @@ class PermissionsRelationManager extends RelationManager
     protected static string $relationship = 'permissions';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Permission/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    PermissionFormPresenter::abilities(),
+                    PermissionFormPresenter::excludedModules(),
+                    PermissionFormPresenter::isSuperAdmin(),
+                    PermissionFormPresenter::user(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +43,31 @@ class PermissionsRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Permission/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    PermissionInfolistPresenter::abilities(),
+                    PermissionInfolistPresenter::createdAt(),
+                    PermissionInfolistPresenter::excludedModules(),
+                    PermissionInfolistPresenter::isSuperAdmin(),
+                    PermissionInfolistPresenter::updatedAt(),
+                    PermissionInfolistPresenter::user(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+                PermissionTablePresenter::createdAt(),
+                PermissionTablePresenter::id(),
+                PermissionTablePresenter::isSuperAdmin(),
+                PermissionTablePresenter::modulesCount(),
+                PermissionTablePresenter::user(),
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Permission/strings.navigation.singular')),

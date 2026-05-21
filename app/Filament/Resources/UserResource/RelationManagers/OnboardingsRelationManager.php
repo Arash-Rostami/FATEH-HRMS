@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\OnboardingResource\Schemas\OnboardingFormPresenter;
+use App\Filament\Resources\OnboardingResource\Schemas\OnboardingInfolistPresenter;
+use App\Filament\Resources\OnboardingResource\Schemas\OnboardingTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,24 @@ class OnboardingsRelationManager extends RelationManager
     protected static string $relationship = 'onboardings';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Onboarding/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    OnboardingFormPresenter::extras(),
+                    OnboardingFormPresenter::guides(),
+                    OnboardingFormPresenter::hydrateGuidesWithFileMeta(),
+                    OnboardingFormPresenter::isActive(),
+                    OnboardingFormPresenter::mission(),
+                    OnboardingFormPresenter::schedule(),
+                    OnboardingFormPresenter::userId(),
+                    OnboardingFormPresenter::videos(),
+                    OnboardingFormPresenter::vision(),
+                    OnboardingFormPresenter::welcome(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +49,39 @@ class OnboardingsRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Onboarding/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    OnboardingInfolistPresenter::createdAt(),
+                    OnboardingInfolistPresenter::extras(),
+                    OnboardingInfolistPresenter::guides(),
+                    OnboardingInfolistPresenter::isActive(),
+                    OnboardingInfolistPresenter::mission(),
+                    OnboardingInfolistPresenter::schedule(),
+                    OnboardingInfolistPresenter::updatedAt(),
+                    OnboardingInfolistPresenter::user(),
+                    OnboardingInfolistPresenter::videos(),
+                    OnboardingInfolistPresenter::vision(),
+                    OnboardingInfolistPresenter::welcome(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+                OnboardingTablePresenter::createdAt(),
+                OnboardingTablePresenter::extrasCount(),
+                OnboardingTablePresenter::guidesCount(),
+                OnboardingTablePresenter::id(),
+                OnboardingTablePresenter::isActive(),
+                OnboardingTablePresenter::sections(),
+                OnboardingTablePresenter::user(),
+                OnboardingTablePresenter::videosCount(),
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Onboarding/strings.navigation.singular')),

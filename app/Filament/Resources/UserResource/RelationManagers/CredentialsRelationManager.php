@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\CredentialResource\Schemas\CredentialFormPresenter;
+use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresenter;
+use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,20 @@ class CredentialsRelationManager extends RelationManager
     protected static string $relationship = 'credentials';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Credential/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    CredentialFormPresenter::appName(),
+                    CredentialFormPresenter::link(),
+                    CredentialFormPresenter::note(),
+                    CredentialFormPresenter::password(),
+                    CredentialFormPresenter::userId(),
+                    CredentialFormPresenter::username(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +45,35 @@ class CredentialsRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Credential/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    CredentialInfolistPresenter::appName(),
+                    CredentialInfolistPresenter::owner(),
+                    CredentialInfolistPresenter::username(),
+                    CredentialInfolistPresenter::password(),
+                    CredentialInfolistPresenter::link(),
+                    CredentialInfolistPresenter::note(),
+                    CredentialInfolistPresenter::createdAt(),
+                    CredentialInfolistPresenter::updatedAt(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+                CredentialTablePresenter::appName(),
+                CredentialTablePresenter::createdAt(),
+                CredentialTablePresenter::id(),
+                CredentialTablePresenter::link(),
+                CredentialTablePresenter::owner(),
+                CredentialTablePresenter::passwordColumn(),
+                CredentialTablePresenter::username(),
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Credential/strings.navigation.singular')),

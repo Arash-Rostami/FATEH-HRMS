@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\ThsResource\Schemas\ReservationFormPresenter;
+use App\Filament\Resources\ThsResource\Schemas\ReservationInfolistPresenter;
+use App\Filament\Resources\ThsResource\Schemas\ReservationTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,15 @@ class ReservationsRelationManager extends RelationManager
     protected static string $relationship = 'reservations';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Reservation/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +40,22 @@ class ReservationsRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Reservation/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Reservation/strings.navigation.singular')),

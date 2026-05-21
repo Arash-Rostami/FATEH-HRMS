@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\ContactResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\ContactResource\Schemas\ContactFormPresenter;
+use App\Filament\Resources\ContactResource\Schemas\ContactInfolistPresenter;
+use App\Filament\Resources\ContactResource\Schemas\ContactTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,18 @@ class RepliesRelationManager extends RelationManager
     protected static string $relationship = 'replies';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Message/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    ContactFormPresenter::body(),
+                    ContactFormPresenter::recipient(),
+                    ContactFormPresenter::replyToPreview(),
+                    ContactFormPresenter::sender(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +43,40 @@ class RepliesRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Message/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    ContactInfolistPresenter::body(),
+                    ContactInfolistPresenter::createdAt(),
+                    ContactInfolistPresenter::deletedAt(),
+                    ContactInfolistPresenter::isEdited(),
+                    ContactInfolistPresenter::prunableWarning(),
+                    ContactInfolistPresenter::readAt(),
+                    ContactInfolistPresenter::recipient(),
+                    ContactInfolistPresenter::replyTo(),
+                    ContactInfolistPresenter::sender(),
+                    ContactInfolistPresenter::updatedAt(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+                ContactTablePresenter::body(),
+                ContactTablePresenter::createdAt(),
+                ContactTablePresenter::deletedAt(),
+                ContactTablePresenter::hasReply(),
+                ContactTablePresenter::id(),
+                ContactTablePresenter::isEdited(),
+                ContactTablePresenter::prunableWarning(),
+                ContactTablePresenter::readAt(),
+                ContactTablePresenter::recipient(),
+                ContactTablePresenter::sender(),
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Message/strings.navigation.singular')),

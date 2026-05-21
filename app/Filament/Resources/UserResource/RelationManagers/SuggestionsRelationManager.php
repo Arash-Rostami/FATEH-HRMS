@@ -1,6 +1,10 @@
 <?php
 namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\SuggestionResource\Schemas\SuggestionFormPresenter;
+use App\Filament\Resources\SuggestionResource\Schemas\SuggestionInfolistPresenter;
+use App\Filament\Resources\SuggestionResource\Schemas\SuggestionTablePresenter;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
@@ -12,7 +16,24 @@ class SuggestionsRelationManager extends RelationManager
     protected static string $relationship = 'suggestions';
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Suggestion/strings.form.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    SuggestionFormPresenter::attachment(),
+                    SuggestionFormPresenter::departments(),
+                    SuggestionFormPresenter::description(),
+                    SuggestionFormPresenter::divider(),
+                    SuggestionFormPresenter::priority(),
+                    SuggestionFormPresenter::purpose(),
+                    SuggestionFormPresenter::rule(),
+                    SuggestionFormPresenter::selfFill(),
+                    SuggestionFormPresenter::title(),
+                    SuggestionFormPresenter::userId(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public static function getModelLabel(): string
     {
@@ -28,12 +49,52 @@ class SuggestionsRelationManager extends RelationManager
     }
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            Section::make(__('resources/Suggestion/strings.infolist.section_main'))
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->schema([
+                    SuggestionInfolistPresenter::agreeCount(),
+                    SuggestionInfolistPresenter::attachment(),
+                    SuggestionInfolistPresenter::comments(),
+                    SuggestionInfolistPresenter::createdAt(),
+                    SuggestionInfolistPresenter::deadline(),
+                    SuggestionInfolistPresenter::departments(),
+                    SuggestionInfolistPresenter::description(),
+                    SuggestionInfolistPresenter::disagreeCount(),
+                    SuggestionInfolistPresenter::neutralCount(),
+                    SuggestionInfolistPresenter::purpose(),
+                    SuggestionInfolistPresenter::referralActions(),
+                    SuggestionInfolistPresenter::referralDepts(),
+                    SuggestionInfolistPresenter::reviews(),
+                    SuggestionInfolistPresenter::rule(),
+                    SuggestionInfolistPresenter::selfFill(),
+                    SuggestionInfolistPresenter::sentToCeo(),
+                    SuggestionInfolistPresenter::serial(),
+                    SuggestionInfolistPresenter::stage(),
+                    SuggestionInfolistPresenter::submitter(),
+                    SuggestionInfolistPresenter::submitterDept(),
+                    SuggestionInfolistPresenter::title(),
+                    SuggestionInfolistPresenter::updatedAt(),
+                    SuggestionInfolistPresenter::workflow(),
+                ])
+                ->columnSpanFull()
+                ->columns(2),
+        ]);
     }
     public function table(Table $table): Table
     {
         return $table
-            ->columns([])
+            ->columns([
+                SuggestionTablePresenter::agreeCount(),
+                SuggestionTablePresenter::attachment(),
+                SuggestionTablePresenter::createdAt(),
+                SuggestionTablePresenter::disagreeCount(),
+                SuggestionTablePresenter::neutralCount(),
+                SuggestionTablePresenter::serial(),
+                SuggestionTablePresenter::stage(),
+                SuggestionTablePresenter::submitter(),
+                SuggestionTablePresenter::title(),
+            ])
             ->searchable(false)
             ->headerActions([
                 CreateAction::make()->icon('heroicon-o-sparkles')->label(__('resources/Suggestion/strings.navigation.singular')),
