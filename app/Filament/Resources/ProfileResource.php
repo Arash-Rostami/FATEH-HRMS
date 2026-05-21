@@ -31,7 +31,7 @@ class ProfileResource extends Resource
 
     protected static ?string $model = Profile::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-identification';
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

@@ -31,7 +31,7 @@ class PermissionResource extends Resource
 
     protected static ?string $model = Permission::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 5;
 
     public static function canViewAny(): bool
     {

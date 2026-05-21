@@ -25,7 +25,7 @@ class ThsResource extends Resource
 
     protected static ?string $model = Ticket::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-ticket';
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

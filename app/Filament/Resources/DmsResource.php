@@ -25,7 +25,7 @@ class DmsResource extends Resource
 
     protected static ?string $model = DMS::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

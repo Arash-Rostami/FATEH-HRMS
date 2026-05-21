@@ -26,7 +26,7 @@ class TaskResource extends Resource
 
     protected static ?string $model = Task::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

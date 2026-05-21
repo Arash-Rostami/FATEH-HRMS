@@ -48,14 +48,15 @@ class BookAction
         $intervalDays = ($recurrence['pattern'] ?? 'daily') === 'weekly' ? 7 : 1;
         $count = max(2, min(52, (int)($recurrence['count'] ?? 4)));
         $resource = $master->resource;
-        $user = $master->user;
+        $related = $resource?->type === 'meeting' ? $resource->relatedUser : null;
+        $booker = $master->user;
 
         for ($i = 1; $i < $count; $i++) {
             $occStart = $start->copy()->addDays($i * $intervalDays);
             $occEnd   = $end->copy()->addDays($i * $intervalDays);
 
             try {
-                $this->validator->validateBooking($user, $resource, $occStart, $occEnd, $isFullDay);
+                $this->validator->validateBooking($booker, $resource, $occStart, $occEnd, $isFullDay);
             } catch (\Exception) {
                 continue;
             }
@@ -64,10 +65,17 @@ class BookAction
                 'user_id' => $master->user_id,
                 'resource_id' => $master->resource_id,
                 'start_time' => $occStart,
-                'end_time'   => $occEnd,
+                'end_time' => $end->copy()->addDays($i * $intervalDays),
                 'is_full_day' => $isFullDay,
                 'status' => 'active',
                 'parent_id' => $master->id,
             ]);
+
+            if ($related && $booker) {
+                $base = ['date' => $occStart, 'private' => true, 'description' => 'جلسه برنامه‌ریزی شده از طریق سیستم رزرواسیون'];
+                foreach ([[$booker, $related], [$related, $booker]] as [$host, $guest]) {
+                    Event::create(array_merge($base, ['user_id' => $host->id, 'title' => 'جلسه با ' . $guest->name]));
+                }
+            }
         }
     }}

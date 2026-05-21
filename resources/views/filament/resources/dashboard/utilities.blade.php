@@ -1,4 +1,4 @@
-<div class="relative ms-4 me-2 w-full max-w-[180px] xs:max-w-[240px] sm:max-w-[340px] md:max-w-[380px] border-r border-slate-200/70 pr-3">
+<div class="relative ms-4 me-2 w-full max-w-[180px] xs:max-w-[240px] sm:max-w-[340px] border-x !border-[var(--md-sys-color-on-primary-container)] pl-3 pr-6 md:pl-0 md:pr-3">
 
     <div class="absolute top-6 right-1 scale-90 z-20 flex md:hidden items-center justify-center w-5 h-5 rounded-md border border-[var(--md-sys-color-primary-container)]/30 bg-[var(--md-sys-color-primary)]/40 text-[var(--md-sys-color-primary-container)] backdrop-blur-sm pointer-events-none animate-pulse">
         <span class="material-symbols-rounded text-[14px]">swipe</span>

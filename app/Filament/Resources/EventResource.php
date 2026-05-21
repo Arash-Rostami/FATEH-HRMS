@@ -25,7 +25,7 @@ class EventResource extends Resource
 
     protected static ?string $model = Event::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

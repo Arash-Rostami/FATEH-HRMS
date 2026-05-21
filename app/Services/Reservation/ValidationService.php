@@ -17,6 +17,7 @@ use App\Services\Reservation\Validators\CancellationLimit;
 use App\Services\Reservation\Validators\Duration;
 use App\Services\Reservation\Validators\FullDay;
 use App\Services\Reservation\Validators\Recurrence;
+use App\Services\Reservation\Validators\ResourceActive;
 use App\Services\Reservation\Validators\ResourceAvailability;
 use App\Services\Reservation\Validators\TimeWindow;
 use App\Services\Reservation\Validators\UserActive;
@@ -29,6 +30,7 @@ class ValidationService
 {
     private array $bookingRules = [
         UserActive::class,
+        ResourceActive::class,
         BookingPermission::class,
         TimeWindow::class,
         AllowedDays::class,
@@ -89,8 +91,8 @@ class ValidationService
 
                 $count = Reservation::where('user_id', $user->id)
                     ->where('status', ReservationStatus::CancelledUser->value)
-                    ->where('cancelled_at', '>=', now()->subDays(30))
-                    ->when($resourceType, fn($q) => $q->whereHas('resource', fn($q) => $q->where('type', $resourceType)))
+                    ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>=', now()->subDays(30)))
+                    ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
                     ->toBase()->count();
 
                 if ($count >= $limit) {

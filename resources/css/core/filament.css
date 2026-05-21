@@ -153,6 +153,19 @@
         @apply !text-[var(--md-sys-color-on-primary)];
     }
 
+    .fi-topbar-database-notifications-btn {
+        @apply !w-10 !h-10 !rounded-lg transition-all duration-200 flex items-center justify-center;
+    }
+
+    .fi-topbar-database-notifications-btn:hover {
+        @apply !bg-[var(--md-sys-color-on-primary)]/10 !text-[var(--md-sys-color-primary-container)] opacity-100;
+    }
+
+    .fi-topbar-database-notifications-btn svg {
+        @apply !w-[22px] !h-[22px];
+    }
+
+
     .fi-topbar {
         @apply !bg-[var(--md-sys-color-primary)]
         !border-b-[4px]
@@ -241,16 +254,6 @@
         !bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),_transparent_70%)]
         !bg-[var(--md-sys-color-primary)]/60 will-change-[opacity];
     }
-
-    /*.fi-sidebar-item > a {*/
-    /*    @apply !text-[var(--md-sys-color-on-primary)] !w-[70%]*/
-    /*    !bg-[var(--md-sys-color-primary)]*/
-    /*    rounded-2xl transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)] px-4 py-3;*/
-    /*}*/
-
-    /*.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item > a {*/
-    /*    @apply !w-full;*/
-    /*}*/
 
     .fi-sidebar,
     .fi-sidebar-nav {
@@ -605,6 +608,9 @@
     .fi-wi-stats-overview-stat-description {
         @apply text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1;
     }
+    .fi-global-search-field{
+        @apply w-full max-w-xs sm:max-w-md md:max-w-xl relative right-5
+    }
 
     .fi-global-search-field, .fi-input-wrp {
         @apply !rounded-xl cursor-pointer !bg-[var(--md-sys-color-on-primary)]
@@ -633,6 +639,7 @@
 
     .fi-global-search-ctn [class*="fi-input-wrp"] {
         @apply !bg-[var(--md-sys-color-primary)]/80 transition-all duration-300 !border-none cursor-pointer
+
     }
 
     .fi-global-search-ctn .fi-input-wrp-label {
@@ -967,22 +974,6 @@
     background: transparent !important;
 }
 
-/*.fi-topbar .fi-icon-btn,*/
-/*.fi-topbar .fi-global-search-field {*/
-/*    @apply relative !left-2 !text-[var(--md-sys-color-primary-container)] transition-all duration-200 !font-bold;*/
-/*}*/
-
-/*.fi-topbar .fi-icon-btn svg {*/
-/*    @apply !w-[24px] !h-[24px] opacity-80 !mx-0;*/
-/*}*/
-
-/*.fi-topbar .fi-icon-btn:hover svg {*/
-/*    @apply opacity-100;*/
-/*}*/
-
-/*.fi-topbar .fi-topbar-item-btn {*/
-/*    @apply !w-10 !h-10 flex items-center justify-center;*/
-/*}*/
 
 @layer components {
     .fi-sc-component .fi-sc-text,
@@ -1012,3 +1003,4 @@
         @apply !text-[var(--md-sys-color-primary)] font-bold;
     }
 }
+

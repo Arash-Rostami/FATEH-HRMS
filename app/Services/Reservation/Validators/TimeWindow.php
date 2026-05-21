@@ -10,6 +10,10 @@ class TimeWindow implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
+        if ($context->start->isPast() && !$context->start->isSameMinute(now())) {
+            ReservationError::PastBooking->throw();
+        }
+
         $windowDays = $context->policies['window_days'] ?? null;
         $windowHours = $context->policies['window_hours'] ?? 0;
 
@@ -17,7 +21,7 @@ class TimeWindow implements BookingRule
             ReservationError::WindowExceeded->throw($windowDays);
         }
 
-        if ($windowHours > 0 && $context->start->isSameDay(now()) && now()->diffInHours($context->start, false) < $windowHours) {
+        if ($windowHours > 0 && now()->diffInHours($context->start, false) < $windowHours) {
             ReservationError::EarlyBooking->throw($windowHours);
         }
     }

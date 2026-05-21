@@ -28,7 +28,7 @@ class OnboardingResource extends Resource
 
     protected static ?string $model = Onboarding::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-academic-cap';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {

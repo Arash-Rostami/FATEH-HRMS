@@ -28,7 +28,7 @@ class CredentialResource extends Resource
 
     protected static ?string $model = Credential::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

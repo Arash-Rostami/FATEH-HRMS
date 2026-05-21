@@ -14,7 +14,7 @@ class BookingPermission implements BookingRule
             ? $context->user->booking
             : json_decode($context->user->booking ?? '[]', true);
 
-        $permissions = array_column($raw ?? [], 'value', 'key');
+        $permissions = isset($raw[0]) && is_array($raw[0]) ? array_column($raw, 'value', 'key') : ($raw ?? []);
 
         if (empty($permissions['all']) && empty($permissions[$context->resource->type])) {
             ReservationError::NoPermission->throw();

@@ -16,11 +16,8 @@ class UserConflict implements BookingRule
             ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
             ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
             ->when($context->excludeId, fn($q) => $q->where('id', '!=', $context->excludeId))
-            ->when(
-                $context->isFullDay,
-                fn($q) => $q->whereDate('start_time', $context->start->toDateString()),
-                fn($q) => $q->where('start_time', '<', $context->end)->where('end_time', '>', $context->start)
-            )
+            ->where('start_time', '<', $context->end)
+            ->where('end_time',   '>', $context->start)
             ->exists();
 
         if ($exists) {

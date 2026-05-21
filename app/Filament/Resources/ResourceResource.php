@@ -31,7 +31,7 @@ class ResourceResource extends Resource
 
     protected static ?string $model = ResourceModel::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

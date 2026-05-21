@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Reservation\Actions;
 
 use App\Enums\ReservationStatus;
+use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
@@ -33,11 +34,24 @@ class CancelAction
             'cancel_reason' => $cancelReason,
         ];
 
-        $targets->each(fn(Reservation $r) => $r->update($attributes));
+        $targets->each(function (Reservation $r) use ($attributes) {
+            $r->update($attributes);
+
+            if ($r->resource?->type === 'meeting') {
+                Event::whereDate('date', $r->start_time->toDateString())
+                    ->where('description', 'like', '%سیستم رزرواسیون%')
+                    ->whereIn('user_id', array_filter([$r->user_id, $r->resource->relatedUser?->id]))
+                    ->delete();
+            }
+        });
     }
 
     private function seriesReservations(Reservation $reservation): Collection
     {
+        if ($reservation->parent_id === $reservation->id) {
+            return collect([$reservation]);
+        }
+
         $root = $reservation->parent_id
             ? Reservation::with('occurrences')->find($reservation->parent_id)
             : $reservation->load('occurrences');

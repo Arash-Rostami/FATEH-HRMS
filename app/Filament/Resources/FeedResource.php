@@ -25,7 +25,7 @@ class FeedResource extends Resource
 
     protected static ?string $model = Feed::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-newspaper';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

@@ -23,7 +23,7 @@ class ReservationPolicyResource extends Resource
 
     protected static ?string $model = ReservationPolicy::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 22;
+    protected static ?int $navigationSort = 3;
 
     public static function canCreate(): bool
     {

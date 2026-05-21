@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactResource\Exports\ContactExporter;
+use App\Filament\Resources\ContactResource\RelationManagers\RepliesRelationManager;
 use App\Filament\Resources\ContactResource\Pages\{EditContact, ListContacts};
 use App\Filament\Resources\ContactResource\Schemas\{ContactFormPresenter,
     ContactInfolistPresenter,
@@ -175,5 +176,12 @@ class ContactResource extends Resource
             ->emptyStateIcon('heroicon-o-chat-bubble-left-ellipsis')
             ->defaultSort('created_at', 'desc')
             ->striped();
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            RepliesRelationManager::class,
+        ];
     }
 }

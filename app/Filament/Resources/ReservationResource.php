@@ -30,7 +30,7 @@ class ReservationResource extends Resource
 
     protected static ?string $model = Reservation::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
-    protected static ?int $navigationSort = 21;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

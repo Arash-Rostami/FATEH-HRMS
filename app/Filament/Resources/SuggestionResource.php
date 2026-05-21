@@ -28,7 +28,7 @@ class SuggestionResource extends Resource
 
     protected static ?string $model = Suggestion::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-light-bulb';
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

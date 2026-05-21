@@ -22,7 +22,7 @@ class EnergyTestResource extends Resource
 
     protected static ?string $model = EnergyTest::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-bolt';
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 3;
 
     public static function canCreate(): bool
     {

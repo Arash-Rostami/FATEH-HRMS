@@ -22,7 +22,7 @@ class LinkResource extends Resource
 
     protected static ?string $model = Link::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-link';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Schema $schema): Schema
     {

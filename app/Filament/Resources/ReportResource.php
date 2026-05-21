@@ -30,7 +30,7 @@ class ReportResource extends Resource
 
     protected static ?string $model = Report::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-document-text';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {

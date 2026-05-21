@@ -25,7 +25,7 @@ class AuthorityResource extends Resource
 
     protected static ?string $model = Authority::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

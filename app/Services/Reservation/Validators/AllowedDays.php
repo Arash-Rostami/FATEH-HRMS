@@ -11,7 +11,7 @@ class AllowedDays implements BookingRule
     public function validate(BookingContext $context): void
     {
         $allowedDays = $context->policies['allowed_days'] ?? null;
-        if (empty($allowedDays)) return;
+        if (!is_array($allowedDays)) return;
 
         $day = strtolower($context->start->englishDayOfWeek);
         if (!in_array($day, $allowedDays)) {

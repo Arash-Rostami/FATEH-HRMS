@@ -32,7 +32,7 @@ class AdResource extends Resource
 
     protected static ?string $model = Ad::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {

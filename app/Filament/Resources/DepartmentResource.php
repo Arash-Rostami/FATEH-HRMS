@@ -30,7 +30,7 @@ class DepartmentResource extends Resource
 
     protected static ?string $model = Department::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

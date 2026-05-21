@@ -21,6 +21,9 @@ enum ReservationError: string
     case NotActive = 'ERR-015';
     case CancelForbidden = 'ERR-016';
     case CancelLimitReached = 'ERR-017';
+    case InvalidTimeRange   = 'ERR-018';
+    case PastBooking        = 'ERR-019';
+    case ResourceInactive   = 'ERR-020';
 
     public static function legend(): array
     {
@@ -42,6 +45,9 @@ enum ReservationError: string
             'ERR-015' => ['policy' => '—', 'hint' => 'وضعیت رزرو را در پنل مدیریت بررسی کنید (احتمالاً قبلاً لغو شده)'],
             'ERR-016' => ['policy' => '—', 'hint' => 'مالکیت رزرو را از پنل مدیریت بررسی کنید'],
             'ERR-017' => ['policy' => __('resources/policy/strings.fields.max_cancel_count'), 'hint' => 'مقدار را افزایش داده یا فیلد را خالی بگذارید'],
+            'ERR-018' => ['policy' => '—', 'hint' => 'زمان شروع و پایان را بررسی کنید'],
+            'ERR-019' => ['policy' => '—', 'hint' => 'تاریخ رزرو باید در آینده باشد'],
+            'ERR-020' => ['policy' => '—', 'hint' => 'وضعیت منبع را از پنل مدیریت بررسی کنید'],
         ];
     }
 
@@ -65,6 +71,9 @@ enum ReservationError: string
             self::NotActive => 'این رزرو در حال حاضر فعال نیست.',
             self::CancelForbidden => 'شما اجازه لغو این رزرو را ندارید.',
             self::CancelLimitReached => 'تعداد لغو رزروهای شما در این ماه به حداکثر مجاز رسیده است.',
+            self::InvalidTimeRange   => 'زمان پایان نمی‌تواند قبل یا مساوی زمان شروع باشد.',
+            self::PastBooking        => 'امکان رزرو در گذشته وجود ندارد.',
+            self::ResourceInactive   => 'این منبع در حال حاضر در دسترس یا فعال نیست.',
         };
 
         return "[{$this->value}] {$text}";

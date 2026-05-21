@@ -72,6 +72,12 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth(Width::Full)
             ->databaseTransactions()
             ->darkMode(false)
+            ->navigationGroups([
+                __('resources/user/strings.navigation.group'),
+                __('resources/reservation/strings.nav_group'),
+                __('resources/gallery/strings.nav_group'),
+                __('resources/ths/strings.nav_group')
+            ])
             ->subNavigationPosition(SubNavigationPosition::End)
             ->viteTheme('resources/css/core/filament.css')
             ->sidebarCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_collapsible', false))
