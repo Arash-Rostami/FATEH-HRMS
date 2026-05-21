@@ -33,12 +33,12 @@ class Task extends Model
         'can_delete',
     ];
 
-    public function assignee(): \Illuminate\Database\Eloquent\Relations\BelongsTo: BelongsTo
+    public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function creator(): \Illuminate\Database\Eloquent\Relations\BelongsTo: BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

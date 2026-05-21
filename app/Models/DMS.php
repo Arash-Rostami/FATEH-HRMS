@@ -48,58 +48,28 @@ class DMS extends Model
             'users' => 'array',
             'extra' => 'array',
         ];
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
     public function getStatusIcon()
     {
         return self::$statusIconMapping[$this->status] ?? $this->status;
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
 
     public function getStatusInFarsi()
     {
         return self::$statusMapping[$this->status] ?? $this->status;
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
     public function departments()
     {
         return Department::whereIn('code', $this->owners)->get();
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
     public function users()
     {
         return User::whereIn('id', $this->users)->get();
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
     public function reads()
     {
         return $this->hasMany(Read::class, 'document_id');
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
     }
-}
     public function scopeVisibleToUser($query)
     {
         return $query->where('status', 'live')
@@ -109,21 +79,6 @@ class DMS extends Model
                     ->orWhereJsonContains('owners', auth()->user()?->profile?->department)
                     ->orWhereJsonContains('users', (string)auth()->id())
                     ->orWhereJsonContains('users', auth()->id());
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
-    }
-});
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
-    }
-}
-
-    public function reads(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Read::class, 'document_id');
+            });
     }
 }
