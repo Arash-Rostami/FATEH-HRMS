@@ -26,9 +26,20 @@ class CreateReservation extends CreateRecord
 
         if (!$user || !$resource) return;
 
-        $start     = Carbon::parse($data['start_time']);
-        $end       = Carbon::parse($data['end_time']);
         $isFullDay = (bool)($data['is_full_day'] ?? false);
+
+        $start = $isFullDay
+            ? Carbon::parse($data['start_time'] ?? 'today')->startOfDay()
+            : Carbon::parse($data['start_time']);
+
+        $end = $isFullDay
+            ? Carbon::parse($data['end_time'] ?? $data['start_time'] ?? 'today')->endOfDay()
+            : Carbon::parse($data['end_time']);
+
+        if ($isFullDay) {
+            $this->data['start_time'] = $start->toDateTimeString();
+            $this->data['end_time'] = $end->toDateTimeString();
+        }
 
         try {
             app(ValidationService::class)->validateBooking($user, $resource, $start, $end, $isFullDay);

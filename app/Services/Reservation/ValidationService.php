@@ -52,17 +52,17 @@ class ValidationService
         return Cache::remember("reservation_policies_{$resourceType}", 3600,
             fn() => ReservationPolicy::where('resource_type', $resourceType)
                 ->pluck('value', 'key')
-                ->filter()
+                ->filter(fn($v) => $v !== null)
                 ->toArray()
         );
     }
 
-    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null): void
-    {
+    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null): void    {
         $context = new BookingContext(
             $user, $resource, $start, $end, $isFullDay,
             $this->getPolicies($resource->type),
             $recurrence,
+            $excludeId,
         );
 
         foreach ($this->bookingRules as $rule) {
@@ -85,9 +85,12 @@ class ValidationService
             $limit = $policies['max_cancel_count'] ?? null;
 
             if ($limit !== null) {
+                $resourceType = $reservation->resource?->type ?? '';
+
                 $count = Reservation::where('user_id', $user->id)
                     ->where('status', ReservationStatus::CancelledUser->value)
                     ->where('cancelled_at', '>=', now()->subDays(30))
+                    ->when($resourceType, fn($q) => $q->whereHas('resource', fn($q) => $q->where('type', $resourceType)))
                     ->toBase()->count();
 
                 if ($count >= $limit) {
@@ -102,7 +105,7 @@ class ValidationService
         $resource = $reservation->resource;
 
         if (!$user->isAdmin()) {
-            $this->validateBooking($user, $resource, $start, $end, $isFullDay);
+            $this->validateBooking($user, $resource, $start, $end, $isFullDay, null, $reservation->id);
         }
 
         $context = new BookingContext(

@@ -20,6 +20,7 @@ class CancellationLimit implements BookingRule
         $count = Reservation::where('user_id', $context->user->id)
             ->where('status', ReservationStatus::CancelledUser->value)
             ->where('cancelled_at', '>=', now()->subDays(30))
+            ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
             ->toBase()->count();
 
         if ($count >= $limit) {

@@ -53,6 +53,7 @@ class ReservationResource extends Resource
                 ->icon('heroicon-o-clock')
                 ->schema([
                     ReservationFormPresenter::isFullDay(),
+                    ReservationFormPresenter::fullDayDate(),
                     ReservationFormPresenter::startTime(),
                     ReservationFormPresenter::endTime(),
 

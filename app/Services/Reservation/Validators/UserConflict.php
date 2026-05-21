@@ -5,7 +5,7 @@ namespace App\Services\Reservation\Validators;
 use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
-use App\Services\Reservation\COntracts\BookingContext;
+use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
 
 class UserConflict implements BookingRule

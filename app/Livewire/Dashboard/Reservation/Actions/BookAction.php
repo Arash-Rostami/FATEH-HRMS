@@ -47,17 +47,27 @@ class BookAction
     {
         $intervalDays = ($recurrence['pattern'] ?? 'daily') === 'weekly' ? 7 : 1;
         $count = max(2, min(52, (int)($recurrence['count'] ?? 4)));
+        $resource = $master->resource;
+        $user = $master->user;
 
         for ($i = 1; $i < $count; $i++) {
+            $occStart = $start->copy()->addDays($i * $intervalDays);
+            $occEnd   = $end->copy()->addDays($i * $intervalDays);
+
+            try {
+                $this->validator->validateBooking($user, $resource, $occStart, $occEnd, $isFullDay);
+            } catch (\Exception) {
+                continue;
+            }
+
             Reservation::create([
                 'user_id' => $master->user_id,
                 'resource_id' => $master->resource_id,
-                'start_time' => $start->copy()->addDays($i * $intervalDays),
-                'end_time' => $end->copy()->addDays($i * $intervalDays),
+                'start_time' => $occStart,
+                'end_time'   => $occEnd,
                 'is_full_day' => $isFullDay,
                 'status' => 'active',
                 'parent_id' => $master->id,
             ]);
         }
-    }
-}
+    }}

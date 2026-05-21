@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -22,7 +21,7 @@ return new class extends Migration
             $table->string('role')->default('user');
             $table->string('status')->default('active');
             $table->string('presence')->default('remote');
-            $table->json('booking')->default('{"car": false, "seat": true, "spot": true, "meeting": true, "all": false}');
+            $table->json('booking')->default('[{"key":"all","value":false},{"key":"car","value":false},{"key":"seat","value":true},{"key":"spot","value":true},{"key":"meeting","value":true}]');
             $table->timestamp('last_seen')->nullable();
             $table->json('extra')->nullable();
             $table->text('two_factor_secret')->nullable();

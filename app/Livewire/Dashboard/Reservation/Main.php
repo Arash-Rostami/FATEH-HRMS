@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Reservation\Actions\BookAction;
 use App\Livewire\Dashboard\Reservation\Actions\CancelAction;
 use App\Models\Reservation;
 use App\Models\Resource;
+use App\Services\Reservation\ValidationService;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -28,11 +29,6 @@ class Main extends Component
     public $recurPattern = 'daily';
     public $recurCount = 4;
 
-    public function mount(): void
-    {
-        $this->date = now()->toDateString();
-    }
-
     #[Computed]
     public function availableDates(): array
     {
@@ -42,10 +38,10 @@ class Main extends Component
 
         for ($i = 0; $i < 21 && ($j = Jalalian::fromCarbon($date))->getMonth() === $month; $i++, $date->addDay()) {
             $dates[] = [
-                'value'   => $date->toDateString(),
-                'day'     => $j->format('l'),
-                'date'    => $j->format('d'),
-                'month'   => $j->format('F'),
+                'value' => $date->toDateString(),
+                'day' => $j->format('l'),
+                'date' => $j->format('d'),
+                'month' => $j->format('F'),
                 'isToday' => $i === 0,
             ];
         }
@@ -64,7 +60,7 @@ class Main extends Component
                 return [
                     'value' => $f,
                     'label' => match (true) {
-                        $n < 0  => 'طبقه منفی ' . abs($n),
+                        $n < 0 => 'طبقه منفی ' . abs($n),
                         $n === 0 => 'همکف',
                         default => 'طبقه ' . $f,
                     },
@@ -81,49 +77,6 @@ class Main extends Component
             $slots[] = sprintf('%02d:30', $h);
         }
         return $slots;
-    }
-
-    #[Computed]
-    public function resources()
-    {
-        [$start, $end] = $this->timeRange();
-        return Resource::available($this->activeTab, $start, $end, $this->filterFloor)
-            ->limit($this->resourcesLimit)->get();
-    }
-
-    #[Computed]
-    public function totalResources()
-    {
-        [$start, $end] = $this->timeRange();
-        return Resource::available($this->activeTab, $start, $end, $this->filterFloor)->count();
-    }
-
-    #[Computed]
-    public function historyReservations()
-    {
-        $query = Reservation::forUser(auth()->id())->with('resource');
-
-        match ($this->activeHistoryTab) {
-            'previous'  => $query->previous()->orderByDesc('start_time'),
-            'cancelled' => $query->cancelled()->orderByDesc('cancelled_at'),
-            default     => $query->upcoming()->orderBy('start_time'),
-        };
-
-        return $query->limit($this->historyLimit)->get();
-    }
-
-    #[Computed]
-    public function totalHistoryReservations()
-    {
-        $query = Reservation::forUser(auth()->id());
-
-        match ($this->activeHistoryTab) {
-            'previous'  => $query->previous(),
-            'cancelled' => $query->cancelled(),
-            default     => $query->upcoming(),
-        };
-
-        return $query->count();
     }
 
     public function book(int $resourceId, BookAction $action): void
@@ -150,15 +103,74 @@ class Main extends Component
         }
     }
 
-    public function setDate($date): void
+    public static function getHistoryTabs(): array
     {
-        $this->date = $date;
+        return [
+            ['id' => 'upcoming', 'icon' => 'event_upcoming', 'label' => 'پیش‌رو'],
+            ['id' => 'previous', 'icon' => 'history', 'label' => 'قبلی'],
+            ['id' => 'cancelled', 'icon' => 'event_busy', 'label' => 'لغو شده'],
+        ];
+    }
+
+    #[Computed]
+    public function historyReservations()
+    {
+        $query = Reservation::forUser(auth()->id())->with('resource');
+
+        match ($this->activeHistoryTab) {
+            'previous' => $query->previous()->orderByDesc('start_time'),
+            'cancelled' => $query->cancelled()->orderByDesc('cancelled_at'),
+            default => $query->upcoming()->orderBy('start_time'),
+        };
+
+        return $query->limit($this->historyLimit)->get();
+    }
+
+    public function loadMoreHistory(): void
+    {
+        $this->historyLimit += 5;
+        unset($this->historyReservations);
+    }
+
+    public function loadMoreResources(): void
+    {
+        $this->resourcesLimit += 6;
+        unset($this->resources);
+    }
+
+    public function mount(): void
+    {
+        $this->date = now()->toDateString();
+    }
+
+    public function render()
+    {
+        return view('livewire.dashboard.reservation', [
+            'tabs' => Resource::getTabs(),
+            'historyTabs' => self::getHistoryTabs(),
+        ])->extends('layouts.app')->section('content');
+    }
+
+    public function resetFilters(): void
+    {
+        $this->filterFloor = null;
         $this->invalidateResourceCache();
     }
 
-    public function setStartTime($t): void
+    #[Computed]
+    public function resources()
     {
-        $this->startTime = $t;
+        [$start, $end] = $this->timeRange();
+        $allowOverlap = (bool)(app(ValidationService::class)
+            ->getPolicies($this->activeTab)['allow_overlap_release'] ?? true);
+
+        return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
+            ->limit($this->resourcesLimit)->get();
+    }
+
+    public function setDate($date): void
+    {
+        $this->date = $date;
         $this->invalidateResourceCache();
     }
 
@@ -174,22 +186,10 @@ class Main extends Component
         $this->invalidateResourceCache();
     }
 
-    public function resetFilters(): void
+    public function setStartTime($t): void
     {
-        $this->filterFloor = null;
+        $this->startTime = $t;
         $this->invalidateResourceCache();
-    }
-
-    public function loadMoreResources(): void
-    {
-        $this->resourcesLimit += 6;
-        unset($this->resources);
-    }
-
-    public function loadMoreHistory(): void
-    {
-        $this->historyLimit += 5;
-        unset($this->historyReservations);
     }
 
     public function switchTab(string $tab): void
@@ -207,21 +207,36 @@ class Main extends Component
         $this->resetFilters();
     }
 
-    public static function getHistoryTabs(): array
+    #[Computed]
+    public function totalHistoryReservations()
     {
-        return [
-            ['id' => 'upcoming',  'icon' => 'event_upcoming', 'label' => 'پیش‌رو'],
-            ['id' => 'previous',  'icon' => 'history',        'label' => 'قبلی'],
-            ['id' => 'cancelled', 'icon' => 'event_busy',     'label' => 'لغو شده'],
-        ];
+        $query = Reservation::forUser(auth()->id());
+
+        match ($this->activeHistoryTab) {
+            'previous' => $query->previous(),
+            'cancelled' => $query->cancelled(),
+            default => $query->upcoming(),
+        };
+
+        return $query->count();
     }
 
-    public function render()
+    #[Computed]
+    public function totalResources()
     {
-        return view('livewire.dashboard.reservation', [
-            'tabs'        => Resource::getTabs(),
-            'historyTabs' => self::getHistoryTabs(),
-        ])->extends('layouts.app')->section('content');
+        [$start, $end] = $this->timeRange();
+
+        $allowOverlap = (bool)(app(ValidationService::class)
+            ->getPolicies($this->activeTab)['allow_overlap_release'] ?? true);
+
+        return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
+            ->count();
+    }
+
+    private function invalidateResourceCache(): void
+    {
+        $this->resourcesLimit = 6;
+        unset($this->resources, $this->totalResources);
     }
 
     private function timeRange(): array
@@ -229,14 +244,8 @@ class Main extends Component
         $isFullDay = in_array($this->activeTab, ['seat', 'spot', 'car']);
         return [
             $isFullDay ? Carbon::parse($this->date)->startOfDay() : Carbon::parse("{$this->date} {$this->startTime}"),
-            $isFullDay ? Carbon::parse($this->date)->endOfDay()   : Carbon::parse("{$this->date} {$this->endTime}"),
+            $isFullDay ? Carbon::parse($this->date)->endOfDay() : Carbon::parse("{$this->date} {$this->endTime}"),
             $isFullDay,
         ];
-    }
-
-    private function invalidateResourceCache(): void
-    {
-        $this->resourcesLimit = 6;
-        unset($this->resources, $this->totalResources);
     }
 }

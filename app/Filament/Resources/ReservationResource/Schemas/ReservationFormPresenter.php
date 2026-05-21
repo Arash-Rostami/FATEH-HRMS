@@ -7,6 +7,7 @@ use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\User;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -62,6 +63,16 @@ class ReservationFormPresenter
             ->onColor('success')
             ->columnSpanFull()
             ->live();
+    }
+
+    public static function fullDayDate(): DatePicker
+    {
+        return DatePicker::make('start_time')
+            ->label(__('resources/reservation/strings.fields.start_time'))
+            ->required(fn(Get $get) => (bool)$get('is_full_day'))
+            ->native(false)
+            ->locale('fa')
+            ->visible(fn(Get $get) => (bool)$get('is_full_day'));
     }
 
     public static function isRecurring(): Toggle

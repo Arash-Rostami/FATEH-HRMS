@@ -13,7 +13,7 @@ class TimeWindow implements BookingRule
         $windowDays = $context->policies['window_days'] ?? null;
         $windowHours = $context->policies['window_hours'] ?? 0;
 
-        if ($context->start->isAfter(now()->addDays($windowDays))) {
+        if ($windowDays !== null && $context->start->isAfter(now()->addDays((int)$windowDays))) {
             ReservationError::WindowExceeded->throw($windowDays);
         }
 
