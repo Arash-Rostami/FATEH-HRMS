@@ -267,7 +267,7 @@ class TicketFormPresenter
             ->options(TicketStatus::class)
             ->required()
             ->default(TicketStatus::Open->value)
-            ->hint(function ($record) {
+            ->helperText(function ($record) {
                 $completionDate = data_get($record, 'completion_date');
                 return filled($completionDate) ? (toJalali($completionDate, 'H:i Y/m/d ')) . '✅' : '';
             })

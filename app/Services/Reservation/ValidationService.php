@@ -2,6 +2,7 @@
 
 namespace App\Services\Reservation;
 
+use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\ReservationPolicy;
@@ -51,6 +52,7 @@ class ValidationService
         return Cache::remember("reservation_policies_{$resourceType}", 3600,
             fn() => ReservationPolicy::where('resource_type', $resourceType)
                 ->pluck('value', 'key')
+                ->filter()
                 ->toArray()
         );
     }
@@ -71,11 +73,11 @@ class ValidationService
     public function validateCancellation(Reservation $reservation, User $user): void
     {
         if ($reservation->status !== ReservationStatus::Active->value) {
-            throw new Exception("این رزرو در حال حاضر فعال نیست.");
+            ReservationError::NotActive->throw();
         }
 
         if (!$user->isAdmin() && $reservation->user_id !== $user->id) {
-            throw new Exception("شما اجازه لغو این رزرو را ندارید.");
+            ReservationError::CancelForbidden->throw();
         }
 
         if (!$user->isAdmin()) {
@@ -89,7 +91,7 @@ class ValidationService
                     ->toBase()->count();
 
                 if ($count >= $limit) {
-                    throw new Exception("تعداد لغو رزروهای شما در این ماه به حداکثر مجاز رسیده است.");
+                    ReservationError::CancelLimitReached->throw();
                 }
             }
         }

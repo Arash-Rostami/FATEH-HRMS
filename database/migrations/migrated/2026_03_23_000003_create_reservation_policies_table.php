@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('resource_type');
             $table->string('key');
-            $table->json('value');
+            $table->json('value')->nullable();
             $table->timestamps();
 
             $table->unique(['resource_type', 'key']);

@@ -38,6 +38,11 @@ class Department extends Model
         );
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'department_id', 'code');
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class, 'department_id', 'code');

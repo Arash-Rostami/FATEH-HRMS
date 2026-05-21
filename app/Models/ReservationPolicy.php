@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\Reservation\ValidationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 
 class ReservationPolicy extends Model
@@ -32,7 +32,7 @@ class ReservationPolicy extends Model
 
     protected static function booted(): void
     {
-        $flush = fn(self $policy) => Cache::forget("reservation_policies_{$policy->resource_type}");
+        $flush = fn(self $policy) => app(ValidationService::class)->flushPolicyCache($policy->resource_type);
 
         static::saved($flush);
         static::deleted($flush);

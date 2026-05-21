@@ -2,10 +2,10 @@
 
 namespace App\Services\Reservation\Validators;
 
+use App\Enums\ReservationError;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
 use Carbon\Carbon;
-use Exception;
 
 class AllowedHours implements BookingRule
 {
@@ -20,7 +20,7 @@ class AllowedHours implements BookingRule
         $to = Carbon::parse($context->start->toDateString() . ' ' . ($allowedHours['end'] ?? '23:59'));
 
         if ($context->start->lt($from) || $context->end->gt($to)) {
-            throw new Exception("رزرو فقط بین ساعت {$allowedHours['start']} تا {$allowedHours['end']} مجاز است.");
+            ReservationError::HourNotAllowed->throw($allowedHours['start'], $allowedHours['end']);
         }
     }
 }

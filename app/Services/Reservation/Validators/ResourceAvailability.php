@@ -2,11 +2,11 @@
 
 namespace App\Services\Reservation\Validators;
 
+use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
-use Exception;
 
 class ResourceAvailability implements BookingRule
 {
@@ -27,8 +27,16 @@ class ResourceAvailability implements BookingRule
             )
             ->toBase()->first();
 
-        if (($stats->active_count ?? 0) > 0 && ($stats->released_count ?? 0) === 0) {
-            throw new Exception("گزینه مورد نظر در بازه زمانی انتخاب شده در دسترس نیست.");
+        $allowOverlap  = $context->policies['allow_overlap_release'] ?? true;
+        $activeCount   = (int) ($stats->active_count   ?? 0);
+        $releasedCount = (int) ($stats->released_count ?? 0);
+
+        $taken = $allowOverlap
+            ? ($activeCount > 0)
+            : ($activeCount > 0 || $releasedCount > 0);
+
+        if ($taken) {
+            ReservationError::ResourceTaken->throw();
         }
     }
 }

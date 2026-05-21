@@ -39,6 +39,8 @@
 
             @includeWhen($activeTab === 'seat' || $activeTab === 'spot','livewire.dashboard.reservation.filter')
 
+            @include('livewire.dashboard.reservation.recurring')
+
         </div>
 
         <div class="mb-8">

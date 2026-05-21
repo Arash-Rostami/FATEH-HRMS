@@ -2,9 +2,9 @@
 
 namespace App\Services\Reservation\Validators;
 
+use App\Enums\ReservationError;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
-use Exception;
 
 class AllowedDays implements BookingRule
 {
@@ -15,7 +15,7 @@ class AllowedDays implements BookingRule
 
         $day = strtolower($context->start->englishDayOfWeek);
         if (!in_array($day, $allowedDays)) {
-            throw new Exception("رزرو در روز {$context->start->dayName} برای این نوع منبع مجاز نیست.");
+            ReservationError::DayNotAllowed->throw($context->start->dayName);
         }
     }
 }

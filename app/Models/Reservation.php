@@ -73,7 +73,8 @@ class Reservation extends Model
 
     public function scopeUpcoming(Builder $q): Builder
     {
-        return $q->where('status', 'active')->where('start_time', '>=', now());
+        return $q->where('status', 'active')
+            ->where('end_time', '>=', now());
     }
 
     public function user(): BelongsTo

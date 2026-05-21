@@ -57,8 +57,17 @@ class ReservationPolicyResource extends Resource
                     PolicyFormPresenter::allowPartialCancel(),
                     PolicyFormPresenter::allowOverlapRelease(),
                     PolicyFormPresenter::requiresApproval(),
+                    Section::make(__('resources/policy/strings.form.section_guide'))
+                        ->icon('heroicon-o-information-circle')
+                        ->collapsible()
+                        ->collapsed()
+                        ->schema([
+                            PolicyFormPresenter::errorLegend(),
+                        ])->columnSpanFull(),
                 ])
                 ->columns(2),
+
+
         ]);
     }
 

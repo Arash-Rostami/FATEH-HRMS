@@ -984,3 +984,31 @@
 /*    @apply !w-10 !h-10 flex items-center justify-center;*/
 /*}*/
 
+@layer components {
+    .fi-sc-component .fi-sc-text,
+    .fi-fo-field-wrp-helper-text {
+        @apply flex relative !text-[10px] font-medium leading-relaxed
+        px-3 !rounded-sm cursor-help justify-end
+        border-s-[3px] !border-s-[var(--md-sys-color-primary)]/40
+        bg-[color-mix(in_srgb,var(--md-sys-color-primary),transparent_94%)]
+        !text-[var(--md-sys-color-on-surface-variant)]
+        transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
+    }
+
+    .fi-sc-component .fi-sc-text:hover,
+    .fi-fo-field-wrp-helper-text:hover {
+        @apply !border-s-[var(--md-sys-color-primary)]
+        !text-[var(--md-sys-color-on-surface)]
+        bg-[color-mix(in_srgb,var(--md-sys-color-primary),transparent_88%)]
+        shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary),transparent_85%)];
+    }
+
+    .fi-sc-component .fi-sc-text strong,
+    .fi-sc-component .fi-sc-text b,
+    .fi-sc-component .fi-sc-text span,
+    .fi-fo-field-wrp-helper-text strong,
+    .fi-fo-field-wrp-helper-text b,
+    .fi-fo-field-wrp-helper-text span {
+        @apply !text-[var(--md-sys-color-primary)] font-bold;
+    }
+}

@@ -57,13 +57,15 @@ class Resource extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function scopeAvailable(Builder $q, string $type, Carbon $start, Carbon $end, ?string $floor = null): Builder
+    public function scopeAvailable(Builder $q, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlapRelease = false): Builder
     {
+        $statuses = $allowOverlapRelease ? ['active'] : ['active', 'released'];
+
         return $q->where('type', $type)
             ->where('status', 'active')
             ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
             ->whereDoesntHave('reservations', fn($q) => $q
-                ->whereIn('status', ['active', 'released'])
+                ->whereIn('status', $statuses)
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
             );

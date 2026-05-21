@@ -7,6 +7,7 @@ use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
 class DMS extends Model
@@ -41,14 +42,12 @@ class DMS extends Model
         'combined_read_count',
         'extra'
     ];
-    protected function casts(): array
+
+    public function departments()
     {
-        return [
-            'owners' => 'array',
-            'users' => 'array',
-            'extra' => 'array',
-        ];
+        return Department::whereIn('code', $this->owners)->get();
     }
+
     public function getStatusIcon()
     {
         return self::$statusIconMapping[$this->status] ?? $this->status;
@@ -58,18 +57,12 @@ class DMS extends Model
     {
         return self::$statusMapping[$this->status] ?? $this->status;
     }
-    public function departments()
-    {
-        return Department::whereIn('code', $this->owners)->get();
-    }
-    public function users()
-    {
-        return User::whereIn('id', $this->users)->get();
-    }
-    public function reads()
+
+    public function reads(): HasMany
     {
         return $this->hasMany(Read::class, 'document_id');
     }
+
     public function scopeVisibleToUser($query)
     {
         return $query->where('status', 'live')
@@ -80,5 +73,19 @@ class DMS extends Model
                     ->orWhereJsonContains('users', (string)auth()->id())
                     ->orWhereJsonContains('users', auth()->id());
             });
+    }
+
+    public function users()
+    {
+        return User::whereIn('id', $this->users)->get();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'owners' => 'array',
+            'users' => 'array',
+            'extra' => 'array',
+        ];
     }
 }

@@ -79,7 +79,7 @@ class ReservationFormPresenter
     {
         return Select::make('parent_id')
             ->label(__('resources/reservation/strings.fields.parent_id'))
-            ->hint(__('resources/reservation/strings.descriptions.parent_id'))
+            ->helperText(__('resources/reservation/strings.descriptions.parent_id'))
             ->options(fn() => Reservation::roots()->with(['resource', 'user'])->get()->pluck('resource_dropdown_label', 'id'))
             ->native(false)
             ->searchable()

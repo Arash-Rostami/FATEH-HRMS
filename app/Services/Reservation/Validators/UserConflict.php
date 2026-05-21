@@ -2,11 +2,11 @@
 
 namespace App\Services\Reservation\Validators;
 
+use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Services\Reservation\COntracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
-use Exception;
 
 class UserConflict implements BookingRule
 {
@@ -15,6 +15,7 @@ class UserConflict implements BookingRule
         $exists = Reservation::where('user_id', $context->user->id)
             ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
             ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
+            ->when($context->excludeId, fn($q) => $q->where('id', '!=', $context->excludeId))
             ->when(
                 $context->isFullDay,
                 fn($q) => $q->whereDate('start_time', $context->start->toDateString()),
@@ -23,7 +24,7 @@ class UserConflict implements BookingRule
             ->exists();
 
         if ($exists) {
-            throw new Exception("شما در این بازه زمانی رزرو فعال دیگری از همین نوع دارید.");
+            ReservationError::TimeConflict->throw();
         }
     }
 }

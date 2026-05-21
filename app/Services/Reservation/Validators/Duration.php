@@ -2,9 +2,9 @@
 
 namespace App\Services\Reservation\Validators;
 
+use App\Enums\ReservationError;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Contracts\BookingRule;
-use Exception;
 
 class Duration implements BookingRule
 {
@@ -16,7 +16,7 @@ class Duration implements BookingRule
         $min = $context->policies['min_duration_minutes'] ?? null;
         $max = $context->policies['max_duration_minutes'] ?? null;
 
-        if ($min && $minutes < $min) throw new Exception("حداقل مدت رزرو {$min} دقیقه است.");
-        if ($max && $minutes > $max) throw new Exception("حداکثر مدت رزرو {$max} دقیقه است.");
+        if ($min !== null && $minutes < (int) $min) ReservationError::TooShort->throw($min);
+        if ($max !== null && $minutes > (int) $max) ReservationError::TooLong->throw($max);
     }
 }

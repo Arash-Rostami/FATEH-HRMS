@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Dashboard\Reservation\Actions;
 
+use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
+use Illuminate\Support\Collection;
+
 
 class CancelAction
 {
@@ -14,11 +17,38 @@ class CancelAction
     {
         $this->validator->validateCancellation($reservation, $user);
 
-        $reservation->update([
-            'status' => $user->isAdmin() ? 'cancelled_admin' : 'cancelled_user',
+        $policies = $this->validator->getPolicies($reservation->resource?->type ?? '');
+        $allowPartial = $policies['allow_partial_cancel'] ?? true;
+
+        $targets = $allowPartial
+            ? collect([$reservation])
+            : $this->seriesReservations($reservation);
+
+        $attributes = [
+            'status' => $user->isAdmin()
+                ? ReservationStatus::CancelledAdmin->value
+                : ReservationStatus::CancelledUser->value,
             'cancelled_by_id' => $user->id,
             'cancelled_at' => now(),
             'cancel_reason' => $cancelReason,
-        ]);
+        ];
+
+        $targets->each(fn(Reservation $r) => $r->update($attributes));
+    }
+
+    private function seriesReservations(Reservation $reservation): Collection
+    {
+        $root = $reservation->parent_id
+            ? Reservation::with('occurrences')->find($reservation->parent_id)
+            : $reservation->load('occurrences');
+
+        if (!$root) {
+            return collect([$reservation]);
+        }
+
+        return $root->occurrences
+            ->where('status', ReservationStatus::Active->value)
+            ->push($root)
+            ->filter(fn(Reservation $r) => $r->status === ReservationStatus::Active->value);
     }
 }

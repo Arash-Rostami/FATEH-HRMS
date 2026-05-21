@@ -29,7 +29,6 @@
 
         @forelse($this->historyReservations as $reservation)
             <div wire:key="history-{{ $reservation->id }}"
-                 @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
                  class='group relative flex items-center justify-between p-4 rounded-xl transition-all shadow-[var(--md-sys-elevation-1)] hover:shadow-md border border-transparent hover:border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container-high)]'
                  style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 20%, transparent);">
 
