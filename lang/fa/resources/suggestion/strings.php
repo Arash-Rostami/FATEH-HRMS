@@ -3,7 +3,7 @@
 return [
     'label'        => 'پیشنهاد',
     'plural_label' => 'پیشنهادها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [
         'serial'           => 'شناسه',

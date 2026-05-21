@@ -3,7 +3,7 @@
 return [
     'label' => 'دسترسی',
     'plural_label' => 'دسترسی‌ها',
-    'nav_group' => 'مدیریت کاربران',
+    'nav_group'    => 'کاربران و سازمان',
 
     'fields' => [
         'user' => 'کاربر',

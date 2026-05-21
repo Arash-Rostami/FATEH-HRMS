@@ -3,7 +3,7 @@
 return [
     'label'             => 'پیام',
     'plural_label'      => 'پیام‌ها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
     'nav_badge_tooltip' => 'پیام‌های خوانده‌نشده',
 
     'fields' => [

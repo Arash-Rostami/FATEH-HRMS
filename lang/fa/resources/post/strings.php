@@ -3,7 +3,7 @@
 return [
     'label'             => 'پست',
     'plural_label'      => 'پست‌ها',
-    'nav_group'         => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
     'nav_badge_tooltip' => 'تعداد پست‌های سنجاق‌شده',
 
     'fields' => [

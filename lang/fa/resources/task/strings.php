@@ -3,7 +3,7 @@
 return [
     'label'             => 'وظیفه',
     'plural_label'      => 'وظایف',
-    'nav_group'         => 'مدیریت محتوا',
+    'nav_group'      => 'عملیات و منابع',
     'nav_badge_tooltip' => 'وظایف سررسید گذشته',
 
     'fields' => [

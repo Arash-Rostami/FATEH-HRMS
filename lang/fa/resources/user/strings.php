@@ -3,9 +3,10 @@
 return [
     'plural_label' => 'کاربران',
 
+
     'navigation' => [
         'label'    => 'کاربران',
-        'group'    => 'مدیریت کاربران',
+        'group'    => 'کاربران و سازمان',
         'plural'   => 'کاربران',
         'singular' => 'کاربر',
     ],

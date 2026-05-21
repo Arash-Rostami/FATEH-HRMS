@@ -3,7 +3,7 @@
 return [
     'label'        => 'فید',
     'plural_label' => 'فیدها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [
         'user'            => 'کامنت گذار',

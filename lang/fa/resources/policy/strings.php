@@ -3,7 +3,7 @@
 return [
     'label' => 'قوانین رزرو',
     'plural_label' => 'قوانین رزرو',
-    'nav_group' => 'رزرواسیون',
+    'nav_group'      => 'عملیات و منابع',
     'fields' => [
         'resource_type' => 'نوع منبع',
         'rules_count' => 'تعداد قوانین',

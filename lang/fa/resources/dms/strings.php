@@ -3,7 +3,7 @@
 return [
     'label' => 'سند',
     'plural_label' => 'مدیریت اسناد',
-    'nav_group'    => 'پشتیبانی',
+    'nav_group'    => 'سیستم‌ها و ابزارها',
 
     'fields' => [
         'title' => 'عنوان سند',

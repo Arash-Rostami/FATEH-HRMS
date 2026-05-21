@@ -3,7 +3,7 @@
 return [
     'label'        => 'اختیار',
     'plural_label' => 'اختیارات',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'    => 'کاربران و سازمان',
 
     'fields' => [
         'department'            => 'واحد سازمانی',

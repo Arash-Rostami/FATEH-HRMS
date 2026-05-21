@@ -3,7 +3,7 @@
 return [
     'label'          => 'رزرو',
     'plural_label'   => 'رزروها',
-    'nav_group'      => 'رزرواسیون',
+    'nav_group'      => 'عملیات و منابع',
     'fields'         => [
         'id'                        => 'شناسه',
         'user'                      => 'کاربر',

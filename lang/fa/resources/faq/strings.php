@@ -3,7 +3,7 @@
 return [
     'label'         => 'سوال متداول',
     'plural_label'  => 'سوالات متداول',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
     'no_department' => 'بدون واحد',
 
     'fields' => [

@@ -3,7 +3,7 @@
 return [
     'label' => 'آنبوردینگ',
     'plural_label' => 'آنبوردینگ‌ها',
-    'nav_group' => 'مدیریت محتوا',
+    'nav_group'    => 'کاربران و سازمان',
     'nav_badge_tooltip' => 'تعداد آنبوردینگ‌های فعال',
 
     'fields' => [

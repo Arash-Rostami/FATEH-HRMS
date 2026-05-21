@@ -3,7 +3,7 @@
 return [
     'label'        => 'رویداد',
     'plural_label' => 'رویدادها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
 
     'navigation' => [
         'singular' => 'رویداد جدید',

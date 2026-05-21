@@ -3,7 +3,7 @@
 return [
     'label' => 'آگهی',
     'plural_label' => 'آگهی‌ها',
-    'nav_group' => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
     'untitled' => 'بدون عنوان',
 
     'fields' => [

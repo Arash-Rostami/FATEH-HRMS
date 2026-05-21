@@ -3,7 +3,7 @@
 return [
     'label' => 'گالری',
     'plural_label' => 'گالری تصاویر',
-    'nav_group' => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [
         'title' => 'عنوان',

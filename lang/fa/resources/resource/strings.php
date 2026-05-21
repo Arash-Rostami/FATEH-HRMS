@@ -3,7 +3,7 @@
 return [
     'label'        => 'منبع',
     'plural_label' => 'منابع',
-    'nav_group'    => 'رزرواسیون',
+    'nav_group'      => 'عملیات و منابع',
     'fields'       => [
         'id'                 => 'شناسه',
         'name'               => 'نام',

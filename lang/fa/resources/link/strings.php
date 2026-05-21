@@ -3,7 +3,7 @@
 return [
     'label'        => 'لینک',
     'plural_label' => 'لینک‌ها',
-    'nav_group'    => 'مدیریت محتوا',
+    'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [
         'url_title'              => 'عنوان',

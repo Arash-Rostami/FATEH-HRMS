@@ -3,7 +3,7 @@
 return [
     'label'        => 'تیکت',
     'plural_label' => 'تیکت‌ها',
-    'nav_group'    => 'پشتیبانی',
+    'nav_group'    => 'سیستم‌ها و ابزارها',
 
     'fields' => [
         'ticket_id'        => 'شناسه تیکت',

@@ -3,7 +3,7 @@
 return [
     'label' => 'گزارش',
     'plural_label' => 'گزارش‌ها',
-    'nav_group' => 'مدیریت محتوا',
+    'nav_group'      => 'عملیات و منابع',
 
     'fields' => [
         'title' => 'عنوان',
