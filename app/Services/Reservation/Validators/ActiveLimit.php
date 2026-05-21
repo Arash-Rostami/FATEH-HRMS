@@ -19,7 +19,7 @@ class ActiveLimit implements BookingRule
             ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))
             ->whereMonth('start_time', $context->start->month)
             ->whereYear('start_time', $context->start->year)
-            ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
+            ->where('status', ReservationStatus::Active->value)
             ->when($context->excludeId, fn($q) => $q->where('id', '!=', $context->excludeId))
             ->toBase()->count();
 

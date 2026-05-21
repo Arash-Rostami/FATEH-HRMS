@@ -82,6 +82,16 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $model) {
+            if ($model->parent_id && $model->parent_id === $model->id) {
+                $model->parent_id = null;
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
