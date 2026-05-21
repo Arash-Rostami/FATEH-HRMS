@@ -107,10 +107,8 @@ class FeedResource extends Resource
     public static function getRelations(): array
     {
         return [
-
             CommentsRelationManager::class,
             ReactionsRelationManager::class,
-            RelationManagers\CommentsRelRelationManager::class,
         ];
     }
 

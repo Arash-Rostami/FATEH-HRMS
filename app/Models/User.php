@@ -133,7 +133,7 @@ class User extends Authenticatable implements HasAvatar
         return ($this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes))) || $this->isActive();
     }
 
-    public function latestEnergyTest(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function latestEnergyTest()
     {
         return $this->hasOne(EnergyTest::class)->latestOfMany('completed_at');
     }
@@ -201,7 +201,7 @@ class User extends Authenticatable implements HasAvatar
         return $query->where('role', $role);
     }
 
-    public function sentMessages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function sentMessages()
     {
         return $this->hasMany(Message::class, 'sender_id');
     }

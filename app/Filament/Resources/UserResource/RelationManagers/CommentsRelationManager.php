@@ -1,15 +1,15 @@
 <?php
-namespace App\Filament\Resources\FeedResource\RelationManagers;
+namespace App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Actions\CreateAction;
 use Filament\Tables\Enums\RecordActionsPosition;
 use App\Traits\FilamentActions;
-class CommentsRelRelationManager extends RelationManager
+class CommentsRelationManager extends RelationManager
 {
     use FilamentActions;
-    protected static string $relationship = 'commentsRel';
+    protected static string $relationship = 'comments';
     public function form(Schema $schema): Schema
     {
         return $schema->components([]);

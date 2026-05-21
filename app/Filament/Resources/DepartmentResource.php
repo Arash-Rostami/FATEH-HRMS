@@ -111,15 +111,7 @@ class DepartmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-
             UsersRelationManager::class,
-            RelationManagers\AuthoritiesRelationManager::class,
-            RelationManagers\FaqsRelationManager::class,
-            RelationManagers\PhotosRelationManager::class,
-            RelationManagers\ProfileRelationManager::class,
-            RelationManagers\ReportsRelationManager::class,
-            RelationManagers\ReviewsRelationManager::class,
-            RelationManagers\UserRelationManager::class,
         ];
     }
 

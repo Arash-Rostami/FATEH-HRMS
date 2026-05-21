@@ -3,24 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactResource\Exports\ContactExporter;
-use App\Filament\Resources\ContactResource\Pages\{EditContact, ListContacts
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
-    }
-};
+use App\Filament\Resources\ContactResource\Pages\{EditContact, ListContacts};
 use App\Filament\Resources\ContactResource\Schemas\{ContactFormPresenter,
     ContactInfolistPresenter,
-    ContactTablePresenter
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
-    }
-};
+    ContactTablePresenter};
 use App\Models\Message;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
@@ -45,14 +31,7 @@ class ContactResource extends Resource
     public static function canCreate(): bool
     {
         return false;
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function form(Schema $schema): Schema
     {
@@ -73,28 +52,14 @@ class ContactResource extends Resource
                 ])
                 ->columns(1),
         ]);
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class,])
             ->with(['sender', 'recipient', 'replyTo.sender']);
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getGlobalSearchResultDetails(Model $record): array
     {
@@ -102,120 +67,50 @@ class ContactResource extends Resource
             __('resources/contact/strings.fields.sender') => $record->sender?->name ?? '—',
             __('resources/contact/strings.fields.recipient') => $record->recipient?->name ?? '—',
         ];
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
         return mb_substr($record->body ?? '', 0, 80);
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getGlobalSearchResultUrl(Model $record): string
     {
         return static::getUrl('edit', ['record' => $record]);
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getGloballySearchableAttributes(): array
     {
         return ['body'];
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getModelLabel(): string
     {
         return __('resources/contact/strings.label');
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getNavigationBadgeTooltip(): ?string
     {
         return __('resources/contact/strings.nav_badge_tooltip');
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getNavigationGroup(): ?string
     {
         return __('resources/contact/strings.nav_group');
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getPages(): array
     {
         return [
             'index' => ListContacts::route('/'),
-            'edit' => EditContact::route('/{record
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
+            'edit' => EditContact::route('/{record}/edit'),
         ];
     }
-}/edit'),
-        ];
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
-    }
-}
 
     public static function getPluralModelLabel(): string
     {
         return __('resources/contact/strings.plural_label');
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function infolist(Schema $schema): Schema
     {
@@ -239,14 +134,7 @@ class ContactResource extends Resource
                 ->columnSpanFull()
                 ->columns(3),
         ]);
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function table(Table $table): Table
     {
@@ -287,14 +175,7 @@ class ContactResource extends Resource
             ->emptyStateIcon('heroicon-o-chat-bubble-left-ellipsis')
             ->defaultSort('created_at', 'desc')
             ->striped();
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\RepliesRelationManager::class,
-        ];
     }
-}
 
     public static function getRelations(): array
     {
