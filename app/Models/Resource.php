@@ -57,18 +57,22 @@ class Resource extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function scopeAvailable(Builder $q, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlapRelease = false): Builder
+    public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlap = false): Builder
     {
-        $statuses = $allowOverlapRelease ? ['active'] : ['active', 'released'];
+        $statuses = $allowOverlap ? ['active'] : ['active', 'released'];
 
-        return $q->where('type', $type)
+        return $query->where('type', $type)
             ->where('status', 'active')
             ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
-            ->whereDoesntHave('reservations', fn($q) => $q
-                ->whereIn('status', $statuses)
-                ->where('start_time', '<', $end)
-                ->where('end_time', '>', $start)
-            );
+            ->whereDoesntHave('reservations', function ($q) use ($start, $end, $statuses) {
+                $q->whereIn('status', $statuses)
+                    ->where(fn($sub) => $sub
+                        ->where(fn($inner) => $inner->where('start_time', '<', $end)->where('end_time', '>', $start))
+                        ->orWhere(fn($inner) => $inner->whereNull('start_time')
+                            ->where('created_at', '>=', $start->copy()->startOfDay())
+                            ->where('created_at', '<=', $end->copy()->endOfDay()))
+                    );
+            });
     }
 
     protected function casts(): array
@@ -137,20 +141,19 @@ class Resource extends Model
         );
     }
 
-    protected function labeledName(): Attribute
-    {
-        return Attribute::make(get: fn() =>
-        sprintf('%s ⇄ %s',
-            ($this->type instanceof ResourceType ? $this->type : ResourceType::tryFrom($this->type))?->getLabel() ?? $this->type,
-            $this->name
-        )
-        );
-    }
-
     protected function icon(): Attribute
     {
         return Attribute::make(
             get: fn() => collect(self::getTabs())->firstWhere('id', $this->type)['icon'] ?? 'chair'
+        );
+    }
+
+    protected function labeledName(): Attribute
+    {
+        return Attribute::make(get: fn() => sprintf('%s ⇄ %s',
+            ($this->type instanceof ResourceType ? $this->type : ResourceType::tryFrom($this->type))?->getLabel() ?? $this->type,
+            $this->name
+        )
         );
     }
 }
