@@ -4,6 +4,7 @@
                 'group relative w-10 h-10 active:scale-95 transition items-center justify-center',
                 'hidden md:flex rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)] right-2' => request()->is('admin*'),
                 'flex' => !request()->is('admin*'),
+                'text-[var(--md-sys-color-on-primary-container)]' => request()->is('*login*'),
             ])
             :class="open ? 'bg-[var(--md-sys-color-on-primary)]/10' : ''">
         <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100"

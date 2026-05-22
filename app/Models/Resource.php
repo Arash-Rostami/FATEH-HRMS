@@ -59,21 +59,28 @@ class Resource extends Model
 
     public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlap = false): Builder
     {
-        $statuses = $allowOverlap ? ['active'] : ['active', 'released'];
-
-        return $query->where('type', $type)
+        return $query
+            ->where('type', $type)
             ->where('status', 'active')
             ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
-            ->whereDoesntHave('reservations', function ($q) use ($start, $end, $statuses) {
-                $q->whereIn('status', $statuses)
-                    ->where(fn($sub) => $sub
-                        ->where(fn($inner) => $inner->where('start_time', '<', $end)->where('end_time', '>', $start))
-                        ->orWhere(fn($inner) => $inner->whereNull('start_time')
-                            ->where('created_at', '>=', $start->copy()->startOfDay())
-                            ->where('created_at', '<=', $end->copy()->endOfDay()))
-                    );
-            });
+            ->whereDoesntHave('reservations', fn($q) => $q
+                ->whereIn('status', $allowOverlap ? ['active'] : ['active', 'released'])
+                ->where(fn($q) => $q
+                    ->where(fn($q) => $q
+                        ->where('start_time', '<', $end)
+                        ->where('end_time', '>', $start)
+                    )
+                    ->orWhere(fn($q) => $q
+                        ->whereNull('start_time')
+                        ->whereBetween('created_at', [
+                            $start->copy()->startOfDay(),
+                            $end->copy()->endOfDay(),
+                        ])
+                    )
+                )
+            );
     }
+
 
     protected function casts(): array
     {
