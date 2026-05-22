@@ -18,9 +18,9 @@ class EditReservation extends EditRecord
 
     protected function beforeSave(): void
     {
-        $data      = $this->form->getState();
-        $start     = Carbon::parse($data['start_time']);
-        $end       = Carbon::parse($data['end_time']);
+        $data = $this->data;
+        $start = Carbon::parse($data['start_time']);
+        $end = Carbon::parse($data['end_time']);
         $isFullDay = (bool)($data['is_full_day'] ?? false);
 
         try {
@@ -35,5 +35,15 @@ class EditReservation extends EditRecord
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
         }
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if ((bool)($data['is_full_day'] ?? false)) {
+            $data['start_time'] = Carbon::parse($data['start_time'])->startOfDay()->toDateTimeString();
+            $data['end_time'] = Carbon::parse($data['start_time'])->endOfDay()->toDateTimeString();
+        }
+
+        return $data;
     }
 }

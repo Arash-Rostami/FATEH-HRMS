@@ -12,9 +12,11 @@ class BookingPermission implements BookingRule
     {
         $permissions = $context->user->booking;
 
-        if (empty($permissions['all']) && empty($permissions[$context->resource->type])) {
+        $hasAllAccess = ($permissions['all'] ?? null) === true;
+        $hasTypeAccess = ($permissions[$context->resource->type] ?? null) === true;
+
+        if (!$hasAllAccess && !$hasTypeAccess) {
             ReservationError::NoPermission->throw();
         }
     }
 }
-

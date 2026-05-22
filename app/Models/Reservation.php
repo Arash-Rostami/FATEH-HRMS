@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ReservationError;
 use App\Enums\ResourceType;
+use App\Services\Reservation\EventSyncService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -90,6 +91,14 @@ class Reservation extends Model
                 $reservation->parent_id = null;
                 ReservationError::DataCorruption->throw();
             }
+        });
+
+        static::saved(function (self $reservation) {
+            app(EventSyncService::class)->sync($reservation->loadMissing(['user', 'resource']));
+        });
+
+        static::deleted(function (self $reservation) {
+            app(EventSyncService::class)->purge($reservation);
         });
     }
 
