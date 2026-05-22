@@ -10,11 +10,11 @@ class Duration implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
-        if ($context->isFullDay) return;
-
         if ($context->start->gte($context->end)) {
             ReservationError::InvalidTimeRange->throw();
         }
+
+        if ($context->isFullDay) return;
 
         $minutes = $context->start->diffInMinutes($context->end);
         $min = $context->policies['min_duration_minutes'] ?? null;

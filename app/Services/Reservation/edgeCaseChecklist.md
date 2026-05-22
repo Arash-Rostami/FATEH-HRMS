@@ -60,7 +60,7 @@ multi day overlap correctly detected for user conflict
 
 ACTIVE LIMIT
 user at monthly limit cannot book
-released reservations do not count toward active limit
+released reservations also count toward active limit
 limit scoped per resource type not global
 
 CANCELLATION LIMIT BEFORE BOOKING

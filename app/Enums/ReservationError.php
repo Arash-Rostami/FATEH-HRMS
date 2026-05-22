@@ -24,6 +24,7 @@ enum ReservationError: string
     case InvalidTimeRange   = 'ERR-018';
     case PastBooking        = 'ERR-019';
     case ResourceInactive   = 'ERR-020';
+    case DataCorruption     = 'ERR-021';
 
     public static function legend(): array
     {
@@ -48,6 +49,7 @@ enum ReservationError: string
             'ERR-018' => ['policy' => '—', 'hint' => 'زمان شروع و پایان را بررسی کنید'],
             'ERR-019' => ['policy' => '—', 'hint' => 'تاریخ رزرو باید در آینده باشد'],
             'ERR-020' => ['policy' => '—', 'hint' => 'وضعیت منبع را از پنل مدیریت بررسی کنید'],
+            'ERR-021' => ['policy' => '—', 'hint' => 'داده‌های پایگاه داده را بررسی کنید (ارتباط خودارجاعی)'],
         ];
     }
 
@@ -74,6 +76,7 @@ enum ReservationError: string
             self::InvalidTimeRange   => 'زمان پایان نمی‌تواند قبل یا مساوی زمان شروع باشد.',
             self::PastBooking        => 'امکان رزرو در گذشته وجود ندارد.',
             self::ResourceInactive   => 'این منبع در حال حاضر در دسترس یا فعال نیست.',
+            self::DataCorruption     => 'خطای سیستمی: ساختار داده‌ای این رزرو دچار مشکل شده است.',
         };
 
         return "[{$this->value}] {$text}";

@@ -15,8 +15,12 @@ class ResourceAvailability implements BookingRule
         $stats = Reservation::where('resource_id', $context->resource->id)
             ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
             ->when($context->excludeId, fn($q) => $q->where('id', '!=', $context->excludeId))
-            ->where('start_time', '<', $context->end)
-            ->where('end_time',   '>', $context->start)
+            ->where(fn($query) => $query
+                ->where(fn($q) => $q->where('start_time', '<', $context->end)->where('end_time', '>', $context->start))
+                ->orWhere(fn($q) => $q->whereNull('start_time')
+                    ->where('created_at', '>=', $context->start->copy()->startOfDay())
+                    ->where('created_at', '<=', $context->end->copy()->endOfDay()))
+            )
             ->selectRaw(
                 'SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as active_count,
                  SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as released_count',
@@ -24,9 +28,9 @@ class ResourceAvailability implements BookingRule
             )
             ->toBase()->first();
 
-        $allowOverlap  = $context->policies['allow_overlap_release'] ?? false;
-        $activeCount   = (int) ($stats->active_count   ?? 0);
-        $releasedCount = (int) ($stats->released_count ?? 0);
+        $allowOverlap = $context->policies['allow_overlap_release'] ?? false;
+        $activeCount = (int)($stats->active_count ?? 0);
+        $releasedCount = (int)($stats->released_count ?? 0);
 
         $taken = $allowOverlap
             ? ($activeCount > 0)

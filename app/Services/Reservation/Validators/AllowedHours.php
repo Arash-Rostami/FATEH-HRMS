@@ -16,22 +16,22 @@ class AllowedHours implements BookingRule
         $allowedHours = $context->policies['allowed_hours'] ?? null;
         if (empty($allowedHours)) return;
 
-        $startTime = Carbon::parse($allowedHours['start'] ?? '00:00')->format('H:i:s');
-        $endTime   = Carbon::parse($allowedHours['end']   ?? '23:59')->format('H:i:s');
+        $policyStart = Carbon::parse($allowedHours['start'] ?? '00:00:00');
+        $policyEnd = Carbon::parse($allowedHours['end'] ?? '23:59:59');
 
-        $startFormat = $context->start->format('H:i:s');
-        $endFormat   = $context->end->format('H:i:s');
+        $windowStart = $context->start->copy()->setTime($policyStart->hour, $policyStart->minute, $policyStart->second);
+        $windowEnd = $context->start->copy()->setTime($policyEnd->hour, $policyEnd->minute, $policyEnd->second);
 
-        if ($startTime <= $endTime) {
-            if ($startFormat < $startTime || $endFormat > $endTime) {
-                ReservationError::HourNotAllowed->throw($allowedHours['start'], $allowedHours['end']);
+        if ($policyStart->greaterThan($policyEnd)) {
+            if ($context->start->format('H:i:s') <= $policyEnd->format('H:i:s')) {
+                $windowStart->subDay();
+            } else {
+                $windowEnd->addDay();
             }
-        } else {
-            $isStartValid = $startFormat >= $startTime || $startFormat <= $endTime;
-            $isEndValid   = $endFormat   >= $startTime || $endFormat   <= $endTime;
-            if (!$isStartValid || !$isEndValid) {
-                ReservationError::HourNotAllowed->throw($allowedHours['start'], $allowedHours['end']);
-            }
+        }
+
+        if ($context->start->lessThan($windowStart) || $context->end->greaterThan($windowEnd)) {
+            ReservationError::HourNotAllowed->throw($allowedHours['start'], $allowedHours['end']);
         }
     }
 }

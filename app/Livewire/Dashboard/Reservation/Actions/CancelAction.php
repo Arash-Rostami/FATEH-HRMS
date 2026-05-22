@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Dashboard\Reservation\Actions;
 
+use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 
 class CancelAction
@@ -49,7 +51,8 @@ class CancelAction
     private function seriesReservations(Reservation $reservation): Collection
     {
         if ($reservation->parent_id === $reservation->id) {
-            return collect([$reservation]);
+            Log::critical("Reservation data corruption detected for ID: {$reservation->id}");
+            ReservationError::DataCorruption->throw();
         }
 
         $root = $reservation->parent_id

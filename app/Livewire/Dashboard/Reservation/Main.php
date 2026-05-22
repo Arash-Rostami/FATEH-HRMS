@@ -227,7 +227,7 @@ class Main extends Component
         [$start, $end] = $this->timeRange();
 
         $allowOverlap = (bool)(app(ValidationService::class)
-            ->getPolicies($this->activeTab)['allow_overlap_release'] ?? true);
+            ->getPolicies($this->activeTab)['allow_overlap_release'] ?? false);
 
         return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
             ->count();

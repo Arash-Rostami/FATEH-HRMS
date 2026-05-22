@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationError;
 use App\Enums\ResourceType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -82,6 +83,16 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $reservation) {
+            if ($reservation->parent_id && $reservation->id && (int)$reservation->parent_id === (int)$reservation->id) {
+                $reservation->parent_id = null;
+                ReservationError::DataCorruption->throw();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -117,8 +128,8 @@ class Reservation extends Model
     {
         return Attribute::make(get: function () {
             $type = $this->resource?->type;
-            $resolved     = $type instanceof ResourceType ? $type : ResourceType::tryFrom($type);
-            $typeLabel    = $resolved ? "{$resolved->getEmoji()} {$resolved->getLabel()}" : $type;
+            $resolved = $type instanceof ResourceType ? $type : ResourceType::tryFrom($type);
+            $typeLabel = $resolved ? "{$resolved->getEmoji()} {$resolved->getLabel()}" : $type;
             $resourceName = $this->resource ? "{$typeLabel} ⇄ {$this->resource->name} " : 'منبع نامشخص';
             $reserver = $this->user?->name ?? 'کاربر نامشخص';
             $date = $this->start_time ? toJalali($this->start_time, 'Y/m/d') : null;
@@ -127,7 +138,7 @@ class Reservation extends Model
                 "{$this->id}#",
                 $resourceName,
                 " رزروکننده: {$reserver} 📆 {$date} ",
-                ]));
+            ]));
         });
     }
 }
