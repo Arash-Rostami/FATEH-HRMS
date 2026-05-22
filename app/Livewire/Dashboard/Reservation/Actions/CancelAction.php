@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 
@@ -36,15 +37,17 @@ class CancelAction
             'cancel_reason' => $cancelReason,
         ];
 
-        $targets->each(function (Reservation $r) use ($attributes) {
-            $r->update($attributes);
+        DB::transaction(function () use ($targets, $attributes) {
+            $targets->each(function (Reservation $r) use ($attributes) {
+                $r->update($attributes);
 
-            if ($r->resource?->type === 'meeting') {
-                Event::whereDate('date', $r->start_time->toDateString())
-                    ->where('description', 'like', '%سیستم رزرواسیون%')
-                    ->whereIn('user_id', array_filter([$r->user_id, $r->resource->relatedUser?->id]))
-                    ->delete();
-            }
+                if ($r->resource?->type === 'meeting' && $r->start_time) {
+                    Event::whereDate('date', $r->start_time->toDateString())
+                        ->where('description', 'like', '%سیستم رزرواسیون%')
+                        ->whereIn('user_id', array_filter([$r->user_id, $r->resource->relatedUser?->id]))
+                        ->delete();
+                }
+            });
         });
     }
 

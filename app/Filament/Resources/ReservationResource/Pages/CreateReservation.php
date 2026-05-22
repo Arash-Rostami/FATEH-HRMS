@@ -18,15 +18,36 @@ class CreateReservation extends CreateRecord
 
     protected static string $resource = ReservationResource::class;
 
+    protected function afterCreate(): void
+    {
+        $state = $this->form->getRawState();
+        if (!empty($state['is_recurring'])) {
+            app(GenerateSeriesAction::class)->execute(
+                $this->record,
+                $state['recur_pattern'] ?? 'daily',
+                (int)($state['recur_count'] ?? 4)
+            );
+        }
+    }
+
     protected function beforeCreate(): void
     {
         $data = $this->form->getState();
-        $user = User::find($data['user_id']);
-        $resource = Resource::find($data['resource_id']);
+        $user = User::find($data['user_id'] ?? null);
+        $resource = Resource::find($data['resource_id'] ?? null);
 
-        if (!$user || !$resource) return;
+        if (!$user || !$resource) {
+            Notification::make()->title('کاربر یا منبع یافت نشد.')
+                ->danger()
+                ->send();
+            $this->halt();
+            return;
+        }
 
         $isFullDay = (bool)($data['is_full_day'] ?? false);
+        $rawState = $this->form->getRawState();
+        $recurrence = !empty($rawState['is_recurring'])
+            ? ['pattern' => $rawState['recur_pattern'] ?? 'daily', 'count' => (int)($rawState['recur_count'] ?? 4)] : null;
 
         $start = $isFullDay
             ? Carbon::parse($data['start_time'] ?? 'today')->startOfDay()
@@ -42,22 +63,10 @@ class CreateReservation extends CreateRecord
         }
 
         try {
-            app(ValidationService::class)->validateBooking($user, $resource, $start, $end, $isFullDay);
+            app(ValidationService::class)->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence);
         } catch (\Exception $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
-        }
-    }
-
-    protected function afterCreate(): void
-    {
-        $state = $this->form->getRawState();
-        if (!empty($state['is_recurring'])) {
-            app(GenerateSeriesAction::class)->execute(
-                $this->record,
-                $state['recur_pattern'] ?? 'daily',
-                (int)($state['recur_count'] ?? 4)
-            );
         }
     }
 }

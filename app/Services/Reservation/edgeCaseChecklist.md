@@ -1,109 +1,71 @@
-RESERVATION MODULE — EDGE CASE COVERAGE CHECKLIST
+Role: Advanced Static Analysis Engine & In-Memory PHP Runtime Simulator.
+Objective: Conduct a ruthless, microscopic code review and virtual dry-run of a highly customized Reservation & Resource Allocation System written in Laravel, Livewire, and Filament PHP. Your singular objective is to break the system logic, surface hidden bugs, expose unhandled exceptions, and identify data-leak gaps.
 
-USER STATE
-inactive user cannot book
-user without booking permission cannot book
-flat JSON booking format recognized
-array-of-objects booking format recognized
-empty booking column denies all permissions
+Execution Strategy:
+1. Virtual State Tracking: Maintain a virtual in-memory state of the database tables (Users, Resources, Reservations, ReservationPolicies) and request payloads for each scenario.
+2. Step-by-Step Simulation: Dry-run the code by evaluating the interaction between layers (e.g., how a state set in a Livewire frontend interacts with the custom Validator rules and the underlying Eloquent model lifecycle hooks).
+3. Evaluate every query boundary, conditional branch, array iteration, and early return statement.
 
-RESOURCE STATE
-inactive resource cannot be booked
-resource type matched against user booking permission
+Output Format Requirement:
+For each test scenario listed below, evaluate the logic and provide a brief status verdict formatted exactly like this:
+- [PASSED] If the provided implementation logic handles it completely and safely.
+- [FAILED / GAP FOUND] If a specific edge-case scenario exposes an unhandled exception, data mismatch, or structural leak based on how the methods interact. State exactly which lines or architectural flows cause the breakdown, and provide the most optimally minimal, clean, comment-free code solution to resolve it.
 
-TIME INTEGRITY
-booking in the past blocked
-end time before or equal to start time blocked
-full day bookings skip duration and allowed hours checks
+---
 
-BOOKING WINDOW
-booking beyond window_days ceiling blocked
-null window_days allows all future bookings
-window_days zero blocks all future bookings
-window_hours minimum notice applies across day boundaries
-window_hours zero means no minimum notice
+### REFERENCE LIST OF TEST CONDITIONS
 
-ALLOWED DAYS
-booking on disallowed day blocked
-empty allowed_days array blocks all days
-null allowed_days allows all days
+#### 1. USER & RESOURCE STATE INTEGRITY
+- [ ] Inactive users must be blocked from initiating or completing a booking sequence.
+- [ ] Users lacking explicit booking permissions for a specific resource type must fail immediately.
+- [ ] Input Format Flexibility: Confirm the validator safely interprets both flat JSON structures and advanced array-of-objects booking payloads without casting exceptions.
+- [ ] Empty Permission Safeguard: If a resource type permission column is empty or missing, it must default to denying all actions.
+- [ ] Inactive resources must be completely blocked from receiving bookings across all actions (Admin & User).
 
-ALLOWED HOURS
-booking outside allowed hours blocked
-booking ending exactly at allowed end time passes
-booking one minute past allowed end time blocked
-overnight allowed hours window handled correctly
-full day bookings skip allowed hours check
+#### 2. CHRONOLOGICAL & DATE INTEGRITY (CARBON/BOUNDARIES)
+- [ ] Bookings where the execution time falls in the past must be rigidly blocked.
+- [ ] Inverted Timelines: Scrutinize every path to ensure an end_time before or exactly equal to a start_time is caught before any resource processing or allocation takes place.
+- [ ] Full-Day Exclusions: Verify that full-day reservations safely bypass hour-based duration limits and specific operational window validations without leaving scheduling gaps.
+- [ ] Timezone / Midnight Shifts: Check if calculations crossing calendar day boundaries or executing exactly at date rollover (00:00:00) leak availability or corrupt durations.
 
-DURATION
-booking below minimum duration blocked
-booking above maximum duration blocked
-full day bookings skip duration check
-start equal to or after end blocked before duration calculated
+#### 3. POLICY & WINDOW BOUNDARY RULES
+- [ ] Ceiling Breach: Bookings exceeding the specified window_days limit must fail.
+- [ ] Feature Flags: A null value for window_days must behave as an unrestricted future pass, whereas a value of exactly 0 must block all future allocations.
+- [ ] Minimum Notice Boundaries: Confirm that window_hours constraints are accurately preserved across multi-day transitions (e.g., requiring 12 hours notice for a tomorrow morning slot).
+- [ ] Policy Value Sanitation: Ensure falsey configuration values (e.g., boolean false, integer 0) are evaluated strictly and not stripped out or auto-cast to null.
 
-POLICY VALUES
-false policy values preserved not stripped
-null policy values treated as feature off
+#### 4. OPERATIONAL CALENDAR & HOURS
+- [ ] Operational Limits: Any booking request falling partially or entirely outside allowed operational blocks must fail.
+- [ ] Edge Boundary Alignment: A slot finishing precisely on the closing minute must pass, while finishing one minute late must be rejected.
+- [ ] Overnight Continuity: Inspect the logic for cross-midnight schedules (e.g., allowed hours 22:00 to 06:00). Ensure non-contiguous daytime frames (like 10:00 to 23:00) cannot cheat the evaluation window via chronological shifts.
 
-RESOURCE AVAILABILITY
-double booking same resource same slot blocked
-multi day reservation overlap correctly detected
-full day conflict detected via universal overlap formula
-null start_time full day reservation detected as conflict
-released slot blocks booking when allow_overlap_release is false
-allow_overlap_release defaults to false matching ui behavior
-excludeId prevents own reservation blocking its own edit
+#### 5. DURATIONS & MEASUREMENTS
+- [ ] Duration Ceilings/Floors: Validate that reservations shorter than min_duration_minutes or longer than max_duration_minutes are blocked.
+- [ ] Chronological Primacy: Confirm that the chronological timeline check (start >= end) evaluates before any duration difference calculation is executed, preventing negative integer overlaps.
 
-USER CONFLICT
-same user overlapping booking on same resource type blocked
-multi day overlap correctly detected for user conflict
+#### 6. DATA AVAILABILITY & MATRICES
+- [ ] Double-Booking: Multiple users or processes must never be allowed to allocate the same resource for overlapping time brackets.
+- [ ] Multi-Day Spread: Confirm that multi-day spans properly flag conflicts across all intersecting dates, not just the start and end anchors.
+- [ ] Null Suppression: In full-day setups where timestamps might be recorded as NULL, the query layer must firmly trap conflicts using structural date alternatives (like created_at matching or boolean locks).
+- [ ] Released Records Behavior: If allow_overlap_release is configured to false, any canceled/released reservation must continue to block that time block. Ensure the UI and backend validation align perfectly on this fallback rule.
+- [ ] Self-Exclusion: During editing updates, ensure the record's own ID is successfully passed to the exclusion matrix to prevent a reservation from conflicting with itself.
 
-ACTIVE LIMIT
-user at monthly limit cannot book
-released reservations also count toward active limit
-limit scoped per resource type not global
+#### 7. QUOTAS & USER CONFLICTS
+- [ ] User Concurrency: A user must be blocked from reserving different resources within overlapping windows if the policies forbid concurrent user activity.
+- [ ] Active Quotas: Check user limits (e.g., maximum concurrent active reservations). Ensure the query accurately scopes the count by resource type rather than applying it globally.
+- [ ] Released Quotas Release: Determine if early-released reservations continue to count against the user's quota, and confirm this logic matches business rules.
 
-CANCELLATION LIMIT BEFORE BOOKING
-user who cancelled too many times cannot book
-cancellation count scoped per resource type not global
-null cancelled_at treated as recent not ignored
+#### 8. CANCELLATION & SERIES LIFECYCLE
+- [ ] Repeat Bookings: Recurring series creation must fail outright if allow_repeat is toggled off.
+- [ ] Atomic Block Isolation: During a series generation loop, each occurrence must be validated individually. Conflicting segments must be skipped safely without crashing the transaction or creating overlapping blocks.
+- [ ] Double Cancellation: Attempting to cancel a record that is already marked as inactive or canceled must return a clean domain validation exception.
+- [ ] Ownership Controls: Non-admin users must be strictly blocked from altering or canceling reservations owned by other identifiers.
+- [ ] Cascading Actions: When a master series record is dropped, ensure all active children cascade downward into a canceled state, while already canceled children are preserved without repetitive updates.
 
-RECURRENCE
-recurring booking blocked when allow_repeat is false
-each occurrence individually validated before creation
-conflicting occurrences skipped not silently created
-
-EDIT VALIDATION
-admin can edit any reservation without false conflict
-non admin editing own reservation not falsely blocked
-
-CANCELLATION RULES
-cannot cancel already cancelled reservation
-user cannot cancel another users reservation
-admin can cancel any reservation
-cancelling one occurrence cancels whole series when partial cancel disabled
-cancelling one occurrence only affects that one when partial cancel enabled
-cancellation count scoped per resource type
-null cancelled_at in history treated as recent
-
-SERIES INTEGRITY
-parent_id self reference blocked at model save
-parent_id self reference blocked at series cancel runtime
-cancelling parent cancels all active children
-already cancelled children not re-cancelled in series cancel
-
-EVENT CALENDAR
-event records created for meeting master booking
-event records created for each occurrence in meeting series
-cancelling meeting reservation removes linked event records
-
-HISTORY VISIBILITY
-active future reservations appear in upcoming
-active past reservations appear in previous
-cancelled reservations appear in cancelled tab
-released reservations not visible in any tab
-
-HAPPY PATH
-full booking lifecycle create verify cancel verify
-two users same slot first wins second blocked
-same user same time different resource blocked
+#### 9. COMPONENT & ARCHITECTURAL VULNERABILITIES
+- [ ] Data Corruption Loops: Search for self-referential relationships (e.g., a row setting its own ID as its parent_id). Ensure this is blocked at both the Eloquent model saving hooks and runtime actions.
+- [ ] External Sync Leaks: When reservations change (such as meeting room blocks), ensure secondary entities like linked calendar events or user alerts are updated or purged symmetrically.
+- [ ] Livewire State Drift: Inspect Livewire computed properties (#[Computed]). Ensure that modifying properties like date, start time, or floor dynamically flushes the cache and re-renders the underlying database counts instantly without lingering UI artifacts.
+- [ ] Filament Lifecycles: Verify that Filament form states ($this->form->getState()) are correctly transformed before being processed by the validation layers in both Create and Edit controllers.
+- [ ] Code Cleanliness: Any optimization snippets provided in the response must be highly optimized, elegant, and completely stripped of comments.
+- [ ] Pipeline Context Separation: Verify that the pipeline engine rigidly forces the complete 13-rule suite when `$enforceAllRules` is true (fresh bookings), while successfully evaluating the role-based `skip_admin` exemptions only when the parameter is false (admin edits).

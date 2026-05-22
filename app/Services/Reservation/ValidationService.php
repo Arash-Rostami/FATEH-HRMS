@@ -23,25 +23,24 @@ use App\Services\Reservation\Validators\TimeWindow;
 use App\Services\Reservation\Validators\UserActive;
 use App\Services\Reservation\Validators\UserConflict;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Facades\Cache;
 
 class ValidationService
 {
     private array $bookingRules = [
-        UserActive::class,
-        ResourceActive::class,
-        BookingPermission::class,
-        TimeWindow::class,
-        AllowedDays::class,
-        FullDay::class,
-        Duration::class,
-        AllowedHours::class,
-        Recurrence::class,
-        CancellationLimit::class,
-        ActiveLimit::class,
-        ResourceAvailability::class,
-        UserConflict::class,
+        UserActive::class => ['skip_admin' => true],
+        ResourceActive::class => ['skip_admin' => false],
+        BookingPermission::class => ['skip_admin' => true],
+        TimeWindow::class => ['skip_admin' => true],
+        AllowedDays::class => ['skip_admin' => true],
+        FullDay::class => ['skip_admin' => true],
+        Duration::class => ['skip_admin' => true],
+        AllowedHours::class => ['skip_admin' => true],
+        Recurrence::class => ['skip_admin' => true],
+        CancellationLimit::class => ['skip_admin' => true],
+        ActiveLimit::class => ['skip_admin' => true],
+        ResourceAvailability::class => ['skip_admin' => false],
+        UserConflict::class => ['skip_admin' => true],
     ];
 
     public function flushPolicyCache(string $resourceType): void
@@ -59,17 +58,9 @@ class ValidationService
         );
     }
 
-    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null): void    {
-        $context = new BookingContext(
-            $user, $resource, $start, $end, $isFullDay,
-            $this->getPolicies($resource->type),
-            $recurrence,
-            $excludeId,
-        );
-
-        foreach ($this->bookingRules as $rule) {
-            app($rule)->validate($context);
-        }
+    public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null): void
+    {
+        $this->runPipeline($user, $resource, $start, $end, $isFullDay, $recurrence, $excludeId, true);
     }
 
     public function validateCancellation(Reservation $reservation, User $user): void
@@ -104,19 +95,32 @@ class ValidationService
 
     public function validateEdit(Reservation $reservation, User $user, Carbon $start, Carbon $end, bool $isFullDay): void
     {
-        $resource = $reservation->resource;
+        $this->runPipeline($user, $reservation->resource, $start, $end, $isFullDay, null, $reservation->id, false);
+    }
 
-        if (!$user->isAdmin()) {
-            $this->validateBooking($user, $resource, $start, $end, $isFullDay, null, $reservation->id);
+    private function runPipeline(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence, ?int $excludeId, bool $enforceAllRules): void
+    {
+        if ($start->gte($end)) {
+            ReservationError::InvalidTimeRange->throw();
         }
 
         $context = new BookingContext(
-            $user, $resource, $start, $end, $isFullDay,
+            $user,
+            $resource,
+            $start,
+            $end,
+            $isFullDay,
             $this->getPolicies($resource->type),
-            null,
-            $reservation->id,
+            $recurrence,
+            $excludeId
         );
 
-        app(ResourceAvailability::class)->validate($context);
+        foreach ($this->bookingRules as $ruleClass => $config) {
+            if (!$enforceAllRules && $user->isAdmin() && $config['skip_admin']) {
+                continue;
+            }
+
+            app($ruleClass)->validate($context);
+        }
     }
 }

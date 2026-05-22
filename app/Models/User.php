@@ -40,12 +40,6 @@ class User extends Authenticatable implements HasAvatar
         'remember_token',
     ];
 
-
-    public function permits(string $module, string $action): bool
-    {
-        return (bool) Permission::forUser($this->id)?->can($module, $action);
-    }
-
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
@@ -99,10 +93,6 @@ class User extends Authenticatable implements HasAvatar
     {
         return Arr::get($this->extra ?? [], $key, $default);
     }
-    public function getPreference(string $key, mixed $default = null): mixed
-    {
-        return $this->getExtraValue("preferences.{$key}", $default);
-    }
 
     public function getFilamentAvatarUrl(): ?string
     {
@@ -115,6 +105,11 @@ class User extends Authenticatable implements HasAvatar
         }
 
         return Storage::disk('public')->url($image);
+    }
+
+    public function getPreference(string $key, mixed $default = null): mixed
+    {
+        return $this->getExtraValue("preferences.{$key}", $default);
     }
 
     public function getTodaysDeskExtension(): ?string
@@ -145,6 +140,11 @@ class User extends Authenticatable implements HasAvatar
     public function permissions(): HasOne
     {
         return $this->hasOne(Permission::class);
+    }
+
+    public function permits(string $module, string $action): bool
+    {
+        return (bool)Permission::forUser($this->id)?->can($module, $action);
     }
 
     public function posts(): HasMany
@@ -224,6 +224,7 @@ class User extends Authenticatable implements HasAvatar
 
     public function touchLastSeen(): void
     {
+        $this->timestamps = false;
         $this->update(['last_seen' => now()]);
     }
 
@@ -248,9 +249,32 @@ class User extends Authenticatable implements HasAvatar
             'last_seen' => 'datetime',
             'extra' => 'array',
             'maximum' => 'integer',
-            'booking' => 'array',
             'presence' => PresenceStatus::class,
         ];
+    }
+
+    protected function booking(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
+                if (!is_array($raw)) return [];
+                
+                $permissions = [];
+                foreach ($raw as $k => $v) {
+                    if (is_array($v)) {
+                        if (array_key_exists('key', $v) && array_key_exists('value', $v)) {
+                            $permissions[$v['key']] = $v['value'];
+                        }
+                        continue;
+                    }
+                    $permissions[$k] = $v;
+                }
+
+                return $permissions;
+            },
+            set: fn($value) => is_array($value) ? json_encode($value) : $value
+        );
     }
 
     protected function smsNumber(): Attribute

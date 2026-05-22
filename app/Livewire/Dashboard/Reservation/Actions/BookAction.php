@@ -65,7 +65,7 @@ class BookAction
                 'user_id' => $master->user_id,
                 'resource_id' => $master->resource_id,
                 'start_time' => $occStart,
-                'end_time' => $end->copy()->addDays($i * $intervalDays),
+                'end_time' => $occEnd,
                 'is_full_day' => $isFullDay,
                 'status' => 'active',
                 'parent_id' => $master->id,
