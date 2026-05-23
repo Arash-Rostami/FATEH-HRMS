@@ -6,7 +6,6 @@ use App\Filament\Resources\AuthorityResource\Schemas\AuthorityFormPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityInfolistPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -38,36 +37,45 @@ class AuthoritiesRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/authority/strings.label'))
+            Section::make(__('resources/authority/strings.form.section_general'))
+                ->icon('heroicon-o-information-circle')
                 ->schema([
                     AuthorityFormPresenter::userId(),
-                    // Note: AuthorityFormPresenter::departmentId() excluded — auto-set by RelationManager
-                    AuthorityFormPresenter::impactScore(),
-                    AuthorityFormPresenter::executionProcedure(),
-                    AuthorityFormPresenter::repeatFrequency(),
-                    AuthorityFormPresenter::proposedDelegation(),
-                    AuthorityFormPresenter::approvedDelegation(),
-                    AuthorityFormPresenter::coDelegate(),
                     AuthorityFormPresenter::subDuty(),
+                    AuthorityFormPresenter::duty(),
                 ])
                 ->columns(2),
 
-            Section::make(__('resources/authority/strings.fields.duty'))
+            Section::make(__('resources/authority/strings.form.section_details'))
+                ->icon('heroicon-o-chart-bar')
                 ->schema([
-                    AuthorityFormPresenter::duty(),
+                    AuthorityFormPresenter::executionProcedure(),
+                    AuthorityFormPresenter::repeatFrequency(),
+                    AuthorityFormPresenter::impactScore(),
+                    AuthorityFormPresenter::proposedDelegation(),
+                    AuthorityFormPresenter::approvedDelegation(),
+                    AuthorityFormPresenter::coDelegate(),
                 ])
-                ->columnSpanFull(),
+                ->columns(2),
         ]);
     }
 
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/authority/strings.label'))
+            Section::make(__('resources/authority/strings.infolist.section_general'))
+                ->icon('heroicon-o-information-circle')
                 ->schema([
+                    AuthorityInfolistPresenter::duty(),
                     AuthorityInfolistPresenter::user(),
-                    AuthorityInfolistPresenter::department(),
                     AuthorityInfolistPresenter::subDuty(),
+                ])
+                ->columns(2)
+                ->columnSpanFull(),
+
+            Section::make(__('resources/authority/strings.infolist.section_details'))
+                ->icon('heroicon-o-chart-bar')
+                ->schema([
                     AuthorityInfolistPresenter::executionProcedure(),
                     AuthorityInfolistPresenter::repeatFrequency(),
                     AuthorityInfolistPresenter::impactScore(),
@@ -77,41 +85,45 @@ class AuthoritiesRelationManager extends RelationManager
                     AuthorityInfolistPresenter::createdAt(),
                     AuthorityInfolistPresenter::updatedAt(),
                 ])
-                ->columnSpanFull()
-                ->columns(2),
-
-            Section::make(__('resources/authority/strings.fields.duty'))
-                ->schema([
-                    AuthorityInfolistPresenter::duty(),
-                ])
+                ->columns(3)
                 ->columnSpanFull(),
+
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('duty')
             ->columns([
                 AuthorityTablePresenter::id(),
-                AuthorityTablePresenter::user(),
                 AuthorityTablePresenter::duty(),
-                AuthorityTablePresenter::subDuty(),
-                AuthorityTablePresenter::impactScore(),
+                AuthorityTablePresenter::user(),
                 AuthorityTablePresenter::approvedDelegation(),
+                AuthorityTablePresenter::impactScore(),
+                AuthorityTablePresenter::subDuty(),
                 AuthorityTablePresenter::createdAt(),
             ])
-            ->headerActions([
-                CreateAction::make()
-                    ->icon('heroicon-o-sparkles')
-                    ->label('افزودن اختیار'),
+            ->groups([
+                AuthorityTablePresenter::delegationGroup(),
+                AuthorityTablePresenter::impactScoreGroup(),
+                AuthorityTablePresenter::executionProcedureGroup(),
+                AuthorityTablePresenter::repeatFrequencyGroup(),
             ])
+            ->filters([
+                AuthorityTablePresenter::approvedDelegationFilter(),
+                AuthorityTablePresenter::impactScoreFilter(),
+                AuthorityTablePresenter::executionProcedureFilter(),
+                AuthorityTablePresenter::repeatFrequencyFilter(),
+                AuthorityTablePresenter::subDutyFilter(),
+            ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->striped();
     }
 }

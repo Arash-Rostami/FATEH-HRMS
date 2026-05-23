@@ -6,85 +6,20 @@ use App\Filament\Resources\ProfileResource\Schemas\ProfileFormPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ProfileRelationManager extends RelationManager
 {
     use FilamentActions;
 
     protected static string $relationship = 'profile';
-
-    protected static ?string $title = 'پروفایل';
-
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            Section::make(__('resources/profile/strings.form.section_identity'))
-                ->schema([
-                    ProfileFormPresenter::personnelId(),
-                    ProfileFormPresenter::gender(),
-                    ProfileFormPresenter::idCardNumber(),
-                    ProfileFormPresenter::idBookletNumber(),
-                    ProfileFormPresenter::birthdate(),
-                    ProfileFormPresenter::maritalStatus(),
-                    ProfileFormPresenter::numberOfChildren(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/profile/strings.form.section_employment'))
-                ->schema([
-                    ProfileFormPresenter::departmentId(),
-                    ProfileFormPresenter::position(),
-                    ProfileFormPresenter::employmentType(),
-                    ProfileFormPresenter::employmentStatus(),
-                    ProfileFormPresenter::degree(),
-                    ProfileFormPresenter::field(),
-                    ProfileFormPresenter::insurance(),
-                    ProfileFormPresenter::startDate(),
-                    ProfileFormPresenter::endDate(),
-                    ProfileFormPresenter::workExperience(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/profile/strings.form.section_contact'))
-                ->schema([
-                    ProfileFormPresenter::cellphone(),
-                    ProfileFormPresenter::landline(),
-                    ProfileFormPresenter::emergencyPhone(),
-                    ProfileFormPresenter::emergencyRelationship(),
-                    ProfileFormPresenter::licensePlate(),
-                    ProfileFormPresenter::zipCode(),
-                    ProfileFormPresenter::address(),
-                    ProfileFormPresenter::accessibility(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/profile/strings.form.section_media'))
-                ->schema([
-                    ProfileFormPresenter::image(),
-                    ProfileFormPresenter::attachments(),
-                ])
-                ->columnSpanFull(),
-
-            Section::make(__('resources/profile/strings.form.section_personal'))
-                ->schema([
-                    ProfileFormPresenter::interests(),
-                    ProfileFormPresenter::favoriteColors(),
-                ])
-                ->columnSpanFull(),
-
-            Section::make(__('resources/profile/strings.form.section_about'))
-                ->schema([
-                    ProfileFormPresenter::aboutMe(),
-                ])
-                ->columnSpanFull(),
-        ]);
-    }
 
     public static function getModelLabel(): string
     {
@@ -96,69 +31,160 @@ class ProfileRelationManager extends RelationManager
         return __('resources/profile/strings.navigation.plural');
     }
 
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('resources/profile/strings.navigation.plural');
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/profile/strings.form.section_identity'))
+                        ->icon('heroicon-o-user-circle')
+                        ->schema([
+                            Section::make(__('resources/profile/strings.form.section_identity'))
+                                ->schema([
+                                    ProfileFormPresenter::personnelId(),
+                                    ProfileFormPresenter::gender(),
+                                    ProfileFormPresenter::idCardNumber(),
+                                    ProfileFormPresenter::idBookletNumber(),
+                                    ProfileFormPresenter::birthdate(),
+                                    ProfileFormPresenter::maritalStatus(),
+                                    ProfileFormPresenter::numberOfChildren(),
+                                ])
+                                ->columns(3)
+                                ->columnSpanFull(),
+
+                            Section::make(__('resources/profile/strings.form.section_contact'))
+                                ->schema([
+                                    ProfileFormPresenter::cellphone(),
+                                    ProfileFormPresenter::landline(),
+                                    ProfileFormPresenter::emergencyPhone(),
+                                    ProfileFormPresenter::emergencyRelationship(),
+                                    ProfileFormPresenter::licensePlate(),
+                                    ProfileFormPresenter::zipCode(),
+                                    ProfileFormPresenter::address(),
+                                    ProfileFormPresenter::accessibility(),
+                                ])
+                                ->columns(3)
+                                ->columnSpanFull(),
+
+                            Section::make(__('resources/profile/strings.form.section_employment'))
+                                ->schema([
+                                    ProfileFormPresenter::employmentType(),
+                                    ProfileFormPresenter::employmentStatus(),
+                                    ProfileFormPresenter::degree(),
+                                    ProfileFormPresenter::departmentId(),
+                                    ProfileFormPresenter::position(),
+                                    ProfileFormPresenter::workExperience(),
+                                    ProfileFormPresenter::insurance(),
+                                    ProfileFormPresenter::startDate(),
+                                    ProfileFormPresenter::endDate(),
+                                    ProfileFormPresenter::field(),
+                                ])
+                                ->columns(3)
+                                ->columnSpanFull(),
+                        ])
+                        ->columns(2),
+
+                    Tab::make(__('resources/profile/strings.form.section_media'))
+                        ->icon('heroicon-o-paper-clip')
+                        ->schema([
+                            ProfileFormPresenter::image(),
+                            ProfileFormPresenter::attachments(),
+                        ])
+                        ->columns(2),
+
+                    Tab::make(__('resources/profile/strings.form.section_about'))
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            ProfileFormPresenter::interests(),
+                            ProfileFormPresenter::aboutMe(),
+                            ProfileFormPresenter::favoriteColors(),
+                        ])
+                        ->columns(2),
+                ])
+                ->columnSpanFull(),
+        ]);
+    }
+
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/profile/strings.infolist.section_identity'))
-                ->schema([
-                    ProfileInfolistPresenter::personnelId(),
-                    ProfileInfolistPresenter::gender(),
-                    ProfileInfolistPresenter::idCardNumber(),
-                    ProfileInfolistPresenter::idBookletNumber(),
-                    ProfileInfolistPresenter::birthdate(),
-                    ProfileInfolistPresenter::age(),
-                    ProfileInfolistPresenter::maritalStatus(),
-                    ProfileInfolistPresenter::numberOfChildren(),
-                ])
-                ->columns(2),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/profile/strings.infolist.section_identity'))
+                        ->icon('heroicon-o-user-circle')
+                        ->schema([
+                            Section::make(__('resources/profile/strings.infolist.section_identity'))
+                                ->schema([
+                                    ProfileInfolistPresenter::id(),
+                                    ProfileInfolistPresenter::personnelId(),
+                                    ProfileInfolistPresenter::gender(),
+                                    ProfileInfolistPresenter::idCardNumber(),
+                                    ProfileInfolistPresenter::idBookletNumber(),
+                                    ProfileInfolistPresenter::birthdate(),
+                                    ProfileInfolistPresenter::age(),
+                                    ProfileInfolistPresenter::maritalStatus(),
+                                    ProfileInfolistPresenter::numberOfChildren(),
+                                ])
+                                ->columns(2)
+                                ->columnSpan(1),
 
-            Section::make(__('resources/profile/strings.infolist.section_employment'))
-                ->schema([
-                    ProfileInfolistPresenter::department(),
-                    ProfileInfolistPresenter::position(),
-                    ProfileInfolistPresenter::employmentType(),
-                    ProfileInfolistPresenter::employmentStatus(),
-                    ProfileInfolistPresenter::degree(),
-                    ProfileInfolistPresenter::field(),
-                    ProfileInfolistPresenter::insurance(),
-                    ProfileInfolistPresenter::startDate(),
-                    ProfileInfolistPresenter::endDate(),
-                    ProfileInfolistPresenter::workExperience(),
-                ])
-                ->columns(2),
+                            Section::make(__('resources/profile/strings.infolist.section_contact'))
+                                ->schema([
+                                    ProfileInfolistPresenter::cellphone(),
+                                    ProfileInfolistPresenter::landline(),
+                                    ProfileInfolistPresenter::emergencyPhone(),
+                                    ProfileInfolistPresenter::emergencyRelationship(),
+                                    ProfileInfolistPresenter::licensePlate(),
+                                    ProfileInfolistPresenter::zipCode(),
+                                    ProfileInfolistPresenter::address(),
+                                    ProfileInfolistPresenter::accessibility(),
+                                ])
+                                ->columns(2)
+                                ->columnSpan(1),
+                        ])
+                        ->columns(2),
 
-            Section::make(__('resources/profile/strings.infolist.section_contact'))
-                ->schema([
-                    ProfileInfolistPresenter::cellphone(),
-                    ProfileInfolistPresenter::landline(),
-                    ProfileInfolistPresenter::emergencyPhone(),
-                    ProfileInfolistPresenter::emergencyRelationship(),
-                    ProfileInfolistPresenter::licensePlate(),
-                    ProfileInfolistPresenter::zipCode(),
-                    ProfileInfolistPresenter::address(),
-                    ProfileInfolistPresenter::accessibility(),
-                ])
-                ->columns(2),
+                    Tab::make(__('resources/profile/strings.infolist.section_employment'))
+                        ->icon('heroicon-o-briefcase')
+                        ->schema([
+                            ProfileInfolistPresenter::department(),
+                            ProfileInfolistPresenter::position(),
+                            ProfileInfolistPresenter::employmentType(),
+                            ProfileInfolistPresenter::employmentStatus(),
+                            ProfileInfolistPresenter::degree(),
+                            ProfileInfolistPresenter::field(),
+                            ProfileInfolistPresenter::insurance(),
+                            ProfileInfolistPresenter::startDate(),
+                            ProfileInfolistPresenter::endDate(),
+                            ProfileInfolistPresenter::workExperience(),
+                        ])
+                        ->columns(2),
 
-            Section::make(__('resources/profile/strings.infolist.section_media'))
-                ->schema([
-                    ProfileInfolistPresenter::image(),
-                    ProfileInfolistPresenter::attachments(),
-                ])
-                ->columnSpanFull(),
+                    Tab::make(__('resources/profile/strings.infolist.section_media'))
+                        ->icon('heroicon-o-paper-clip')
+                        ->schema([
+                            ProfileInfolistPresenter::image(),
+                            ProfileInfolistPresenter::attachments(),
+                        ])
+                        ->columns(2),
 
-            Section::make(__('resources/profile/strings.infolist.section_personal'))
-                ->schema([
-                    ProfileInfolistPresenter::interests(),
-                    ProfileInfolistPresenter::favoriteColors(),
+                    Tab::make(__('resources/profile/strings.infolist.section_about'))
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            ProfileInfolistPresenter::interests(),
+                            ProfileInfolistPresenter::favoriteColors(),
+                            ProfileInfolistPresenter::aboutMe(),
+                            ProfileInfolistPresenter::createdAt(),
+                            ProfileInfolistPresenter::updatedAt(),
+                        ])
+                        ->columns(2),
                 ])
-                ->columnSpanFull(),
-
-            Section::make(__('resources/profile/strings.infolist.section_about'))
-                ->schema([
-                    ProfileInfolistPresenter::aboutMe(),
-                ])
-                ->columnSpanFull(),
+                ->columnSpanFull()
         ]);
     }
 
@@ -167,26 +193,39 @@ class ProfileRelationManager extends RelationManager
         return $table
             ->columns([
                 ProfileTablePresenter::id(),
+                ProfileTablePresenter::avatar(),
                 ProfileTablePresenter::position(),
                 ProfileTablePresenter::employmentStatus(),
+                ProfileTablePresenter::personnelId(),
                 ProfileTablePresenter::department(),
                 ProfileTablePresenter::employmentType(),
                 ProfileTablePresenter::gender(),
                 ProfileTablePresenter::cellphone(),
                 ProfileTablePresenter::startDate(),
+                ProfileTablePresenter::createdAt(),
             ])
-            ->headerActions([
-                CreateAction::make()
-                    ->icon('heroicon-o-sparkles')
-                    ->label('افزودن پروفایل'),
+            ->groups([
+                ProfileTablePresenter::departmentGroup(),
+                ProfileTablePresenter::positionGroup(),
+                ProfileTablePresenter::employmentStatusGroup(),
+                ProfileTablePresenter::employmentTypeGroup(),
+                ProfileTablePresenter::genderGroup(),
             ])
-            ->searchable(false)
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->filters([
+                ProfileTablePresenter::employmentStatusFilter(),
+                ProfileTablePresenter::employmentTypeFilter(),
+                ProfileTablePresenter::genderFilter(),
+                ProfileTablePresenter::degreeFilter(),
+                ProfileTablePresenter::departmentFilter(),
+            ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->emptyStateIcon('heroicon-o-bookmark');
+            ->striped()
+            ->emptyStateIcon('heroicon-o-bookmark')
+            ->defaultSort('id', 'desc');
     }
 }

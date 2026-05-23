@@ -52,7 +52,6 @@ class ReadsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('id')
             ->columns([
                 TextColumn::make('user.name')
                     ->label('کاربر')

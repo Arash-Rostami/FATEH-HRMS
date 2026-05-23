@@ -3,9 +3,13 @@
 namespace App\Filament\Resources\ResourceResource\RelationManagers;
 
 use App\Enums\ReservationStatus;
+use App\Filament\Resources\ReservationResource\Schemas\ReservationFormPresenter;
+use App\Filament\Resources\ReservationResource\Schemas\ReservationInfolistPresenter;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationTablePresenter;
 use App\Traits\FilamentActions;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
@@ -27,6 +31,67 @@ class ReservationsRelationManager extends RelationManager
         return __('resources/reservation/strings.plural_label');
     }
 
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make(__('resources/reservation/strings.form.section_main'))
+                ->icon('heroicon-o-user')
+                ->schema([
+                    ReservationFormPresenter::userId(),
+                    ReservationFormPresenter::parentId(),
+
+                    divider(),
+                    ReservationFormPresenter::status(),
+                    ReservationFormPresenter::isRecurring(),
+                    ReservationFormPresenter::recurPattern(),
+                    ReservationFormPresenter::recurCount(),
+                ])
+                ->columns(2),
+            Section::make(__('resources/reservation/strings.form.section_time'))
+                ->icon('heroicon-o-clock')
+                ->schema([
+                    ReservationFormPresenter::isFullDay(),
+                    ReservationFormPresenter::fullDayDate(),
+                    ReservationFormPresenter::startTime(),
+                    ReservationFormPresenter::endTime(),
+
+                    ReservationFormPresenter::cancelReason()
+                ])
+                ->columns(3),
+        ]);
+    }
+
+    public function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make(__('resources/reservation/strings.infolist.section_main'))
+                ->icon('heroicon-o-user')
+                ->schema([
+                    ReservationInfolistPresenter::user(),
+                    ReservationInfolistPresenter::status(),
+                    ReservationInfolistPresenter::parentId(),
+                    ReservationInfolistPresenter::occurrencesCount(),
+                    ReservationInfolistPresenter::createdAt(),
+                ])
+                ->columns(2),
+            Section::make(__('resources/reservation/strings.infolist.section_time'))
+                ->icon('heroicon-o-clock')
+                ->schema([
+                    ReservationInfolistPresenter::startTime(),
+                    ReservationInfolistPresenter::endTime(),
+                    ReservationInfolistPresenter::isFullDay(),
+                ])
+                ->columns(3),
+            Section::make(__('resources/reservation/strings.infolist.section_cancel'))
+                ->icon('heroicon-o-x-circle')
+                ->schema([
+                    ReservationInfolistPresenter::cancelledBy(),
+                    ReservationInfolistPresenter::cancelledAt(),
+                    ReservationInfolistPresenter::cancelReason(),
+                ])
+                ->columns(3),
+        ]);
+    }
 
     public function table(Table $table): Table
     {
@@ -34,16 +99,32 @@ class ReservationsRelationManager extends RelationManager
             ->columns([
                 ReservationTablePresenter::id(),
                 ReservationTablePresenter::user(),
-                ReservationTablePresenter::resource(),
                 ReservationTablePresenter::startTime(),
                 ReservationTablePresenter::isFullDay(),
                 ReservationTablePresenter::status(),
                 ReservationTablePresenter::isSeries(),
                 ReservationTablePresenter::createdAt(),
             ])
-            ->headerActions([])
-            ->recordActions([self::viewAction()], RecordActionsPosition::AfterCells)
+            ->filters([
+                ReservationTablePresenter::statusFilter(),
+                ReservationTablePresenter::isFullDayFilter(),
+                ReservationTablePresenter::isSeriesFilter(),
+                self::createdAtFilter(),
+            ])
+            ->groups([
+                ReservationTablePresenter::byUser(),
+                ReservationTablePresenter::byStatus(),
+            ])
+            ->filtersFormColumns(2)
+            ->recordActions([
+                self::viewAction(),
+                self::editAction(),
+                ReservationTablePresenter::cancelAction(),
+                ReservationTablePresenter::releaseAction(),
+                self::deleteAction(),
+            ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('start_time', 'desc');
+            ->defaultSort('start_time', 'desc')
+            ->striped();
     }
 }
