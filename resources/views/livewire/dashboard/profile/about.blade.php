@@ -74,7 +74,7 @@
             <div class="flex items-center justify-end pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
                 <x-ui.buttons.form
                     type="submit"
-                    target="save"
+                    loading="save"
                     loading-text="در حال ذخیره..."
                     icon="save"
                     class="px-6 py-2.5 rounded-xl font-bold hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-md duration-300"

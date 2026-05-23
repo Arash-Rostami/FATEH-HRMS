@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Profile;
 use App\Models\User;
-use App\Models\Department;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProfileFactory extends Factory
@@ -15,105 +14,36 @@ class ProfileFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'personnel_id' => fake()->unique()->numerify('EMP####'),
-            'image' => fake()->optional()->imageUrl(),
-            'attachments' => null,
-            'gender' => fake()->randomElement(['female', 'male']),
-            'employment_type' => fake()->randomElement(['fulltime', 'parttime', 'contract']),
-            'marital_status' => fake()->randomElement(['married', 'single']),
-            'number_of_children' => fake()->optional()->numberBetween(0, 5),
-            'employment_status' => fake()->randomElement(['probational', 'working', 'terminated']),
-            'id_card_number' => fake()->optional()->unique()->numerify('ID########'),
-            'id_booklet_number' => fake()->optional()->unique()->numerify('BK########'),
-            'degree' => fake()->randomElement(['undergraduate', 'graduate', 'postgraduate']),
-            'field' => fake()->optional()->jobTitle(),
-            'birthdate' => fake()->optional()->date('Y-m-d', '-18 years'),
-            'landline' => fake()->optional()->phoneNumber(),
-            'cellphone' => fake()->optional()->phoneNumber(),
-            'license_plate' => fake()->optional()->bothify('??-###-??'),
-            'zip_code' => fake()->optional()->postcode(),
-            'address' => fake()->optional()->address(),
-            'accessibility' => fake()->optional()->sentence(),
-            'department_id' => Department::factory(),
-            'position' => fake()->jobTitle(),
-            'insurance' => fake()->optional()->company(),
-            'emergency_phone' => fake()->optional()->phoneNumber(),
-            'emergency_relationship' => fake()->optional()->randomElement(['spouse', 'parent', 'sibling', 'friend']),
-            'start_date' => fake()->date(),
-            'end_date' => fake()->optional()->date(),
-            'work_experience' => fake()->optional()->paragraph(),
-            'interests' => fake()->optional()->paragraph(),
-            'favorite_colors' => null,
+            'personnel_id' => $this->faker->unique()->numerify('FATEH-#####'),
+            'gender' => $this->faker->randomElement(['female', 'male']),
+            'employment_type' => $this->faker->randomElement(['fulltime', 'parttime', 'contract']),
+            'marital_status' => $this->faker->randomElement(['married', 'single']),
+            'number_of_children' => $this->faker->numberBetween(0, 4),
+            'employment_status' => $this->faker->randomElement(['probational', 'working', 'terminated']),
+            'id_card_number' => $this->faker->unique()->numerify('##########'),
+            'id_booklet_number' => $this->faker->unique()->numerify('######'),
+            'degree' => $this->faker->randomElement(['undergraduate', 'graduate', 'postgraduate']),
+            'field' => $this->faker->randomElement(['Computer Science', 'Software Engineering', 'Information Technology', 'Business Administration']),
+            'birthdate' => $this->faker->date('Y-m-d', '-22 years'),
+            'landline' => $this->faker->phoneNumber(),
+            'cellphone' => $this->faker->phoneNumber(),
+            'license_plate' => $this->faker->bothify('##-???-##'),
+            'zip_code' => $this->faker->postcode(),
+            'address' => $this->faker->address(),
+            'accessibility' => null,
+            'department_id' => $this->faker->bothify('DEP-###'),
+            'position' => $this->faker->jobTitle(),
+            'insurance' => $this->faker->numerify('INS-########'),
+            'emergency_phone' => $this->faker->phoneNumber(),
+            'emergency_relationship' => $this->faker->randomElement(['Spouse', 'Parent', 'Sibling']),
+            'start_date' => $this->faker->date(),
+            'end_date' => null,
+            'work_experience' => $this->faker->paragraph(),
+            'interests' => $this->faker->words(3, true),
+            'image' => null,
+            'attachments' => [],
+            'favorite_colors' => ['#6366f1', '#14b8a6'],
+            'about_me' => [],
         ];
-    }
-
-    public function married(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'marital_status' => 'married',
-        ]);
-    }
-
-    public function single(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'marital_status' => 'single',
-        ]);
-    }
-
-    public function fulltime(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_type' => 'fulltime',
-        ]);
-    }
-
-    public function parttime(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_type' => 'parttime',
-        ]);
-    }
-
-    public function contract(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_type' => 'contract',
-        ]);
-    }
-
-    public function probational(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_status' => 'probational',
-        ]);
-    }
-
-    public function working(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_status' => 'working',
-        ]);
-    }
-
-    public function terminated(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'employment_status' => 'terminated',
-        ]);
-    }
-
-    public function forUser(User $user): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'user_id' => $user->id,
-        ]);
-    }
-
-    public function forDepartment(string $deptCode): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'department_id' => $deptCode,
-        ]);
     }
 }

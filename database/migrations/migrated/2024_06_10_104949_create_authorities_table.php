@@ -17,7 +17,6 @@ class CreateAuthoritiesTable extends Migration
 
             $table->id();
             $table->string('department_id')->nullable();
-            $table->foreignId('user_id')->nullable();
             $table->boolean('sub_duty')->nullable();
             $table->json('details')->nullable();
             $table->foreignId('user_id')->constrained('users')->nullOnDelete();

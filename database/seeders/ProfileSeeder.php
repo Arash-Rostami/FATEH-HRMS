@@ -31,7 +31,7 @@ class ProfileSeeder extends Seeder
             'zip_code' => '1634646365',
             'address' => "No 2, Royan Aly, Piroozi Aly\nKerman Str, Resalat Hwy, Seyed Khandan",
             'accessibility' => 'N/A',
-            'department' => 'HR',
+            'department_id' => 'HR',
             'position' => 'senior',
             'insurance' => '21269304',
             'emergency_phone' => '0912335746',

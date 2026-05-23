@@ -42,8 +42,6 @@ class CreateTicketsTable extends Migration
             $table->index('assigned_to');
             $table->index('status');
             $table->index('priority');
-            $table->index('status');
-
 
             $table->timestamps();
         });

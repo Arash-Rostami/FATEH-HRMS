@@ -6,8 +6,9 @@ use App\Filament\Resources\UserResource\Exports\UserExporter;
 use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
-use app\Filament\Resources\UserResource\RelationManagers\CredentialRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\CredentialRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\EnergyTestsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\PermissionsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ReportsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager;
@@ -137,6 +138,7 @@ class UserResource extends Resource
         return [
             ProfileRelationManager::class,
             CredentialRelationManager::class,
+            PermissionsRelationManager::class,
             EnergyTestsRelationManager::class,
             ReportsRelationManager::class,
             ReservationsRelationManager::class,

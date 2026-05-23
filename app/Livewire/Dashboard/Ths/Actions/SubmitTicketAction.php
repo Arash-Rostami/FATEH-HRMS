@@ -10,6 +10,8 @@ class SubmitTicketAction
 {
     public function execute(TicketForm $form): void
     {
+        $form->validate();
+
         $form->files = collect($form->files)
             ->map(fn($f) => is_array($f) ? reset($f) : $f)
             ->filter()->toArray();

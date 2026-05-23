@@ -26,7 +26,7 @@
                     <span class="w-1 h-1 rounded-full bg-current animate-pulse" aria-hidden="true"></span>آنلاین
                 </span>
             @else
-                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">آخرین بازدید: {{ $activeContact->last_seen_at?->diffForHumans(null, true) ?? 'نامشخص' }}</span>
+                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">آخرین بازدید: {{ $activeContact->last_seen?->diffForHumans(null, true) ?? 'نامشخص' }}</span>
             @endif
         </div>
         <div class="flex items-center gap-2 mt-0.5 flex-wrap">

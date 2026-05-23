@@ -6,12 +6,12 @@ use App\Filament\Resources\CredentialResource\Schemas\CredentialFormPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class CredentialRelationManager extends RelationManager
 {
@@ -24,8 +24,8 @@ class CredentialRelationManager extends RelationManager
         return $schema->components([
             Section::make(__('resources/credential/strings.form.section_main'))
                 ->icon('heroicon-o-key')
+                ->description(__('resources/credential/strings.form.section_description'))
                 ->schema([
-                    CredentialTablePresenter::id(),
                     CredentialFormPresenter::appName(),
                     CredentialFormPresenter::username(),
                     CredentialFormPresenter::password(),
@@ -47,7 +47,7 @@ class CredentialRelationManager extends RelationManager
         return __('resources/credential/strings.plural_label');
     }
 
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('resources/credential/strings.plural_label');
     }
@@ -74,7 +74,6 @@ class CredentialRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('app_name')
             ->columns([
                 CredentialTablePresenter::id(),
                 CredentialTablePresenter::appName(),
@@ -83,16 +82,18 @@ class CredentialRelationManager extends RelationManager
                 CredentialTablePresenter::link(),
                 CredentialTablePresenter::createdAt(),
             ])
-            ->searchable(false)
-            ->headerActions([
-                CreateAction::make()->icon('heroicon-o-sparkles')
-                    ->label('افزودن اطلاعات'),
+            ->groups([
+                CredentialTablePresenter::appNameGroup(),
+            ])
+            ->filters([
+                CredentialTablePresenter::hasLinkFilter(),
             ])
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
+            ->striped()
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc');
     }

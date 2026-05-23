@@ -131,7 +131,7 @@ class OnboardingResource extends Resource
     {
         return $schema->components([
             Section::make()
-                ->hiddenLabel('heroicon-o-cog-6-tooth')
+                ->hiddenLabel()
                 ->schema([
                     OnboardingInfolistPresenter::user(),
                     OnboardingInfolistPresenter::isActive(),

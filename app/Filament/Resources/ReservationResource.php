@@ -127,33 +127,25 @@ class ReservationResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/reservation/strings.infolist.section_main'))
-                ->icon('heroicon-o-user')
+            Section::make()
+                ->hiddenLabel()
                 ->schema([
                     ReservationInfolistPresenter::user(),
                     ReservationInfolistPresenter::resource(),
                     ReservationInfolistPresenter::status(),
                     ReservationInfolistPresenter::parentId(),
                     ReservationInfolistPresenter::occurrencesCount(),
-                    ReservationInfolistPresenter::createdAt(),
-                ])
-                ->columns(2),
-            Section::make(__('resources/reservation/strings.infolist.section_time'))
-                ->icon('heroicon-o-clock')
-                ->schema([
                     ReservationInfolistPresenter::startTime(),
                     ReservationInfolistPresenter::endTime(),
                     ReservationInfolistPresenter::isFullDay(),
-                ])
-                ->columns(3),
-            Section::make(__('resources/reservation/strings.infolist.section_cancel'))
-                ->icon('heroicon-o-x-circle')
-                ->schema([
                     ReservationInfolistPresenter::cancelledBy(),
                     ReservationInfolistPresenter::cancelledAt(),
                     ReservationInfolistPresenter::cancelReason(),
+                    ReservationInfolistPresenter::createdAt(),
+
                 ])
-                ->columns(3),
+                ->columnSpanFull()
+                ->columns(2),
         ]);
     }
 

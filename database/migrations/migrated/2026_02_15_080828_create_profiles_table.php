@@ -41,7 +41,7 @@ return new class extends Migration {
             $table->json('about_me')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            $table->index('department');
+            $table->index('department_id');
             $table->index('employment_status');
             $table->index('employment_type');
             $table->index('position');

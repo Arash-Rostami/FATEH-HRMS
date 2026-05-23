@@ -10,20 +10,21 @@ use Morilog\Jalali\CalendarUtils;
 
 class TaskForm extends Form
 {
+
+    #[Validate('nullable|numeric')]
+    public string $deadlineYear = '';
+
+    #[Validate('nullable|numeric|min:1|max:12')]
+    public string $deadlineMonth = '';
+
+    #[Validate('nullable|numeric|min:1|max:31')]
+    public string $deadlineDay = '';
     #[Validate('required|string|max:255')]
     public string $newTitle = '';
 
     #[Validate('nullable|string')]
     public ?string $newDescription = null;
 
-    #[Validate('nullable|integer')]
-    public string $deadlineYear = '';
-
-    #[Validate('nullable|integer|min:1|max:12')]
-    public string $deadlineMonth = '';
-
-    #[Validate('nullable|integer|min:1|max:31')]
-    public string $deadlineDay = '';
 
     public $selectedAssignee = null;
     protected array $validationAttributes = [

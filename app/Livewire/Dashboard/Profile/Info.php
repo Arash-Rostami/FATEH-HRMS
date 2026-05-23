@@ -50,9 +50,9 @@ class Info extends Component
                 'gender', 'marital_status', 'number_of_children', 'id_card_number',
                 'id_booklet_number', 'degree', 'field', 'landline', 'cellphone',
                 'license_plate', 'zip_code', 'address', 'accessibility', 'insurance',
-                'emergency_phone', 'emergency_relationship', 'work_experience',
-                'interests', 'email'
-            ]))->map(fn($v, $k) => match ($k) {
+                'emergency_phone', 'emergency_relationship', 'work_experience', 'interests'
+            ]))->merge(['email' => auth()->user()->email])
+                ->map(fn($v, $k) => match ($k) {
                 'number_of_children' => (int)($v ?? 0),
                 default => $v ?? '',
             }, ARRAY_FILTER_USE_BOTH)->toArray()

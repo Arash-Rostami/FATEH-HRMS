@@ -6,6 +6,7 @@ use App\Enums\CancelReason;
 use App\Enums\ReservationStatus;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 
 class ReservationInfolistPresenter
 {
@@ -23,6 +24,9 @@ class ReservationInfolistPresenter
         return TextEntry::make('cancelled_at')
             ->label(__('resources/reservation/strings.fields.cancelled_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->placeholder('—');
     }
 
@@ -37,7 +41,10 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('created_at')
             ->label(__('resources/reservation/strings.fields.created_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '-')
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')->placeholder('-');
     }
 
@@ -45,7 +52,10 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('end_time')
             ->label(__('resources/reservation/strings.fields.end_time'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '-');
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After);
     }
 
     public static function isFullDay(): TextEntry
@@ -82,7 +92,10 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('start_time')
             ->label(__('resources/reservation/strings.fields.start_time'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '-');
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After);
     }
 
     public static function status(): TextEntry

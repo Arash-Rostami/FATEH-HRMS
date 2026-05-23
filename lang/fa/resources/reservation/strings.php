@@ -29,12 +29,7 @@ return [
         'section_main'       => 'اطلاعات رزرو',
         'section_time'       => 'بازه زمانی',
     ],
-    'infolist'       => [
-        'section_main'   => 'اطلاعات رزرو',
-        'section_time'   => 'بازه زمانی',
-        'section_cancel' => 'اطلاعات لغو',
-        'section_meta'   => 'اطلاعات سیستمی',
-    ],
+
     'filters'        => [
         'status'        => 'وضعیت',
         'resource_type' => 'نوع منبع',

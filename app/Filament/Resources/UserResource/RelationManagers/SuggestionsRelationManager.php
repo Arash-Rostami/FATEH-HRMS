@@ -6,8 +6,8 @@ use App\Filament\Resources\SuggestionResource\Schemas\SuggestionFormPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionInfolistPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -19,6 +19,47 @@ class SuggestionsRelationManager extends RelationManager
     use FilamentActions;
 
     protected static string $relationship = 'suggestions';
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Grid::make(2)
+                ->schema([
+                    Section::make(__('resources/suggestion/strings.form.section_targets'))
+                        ->icon('heroicon-o-building-office-2')
+                        ->schema([
+                            SuggestionFormPresenter::departments(),
+                            SuggestionFormPresenter::selfFill(),
+                            SuggestionFormPresenter::attachment(),
+
+                        ])
+                        ->columnSpan(1)
+                        ->columns(2),
+
+                    Section::make(__('resources/suggestion/strings.form.section_meta'))
+                        ->icon('heroicon-o-adjustments-horizontal')
+                        ->schema([
+                            SuggestionFormPresenter::purpose(),
+                            SuggestionFormPresenter::divider(),
+                            SuggestionFormPresenter::rule(),
+                            SuggestionFormPresenter::divider(),
+                            SuggestionFormPresenter::priority(),
+                        ])
+                        ->columnSpan(1)
+                        ->columns(3),
+                ])
+                ->columnSpanFull(),
+
+            Section::make(__('resources/suggestion/strings.form.section_main'))
+                ->icon('heroicon-o-document-text')
+                ->schema([
+                    SuggestionFormPresenter::title(),
+                    SuggestionFormPresenter::description(),
+                ])
+                ->columnSpanFull()
+                ->columns(1),
+        ]);
+    }
 
     public static function getModelLabel(): string
     {
@@ -35,33 +76,25 @@ class SuggestionsRelationManager extends RelationManager
         return __('resources/suggestion/strings.plural_label');
     }
 
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            Section::make(__('resources/suggestion/strings.label'))
-                ->schema([
-                    SuggestionFormPresenter::title(),
-                    SuggestionFormPresenter::description(),
-                    SuggestionFormPresenter::departments(),
-                    SuggestionFormPresenter::purpose(),
-                    SuggestionFormPresenter::rule(),
-                    SuggestionFormPresenter::priority(),
-                    SuggestionFormPresenter::attachment(),
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-        ]);
-    }
-
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/suggestion/strings.label'))
+
+            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
+                ->icon('heroicon-o-arrow-path-rounded-square')
+                ->schema([
+                    SuggestionInfolistPresenter::workflow(),
+                ])
+                ->columnSpanFull()
+                ->collapsible(),
+
+
+            Section::make(__('resources/suggestion/strings.infolist.section_overview'))
+                ->icon('heroicon-o-light-bulb')
                 ->schema([
                     SuggestionInfolistPresenter::title(),
                     SuggestionInfolistPresenter::serial(),
                     SuggestionInfolistPresenter::stage(),
-                    SuggestionInfolistPresenter::submitter(),
                     SuggestionInfolistPresenter::submitterDept(),
                     SuggestionInfolistPresenter::selfFill(),
                     SuggestionInfolistPresenter::sentToCeo(),
@@ -70,22 +103,51 @@ class SuggestionsRelationManager extends RelationManager
                     SuggestionInfolistPresenter::rule(),
                     SuggestionInfolistPresenter::departments(),
 
-                    SuggestionInfolistPresenter::description(),
-                    SuggestionInfolistPresenter::attachment(),
-
                     SuggestionInfolistPresenter::deadline(),
                     SuggestionInfolistPresenter::createdAt(),
                     SuggestionInfolistPresenter::updatedAt(),
                 ])
                 ->columnSpanFull()
+                ->columns(3),
+
+            Section::make(__('resources/suggestion/strings.infolist.section_content'))
+                ->icon('heroicon-o-document-text')
+                ->schema([
+                    SuggestionInfolistPresenter::description(),
+                    SuggestionInfolistPresenter::attachment(),
+                ])
+                ->columnSpanFull()
                 ->columns(2),
+
+
+            Section::make(__('resources/suggestion/strings.infolist.section_reviews'))
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->schema([
+                    SuggestionInfolistPresenter::agreeCount(),
+                    SuggestionInfolistPresenter::neutralCount(),
+                    SuggestionInfolistPresenter::disagreeCount(),
+                    SuggestionInfolistPresenter::reviews(),
+                ])
+                ->columnSpanFull()
+                ->columns(3),
+
+            Section::make(__('resources/suggestion/strings.infolist.section_decision'))
+                ->icon('heroicon-o-scale')
+                ->schema([
+                    SuggestionInfolistPresenter::comments(),
+                    SuggestionInfolistPresenter::referralDepts(),
+                    SuggestionInfolistPresenter::referralActions(),
+                ])
+                ->columnSpanFull()
+                ->columns(1)
+                ->collapsed(),
+
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('title')
             ->columns([
                 SuggestionTablePresenter::serial(),
                 SuggestionTablePresenter::title(),
@@ -96,17 +158,23 @@ class SuggestionsRelationManager extends RelationManager
                 SuggestionTablePresenter::attachment(),
                 SuggestionTablePresenter::createdAt(),
             ])
-            ->headerActions([
-                CreateAction::make()
-                    ->icon('heroicon-o-sparkles')
-                    ->label('افزودن پیشنهاد'),
+            ->groups([
+                SuggestionTablePresenter::stageGroup(),
             ])
+            ->filters([
+                SuggestionTablePresenter::departmentFilter(),
+                SuggestionTablePresenter::selfFillFilter(),
+                SuggestionTablePresenter::hasFileFilter(),
+                SuggestionTablePresenter::hasReferralFilter(),
+            ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('created_at', 'desc');
+            ->emptyStateIcon('heroicon-o-light-bulb')
+            ->defaultSort('created_at', 'desc')
+            ->striped();
     }
 }

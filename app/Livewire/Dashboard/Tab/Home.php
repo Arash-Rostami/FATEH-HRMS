@@ -21,7 +21,7 @@ class Home extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.home', [
-            'tools' => TabPresenter::class,
+            'tools' => (new TabPresenter())->tools(),
         ]);
     }
 }

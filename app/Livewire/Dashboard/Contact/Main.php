@@ -99,7 +99,7 @@ class Main extends Component
             'last_message' => $lastMessages->get($user->last_message_id)?->toArray(),
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
-            'last_seen_at' => $user->last_seen_at?->toISOString(),
+            'last_seen_at' => $user->last_seen?->toISOString(),
         ])->when($this->filter === 'online', fn($c) => $c->filter(fn($u) => $u['is_online'] ?? false))
             ->values()->all();
     }
