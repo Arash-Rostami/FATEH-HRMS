@@ -24,7 +24,7 @@ class ThsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ticket::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-ticket';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-lifebuoy';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
@@ -214,7 +214,7 @@ class ThsResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ThsExporter::class))
-            ->emptyStateIcon('heroicon-o-ticket')
+            ->emptyStateIcon('heroicon-o-lifebuoy')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }

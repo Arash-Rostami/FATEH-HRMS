@@ -163,7 +163,7 @@ class CredentialResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->striped()
             ->groupedBulkActions(self::bulkActions(CredentialExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-key')
             ->defaultSort('created_at', 'desc');
     }
 }

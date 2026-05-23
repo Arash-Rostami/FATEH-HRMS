@@ -29,7 +29,7 @@ class ReportResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-presentation-chart-line';
     protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
@@ -182,7 +182,7 @@ class ReportResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ReportExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-presentation-chart-line')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }

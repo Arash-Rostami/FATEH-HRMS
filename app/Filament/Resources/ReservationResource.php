@@ -29,7 +29,7 @@ class ReservationResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Reservation::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
@@ -191,7 +191,7 @@ class ReservationResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ReservationExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-building-office')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }

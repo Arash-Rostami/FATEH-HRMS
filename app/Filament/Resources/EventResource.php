@@ -170,7 +170,7 @@ class EventResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(EventExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-calendar-days')
             ->defaultSort('date', 'desc')
             ->striped();
     }
