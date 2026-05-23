@@ -7,7 +7,13 @@ use App\Filament\Resources\UserResource\Pages\CreateUser;
 use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
 use app\Filament\Resources\UserResource\RelationManagers\CredentialRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\EnergyTestsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\ReportsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\TicketsRelationManager;
 use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
@@ -131,6 +137,12 @@ class UserResource extends Resource
         return [
             ProfileRelationManager::class,
             CredentialRelationManager::class,
+            EnergyTestsRelationManager::class,
+            ReportsRelationManager::class,
+            ReservationsRelationManager::class,
+            SuggestionsRelationManager::class,
+            TasksRelationManager::class,
+            TicketsRelationManager::class
         ];
     }
 

@@ -40,6 +40,26 @@ class User extends Authenticatable implements HasAvatar
         'remember_token',
     ];
 
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function assignedTickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to');
+    }
+
+    public function authorities(): HasMany
+    {
+        return $this->hasMany(Authority::class);
+    }
+
+    public function cancelledReservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'cancelled_by_id');
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
@@ -48,6 +68,11 @@ class User extends Authenticatable implements HasAvatar
     public function credentials(): HasMany
     {
         return $this->hasMany(Credential::class);
+    }
+
+    public function energyTests(): HasMany
+    {
+        return $this->hasMany(EnergyTest::class, 'user_id');
     }
 
     public function events(): HasMany
@@ -137,6 +162,11 @@ class User extends Authenticatable implements HasAvatar
         return $this->hasOne(EnergyTest::class)->latestOfMany('completed_at');
     }
 
+    public function onboardings(): HasMany
+    {
+        return $this->hasMany(Onboarding::class);
+    }
+
     public function permissions(): HasOne
     {
         return $this->hasOne(Permission::class);
@@ -160,6 +190,16 @@ class User extends Authenticatable implements HasAvatar
     public function reactions(): HasMany
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function reads(): HasMany
+    {
+        return $this->hasMany(Read::class);
+    }
+
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'recipient_id');
     }
 
     public function reports(): HasMany
@@ -222,35 +262,20 @@ class User extends Authenticatable implements HasAvatar
         return $this->hasMany(Suggestion::class);
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'requester_id');
+    }
+
     public function touchLastSeen(): void
     {
         $this->timestamps = false;
         $this->update(['last_seen' => now()]);
-    }
-
-    protected static function booted(): void
-    {
-        $flushCache = fn() => collect([
-            'user_active_options',
-            'user_all_options',
-            'user_names_map',
-        ])->each(Cache::forget(...));
-
-        static::saved($flushCache);
-        static::deleted($flushCache);
-    }
-
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'last_seen' => 'datetime',
-            'extra' => 'array',
-            'maximum' => 'integer',
-            'presence' => PresenceStatus::class,
-        ];
     }
 
     protected function booking(): Attribute
@@ -259,7 +284,7 @@ class User extends Authenticatable implements HasAvatar
             get: function ($value) {
                 $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
                 if (!is_array($raw)) return [];
-                
+
                 $permissions = [];
                 foreach ($raw as $k => $v) {
                     if (is_array($v)) {
@@ -275,6 +300,30 @@ class User extends Authenticatable implements HasAvatar
             },
             set: fn($value) => is_array($value) ? json_encode($value) : $value
         );
+    }
+
+    protected static function booted(): void
+    {
+        $flushCache = fn() => collect([
+            'user_active_options',
+            'user_all_options',
+            'user_names_map',
+        ])->each(Cache::forget(...));
+
+        static::saved($flushCache);
+        static::deleted($flushCache);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'last_seen' => 'datetime',
+            'extra' => 'array',
+            'maximum' => 'integer',
+            'presence' => PresenceStatus::class,
+        ];
     }
 
     protected function smsNumber(): Attribute

@@ -149,7 +149,7 @@ class TaskTablePresenter
     public static function id(): TextColumn
     {
         return TextColumn::make('id')
-            ->label('ID')
+            ->label(__('resources/task/strings.fields.id'))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

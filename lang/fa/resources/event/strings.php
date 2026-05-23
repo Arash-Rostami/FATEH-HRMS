@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label'        => 'رویداد',
-    'plural_label' => 'رویدادها',
+    'label'        => 'تقویم',
+    'plural_label' => 'تقویم',
     'nav_group'         => 'محتوا و ارتباطات',
 
     'navigation' => [

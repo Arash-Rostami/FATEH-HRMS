@@ -29,7 +29,7 @@ class ReservationResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Reservation::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

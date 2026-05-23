@@ -1,12 +1,13 @@
 <?php
 
 return [
-    'label'             => 'وظیفه',
-    'plural_label'      => 'وظایف',
+    'label'             => 'تسک بورد',
+    'plural_label'      => 'تسک بورد',
     'nav_group'      => 'عملیات و منابع',
     'nav_badge_tooltip' => 'وظایف سررسید گذشته',
 
     'fields' => [
+        'id' => 'شناسه',
         'title'         => 'عنوان',
         'description'   => 'توضیحات',
         'status'        => 'وضعیت',

@@ -38,11 +38,6 @@ class Department extends Model
         );
     }
 
-    public function reviews(): HasMany
-    {
-        return $this->hasMany(Review::class, 'department_id', 'code');
-    }
-
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class, 'department_id', 'code');
@@ -53,9 +48,19 @@ class Department extends Model
         return $this->hasOne(Profile::class, 'department_id', 'code');
     }
 
+    public function profiles(): HasMany
+    {
+        return $this->hasMany(Profile::class, 'department_id', 'code');
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class, 'department_id', 'code');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'department_id', 'code');
     }
 
     public function user(): HasOneThrough

@@ -4,10 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Exports\DmsExporter;
-use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\DmsResource\Pages\{CreateDms, EditDms, ListDms};
+use App\Filament\Resources\DmsResource\RelationManagers\ReadsRelationManager;
 use App\Filament\Resources\DmsResource\Schemas\{DmsFormPresenter, DmsInfolistPresenter, DmsTablePresenter};
 use App\Models\DMS;
+use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -24,7 +25,7 @@ class DmsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = DMS::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder-open';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -107,6 +108,13 @@ class DmsResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('resources/dms/strings.plural_label');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ReadsRelationManager::class,
+        ];
     }
 
     public static function infolist(Schema $schema): Schema

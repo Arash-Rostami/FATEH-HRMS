@@ -2,7 +2,7 @@
 
 return [
     'label' => 'گزارش',
-    'plural_label' => 'گزارش‌ها',
+    'plural_label' => 'گزارشات',
     'nav_group'      => 'عملیات و منابع',
 
     'fields' => [
@@ -53,6 +53,7 @@ return [
     ],
 
     'table' => [
+        'id' => 'شناسه',
         'title' => 'عنوان',
         'department' => 'واحد',
         'user' => 'کاربر',

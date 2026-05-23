@@ -6,6 +6,8 @@ use App\Filament\Resources\DepartmentResource\Exports\DepartmentExporter;
 use App\Filament\Resources\DepartmentResource\Pages\CreateDepartment;
 use App\Filament\Resources\DepartmentResource\Pages\EditDepartment;
 use App\Filament\Resources\DepartmentResource\Pages\ListDepartments;
+use App\Filament\Resources\DepartmentResource\RelationManagers\AuthoritiesRelationManager;
+use App\Filament\Resources\DepartmentResource\RelationManagers\ReportsRelationManager;
 use App\Filament\Resources\DepartmentResource\RelationManagers\UsersRelationManager;
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentFormPresenter;
 use App\Filament\Resources\DepartmentResource\Schemas\DepartmentInfolistPresenter;
@@ -112,6 +114,8 @@ class DepartmentResource extends Resource
     {
         return [
             UsersRelationManager::class,
+            AuthoritiesRelationManager::class,
+            ReportsRelationManager::class
         ];
     }
 

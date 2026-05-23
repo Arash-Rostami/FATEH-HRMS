@@ -20,40 +20,43 @@ class ModulesGuideWidget extends Widget
             'کاربران و سازمان',
         ];
 
+        $meta = $this->moduleMeta();
+        $icons = $this->moduleFilamentIcons();
+
         return collect(config('modules', []))
-            ->map(fn (array $module) => [...$module, ...($this->moduleMeta()[$module['id']] ?? []), ...($this->moduleFilamentIcons()[$module['id']] ?? [])])
-            ->groupBy(fn (array $module) => $module['major_category'] ?? 'محتوا و ارتباطات')
-            ->sortBy(fn ($_, $key) => array_search($key, $categoriesOrder, true));
+            ->map(function (array $module) use ($meta, $icons) {
+                $id = $module['id'] ?? '';
+                return array_merge(
+                    $module,
+                    $meta[$id] ?? [],
+                    $icons[$id] ?? []
+                );
+            })
+            ->groupBy(fn(array $module) => $module['major_category'] ?? 'محتوا و ارتباطات')
+            ->sortBy(fn($_, $key) => array_search($key, $categoriesOrder, true))
+            ->mapWithKeys(function ($modules, $category) {
+                return [md5($category) => [
+                    'name' => $category,
+                    'modules' => $modules,
+                ]];
+            });
     }
 
-    protected function moduleMeta(): array
+    public function getTools(): array
     {
         return [
-            'announce' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'مدیریت اطلاعیه‌ها با اولویت نمایش، انتشار هدفمند، و بروزرسانی مستمر پیام‌ها.'],
-            'feed' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'مدیریت فید خبری با دسته‌بندی محتوا و بهینه‌سازی تجربه مصرف خبر.'],
-            'calendar' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'ثبت و بروزرسانی رویدادها، مناسبت‌ها، و برنامه‌ریزی تقویمی سازمان.'],
-            'gallery' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'انتخاب محتوای رسانه‌ای، مدیریت کیفیت نمایش، و حفظ هویت بصری سازمان.'],
-            'links' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'ساماندهی لینک‌های سازمانی، کنترل سلامت آدرس‌ها، و دسته‌بندی دسترسی ابزارها.'],
-            'faq' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'مدیریت پایگاه دانش سوالات پرتکرار با بازنویسی پاسخ‌های دقیق و کاربردی.'],
-            'ads' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'انتشار فرصت‌ها، کنترل وضعیت فعال/بایگانی، و گزارش‌گیری سریع از نیازهای جذب.'],
-            'suggestion' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'هدایت جریان پیشنهادات با فیلتر مرحله، ثبت بازخورد، و پایش نرخ مشارکت.'],
-            'contact' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'کنترل ارتباطات داخلی، پایش کیفیت تعاملات، و نگهداری تجربه پیام‌رسانی سازمانی.'],
-
-            'reservation' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'تعریف منابع و قوانین رزرو، مدیریت تعلیق یا لغو رزرو، و پایش ظرفیت‌ها.'],
-            'reports' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'ثبت گزارش‌های رسمی، کنترل نسخه و فایل، و بازیابی سریع اطلاعات مدیریتی.'],
-            'taskboard' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'مدیریت فرآیند کانبان با CRUD وظایف، جابجایی وضعیت، و رصد پیشرفت تیم‌ها.'],
-
-            'dms' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'مدیریت چرخه سند، امضا و مشاهده، همراه با ساختاردهی استاندارد رویه‌ها.'],
-            'ths' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'مدیریت صف درخواست‌ها با فیلتر اولویت، دسته‌بندی موضوع، و پیگیری پاسخگویی.'],
-            'energy' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'تحلیل نتایج ارزیابی انرژی، فیلتر بر اساس بازه زمانی، و رصد روندهای تیمی.'],
-            'radio' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'تنظیم ایستگاه‌ها، مدیریت تنوع محتوای صوتی، و بهبود تجربه محیط کار.'],
-            'others' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'هدایت و نگهداری امکانات تکمیلی مانند ابزارهای سبک و قابلیت‌های شخصی‌سازی.'],
-
-            'profile' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'CRUD کامل پروفایل، مدیریت وضعیت حضور، و اتصال داده کاربر با واحد سازمانی.'],
-            'onboarding' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'ایجاد مسیر شروع به کار، ویرایش محتوای آموزشی، و مدیریت نسخه‌های فعال آنبوردینگ.'],
-            'documents' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'تعریف مدارک الزامی، بررسی وضعیت تایید، و کنترل چرخه دریافت و نگهداری.'],
-            'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مدیریت دسترسی‌های سازمانی با ثبت امن، بروزرسانی موردی، و بایگانی دسترسی‌های منسوخ.'],
-            'auth' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'ثبت و شفاف‌سازی اختیارات تفویض‌شده با تاریخ اعتبار و توضیح دامنه اجرا.'],
+            ['icon' => 'schema', 'label' => 'Relation Managers', 'desc' => 'نمایش رکوردهای مرتبط'],
+            ['icon' => 'filter_alt', 'label' => 'Filters & Filter Shortcuts', 'desc' => 'فیلترنگ مرکب داده‌ها'],
+            ['icon' => 'layers', 'label' => 'Groups', 'desc' => 'گروه بندی هوشمند سطرها'],
+            ['icon' => 'manage_search', 'label' => 'Individual & Global Search', 'desc' => 'سرچ عمومی و اختصاصی'],
+            ['icon' => 'tune', 'label' => 'Toggle & Sort', 'desc' => 'مدیریت نما اختصاصی ستون‌ها'],
+            ['icon' => 'bolt', 'label' => 'Actions & Bulk Actions', 'desc' => 'عملیات اختصاصی و گروهی'],
+            ['icon' => 'edit_note', 'label' => 'Form', 'desc' => 'فرم قابل ویرایش ثبت اطلاعات'],
+            ['icon' => 'description', 'label' => 'Info List', 'desc' => 'نمای غیر قابل ویرایش اطلاعات'],
+            ['icon' => 'table_chart', 'label' => 'Table', 'desc' => 'جداول اطلاعات پایه سیستم'],
+            ['icon' => 'account_tree', 'label' => 'Nested Resources', 'desc' => 'مدیریت رکوردهای تو در تو و سلسله‌مراتب'],
+            ['icon' => 'calculate', 'label' => 'Table Summaries', 'desc' => 'خلاصه‌سازی، محاسبات و استخراج آمار ستون‌ها'],
+            ['icon' => 'speed', 'label' => 'Deferred Analytics', 'desc' => 'بارگذاری تدریجی و مستقل ویجت‌های سنگین'],
         ];
     }
 
@@ -64,8 +67,8 @@ class ModulesGuideWidget extends Widget
             'feed' => ['filament_icon' => 'heroicon-o-rss'],
             'calendar' => ['filament_icon' => 'heroicon-o-calendar-days'],
             'gallery' => ['filament_icon' => 'heroicon-o-photo'],
-            'reports' => ['filament_icon' => 'heroicon-o-chart-bar'],
-            'links' => ['filament_icon' => 'heroicon-o-link'],
+            'reports' => ['filament_icon' => 'heroicon-o-presentation-chart-line'],
+            'links' => ['filament_icon' => 'heroicon-o-arrow-top-right-on-square'],
             'faq' => ['filament_icon' => 'heroicon-o-question-mark-circle'],
             'profile' => ['filament_icon' => 'heroicon-o-identification'],
             'onboarding' => ['filament_icon' => 'heroicon-o-building-office-2'],
@@ -73,15 +76,43 @@ class ModulesGuideWidget extends Widget
             'credentials' => ['filament_icon' => 'heroicon-o-key'],
             'ads' => ['filament_icon' => 'heroicon-o-briefcase'],
             'suggestion' => ['filament_icon' => 'heroicon-o-light-bulb'],
-            'taskboard' => ['filament_icon' => 'heroicon-o-clipboard-document-list'],
-            'dms' => ['filament_icon' => 'heroicon-o-folder'],
-            'ths' => ['filament_icon' => 'heroicon-o-ticket'],
-            'reservation' => ['filament_icon' => 'heroicon-o-calendar-days'],
-            'contact' => ['filament_icon' => 'heroicon-o-chat-bubble-left-ellipsis'],
+            'taskboard' => ['filament_icon' => 'heroicon-o-view-columns'],
+            'dms' => ['filament_icon' => 'heroicon-o-folder-open'],
+            'ths' => ['filament_icon' => 'heroicon-o-lifebuoy'],
+            'reservation' => ['filament_icon' => 'heroicon-o-building-office'],
+            'contact' => ['filament_icon' => 'heroicon-o-chat-bubble-left-right'],
             'energy' => ['filament_icon' => 'heroicon-o-bolt'],
             'auth' => ['filament_icon' => 'heroicon-o-shield-check'],
             'radio' => ['filament_icon' => 'heroicon-o-signal'],
             'others' => ['filament_icon' => 'heroicon-o-sparkles'],
+        ];
+    }
+
+    protected function moduleMeta(): array
+    {
+        return [
+            'announce' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'از طریق فرم‌های غنی (Rich Text) محتوای اطلاعیه‌ها را قالب‌بندی کنید. از قابلیت انتشار هدفمند بهره ببرید و پیام‌ها را بر اساس اولویت‌بندی در جداول پایش کنید.'],
+            'feed' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'برای مدیریت اخبار سازمانی از امکانات Relation Managers جهت پایش نظرات و واکنش‌ها استفاده نمایید. ستون‌های جدول را برای بررسی سریع تیترها شخصی‌سازی کنید.'],
+            'calendar' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'رویدادها را با استفاده از تقویم تعاملی برنامه‌ریزی کنید. فیلترهای زمانی (Date Filters) در لیست رویدادها، بازیابی مناسبت‌های پیش‌رو را تسهیل می‌بخشد.'],
+            'gallery' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'از کامپوننت‌های آپلود فایل با قابلیت پیش‌نمایش تصویر (Image Previews) استفاده کنید. امکان Bulk Actions برای حذف یا تغییر وضعیت گروهی تصاویر بسیار کاربردی است.'],
+            'links' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'لینک‌های دسترسی سریع را با آیکون‌های متناسب ثبت نمایید. از قابلیت مرتب‌سازی (Sorting) در جداول برای اولویت‌بندی نمایش ابزارها بهره بگیرید.'],
+            'faq' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'پایگاه دانش را با دسته‌بندی‌های اصولی مدیریت کنید. فیلدهای Infolist به شما اجازه می‌دهد پیش‌نمایش دقیقی از نحوه نمایش پرسش‌ها به کاربران داشته باشید.'],
+            'ads' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'فرصت‌های شغلی را با جزئیات دقیق منتشر کنید. از طریق سوئیچ‌های Toggle وضعیت فعال یا بایگانی بودن فرصت‌ها را به‌سرعت در نمای جدول کنترل نمایید.'],
+            'suggestion' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'جریان پیشنهادات را از طریق فیلترهای وضعیت (Status Filters) رهگیری کنید. امکان ثبت بازخورد و تصمیم‌گیری مدیریتی مستقیماً از بخش Infolist یا Action های سفارشی فراهم است.'],
+            'contact' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'روند ارتباطات داخلی را پایش کنید. با استفاده از قابلیت جستجوی جامع (Global Search)، تاریخچه تعاملات و پیام‌های سیستمی را با دقت بررسی نمایید.'],
+            'reservation' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'فضاها و منابع را به‌دقت پیکربندی کنید. از ابزارهای فیلترینگ برای مدیریت ظرفیت‌ها و از Action های تعبیه‌شده برای تعلیق یا لغو رزروهای تداخل‌دار استفاده نمایید.'],
+            'reports' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'گزارش‌های رسمی را با کنترل نسخه دقیق ثبت کنید. از قابلیت Export در Bulk Actions برای دریافت خروجی‌های استاندارد مدیریتی (CSV/Excel) بهره بگیرید.'],
+            'taskboard' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'جریان کاری تسک‌ها را با ابزار کانبان رهگیری کنید. از طریق Relation Managers پیشرفت وظایف زیرمجموعه را بررسی و وضعیت‌ها را به‌روزرسانی نمایید.'],
+            'dms' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'مخزن اسناد را با ساختاردهی استاندارد مدیریت کنید. کنترل نسخه‌ها و دسترسی‌ها را از طریق فرم‌های پیچیده و قابلیت اعتبارسنجی یکپارچه تضمین نمایید.'],
+            'ths' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'صف تیکت‌ها را بر اساس اولویت و دپارتمان فیلتر کنید. قابلیت گروه‌بندی (Grouping) در جداول، نمای شفافی از حجم درخواست‌های در حال بررسی ارائه می‌دهد.'],
+            'energy' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'نتایج ارزیابی انرژی را تحلیل کنید. استفاده از ویجت‌های نموداری (Chart Widgets) و فیلترهای بازه زمانی، رهگیری الگوهای رفتاری سازمان را ساده می‌سازد.'],
+            'radio' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'ایستگاه‌های رادیویی زنده را تنظیم کنید. با استفاده از ستون‌های Toggle امکان فعال یا غیرفعال‌سازی سریع کانال‌های در حال پخش فراهم است.'],
+            'others' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'تنظیمات امکانات رفاهی و ابزارهای کوچک سازمان را یکپارچه مدیریت کنید. از قابلیت شخصی‌سازی ستون‌ها (Column Toggling) برای تمرکز بر داده‌های کلیدی استفاده کنید.'],
+            'profile' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'پروفایل‌های پرسنلی را با جزئیات کامل سازمانی یکپارچه کنید. از Relation Managers برای مدیریت اسناد هویتی و سوابق فعالیت‌های کاربر در سیستم بهره‌مند شوید.'],
+            'onboarding' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مسیرهای شروع‌به‌کار را به‌صورت گام‌به‌گام طراحی کنید. با استفاده از ابزار مرتب‌سازی سطرها (Reorder Actions)، اولویت و توالی مراحل را به‌راحتی تنظیم نمایید.'],
+            'documents' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مدارک الزامی کاربران را کنترل کنید. از قابلیت‌های نمایش وضعیت با استفاده از آیکون‌ها و رنگ‌های مختلف (Badge Columns) برای رهگیری سریع تاییدیه اسناد استفاده کنید.'],
+            'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اطلاعات کاربری و دسترسی‌های سازمانی را با امنیت بالا نگهداری کنید. فیلترهای پیشرفته برای رهگیری تاریخ انقضا و وضعیت اکانت‌های اختصاص‌یافته در دسترس است.'],
+            'auth' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اختیارات تفویض‌شده را شفاف‌سازی کنید. مدیریت تاریخ‌های اعتبار از طریق فیلترهای زمانی و امکان تمدید گروهی با Bulk Actions تسهیل شده است.'],
         ];
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label' => 'آگهی',
-    'plural_label' => 'آگهی‌ها',
+    'label' => 'فرصت‌ شغلی',
+    'plural_label' => 'فرصت‌های شغلی',
     'nav_group'         => 'محتوا و ارتباطات',
     'untitled' => 'بدون عنوان',
 

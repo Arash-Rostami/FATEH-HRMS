@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label'             => 'پیام',
-    'plural_label'      => 'پیام‌ها',
+    'label'             => ' پیام‌رسان داخلی',
+    'plural_label'      => ' پیام‌رسان داخلی',
     'nav_group'         => 'محتوا و ارتباطات',
     'nav_badge_tooltip' => 'پیام‌های خوانده‌نشده',
 

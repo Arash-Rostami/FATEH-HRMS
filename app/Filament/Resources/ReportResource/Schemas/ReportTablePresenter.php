@@ -119,7 +119,7 @@ class ReportTablePresenter
     public static function id(): TextColumn
     {
         return TextColumn::make('id')
-            ->label('ID')
+            ->label(__('resources/report/strings.table.id'))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

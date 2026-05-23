@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SuggestionResource\Exports\SuggestionExporter;
+use App\Filament\Resources\SuggestionResource\RelationManagers\ReviewsRelationManager;
 use App\Filament\Resources\SuggestionResource\Pages\{CreateSuggestion, EditSuggestion, ListSuggestions, ViewSuggestion};
 use App\Filament\Resources\SuggestionResource\Schemas\{SuggestionFormPresenter,
     SuggestionInfolistPresenter,
@@ -251,5 +252,12 @@ class SuggestionResource extends Resource
             ->emptyStateIcon('heroicon-o-light-bulb')
             ->defaultSort('created_at', 'desc')
             ->striped();
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ReviewsRelationManager::class,
+        ];
     }
 }

@@ -1,11 +1,12 @@
 <?php
 
 return [
-    'label' => 'تست انرژی',
-    'plural_label' => 'تست‌های انرژی',
+    'label' => 'پرسشنامه انرژی',
+    'plural_label' => 'پرسشنامه انرژی',
     'nav_group'    => 'سیستم‌ها و ابزارها',
 
     'fields' => [
+        'id' => 'شناسه',
         'user' => 'کاربر',
         'overall_score' => 'امتیاز کلی',
         'mind_score' => '🧠ذهن ',

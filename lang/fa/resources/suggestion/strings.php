@@ -2,7 +2,7 @@
 
 return [
     'label'        => 'پیشنهاد',
-    'plural_label' => 'پیشنهادها',
+    'plural_label' => 'پیشنهادات',
     'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [

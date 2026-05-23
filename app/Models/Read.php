@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Read extends Model
 {
@@ -33,7 +34,7 @@ class Read extends Model
             ->count();
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

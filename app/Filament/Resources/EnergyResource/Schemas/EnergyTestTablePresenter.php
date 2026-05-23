@@ -66,7 +66,7 @@ class EnergyTestTablePresenter
     public static function id(): TextColumn
     {
         return TextColumn::make('id')
-            ->label('ID')
+            ->label(__('resources/energy/strings.fields.id'))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

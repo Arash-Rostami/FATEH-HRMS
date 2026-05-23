@@ -122,6 +122,7 @@ class SuggestionTablePresenter
                 $record->id,
             ))
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
             ->badge()
             ->color('gray')
             ->copyable()

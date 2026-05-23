@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label'         => 'سوال متداول',
-    'plural_label'  => 'سوالات متداول',
+    'label'         => 'پرسش متداول',
+    'plural_label'  => 'پرسشهای متداول',
     'nav_group'         => 'محتوا و ارتباطات',
     'no_department' => 'بدون واحد',
 

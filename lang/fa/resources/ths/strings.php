@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'label'        => 'تیکت',
-    'plural_label' => 'تیکت‌ها',
+    'label'        => ' تیکت',
+    'plural_label' => ' تیکت ها',
     'nav_group'    => 'سیستم‌ها و ابزارها',
 
     'fields' => [

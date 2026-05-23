@@ -25,6 +25,7 @@ class CredentialRelationManager extends RelationManager
             Section::make(__('resources/credential/strings.form.section_main'))
                 ->icon('heroicon-o-key')
                 ->schema([
+                    CredentialTablePresenter::id(),
                     CredentialFormPresenter::appName(),
                     CredentialFormPresenter::username(),
                     CredentialFormPresenter::password(),

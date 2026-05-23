@@ -25,7 +25,7 @@ class TaskResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Task::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-view-columns';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

@@ -24,7 +24,7 @@ class ThsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ticket::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-ticket';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-lifebuoy';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
