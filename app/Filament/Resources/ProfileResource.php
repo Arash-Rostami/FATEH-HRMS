@@ -309,7 +309,7 @@ class ProfileResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->striped()
             ->groupedBulkActions(self::bulkActions(ProfileExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-identification')
             ->defaultSort('id', 'desc');
     }
 }

@@ -182,7 +182,7 @@ class AuthorityResource extends Resource
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(AuthorityExporter::class))
-            ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateIcon('heroicon-o-shield-check')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }

@@ -25,7 +25,7 @@ class TaskResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Task::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-view-columns';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -176,7 +176,7 @@ class TaskResource extends Resource
                 self::deleteAction()->visible(fn($record) => !$record->trashed()),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(TaskExporter::class))
-            ->emptyStateIcon('heroicon-o-clipboard-document-list')
+            ->emptyStateIcon('heroicon-o-view-columns')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }

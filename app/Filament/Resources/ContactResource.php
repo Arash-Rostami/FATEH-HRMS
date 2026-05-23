@@ -26,7 +26,7 @@ class ContactResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Message::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?int $navigationSort = 7;
 
     public static function canCreate(): bool
@@ -38,7 +38,7 @@ class ContactResource extends Resource
     {
         return $schema->components([
             Section::make(__('resources/contact/strings.form.section_meta'))
-                ->icon('heroicon-o-users')
+                ->icon('heroicon-o-chat-bubble-left-right')
                 ->schema([
                     ContactFormPresenter::sender(),
                     ContactFormPresenter::recipient(),
@@ -173,7 +173,7 @@ class ContactResource extends Resource
                 self::deleteAction()->visible(fn($record) => !$record->trashed()),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ContactExporter::class))
-            ->emptyStateIcon('heroicon-o-chat-bubble-left-ellipsis')
+            ->emptyStateIcon('heroicon-o-chat-bubble-left-right')
             ->defaultSort('created_at', 'desc')
             ->striped();
     }
