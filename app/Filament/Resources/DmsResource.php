@@ -25,7 +25,7 @@ class DmsResource extends Resource
 
     protected static ?string $model = DMS::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder-open';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 16;
 
     public static function form(Schema $schema): Schema
     {
@@ -87,7 +87,7 @@ class DmsResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/dms/strings.label');
+        return 'مدیریت اسناد';
     }
 
     public static function getNavigationGroup(): ?string
@@ -106,7 +106,7 @@ class DmsResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/dms/strings.plural_label');
+        return 'مدیریت اسناد';
     }
 
     public static function infolist(Schema $schema): Schema

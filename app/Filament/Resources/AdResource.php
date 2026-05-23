@@ -32,7 +32,7 @@ class AdResource extends Resource
 
     protected static ?string $model = Ad::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-briefcase';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 12;
 
     public static function form(Schema $schema): Schema
     {
@@ -96,7 +96,7 @@ class AdResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/ad/strings.label');
+        return 'فرصت‌های شغلی';
     }
 
     public static function getNavigationGroup(): ?string
@@ -115,7 +115,7 @@ class AdResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/ad/strings.plural_label');
+        return 'فرصت‌های شغلی';
     }
 
     public static function infolist(Schema $schema): Schema

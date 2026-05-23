@@ -28,7 +28,7 @@ class OnboardingResource extends Resource
 
     protected static ?string $model = Onboarding::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {
@@ -105,7 +105,7 @@ class OnboardingResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/onboarding/strings.label');
+        return 'آنبوردینگ';
     }
 
     public static function getNavigationGroup(): ?string
@@ -124,7 +124,7 @@ class OnboardingResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/onboarding/strings.plural_label');
+        return 'آنبوردینگ';
     }
 
     public static function infolist(Schema $schema): Schema

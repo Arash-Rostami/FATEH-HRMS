@@ -25,7 +25,7 @@ class ThsResource extends Resource
 
     protected static ?string $model = Ticket::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-lifebuoy';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 17;
 
     public static function form(Schema $schema): Schema
     {
@@ -117,7 +117,7 @@ class ThsResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/ths/strings.label');
+        return 'سیستم تیکت';
     }
 
     public static function getNavigationGroup(): ?string
@@ -136,7 +136,7 @@ class ThsResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/ths/strings.plural_label');
+        return 'سیستم تیکت';
     }
 
     public static function infolist(Schema $schema): Schema

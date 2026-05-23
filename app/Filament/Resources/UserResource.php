@@ -31,7 +31,7 @@ class UserResource extends Resource
 
     protected static ?string $model = User::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Schema $schema): Schema
     {
@@ -104,7 +104,7 @@ class UserResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/user/strings.navigation.singular');
+        return 'کاربران';
     }
 
     public static function getNavigationGroup(): ?string
@@ -123,7 +123,7 @@ class UserResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/user/strings.navigation.plural');
+        return 'کاربران';
     }
 
     public static function getRelations(): array

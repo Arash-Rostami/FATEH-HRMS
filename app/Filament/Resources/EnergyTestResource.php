@@ -22,7 +22,7 @@ class EnergyTestResource extends Resource
 
     protected static ?string $model = EnergyTest::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-bolt';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 21;
 
     public static function canCreate(): bool
     {
@@ -59,7 +59,7 @@ class EnergyTestResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/energy/strings.label');
+        return 'پرسشنامه انرژی';
     }
 
 
@@ -78,7 +78,7 @@ class EnergyTestResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/energy/strings.plural_label');
+        return 'پرسشنامه انرژی';
     }
 
 

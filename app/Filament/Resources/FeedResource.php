@@ -82,7 +82,7 @@ class FeedResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/feed/strings.label');
+        return 'اخبار و فیدها';
     }
 
     public static function getNavigationGroup(): ?string
@@ -101,7 +101,7 @@ class FeedResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/feed/strings.plural_label');
+        return 'اخبار و فیدها';
     }
 
     public static function getRelations(): array

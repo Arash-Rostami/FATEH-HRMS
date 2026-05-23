@@ -27,7 +27,7 @@ class ContactResource extends Resource
 
     protected static ?string $model = Message::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-right';
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 20;
 
     public static function canCreate(): bool
     {
@@ -87,7 +87,7 @@ class ContactResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/contact/strings.label');
+        return 'پیام‌رسان داخلی';
     }
 
     public static function getNavigationBadgeTooltip(): ?string
@@ -110,7 +110,7 @@ class ContactResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/contact/strings.plural_label');
+        return 'پیام‌رسان داخلی';
     }
 
     public static function infolist(Schema $schema): Schema

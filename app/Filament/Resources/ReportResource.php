@@ -111,7 +111,7 @@ class ReportResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/report/strings.label');
+        return 'گزارشات';
     }
 
     public static function getNavigationGroup(): ?string
@@ -130,7 +130,7 @@ class ReportResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/report/strings.plural_label');
+        return 'گزارشات';
     }
 
     public static function infolist(Schema $schema): Schema

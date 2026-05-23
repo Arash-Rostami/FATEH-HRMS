@@ -25,7 +25,7 @@ class AuthorityResource extends Resource
 
     protected static ?string $model = Authority::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 22;
 
     public static function form(Schema $schema): Schema
     {
@@ -93,7 +93,7 @@ class AuthorityResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/authority/strings.label');
+        return 'اختیارات';
     }
 
     public static function getNavigationGroup(): ?string
@@ -112,7 +112,7 @@ class AuthorityResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/authority/strings.plural_label');
+        return 'اختیارات';
     }
 
     public static function infolist(Schema $schema): Schema

@@ -22,7 +22,7 @@ class LinkResource extends Resource
 
     protected static ?string $model = Link::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-arrow-top-right-on-square';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {
@@ -95,7 +95,7 @@ class LinkResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/link/strings.label');
+        return 'لینک‌ها و ابزارها';
     }
 
     public static function getNavigationGroup(): ?string
@@ -114,7 +114,7 @@ class LinkResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/link/strings.plural_label');
+        return 'لینک‌ها و ابزارها';
     }
 
     public static function infolist(Schema $schema): Schema

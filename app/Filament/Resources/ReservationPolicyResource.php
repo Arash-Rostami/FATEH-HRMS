@@ -23,7 +23,7 @@ class ReservationPolicyResource extends Resource
 
     protected static ?string $model = ReservationPolicy::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 19;
 
     public static function canCreate(): bool
     {
@@ -78,7 +78,7 @@ class ReservationPolicyResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/policy/strings.label');
+        return 'قوانین رزرو';
     }
 
     public static function getNavigationGroup(): ?string
@@ -96,7 +96,7 @@ class ReservationPolicyResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/policy/strings.plural_label');
+        return 'قوانین رزرو';
     }
 
     public static function getRecordRouteKeyName(): ?string

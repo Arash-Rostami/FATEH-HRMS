@@ -28,7 +28,7 @@ class SuggestionResource extends Resource
 
     protected static ?string $model = Suggestion::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-light-bulb';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 14;
 
     public static function form(Schema $schema): Schema
     {
@@ -122,7 +122,7 @@ class SuggestionResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/suggestion/strings.label');
+        return 'پیشنهادات';
     }
 
     public static function getNavigationGroup(): ?string
@@ -142,7 +142,7 @@ class SuggestionResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/suggestion/strings.plural_label');
+        return 'پیشنهادات';
     }
 
     public static function infolist(Schema $schema): Schema

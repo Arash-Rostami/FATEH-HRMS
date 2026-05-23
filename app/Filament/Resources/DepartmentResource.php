@@ -30,7 +30,7 @@ class DepartmentResource extends Resource
 
     protected static ?string $model = Department::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 13;
 
     public static function form(Schema $schema): Schema
     {
@@ -86,7 +86,7 @@ class DepartmentResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/department/strings.label');
+        return 'دپارتمان‌ها';
     }
 
     public static function getNavigationGroup(): ?string
@@ -105,7 +105,7 @@ class DepartmentResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/department/strings.plural_label');
+        return 'دپارتمان‌ها';
     }
 
     public static function getRelations(): array

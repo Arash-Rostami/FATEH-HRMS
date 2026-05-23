@@ -75,7 +75,7 @@ class GalleryResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/gallery/strings.label');
+        return 'گالری تصاویر';
     }
 
     public static function getNavigationGroup(): ?string
@@ -94,7 +94,7 @@ class GalleryResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/gallery/strings.plural_label');
+        return 'گالری تصاویر';
     }
 
     public static function infolist(Schema $schema): Schema

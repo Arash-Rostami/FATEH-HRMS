@@ -29,7 +29,7 @@ class FAQResource extends Resource
 
     protected static ?string $model = FAQ::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {
@@ -99,7 +99,7 @@ class FAQResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/faq/strings.label');
+        return 'پرسش‌های متداول';
     }
 
     public static function getNavigationGroup(): ?string
@@ -118,7 +118,7 @@ class FAQResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/faq/strings.plural_label');
+        return 'پرسش‌های متداول';
     }
 
     public static function infolist(Schema $schema): Schema

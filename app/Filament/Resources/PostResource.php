@@ -88,7 +88,7 @@ class PostResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/post/strings.label');
+        return 'پست و اعلانات';
     }
 
     public static function getNavigationGroup(): ?string
@@ -107,7 +107,7 @@ class PostResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/post/strings.plural_label');
+        return 'پست و اعلانات';
     }
 
     public static function infolist(Schema $schema): Schema

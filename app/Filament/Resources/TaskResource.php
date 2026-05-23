@@ -26,7 +26,7 @@ class TaskResource extends Resource
 
     protected static ?string $model = Task::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-view-columns';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 15;
 
     public static function form(Schema $schema): Schema
     {
@@ -93,7 +93,7 @@ class TaskResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/task/strings.label');
+        return 'تسک بورد';
     }
 
 
@@ -113,7 +113,7 @@ class TaskResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/task/strings.plural_label');
+        return 'تسک بورد';
     }
 
     public static function infolist(Schema $schema): Schema

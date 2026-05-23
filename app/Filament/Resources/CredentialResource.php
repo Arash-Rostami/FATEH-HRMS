@@ -28,7 +28,7 @@ class CredentialResource extends Resource
 
     protected static ?string $model = Credential::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 11;
 
     public static function form(Schema $schema): Schema
     {
@@ -93,7 +93,7 @@ class CredentialResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/credential/strings.label');
+        return 'اطلاعات کاربری سازمانی';
     }
 
     public static function getNavigationGroup(): ?string
@@ -112,7 +112,7 @@ class CredentialResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/credential/strings.plural_label');
+        return 'اطلاعات کاربری سازمانی';
     }
 
     public static function infolist(Schema $schema): Schema

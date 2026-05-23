@@ -31,7 +31,7 @@ class PermissionResource extends Resource
 
     protected static ?string $model = Permission::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 23;
 
     public static function canViewAny(): bool
     {
@@ -108,7 +108,7 @@ class PermissionResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/permission/strings.label');
+        return 'سطوح دسترسی';
     }
 
     public static function getNavigationGroup(): ?string
@@ -127,7 +127,7 @@ class PermissionResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/permission/strings.plural_label');
+        return 'سطوح دسترسی';
     }
 
     public static function infolist(Schema $schema): Schema

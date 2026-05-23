@@ -97,7 +97,7 @@ class EventResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/event/strings.label');
+        return 'تقویم';
     }
 
     public static function getNavigationGroup(): ?string
@@ -116,7 +116,7 @@ class EventResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/event/strings.plural_label');
+        return 'تقویم';
     }
 
     public static function getRelations(): array

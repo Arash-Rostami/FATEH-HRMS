@@ -31,7 +31,7 @@ class ProfileResource extends Resource
 
     protected static ?string $model = Profile::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-identification';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 9;
 
     public static function form(Schema $schema): Schema
     {
@@ -161,7 +161,7 @@ class ProfileResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('resources/profile/strings.navigation.singular');
+        return 'وضعیت کاربر (پروفایل)';
     }
 
     public static function getNavigationGroup(): ?string
@@ -180,7 +180,7 @@ class ProfileResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/profile/strings.navigation.plural');
+        return 'وضعیت کاربر (پروفایل)';
     }
 
     public static function getRelations(): array
