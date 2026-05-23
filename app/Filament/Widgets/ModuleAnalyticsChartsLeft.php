@@ -51,10 +51,22 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
     public function getDescription(): ?string
     {
         return match ($this->activeModule()) {
-            'module_a' => 'این نمودار ارتباط بین میزان انرژی ثبت شده پرسنل و حجم وظایف باز در هر واحد را نشان می‌دهد. افت انرژی همزمان با افزایش وظایف، زنگ خطر فرسودگی است.',
-            'module_b' => 'نمایشگر زمان صرف شده برای حل تیکت‌ها بین واحدهای مختلف. رنگ‌های متمایل به قرمز نشان‌دهنده گلوگاه‌های ارتباطی و تاخیر در پاسخگویی است.',
-            'module_c' => 'نمایش وضعیت فعلی ایده‌ها و پیشنهادات ثبت شده در مراحل مختلف تایید تا اجرا، جهت بررسی سرعت چرخه نوآوری سازمان.',
-            'module_d' => 'نمایش ساعات اوج استفاده از منابع و اتاق‌های جلسات در طول شبانه‌روز، جهت بهینه‌سازی مصرف انرژی و زمان‌بندی بهتر.',
+            'module_a' => 'داده از پرسشنامه انرژی («امتیاز کلی» هر پرسنل در ۳۰ روز اخیر) و تسک بورد (وظایف در «وضعیت» «انجام نشده» یا «در حال انجام») به تفکیک «واحد» سازمانی کنار هم قرار می‌گیرد. '
+                . 'اگر واحدی هم‌زمان انرژی پایین و وظایف انباشته داشت، احتمال فرسودگی شغلی در آن واحد بالاست. '
+                . '(منابع: پرسشنامه انرژی ← «امتیاز کلی»، «تکمیل شده در» | تسک بورد ← «وضعیت»، «مسئول انجام» | پروفایل پرسنلی ← «واحد»)',
+
+            'module_b' => 'از سیستم تیکت، «تاریخ ثبت» و «تاریخ بسته‌شدن» هر تیکت کنار هم قرار می‌گیرند و اختلاف روزهای آن‌ها به تفکیک «واحد سازمانی» درخواست‌دهنده میانگین‌گیری می‌شود. '
+                . 'هر واحدی که عدد بالاتری دارد مدت بیشتری برای دریافت پشتیبانی منتظر مانده است. '
+                . '(منابع: سیستم تیکت ← «تاریخ ثبت»، «تاریخ بسته‌شدن»، «درخواست‌دهنده» | پروفایل پرسنلی ← «واحد»)',
+
+            'module_c' => 'از سیستم پیشنهادات، «مرحله» جاری هر پیشنهاد گرفته و تعداد پیشنهادات در هر مرحله شمارش می‌شود. '
+                . 'اگر بیشتر پیشنهادات در «منتظر تصمیم» گیر کرده باشند، گلوگاه تصمیم‌گیری در سطح مدیریت است. '
+                . '(منابع: پیشنهادها ← «مرحله»)',
+
+            'module_d' => 'از سیستم رزرو، ساعت «زمان شروع» هر رزرو (جای پارک، صندلی، خودرو یا جلسه) استخراج و تعداد رزروها در هر ساعت از شبانه‌روز جمع‌بندی می‌شود. '
+                . 'ساعات شلوغ نشان می‌دهد کجا باید منابع بیشتری اضافه یا زمان‌بندی‌ها پراکنده‌تر شوند. '
+                . '(منابع: رزروها ← «زمان شروع»)',
+
             default => 'لطفاً برای مشاهده آمار دقیق، یکی از ماژول‌های تحلیلی را انتخاب کنید.',
         };
     }
@@ -106,26 +118,26 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
         $query = DB::table('tickets')
             ->select(
                 'creator_dept.name as origin',
-                'assignee_dept.name as destination',
-                DB::raw('COALESCE(AVG(TIMESTAMPDIFF(HOUR, tickets.created_at, tickets.resolved_at)), 0) as avg_resolution_time')
+                DB::raw('ROUND(AVG(DATEDIFF(tickets.completion_date, DATE(tickets.created_at))), 1) as avg_resolution_days')
             )
             ->join('users as requester', 'tickets.requester_id', '=', 'requester.id')
             ->join('profiles as requester_profile', 'requester.id', '=', 'requester_profile.user_id')
             ->join('departments as creator_dept', 'requester_profile.department_id', '=', 'creator_dept.code')
-            ->join('users as assignee', 'tickets.assigned_to', '=', 'assignee.id')
-            ->join('profiles as assignee_profile', 'assignee.id', '=', 'assignee_profile.user_id')
-            ->join('departments as assignee_dept', 'assignee_profile.department_id', '=', 'assignee_dept.code')
-            ->whereNotNull('tickets.resolved_at')
-            ->groupBy('creator_dept.code', 'creator_dept.name', 'assignee_dept.code', 'assignee_dept.name');
+            ->whereNotNull('tickets.completion_date')
+            ->groupBy('creator_dept.code', 'creator_dept.name');
 
         if ($departmentCode) {
-            $query->where(function ($q) use ($departmentCode) {
-                $q->where('creator_dept.code', $departmentCode)
-                    ->orWhere('assignee_dept.code', $departmentCode);
-            });
+            $query->where('creator_dept.code', $departmentCode);
         }
 
-        return $query->get()->toArray();
+        $results = $query->get();
+
+        return [
+            'datasets' => [
+                ['label' => 'میانگین روزهای رفع تیکت', 'data' => $results->pluck('avg_resolution_days')->toArray(), 'backgroundColor' => '#ef4444'],
+            ],
+            'labels' => $results->pluck('origin')->toArray(),
+        ];
     }
 
     #[Computed(seconds: 300, cache: true)]
@@ -206,6 +218,7 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
 
         return match ($module) {
             'module_a' => $this->getModuleAData($dept),
+            'module_b' => $this->getModuleBData($dept),
             'module_c' => $this->getModuleCData($dept),
             'module_d' => $this->getModuleDData($dept),
             default => ['datasets' => [], 'labels' => []],
@@ -229,6 +242,12 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
         ];
 
         $module = $this->activeModule();
+
+        if ($module === 'module_b') {
+            $baseOptions['indexAxis'] = 'y';
+            $baseOptions['scales']['x']['beginAtZero'] = true;
+            return $baseOptions;
+        }
 
         if ($module === 'module_c') {
             $baseOptions['indexAxis'] = 'y';

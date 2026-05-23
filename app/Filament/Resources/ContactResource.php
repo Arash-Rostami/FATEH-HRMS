@@ -26,7 +26,7 @@ class ContactResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Message::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 7;
 
     public static function canCreate(): bool

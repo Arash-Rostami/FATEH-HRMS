@@ -27,7 +27,7 @@ class OnboardingResource extends Resource
     use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Onboarding::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-academic-cap';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema

@@ -176,7 +176,7 @@ export default class FilamentMenuManager {
             .title('میانبرها')
             .body(`
                 <ul style="list-style-type: disc; padding-right: 20px; margin-top: 5px;">
-                    <li>? راهنما</li>
+                    <li>? میانبرها</li>
                     <li>/ جستجو</li>
                     <li>⌘S ذخیره فرم</li>
                     <li>F11 تمام‌صفحه</li>

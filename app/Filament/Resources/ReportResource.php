@@ -29,7 +29,7 @@ class ReportResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
-    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-document-text';
+    protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema

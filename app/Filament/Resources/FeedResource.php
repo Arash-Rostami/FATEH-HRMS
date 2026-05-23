@@ -24,7 +24,7 @@ class FeedResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Feed::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-newspaper';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-rss';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

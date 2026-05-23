@@ -45,7 +45,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
                     'module_f' => 'ترکیب جمعیتی و وضعیت اشتغال',
                     'module_g' => 'روند تعاملات و تولید محتوا',
                     'module_h' => 'تراکم گزارشات و نظارت پذیری',
-                    'module_i' => 'قیف جذب و آنبوردینگ نیروها',
+                    'module_i' => 'توزیع سنوات خدمت کارکنان',
                 ]),
         ]);
     }
@@ -53,11 +53,26 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     public function getDescription(): ?string
     {
         return match ($this->activeModule()) {
-            'module_e' => 'مقایسه حجم تیکت‌های باز (درخواست‌ها) و وظایف در حال انجام به تفکیک هر واحد، جهت شناسایی واحدهای دارای بار کاری نامتوازن.',
-            'module_f' => 'بررسی ساختار جمعیتی پرسنل شامل جنسیت و وضعیت قراردادها جهت تصمیم‌گیری بهتر در سیاست‌های منابع انسانی.',
-            'module_g' => 'روند انتشار پست‌ها و اخبار در ۳۰ روز گذشته که نشان‌دهنده میزان پویایی و ارتباطات داخلی سازمان است.',
-            'module_h' => 'نسبت کاربران فعال به تعداد گزارشات ثبت شده در هر واحد، که نشانگر سطح قانون‌مداری و شفافیت عملکردی است.',
-            'module_i' => 'مقایسه تعداد آگهی‌های استخدامی فعال با تعداد پرونده‌های در جریان آنبوردینگ، جهت سنجش سرعت فرآیند جذب استعدادها.',
+            'module_e' => 'از تسک بورد (وظایف باز «مسئول انجام» هر کارمند) و سیستم تیکت (تیکت‌های باز «مسئول رسیدگی» هر کارمند) داده گرفته و بر اساس «واحد» سازمانی آن کارمند گروه‌بندی می‌شود. '
+                . 'واحدی که در هر دو ستون عدد بالایی دارد زیر بار سنگین کار است و نیاز به توجه فوری دارد. '
+                . '(منابع: تسک بورد ← «وضعیت»، «مسئول انجام» | تیکت‌ها ← «وضعیت»، «مسئول رسیدگی» | پروفایل پرسنلی ← «واحد»)',
+
+            'module_f' => 'از پروفایل پرسنلی، «جنسیت» و «وضعیت استخدام» کنار هم گروه‌بندی می‌شوند. '
+                . 'تصویری واقعی از ترکیب نیروی کار می‌دهد که پایه تصمیم‌گیری برای سیاست‌های استخدام و تنوع است. '
+                . '(منابع: پروفایل پرسنلی ← «جنسیت»، «وضعیت استخدام»)',
+
+            'module_g' => 'از ماژول پست و اعلانات، «تاریخ انتشار» هر پست گرفته و تعداد پست‌های روزانه در ۳۰ روز گذشته نمایش داده می‌شود. روزهایی که هیچ پستی نبوده صفر نشان می‌دهد. '
+                . 'کاهش ناگهانی یعنی ارتباطات داخلی سازمان کند شده است. '
+                . '(منابع: پست و اعلانات ← «تاریخ انتشار»)',
+
+            'module_h' => 'از پروفایل پرسنلی تعداد کارکنان هر «واحد» و از ماژول گزارشات تعداد گزارش‌های ثبت‌شده توسط «کاربر» همان واحد گرفته می‌شود. '
+                . 'واحدی که با وجود پرسنل زیاد گزارش کمی دارد از نظر شفافیت و مستندسازی عملکرد ضعیف است. '
+                . '(منابع: پروفایل پرسنلی ← «واحد» | گزارش‌ها ← «کاربر»، «واحد سازمانی»)',
+
+            'module_i' => 'از پروفایل پرسنلی، «تاریخ شروع» هر کارمندی که «وضعیت استخدام» او خاتمه‌یافته نیست گرفته و سنوات خدمت محاسبه می‌شود، سپس در پنج دسته قرار می‌گیرد: کمتر از ۱ سال، ۱ تا ۳، ۳ تا ۵، ۵ تا ۱۰، و بیش از ۱۰ سال. '
+                . 'اگر بیشتر نیرو در دسته‌های اول باشند دانش سازمانی شکننده است و ریسک خروج بالاست. '
+                . '(منابع: پروفایل پرسنلی ← «تاریخ شروع»، «وضعیت استخدام»)',
+
             default => 'لطفاً برای مشاهده آمار دقیق، یکی از ماژول‌های تحلیلی را انتخاب کنید.',
         };
     }
@@ -127,22 +142,24 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     #[Computed(seconds: 300, cache: true)]
     public function getModuleGData(string $departmentCode): array
     {
+        $startDate = now()->subDays(29)->startOfDay();
         $results = DB::table('posts')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(id) as count'))
+            ->where('created_at', '>=', $startDate)
             ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy(DB::raw('DATE(created_at)'))
-            ->limit(30)
-            ->get();
+            ->get()
+            ->keyBy('date');
 
         $labels = [];
         $data = [];
-        foreach ($results as $row) {
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
             try {
-                $labels[] = Jalalian::fromCarbon(Carbon::parse($row->date))->format('%m/%d');
+                $labels[] = Jalalian::fromCarbon(Carbon::parse($date))->format('%m/%d');
             } catch (\Exception $e) {
-                $labels[] = $row->date;
+                $labels[] = $date;
             }
-            $data[] = $row->count;
+            $data[] = $results->get($date)?->count ?? 0;
         }
 
         return [
@@ -182,14 +199,31 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     #[Computed(seconds: 300, cache: true)]
     public function getModuleIData(string $departmentCode): array
     {
-        $adsCount = DB::table('ads')->where('active', 1)->count();
-        $onboardingCount = DB::table('onboardings')->where('is_active', 1)->count();
+        $query = DB::table('profiles')
+            ->whereNotNull('start_date')
+            ->whereNotIn('employment_status', ['terminated']);
+
+        if ($departmentCode) {
+            $query->where('department_id', $departmentCode);
+        }
+
+        $startDates = $query->pluck('start_date');
+
+        $buckets = ['کمتر از ۱ سال' => 0, '۱ تا ۳ سال' => 0, '۳ تا ۵ سال' => 0, '۵ تا ۱۰ سال' => 0, 'بیش از ۱۰ سال' => 0];
+        foreach ($startDates as $sd) {
+            $years = Carbon::parse($sd)->diffInYears(now());
+            if ($years < 1)       $buckets['کمتر از ۱ سال']++;
+            elseif ($years < 3)   $buckets['۱ تا ۳ سال']++;
+            elseif ($years < 5)   $buckets['۳ تا ۵ سال']++;
+            elseif ($years < 10)  $buckets['۵ تا ۱۰ سال']++;
+            else                  $buckets['بیش از ۱۰ سال']++;
+        }
 
         return [
             'datasets' => [
-                ['label' => 'تعداد', 'data' => [$adsCount, $onboardingCount], 'backgroundColor' => ['#3b82f6', '#f59e0b']],
+                ['label' => 'تعداد کارکنان', 'data' => array_values($buckets), 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']],
             ],
-            'labels' => ['آگهی‌های فعال', 'آنبوردینگ‌های در جریان'],
+            'labels' => array_keys($buckets),
         ];
     }
 
@@ -242,7 +276,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
             return $baseOptions;
         }
 
-        if ($module === 'module_f' || $module === 'module_h' || $module === 'module_i') {
+        if ($module === 'module_f' || $module === 'module_h') {
             unset($baseOptions['scales']);
             return $baseOptions;
         }
@@ -257,7 +291,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
             'module_f' => 'doughnut',
             'module_g' => 'line',
             'module_h' => 'radar',
-            'module_i' => 'pie',
+            'module_i' => 'bar',
             default => 'bar',
         };
     }

@@ -24,7 +24,7 @@ class PostResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Post::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-document-text';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

@@ -24,7 +24,7 @@ class DmsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = DMS::class;
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
