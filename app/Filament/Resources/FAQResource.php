@@ -50,6 +50,7 @@ class FAQResource extends Resource
                 ->description(__('resources/faq/strings.form.section_content_description'))
                 ->schema([
                     FAQFormPresenter::question(),
+                    FAQFormPresenter::divider(),
                     FAQFormPresenter::answer(),
                 ])
                 ->columns(1)

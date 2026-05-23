@@ -6,6 +6,7 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use App\Models\Department;
 use App\Models\User;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
@@ -17,12 +18,15 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class DmsFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function code(): TextInput
     {
         return TextInput::make('code')
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
+            ->helperText(__('resources/dms/strings.hints.code'))
             ->validationMessages([
                 'required' => __('resources/dms/strings.validation.code.required'),
                 'max' => __('resources/dms/strings.validation.code.max_length'),
@@ -56,7 +60,8 @@ class DmsFormPresenter
                 'required' => __('resources/dms/strings.validation.file.required'),
                 'max' => __('resources/dms/strings.validation.file.max_size'),
             ])
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.hints.file'));
     }
 
     public static function owners(): Select
@@ -75,6 +80,7 @@ class DmsFormPresenter
                 $set('owners_preview_display', $preview);
             })
             ->required()
+            ->helperText(__('resources/dms/strings.hints.owners'))
             ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required')]);
     }
 
@@ -90,7 +96,8 @@ class DmsFormPresenter
             )
             ->rows(5)
             ->placeholder(__('resources/dms/strings.fields.owners_preview_placeholder'))
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.hints.owners_preview'));
     }
 
     public static function revision(): Textarea
@@ -104,7 +111,8 @@ class DmsFormPresenter
             ->validationMessages([
                 'max' => __('resources/dms/strings.validation.revision.max_length'),
             ])
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.hints.revision'));
     }
 
     public static function status(): Select
@@ -114,6 +122,7 @@ class DmsFormPresenter
             ->options(DocumentStatus::class)
             ->required()
             ->default(DocumentStatus::Live->value)
+            ->helperText(__('resources/dms/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/dms/strings.validation.status.required'),
             ]);
@@ -125,6 +134,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.title'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/dms/strings.hints.title'))
             ->validationMessages([
                 'required' => __('resources/dms/strings.validation.title.required'),
                 'max' => __('resources/dms/strings.validation.title.max_length'),
@@ -149,6 +159,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
+            ->helperText(__('resources/dms/strings.hints.version'))
             ->validationMessages([
                 'required' => __('resources/dms/strings.validation.version.required'),
                 'max' => __('resources/dms/strings.validation.version.max_length'),

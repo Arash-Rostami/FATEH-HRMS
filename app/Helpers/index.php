@@ -4,9 +4,7 @@
 use App\Enums\PresenceStatus;
 use App\Services\GreetingService;
 use App\Services\QuoteService;
-use Filament\Infolists\Components\TextEntry;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Morilog\Jalali\Jalalian;
 
@@ -192,17 +190,5 @@ if (!function_exists('toJalaliSmart')) {
         return $carbon->format('H:i') === '00:00'
             ? toJalali($carbon, 'Y/m/d')
             : toJalali($carbon, 'Y/m/d H:i');
-    }
-}
-
-if (!function_exists('divider')) {
-    function divider(): TextEntry
-    {
-        return TextEntry::make('divider')
-            ->hiddenLabel()
-            ->columnSpanFull()
-            ->state(new HtmlString(
-                '<div class="w-2/3 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent opacity-80 mx-auto"></div>'
-            ));
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Models\User;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -17,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Set;
 
 class ReservationFormPresenter
 {
+    use FilamentFormDivider;
     public static function cancelReason(): Select
     {
         return Select::make('cancel_reason')
@@ -34,6 +36,7 @@ class ReservationFormPresenter
                     ['cancelled_user', 'cancelled_admin']
                 );
             })
+            ->helperText(__('resources/reservation/strings.hints.cancel_reason'))
             ->validationMessages([
                 'in' => __('resources/reservation/strings.validation.cancel_reason_in'),
             ]);
@@ -49,6 +52,7 @@ class ReservationFormPresenter
             ->locale('fa')
             ->after('start_time')
             ->visible(fn(Get $get) => !$get('is_full_day'))
+            ->helperText(__('resources/reservation/strings.hints.end_time'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.end_time_required'),
                 'after' => __('resources/reservation/strings.validation.end_after_start'),
@@ -62,6 +66,7 @@ class ReservationFormPresenter
             ->label(__('resources/reservation/strings.fields.is_full_day'))
             ->onColor('success')
             ->columnSpanFull()
+            ->helperText(__('resources/reservation/strings.hints.is_full_day'))
             ->live();
     }
 
@@ -83,6 +88,7 @@ class ReservationFormPresenter
             ->afterStateUpdated(fn(Set $set, bool $state) => $state && $set('recur_pattern', 'daily'))
             ->live()
             ->columnSpanFull()
+            ->helperText(__('resources/reservation/strings.hints.is_recurring'))
             ->default(false);
     }
 
@@ -113,6 +119,7 @@ class ReservationFormPresenter
             ->dehydrated(false)
             ->visible(fn(Get $get) => (bool)$get('is_recurring'))
             ->required(fn(Get $get) => (bool)$get('is_recurring'))
+            ->helperText(__('resources/reservation/strings.hints.recur_count'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.recur_count_required'),
                 'numeric' => __('resources/reservation/strings.validation.recur_count_numeric'),
@@ -131,6 +138,7 @@ class ReservationFormPresenter
             ->dehydrated(false)
             ->visible(fn(Get $get) => (bool)$get('is_recurring'))
             ->required(fn(Get $get) => (bool)$get('is_recurring'))
+            ->helperText(__('resources/reservation/strings.hints.recur_pattern'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.recur_pattern_required'),
                 'in' => __('resources/reservation/strings.validation.recur_pattern_in'),
@@ -145,6 +153,7 @@ class ReservationFormPresenter
             ->searchable()
             ->preload()
             ->required()
+            ->helperText(__('resources/reservation/strings.hints.resource_id'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.resource_required'),
                 'in' => __('resources/reservation/strings.validation.resource_in'),
@@ -160,6 +169,7 @@ class ReservationFormPresenter
             ->native(false)
             ->locale('fa')
             ->visible(fn(Get $get) => !$get('is_full_day'))
+            ->helperText(__('resources/reservation/strings.hints.start_time'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.start_time_required'),
                 'date' => __('resources/reservation/strings.validation.start_time_date'),
@@ -174,6 +184,7 @@ class ReservationFormPresenter
             ->default('active')
             ->required()
             ->live()
+            ->helperText(__('resources/reservation/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.status_required'),
                 'in' => __('resources/reservation/strings.validation.status_in'),
@@ -188,6 +199,7 @@ class ReservationFormPresenter
             ->searchable()
             ->preload()
             ->required()
+            ->helperText(__('resources/reservation/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/reservation/strings.validation.user_required'),
                 'in' => __('resources/reservation/strings.validation.user_in'),

@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\DepartmentResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 
 class DepartmentFormPresenter
 {
+    use FilamentFormDivider;
     public static function code(): TextInput
     {
         return TextInput::make('code')
@@ -15,6 +17,7 @@ class DepartmentFormPresenter
             ->maxLength(10)
             ->unique(ignoreRecord: true)
             ->alphaDash()
+            ->helperText(__('resources/department/strings.hints.code'))
             ->validationMessages([
                 'required' => __('resources/department/strings.validation.code_required'),
                 'max' => __('resources/department/strings.validation.code_max'),
@@ -29,7 +32,8 @@ class DepartmentFormPresenter
             ->label(__('resources/department/strings.fields.description'))
             ->nullable()
             ->rows(3)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/department/strings.hints.description'));
     }
 
     public static function name(): TextInput
@@ -38,6 +42,7 @@ class DepartmentFormPresenter
             ->label(__('resources/department/strings.fields.name'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/department/strings.hints.name'))
             ->validationMessages([
                 'required' => __('resources/department/strings.validation.name_required'),
                 'max' => __('resources/department/strings.validation.name_max'),

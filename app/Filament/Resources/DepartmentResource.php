@@ -43,6 +43,7 @@ class DepartmentResource extends Resource
                 ->schema([
                     DepartmentFormPresenter::code(),
                     DepartmentFormPresenter::name(),
+                    DepartmentFormPresenter::divider(),
                     DepartmentFormPresenter::description(),
                 ])
                 ->columnSpanFull()

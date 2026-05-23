@@ -38,7 +38,7 @@ class DmsResource extends Resource
                     DmsFormPresenter::code(),
                     DmsFormPresenter::version(),
                     DmsFormPresenter::status(),
-
+                    DmsFormPresenter::divider(),
                     DmsFormPresenter::file(),
                     DmsFormPresenter::revision(),
                 ])
@@ -49,6 +49,7 @@ class DmsResource extends Resource
                 ->schema([
                     DmsFormPresenter::owners(),
                     DmsFormPresenter::users(),
+                    DmsFormPresenter::divider(),
                     DmsFormPresenter::ownersPreview(),
                     DmsFormPresenter::extra(),
                 ])

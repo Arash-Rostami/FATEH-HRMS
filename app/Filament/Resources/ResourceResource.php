@@ -50,6 +50,7 @@ class ResourceResource extends Resource
                     ResourceFormPresenter::floor(),
                     ResourceFormPresenter::extension(),
                     ResourceFormPresenter::capacity(),
+                    ResourceFormPresenter::divider(),
                     ResourceFormPresenter::notes(),
                 ])
                 ->columns(2),

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ResourceResource\Schemas;
 
 use App\Enums\ResourceType;
 use App\Filament\Resources\ResourceResource\Enums\ResourceStatus;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,12 +13,15 @@ use Filament\Schemas\Components\Utilities\Get;
 
 class ResourceFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function capacity(): TextInput
     {
         return TextInput::make('metadata.capacity')
             ->label(__('resources/resource/strings.fields.capacity'))
             ->numeric()
             ->nullable()
+            ->helperText(__('resources/resource/strings.hints.capacity'))
             ->visible(fn(Get $get) => in_array($get('type'), ['meeting', 'car']))
             ->validationMessages([
                 'numeric' => __('resources/resource/strings.validation.capacity_numeric'),
@@ -30,6 +34,7 @@ class ResourceFormPresenter
             ->label(__('resources/resource/strings.fields.extension'))
             ->maxLength(255)
             ->nullable()
+            ->helperText(__('resources/resource/strings.hints.extension'))
             ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'meeting']))
             ->validationMessages([
                 'max' => __('resources/resource/strings.validation.extension_max'),
@@ -42,6 +47,7 @@ class ResourceFormPresenter
             ->label(__('resources/resource/strings.fields.floor'))
             ->maxLength(255)
             ->nullable()
+            ->helperText(__('resources/resource/strings.hints.floor'))
             ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'spot']))
             ->validationMessages([
                 'max' => __('resources/resource/strings.validation.floor_max'),
@@ -59,6 +65,7 @@ class ResourceFormPresenter
             ->disk('public')
             ->directory('resources')
             ->nullable()
+            ->helperText(__('resources/resource/strings.hints.image'))
             ->columnSpanFull()
             ->validationMessages([
                 'image' => __('resources/resource/strings.validation.image_image'),
@@ -71,6 +78,7 @@ class ResourceFormPresenter
             ->label(__('resources/resource/strings.fields.name'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/resource/strings.hints.name'))
             ->validationMessages([
                 'required' => __('resources/resource/strings.validation.name_required'),
                 'max' => __('resources/resource/strings.validation.name_max'),
@@ -84,6 +92,7 @@ class ResourceFormPresenter
             ->maxLength(1000)
             ->nullable()
             ->rows(2)
+            ->helperText(__('resources/resource/strings.hints.notes'))
             ->columnSpanFull()
             ->validationMessages([
                 'max' => __('resources/resource/strings.validation.notes_max'),
@@ -97,6 +106,7 @@ class ResourceFormPresenter
             ->options(ResourceStatus::class)
             ->default('active')
             ->required()
+            ->helperText(__('resources/resource/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/resource/strings.validation.status_required'),
                 'in' => __('resources/resource/strings.validation.status_in'),
@@ -110,6 +120,7 @@ class ResourceFormPresenter
             ->options(ResourceType::class)
             ->required()
             ->live()
+            ->helperText(__('resources/resource/strings.hints.type'))
             ->validationMessages([
                 'required' => __('resources/resource/strings.validation.type_required'),
                 'in' => __('resources/resource/strings.validation.type_in'),

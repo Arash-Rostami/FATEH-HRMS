@@ -49,6 +49,7 @@ class ThsResource extends Resource
                                     TicketFormPresenter::requestType(),
                                     TicketFormPresenter::requestArea(),
                                     TicketFormPresenter::priority(),
+                                    TicketFormPresenter::divider(),
                                     TicketFormPresenter::requestSubject(),
                                     TicketFormPresenter::description(),
                                     TicketFormPresenter::requesterFiles(),
@@ -75,6 +76,7 @@ class ThsResource extends Resource
                                 ->schema([
                                     TicketFormPresenter::effectiveness(),
                                     TicketFormPresenter::satisfactionScore(),
+                                    TicketFormPresenter::divider(),
                                     TicketFormPresenter::actionResult(),
                                     TicketFormPresenter::additionalNotes(),
                                     TicketFormPresenter::assigneeFiles(),

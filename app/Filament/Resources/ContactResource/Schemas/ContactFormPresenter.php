@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\ContactResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 
 class ContactFormPresenter
 {
+    use FilamentFormDivider;
     public static function body(): Textarea
     {
         return Textarea::make('body')
@@ -16,6 +18,7 @@ class ContactFormPresenter
             ->rows(5)
             ->maxLength(10000)
             ->columnSpanFull()
+            ->helperText(__('resources/contact/strings.hints.body'))
             ->validationMessages(['required' => __('resources/contact/strings.validation.body_required')]);
     }
 

@@ -34,6 +34,7 @@ class PostResource extends Resource
                 ->icon('heroicon-o-document-text')
                 ->schema([
                     PostFormPresenter::title(),
+                    PostFormPresenter::divider(),
                     PostFormPresenter::body(),
                 ])
                 ->columnSpan(2),
@@ -41,6 +42,7 @@ class PostResource extends Resource
                 ->icon('heroicon-o-user')
                 ->schema([
                     PostFormPresenter::userId(),
+                    PostFormPresenter::divider(),
                     PostFormPresenter::pinned(),
                     PostFormPresenter::image(),
                 ])

@@ -34,6 +34,7 @@ class EventResource extends Resource
                 ->icon('heroicon-o-document-text')
                 ->schema([
                     EventFormPresenter::title(),
+                    EventFormPresenter::divider(),
                     EventFormPresenter::description(),
                 ])
                 ->columns(1),

@@ -42,6 +42,7 @@ class FeedResource extends Resource
                 ->schema([
                     FeedFormPresenter::userId(),
                     FeedFormPresenter::category(),
+                    FeedFormPresenter::divider(),
                     FeedFormPresenter::pollOptions(),
                     FeedFormPresenter::mediaImages(),
                     FeedFormPresenter::mediaVideos(),

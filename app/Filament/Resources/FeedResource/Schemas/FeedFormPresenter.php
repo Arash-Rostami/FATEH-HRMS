@@ -4,6 +4,7 @@ namespace App\Filament\Resources\FeedResource\Schemas;
 
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Feed;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -17,6 +18,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class FeedFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function category(): Select
     {
         return Select::make('category')
@@ -24,6 +27,7 @@ class FeedFormPresenter
             ->options(FeedCategory::class)
             ->required()
             ->live()
+            ->helperText(__('resources/feed/strings.hints.category'))
             ->validationMessages([
                 'required' => __('resources/feed/strings.validation.category.required'),
             ]);
@@ -87,7 +91,8 @@ class FeedFormPresenter
             ->imagePreviewHeight('80')
             ->panelLayout('grid')
             ->reorderable()
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/feed/strings.hints.media_images'));
     }
 
     public static function mediaVideos(): FileUpload
@@ -114,7 +119,8 @@ class FeedFormPresenter
                 fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
             )
             ->columnSpanFull()
-            ->reorderable();
+            ->reorderable()
+            ->helperText(__('resources/feed/strings.hints.media_videos'));
     }
 
     public static function mergeMediaPaths(array $data): array
@@ -162,7 +168,8 @@ class FeedFormPresenter
             ->maxItems(10)
             ->addActionLabel(__('resources/feed/strings.actions.add_poll_option'))
             ->visible(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/feed/strings.hints.poll_options'));
     }
 
     public static function splitMediaPaths(array $data): array
@@ -189,6 +196,7 @@ class FeedFormPresenter
             ->searchable()
             ->preload()
             ->required()
+            ->helperText(__('resources/feed/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/feed/strings.validation.user_id.required'),
             ]);

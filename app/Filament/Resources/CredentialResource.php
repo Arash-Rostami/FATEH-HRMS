@@ -39,8 +39,10 @@ class CredentialResource extends Resource
                 ->schema([
                     CredentialFormPresenter::userId(),
                     CredentialFormPresenter::appName(),
+                    CredentialFormPresenter::divider(),
                     CredentialFormPresenter::username(),
                     CredentialFormPresenter::password(),
+                    CredentialFormPresenter::divider(),
                     CredentialFormPresenter::link(),
                     CredentialFormPresenter::note(),
                 ])

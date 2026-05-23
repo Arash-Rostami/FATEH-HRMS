@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PermissionResource\Schemas;
 
 use App\Models\Permission;
 use App\Models\User;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -11,6 +12,8 @@ use Filament\Forms\Components\Toggle;
 
 class PermissionFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function abilities(): Repeater
     {
         return Repeater::make('abilities')
@@ -41,7 +44,8 @@ class PermissionFormPresenter
             )
             ->collapsible()
             ->reorderable(false)
-            ->defaultItems(0);
+            ->defaultItems(0)
+            ->helperText(__('resources/permission/strings.hints.abilities'));
     }
 
     public static function excludedModules(): CheckboxList
@@ -51,7 +55,8 @@ class PermissionFormPresenter
             ->options(fn() => Permission::availableModules())
             ->columns(3)
             ->searchable()
-            ->bulkToggleable();
+            ->bulkToggleable()
+            ->helperText(__('resources/permission/strings.hints.excluded_modules'));
     }
 
     public static function isSuperAdmin(): Toggle
@@ -61,7 +66,8 @@ class PermissionFormPresenter
             ->onIcon('heroicon-m-shield-check')
             ->offIcon('heroicon-m-shield-exclamation')
             ->live()
-            ->default(false);
+            ->default(false)
+            ->helperText(__('resources/permission/strings.hints.is_super_admin'));
     }
 
     public static function user(): Select
@@ -73,6 +79,7 @@ class PermissionFormPresenter
             ->searchable()
             ->preload()
             ->unique(ignoreRecord: true)
+            ->helperText(__('resources/permission/strings.hints.user'))
             ->validationMessages([
                 'required' => __('resources/permission/strings.validation.user_required'),
                 'unique' => __('resources/permission/strings.validation.user_unique'),

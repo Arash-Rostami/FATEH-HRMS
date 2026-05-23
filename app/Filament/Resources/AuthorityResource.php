@@ -36,6 +36,7 @@ class AuthorityResource extends Resource
                     AuthorityFormPresenter::departmentId(),
                     AuthorityFormPresenter::userId(),
                     AuthorityFormPresenter::subDuty(),
+                    AuthorityFormPresenter::divider(),
                     AuthorityFormPresenter::duty(),
                 ])
                 ->columns(2),
@@ -45,6 +46,7 @@ class AuthorityResource extends Resource
                 ->schema([
                     AuthorityFormPresenter::executionProcedure(),
                     AuthorityFormPresenter::repeatFrequency(),
+                    AuthorityFormPresenter::divider(),
                     AuthorityFormPresenter::impactScore(),
                     AuthorityFormPresenter::proposedDelegation(),
                     AuthorityFormPresenter::approvedDelegation(),

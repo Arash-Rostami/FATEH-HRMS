@@ -56,9 +56,10 @@
         </div>
     </div>
 
-    {{-- CLOCK --}}
-    <div
-        x-data="{
+    @if(request()->is('*admin*'))
+        {{-- CLOCK --}}
+        <div
+            x-data="{
         hours: '۰۰',
         minutes: '۰۰',
         seconds: '۰۰',
@@ -78,43 +79,43 @@
             this.minutes = this.toPersian(String(now.getMinutes()).padStart(2, '0'));
         }
     }"
-        class="fixed left-2 flex items-stretch select-none overflow-hidden rounded-xl w-auto sm:w-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0 sm:flex-shrink-0"
-        dir="ltr">
+            class="fixed left-2 flex items-stretch select-none overflow-hidden rounded-xl w-auto sm:w-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0 sm:flex-shrink-0"
+            dir="ltr">
 
-        <div class="absolute inset-0 pointer-events-none opacity-[0.06] z-0"
-             style="background-image: radial-gradient(circle, var(--md-sys-color-primary) 1px, transparent 1px); background-size: 16px 16px;"></div>
+            <div class="absolute inset-0 pointer-events-none opacity-[0.06] z-0"
+                 style="background-image: radial-gradient(circle, var(--md-sys-color-primary) 1px, transparent 1px); background-size: 16px 16px;"></div>
 
-        <div class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px]">
+            <div class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px]">
         <span
             class="font-mono text-[13px] font-bold tracking-[0.05em] tabular-nums leading-none text-[var(--md-sys-color-on-primary-container)]"
             x-text="hours"></span>
-            <span
-                class="text-[8px] font-semibold tracking-[0.14em] uppercase text-[var(--md-sys-color-on-primary-container)]/45">ساعت</span>
-        </div>
+                <span
+                    class="text-[8px] font-semibold tracking-[0.14em] uppercase text-[var(--md-sys-color-on-primary-container)]/45">ساعت</span>
+            </div>
 
-        <div class="relative z-10 flex flex-col items-center justify-center gap-[3px] px-[1px] pb-[2px]">
-            <div
-                class="w-[2.5px] h-[2.5px] rounded-full bg-[var(--md-sys-color-primary)]/70 transition-opacity duration-75"
-                :class="tick ? 'opacity-100' : 'opacity-20'"></div>
-            <div
-                class="w-[2.5px] h-[2.5px] rounded-full bg-[var(--md-sys-color-primary)]/70 transition-opacity duration-75"
-                :class="tick ? 'opacity-100' : 'opacity-20'"></div>
-        </div>
+            <div class="relative z-10 flex flex-col items-center justify-center gap-[3px] px-[1px] pb-[2px]">
+                <div
+                    class="w-[2.5px] h-[2.5px] rounded-full bg-[var(--md-sys-color-primary)]/70 transition-opacity duration-75"
+                    :class="tick ? 'opacity-100' : 'opacity-20'"></div>
+                <div
+                    class="w-[2.5px] h-[2.5px] rounded-full bg-[var(--md-sys-color-primary)]/70 transition-opacity duration-75"
+                    :class="tick ? 'opacity-100' : 'opacity-20'"></div>
+            </div>
 
-        <div class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px]">
+            <div class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px]">
         <span
             class="font-mono text-[13px] font-bold tracking-[0.05em] tabular-nums leading-none text-[var(--md-sys-color-on-primary-container)]"
             x-text="minutes"></span>
-            <span
-                class="text-[8px] font-semibold tracking-[0.14em] uppercase text-[var(--md-sys-color-on-primary-container)]/45">دقیقه</span>
-        </div>
+                <span
+                    class="text-[8px] font-semibold tracking-[0.14em] uppercase text-[var(--md-sys-color-on-primary-container)]/45">دقیقه</span>
+            </div>
 
-        <div class="relative z-10 w-px self-stretch bg-[var(--md-sys-color-primary)]/[0.15]"></div>
+            <div class="relative z-10 w-px self-stretch bg-[var(--md-sys-color-primary)]/[0.15]"></div>
 
-        <div
-            class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px] bg-[var(--md-sys-color-primary)] min-w-[38px]">
-            <div class="relative h-[13px] w-full flex items-center justify-center overflow-hidden">
-                <template x-for="sec in [seconds]" :key="sec">
+            <div
+                class="relative z-10 flex flex-col items-center justify-center gap-[2px] px-[10px] py-[10px] bg-[var(--md-sys-color-primary)] min-w-[38px]">
+                <div class="relative h-[13px] w-full flex items-center justify-center overflow-hidden">
+                    <template x-for="sec in [seconds]" :key="sec">
                 <span
                     x-text="sec"
                     x-transition:enter="transition ease-[cubic-bezier(0.22,1,0.36,1)] duration-[180ms]"
@@ -122,10 +123,11 @@
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                     class="font-mono text-[13px] font-bold tracking-[0.05em] tabular-nums leading-none text-white absolute"
                 ></span>
-                </template>
+                    </template>
+                </div>
+                <span class="text-[8px] font-semibold tracking-[0.14em] uppercase text-white/50">ثانیه</span>
             </div>
-            <span class="text-[8px] font-semibold tracking-[0.14em] uppercase text-white/50">ثانیه</span>
         </div>
-    </div>
+    @endif
 
 </div>

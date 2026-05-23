@@ -6,6 +6,7 @@ use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -16,6 +17,7 @@ use Livewire\Component;
 
 class UserFormPresenter
 {
+    use FilamentFormDivider;
     public static function booking(): Repeater
     {
         return Repeater::make('booking')
@@ -72,7 +74,8 @@ class UserFormPresenter
                 $component->state(
                     $items->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all()
                 );
-            });
+            })
+            ->helperText(__('resources/user/strings.hints.booking'));
     }
 
     public static function email(): TextInput
@@ -83,6 +86,7 @@ class UserFormPresenter
             ->required()
             ->unique(ignoreRecord: true)
             ->maxLength(255)
+            ->helperText(__('resources/user/strings.hints.email'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.email_required'),
                 'unique' => __('resources/user/strings.form.email_unique'),
@@ -98,7 +102,8 @@ class UserFormPresenter
             ->valueLabel(__('resources/user/strings.form.extra_value'))
             ->columns(2)
             ->addActionLabel('افزودن ردیف')
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/user/strings.hints.extra'));
     }
 
     public static function maximum(): TextInput
@@ -111,6 +116,7 @@ class UserFormPresenter
             ->minValue(1)
             ->required()
             ->hintColor('warning')
+            ->helperText(__('resources/user/strings.hints.maximum'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.maximum_required'),
                 'min' => __('resources/user/strings.form.maximum_min'),
@@ -123,6 +129,7 @@ class UserFormPresenter
             ->label(__('resources/user/strings.form.name'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/user/strings.hints.name'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.name_required'),
                 'max' => __('resources/user/strings.form.name_max'),
@@ -140,6 +147,7 @@ class UserFormPresenter
             ->confirmed()
             ->visible(fn(string $operation): bool => $operation === 'create')
             ->dehydrated(fn(string $operation): bool => $operation === 'create')
+            ->helperText(__('resources/user/strings.hints.password'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.password_required'),
                 'min' => __('resources/user/strings.form.password_min'),
@@ -155,7 +163,8 @@ class UserFormPresenter
             ->revealable()
             ->required()
             ->visible(fn(string $operation): bool => $operation === 'create')
-            ->dehydrated(false);
+            ->dehydrated(false)
+            ->helperText(__('resources/user/strings.hints.password_confirmation'));
     }
 
     public static function presence(): Select
@@ -169,6 +178,7 @@ class UserFormPresenter
             ->default(PresenceStatus::Onsite->value)
             ->required()
             ->native(false)
+            ->helperText(__('resources/user/strings.hints.presence'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.presence_required'),
             ]);
@@ -182,6 +192,7 @@ class UserFormPresenter
             ->default(UserRole::User->value)
             ->required()
             ->native(false)
+            ->helperText(__('resources/user/strings.hints.role'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.role_required'),
             ]);
@@ -195,6 +206,7 @@ class UserFormPresenter
             ->default(UserStatus::Active->value)
             ->required()
             ->native(false)
+            ->helperText(__('resources/user/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.status_required'),
             ]);
@@ -208,6 +220,7 @@ class UserFormPresenter
             ->default(UserType::Employee->value)
             ->required()
             ->native(false)
+            ->helperText(__('resources/user/strings.hints.type'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.type_required'),
             ]);

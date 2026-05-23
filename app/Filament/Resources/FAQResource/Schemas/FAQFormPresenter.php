@@ -4,6 +4,7 @@ namespace App\Filament\Resources\FAQResource\Schemas;
 
 use App\Models\Department;
 use App\Models\FAQ;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 
 class FAQFormPresenter
 {
+    use FilamentFormDivider;
 
     public static function answer(): RichEditor
     {
@@ -74,6 +76,7 @@ class FAQFormPresenter
             ->createOptionUsing(fn(array $data): string => $data['category'])
             ->extraFieldWrapperAttributes(['class' => 'no-shell'])
             ->required()
+            ->helperText(__('resources/faq/strings.hints.category'))
             ->validationMessages([
                 'required' => __('resources/faq/strings.validation.category_required'),
             ]);
@@ -85,7 +88,8 @@ class FAQFormPresenter
             ->label(__('resources/faq/strings.fields.department'))
             ->searchable()
             ->options(fn() => Department::getCachedOptions()->toArray())
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/faq/strings.hints.department_id'));
     }
 
 
@@ -110,6 +114,7 @@ class FAQFormPresenter
             ->floatingToolbars([
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
+            ->helperText(__('resources/faq/strings.hints.question'))
             ->validationMessages([
                 'required' => __('resources/faq/strings.validation.question_required'),
                 'max' => __('resources/faq/strings.validation.question_max_length', ['length' => 500]),

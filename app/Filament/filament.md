@@ -962,3 +962,504 @@ Section::make()->schema([
 - The design must be **100% technically optimized**, not just conventionally uniform.
 - Table views stay intentionally sparse. The infolist is the primary place for complete record inspection.
 - **The primary language of the entire app — including all Filament admin panel inputs, labels, messages, notifications, and validation messages — is Farsi (Persian). Direction is RTL.**
+
+---
+
+## Shared Traits — Additional (Undocumented above)
+
+### 4) `FilamentFilters` trait
+
+Located at `app/Traits/FilamentFilters.php`. Applied on every resource alongside `FilamentActions`.
+
+```php
+use FilamentActions, FilamentFilters, AuthorizesByPermission;
+```
+
+Provides the shared `createdAtFilter()` method — a date-range filter with Persian Jalali date pickers that all resources use in their `->filters([])` table call.
+
+```php
+public static function createdAtFilter(): Filter
+{
+    return Filter::make('created_at')
+        ->label(__('resources/general/strings.filters.date_range'))
+        ->schema([
+            Grid::make(2)->schema([
+                DatePicker::make('from')
+                    ->native(false)
+                    ->locale('fa')
+                    ->label(__('resources/general/strings.filters.date_from')),
+                DatePicker::make('until')
+                    ->native(false)
+                    ->locale('fa')
+                    ->label(__('resources/general/strings.filters.date_until')),
+            ])
+        ])
+        ->query(fn(Builder $query, array $data) => $query
+            ->when($data['from'],  fn($q) => $q->whereDate('created_at', '>=', $data['from']))
+            ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
+        ->indicateUsing(function (array $data): array {
+            $indicators = [];
+            if ($data['from'])  $indicators[] = __('...date_from')  . ': ' . $data['from'];
+            if ($data['until']) $indicators[] = __('...date_until') . ': ' . $data['until'];
+            return $indicators;
+        });
+}
+```
+
+**Rules:**
+- Always the last filter in the list.
+- `->native(false)` is mandatory — forces the custom Jalali picker UI.
+- `->locale('fa')` activates Persian calendar.
+- `indicateUsing` must return human-readable active-filter chips so users can see the active range at a glance.
+
+---
+
+### 5) `AuthorizesByPermission` trait
+
+Located at `app/Traits/AuthorizesByPermission.php`. Applied on every resource. This is the **entire access control system** for the admin panel.
+
+```php
+trait AuthorizesByPermission
+{
+    public static function canCreate(): bool          { return static::permits('create'); }
+    public static function canEdit(Model $r): bool    { return static::permits('edit'); }
+    public static function canView(Model $r): bool    { return static::permits('view'); }
+    public static function canDelete(Model $r): bool  { return static::permits('delete'); }
+    public static function canViewAny(): bool          { return static::permits('view'); }
+    // canForceDelete, canRestore follow the same pattern
+
+    public static function moduleKey(): string
+    {
+        $base    = class_basename(static::class);
+        $english = Str::endsWith($base, 'Resource') ? Str::before($base, 'Resource') : $base;
+        return Str::snake($english);
+    }
+
+    protected static function permits(string $action): bool
+    {
+        $user = Auth::user();
+        if (!$user) return false;
+        return (bool) Permission::forUser($user->id)?->can(static::moduleKey(), $action);
+    }
+}
+```
+
+**Module key derivation (automatic):**
+- `UserResource` → `'user'`
+- `ThsResource` → `'ths'`
+- `OnboardingResource` → `'onboarding'`
+
+**Hard override pattern:** When a resource needs special-case authorization (e.g., super-admin-only), override `canViewAny()` directly in the resource:
+
+```php
+// PermissionResource.php
+public static function canViewAny(): bool
+{
+    return (bool) Auth::user()?->is_super_admin;
+}
+```
+
+This bypasses `permits()` entirely for that one check while other `can*` methods still flow through the trait.
+
+---
+
+## Resource-local Enums
+
+Beyond global enums in `app/Enums/`, each resource that models domain-specific states has an `Enums/` subfolder:
+
+```
+UserResource/Enums/UserRole.php
+UserResource/Enums/UserStatus.php
+UserResource/Enums/UserType.php
+FeedResource/Enums/FeedCategory.php
+ThsResource/Enums/TicketStatus.php
+ThsResource/Enums/TicketPriority.php
+ThsResource/Enums/RequestType.php
+TaskboardResource/Enums/TaskStatus.php
+DmsResource/Enums/DocumentStatus.php
+LinkResource/Enums/LinkType.php
+EnergyResource/Enums/ImpactScore.php
+EnergyResource/Enums/ExecutionProcedure.php
+...
+```
+
+**Every resource-local enum implements `HasColor`, `HasIcon`, `HasLabel`:**
+
+```php
+enum UserRole: string implements HasColor, HasIcon, HasLabel
+{
+    case User      = 'user';
+    case Admin     = 'admin';
+    case Developer = 'developer';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::User      => 'کاربر',
+            self::Admin     => 'مدیر',
+            self::Developer => 'توسعه‌دهنده',
+        };
+    }
+
+    public function getColor(): string|array
+    {
+        return match ($this) {
+            self::User      => 'gray',
+            self::Admin     => 'warning',
+            self::Developer => 'info',
+        };
+    }
+
+    public function getIcon(): ?string
+    {
+        return match ($this) {
+            self::User      => 'heroicon-o-user',
+            self::Admin     => 'heroicon-o-shield-check',
+            self::Developer => 'heroicon-o-code-bracket',
+        };
+    }
+}
+```
+
+**Usage pattern in table column:**
+
+```php
+TextColumn::make('role')
+    ->badge()
+    ->color(fn($state) => UserRole::tryFrom($state)?->getColor() ?? 'gray')
+    ->icon(fn($state)  => UserRole::tryFrom($state)?->getIcon()  ?? '')
+    ->formatStateUsing(fn($state) => UserRole::tryFrom($state)?->getLabel() ?? $state)
+```
+
+---
+
+## Navigation Badges
+
+Resources with actionable unread/pending counts expose a live badge on the sidebar navigation item:
+
+```php
+// ContactResource.php
+public static function getNavigationBadge(): ?string
+{
+    return (string) static::getModel()::query()->where('is_read', false)->count() ?: null;
+}
+
+public static function getNavigationBadgeTooltip(): ?string
+{
+    return __('resources/contact/strings.nav_badge_tooltip');
+}
+```
+
+**Rules:**
+- Return `null` (not `'0'`) when the count is zero — an empty badge should not appear.
+- Tooltip is always localized.
+- Only add badges to resources where an unread/pending state has operational significance (contacts, tickets, etc.).
+
+---
+
+## Widgets
+
+All widgets live in `app/Filament/Widgets/` and are auto-discovered by the panel provider.
+
+### AccountWidget
+
+Sorts at `-3` (renders topmost, above all others). Spans full width. Passes structured data to its blade view via `getViewData()`.
+
+```php
+protected int|string|array $columnSpan = 'full';
+protected static int $sort = -3;
+
+protected function getViewData(): array
+{
+    $user = Auth::user();
+    return [
+        'user'        => $user,
+        'greeting'    => shortGreeting($user->name),
+        'roleLabel'   => ...,
+        'department'  => $user->profile?->department?->name,
+        'jalaliDate'  => convertToPersian(Jalalian::now()->format('l | d F')),
+    ];
+}
+```
+
+### Dashboard
+
+Overrides `getHeading()` to return a blade view instead of a string — the heading area becomes a full rendered component:
+
+```php
+class Dashboard extends BaseDashboard
+{
+    public function getHeading(): string|Htmlable
+    {
+        return view('filament.widgets.dashboard');
+    }
+}
+```
+
+### ModulesGuideWidget
+
+Driven entirely by `config('modules', [])`. Merges module config with two internal maps (`moduleMeta()`, `moduleFilamentIcons()`) and groups by `major_category`. Categories are sorted by a predefined Persian order array.
+
+```php
+protected int|string|array $columnSpan = 'full';
+
+public function getGroupedModules(): Collection
+{
+    return collect(config('modules', []))
+        ->map(fn($module) => array_merge($module, $meta[$id] ?? [], $icons[$id] ?? []))
+        ->groupBy(fn($module) => $module['major_category'] ?? 'محتوا و ارتباطات')
+        ->sortBy(fn($_, $key) => array_search($key, $categoriesOrder, true))
+        ->mapWithKeys(fn($modules, $category) => [md5($category) => [
+            'name'    => $category,
+            'modules' => $modules,
+        ]]);
+}
+```
+
+Four major categories (in order): `محتوا و ارتباطات` / `عملیات و منابع` / `سیستم‌ها و ابزارها` / `کاربران و سازمان`.
+
+### ModuleAnalytics
+
+A heavy analytics widget. Key patterns:
+
+```php
+protected static bool $isLazy = true;          // deferred loading
+protected string $view = 'livewire.admin.widgets.filament-analytics';
+
+public string $activeTab = 'users';             // tab state tracked in Livewire
+```
+
+Every data-fetching method is cached:
+
+```php
+#[Computed(seconds: 300, cache: true)]
+public function usersData(): array { ... }
+```
+
+`#[Computed(seconds: 300, cache: true)]` caches each analytics method for 5 minutes so the dashboard doesn't hammer the database on every render or poll cycle.
+
+### ModuleAnalyticsChartsLeft / ChartsRight
+
+Extends `ChartWidget` with `HasFiltersSchema` and deferred filter loading:
+
+```php
+use HasFiltersSchema;
+
+protected bool $hasDeferredFilters = true;
+protected static bool $isLazy = true;
+protected int|string|array $columnSpan = ['sm' => 'full', 'md' => 1]; // responsive
+```
+
+Farsi filter action labels:
+
+```php
+protected function filtersApplyAction(Action $action): Action
+{
+    return $action->label('اعمال');
+}
+
+protected function filtersResetAction(Action $action): Action
+{
+    return $action->label('بازنشانی');
+}
+```
+
+`filtersSchema()` returns a `Schema` with a Radio component for module selection.
+
+### ManagePreferences
+
+Implements `HasActions` and `HasSchemas`, uses `InteractsWithActions`, `InteractsWithSchemas`, and the `FilamentPreferences` trait. Renders as a custom Livewire view.
+
+```php
+public function getPreferencesColumns(): int { return 4; }
+```
+
+### Widget sorting convention
+
+`$sort` determines widget order on the dashboard. Lower = higher on the page. `AccountWidget` at `-3` ensures it always appears first regardless of any other widget registered later.
+
+### Responsive columnSpan
+
+Chart widgets use responsive arrays:
+
+```php
+protected int|string|array $columnSpan = ['sm' => 'full', 'md' => 1];
+```
+
+Full-width widgets use:
+
+```php
+protected int|string|array $columnSpan = 'full';
+```
+
+---
+
+## AdminPanelProvider configuration
+
+All panel-level behavior is centralized in `app/Providers/Filament/AdminPanelProvider.php`. Key patterns:
+
+### Colors
+
+Colors are never hardcoded in the provider — they come from a dedicated config:
+
+```php
+->colors(config('colors'))
+```
+
+### Font
+
+Locale-conditional Yekan font via local provider:
+
+```php
+->font(
+    (app()->getLocale() == 'fa') ? 'Yekan' : 'IranYekan',
+    url: asset('build/assets/fonts/Yekan.woff'),
+    provider: LocalFontProvider::class
+)
+```
+
+### Global search
+
+```php
+->globalSearch(true, position: GlobalSearchPosition::Topbar)
+->globalSearchFieldSuffix(fn(): ?string => match (Platform::detect()) {
+    Platform::Windows, Platform::Linux => 'Ctrl+K',
+    Platform::Mac => '⌘K',
+    default => null
+})
+->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+->globalSearchDebounce('1000ms')
+```
+
+Platform-aware keyboard shortcut suffix is shown next to the search field in the topbar.
+
+### User preferences
+
+Nine panel behaviors are controlled at runtime by the authenticated user's stored preferences:
+
+```php
+->sidebarCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_collapsible', false))
+->sidebarFullyCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_fully_collapsible', false))
+->breadcrumbs(fn() => $this->getPreference('breadcrumbs', true))
+->collapsibleNavigationGroups(fn() => $this->getPreference('collapsible_groups', true))
+->topNavigation(fn() => $this->getPreference('top_nav', false))
+->unsavedChangesAlerts(fn() => $this->getPreference('unsaved_changes_alerts', true))
+->topbar(fn() => $this->getPreference('topbar', true))
+->spa(fn() => $this->getPreference('spa_enabled', true))
+->userMenu(position: fn() => $this->getPreference('user_menu_topbar', false)
+    ? UserMenuPosition::Topbar
+    : UserMenuPosition::Sidebar)
+```
+
+Preferences are read from `Auth::user()->extra['preferences']` (a JSON column):
+
+```php
+private function getPreference(string $key, mixed $default = false): mixed
+{
+    $preferences = Auth::check() ? (Auth::user()->extra['preferences'] ?? []) : [];
+    return $preferences[$key] ?? $default;
+}
+```
+
+### Other panel config
+
+```php
+->databaseTransactions()                        // all writes wrapped in transactions
+->databaseNotifications()
+->databaseNotificationsPolling('60s')
+->darkMode(false)                               // dark mode is disabled app-wide
+->maxContentWidth(Width::Full)
+->subNavigationPosition(SubNavigationPosition::End)
+->viteTheme('resources/css/core/filament.css')
+->navigationGroups([...])                       // 4 groups registered, all via i18n keys
+->authMiddleware([Authenticate::class, EnsureHasPermission::class])
+->userMenuItems(FilamentMenuService::getActions())
+```
+
+`EnsureHasPermission` is a **custom middleware** that runs after `Authenticate` and enforces module-level access before any resource is served.
+
+`FilamentMenuService::getActions()` builds the user menu action list from a centralized service class — no menu items are defined inline in the provider.
+
+---
+
+## Helper functions used in Filament
+
+Global helper trait are autoloaded from `app/trait - FilamentFormDivider.php`. The most relevant ones in Filament context:
+
+### `ExampleFormPresenter::divider()`
+
+This is used in form presenter class and returns a `TextEntry` that renders as a full-width gradient divider line inside infolists:
+
+```php
+function divider(): TextEntry
+{
+    return TextEntry::make('divider')
+        ->hiddenLabel()
+        ->columnSpanFull()
+        ->state(new HtmlString(
+            '<div class="w-2/3 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent opacity-80 mx-auto"></div>'
+        ));
+}
+```
+
+Use it between logical sections in an infolist to add visual separation without wrapping in another `Section`.
+
+### `toJalali($date, $format = 'Y/m/d H:i')`
+
+Converts a Gregorian date to Jalali. Detects already-Jalali years (1300–1500 range) and returns as-is to avoid double conversion.
+
+### `toJalaliSmart($date)`
+
+Same as `toJalali` but omits the time portion when it is `00:00` — avoids showing meaningless midnight times on date-only fields.
+
+### `convertToPersian(?string $string)`
+
+Replaces ASCII digits 0–9 with their Persian equivalents ۰–۹. Used on any displayed number that should appear fully Persian (dates, counts, etc.).
+
+### `superClean(?string $text, int $limit = 100, bool $nl2br = false)`
+
+Strips HTML tags, html-decodes entities, trims, and truncates to `$limit` characters. Used for safe short previews in table columns.
+
+### `shortGreeting(?string $name)`
+
+Returns a time-aware Persian greeting suitable for the dashboard header (delegates to `GreetingService`).
+
+### Other helpers available
+
+| Helper | Purpose |
+|---|---|
+| `jdate($date)` | `Jalalian::fromCarbon(Carbon::parse($date))` |
+| `jdateOnly($date)` | Jalali date as `d/m/Y` string |
+| `isPast(string $time)` | `Carbon::parse($time)->isPast()` |
+| `presence(mixed $p)` | Cast to `PresenceStatus` enum |
+| `presenceCases()` | All `PresenceStatus` cases |
+| `greeting($name)` | Full greeting string |
+| `formatJalaliDate($date, $format, $fromFormat)` | Formatted Jalali with try/catch |
+| `isVideo($path)` | Checks for mp4/webm/ogg extension |
+| `getFileExtension($path)` | `strtolower(pathinfo(..., PATHINFO_EXTENSION))` |
+
+---
+
+## Additional design rules
+
+_(Extending the 20 rules listed above)_
+
+**21. Every `Section` has an icon** — `->icon('heroicon-o-...')` is always set. Description is optional but used when the section's purpose needs context.
+
+**22. Asymmetric grid layouts are intentional** — `Grid::make(['default' => 1, 'lg' => 4])` is used for sidebar-like form layouts where one column is a narrow control panel and the others are content. Not every form uses uniform `->columns(2)`.
+
+**23. Export columns use `formatStateUsing` for enum humanization** — raw enum string values are never written to the export file. Each enum column converts via `tryFrom($state)?->getLabel() ?? $state`.
+
+**24. `getCompletedNotificationBody` is always Farsi** — the export completion notification body is localized. Pattern: `"خروجی {$count} {$itemLabel} با موفقیت آماده شد."`.
+
+**25. `#[Computed(seconds: 300, cache: true)]` on heavy widget methods** — any widget method that queries the database for aggregate stats must carry this attribute. Never call raw queries in widget `getViewData()` without caching.
+
+**26. `$isLazy = true` on analytics widgets** — all analytics and chart widgets defer their load so the initial dashboard render is fast and widgets load independently after page paint.
+
+**27. Responsive `columnSpan` on chart widgets** — chart widgets always declare `['sm' => 'full', 'md' => 1]` so they stack on mobile and sit side-by-side on desktop.
+
+**28. `canViewAny()` hard override for super-admin-only resources** — when a resource must be strictly invisible to non-super-admins (e.g., PermissionResource), override `canViewAny()` directly in the resource to check `is_super_admin` directly, bypassing the permission system entirely.
+
+**29. Navigation badges return `null` not `'0'`** — `getNavigationBadge()` must cast the count to null when zero: `return (string) $count ?: null;`. An empty badge clutters the sidebar.
+
+**30. `FilamentMenuService` owns the user menu** — no menu items are ever defined inline in `AdminPanelProvider`. The service class is the single source of truth for all user menu actions.

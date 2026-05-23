@@ -37,6 +37,7 @@ class GalleryResource extends Resource
                     GalleryFormPresenter::eventDate(),
                     GalleryFormPresenter::departmentId(),
                     GalleryFormPresenter::description(),
+                    GalleryFormPresenter::divider(),
                     GalleryFormPresenter::path(),
                 ])
                 ->columnSpanFull()

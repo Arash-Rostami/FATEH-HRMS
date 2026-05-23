@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SuggestionResource\Schemas;
 
 use App\Models\Department;
 use App\Models\Suggestion;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -12,11 +13,10 @@ use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\TextEntry;
-use Illuminate\Support\HtmlString;
 
 class SuggestionFormPresenter
 {
+    use FilamentFormDivider;
     public static function attachment(): FileUpload
     {
         return FileUpload::make('attachment')
@@ -28,6 +28,7 @@ class SuggestionFormPresenter
             ->previewable()
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
             ->maxSize(2048)
+            ->helperText(__('resources/suggestion/strings.hints.attachment'))
             ->validationMessages([
                 'mimes' => __('resources/suggestion/strings.validation.attachment.mimes'),
                 'max' => __('resources/suggestion/strings.validation.attachment.max'),
@@ -84,18 +85,11 @@ class SuggestionFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
+            ->helperText(__('resources/suggestion/strings.hints.description'))
             ->validationMessages([
                 'required' => __('resources/suggestion/strings.validation.description.required'),
                 'min' => __('resources/suggestion/strings.validation.description.min'),
             ]);
-    }
-
-    public static function divider(): TextEntry
-    {
-        return TextEntry::make('divider')
-            ->hiddenLabel()
-            ->columnSpanFull()
-            ->state(new HtmlString('<div class="w-2/3 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent opacity-80 mx-auto"></div>'));
     }
 
     public static function priority(): Select
@@ -104,7 +98,8 @@ class SuggestionFormPresenter
             ->label(__('resources/suggestion/strings.fields.priority'))
             ->options(Suggestion::PRIORITIES)
             ->default('low')
-            ->native(false);
+            ->native(false)
+            ->helperText(__('resources/suggestion/strings.hints.priority'));
     }
 
     public static function purpose(): CheckboxList
@@ -115,6 +110,7 @@ class SuggestionFormPresenter
             ->required()
             ->columns(3)
             ->bulkToggleable()
+            ->helperText(__('resources/suggestion/strings.hints.purpose'))
             ->validationMessages(['required' => __('resources/suggestion/strings.validation.purpose.required')])
             ->columnSpanFull();
     }
@@ -127,6 +123,7 @@ class SuggestionFormPresenter
             ->required()
             ->columns(2)
             ->bulkToggleable()
+            ->helperText(__('resources/suggestion/strings.hints.rule'))
             ->validationMessages(['required' => __('resources/suggestion/strings.validation.rule.required')])
             ->columnSpanFull();
     }
@@ -148,6 +145,7 @@ class SuggestionFormPresenter
             ->required()
             ->minLength(3)
             ->maxLength(255)
+            ->helperText(__('resources/suggestion/strings.hints.title'))
             ->validationMessages([
                 'required' => __('resources/suggestion/strings.validation.title.required'),
                 'min' => __('resources/suggestion/strings.validation.title.min'),

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AuthorityResource\Schemas;
 use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
 use App\Models\Department;
 use App\Services\ContentSanitizerService;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\{RichEditor,
     RichEditor\TextColor,
     RichEditor\ToolbarButtonGroup,
@@ -14,12 +15,14 @@ use Filament\Forms\Components\{RichEditor,
 
 class AuthorityFormPresenter
 {
+    use FilamentFormDivider;
     public static function approvedDelegation(): Select
     {
         return Select::make('details.approved_delegation')
             ->label(__('resources/authority/strings.fields.approved_delegation'))
             ->options(DelegationLevel::class)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.approved_delegation'));
     }
 
     public static function coDelegate(): TextInput
@@ -27,7 +30,8 @@ class AuthorityFormPresenter
         return TextInput::make('details.co_delegate')
             ->label(__('resources/authority/strings.fields.co_delegate'))
             ->maxLength(255)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.co_delegate'));
     }
 
     public static function departmentId(): Select
@@ -37,7 +41,8 @@ class AuthorityFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->preload()
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.department_id'));
     }
 
     public static function duty(): RichEditor
@@ -91,7 +96,8 @@ class AuthorityFormPresenter
         return Select::make('details.execution_procedure')
             ->label(__('resources/authority/strings.fields.execution_procedure'))
             ->options(ExecutionProcedure::class)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.execution_procedure'));
     }
 
     public static function impactScore(): Select
@@ -99,7 +105,8 @@ class AuthorityFormPresenter
         return Select::make('details.impact_score')
             ->label(__('resources/authority/strings.fields.impact_score'))
             ->options(ImpactScore::class)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.impact_score'));
     }
 
     public static function proposedDelegation(): Select
@@ -107,7 +114,8 @@ class AuthorityFormPresenter
         return Select::make('details.proposed_delegation')
             ->label(__('resources/authority/strings.fields.proposed_delegation'))
             ->options(DelegationLevel::class)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.proposed_delegation'));
     }
 
     public static function repeatFrequency(): Select
@@ -115,14 +123,16 @@ class AuthorityFormPresenter
         return Select::make('details.repeat_frequency')
             ->label(__('resources/authority/strings.fields.repeat_frequency'))
             ->options(RepeatFrequency::class)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.repeat_frequency'));
     }
 
     public static function subDuty(): Toggle
     {
         return Toggle::make('sub_duty')
             ->label(__('resources/authority/strings.fields.sub_duty'))
-            ->inline(false);
+            ->inline(false)
+            ->helperText(__('resources/authority/strings.hints.sub_duty'));
     }
 
     public static function userId(): Select
@@ -133,6 +143,7 @@ class AuthorityFormPresenter
             ->default(auth()->id() ?? null)
             ->searchable()
             ->preload()
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/authority/strings.hints.user_id'));
     }
 }

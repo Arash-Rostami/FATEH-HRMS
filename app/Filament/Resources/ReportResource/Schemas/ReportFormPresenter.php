@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
+use App\Traits\HasFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
@@ -13,11 +14,14 @@ use Filament\Forms\Components\Toggle;
 
 class ReportFormPresenter
 {
+    use HasFormDivider;
+
     public static function active(): Toggle
     {
         return Toggle::make('active')
             ->label(__('resources/report/strings.fields.active'))
             ->default(true)
+            ->helperText(__('resources/report/strings.hints.active'))
             ->inline(false);
     }
 
@@ -33,7 +37,8 @@ class ReportFormPresenter
             ->directory('reports/covers')
             ->imageEditor()
             ->maxSize(2048)
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/report/strings.hints.cover_image'));
     }
 
     public static function departmentId(): Select
@@ -42,7 +47,8 @@ class ReportFormPresenter
             ->label(__('resources/report/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
-            ->nullable();
+            ->nullable()
+            ->helperText(__('resources/report/strings.hints.department_id'));
     }
 
     public static function description(): RichEditor
@@ -106,6 +112,7 @@ class ReportFormPresenter
             ])
             ->maxSize(5048)
             ->required()
+            ->helperText(__('resources/report/strings.hints.file_path'))
             ->validationMessages([
                 'required' => __('resources/report/strings.validation.file_path.required'),
             ]);
@@ -117,6 +124,7 @@ class ReportFormPresenter
             ->label(__('resources/report/strings.fields.title'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/report/strings.hints.title'))
             ->validationMessages([
                 'required' => __('resources/report/strings.validation.title.required'),
                 'max' => __('resources/report/strings.validation.title.max_length'),
@@ -130,6 +138,7 @@ class ReportFormPresenter
             ->relationship('user', 'name')
             ->searchable()
             ->preload()
+            ->helperText(__('resources/report/strings.hints.user_id'))
             ->required()
             ->validationMessages([
                 'required' => __('resources/report/strings.validation.user_id.required'),

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OnboardingResource\Schemas;
 
 use App\Filament\Resources\OnboardingResource\Schemas\Helper\ExtrasTemplate;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -19,6 +20,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class OnboardingFormPresenter
 {
+    use FilamentFormDivider;
 
     public static function extras(): array
     {
@@ -86,6 +88,7 @@ class OnboardingFormPresenter
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                     ])
                     ->columnSpanFull()
+                    ->helperText(__('resources/onboarding/strings.hints.guides_file'))
                     ->maxSize(50480)
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
@@ -130,12 +133,14 @@ class OnboardingFormPresenter
 
     public static function mission(): RichEditor
     {
-        return self::makeRichEditor('mission', false);
+        return self::makeRichEditor('mission', false)
+            ->helperText(__('resources/onboarding/strings.hints.mission'));
     }
 
     public static function schedule(): RichEditor
     {
-        return self::makeRichEditor('schedule', false);
+        return self::makeRichEditor('schedule', false)
+            ->helperText(__('resources/onboarding/strings.hints.schedule'));
     }
 
     public static function userId(): Select
@@ -166,6 +171,7 @@ class OnboardingFormPresenter
                     ->openable()
                     ->directory('onboarding/video')
                     ->acceptedFileTypes(['video/*'])
+                    ->helperText(__('resources/onboarding/strings.hints.videos_file'))
                     ->maxSize(204800)
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
@@ -201,12 +207,14 @@ class OnboardingFormPresenter
 
     public static function vision(): RichEditor
     {
-        return self::makeRichEditor('vision', false);
+        return self::makeRichEditor('vision', false)
+            ->helperText(__('resources/onboarding/strings.hints.vision'));
     }
 
     public static function welcome(): RichEditor
     {
-        return self::makeRichEditor('welcome');
+        return self::makeRichEditor('welcome')
+            ->helperText(__('resources/onboarding/strings.hints.welcome'));
     }
 
     private static function makeExtraValueEditor(): RichEditor

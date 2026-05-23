@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LinkResource\Schemas;
 
 use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -14,6 +15,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class LinkFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function companyIps(): TagsInput
     {
         return TagsInput::make('extra')
@@ -39,6 +42,7 @@ class LinkFormPresenter
             ->image()
             ->imagePreviewHeight('80')
             ->required()
+            ->helperText(__('resources/link/strings.hints.icon'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
                 'max' => __('resources/link/strings.validation.max_file', ['max' => 512]),
@@ -53,6 +57,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.icon_description'))
             ->rows(2)
             ->maxLength(500)
+            ->helperText(__('resources/link/strings.hints.icon_description'))
             ->validationMessages([
                 'max' => __('resources/link/strings.validation.max_string', ['max' => 500]),
             ]);
@@ -75,6 +80,7 @@ class LinkFormPresenter
             ->image()
             ->imagePreviewHeight('120')
             ->required()
+            ->helperText(__('resources/link/strings.hints.image'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
                 'max' => __('resources/link/strings.validation.max_file', ['max' => 1024]),
@@ -89,6 +95,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.image_description'))
             ->rows(2)
             ->maxLength(500)
+            ->helperText(__('resources/link/strings.hints.image_description'))
             ->validationMessages([
                 'max' => __('resources/link/strings.validation.max_string', ['max' => 500]),
             ]);
@@ -117,6 +124,7 @@ class LinkFormPresenter
             ->required()
             ->live()
             ->inline()
+            ->helperText(__('resources/link/strings.hints.link_type'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
             ]);
@@ -155,6 +163,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.url_description'))
             ->rows(2)
             ->maxLength(1000)
+            ->helperText(__('resources/link/strings.hints.url_description'))
             ->validationMessages([
                 'max' => __('resources/link/strings.validation.max_string', ['max' => 1000]),
             ]);
@@ -166,6 +175,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.url_title'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/link/strings.hints.url_title'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
                 'max' => __('resources/link/strings.validation.max_string', ['max' => 255]),

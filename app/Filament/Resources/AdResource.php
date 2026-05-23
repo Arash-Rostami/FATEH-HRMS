@@ -43,6 +43,7 @@ class AdResource extends Resource
                 ->schema([
                     AdFormPresenter::position(),
                     AdFormPresenter::gender(),
+                    AdFormPresenter::divider(),
                     AdFormPresenter::link(),
                     AdFormPresenter::active(),
                 ])

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
@@ -21,6 +22,7 @@ use Filament\Schemas\Components\FusedGroup;
 
 class ProfileFormPresenter
 {
+    use FilamentFormDivider;
 
     public static function aboutMe(): Repeater
     {
@@ -59,7 +61,8 @@ class ProfileFormPresenter
             ->addable()
             ->deletable()
             ->reorderable(false)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.about_me'));
     }
 
     public static function accessibility(): Textarea
@@ -67,7 +70,8 @@ class ProfileFormPresenter
         return Textarea::make('accessibility')
             ->label(__('resources/profile/strings.form.accessibility'))
             ->rows(2)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.accessibility'));
     }
 
     public static function address(): Textarea
@@ -75,7 +79,8 @@ class ProfileFormPresenter
         return Textarea::make('address')
             ->label(__('resources/profile/strings.form.address'))
             ->rows(3)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.address'));
     }
 
     public static function attachments(): Repeater
@@ -134,6 +139,7 @@ class ProfileFormPresenter
             ->deletable()
             ->reorderable(false)
             ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.attachments'))
             ->dehydrateStateUsing(fn(?array $state): array => array_values(array_filter(
                 $state ?? [],
                 fn(array $item): bool => filled($item['name'] ?? null) ||
@@ -148,7 +154,7 @@ class ProfileFormPresenter
             'birthdate',
             __('resources/profile/strings.form.birthdate'),
             fullWidth: true,
-        );
+        )->helperText(__('resources/profile/strings.hints.birthdate'));
     }
 
     public static function cellphone(): TextInput
@@ -156,7 +162,8 @@ class ProfileFormPresenter
         return TextInput::make('cellphone')
             ->label(__('resources/profile/strings.form.cellphone'))
             ->tel()
-            ->maxLength(20);
+            ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.cellphone'));
     }
 
     public static function degree(): Select
@@ -166,6 +173,7 @@ class ProfileFormPresenter
             ->options(Degree::class)
             ->required()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.degree'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.degree.required'),
             ]);
@@ -177,7 +185,8 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.department_id'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
-            ->native(false);
+            ->native(false)
+            ->helperText(__('resources/profile/strings.hints.department_id'));
     }
 
     public static function emergencyPhone(): TextInput
@@ -185,14 +194,16 @@ class ProfileFormPresenter
         return TextInput::make('emergency_phone')
             ->label(__('resources/profile/strings.form.emergency_phone'))
             ->tel()
-            ->maxLength(20);
+            ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.emergency_phone'));
     }
 
     public static function emergencyRelationship(): TextInput
     {
         return TextInput::make('emergency_relationship')
             ->label(__('resources/profile/strings.form.emergency_relationship'))
-            ->maxLength(100);
+            ->maxLength(100)
+            ->helperText(__('resources/profile/strings.hints.emergency_relationship'));
     }
 
     public static function employmentStatus(): Select
@@ -202,6 +213,7 @@ class ProfileFormPresenter
             ->options(EmploymentStatus::class)
             ->required()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.employment_status'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.employment_status.required'),
             ]);
@@ -214,6 +226,7 @@ class ProfileFormPresenter
             ->options(EmploymentType::class)
             ->required()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.employment_type'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.employment_type.required'),
             ]);
@@ -226,7 +239,7 @@ class ProfileFormPresenter
             __('resources/profile/strings.form.end_date'),
             required: false,
             yearFrom: 1370,
-        );
+        )->helperText(__('resources/profile/strings.hints.end_date'));
     }
 
     public static function favoriteColors(): Repeater
@@ -246,6 +259,7 @@ class ProfileFormPresenter
             ->deletable()
             ->reorderable(false)
             ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.favorite_colors'))
             ->afterStateHydrated(function (Repeater $component, mixed $state): void {
                 $normalized = collect($state ?? [])
                     ->map(function ($item) {
@@ -274,7 +288,8 @@ class ProfileFormPresenter
         return TextInput::make('field')
             ->label(__('resources/profile/strings.form.field'))
             ->maxLength(255)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.field'));
     }
 
     public static function gender(): Select
@@ -284,6 +299,7 @@ class ProfileFormPresenter
             ->options(Gender::class)
             ->required()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.gender'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.gender.required'),
             ]);
@@ -295,6 +311,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.id_booklet_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.id_booklet_number'))
             ->validationMessages([
                 'unique' => __('resources/profile/strings.validation.id_booklet_number.unique'),
             ]);
@@ -306,6 +323,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.id_card_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.id_card_number'))
             ->validationMessages([
                 'unique' => __('resources/profile/strings.validation.id_card_number.unique'),
             ]);
@@ -323,14 +341,16 @@ class ProfileFormPresenter
             ->directory('profiles/images')
             ->imagePreviewHeight('120')
             ->maxSize(2048)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.image'));
     }
 
     public static function insurance(): TextInput
     {
         return TextInput::make('insurance')
             ->label(__('resources/profile/strings.form.insurance'))
-            ->maxLength(255);
+            ->maxLength(255)
+            ->helperText(__('resources/profile/strings.hints.insurance'));
     }
 
     public static function interests(): Textarea
@@ -338,7 +358,8 @@ class ProfileFormPresenter
         return Textarea::make('interests')
             ->label(__('resources/profile/strings.form.interests'))
             ->rows(3)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.interests'));
     }
 
     public static function landline(): TextInput
@@ -346,14 +367,16 @@ class ProfileFormPresenter
         return TextInput::make('landline')
             ->label(__('resources/profile/strings.form.landline'))
             ->tel()
-            ->maxLength(20);
+            ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.landline'));
     }
 
     public static function licensePlate(): TextInput
     {
         return TextInput::make('license_plate')
             ->label(__('resources/profile/strings.form.license_plate'))
-            ->maxLength(20);
+            ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.license_plate'));
     }
 
     public static function maritalStatus(): Select
@@ -363,6 +386,7 @@ class ProfileFormPresenter
             ->options(MaritalStatus::class)
             ->required()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.marital_status'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.marital_status.required'),
             ]);
@@ -374,7 +398,8 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.number_of_children'))
             ->options(collect(range(0, 10))->mapWithKeys(fn($n) => [$n => (string)$n]))
             ->default(0)
-            ->native(false);
+            ->native(false)
+            ->helperText(__('resources/profile/strings.hints.number_of_children'));
     }
 
     public static function personnelId(): TextInput
@@ -383,6 +408,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.personnel_id'))
             ->unique(ignoreRecord: true)
             ->maxLength(50)
+            ->helperText(__('resources/profile/strings.hints.personnel_id'))
             ->validationMessages([
                 'unique' => __('resources/profile/strings.validation.personnel_id.unique'),
             ]);
@@ -396,6 +422,7 @@ class ProfileFormPresenter
             ->options(Position::class)
             ->default(Position::Employee->value)
             ->preload()
+            ->helperText(__('resources/profile/strings.hints.position'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.position.required'),
             ]);
@@ -408,7 +435,7 @@ class ProfileFormPresenter
             __('resources/profile/strings.form.start_date'),
             required: false,
             yearFrom: 1370,
-        );
+        )->helperText(__('resources/profile/strings.hints.start_date'));
     }
 
     public static function userId(): Select
@@ -421,6 +448,7 @@ class ProfileFormPresenter
             ->required()
             ->columnSpanFull()
             ->native(false)
+            ->helperText(__('resources/profile/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/profile/strings.validation.user_id.required'),
             ]);
@@ -432,13 +460,15 @@ class ProfileFormPresenter
             ->label('سابقه کاری')
             ->options(WorkExperience::class)
             ->native(false)
-            ->searchable(false);
+            ->searchable(false)
+            ->helperText(__('resources/profile/strings.hints.work_experience'));
     }
 
     public static function zipCode(): TextInput
     {
         return TextInput::make('zip_code')
             ->label(__('resources/profile/strings.form.zip_code'))
-            ->maxLength(20);
+            ->maxLength(20)
+            ->helperText(__('resources/profile/strings.hints.zip_code'));
     }
 }

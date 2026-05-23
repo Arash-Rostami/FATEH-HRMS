@@ -3,16 +3,16 @@
 namespace App\Filament\Resources\ReservationPolicyResource\Schemas;
 
 use App\Enums\ReservationError;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
-use Illuminate\Support\HtmlString;
 
 class PolicyFormPresenter
 {
+    use FilamentFormDivider;
     public static function allowFullDay(): Toggle
     {
         return Toggle::make('allow_full_day')
@@ -89,14 +89,6 @@ class PolicyFormPresenter
                 'before' => __('resources/policy/strings.validation.time_before'),
                 'date_format' => __('resources/policy/strings.validation.time_format'),
             ]);
-    }
-
-    public static function divider(): TextEntry
-    {
-        return TextEntry::make('divider')
-            ->hiddenLabel()
-            ->columnSpanFull()
-            ->state(new HtmlString('<div class="w-2/3 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent opacity-80 mx-auto"></div>'));
     }
 
     public static function errorLegend(): ViewEntry

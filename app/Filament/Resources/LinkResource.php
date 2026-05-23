@@ -35,6 +35,7 @@ class LinkResource extends Resource
                             LinkFormPresenter::linkType(),
                             LinkFormPresenter::sequence(),
                         ]),
+                        LinkFormPresenter::divider(),
                         LinkFormPresenter::url(),
                         LinkFormPresenter::internalUrl(),
                         LinkFormPresenter::companyIps(),

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\GalleryResource\Schemas;
 
 use App\Models\Department;
 use App\Services\PersianDateFieldService;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,6 +16,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class GalleryFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function departmentId(): Select
     {
         return Select::make('department_id')
@@ -33,6 +36,7 @@ class GalleryFormPresenter
             ->rows(2)
             ->maxLength(2000)
             ->columnSpan(2)
+            ->helperText(__('resources/gallery/strings.hints.description'))
             ->validationMessages([
                 'max' => __('resources/gallery/strings.validation.description_max_length', ['length' => 2000]),
             ]);
@@ -71,6 +75,7 @@ class GalleryFormPresenter
             ->openable()
             ->required()
             ->columnSpan(3)
+            ->helperText(__('resources/gallery/strings.hints.path'))
             ->validationMessages([
                 'required' => __('resources/gallery/strings.validation.photos_required'),
                 'max' => __('resources/gallery/strings.validation.photos_max_files', ['max' => 50]),
@@ -86,6 +91,7 @@ class GalleryFormPresenter
             ->required()
             ->columnSpan(2)
             ->maxLength(255)
+            ->helperText(__('resources/gallery/strings.hints.title'))
             ->validationMessages([
                 'required' => __('resources/gallery/strings.validation.title_required'),
                 'max' => __('resources/gallery/strings.validation.title_max_length', ['length' => 255]),

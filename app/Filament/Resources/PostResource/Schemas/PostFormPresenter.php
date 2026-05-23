@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PostResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
@@ -13,6 +14,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PostFormPresenter
 {
+    use FilamentFormDivider;
+
     public static function body(): RichEditor
     {
         return RichEditor::make('body')
@@ -49,6 +52,7 @@ class PostFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
+            ->helperText(__('resources/post/strings.hints.body'))
             ->validationMessages([
                 'required' => __('resources/post/strings.validation.body.required'),
                 'max' => __('resources/post/strings.validation.body.max_length'),
@@ -68,7 +72,8 @@ class PostFormPresenter
             )
             ->image()
             ->imagePreviewHeight('160')
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/post/strings.hints.image'));
     }
 
     public static function pinned(): Toggle
@@ -100,6 +105,7 @@ class PostFormPresenter
             ->floatingToolbars([
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
+            ->helperText(__('resources/post/strings.hints.title'))
             ->validationMessages([
                 'required' => __('resources/post/strings.validation.title.required'),
                 'max' => __('resources/post/strings.validation.title.max_length'),

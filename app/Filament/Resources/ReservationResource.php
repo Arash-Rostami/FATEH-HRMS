@@ -42,7 +42,7 @@ class ReservationResource extends Resource
                     ReservationFormPresenter::resourceId(),
                     ReservationFormPresenter::parentId(),
 
-                    divider(),
+                    ReservationFormPresenter::divider(),
                     ReservationFormPresenter::status(),
                     ReservationFormPresenter::isRecurring(),
                     ReservationFormPresenter::recurPattern(),

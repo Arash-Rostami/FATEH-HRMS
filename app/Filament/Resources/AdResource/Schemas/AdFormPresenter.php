@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AdResource\Schemas;
 
 use App\Filament\Resources\AdResource\Enums\AdGender;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\Toggle;
 
 class AdFormPresenter
 {
+    use FilamentFormDivider;
     public static function active(): Toggle
     {
         return Toggle::make('active')
@@ -17,7 +19,8 @@ class AdFormPresenter
             ->default(true)
             ->onColor('success')
             ->offColor('danger')
-            ->inline(false);
+            ->inline(false)
+            ->helperText(__('resources/ad/strings.hints.active'));
     }
 
     public static function certificate(): Textarea
@@ -29,7 +32,8 @@ class AdFormPresenter
             ->validationMessages([
                 'max' => __('resources/ad/strings.validation.certificate.max_length'),
             ])
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/ad/strings.hints.certificate'));
     }
 
     public static function experience(): Textarea
@@ -41,7 +45,8 @@ class AdFormPresenter
             ->validationMessages([
                 'max' => __('resources/ad/strings.validation.experience.max_length'),
             ])
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/ad/strings.hints.experience'));
     }
 
     public static function gender(): Select
@@ -52,6 +57,7 @@ class AdFormPresenter
             ->default(AdGender::Any->value)
             ->required()
             ->native(false)
+            ->helperText(__('resources/ad/strings.hints.gender'))
             ->validationMessages([
                 'required' => __('resources/ad/strings.validation.gender.required'),
             ]);
@@ -64,6 +70,7 @@ class AdFormPresenter
             ->required()
             ->url()
             ->maxLength(500)
+            ->helperText(__('resources/ad/strings.hints.link'))
             ->validationMessages([
                 'required' => __('resources/ad/strings.validation.link.required'),
                 'url' => __('resources/ad/strings.validation.link.url'),
@@ -75,6 +82,7 @@ class AdFormPresenter
         return TextInput::make('position')
             ->label(__('resources/ad/strings.fields.position'))
             ->maxLength(255)
+            ->helperText(__('resources/ad/strings.hints.position'))
             ->validationMessages([
                 'max' => __('resources/ad/strings.validation.position.max_length'),
             ]);
@@ -89,6 +97,7 @@ class AdFormPresenter
             ->validationMessages([
                 'max' => __('resources/ad/strings.validation.skill.max_length'),
             ])
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/ad/strings.hints.skill'));
     }
 }

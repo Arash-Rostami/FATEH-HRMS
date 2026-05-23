@@ -36,6 +36,7 @@ class TaskResource extends Resource
                 ->schema([
                     TaskFormPresenter::userId(),
                     TaskFormPresenter::assignedTo(),
+                    TaskFormPresenter::divider(),
                     TaskFormPresenter::status(),
                 ])
                 ->columns(3),
@@ -53,6 +54,7 @@ class TaskResource extends Resource
                 ->icon('heroicon-o-document-text')
                 ->schema([
                     TaskFormPresenter::title(),
+                    TaskFormPresenter::divider(),
                     TaskFormPresenter::description(),
                 ])
                 ->columnSpanFull()

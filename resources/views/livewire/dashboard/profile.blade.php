@@ -15,19 +15,23 @@
 
         <div class="w-full flex flex-col gap-5">
             @if($isProfileTab)
-
                 @include('livewire.dashboard.profile.header')
-
             @endif
 
-            <div class="flex flex-col lg:flex-row gap-6 items-start">
+            <div class="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-3 flex items-center gap-3 shadow-sm transition-all hover:bg-[var(--md-sys-color-surface-container-high)]">
+                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] shrink-0 text-2xl mr-3">
+                    auto_stories
+                </span>
+                <div class="flex-1 overflow-hidden">
+                    @include('filament.widgets.dashboard')
+                </div>
+            </div>
 
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
                 @include('livewire.dashboard.profile.tabs')
 
-                <div
-                    class="flex-1 w-full min-w-0 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-1 shadow-sm min-h-[600px]">
-                    <div
-                        class="border-b border-[var(--md-sys-color-outline-variant)]/40 px-4 py-3 flex items-center gap-2 mb-2">
+                <div class="flex-1 w-full min-w-0 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-1 shadow-sm min-h-[600px]">
+                    <div class="border-b border-[var(--md-sys-color-outline-variant)]/40 px-4 py-3 flex items-center gap-2 mb-2">
                         <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">
                             {{ $tabs[$activeTab]['icon'] ?? 'person' }}
                         </span>

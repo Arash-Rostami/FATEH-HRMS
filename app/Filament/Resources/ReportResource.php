@@ -48,6 +48,7 @@ class ReportResource extends Resource
                                     ReportFormPresenter::departmentId(),
                                     ReportFormPresenter::userId(),
                                     ReportFormPresenter::active(),
+                                    ReportFormPresenter::divider(),
                                     ReportFormPresenter::description(),
                                 ])
                                 ->columns(2)
@@ -61,6 +62,7 @@ class ReportResource extends Resource
                                 ->icon('heroicon-o-folder-open')
                                 ->schema([
                                     ReportFormPresenter::coverImage(),
+                                    ReportFormPresenter::divider(),
                                     ReportFormPresenter::filePath(),
                                 ])
                                 ->columns(2)

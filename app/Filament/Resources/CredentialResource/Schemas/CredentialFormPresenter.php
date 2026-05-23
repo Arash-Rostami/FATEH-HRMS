@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\CredentialResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 
 class CredentialFormPresenter
 {
+    use FilamentFormDivider;
 
     public static function appName(): TextInput
     {
@@ -17,6 +19,7 @@ class CredentialFormPresenter
             ->required()
             ->maxLength(255)
             ->columnSpan($isAdmin ? 1 : 'full')
+            ->helperText(__('resources/credential/strings.hints.app_name'))
             ->validationMessages([
                 'required' => __('resources/credential/strings.validation.app_name_required'),
                 'max' => __('resources/credential/strings.validation.app_name_max'),
@@ -48,7 +51,8 @@ class CredentialFormPresenter
             ->hint('⚠️')
             ->placeholder(__('resources/credential/strings.fields.note_placeholder'),)
             ->rows(3)
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->helperText(__('resources/credential/strings.hints.note'));
     }
 
     public static function password(): TextInput
@@ -59,6 +63,7 @@ class CredentialFormPresenter
             ->revealable()
             ->required()
             ->placeholder(__('resources/credential/strings.fields.note_password'),)
+            ->helperText(__('resources/credential/strings.hints.password'))
             ->validationMessages([
                 'required' => __('resources/credential/strings.validation.password_required'),
             ]);
@@ -76,6 +81,7 @@ class CredentialFormPresenter
             ->required()
             ->columnSpan($isAdmin ? 1 : 'full')
             ->visible(fn() => $isAdmin)
+            ->helperText(__('resources/credential/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/credential/strings.validation.user_required'),
             ]);
@@ -87,6 +93,7 @@ class CredentialFormPresenter
             ->label(__('resources/credential/strings.fields.username'))
             ->required()
             ->maxLength(255)
+            ->helperText(__('resources/credential/strings.hints.username'))
             ->validationMessages([
                 'required' => __('resources/credential/strings.validation.username_required'),
                 'max' => __('resources/credential/strings.validation.username_max'),
