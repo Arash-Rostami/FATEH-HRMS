@@ -6,11 +6,11 @@ use App\Filament\Resources\TaskResource\Schemas\TaskFormPresenter;
 use App\Filament\Resources\TaskResource\Schemas\TaskInfolistPresenter;
 use App\Filament\Resources\TaskResource\Schemas\TaskTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -38,26 +38,30 @@ class TasksRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/task/strings.form.section_content'))
-                ->schema([
-                    TaskFormPresenter::title(),
-                    TaskFormPresenter::description(),
-                ])
-                ->columns(2),
-
             Section::make(__('resources/task/strings.form.section_meta'))
+                ->icon('heroicon-o-users')
                 ->schema([
-                    // Note: TaskFormPresenter::userId() excluded — auto-set by RelationManager
                     TaskFormPresenter::assignedTo(),
                     TaskFormPresenter::status(),
                 ])
                 ->columns(2),
 
+
             Section::make(__('resources/task/strings.form.section_deadline'))
+                ->icon('heroicon-o-calendar')
                 ->schema([
                     TaskFormPresenter::deadlineDate(),
                     TaskFormPresenter::deadlineTime(),
                 ])
+                ->columns(2),
+
+            Section::make(__('resources/task/strings.form.section_content'))
+                ->icon('heroicon-o-document-text')
+                ->schema([
+                    TaskFormPresenter::title(),
+                    TaskFormPresenter::description(),
+                ])
+                ->columnSpanFull()
                 ->columns(2),
         ]);
     }
@@ -65,52 +69,58 @@ class TasksRelationManager extends RelationManager
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/task/strings.form.section_content'))
+            Section::make()
+                ->hiddenLabel()
                 ->schema([
-                    TaskInfolistPresenter::title(),
                     TaskInfolistPresenter::status(),
-                    TaskInfolistPresenter::description(),
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-
-            Section::make(__('resources/task/strings.form.section_meta'))
-                ->schema([
-                    TaskInfolistPresenter::creator(),
                     TaskInfolistPresenter::assignee(),
                     TaskInfolistPresenter::delegatedIcon(),
+
+                    TaskInfolistPresenter::title(),
+                    TaskInfolistPresenter::description(),
                     TaskInfolistPresenter::deadline(),
+
                     TaskInfolistPresenter::createdAt(),
                     TaskInfolistPresenter::updatedAt(),
+                    TaskInfolistPresenter::deletedAt(),
                 ])
                 ->columnSpanFull()
-                ->columns(2),
+                ->columns(3),
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('title')
             ->columns([
                 TaskTablePresenter::id(),
                 TaskTablePresenter::title(),
                 TaskTablePresenter::status(),
                 TaskTablePresenter::assignee(),
+                TaskTablePresenter::isDelegated(),
                 TaskTablePresenter::deadline(),
+                TaskTablePresenter::description(),
+                TaskTablePresenter::deletedAt(),
                 TaskTablePresenter::createdAt(),
             ])
-            ->headerActions([
-                CreateAction::make()
-                    ->icon('heroicon-o-sparkles')
-                    ->label('افزودن وظیفه'),
+            ->groups([
+                TaskTablePresenter::statusGroup(),
             ])
+            ->filters([
+                TrashedFilter::make(),
+                TaskTablePresenter::statusFilter(),
+                TaskTablePresenter::delegatedFilter(),
+                self::createdAtFilter(),
+                TaskTablePresenter::overdueFilter(),
+            ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
-                self::deleteAction(),
+                self::deleteAction()->visible(fn($record) => !$record->trashed()),
             ], RecordActionsPosition::AfterCells)
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('created_at', 'desc');
+            ->emptyStateIcon('heroicon-o-clipboard-document-list')
+            ->defaultSort('created_at', 'desc')
+            ->striped();
     }
 }

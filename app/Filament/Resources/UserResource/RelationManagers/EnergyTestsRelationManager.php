@@ -36,49 +36,58 @@ class EnergyTestsRelationManager extends RelationManager
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/energy/strings.label'))
+            Section::make()
+                ->hiddenLabel()
                 ->schema([
-                    EnergyTestInfolistPresenter::overallScore(),
-                    EnergyTestInfolistPresenter::mindScore(),
-                    EnergyTestInfolistPresenter::emotionScore(),
-                    EnergyTestInfolistPresenter::physiqueScore(),
-                    EnergyTestInfolistPresenter::soulScore(),
-                    EnergyTestInfolistPresenter::completedAt(),
-                    EnergyTestInfolistPresenter::createdAt(),
+                    Section::make()
+                        ->hiddenLabel()
+                        ->schema([
+                            EnergyTestInfolistPresenter::completedAt(),
+                            EnergyTestInfolistPresenter::createdAt(),
+
+                            EnergyTestInfolistPresenter::overallScore(),
+                            EnergyTestInfolistPresenter::physiqueScore(),
+                            EnergyTestInfolistPresenter::emotionScore(),
+                            EnergyTestInfolistPresenter::mindScore(),
+                            EnergyTestInfolistPresenter::soulScore(),
+                            EnergyTestInfolistPresenter::questionsDetail(),
+
+                            EnergyTestInfolistPresenter::answers(),
+                        ])->columns(4),
                 ])
                 ->columnSpanFull()
-                ->columns(2),
-
-            Section::make(__('resources/energy/strings.fields.answers'))
-                ->schema([
-                    EnergyTestInfolistPresenter::answers(),
-                ])
-                ->columnSpanFull(),
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('id')
             ->columns([
                 EnergyTestTablePresenter::id(),
                 EnergyTestTablePresenter::overallScore(),
-                EnergyTestTablePresenter::mindScore(),
-                EnergyTestTablePresenter::emotionScore(),
                 EnergyTestTablePresenter::physiqueScore(),
+                EnergyTestTablePresenter::emotionScore(),
+                EnergyTestTablePresenter::mindScore(),
                 EnergyTestTablePresenter::soulScore(),
                 EnergyTestTablePresenter::completedAt(),
+                EnergyTestTablePresenter::createdAt(),
+            ])
+            ->groups([
+                EnergyTestTablePresenter::monthGroup(),
             ])
             ->filters([
-                EnergyTestTablePresenter::dateRangeFilter(),
-                EnergyTestTablePresenter::lowScoreFilter(),
                 EnergyTestTablePresenter::scoreRangeFilter(),
+                EnergyTestTablePresenter::lowScoreFilter(),
+                EnergyTestTablePresenter::dateRangeFilter(),
+                EnergyTestTablePresenter::lastMonthFilter(),
             ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
+                self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('completed_at', 'desc');
+            ->emptyStateIcon('heroicon-o-bolt')
+            ->defaultSort('completed_at', 'desc')
+            ->striped();
     }
 }
