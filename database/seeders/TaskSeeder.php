@@ -3,15 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Profile;
+use App\Models\Task;
 
-class ProfileSeeder extends Seeder
+class TaskSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Profile::factory(50)->create();
+        Task::factory(50)->create();
     }
 }

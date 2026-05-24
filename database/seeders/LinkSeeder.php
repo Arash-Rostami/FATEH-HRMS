@@ -3,15 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Profile;
+use App\Models\Link;
 
-class ProfileSeeder extends Seeder
+class LinkSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Profile::factory(50)->create();
+        Link::factory(50)->create();
     }
 }

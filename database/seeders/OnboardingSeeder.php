@@ -3,15 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Profile;
+use App\Models\Onboarding;
 
-class ProfileSeeder extends Seeder
+class OnboardingSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Profile::factory(50)->create();
+        Onboarding::factory(50)->create();
     }
 }

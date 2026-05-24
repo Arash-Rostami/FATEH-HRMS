@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class UserFactory extends Factory
 {
@@ -18,29 +17,15 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'maximum' => fake()->numberBetween(1, 100),
-            'type' => 'customer',
-            'role' => 'user',
-            'statusSwitcher' => 'active',
-            'presence' => true,
-            'booking' => false,
+            'maximum' => fake()->numberBetween(1, 12),
+            'type' => fake()->randomElement(['employee', 'manager', 'customer']),
+            'role' => fake()->randomElement(['user', 'admin']),
+            'status' => fake()->randomElement(['active', 'inactive']),
+            'presence' => fake()->randomElement(['remote', 'office']),
+            'booking' => [['key'=>'all','value'=>false],['key'=>'car','value'=>false],['key'=>'seat','value'=>true],['key'=>'spot','value'=>true],['key'=>'meeting','value'=>true]],
             'last_seen' => now(),
-            'extra' => [],
+            'extra' => ['preferences' => ['theme' => 'light']],
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
-    }
-
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
-    }
-
-    public function admin(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'admin',
-        ]);
     }
 }

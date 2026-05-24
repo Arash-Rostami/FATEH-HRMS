@@ -3,34 +3,34 @@
 namespace Database\Factories;
 
 use App\Models\Ticket;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class TicketFactory extends Factory
 {
     protected $model = Ticket::class;
 
-    public function definition()
+    public function definition(): array
     {
         return [
-            'requester_id' => User::factory()->create()->id,
-            'request_type' => $this->faker->randomElement(['support', 'access']),
-            'request_area' => $this->faker->word,
-            'request_subject' => $this->faker->sentence,
-            'description' => $this->faker->paragraph,
-            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
-            'attachment' => $this->faker->optional()->url,
-            'additional_notes' => $this->faker->text,
-            'assigned_to' => User::factory()->create()->id,
-            'completion_deadline' => $this->faker->dateTimeBetween('+1 week', '+2 months'),
-            'completion_date' => $this->faker->optional()->dateTimeBetween('+3 days', '+1 month'),
-            'action_result' => $this->faker->text,
-            'status' => $this->faker->randomElement(['open', 'closed', 'in-progress']),
-            'effectiveness' => $this->faker->word,
-            'satisfaction_score' => $this->faker->numberBetween(0, 5),
-            'requester_files' => json_encode([$this->faker->url]),
-            'assignee_files' => json_encode([$this->faker->url]),
-            'extra' => json_encode(['note' => $this->faker->sentence]),
+            'requester_id' => fake()->numberBetween(1, 50),
+            'request_type' => fake()->word(),
+            'request_area' => fake()->word(),
+            'request_subject' => fake()->sentence(),
+            'description' => fake()->paragraph(),
+            'priority' => fake()->word(),
+            'attachment' => fake()->word(),
+            'additional_notes' => fake()->paragraph(),
+            'assigned_to' => fake()->numberBetween(1, 100),
+            'completion_deadline' => now(),
+            'completion_date' => now(),
+            'action_result' => fake()->paragraph(),
+            'status' => fake()->word(),
+            'effectiveness' => fake()->word(),
+            'satisfaction_score' => '',
+            'requester_files' => [],
+            'assignee_files' => [],
+            'extra' => [],
         ];
     }
 }

@@ -3,9 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Comment;
-use App\Models\Feed;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class CommentFactory extends Factory
 {
@@ -14,20 +13,10 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'feed_id' => Feed::factory(),
-            'content' => $this->faker->sentence(),
+            'feed_id' => fake()->numberBetween(1, 50),
+            'user_id' => fake()->numberBetween(1, 50),
             'parent_id' => null,
-            'created_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'body' => fake()->paragraph(),
         ];
-    }
-
-    public function reply(): static
-    {
-        return $this->state(function (array $attributes) {
-            return [
-                'parent_id' => Comment::factory(),
-            ];
-        });
     }
 }

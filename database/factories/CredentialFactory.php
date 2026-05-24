@@ -3,12 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Credential;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
-/**
- * @extends Factory<Credential>
- */
 class CredentialFactory extends Factory
 {
     protected $model = Credential::class;
@@ -16,12 +13,12 @@ class CredentialFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'app_name' => $this->faker->company(),
-            'username' => $this->faker->userName(),
-            'password' => $this->faker->password(),
-            'link' => $this->faker->url(),
-            'note' => $this->faker->optional()->sentence(),
+            'user_id' => fake()->numberBetween(1, 50),
+            'app_name' => fake()->name(),
+            'username' => fake()->name(),
+            'password' => fake()->paragraph(),
+            'link' => fake()->url(),
+            'note' => fake()->paragraph(),
         ];
     }
 }

@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Permission;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class PermissionFactory extends Factory
 {
@@ -13,19 +13,10 @@ class PermissionFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'is_super_admin' => false,
-            'abilities' => ['view_dashboard', 'edit_profile'],
-            'excluded_modules' => ['analytics', 'reports'],
+            'user_id' => fake()->numberBetween(1, 50),
+            'is_super_admin' => fake()->boolean(),
+            'abilities' => [],
+            'excluded_modules' => [],
         ];
-    }
-
-    public function superAdmin(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'is_super_admin' => true,
-            'abilities' => null,
-            'excluded_modules' => null,
-        ]);
     }
 }

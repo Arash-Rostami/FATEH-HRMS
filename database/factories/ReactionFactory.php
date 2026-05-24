@@ -3,9 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Reaction;
-use App\Models\Feed;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class ReactionFactory extends Factory
 {
@@ -14,10 +13,9 @@ class ReactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'feed_id' => Feed::factory(),
-            'emoji' => $this->faker->randomElement(['👍', '❤️', '😂', '😮', '😢', '😡']),
-            'created_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'user_id' => fake()->numberBetween(1, 50),
+            'feed_id' => fake()->numberBetween(1, 50),
+            'emoji' => fake()->word(),
         ];
     }
 }

@@ -2,25 +2,20 @@
 
 namespace Database\Factories;
 
+use App\Models\Photo;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Photo>
- */
 class PhotoFactory extends Factory
 {
+    protected $model = Photo::class;
+
     public function definition(): array
     {
         return [
-            'path' => $this->faker->randomElements([
-                'photos/event1.jpg',
-                'photos/event2.jpg',
-                'photos/event3.jpg'
-            ], $this->faker->numberBetween(1, 5)),
-            'title' => $this->faker->sentence(3),
-            'department_id' => $this->faker->randomElement(['HR', 'IT', 'Sales', 'Marketing']),
-            'description' => $this->faker->paragraph(),
-            'event_date' => $this->faker->date(),
+            'user_id' => fake()->numberBetween(1, 50),
+            'url' => fake()->imageUrl(), // string image
+            'caption' => fake()->sentence(),
         ];
     }
 }

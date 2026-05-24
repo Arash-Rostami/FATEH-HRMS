@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ReservationPolicy;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class ReservationPolicyFactory extends Factory
 {
@@ -12,9 +13,9 @@ class ReservationPolicyFactory extends Factory
     public function definition(): array
     {
         return [
-            'resource_type' => $this->faker->randomElement(['room', 'equipment', 'vehicle']),
-            'booking_window_days' => $this->faker->numberBetween(1, 30),
-            'booking_window_hours' => $this->faker->numberBetween(1, 24),
+            'resource_type' => fake()->word(),
+            'key' => fake()->word(),
+            'value' => [],
         ];
     }
 }

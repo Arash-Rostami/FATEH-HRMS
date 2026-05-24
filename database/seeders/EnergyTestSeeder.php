@@ -3,15 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Profile;
+use App\Models\EnergyTest;
 
-class ProfileSeeder extends Seeder
+class EnergyTestSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Profile::factory(50)->create();
+        EnergyTest::factory(50)->create();
     }
 }
