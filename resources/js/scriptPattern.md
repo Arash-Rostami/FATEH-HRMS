@@ -1,307 +1,133 @@
-# JavaScript Architecture Documentation
+# JavaScript Architecture & PWA Strategy
 
-## Overview
-This document defines the modular JavaScript architecture, establishing clear separation between vendor libraries, Alpine.js component registration, and global state management.
+## 1. The Core Philosophy
+The JavaScript architecture is built to support a highly interactive, near-instantaneous Progressive Web App (PWA) powered by Laravel Livewire and Alpine.js.
+
+**Core JS Principles:**
+1. **Zero UI Flash (Reactive Hot-Swapping):** We do not wait for Alpine components to download before rendering HTML. We use a centralized Proxy Hub to eagerly register component blueprints.
+2. **Strict State Segregation:** UI interaction logic (toggling a modal) is strictly separated from global application state (Dark Mode).
+3. **PWA-First Routing:** The Service Worker handles aggressive asset caching (fonts, css, js) but explicitly avoids caching HTML to prevent CSRF token mismatches and Livewire hydration failures.
 
 ---
 
-## 1. Directory Structure
+## 2. Directory Structure & Layers
 
 ```
 resources/js/
-├── app.js                      # Vite entry point & orchestration
-├── core/                       # Third-party vendor libraries
-│   ├── chart.js
-│   └── ...
-└── components/
-└── alpine/
-├── main.js             # Alpine registration hub
-├── stores/             # Global state definitions
-│   ├── app.js
-│   ├── theme.js
-│   └── background.js
-└── data/               # Component-level Alpine data
-├── password.js
-├── greeting.js
-├── scrollManager.js
-├── mobile.js
-├── search.js
-├── menu.js
-├── timer.js
-├── settings.js
-├── palette.js
-├── fullscreen.js
-├── googleTranslate.js
-├── occasion.js
-├── sidebar.js
-├── share.js
-├── background.js
-├── feed.js
-├── links.js
-├── gallery.js
-├── report.js
-├── filters.js
-├── taskboard.js
-├── profile.js
-├── calculator.js
-├── stopwatch.js
-├── dms.js
-├── ths.js
-├── reservation.js
-├── radio.js
-├── contact.js
-└── energyChart.js
+├── app.js                      # Vite entry point: Orchestrates initialization
+├── sw.js                       # Service Worker: Workbox caching rules
+├── core/                       # The Engine Room
+│   ├── bootstrap.js            # Axios/Laravel CSRF setup
+│   └── theme-manager.js        # DOM manipulation for themes & view-transitions
+└── components/                 # The Alpine.js Ecosystem
+    └── alpine/
+        ├── main.js             # The Proxy Hub (Eager Registration)
+        ├── stores/             # Global Singletons (App-wide state)
+        └── data/               # Component Factories (UI element logic)
 ```
 
 ---
 
-## 2. Core Layer (`js/core/`)
+## 3. The Alpine.js Ecosystem
 
-**Purpose:** Vendor libraries imported as static dependencies.
+### 3.1 The Proxy Hub Architecture (`main.js`)
+If you define `x-data="calculator"` in a Blade view, Alpine will crash if the `calculator` function isn't registered before Alpine boots. To solve this, and to prevent UI jank, we use a **Registration Hub**.
 
-**Characteristics:**
-- No application logic
-- Imported directly into consuming modules or `app.js`
-- Version-locked via `package.json`
+`main.js` imports every single data component and store, hooking into `alpine:init` to register them deterministically.
 
-**Examples:**
-- Charting libraries (Chart.js, D3)
-- Utility libraries (Lodash, date-fns)
-- Validation engines
-
-**Import Pattern:**
 ```javascript
-import Chart from '../core/chart.js';
-// or
-import { format } from '../core/date-fns.js';
-```
-
----
-
-## 3. Components Layer (`js/components/alpine/`)
-
-### 3.1 Architectural Pattern
-Alpine.js follows a **centralized registration** model. All data components and stores are registered through a single hub (`main.js`) to ensure deterministic initialization order.
-
-### 3.2 Registration Hub (`main.js`)
-
-**Responsibilities:**
-- Global store registration
-- Component data factory registration
-- Event listener attachment for `alpine:init`
-
-**Structure:**
-```javascript
-import registerAppStore from './stores/app.js'
+// main.js
 import registerThemeStore from './stores/theme.js'
-import registerBackgroundStore from './stores/background.js'
-
-import password from "./data/password.js";
-import greeting from "./data/greeting.js";
-// ... additional component imports
+import sidebar from "./data/sidebar.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
-        // Global stores (singleton state)
-        registerAppStore(Alpine)
+        // 1. Register Global Stores
         registerThemeStore(Alpine)
-        registerBackgroundStore(Alpine)
 
-        // Component data factories (instantiated per-element)
-        Alpine.data('password', password)
-        Alpine.data('greeting', greeting)
-        // ... additional registrations
+        // 2. Register UI Component Proxies
+        Alpine.data('sidebar', sidebar)
     })
 }
 ```
+*Why?* This guarantees that by the time the DOM is parsed and Alpine looks for `x-data="sidebar"`, the blueprint is already held in memory, resulting in instant hydration.
 
-### 3.3 Global Stores (`js/components/alpine/stores/`)
+### 3.2 Global Stores (`stores/`)
+Stores hold state that must survive the destruction of a specific DOM element, or state that must be shared across disparate components.
 
-**Purpose:** Cross-cutting state accessible via `$store` magic property.
-
-**Pattern:**
 ```javascript
 // stores/theme.js
-export default function registerThemeStore(Alpine) {
-    Alpine.store('theme', {
-        mode: 'system',
-        
-        init() {
-            this.syncWithSystem()
-        },
-        
-        syncWithSystem() {
-            // Implementation
-        },
-        
-        setMode(value) {
-            this.mode = value
+export default (Alpine) => {
+    Alpine.store('appTheme', {
+        current: 'default',
+        set(theme) {
+            // Reaches out to the Core engine room
+            window.ThemeManager?.setTheme(theme);
         }
-    })
+    });
 }
 ```
+*Usage in Blade:* `<div :class="$store.appTheme.current === 'dark' ? 'bg-black' : 'bg-white'">`
 
-**Consumption:**
-```html
-<div x-data x-text="$store.theme.mode"></div>
-<button @click="$store.theme.setMode('dark')">Dark Mode</button>
-```
+### 3.3 Component Factories (`data/`)
+Data files are strictly factories returning an object. They govern local UI interactions.
+**Naming Rule:** The exported function must be registered in `main.js` with a string key that exactly matches the filename (e.g., `password.js` -> `Alpine.data('password', password)`).
 
-### 3.4 Component Data (`js/components/alpine/data/`)
-
-**Purpose:** Reusable data factories bound to DOM elements via `x-data`.
-
-**Contract:**
-- Export default function returning state object and methods
-- Filename matches registration key in `main.js`
-- Linked to Blade component root element
-
-**Example:**
 ```javascript
 // data/password.js
 export default () => ({
     visible: false,
-    strength: 0,
-    
-    toggle() {
-        this.visible = !this.visible
-    },
-    
-    calculateStrength(value) {
-        // Implementation
-    }
+    toggle() { this.visible = !this.visible }
 })
 ```
 
-**Blade Integration:**
-```blade
-<!-- Linked to root element of relevant Blade component -->
-<div x-data="password">
-    <input :type="visible ? 'text' : 'password'" @input="calculateStrength($event.target.value)">
-    <button @click="toggle">Toggle Visibility</button>
-    <span x-text="strength"></span>
-</div>
-```
-
 ---
 
-## 4. Application Entry (`app.js`)
+## 4. Progressive Web App (PWA) & Service Worker
 
-**Purpose:** Vite entry point initializing the Alpine ecosystem.
+The application uses Workbox via the Vite PWA Plugin (`injectManifest` strategy).
 
-**Implementation:**
+### 4.1 The Service Worker (`sw.js`)
+We use `injectManifest` rather than `generateSW` because we need manual control over the Service Worker lifecycle. We inject Vite's hashed assets into Workbox's precache mechanism.
+
 ```javascript
-import './bootstrap';
-import initAlpine from './components/alpine/main.js'
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+import { clientsClaim } from 'workbox-core'
 
-// Initialize Alpine.js registration
-initAlpine()
+self.skipWaiting() // Force the waiting service worker to become the active service worker.
+clientsClaim()     // Claim control of uncontrolled clients immediately.
+
+cleanupOutdatedCaches()
+// Vite injects the manifest list here during build
+precacheAndRoute(self.__WB_MANIFEST)
 ```
 
-**Rationale:** Lazy initialization via function call ensures `alpine:init` listener attaches before Alpine loads, preventing race conditions.
+### 4.2 Vite Configuration Rules
+In `vite.config.js`, the Workbox configuration is highly specific:
+*   **Heavy Assets Only:** We aggressively cache `/build/assets/**/*.{js,css,woff2,png}`.
+*   **SPA Bypass (`navigateFallback: null`):** We strictly disable HTML caching. If a user goes offline, we do *not* serve a cached `index.html`.
+    * *Why?* Serving cached HTML causes Livewire to fail (stale CSRF tokens, mismatched DOM diffing keys). The server must always handle HTML requests.
 
 ---
 
-## 5. Classification Matrix
+## 5. Developer Decision Matrix
 
-| Element | Location | Registration | Scope |
-|---------|----------|--------------|-------|
-| Chart.js library | `core/chart.js` | Direct import | Module-level |
-| Theme state (dark/light) | `stores/theme.js` | `Alpine.store()` | Global singleton |
-| Password visibility toggle | `data/password.js` | `Alpine.data()` | Per-element instance |
-| Calculator logic | `data/calculator.js` | `Alpine.data()` | Per-element instance |
-| Background animation state | `stores/background.js` | `Alpine.store()` | Global singleton |
-
----
-
-## 6. Naming Conventions
-
-| Context | Pattern | Example |
-|---------|---------|---------|
-| Store files | `camelCase.js` | `theme.js` |
-| Store registration | `register{PascalCase}Store` | `registerThemeStore` |
-| Data files | `camelCase.js` | `scrollManager.js` |
-| Data registration key | `camelCase` | `Alpine.data('scrollManager', ...)` |
-| Multi-word data | `camelCase` | `googleTranslate.js` |
+| When you need to... | Do this... | Why? |
+| :--- | :--- | :--- |
+| Build a complex dropdown menu | Create `data/dropdown.js` and register it in `main.js`. | Keeps Blade views clean and localizes the toggle logic to the component. |
+| Manage the user's selected language globally | Create `stores/locale.js`. | Multiple disconnected components (header, footer, settings) need to read this state. |
+| Import a massive charting library like `Three.js` | Import it dynamically inside the specific component's `init()` function. | Prevents bloating `app.js` and ruining the initial Time-To-Interactive (TTI) metrics. |
+| Cache a new font file | Ensure it is imported via CSS or Vite, and falls under the Workbox `globPatterns`. | The Service Worker only precaches assets it knows about during the Vite build step. |
 
 ---
 
-## 7. Anti-Patterns
+## 6. Absolute Anti-Patterns (Do Not Do This)
 
-| Violation | Correction |
-|-----------|------------|
-| Inline `x-data` in Blade | Extract to `js/components/alpine/data/` |
-| Direct `Alpine.data()` in `app.js` | Route through `main.js` hub |
-| Store logic in component data | Promote to `stores/` |
-| Vendor library in `components/` | Move to `core/` |
-| DOM manipulation outside Alpine lifecycle | Use `x-init` or `$nextTick` |
+❌ **Do not write `<script>` tags inside Blade views for Alpine logic.**
+*Why?* It breaks Content Security Policy (CSP), cannot be minified by Vite, and litters the DOM. Always extract logic to `js/components/alpine/data/`.
 
----
+❌ **Do not cache HTML responses or `/api` routes in the Service Worker.**
+*Why?* The application relies on Livewire and Laravel Session state. Caching these requests will result in 419 Page Expired errors and broken form submissions.
 
-## 8. Lifecycle Guarantees
-
-**Initialization Order:**
-1. `app.js` executes, attaches `alpine:init` listener
-2. Alpine.js loads and emits `alpine:init`
-3. `main.js` callback executes:
-    - Stores registered (singleton instantiation)
-    - Data factories registered (no instantiation yet)
-4. DOM ready, Alpine instantiates components on `x-data` elements
-
----
-
-Configuration Strategy
-
-**Build Tool:** Vite PWA Plugin with `injectManifest` strategy.
-
-**Rationale:** `injectManifest` provides full control over service worker logic while Vite handles precache manifest generation. Alternative `generateSW` is insufficient for applications requiring custom caching strategies or background sync.
-
-### Vite Configuration
-There is a service worker that picks up files in layouts.auth  cache data and provide them in the other layouts (layouts.app) as well. (<x-service-worker />)
-```javascript
-// vite.config.js
-import { VitePWA } from 'vite-plugin-pwa'
-
-export default {
-    plugins: [
-        VitePWA({
-            strategies: 'injectManifest',
-            srcDir: 'resources/js',
-            filename: 'sw.js',
-            registerType: 'autoUpdate',
-            outDir: 'public',
-            
-            manifest: {
-                name: 'Intra Dashboard',
-                short_name: 'Intra',
-                description: 'The digital home for your work.',
-                theme_color: '#000000',
-                background_color: '#000000',
-                display: 'standalone',
-                scope: '/',
-                start_url: '/',
-                icons: [
-                    {
-                        src: 'assets/img/mining.svg',
-                        sizes: 'any',
-                        type: 'image/svg+xml'
-                    }
-                ]
-            },
-            
-            workbox: {
-                cleanupOutdatedCaches: true,
-                globPatterns: [
-                    'build/assets/**/*.{js,css,woff2,png,svg,jpg,ttf,woff}'
-                ],
-                navigateFallback: null  // Disables SPA fallback; server handles 404s
-            },
-            
-            devOptions: {
-                enabled: true,
-                type: 'module'
-            }
-        })
-    ]
-}
-```
+❌ **Do not use `window.Theme = 'dark'` for global state.**
+*Why?* Alpine cannot react to plain Window object mutations. Always use `Alpine.store('appTheme').set('dark')` so the UI re-renders automatically.
