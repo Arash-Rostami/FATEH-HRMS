@@ -1,72 +1,80 @@
-# Admin Panel (Filament) CSS Architecture Documentation
+# Admin Panel (Filament) Design System & CSS Architecture
 
-## Overview
-This document defines the CSS architectural patterns applied to the Filament Admin Panel. It outlines how Filament's core styles are modified, injected, and tightly synchronized with the overarching customized Material Design 3 (MD3) token system used in the rest of the application.
+## 1. The Design Vision & Integration Philosophy
+Filament, by default, is an excellent but structurally rigid CMS framework. It looks like standard dashboard software. **Our goal is to completely mask Filament's default aesthetic**, morphing it so seamlessly into our application's UI that the user cannot tell they have crossed from the custom Livewire User Panel into the Filament Admin Panel.
+
+**Core UI Principles for Admin:**
+1. **Total Theme Synchronization:** The Admin panel must strictly obey the Light/Dark mode and Color Theme selected by the user in the User Panel.
+2. **Soft Geometry:** Filament's default sharp corners and flat borders are overwritten with extreme rounding (`rounded-2xl`, `rounded-3xl`) and soft, radiant drop shadows.
+3. **Immersive Motion:** Filament panels snap into place abruptly by default. We inject our custom `animation.css` keyframes into Filament's internal classes to ensure pages, tables, and modals glide into view smoothly.
 
 ---
 
-## 1. Directory Structure & Inclusions
-The core Admin Panel stylesheets reside in `resources/css/core/`.
+## 2. Directory & Theming Pipeline
 
 ```
-resources/css/
-└── core/
-    ├── filament.css       # Core Overrides & Filament Theme Registration
-    ├── notification.css   # Filament Notification styling & overriding
-    ├── theme.css          # Inherited MD3 Tokens from User Panel
-    └── animation.css      # Inherited Motion Primitives from User Panel
+resources/css/core/
+├── filament.css       # The Engine: Filament overrides and Token Mapping
+├── notification.css   # The Overlay: Customizing Filament's isolated notification UI
+├── theme.css          # Inherited from User Panel
+└── animation.css      # Inherited from User Panel
 ```
 
-### 1.1 The Integration Pipeline
-The `filament.css` file acts as a custom Vite theme for Filament. It heavily imports both native Filament architecture and the project's custom core files to ensure the Admin Panel behaves identically to the User Panel visually.
+### 2.1 The Vite Injection Strategy
+`filament.css` acts as the master custom Vite theme for Filament.
+**Crucial Concept:** Because CSS cascades, we must import Filament's core first, then our custom tokens, and finally our overrides.
 
 ```css
 /* resources/css/core/filament.css */
-@import "../../../vendor/filament/filament/resources/css/theme.css";
-@import "./theme.css";       /* Bridges MD3 Tokens into Admin */
-@import "./animation.css";   /* Bridges standard motion into Admin */
+@import "../../../vendor/filament/filament/resources/css/theme.css"; /* 1. Base Filament */
+@import "./theme.css";       /* 2. Our MD3 Tokens */
+@import "./animation.css";   /* 3. Our Motion Engine */
+/* 4. Our custom .fi-* overrides follow below... */
 ```
 
 ---
 
-## 2. Token Mapping to Filament (`filament.css`)
-Filament internally relies on a strict set of Tailwind colors (`primary`, `secondary`, `gray`, etc.). Instead of defining explicit HEX values in `tailwind.config.js`, we map Filament's expected CSS variables directly to our dynamic MD3 tokens using CSS `color-mix()`.
+## 3. Token Mapping: Bridging MD3 to Filament
 
-### 2.1 Color Palette Syncing
-This guarantees that when the global theme changes (e.g., from 'Jade' to 'Magneta'), the Admin Panel updates perfectly in real-time.
+Filament expects strict Tailwind color variables (`--primary-500`). It does not understand our MD3 system (`--md-sys-color-primary`). We must mathematically map our dynamic tokens into Filament's expected structure inside `:root`.
+
+### 3.1 The Color-Mix Translation Layer
+To generate the shades Filament requires (like `primary-600` for hovers), we use CSS `color-mix()` to dynamically darken or lighten our active MD3 token on the fly.
 
 ```css
 :root {
-    /* Mapping Filament's internal primary scale to MD3 custom properties */
+    /* Base Container */
     --primary-50: var(--md-sys-color-primary-container);
+
+    /* Core Action Color */
     --primary-500: var(--md-sys-color-primary);
+
+    /* Auto-generated Hover/Active States */
     --primary-600: color-mix(in srgb, var(--md-sys-color-primary), black 10%);
     --primary-950: color-mix(in srgb, var(--md-sys-color-primary), black 65%);
-
-    /* Secondary mapping */
-    --secondary-50: var(--md-sys-color-secondary-container);
-    --secondary-500: var(--md-sys-color-secondary);
 }
 ```
+*Developer Guideline:* If you add a new theme in `theme.css`, you do **not** need to update `filament.css`. The `color-mix()` math automatically generates the perfect Filament palette based on the new primary variable.
 
 ---
 
-## 3. Class Overrides and Theming
-We enforce a highly rounded, glassmorphic, fluid aesthetic across Filament by aggressively overriding internal `.fi-*` classes.
+## 4. UI Morphing: Overriding Filament Core (`.fi-*`)
 
-### 3.1 Component Shaping & Shadows
-We alter the core geometry of Filament panels, inputs, and modals to match our enterprise "ultra-modern" design language.
+We aggressively target Filament's internal `.fi-` prefixed classes to reshape the CMS.
+
+### 4.1 Reshaping Cards and Inputs (The Soft Aesthetic)
+Filament cards are too boxy. We round them heavily and apply our custom Radiant Shadows (shadows tinted with the primary color, not gray).
 
 ```css
 @layer components {
-    /* Make cards heavily rounded with custom MD3 borders */
+    /* Transforming the main Content Card */
     .fi-card {
         @apply !rounded-[1.5rem] !bg-[var(--md-sys-color-surface)]
         !border !border-[var(--md-sys-color-outline-variant)]/50
         !shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_90%)];
     }
 
-    /* Soft, rounded input fields */
+    /* Softening all input fields */
     .fi-input {
         @apply !rounded-xl !bg-[var(--md-sys-color-surface-variant)]/30
         !border-none !shadow-none;
@@ -74,16 +82,16 @@ We alter the core geometry of Filament panels, inputs, and modals to match our e
 }
 ```
 
-### 3.2 Injecting Animations
-We bind our pre-defined motion keyframes directly to Filament component mounting states via overriding classes.
+### 4.2 Injecting Cinematic Motion
+We attach our pre-defined animations to Filament's structural classes so data doesn't just "appear"—it flows.
 
 ```css
-/* Slide up animation for tables */
+/* Tables slide up smoothly */
 .fi-ta-table {
     animation: slideUpFade 0.4s cubic-bezier(0.4, 0, 0.2, 1) both !important;
 }
 
-/* Staggering table rows */
+/* Staggering rows so they don't load in a single block */
 .fi-ta-row {
     animation: slideUpFade 0.3s cubic-bezier(0.4, 0, 0.2, 1) both !important;
 }
@@ -91,8 +99,8 @@ We bind our pre-defined motion keyframes directly to Filament component mounting
 .fi-ta-row:nth-child(2) { animation-delay: 0.10s !important; }
 ```
 
-### 3.3 The "No Shell" Layout Pattern
-Sometimes Filament components are embedded directly into custom Blade views without the Admin sidebar. The `.no-shell` utility strips out borders and backgrounds for seamless integration.
+### 4.3 The "No Shell" Pattern
+When rendering a Filament component (like a complex Table or Form) inside a custom User Panel view, we use the `.no-shell` utility to strip away Filament's structural borders and backgrounds, allowing it to sit naked inside our custom wrappers.
 
 ```css
 .no-shell [class*="fi-"],
@@ -104,58 +112,41 @@ Sometimes Filament components are embedded directly into custom Blade views with
 
 ---
 
-## 4. Notification Overrides (`notification.css`)
-Filament's notification architecture loads as an independent package, meaning its colors must be mapped independently of the main admin panel.
+## 5. Notification UI Override (`notification.css`)
 
-### 4.1 Custom Theme Declaration
-We redefine the internal notification variables using the `@theme inline` directive, linking them to our MD3 custom properties to ensure consistency.
+Filament's notification package operates almost like a separate micro-frontend. It requires its own dedicated CSS file.
 
-```css
-@theme inline {
-    /* Mapping info/success colors to primary/container if needed, or explicitly setting them */
-    --color-primary-500: var(--md-sys-color-primary);
-    --color-primary-900: var(--md-sys-color-on-primary-container);
-
-    /* Base structure variables */
-    --color-gray-900: var(--md-sys-color-primary-container);
-}
-```
-
-### 4.2 Modal Shaping
-We override the notification modal window behavior to slide in elegantly from the right, adhering to RTL (Right-to-Left) constraints.
+### 5.1 Modal Geometry and RTL Flow
+Because our application is primarily Persian (RTL), we override the notification modal window to slide in from the right edge, snapping flush against the screen.
 
 ```css
-:root {
-    --sys-z-modal: 9999;
-    --sys-anim-standard: cubic-bezier(0.2, 0, 0, 1);
-}
-
 .fi-modal-window {
     direction: rtl;
     background-color: var(--md-sys-color-primary-container) !important;
-    border-radius: 0 1rem 1rem 0 !important; /* Flush left border */
+    border-radius: 0 1rem 1rem 0 !important; /* Flat on the right, rounded on the left */
     animation: slideUpFade 0.25s var(--sys-anim-standard) both !important;
 }
 ```
 
 ---
 
-## 5. Decision Matrix
+## 6. Developer Decision Matrix
 
-| Scenario | Location | Rationale |
-|----------|----------|-----------|
-| Overriding the border radius of a Filament Select box | `filament.css` | Global override on `.fi-select` applies to all admin pages. |
-| Fixing a z-index issue on Filament's notification toast | `notification.css` | Notifications operate on a separate UI tier; scope overrides here. |
-| Adding a new primary shade for a Filament badge | `filament.css` (`:root` map) | Create an explicit mapping to a `color-mix()` token for `--primary-X`. |
-| Creating a completely custom Widget layout | Inline / Custom CSS | If it doesn't affect standard `.fi-*` classes, keep it isolated to the widget's view. |
+| When you need to... | Do this... | Why? |
+| :--- | :--- | :--- |
+| Style a new Filament plugin | Identify the `.fi-` class in DevTools, override it in `filament.css` using `@apply` and `!important`. | Filament plugins use default UI. We must force them to match our soft geometry. |
+| Change the color of a Filament Badge | Do nothing. Use Filament's PHP `->color('primary')`. | Because we mapped `--primary-*` to MD3 in `:root`, the badge will automatically theme itself. |
+| Use a Filament table in a custom Livewire view | Wrap the table in `<div class="no-shell">` | Strips the heavy CMS card borders so it blends into your custom page layout. |
 
 ---
 
-## 6. Anti-Patterns
+## 7. Absolute Anti-Patterns (Do Not Do This)
 
-| Violation | Correction |
-|-----------|------------|
-| Hardcoding `#ff0000` into `filament.css` overrides. | Map the Tailwind variable inside `:root` to a dynamic CSS token like `--md-sys-color-error`. |
-| Writing duplicate animations in `filament.css`. | Import `./animation.css` and use existing utilities or keyframes. |
-| Using `@apply bg-white` for cards. | Use `@apply bg-[var(--md-sys-color-surface)]` to respect Light/Dark modes seamlessly. |
-| Modifying `$primary` in a `tailwind.config.js` file for Filament. | Keep the CSS mapping layer in `filament.css` as the source of truth for color injection, powered by `theme.css`. |
+❌ **Do not configure Filament colors in `AdminPanelProvider.php` using HEX codes.**
+*Why?* It breaks the real-time theme switcher. Always configure Filament to look for CSS variables which we control in `filament.css`.
+
+❌ **Do not use `@apply bg-white` or `bg-gray-900` to style Filament components.**
+*Why?* Hardcoded colors break Light/Dark mode transitions. Always use `@apply bg-[var(--md-sys-color-surface)]`.
+
+❌ **Do not rewrite `@keyframes` inside `filament.css`.**
+*Why?* Redundant code and inconsistent motion curves. Always inherit the keyframes from `animation.css`.
