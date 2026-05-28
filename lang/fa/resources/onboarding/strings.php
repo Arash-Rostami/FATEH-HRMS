@@ -44,7 +44,8 @@ return [
     ],
 
     'infolist' => [
-        'section_meta' => 'اطلاعات سیستمی',
+        'section_meta' => 'اطلاعات',
+        'tab_content'  => 'محتوای آنبوردینگ',
     ],
 
     'filters' => [

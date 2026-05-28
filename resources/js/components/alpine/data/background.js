@@ -16,13 +16,15 @@ export default function background() {
             const tab = this.$wire.activeTab;
             this.direction = this.$wire.direction;
 
-            // Access store directly
             const index = Alpine.store('background').tabsOrder.indexOf(tab);
-            if (index !== -1) this.activeIndex = index;
+
+            if (index !== -1) {
+                this.activeIndex = index - 1;
+            }
         },
 
         getClasses(index) {
-            if (index === this.activeIndex) return 'opacity-[35%] translate-y-0 scale-100';
+            if (index === this.activeIndex) return 'opacity-[35%] translate-y-0 scale-100 w-[85%] mx-auto my-5';
 
             let transform = '';
 

@@ -43,7 +43,7 @@
             @foreach($this->externalLinks as $link)
                 <a href="{{ $link->url }}"
                    target="_blank"
-                   class="snap-start shrink-0 w-44 md:w-52 group/card cursor-pointer focus:outline-none"
+                   class="snap-start shrink-0 w-36 md:w-40 group/card cursor-pointer focus:outline-none"
                 >
                     <div class="relative w-full aspect-[4/3] rounded-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden shadow-sm transition-all duration-300 group-hover/card:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-secondary)_12%,transparent)] group-hover/card:-translate-y-1 group-hover/card:border-[var(--md-sys-color-secondary)]/30">
 

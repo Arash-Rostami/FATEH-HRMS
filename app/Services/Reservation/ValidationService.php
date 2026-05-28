@@ -69,11 +69,11 @@ class ValidationService
             ReservationError::NotActive->throw();
         }
 
-        if (!$user->isAdmin() && $reservation->user_id !== $user->id) {
+        if (!$user->hasElevatedRole() && $reservation->user_id !== $user->id) {
             ReservationError::CancelForbidden->throw();
         }
 
-        if (!$user->isAdmin()) {
+        if (!$user->hasElevatedRole()) {
             $policies = $this->getPolicies($reservation->resource?->type ?? '');
             $limit = $policies['max_cancel_count'] ?? null;
 
@@ -116,7 +116,7 @@ class ValidationService
         );
 
         foreach ($this->bookingRules as $ruleClass => $config) {
-            if (!$enforceAllRules && $user->isAdmin() && $config['skip_admin']) {
+            if (!$enforceAllRules && $user->hasElevatedRole() && $config['skip_admin']) {
                 continue;
             }
 

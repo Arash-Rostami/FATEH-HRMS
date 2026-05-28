@@ -3,7 +3,7 @@
         active: null,
         toggle(id) { this.active = (this.active === id) ? null : id }
          }"
-    class="animate-fade relative w-full max-w-[88rem] mx-auto h-full flex flex-col overflow-hidden"
+    class="animate-fade relative w-full max-w-[88rem] mx-auto mx-auto max-h-[calc(100svh-10rem)] flex flex-col overflow-hidden"
     dir="rtl"
 >
 

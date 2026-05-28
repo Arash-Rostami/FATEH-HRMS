@@ -5,13 +5,19 @@ export default function gallery() {
         activeId: null,
         loading: false,
         observer: null,
+        showTimeline: false,
+
         init() {
             this.$nextTick(() => {
                 this.setupScrollListener();
                 this.setupIntersectionObserver();
-                this.updateActiveItem();
                 this.initFancybox();
+
+                setTimeout(() => {
+                    this.updateActiveItem();
+                }, 100);
             });
+
             Livewire.hook('morph.updated', ({component, el}) => {
                 if (component.id === this.$wire.__instance.id) {
                     this.$nextTick(() => {
@@ -24,6 +30,7 @@ export default function gallery() {
                 }
             });
         },
+
         initFancybox() {
             Fancybox.bind("[data-fancybox]", {
                 Toolbar: {
@@ -56,77 +63,93 @@ export default function gallery() {
                 },
             });
         },
+
         scrollNext() {
-            this.$refs.galleryContainer.scrollBy({left: -this.$refs.timeline.offsetWidth, behavior: 'smooth'});
+            const container = this.$refs.galleryContainer;
+            const scrollAmount = window.innerWidth >= 768 ? 450 : container.offsetWidth;
+            container.scrollBy({left: -scrollAmount, behavior: 'smooth'});
         },
+
         scrollPrev() {
-            this.$refs.galleryContainer.scrollBy({left: this.$refs.timeline.offsetWidth, behavior: 'smooth'});
+            const container = this.$refs.galleryContainer;
+            const scrollAmount = window.innerWidth >= 768 ? 450 : container.offsetWidth;
+            container.scrollBy({left: scrollAmount, behavior: 'smooth'});
         },
+
         handleScroll() {
-            // Optional: Add logic if needed
+            const el = this.$refs.galleryContainer;
+            const scrollLeft = Math.abs(el.scrollLeft);
+            const maxScroll = el.scrollWidth - el.clientWidth;
         },
+
         setupScrollListener() {
             const container = this.$refs.galleryContainer;
             if (!container) return;
+
             let timeout;
             container.addEventListener('scroll', () => {
-                if (timeout) return;
-                timeout = setTimeout(() => {
+                if (timeout) window.cancelAnimationFrame(timeout);
+                timeout = window.requestAnimationFrame(() => {
                     this.updateActiveItem();
-                    timeout = null;
-                }, 50); // 50ms throttle
+                });
             }, {passive: true});
         },
+
         setupIntersectionObserver() {
             if (this.observer) this.observer.disconnect();
+
             this.observer = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting && !this.loading && this.$wire.hasMorePages) {
                     this.loadMore();
                 }
             }, {
-                root: this.$refs.galleryContainer,
+                root: this.$refs.timeline,
                 threshold: 0.1,
-                rootMargin: '0px 0px 200px 0px'
+                rootMargin: '0px 200px 0px 200px'
             });
+
             if (this.$refs.loadTrigger) {
                 this.observer.observe(this.$refs.loadTrigger);
             }
         },
+
         updateActiveItem() {
             const container = this.$refs.galleryContainer;
-            if (!container) return;
-            const containerRect = container.getBoundingClientRect();
-            const isDesktop = window.innerWidth >= 768;
+            const viewport = this.$refs.timeline;
+            if (!container || !viewport) return;
+
+            const viewportRect = viewport.getBoundingClientRect();
+            const viewportCenter = viewportRect.left + (viewportRect.width / 2);
+
             let closestId = null;
             let minDistance = Infinity;
-            // Find all photo items
+
             const items = container.querySelectorAll('[data-photo-id]');
+
             items.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                let distance;
-                if (isDesktop) {
-                    distance = Math.abs(containerRect.right - rect.right);
-                } else {
-                    const containerCenter = containerRect.top + (containerRect.height / 2);
-                    const itemCenter = rect.top + (rect.height / 2);
-                    distance = Math.abs(containerCenter - itemCenter);
-                }
+
+                const itemCenter = rect.left + (rect.width / 2);
+                const distance = Math.abs(viewportCenter - itemCenter);
+
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestId = item.dataset.photoId;
                 }
             });
-            if (closestId) {
+
+            if (closestId && this.activeId !== closestId) {
                 this.activeId = closestId;
             }
         },
+
         async loadMore() {
             if (this.loading) return;
             this.loading = true;
             try {
                 await this.$wire.loadMore();
             } catch (e) {
-                console.error('Failed to load more photos', e);
+                console.error(e);
             } finally {
                 this.loading = false;
             }

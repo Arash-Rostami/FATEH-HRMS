@@ -130,51 +130,62 @@ class OnboardingResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    OnboardingInfolistPresenter::user(),
-                    OnboardingInfolistPresenter::isActive(),
-                    OnboardingInfolistPresenter::createdAt(),
-                    OnboardingInfolistPresenter::updatedAt(),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/onboarding/strings.infolist.section_meta'))
+                        ->icon('heroicon-o-identification')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([
+                                    OnboardingInfolistPresenter::user(),
+                                    OnboardingInfolistPresenter::isActive(),
+                                    OnboardingInfolistPresenter::createdAt(),
+                                    OnboardingInfolistPresenter::updatedAt(),
+                                ])
+                                ->columns(4),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.infolist.tab_content'))
+                        ->icon('heroicon-o-document-text')
+                        ->schema([
+                            Section::make(__('resources/onboarding/strings.fields.welcome'))
+                                ->icon('heroicon-o-hand-raised')
+                                ->schema([OnboardingInfolistPresenter::welcome()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.mission'))
+                                ->icon('heroicon-o-flag')
+                                ->schema([OnboardingInfolistPresenter::mission()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.vision'))
+                                ->icon('heroicon-o-eye')
+                                ->schema([OnboardingInfolistPresenter::vision()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.schedule'))
+                                ->icon('heroicon-o-calendar-days')
+                                ->schema([OnboardingInfolistPresenter::schedule()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.videos'))
+                                ->icon('heroicon-o-video-camera')
+                                ->schema([OnboardingInfolistPresenter::videos()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.guides'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([OnboardingInfolistPresenter::guides()])
+                                ->collapsed(),
+
+                            Section::make(__('resources/onboarding/strings.fields.extras'))
+                                ->icon('heroicon-o-squares-2x2')
+                                ->schema([OnboardingInfolistPresenter::extras()])
+                                ->collapsed(),
+                        ]),
                 ])
-                ->columnSpanFull()
-                ->columns(4),
-
-            Section::make(__('resources/onboarding/strings.fields.welcome'))
-                ->icon('heroicon-o-hand-raised')
-                ->schema([OnboardingInfolistPresenter::welcome()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.mission'))
-                ->icon('heroicon-o-flag')
-                ->schema([OnboardingInfolistPresenter::mission()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.vision'))
-                ->icon('heroicon-o-eye')
-                ->schema([OnboardingInfolistPresenter::vision()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.schedule'))
-                ->icon('heroicon-o-calendar-days')
-                ->schema([OnboardingInfolistPresenter::schedule()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.videos'))
-                ->icon('heroicon-o-video-camera')
-                ->schema([OnboardingInfolistPresenter::videos()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.guides'))
-                ->icon('heroicon-o-document-text')
-                ->schema([OnboardingInfolistPresenter::guides()])
-                ->collapsed(),
-
-            Section::make(__('resources/onboarding/strings.fields.extras'))
-                ->icon('heroicon-o-squares-2x2')
-                ->schema([OnboardingInfolistPresenter::extras()])
-                ->collapsed(),
+                ->columnSpanFull(),
         ]);
     }
 

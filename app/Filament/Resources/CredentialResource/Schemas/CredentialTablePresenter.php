@@ -80,7 +80,7 @@ class CredentialTablePresenter
             ->searchable()
             ->icon('heroicon-m-user')
             ->color('info')
-            ->visible(fn() => auth()->user()?->isAdmin())
+            ->visible(fn() => auth()->user()?->hasElevatedRole())
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -104,7 +104,7 @@ class CredentialTablePresenter
             ->relationship('user', 'name')
             ->searchable()
             ->preload()
-            ->visible(fn() => auth()->user()?->isAdmin());
+            ->visible(fn() => auth()->user()?->hasElevatedRole());
     }
 
     public static function userGroup(): Group

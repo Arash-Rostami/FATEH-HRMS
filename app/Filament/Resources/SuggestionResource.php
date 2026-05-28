@@ -17,6 +17,8 @@ use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
@@ -149,70 +151,69 @@ class SuggestionResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/suggestion/strings.infolist.tab_overview'))
+                        ->icon('heroicon-o-light-bulb')
+                        ->schema([
+                            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
+                                ->icon('heroicon-o-arrow-path-rounded-square')
+                                ->schema([SuggestionInfolistPresenter::workflow()])
+                                ->collapsible(),
 
-            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
-                ->icon('heroicon-o-arrow-path-rounded-square')
-                ->schema([
-                    SuggestionInfolistPresenter::workflow(),
+                            Section::make(__('resources/suggestion/strings.infolist.section_overview'))
+                                ->icon('heroicon-o-light-bulb')
+                                ->schema([
+                                    SuggestionInfolistPresenter::title(),
+                                    SuggestionInfolistPresenter::serial(),
+                                    SuggestionInfolistPresenter::stage(),
+                                    SuggestionInfolistPresenter::submitter(),
+                                    SuggestionInfolistPresenter::submitterDept(),
+                                    SuggestionInfolistPresenter::selfFill(),
+                                    SuggestionInfolistPresenter::sentToCeo(),
+                                    SuggestionInfolistPresenter::purpose(),
+                                    SuggestionInfolistPresenter::rule(),
+                                    SuggestionInfolistPresenter::departments(),
+                                    SuggestionInfolistPresenter::deadline(),
+                                    SuggestionInfolistPresenter::createdAt(),
+                                    SuggestionInfolistPresenter::updatedAt(),
+                                ])
+                                ->columns(3),
+
+                            Section::make(__('resources/suggestion/strings.infolist.section_content'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    SuggestionInfolistPresenter::description(),
+                                    SuggestionInfolistPresenter::attachment(),
+                                ])
+                                ->columns(2),
+                        ]),
+
+                    Tab::make(__('resources/suggestion/strings.infolist.tab_reviews'))
+                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->schema([
+                            Section::make(__('resources/suggestion/strings.infolist.section_reviews'))
+                                ->icon('heroicon-o-chat-bubble-left-right')
+                                ->schema([
+                                    SuggestionInfolistPresenter::agreeCount(),
+                                    SuggestionInfolistPresenter::neutralCount(),
+                                    SuggestionInfolistPresenter::disagreeCount(),
+                                    SuggestionInfolistPresenter::reviews(),
+                                ])
+                                ->columns(3),
+
+                            Section::make(__('resources/suggestion/strings.infolist.section_decision'))
+                                ->icon('heroicon-o-scale')
+                                ->schema([
+                                    SuggestionInfolistPresenter::comments(),
+                                    SuggestionInfolistPresenter::referralDepts(),
+                                    SuggestionInfolistPresenter::referralActions(),
+                                ])
+                                ->columns(1)
+                                ->collapsed(),
+                        ]),
                 ])
-                ->columnSpanFull()
-                ->collapsible(),
-
-
-            Section::make(__('resources/suggestion/strings.infolist.section_overview'))
-                ->icon('heroicon-o-light-bulb')
-                ->schema([
-                    SuggestionInfolistPresenter::title(),
-                    SuggestionInfolistPresenter::serial(),
-                    SuggestionInfolistPresenter::stage(),
-                    SuggestionInfolistPresenter::submitter(),
-                    SuggestionInfolistPresenter::submitterDept(),
-                    SuggestionInfolistPresenter::selfFill(),
-                    SuggestionInfolistPresenter::sentToCeo(),
-
-                    SuggestionInfolistPresenter::purpose(),
-                    SuggestionInfolistPresenter::rule(),
-                    SuggestionInfolistPresenter::departments(),
-
-                    SuggestionInfolistPresenter::deadline(),
-                    SuggestionInfolistPresenter::createdAt(),
-                    SuggestionInfolistPresenter::updatedAt(),
-                ])
-                ->columnSpanFull()
-                ->columns(3),
-
-            Section::make(__('resources/suggestion/strings.infolist.section_content'))
-                ->icon('heroicon-o-document-text')
-                ->schema([
-                    SuggestionInfolistPresenter::description(),
-                    SuggestionInfolistPresenter::attachment(),
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-
-
-            Section::make(__('resources/suggestion/strings.infolist.section_reviews'))
-                ->icon('heroicon-o-chat-bubble-left-right')
-                ->schema([
-                    SuggestionInfolistPresenter::agreeCount(),
-                    SuggestionInfolistPresenter::neutralCount(),
-                    SuggestionInfolistPresenter::disagreeCount(),
-                    SuggestionInfolistPresenter::reviews(),
-                ])
-                ->columnSpanFull()
-                ->columns(3),
-
-            Section::make(__('resources/suggestion/strings.infolist.section_decision'))
-                ->icon('heroicon-o-scale')
-                ->schema([
-                    SuggestionInfolistPresenter::comments(),
-                    SuggestionInfolistPresenter::referralDepts(),
-                    SuggestionInfolistPresenter::referralActions(),
-                ])
-                ->columnSpanFull()
-                ->columns(1)
-                ->collapsed(),
-
+                ->columnSpanFull(),
         ]);
     }
 

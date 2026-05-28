@@ -1,12 +1,29 @@
-<div class="h-full flex flex-col p-4 md:p-6 overflow-hidden">
-    <div class="flex items-center justify-between mb-5 shrink-0">
-        <h3 class="text-lg md:text-xl font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
-            <span class="material-symbols-rounded text-[var(--md-sys-color-primary)]">event_note</span>
-            {{ formatJalaliDate($selectedDate) }}
-        </h3>
-        <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)] px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30">
+<div class="h-full flex flex-col p-4 md:p-6 overflow-hidden bg-[var(--md-sys-color-surface)]">
+    @php $d = $this->activeDate; @endphp
+    <div class="flex items-center justify-between mb-5 shrink-0 gap-4">
+        <div class="flex items-center gap-3.5 min-w-0">
+            <div class="relative flex items-center justify-center shrink-0">
+                <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-primary)]">calendar_month</span>
+            </div>
+            <div class="flex flex-col justify-center min-w-0 gap-0.5">
+                <div class="flex items-baseline gap-2">
+                    <h3 class="text-xl md:text-2xl font-black text-[var(--md-sys-color-on-surface)] tracking-tight truncate">
+                        {{ $d['jalali'] }}
+                    </h3>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]/80">public</span>
+                    <span dir="ltr" class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)]/90 tabular-nums tracking-widest uppercase mt-0.5">
+                    {{ $d['gregorian'] }}
+                </span>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col items-center justify-center min-w-[3rem] px-3.5 py-2 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shrink-0">
+        <span class="text-base font-black text-[var(--md-sys-color-primary)] leading-none">
             {{ count($this->selectedDayEvents) }}
         </span>
+        </div>
     </div>
 
     <div class="flex-1 overflow-y-auto space-y-3 pr-1 -mr-2 scrollbar-hide hover:scrollbar-default">

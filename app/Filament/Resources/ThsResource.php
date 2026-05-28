@@ -144,35 +144,59 @@ class ThsResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    TicketInfolistPresenter::ticketId(),
-                    TicketInfolistPresenter::status(),
-                    TicketInfolistPresenter::priority(),
-                    TicketInfolistPresenter::requestType(),
-                    TicketInfolistPresenter::requestArea(),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/ths/strings.infolist.section_request'))
+                        ->icon('heroicon-o-inbox-arrow-down')
+                        ->schema([
+                            Section::make(__('resources/ths/strings.infolist.section_request'))
+                                ->hiddenLabel()
+                                ->schema([
+                                    TicketInfolistPresenter::ticketId(),
+                                    TicketInfolistPresenter::status(),
+                                    TicketInfolistPresenter::priority(),
+                                    TicketInfolistPresenter::requestType(),
+                                    TicketInfolistPresenter::requestArea(),
+                                    TicketInfolistPresenter::requester(),
+                                    TicketInfolistPresenter::department(),
+                                    TicketInfolistPresenter::subject(),
+                                    TicketInfolistPresenter::description(),
+                                    TicketInfolistPresenter::requesterFiles(),
+                                ])
+                                ->columns(4),
+                        ]),
 
-                    TicketInfolistPresenter::requester(),
-                    TicketInfolistPresenter::department(),
-                    TicketInfolistPresenter::assignee(),
-                    TicketInfolistPresenter::subject(),
-                    TicketInfolistPresenter::description(),
-                    TicketInfolistPresenter::requesterFiles(),
+                    Tab::make(__('resources/ths/strings.infolist.section_response'))
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                        ->schema([
+                            Section::make(__('resources/ths/strings.infolist.section_response'))
+                                ->hiddenLabel()
+                                ->schema([
+                                    TicketInfolistPresenter::assignee(),
+                                    TicketInfolistPresenter::completionDeadline(),
+                                    TicketInfolistPresenter::completionDate(),
+                                    TicketInfolistPresenter::effectiveness(),
+                                    TicketInfolistPresenter::satisfaction(),
+                                    TicketInfolistPresenter::actionResult(),
+                                    TicketInfolistPresenter::additionalNotes(),
+                                    TicketInfolistPresenter::assigneeFiles(),
+                                ])
+                                ->columns(4),
+                        ]),
 
-                    TicketInfolistPresenter::completionDeadline(),
-                    TicketInfolistPresenter::completionDate(),
-                    TicketInfolistPresenter::effectiveness(),
-                    TicketInfolistPresenter::satisfaction(),
-                    TicketInfolistPresenter::actionResult(),
-                    TicketInfolistPresenter::additionalNotes(),
-                    TicketInfolistPresenter::assigneeFiles(),
-
-                    TicketInfolistPresenter::createdAt(),
-                    TicketInfolistPresenter::updatedAt(),
+                    Tab::make(__('resources/ths/strings.infolist.section_meta'))
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            Section::make(__('resources/ths/strings.infolist.section_meta'))
+                                ->hiddenLabel()
+                                ->schema([
+                                    TicketInfolistPresenter::createdAt(),
+                                    TicketInfolistPresenter::updatedAt(),
+                                ])
+                                ->columns(2),
+                        ]),
                 ])
-                ->columnSpanFull()
-                ->columns(4),
+                ->columnSpanFull(),
         ]);
     }
 

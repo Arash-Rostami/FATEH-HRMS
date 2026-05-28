@@ -47,6 +47,9 @@ return [
         'section_request'  => 'درخواست',
         'section_response' => 'پاسخ و نتیجه',
         'section_meta'     => 'اطلاعات سیستمی',
+        'tab_request'      => 'درخواست',
+        'tab_response'     => 'پاسخ و نتیجه',
+        'tab_meta'         => 'اطلاعات سیستمی',
     ],
 
     'tabs' => [

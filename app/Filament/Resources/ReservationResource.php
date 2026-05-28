@@ -18,6 +18,8 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
@@ -127,25 +129,41 @@ class ReservationResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    ReservationInfolistPresenter::user(),
-                    ReservationInfolistPresenter::resource(),
-                    ReservationInfolistPresenter::status(),
-                    ReservationInfolistPresenter::parentId(),
-                    ReservationInfolistPresenter::occurrencesCount(),
-                    ReservationInfolistPresenter::startTime(),
-                    ReservationInfolistPresenter::endTime(),
-                    ReservationInfolistPresenter::isFullDay(),
-                    ReservationInfolistPresenter::cancelledBy(),
-                    ReservationInfolistPresenter::cancelledAt(),
-                    ReservationInfolistPresenter::cancelReason(),
-                    ReservationInfolistPresenter::createdAt(),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/reservation/strings.infolist.tab_info'))
+                        ->icon('heroicon-o-calendar')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([
+                                    ReservationInfolistPresenter::user(),
+                                    ReservationInfolistPresenter::resource(),
+                                    ReservationInfolistPresenter::status(),
+                                    ReservationInfolistPresenter::isFullDay(),
+                                    ReservationInfolistPresenter::parentId(),
+                                    ReservationInfolistPresenter::occurrencesCount(),
+                                ])
+                                ->columns(2),
+                        ]),
 
+                    Tab::make(__('resources/reservation/strings.infolist.tab_time'))
+                        ->icon('heroicon-o-clock')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([
+                                    ReservationInfolistPresenter::startTime(),
+                                    ReservationInfolistPresenter::endTime(),
+                                    ReservationInfolistPresenter::cancelledBy(),
+                                    ReservationInfolistPresenter::cancelledAt(),
+                                    ReservationInfolistPresenter::cancelReason(),
+                                    ReservationInfolistPresenter::createdAt(),
+                                ])
+                                ->columns(2),
+                        ]),
                 ])
-                ->columnSpanFull()
-                ->columns(2),
+                ->columnSpanFull(),
         ]);
     }
 

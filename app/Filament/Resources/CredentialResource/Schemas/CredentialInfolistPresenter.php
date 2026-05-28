@@ -26,7 +26,7 @@ class CredentialInfolistPresenter
             ->icon('heroicon-m-user')
             ->color('info')
             ->placeholder('-')
-            ->visible(fn () => auth()->user()?->isAdmin());
+            ->visible(fn () => auth()->user()?->hasElevatedRole());
     }
 
     public static function username(): TextEntry

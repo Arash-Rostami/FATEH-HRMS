@@ -2,6 +2,7 @@ export default () => ({
     activeId: null,
     loading: false,
     observer: null,
+    showTimeline: false,
 
     init() {
         this.$nextTick(() => {
@@ -26,6 +27,7 @@ export default () => ({
     scrollNext() {
         this.$refs.feedContainer.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
     },
+
     scrollPrev() {
         this.$refs.feedContainer.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
     },
@@ -46,7 +48,7 @@ export default () => ({
             timeout = setTimeout(() => {
                 this.updateActiveItem();
                 timeout = null;
-            }, 50); // 50ms throttle
+            }, 50);
         }, { passive: true });
     },
 
@@ -54,14 +56,13 @@ export default () => ({
         if (this.observer) this.observer.disconnect();
 
         this.observer = new IntersectionObserver((entries) => {
-
             if (entries[0].isIntersecting && !this.loading && this.$wire.hasMorePages) {
                 this.loadMore();
             }
         }, {
             root: this.$refs.feedContainer,
-            threshold: 0.1, // Trigger when 10% visible
-            rootMargin: '0px 0px 200px 0px' // Pre-load slightly before end
+            threshold: 0.1,
+            rootMargin: '0px 0px 200px 0px'
         });
 
         if (this.$refs.loadTrigger) {
@@ -79,7 +80,6 @@ export default () => ({
         let closestId = null;
         let minDistance = Infinity;
 
-        // Find all feed items
         const items = container.querySelectorAll('[data-feed-id]');
 
         items.forEach(item => {
@@ -87,11 +87,8 @@ export default () => ({
             let distance;
 
             if (isDesktop) {
-                // Horizontal Layout (RTL)
-                // Distance from Right edge of container
                 distance = Math.abs(containerRect.right - rect.right);
             } else {
-
                 const containerCenter = containerRect.top + (containerRect.height / 2);
                 const itemCenter = rect.top + (rect.height / 2);
                 distance = Math.abs(containerCenter - itemCenter);
@@ -114,7 +111,7 @@ export default () => ({
         try {
             await this.$wire.loadMore();
         } catch (e) {
-            console.error('Failed to load more feeds', e);
+            console.error(e);
         } finally {
             this.loading = false;
         }

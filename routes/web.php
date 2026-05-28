@@ -53,8 +53,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('secure-file');
 
     Route::view('/coming', 'layouts.toCome')->name('coming');
-
-
 });
 
 

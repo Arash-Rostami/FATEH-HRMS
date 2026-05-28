@@ -12,6 +12,8 @@ export default (Alpine) => {
         enabled: localStorage.getItem('backgroundEnabled') === 'true',
         patternEnabled: localStorage.getItem('patternEnabled') === 'true',
         activePattern: localStorage.getItem('activePattern') || 'shapes',
+        tabsOrder: ['home', 'post', 'feed', 'calendar', 'status', 'gallery', 'reports', 'links', 'faqs'],
+        images: [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8],
 
         patterns: [
             { id: 'shapes', name: 'اشکال شناور' },
@@ -31,7 +33,6 @@ export default (Alpine) => {
             { id: 'snow', name: 'بلور برف' },
         ],
 
-        images: [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8],
 
         toggleBackground(value) {
             this.enabled = value;

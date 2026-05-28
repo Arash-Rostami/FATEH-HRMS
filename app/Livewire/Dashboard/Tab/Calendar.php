@@ -27,6 +27,22 @@ class Calendar extends Component
     public ?int $deletingEventId = null;
 
     #[Computed]
+    public function activeDate(): array
+    {
+        try {
+            $jalali = Jalalian::fromFormat('Y-m-d', $this->selectedDate);
+        } catch (Throwable $e) {
+            $jalali = Jalalian::now();
+        }
+
+        return [
+            'jalali' => $jalali->format('l، d F Y'),
+            'gregorian' => $jalali->toCarbon()->format('D, d M Y'),
+            'isToday' => $jalali->format('Y-m-d') === Jalalian::now()->format('Y-m-d'),
+        ];
+    }
+
+    #[Computed]
     public function calendarDays(): array
     {
         $days = [];

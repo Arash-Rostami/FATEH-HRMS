@@ -3,7 +3,7 @@
     'direction' => 'up'
 ])
 
-<div x-data="menu"
+<div x-data="menu({ canAdmin: @json( canAdmin()) })"
      @resize.window="updatePerPage"
      :class="isVisible ? 'top-[60px] lg:top-[80px]' : 'top-0'"
      class="sticky z-[51] w-full transition-all duration-300 ease-in-out">

@@ -1,8 +1,8 @@
-export default function menu() {
+export default function menu(options = {}) {
     return {
         menuOpen: false,
         items: [
-            {id: 'admin-controller', href: '/admin', icon: 'admin_panel_settings', title: 'پنل مدیریت', sub: 'تنظیمات سیستمی'},
+            {id: 'admin-controller', href: '/admin', icon: 'admin_panel_settings', title: 'پنل مدیریت', sub: 'تنظیمات سیستمی', adminOnly: true},
             {id: 'dashboard-controller', href: '/dashboard', icon: 'home', title: 'داشبورد', sub: 'نمای کلی'},
             {id: 'profile-controller', href: '/profile?tab=info', icon: 'person', title: 'پروفایل', sub: 'حساب و اطلاعات'},
             {id: 'onboarding-controller', href: '/profile?tab=onboarding', icon: 'apartment', title: 'آنبوردینگ', sub: 'آشنایی با شرکت'},
@@ -64,6 +64,10 @@ export default function menu() {
         },
 
         init() {
+            if (!options.canAdmin) {
+                this.items = this.items.filter(item => !item.adminOnly);
+            }
+
             this.updatePerPage();
             window.addEventListener('resize', () => this.updatePerPage());
         }

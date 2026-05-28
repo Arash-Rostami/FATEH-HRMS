@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
-use App\Traits\HasFormDivider;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\RichEditor\TextColor;
@@ -14,7 +14,7 @@ use Filament\Forms\Components\Toggle;
 
 class ReportFormPresenter
 {
-    use HasFormDivider;
+    use FilamentFormDivider;
 
     public static function active(): Toggle
     {

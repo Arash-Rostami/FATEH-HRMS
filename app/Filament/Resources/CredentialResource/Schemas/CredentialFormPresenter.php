@@ -13,7 +13,7 @@ class CredentialFormPresenter
 
     public static function appName(): TextInput
     {
-        $isAdmin = auth()->user()?->isAdmin() ?? false;
+        $isAdmin = auth()->user()?->hasElevatedRole() ?? false;
         return TextInput::make('app_name')
             ->label(__('resources/credential/strings.fields.app_name'))
             ->required()
@@ -71,7 +71,7 @@ class CredentialFormPresenter
 
     public static function userId(): Select
     {
-        $isAdmin = auth()->user()?->isAdmin() ?? false;
+        $isAdmin = auth()->user()?->hasElevatedRole() ?? false;
         return Select::make('user_id')
             ->label(__('resources/credential/strings.fields.user'))
             ->relationship('user', 'name')

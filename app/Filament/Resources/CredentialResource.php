@@ -56,7 +56,7 @@ class CredentialResource extends Resource
         return parent::getEloquentQuery()
             ->with(['user'])
             ->when(
-                !auth()->user()?->isAdmin(),
+                !auth()->user()?->hasElevatedRole(),
                 fn(Builder $q) => $q->where('user_id', auth()->id())
             );
     }

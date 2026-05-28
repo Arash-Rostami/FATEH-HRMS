@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\PresenceStatus;
 use App\Models\Traits\HasProfileHierarchy;
+use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +19,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable implements HasAvatar
+
+class User extends Authenticatable implements HasAvatar, FilamentUser
 {
     use HasFactory, Notifiable, HasProfileHierarchy;
 
@@ -53,6 +56,15 @@ class User extends Authenticatable implements HasAvatar
     public function authorities(): HasMany
     {
         return $this->hasMany(Authority::class);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return match ($this->role) {
+            'developer' => true,
+            'admin' => ($p = Permission::forUser($this->id)) && ($p->is_super_admin || !empty($p->abilities)),
+            default => false,
+        };
     }
 
     public function cancelledReservations(): HasMany
@@ -142,6 +154,11 @@ class User extends Authenticatable implements HasAvatar
         return null;
     }
 
+    public function hasElevatedRole(): bool
+    {
+        return $this->isAdmin() || $this->isDeveloper();
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
@@ -149,7 +166,12 @@ class User extends Authenticatable implements HasAvatar
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || $this->role === 'developer';
+        return $this->role === 'admin';
+    }
+
+    public function isDeveloper(): bool
+    {
+        return $this->role === 'developer';
     }
 
     public function isOnline(int $minutes = 5): bool

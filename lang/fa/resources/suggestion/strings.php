@@ -48,6 +48,8 @@ return [
         'section_decision' => 'تصمیم مدیریت ارشد',
         'no_reviews'       => 'هنوز بازخوردی ثبت نشده است.',
         'no_referral'      => 'بدون ارجاع برای اقدام',
+        'tab_overview'     => 'پیشنهاد',
+        'tab_reviews'      => 'بازخوردها و تصمیم',
     ],
 
     'tabs' => [

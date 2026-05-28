@@ -11,7 +11,8 @@
 @endphp
 
 <div
-    class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
+
+    class="flex flex-col h-2/3 bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
     :class="{
         'shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] ring-1 ring-[var(--md-sys-color-primary)]/30': activeId == {{ $photo->id }}
     }">
@@ -27,7 +28,7 @@
     </div>
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-4 px-5 pt-5 md:px-6 md:pt-6 shrink-0">
+    <div class="flex items-center justify-between mb-2 px-4 pt-4 shrink-0">
         <div class="flex flex-col items-start gap-1">
             <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-tight truncate max-w-[200px]">
                 {{ $photo->title }}
@@ -44,7 +45,7 @@
 
     {{-- Collage (Original Logic Restored) --}}
     <div
-        class="flex-1 relative flex items-center justify-center min-h-[200px] w-full perspective-1000 py-4 feed-scrollbar overflow-y-auto">
+        class="flex-1 relative flex items-center justify-center min-h-[140px] w-full perspective-1000 py-2">
         @foreach($visibleImages as $index => $imagePath)
             @php
                 $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => ''];
@@ -52,9 +53,9 @@
             @endphp
             <a href="{{ $url }}"
                data-fancybox="gallery-{{ $photo->id }}"
-               class="absolute w-40 h-40 md:w-56 md:h-56 rounded-xl shadow-md overflow-hidden border-4 border-[var(--md-sys-color-surface)] transition-all duration-500 ease-out cursor-zoom-in {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
+               class="absolute w-40 h-40 md:w-56 md:h-56 rounded-xl shadow-md overflow-hidden border-4 border-[var(--md-sys-color-surface)] transition-all duration-500 ease-out cursor-zoom-in hover:z-30 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:brightness-105 {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
             >
-                <img src="{{ $url }}" alt="{{ $photo->title }}" class="w-full h-full object-cover" loading="lazy">
+                <img src="{{ $url }}" alt="{{ $photo->title }}" class="w-full h-full object-cover cursor-pointer" loading="lazy">
             </a>
         @endforeach
 

@@ -140,7 +140,7 @@ public function execute(Reservation $reservation, User $user): void
     if ($reservation->status !== 'active')
         throw new Exception("...");
 
-    if (!$user->isAdmin() && $reservation->user_id !== $user->id)
+    if (!$user->hasElevatedRole() && $reservation->user_id !== $user->id)
         throw new Exception("...");
 
     // persist

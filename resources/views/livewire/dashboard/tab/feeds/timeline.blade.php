@@ -2,6 +2,16 @@
     class="absolute top-1/2 left-0 right-0 h-px bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden md:block"></div>
 
 <div
+    x-show="showTimeline"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-20"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-20"
+    x-transition:leave-end="opacity-0"
+    class="absolute top-1/2 left-0 right-0 h-px bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden md:block"></div>
+
+<div
     x-ref="timeline"
     @scroll.debounce.100ms="handleScroll"
     class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[5%] md:pr-[10%] md:pl-4 z-10"
@@ -9,23 +19,32 @@
 >
     <div
         x-ref="feedContainer"
-        class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-hidden md:overflow-x-auto md:snap-x md:snap-mandatory gap-6 md:gap-12 md:p-4 md:p-8 scrollbar-hide items-center md:items-stretch"
+        class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-6 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
+        :class="showTimeline ? 'md:gap-18 md:py-16' : 'md:gap-12 md:py-8 md:p-4'"
     >
         @foreach($this->feeds as $feed)
             <div
                 wire:key="feed-{{ $feed->id }}"
                 data-feed-id="{{ $feed->id }}"
-                class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
+                class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                 :class="{
                         'z-30 scale-100 md:scale-105': activeId == {{ $feed->id }},
                         'z-10 scale-95 opacity-100 md:opacity-80 md:grayscale-[30%]': activeId != {{ $feed->id }}
                     }"
             >
-                {{-- Timeline Dot / Date Indicator (Desktop only) --}}
                 <div
-                    class="absolute top-1/2 -right-10 z-0 hidden md:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2 pointer-events-none">
+                    x-show="showTimeline"
+                    x-transition:enter="transition ease-out duration-300 delay-100"
+                    x-transition:enter-start="opacity-0 scale-90 translate-x-4"
+                    x-transition:enter-end="opacity-100 scale-100 translate-x-1/2"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100 translate-x-1/2"
+                    x-transition:leave-end="opacity-0 scale-90 translate-x-4"
+                    class="absolute top-1/2 -right-12 z-0 hidden md:flex flex-col items-center justify-center -translate-y-1/2 pointer-events-none">
                     <div
-                        class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                        class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
+                        :class="activeId == {{ $feed->id }} ? '!opacity-100 !translate-y-0' : ''"
+                    >
                             <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] font-mono">
                                 {{ $feed->created_at->format('H:i') }}
                             </span>
@@ -41,7 +60,9 @@
                     </div>
 
                     <div
-                        class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                        class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                        :class="activeId == {{ $feed->id }} ? '!opacity-100' : ''"
+                    >
                             <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
                                 {{ $feed->created_at->diffForHumans() }}
                             </span>

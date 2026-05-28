@@ -424,6 +424,22 @@
         animation: slideScaleIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both !important;
     }
 
+    .fi-modal:not(.fi-no-database) .fi-modal-window {
+        @apply !rounded-3xl !mx-auto
+        !bg-[var(--md-sys-color-surface)]
+        !shadow-[0_25px_50px_-12px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_25%)];
+        animation: slideScaleIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both !important;
+    }
+
+    .fi-modal.fi-no-database .fi-modal-window {
+        @apply !bg-[var(--md-sys-color-surface)]
+        !shadow-[4px_0_40px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_18%)];
+        border-radius: 0 1rem 1rem 0 !important;
+        margin-inline-start: auto !important;
+        margin-inline-end: 0 !important;
+    }
+
+
     .fi-tabs {
         @apply !rounded-2xl !bg-[var(--md-sys-color-surface-variant)] p-1;
         animation: fadeIn 0.4s ease-out 0.2s both !important;

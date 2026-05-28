@@ -4,7 +4,7 @@
     clearAction="this.$wire.resetFilters()"
     filterTitle=" "
     placeholder="جستجو در سوالات..."
-    open="false"
+    open="{{ false }}"
 >
     <div class="flex flex-col gap-4 w-full">
         <div class="flex flex-col gap-2">

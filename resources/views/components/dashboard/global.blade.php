@@ -1,6 +1,3 @@
-{{--customized bg pictures--}}
-<x-dashboard.background/>
-
 {{--tools--}}
 <x-dashboard.tools.calculator/>
 <x-dashboard.tools.stopwatch/>

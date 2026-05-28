@@ -28,7 +28,7 @@ class CancelAction
             : $this->seriesReservations($reservation);
 
         $attributes = [
-            'status' => $user->isAdmin()
+            'status' => $user->hasElevatedRole()
                 ? ReservationStatus::CancelledAdmin->value
                 : ReservationStatus::CancelledUser->value,
             'cancelled_by_id' => $user->id,

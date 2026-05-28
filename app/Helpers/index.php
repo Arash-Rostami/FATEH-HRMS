@@ -2,6 +2,7 @@
 
 
 use App\Enums\PresenceStatus;
+use App\Models\Permission;
 use App\Services\GreetingService;
 use App\Services\QuoteService;
 use Illuminate\Support\Carbon;
@@ -190,5 +191,16 @@ if (!function_exists('toJalaliSmart')) {
         return $carbon->format('H:i') === '00:00'
             ? toJalali($carbon, 'Y/m/d')
             : toJalali($carbon, 'Y/m/d H:i');
+    }
+}
+
+if (!function_exists('canAdmin')) {
+    function canAdmin(): bool
+    {
+        if (!auth()->check()) return false;
+
+        $adminPerm = Permission::forUser(auth()->id());
+
+        return $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));
     }
 }
