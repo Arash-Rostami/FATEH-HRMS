@@ -1,12 +1,13 @@
 <x-auth.card title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید.">
     <div x-data="{ showPassword: false, remember: @entangle('remember') }">
-        <form wire:submit.prevent="login" class="space-y-6">
+        <form method="POST" action="{{ route('login') }}" class="space-y-6">
+            @csrf
             <div class="space-y-5">
                 {{-- Email Input --}}
                 <div class="md3-input-group group relative">
                     <div class="relative transition-transform duration-200 focus-within:scale-[1.01]">
                         <input
-                            wire:model.lazy="email"
+                            name="email" value="{{ old('email') }}"
                             type="email"
                             id="email"
                             class="md3-input peer ps-14 pe-4 py-3.5 text-base bg-[var(--md-sys-color-surface-container)]/50 focus:bg-[var(--md-sys-color-surface-container)]"
@@ -37,7 +38,7 @@
                 <div class="md3-input-group group relative">
                     <div class="relative transition-transform duration-200 focus-within:scale-[1.01]">
                         <input
-                            wire:model.lazy="password"
+                            name="password"
                             :type="showPassword ? 'text' : 'password'"
                             id="password"
                             class="md3-input peer ps-14 pe-14 py-3.5 text-base bg-[var(--md-sys-color-surface-container)]/50 focus:bg-[var(--md-sys-color-surface-container)]"
@@ -74,7 +75,7 @@
 
             <div class="flex items-center justify-between px-1">
                 <label class="flex items-center gap-2.5 cursor-pointer group select-none py-1">
-                    <input x-model="remember" type="checkbox" class="sr-only">
+                    <input name="remember" x-model="remember" type="checkbox" class="sr-only">
                     <div
                         class="relative w-[44px] h-[26px] rounded-full transition-colors duration-200 ease-in-out shadow-inner"
                         :class="remember ? 'bg-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-surface-container-highest)]'">
@@ -99,24 +100,10 @@
 
             <div class="space-y-4 pt-2">
                 <button type="submit"
-                        class="md3-btn w-full h-12 text-base shadow-lg shadow-[var(--md-sys-color-primary)]/15 active:shadow-none transition-all group hover:scale-[1.01]"
-                        wire:loading.attr="disabled"
-                        wire:target="login">
+                        class="md3-btn w-full h-12 text-base shadow-lg shadow-[var(--md-sys-color-primary)]/15 active:shadow-none transition-all group hover:scale-[1.01]">
                     <div class="relative flex items-center justify-center gap-2 w-full">
-                        <span class="material-symbols-rounded text-[22px]" wire:loading.remove
-                              wire:target="login">login</span>
-
-                        <svg  class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-                             viewBox="0 0 24 24" wire:loading wire:target="login">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-
-                        <span wire:loading.remove wire:target="login"
-                              class="font-bold tracking-wide">احراز هویت و ورود</span>
-                        <span wire:loading wire:target="login" class="font-bold tracking-wide">درحال بررسی...</span>
+                        <span class="material-symbols-rounded text-[22px]">login</span>
+                        <span class="font-bold tracking-wide">احراز هویت و ورود</span>
                     </div>
                 </button>
 
