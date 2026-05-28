@@ -69,7 +69,7 @@
     {{-- Hidden Images for Fancybox --}}
     <div class="hidden">
         @foreach($hiddenImages as $imagePath)
-            <a href="{{ asset($imagePath) }}" data-fancybox="gallery-{{ $photo->id }}"></a>
+            <a href="{{ Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath) }}" data-fancybox="gallery-{{ $photo->id }}"></a>
         @endforeach
     </div>
 

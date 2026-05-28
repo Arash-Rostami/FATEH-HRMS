@@ -49,17 +49,18 @@
 
                         {{-- Card Content --}}
                         <div class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-variant)]/30">
-                            @if($link->image_description)
-                                <img src="{{ $link->image_description }}"
+                            @if($link->image)
+                                @php $linkImageUrl = Storage::disk('public')->exists($link->image) ? Storage::disk('public')->url($link->image) : asset($link->image); @endphp
+                                <img src="{{ $linkImageUrl }}"
                                      alt="{{ $link->url_title }}"
                                      class="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
                                      onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');"
                                 >
                             @endif
 
-                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-primary)] {{ $link->image_description ? 'hidden' : 'flex' }}">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[var(--md-sys-color-primary)] {{ $link->image ? 'hidden' : 'flex' }}">
                                 <div class="p-4 rounded-2xl bg-[var(--md-sys-color-primary-container)]/50 group-hover/card:bg-[var(--md-sys-color-primary-container)] transition-colors duration-300">
-                                    <span class="material-symbols-rounded text-4xl">{{ $link->icon_description ?: 'link' }}</span>
+                                    <span class="material-symbols-rounded text-xl leading-none">{{ $link->icon_description ?: 'link' }}</span>
                                 </div>
                             </div>
 

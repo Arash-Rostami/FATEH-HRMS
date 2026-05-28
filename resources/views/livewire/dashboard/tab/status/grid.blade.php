@@ -21,7 +21,7 @@
 
                 <div class="relative z-10 mt-1">
                     <img
-                        src="{{ $user->profile?->image ? asset('storage/'.$user->profile->image) : "https://ui-avatars.com/api/?name=".urlencode($user->name)."&background=random&color=fff" }}"
+                        src="{{ $user->profile?->image ? (Storage::disk('public')->exists($user->profile->image) ? Storage::disk('public')->url($user->profile->image) : asset($user->profile->image)) : "https://ui-avatars.com/api/?name=".urlencode($user->name)."&background=random&color=fff" }}"
                         alt="{{ $user->name }}"
                         class="w-18 h-18 rounded-full object-cover
                            ring-2 ring-{{ $p->color() }}-500 ring-offset-2
@@ -37,7 +37,7 @@
                                 border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow cursor-pointer hover:scale-110 transition-transform z-20"
                              title="درباره من"
                              @click.stop="$dispatch('open-about-me', {
-                            user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}', image: '{{ $user->profile?->image}}' },
+                             user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}', image: '{{ $user->profile?->image ? Storage::disk("public")->url($user->profile->image) : "" }}' },
                             aboutMe: @js($user->profile?->about_me ?? [])
                          })">
                             <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
