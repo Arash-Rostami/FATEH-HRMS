@@ -21,7 +21,7 @@ class VerifyNotice extends Component
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
-        return redirect()->route('login');
+        return redirect('/login');
     }
 
     public function render()
