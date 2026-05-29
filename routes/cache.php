@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cache', function () {
         Artisan::call('route:cache');
         Artisan::call('view:cache');
+        Artisan::call('filament:cache-components');
 
         return response()->json([
             'message' => 'Caches set successfully!',

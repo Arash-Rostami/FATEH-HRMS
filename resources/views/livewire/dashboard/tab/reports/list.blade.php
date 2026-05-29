@@ -1,5 +1,5 @@
 <div class="space-y-4">
-    @foreach ($this->reports as $report)
+    @forelse ($this->reports as $report)
         <div wire:key="report-list-{{ $report->id }}"
              class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
              @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
@@ -30,7 +30,19 @@
                 </button>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div
+            class="flex flex-col items-center justify-center py-20 gap-4 text-[var(--md-sys-color-on-surface-variant)]">
+            <div
+                class="w-20 h-20 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center opacity-60">
+                <span class="material-symbols-rounded text-5xl">folder_open</span>
+            </div>
+            <div class="text-center">
+                <p class="font-bold text-[var(--md-sys-color-on-surface)]">هیچ گزارشی یافت نشد</p>
+                <p class="text-sm mt-1 opacity-70">هنوز هیچ گزارشی بارگذاری نشده است.</p>
+            </div>
+        </div>
+    @endforelse
 
     @if($this->hasMorePages)
         <div x-intersect.threshold.10="$wire.loadMore()" class="py-8 flex justify-center w-full">

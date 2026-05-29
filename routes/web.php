@@ -2,7 +2,6 @@
 
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
-use App\Livewire\Auth\LogoutButton;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
@@ -11,10 +10,10 @@ use App\Livewire\Dashboard\Authority\Main as Authority;
 use App\Livewire\Dashboard\Contact\Main as Contact;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
-use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\Profile\Main as Profile;
 use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
+use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
 use App\Livewire\Dashboard\Ths\Main as Ths;
 use Illuminate\Support\Facades\Route;
@@ -27,11 +26,11 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
-    Route::get('/logout', LogoutButton::class)->name('logout');
     Route::get('/register', Register::class)->name('register');
     Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
     Route::get('/reset-password/{token}', ResetPassword::class)->name('password.reset');
 });
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');

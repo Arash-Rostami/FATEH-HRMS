@@ -176,7 +176,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function isOnline(int $minutes = 5): bool
     {
-        return ($this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes))) || $this->isActive();
+        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
     }
 
     public function latestEnergyTest()

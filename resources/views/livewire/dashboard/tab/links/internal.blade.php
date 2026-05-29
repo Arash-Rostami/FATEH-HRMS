@@ -83,4 +83,14 @@
             @endforeach
         </div>
     </section>
+@else
+    <div class="flex flex-col items-center justify-center py-16 gap-4 text-[var(--md-sys-color-on-surface-variant)]">
+        <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center opacity-60">
+            <span class="material-symbols-rounded text-4xl">link_off</span>
+        </div>
+        <div class="text-center">
+            <p class="text-sm font-bold">هیچ سامانه داخلی تعریف نشده</p>
+            <p class="text-xs mt-1 opacity-70">سامانه‌های درون‌سازمانی توسط مدیر تعریف می‌شوند.</p>
+        </div>
+    </div>
 @endif

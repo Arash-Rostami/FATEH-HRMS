@@ -14,6 +14,10 @@ export default defineConfig({
                 'resources/css/core/filament.css',
                 'resources/js/app.js',
                 'resources/js/core/filament.js',
+
+                'resources/js/core/theme-manager.js',
+                'resources/js/core/filament.js',
+                'resources/js/components/alpine/stores/filament-menu.js',
             ],
             refresh: true,
         }),

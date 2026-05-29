@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Str;
 use App\Traits\AuthValidationRules;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
+use Livewire\Component;
 
 class ResetPassword extends Component
 {
     use AuthValidationRules;
 
+    #[Locked]
     public string $token;
     public string $email = '';
     public string $password = '';
@@ -22,6 +23,11 @@ class ResetPassword extends Component
     {
         $this->token = $token;
         $this->email = request()->query('email', '');
+    }
+
+    public function render()
+    {
+        return view('livewire.auth.reset-password')->layout('layouts.auth');
     }
 
     public function submitReset()
@@ -44,7 +50,7 @@ class ResetPassword extends Component
             ],
             function ($user) {
                 $user->forceFill([
-                    'password' => Hash::make($this->password),
+                    'password' => $this->password,
                 ])->setRememberToken(Str::random(60));
 
                 $user->save();
@@ -59,10 +65,5 @@ class ResetPassword extends Component
         }
 
         $this->addError('email', 'ایمیل یا توکن نامعتبر است.');
-    }
-
-    public function render()
-    {
-        return view('livewire.auth.reset-password')->layout('layouts.auth');
     }
 }

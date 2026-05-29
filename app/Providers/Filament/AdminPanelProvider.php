@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\AccountWidget;
 use App\Http\Middleware\EnsureHasPermission;
+use App\Http\Middleware\UpdateLastSeen;
 use App\Livewire\Admin\ManagePreferences;
 use App\Services\FilamentMenuService;
 use Filament\Enums\GlobalSearchPosition;
@@ -53,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                UpdateLastSeen::class,
             ])
             ->maxContentWidth(Width::Full)
             ->globalSearch(true, position: GlobalSearchPosition::Topbar)
