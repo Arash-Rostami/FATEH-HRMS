@@ -17,6 +17,7 @@ return [
         'section_booking'       => 'مجوزهای رزرو',
         'section_extra'         => 'اطلاعات تکمیلی',
 
+        'avatar'                => 'تصویر پروفایل',
         'name'                  => 'نام',
         'email'                 => 'ایمیل',
         'password'              => 'رمز عبور',

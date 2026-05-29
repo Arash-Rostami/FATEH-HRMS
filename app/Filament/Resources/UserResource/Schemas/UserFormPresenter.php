@@ -12,12 +12,29 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Utilities\Get;
 use Livewire\Component;
 
 class UserFormPresenter
 {
     use FilamentFormDivider;
+    public static function avatar(): FileUpload
+    {
+        return FileUpload::make('profile.image')
+            ->label(__('resources/user/strings.form.avatar'))
+            ->image()
+            ->downloadable()
+            ->openable()
+            ->previewable()
+            ->disk('public')
+            ->directory('profiles/images')
+            ->imagePreviewHeight('120')
+            ->maxSize(2048)
+            ->columnSpanFull()
+            ->helperText(__('resources/user/strings.hints.avatar'));
+    }
+
     public static function booking(): Repeater
     {
         return Repeater::make('booking')
