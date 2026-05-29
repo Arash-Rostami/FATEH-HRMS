@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Contact\Presentation;
 
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use App\Models\User;
 
 class ContactPresenter
 {
@@ -21,7 +22,7 @@ class ContactPresenter
             'id'       => $c['id'],
             'name'     => $c['name'],
             'initials' => mb_substr($c['name'], 0, 1),
-            'avatar'   => $c['profile']['image'] ?? null,
+            'avatar'   => (new User(['name' => $c['name']]))->resolveImageUrl($c['profile']['image'] ?? null) ?? (new User(['name' => $c['name']]))->getInitialsAvatarUrl(),
             'position' => $c['profile']['position'] ?? 'عضو سازمان',
             'is_online' => (bool) ($c['is_online'] ?? false),
             'unread'    => $unread,
