@@ -333,7 +333,7 @@ class ProfileFormPresenter
     {
         return FileUpload::make('image')
             ->label(__('resources/profile/strings.form.image'))
-            ->image()
+            ->avatar()
             ->downloadable()
             ->openable()
             ->previewable()

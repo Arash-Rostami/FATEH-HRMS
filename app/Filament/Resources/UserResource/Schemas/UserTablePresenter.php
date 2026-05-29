@@ -16,16 +16,12 @@ class UserTablePresenter
 {
     public static function avatar(): ImageColumn
     {
-        return ImageColumn::make('profile.image')
+        return ImageColumn::make('profile_image')
             ->label(__('resources/user/strings.table.avatar'))
+            ->getStateUsing(fn(User $record): ?string => $record->getProfileImageUrl())
             ->circular()
             ->imageSize(40)
-            ->disk('public')
-            ->defaultImageUrl(
-                fn($record): string => 'https://ui-avatars.com/api/?name='
-                    . urlencode($record->name ?? 'User')
-                    . '&background=0D8ABC&color=fff&size=128'
-            )
+            ->defaultImageUrl(fn(User $record): string => $record->getInitialsAvatarUrl())
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

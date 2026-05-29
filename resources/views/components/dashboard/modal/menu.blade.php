@@ -14,7 +14,8 @@
                         </button>
                         <div class="flex items-center gap-3">
                             <div class="w-14 h-14 rounded-2xl bg-[var(--md-sys-color-primary-container)] flex items-center justify-center shadow-md overflow-hidden shrink-0">
-                                <x-ui.avatar :image="null" :existingImage="optional(auth()->user()?->profile)->image" class="rounded-lg" />
+                                <x-ui.avatar :image="null" :existingImage="auth()->user()?->getProfileImageUrl() ?? auth()->user()?->getInitialsAvatarUrl()" class="rounded-lg" />
+
                             </div>
                             <div class="flex flex-col">
                                 <div class="text-lg font-bold text-white leading-tight">{{ $currentUser?->name ?? 'کاربر سیستم' }}</div>

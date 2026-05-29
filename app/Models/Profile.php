@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasDateHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Profile extends Model
 {
-    use HasFactory, HasDateHelpers;
+    use HasFactory, HasDateHelpers, HasImage;
 
     protected $fillable = [
         'personnel_id',
@@ -50,10 +51,19 @@ class Profile extends Model
         return $this->birthdate?->age;
     }
 
-
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id', 'code');
+    }
+
+    public function getImageUrl(): ?string
+    {
+        return $this->resolveImageUrl($this->image);
+    }
+
+    public function getInitialsAvatarUrl(): string
+    {
+        return $this->generateInitialsAvatar($this->user?->name);
     }
 
     public function isMarried(): bool

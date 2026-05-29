@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
+use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasProfileHierarchy;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -17,12 +18,10 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-
 
 class User extends Authenticatable implements HasAvatar, FilamentUser
 {
-    use HasFactory, Notifiable, HasProfileHierarchy;
+    use HasFactory, Notifiable, HasProfileHierarchy, HasImage;
 
     protected $fillable = [
         'name',
@@ -41,6 +40,14 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $attributes = [
+        'maximum' => 12,
+        'type' => 'employee',
+        'role' => 'user',
+        'status' => 'active',
+        'presence' => 'remote',
     ];
 
     public function assignedTasks(): HasMany
@@ -133,20 +140,22 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function getFilamentAvatarUrl(): ?string
     {
-        $image = $this->profile?->image;
+        return $this->getProfileImageUrl();
+    }
 
-        if (!$image) return null;
-
-        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-            return $image;
-        }
-
-        return Storage::disk('public')->url($image);
+    public function getInitialsAvatarUrl(): string
+    {
+        return $this->generateInitialsAvatar($this->name);
     }
 
     public function getPreference(string $key, mixed $default = null): mixed
     {
         return $this->getExtraValue("preferences.{$key}", $default);
+    }
+
+    public function getProfileImageUrl(): ?string
+    {
+        return $this->profile?->getImageUrl();
     }
 
     public function getTodaysDeskExtension(): ?string
@@ -229,7 +238,10 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         return $this->hasMany(Report::class);
     }
 
-    public function reservations(): HasMany { return $this->hasMany(Reservation::class); }
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
 
     public function reviews(): HasMany
     {

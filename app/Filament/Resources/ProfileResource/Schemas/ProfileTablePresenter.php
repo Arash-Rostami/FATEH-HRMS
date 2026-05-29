@@ -8,6 +8,7 @@ use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
 use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Department;
+use App\Models\Profile;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -15,19 +16,14 @@ use Filament\Tables\Grouping\Group;
 
 class ProfileTablePresenter
 {
-
     public static function avatar(): ImageColumn
     {
-        return ImageColumn::make('image')
+        return ImageColumn::make('profile_image')
             ->label(__('resources/profile/strings.table.avatar'))
+            ->getStateUsing(fn(Profile $record): ?string => $record->getImageUrl())
             ->circular()
-            ->disk('public')
             ->imageSize(40)
-            ->defaultImageUrl(
-                fn($record): string => 'https://ui-avatars.com/api/?name='
-                    . urlencode($record->user?->name ?? 'User')
-                    . '&background=0D8ABC&color=fff&size=128'
-            )
+            ->defaultImageUrl(fn(Profile $record): string => $record->getInitialsAvatarUrl())
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

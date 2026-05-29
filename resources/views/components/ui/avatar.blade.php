@@ -18,7 +18,7 @@
         loading="lazy"
         decoding="async"
         alt="{{ $alt }}"
-        src="{{ Storage::url($existingImage) }}"
+        src="{{ $existingImage }}"
         {{ $attributes->merge(['class' => 'w-full h-full object-cover fade-in rounded-md']) }}
     >
 @else

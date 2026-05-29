@@ -7,17 +7,17 @@
 
         <div
             class="w-8 h-8 rounded-[8px] bg-[var(--md-sys-color-surface)] flex items-center justify-center overflow-hidden shrink-0 shadow-sm ">
-            @if(auth()->check())
-                <x-ui.avatar
-                    :existingImage="auth()->user()?->profile?->image"
-                    alt="{{ auth()->user()->name }}"
-                />
+                @if(auth()->check())
+                    <x-ui.avatar
+                        :existingImage="auth()->user()?->getProfileImageUrl() ?? auth()->user()?->getInitialsAvatarUrl()"
+                        alt="{{ auth()->user()->name }}"
+                    />
 
-            @else
-                <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-[20px]">
+                @else
+                    <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-[20px]">
                     person
                 </span>
-            @endif
+                @endif
         </div>
 
         <div class="hidden md:flex flex-col items-start text-right leading-none gap-0.5">

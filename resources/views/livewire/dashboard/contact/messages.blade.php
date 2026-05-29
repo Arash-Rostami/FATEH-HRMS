@@ -43,12 +43,7 @@
                     @if($msg['is_last'])
                         <div
                             class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            @if($activeContact->profile?->image)
-                                <img src="{{ $activeContact->profile->image }}" class="w-full h-full object-cover"
-                                     alt="profile image">
-                            @else
-                                {{ mb_substr($activeContact->name, 0, 1) }}
-                            @endif
+                            <img src="{{ $activeContact->getProfileImageUrl() ?? $activeContact->getInitialsAvatarUrl() }}" class="w-full h-full object-cover" alt="profile image">
                         </div>
                     @else
                         <div class="flex-shrink-0 w-7" aria-hidden="true"></div>

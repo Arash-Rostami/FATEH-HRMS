@@ -10,7 +10,7 @@
         <div class="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold select-none overflow-hidden shadow-sm bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
             <x-ui.avatar
                 :image="null"
-                :existingImage="$activeContact->profile->image "
+                :existingImage="$activeContact->getProfileImageUrl() ?? $activeContact->getInitialsAvatarUrl()"
                 class="rounded-lg" />
         </div>
         @if($isOnline)
