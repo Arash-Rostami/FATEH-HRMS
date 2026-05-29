@@ -8,9 +8,24 @@ use App\Filament\Resources\UserResource\Enums\UserType;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 
 class UserInfolistPresenter
 {
+    public static function avatar(): ImageEntry
+    {
+        return ImageEntry::make('profile.image')
+            ->label(__('resources/user/strings.infolist.avatar'))
+            ->disk('public')
+            ->circular()
+            ->imageHeight(120)
+            ->defaultImageUrl(
+                fn($record): string => 'https://ui-avatars.com/api/?name='
+                    . urlencode($record->name ?? 'User')
+                    . '&background=0D8ABC&color=fff&size=128'
+            );
+    }
+
     public static function id(): TextEntry
     {
         return TextEntry::make('id')

@@ -8,7 +8,7 @@ class ProfilePresenter
 {
     public function avatarUrl(User $user): ?string
     {
-        return $user->profile?->image ?? null;
+        return $user->getFilamentAvatarUrl();
     }
 
     public function completion(User $user): int

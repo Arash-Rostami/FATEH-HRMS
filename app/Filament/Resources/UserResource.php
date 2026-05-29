@@ -45,6 +45,7 @@ class UserResource extends Resource
         return $schema->components([
             Section::make(__('resources/user/strings.form.section_identity'))
                 ->schema([
+                    UserFormPresenter::avatar(),
                     UserFormPresenter::name(),
                     UserFormPresenter::email(),
                     UserFormPresenter::divider(),
@@ -161,6 +162,7 @@ class UserResource extends Resource
                             ->schema([
                                 Section::make(__('resources/user/strings.infolist.section_identity'))
                                     ->schema([
+                                        UserInfolistPresenter::avatar(),
                                         UserInfolistPresenter::id(),
                                         UserInfolistPresenter::name(),
                                         UserInfolistPresenter::email(),
