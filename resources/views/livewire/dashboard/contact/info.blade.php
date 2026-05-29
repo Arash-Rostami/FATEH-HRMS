@@ -26,17 +26,17 @@
                     class="rounded-lg" />
             </div>
             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $activeContact->name }}</p>
-            @if($activeContact->profile?->position)
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $activeContact->profile->position }}</p>
+            @if(optional($activeContact->profile)->position)
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ optional($activeContact->profile)->position }}</p>
             @endif
         </div>
         <div class="space-y-3">
-            @if($activeContact->profile?->department?->name)
+            @if(optional(optional($activeContact->profile)->department)->name)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">apartment</span>
                     <div>
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">واحد سازمانی</p>
-                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ $activeContact->profile->department->name }}</p>
+                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ optional(optional($activeContact->profile)->department)->name }}</p>
                     </div>
                 </div>
             @endif
@@ -50,12 +50,12 @@
                     </div>
                 </div>
             @endif
-            @if($activeContact->profile?->cellphone)
+            @if(optional($activeContact->profile)->cellphone)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">phone</span>
                     <div>
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">تلفن</p>
-                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ $activeContact->profile->cellphone }}</p>
+                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ optional($activeContact->profile)->cellphone }}</p>
                     </div>
                 </div>
             @endif

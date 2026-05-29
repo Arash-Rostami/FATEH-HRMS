@@ -31,14 +31,14 @@
                         loading="lazy"
                     >
 
-                    @if($user->profile?->about_me)
+                    @if(optional($user->profile)->about_me)
                         <div class="absolute -top-4 -left-6 w-8 h-8 rounded-full
                                 bg-[var(--md-sys-color-primary)] flex items-center justify-center
                                 border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow cursor-pointer hover:scale-110 transition-transform z-20"
                              title="درباره من"
                              @click.stop="$dispatch('open-about-me', {
-                             user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}', image: '{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}' },
-                            aboutMe: @js($user->profile?->about_me ?? [])
+                             user: { name: '{{ $user->name }}', position: '{{ optional($user->profile)->position ?? "کارشناس" }}', image: '{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}' },
+                            aboutMe: @js(optional($user->profile)->about_me ?? [])
                          })">
                             <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
                         </div>
@@ -57,7 +57,7 @@
                         {{ $user->name }}
                     </p>
                     <p class="text-[9px] text-{{ $p->color() }}-400/70 truncate font-medium">
-                        {{ $user->profile?->position ?? 'کارشناس' }}
+                        {{ optional($user->profile)->position ?? 'کارشناس' }}
                     </p>
                 </div>
 

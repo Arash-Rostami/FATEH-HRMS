@@ -10,7 +10,7 @@
         <div class="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold select-none overflow-hidden shadow-sm bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
             <x-ui.avatar
                 :image="null"
-                :existingImage="$activeContact->profile->image "
+                :existingImage="$activeContact->getProfileImageUrl() ?? $activeContact->getInitialsAvatarUrl()"
                 class="rounded-lg" />
         </div>
         @if($isOnline)
@@ -30,11 +30,11 @@
             @endif
         </div>
         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-            @if($activeContact->profile?->position)
-                <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $activeContact->profile->position }}</span>
+            @if(optional($activeContact->profile)->position)
+                <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ optional($activeContact->profile)->position }}</span>
             @endif
-            @if($activeContact->profile?->department?->name)
-                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">{{ $activeContact->profile->department->name }}</span>
+            @if(optional(optional($activeContact->profile)->department)->name)
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">{{ optional(optional($activeContact->profile)->department)->name }}</span>
             @endif
         </div>
     </div>
