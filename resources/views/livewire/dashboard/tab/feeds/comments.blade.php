@@ -12,7 +12,7 @@
         @forelse($comments ?? [] as $comment)
             @php
                 $commentUser = $comment?->user;
-                $hasPhoto    = !empty($commentUser?->profile?->image);
+                $hasPhoto    = !empty($commentUser?->getProfileImageUrl() ?? $commentUser?->getInitialsAvatarUrl());
                 $isOnline    = $commentUser?->isOnline() ?? false;
                 $isOwner     = auth()->id() === $comment->user_id;
                 $isEditing   = ($editingCommentId ?? null) === ($comment?->id ?? null);
@@ -26,7 +26,7 @@
                         @if($hasPhoto)
                             <x-ui.avatar
                                 title="تصویر پروفایل"
-                                :existingImage="$commentUser?->profile?->image"
+                                :existingImage="$commentUser?->getProfileImageUrl() ?? $commentUser?->getInitialsAvatarUrl()"
                                 :alt="$commentUser?->name"
                                 class="!w-7 !h-7 !rounded-lg shadow-md group-hover:scale-105 transition-all hover:grayscale duration-500"
                             />
@@ -183,7 +183,7 @@
         @auth
             @php
                 $authUser     = auth()?->user();
-                $authHasPhoto = !empty($authUser?->profile?->image);
+                $authHasPhoto = !empty($authUser?->getProfileImageUrl() ?? $authUser?->getInitialsAvatarUrl());
                 $authOnline   = $authUser?->isOnline() ?? false;
             @endphp
 
@@ -202,7 +202,7 @@
                         @if($authHasPhoto)
                             <x-ui.avatar
                                 title="تصویر پروفایل"
-                                :existingImage="$authUser?->profile?->image"
+                                :existingImage="$authUser?->getProfileImageUrl() ?? $authUser?->getInitialsAvatarUrl()"
                                 :alt="$authUser?->name ?? 'کاربر'"
                                 class="!w-8 !h-8 !rounded-lg shadow-md group-hover:scale-105 transition-all hover:grayscale duration-500"
                             />

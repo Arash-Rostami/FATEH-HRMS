@@ -29,7 +29,7 @@ class Info extends Component
         $deleted = $action->execute();
 
         if ($deleted) {
-            $this->existingImage = null;
+            $this->existingImage = auth()->user()->getInitialsAvatarUrl();
             $this->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
         }
     }
@@ -71,7 +71,7 @@ class Info extends Component
             $this->form->birthDay = $jalali->getDay();
         }
 
-        $this->existingImage = $profile->image;
+        $this->existingImage = $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl();
         $this->form->email = $user->email ?? '';
     }
 
@@ -88,7 +88,7 @@ class Info extends Component
         $result = $action->execute($this->form);
 
         if ($result['imagePath'] ?? null) {
-            $this->existingImage = $result['imagePath'];
+            $this->existingImage = auth()->user()->getProfileImageUrl() ?? auth()->user()->getInitialsAvatarUrl();
             $this->form->image = null;
         }
 
