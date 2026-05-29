@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Dashboard\Contact\Presentation;
 
+use App\Models\Traits\HasAvatarLogic;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-use App\Models\User;
 
 class ContactPresenter
 {
+    use HasAvatarLogic;
+
     public function sidebar(array $contacts, int $authId): array
     {
         return array_map(fn(array $c) => $this->contact($c, $authId), $contacts);
@@ -22,7 +24,7 @@ class ContactPresenter
             'id'       => $c['id'],
             'name'     => $c['name'],
             'initials' => mb_substr($c['name'], 0, 1),
-            'avatar'   => (new User(['name' => $c['name']]))->resolveImageUrl($c['profile']['image'] ?? null) ?? (new User(['name' => $c['name']]))->getInitialsAvatarUrl(),
+            'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null) ?? $this->generateInitialsAvatar($c['name']),
             'position' => $c['profile']['position'] ?? 'عضو سازمان',
             'is_online' => (bool) ($c['is_online'] ?? false),
             'unread'    => $unread,
@@ -41,9 +43,6 @@ class ContactPresenter
         return array_sum(array_column($contacts, 'unread_count'));
     }
 
-    /**
-     * @param  array<int, array>  $grouped  keyed by Y-m-d date string
-     */
     public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit): array
     {
         $label = Carbon::parse($date)->isToday()
