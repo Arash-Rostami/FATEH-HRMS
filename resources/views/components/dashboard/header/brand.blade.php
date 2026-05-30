@@ -21,8 +21,10 @@
                             leading-none select-none whitespace-nowrap
                             bg-gradient-to-l from-white via-white/90 to-white/60
                             bg-clip-text text-transparent">
-                    اینتـرا،&nbsp;<span
-                        class="bg-gradient-to-l from-[#FF7F6E] to-[#ffb199] bg-clip-text text-transparent">خانه دیجیتـال ما</span>
+                    اینتـرا،&nbsp;
+                    <span class="bg-[var(--header-border-color)] bg-clip-text text-transparent font-normal">
+                        خانه دیجیتـال سازمان ما
+                    </span>
                 </h1>
 
                 <span class="hidden sm:block h-7 w-px bg-white/15 shrink-0"></span>

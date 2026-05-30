@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Dashboard\Navbar;
 
+use App\Livewire\Dashboard\Tabs;
 use App\Services\NavigationSearchService;
 use Exception;
-use App\Livewire\Dashboard\Tabs;
 use Livewire\Component;
 
 class CommandPalette extends Component
 {
     public string $query = '';
     public array $results = [];
+
 
     public function render()
     {

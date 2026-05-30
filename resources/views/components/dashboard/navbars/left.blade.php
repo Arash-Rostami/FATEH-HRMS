@@ -51,7 +51,7 @@
                   }"
                   :style="isActive('tasks') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">dashboard</span>
 
-            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
+            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[14px] leading-tight !tracking-[4px] text-center uppercase opacity-95">
                 برد وظایف
             </span>
 
@@ -96,7 +96,7 @@
                   }"
                   :style="isActive('dms') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">folder_open</span>
 
-            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
+            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[14px] leading-tight !tracking-[4px] text-center uppercase opacity-95">
                 مدیریت مستندات
             </span>
 
@@ -141,7 +141,7 @@
                   }"
                   :style="isActive('ths') ? 'color: var(--md-sys-color-on-primary); filter: drop-shadow(0 0 8px var(--md-sys-color-on-primary));' : ''">support_agent</span>
 
-            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[11px] font-bold tracking-[0.15em] leading-tight text-center uppercase opacity-95">
+            <span class="[writing-mode:vertical-rl] rotate-180 text-[10px] md:text-[14px] leading-tight !tracking-[4px] text-center uppercase opacity-95">
                 تیکتینگ
             </span>
 

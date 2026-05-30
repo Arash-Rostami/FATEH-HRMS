@@ -1,4 +1,4 @@
-<x-auth.card title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید.">
+<x-auth.card-no-signup title="ورود به سیستم" description="جهت دسترسی به پنل کاربری، اطلاعات ورود خود را وارد نمایید.">
     <div x-data="{ showPassword: false, remember: @entangle('remember') }">
         <form wire:submit.prevent="login" class="space-y-6">
             <div class="space-y-5">
@@ -88,7 +88,7 @@
                     </div>
                     <span
                         class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-on-surface)] transition-colors">
-                        شناسایی دستگاه
+                        مرا به خاطر بسپار
                     </span>
                 </label>
                 <a href="{{ route('password.request') }}"
@@ -119,20 +119,19 @@
                         <span wire:loading wire:target="login" class="font-bold tracking-wide">درحال بررسی...</span>
                     </div>
                 </button>
+{{--                <div class="relative flex py-1 items-center">--}}
+{{--                    <div class="flex-grow border-t border-[var(--md-sys-color-outline-variant)]/30"></div>--}}
+{{--                    <span--}}
+{{--                        class="flex-shrink-0 mx-4 text-[10px] font-bold text-[var(--md-sys-color-outline)] uppercase tracking-[0.2em] opacity-70">یا</span>--}}
+{{--                    <div class="flex-grow border-t border-[var(--md-sys-color-outline-variant)]/30"></div>--}}
+{{--                </div>--}}
 
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-[var(--md-sys-color-outline-variant)]/30"></div>
-                    <span
-                        class="flex-shrink-0 mx-4 text-[10px] font-bold text-[var(--md-sys-color-outline)] uppercase tracking-[0.2em] opacity-70">یا</span>
-                    <div class="flex-grow border-t border-[var(--md-sys-color-outline-variant)]/30"></div>
-                </div>
-
-                <a href="{{ route('register') }}"
-                   class="md3-btn-outlined w-full h-12 text-base border-2 border-[var(--md-sys-color-outline-variant)]/50 text-[var(--md-sys-color-on-surface-variant)] transition-all hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5">
-                    <span class="material-symbols-rounded text-[20px]">person_add_alt</span>
-                    <span class="font-bold">ثبت نام کاربر جدید</span>
-                </a>
+{{--                <a href="{{ route('register') }}"--}}
+{{--                   class="md3-btn-outlined w-full h-12 text-base border-2 border-[var(--md-sys-color-outline-variant)]/50 text-[var(--md-sys-color-on-surface-variant)] transition-all hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5">--}}
+{{--                    <span class="material-symbols-rounded text-[20px]">person_add_alt</span>--}}
+{{--                    <span class="font-bold">ثبت نام کاربر جدید</span>--}}
+{{--                </a>--}}
             </div>
         </form>
     </div>
-</x-auth.card>
+</x-auth.card-no-signup>

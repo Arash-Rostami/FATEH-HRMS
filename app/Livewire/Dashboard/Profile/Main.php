@@ -11,7 +11,7 @@ use Livewire\Component;
 class Main extends Component
 {
     #[Url(as: 'tab')]
-    public string $activeTab = 'onboarding';
+    public string $activeTab = 'info';
 
     public function confirmAction(string $event): void
     {

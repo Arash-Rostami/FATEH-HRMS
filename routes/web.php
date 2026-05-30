@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('secure-file');
 
     Route::view('/coming', 'layouts.toCome')->name('coming');
+    Route::get('/ping', fn() => response('', 204)->header('Cache-Control', 'no-store'));
 });
 
 

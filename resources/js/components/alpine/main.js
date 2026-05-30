@@ -4,6 +4,8 @@ import registerBackgroundStore from './stores/background.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
+import home from "./data/home.js";
+import shortcut from "./data/shortcut.js";
 import scrollManager from "./data/scrollManager.js";
 import mobile from "./data/mobile.js";
 import search from "./data/search.js";
@@ -53,6 +55,8 @@ export default function initAlpine() {
          */
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
+        Alpine.data('home', home)
+        Alpine.data('shortcut', shortcut)
         Alpine.data('scrollManager', scrollManager)
         Alpine.data('mobile', mobile)
         Alpine.data('search', search)

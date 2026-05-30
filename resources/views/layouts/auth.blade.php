@@ -8,7 +8,8 @@
           videoIndex: 0,
           videos: [
               '{{ asset('build/assets/video/mining-01.mp4') }}',
-              '{{ asset('build/assets/video/mining-02.mp4') }}'
+              '{{ asset('build/assets/video/mining-02.mp4') }}',
+
           ],
           playNext() {
             const nextIndex = (this.videoIndex + 1) % this.videos.length;
@@ -29,6 +30,12 @@
           $watch('useVideo', val => localStorage.setItem('use-video', val));
       ">
 <head>
+{{--    '{{ asset('build/assets/video/1.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/2.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/3.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/4.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/5.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/6.mp4') }}',--}}
     <x-dashboard.meta-tags/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -40,8 +47,8 @@
 
 <div class="fixed inset-0 z-0 bg-black overflow-hidden pointer-events-none h-screen">
     <template x-if="useVideo">
-        <video x-ref="bgVideo" autoplay muted playsinline preload="metadata"
-               class="w-full h-full object-cover scale-110"
+        <video x-ref="bgVideo" autoplay muted playsinline disablepictureinpicture preload="metadata" oncontextmenu="return false" controlslist="nodownload noplaybackrate"
+               class="w-full h-full object-cover scale-110 select-none"
                :style="`filter: brightness(${videoBrightness}%)`"
                @ended="playNext">
             <source :src="videos[videoIndex]" type="video/mp4">
@@ -71,11 +78,10 @@
         class="relative hidden lg:flex lg:w-[40%] h-full min-h-screen flex-col justify-end px-12 pb-24 order-1 group cursor-default">
         <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
             <h1 class="text-6xl font-black text-white mb-4 drop-shadow-2xl tracking-tight opacity-90 group-hover:opacity-100 transition-opacity duration-500">
-                اینـتـرا</h1>
-            <h2 class="text-3xl font-bold text-[var(--md-sys-color-primary)] mb-3 drop-shadow-lg">خـانـه دیجیتـال
-                مـا</h2>
+                اینترا</h1>
+            <h2 class="text-3xl font-bold text-[#FF7F6E] mb-3 drop-shadow-lg">خانه دیجیتال سازمان ما</h2>
             <p class="text-gray-200 text-base font-medium leading-relaxed max-w-md bg-black/20 p-4 rounded-xl border border-white/10 opacity-80 group-hover:opacity-100 transition-all duration-500">
-                ابـزاری کـه شمـا در دفتـر کـار بـه آن نیـاز داریـد</p>
+                شرکت توسعه معادن و صنایع معدنی فاتح</p>
         </div>
     </div>
 

@@ -20,8 +20,12 @@ class Home extends Component
 
     public function render()
     {
+        $presenter = new TabPresenter();
+
         return view('livewire.dashboard.tab.home', [
-            'tools' => (new TabPresenter())->tools(),
+            'tools' => $presenter->tools(),
+            'stats' => $presenter->stats(),
+            'shortcuts' => $presenter->shortcuts(),
         ]);
     }
 }

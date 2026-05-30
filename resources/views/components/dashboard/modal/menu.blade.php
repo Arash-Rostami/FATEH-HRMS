@@ -18,8 +18,8 @@
 
                             </div>
                             <div class="flex flex-col">
-                                <div class="text-lg font-bold text-white leading-tight">{{ $currentUser?->name ?? 'کاربر سیستم' }}</div>
-                                <div class="text-sm text-white/80">{{ $currentUser?->email ?? 'user@hrms.com' }}</div>
+                                <div class="text-lg font-bold text-white leading-tight">{{ auth()->user()?->name ?? 'کاربر سیستم' }}</div>
+                                <div class="text-sm text-white/80">{{ auth()->user()?->email ?? 'user@hrms.com' }}</div>
                             </div>
                         </div>
                     </div>
