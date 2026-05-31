@@ -27,7 +27,7 @@
                            ring-2 ring-{{ $p->color() }}-500 ring-offset-2
                            ring-offset-[var(--md-sys-color-surface-container)]
                            group-hover:scale-105 group-hover:ring-offset-4
-                           transition-all duration-300"
+                           transition-all duration-300 {{ in_array($p, [\App\Enums\PresenceStatus::Grumpy, \App\Enums\PresenceStatus::Busy]) ? 'animate-pulse' : '' }}"
                         loading="lazy"
                     >
 

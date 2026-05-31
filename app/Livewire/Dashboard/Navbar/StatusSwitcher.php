@@ -20,7 +20,7 @@ class StatusSwitcher extends Component
         $user = Auth::user();
         $key = "idle_{$user->id}";
 
-        $statusEnum === PresenceStatus::Busy
+        in_array($statusEnum, [PresenceStatus::Busy, PresenceStatus::Grumpy])
             ? Cache::add($key, true, now()->addHours(8))
             : Cache::forget($key);
 
