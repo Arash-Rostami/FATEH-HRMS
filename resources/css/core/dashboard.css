@@ -997,3 +997,28 @@
     animation: loadingLineHorizontal 1.5s ease-in-out forwards !important;
 }
 
+
+@keyframes record-focus-flash {
+    0% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+    }
+    100% {
+        box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent);
+    }
+}
+
+.record-focus-flash {
+    animation: record-focus-flash 1.3s ease-out 2;
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 3px;
+    border-radius: inherit;
+    scroll-margin: 6rem;            /* keep clear of sticky headers when scrolled to */
+    position: relative;
+    z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .record-focus-flash {
+        animation: none;
+    }
+}

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Search;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-class NavigationSearchService
+class NavigationService
 {
     /**
      * Search for items based on a query string.

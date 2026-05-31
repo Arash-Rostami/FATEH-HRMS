@@ -26,22 +26,39 @@
                     ring-1 ring-white/5
                     text-[var(--md-sys-color-on-surface)]">
 
-            <div class="flex items-center gap-4 px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container)]/30">
-                <span class="material-symbols-rounded text-[28px] text-[var(--md-sys-color-primary)] animate-pulse">search</span>
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-container)]/30">
+                <span class="material-symbols-rounded text-[28px] text-[var(--md-sys-color-primary)] animate-pulse">
+                    {{ $mode === 'content' ? 'travel_explore' : 'search' }}
+                </span>
+
                 <input x-ref="searchInput"
-                       wire:model.live.debounce.150ms="query"
+                       wire:model.live.debounce.{{ $mode === 'content' ? '300' : '150' }}ms="query"
                        type="text"
-                       placeholder="جستجو در بخش‌های مختلف سیستم..."
+                       placeholder="{{ $mode === 'content' ? 'جستجوی محتوا در کل سامانه (اسناد، گزارش‌ها، تیکت‌ها…)' : 'جستجو در بخش‌های مختلف سیستم...' }}"
                        class="w-full bg-transparent border-none outline-none text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-on-surface-variant)]/50 text-xl font-medium h-12"
                        @keydown.down.prevent="selectedIndex = Math.min(selectedIndex + 1, ($wire.query.length > 1 ? $wire.results.length : recentSearches.length) - 1)"
                        @keydown.up.prevent="selectedIndex = Math.max(selectedIndex - 1, 0)"
                        @keydown.enter.prevent="
-                           if ($wire.query.length > 1 && $wire.results.length > 0) {
+                           if ($wire.query.length > 1 && $wire.results.length > 0 && $wire.results[selectedIndex]) {
                                $wire.selectResult($wire.results[selectedIndex].action);
-                           } else if ($wire.query.length <= 1 && recentSearches.length > 0) {
+                           } else if ($wire.query.length <= 1 && recentSearches.length > 0 && recentSearches[selectedIndex]) {
                                selectHistoryItem(recentSearches[selectedIndex]);
                            }
                        ">
+
+                {{-- Smart button: toggle navigation <-> full content search --}}
+                <button wire:click="toggleMode"
+                        @click="selectedIndex = 0; $nextTick(() => $refs.searchInput.focus())"
+                        type="button"
+                        :title="'{{ $mode === 'content' ? 'حالت: جستجوی کامل محتوا' : 'حالت: ناوبری سریع' }}'"
+                        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border whitespace-nowrap
+                               {{ $mode === 'content'
+                                    ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent shadow-sm'
+                                    : 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)]/20 hover:text-[var(--md-sys-color-primary)]' }}">
+                    <span class="material-symbols-rounded text-[18px]">{{ $mode === 'content' ? 'manage_search' : 'bolt' }}</span>
+                    <span>{{ $mode === 'content' ? 'محتوا' : 'ناوبری' }}</span>
+                </button>
+
                 <button @click="open = false" class="opacity-40 hover:opacity-100 px-2 py-1 bg-[var(--md-sys-color-surface-container-high)] rounded text-xs font-mono transition-opacity border border-[var(--md-sys-color-outline)]/20">ESC</button>
             </div>
 
@@ -49,34 +66,72 @@
 
                 @if(strlen($query) > 1)
                     @if(count($results) > 0)
-                        <div class="px-2 py-1.5 text-xs font-bold opacity-40 uppercase tracking-widest">نتایج جستجو</div>
-                        @foreach($results as $index => $result)
-                            <button class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group text-right outline-none border border-transparent"
-                                    :class="{ 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]': selectedIndex === {{ $index }}, 'hover:bg-[var(--md-sys-color-surface-container-high)]': selectedIndex !== {{ $index }} }"
-                                    @mouseenter="selectedIndex = {{ $index }}"
-                                    wire:click="selectResult('{{ $result['action'] }}')">
 
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-                                     :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]': selectedIndex === {{ $index }}, 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)]': selectedIndex !== {{ $index }} }">
-                                    <span class="material-symbols-rounded text-[24px]">{{ $result['icon'] }}</span>
+                        @if($mode === 'content')
+                            {{-- ===== CONTENT MODE: grouped by module, flat index for keyboard nav ===== --}}
+                            @php $flatIndex = 0; @endphp
+                            @foreach(collect($results)->groupBy('group') as $groupName => $groupItems)
+                                <div class="flex items-center gap-2 px-2 py-1.5 mt-2 first:mt-0">
+                                    <span class="material-symbols-rounded text-[16px] opacity-50">{{ $groupItems->first()['icon'] }}</span>
+                                    <span class="text-xs font-bold opacity-40 uppercase tracking-widest">{{ $groupName }}</span>
+                                    <span class="text-[10px] opacity-30">({{ $groupItems->count() }})</span>
                                 </div>
 
-                                <div class="flex flex-col items-start flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 w-full">
-                                        <span class="text-sm font-bold truncate">{{ $result['title'] }}</span>
-                                        @if(str_contains($result['action'], 'tab:'))
-                                            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/50 border border-[var(--md-sys-color-outline)]/20 opacity-70 ml-auto whitespace-nowrap">TAB</span>
-                                        @elseif(str_contains($result['action'], 'route:'))
-                                            <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/50 border border-[var(--md-sys-color-outline)]/20 opacity-70 ml-auto whitespace-nowrap">PAGE</span>
-                                        @endif
+                                @foreach($groupItems as $result)
+                                    @php $index = $flatIndex++; @endphp
+                                    <button class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group text-right outline-none border border-transparent"
+                                            :class="{ 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]': selectedIndex === {{ $index }}, 'hover:bg-[var(--md-sys-color-surface-container-high)]': selectedIndex !== {{ $index }} }"
+                                            @mouseenter="selectedIndex = {{ $index }}"
+                                            wire:click="selectResult('{{ $result['action'] }}')">
+
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+                                             :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]': selectedIndex === {{ $index }}, 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)]': selectedIndex !== {{ $index }} }">
+                                            <span class="material-symbols-rounded text-[24px]">{{ $result['icon'] }}</span>
+                                        </div>
+
+                                        <div class="flex flex-col items-start flex-1 min-w-0">
+                                            <span class="text-sm font-bold truncate max-w-full block">{{ $result['title'] }}</span>
+                                            <span class="text-xs opacity-60 truncate max-w-full block">{{ $result['subtitle'] }}</span>
+                                        </div>
+
+                                        <span class="material-symbols-rounded text-[20px] transition-transform duration-200"
+                                              :class="{ 'opacity-100 -translate-x-1 rtl:translate-x-1': selectedIndex === {{ $index }}, 'opacity-0 translate-x-2 rtl:-translate-x-2': selectedIndex !== {{ $index }} }">keyboard_return</span>
+                                    </button>
+                                @endforeach
+                            @endforeach
+
+                        @else
+                            {{-- ===== NAVIGATION MODE (unchanged) ===== --}}
+                            <div class="px-2 py-1.5 text-xs font-bold opacity-40 uppercase tracking-widest">نتایج جستجو</div>
+                            @foreach($results as $index => $result)
+                                <button class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group text-right outline-none border border-transparent"
+                                        :class="{ 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]': selectedIndex === {{ $index }}, 'hover:bg-[var(--md-sys-color-surface-container-high)]': selectedIndex !== {{ $index }} }"
+                                        @mouseenter="selectedIndex = {{ $index }}"
+                                        wire:click="selectResult('{{ $result['action'] }}')">
+
+                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors shadow-sm"
+                                         :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]': selectedIndex === {{ $index }}, 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-primary)]': selectedIndex !== {{ $index }} }">
+                                        <span class="material-symbols-rounded text-[24px]">{{ $result['icon'] }}</span>
                                     </div>
-                                    <span class="text-xs opacity-60 truncate max-w-full block">{{ $result['subtitle'] }}</span>
-                                </div>
 
-                                <span class="material-symbols-rounded text-[20px] transition-transform duration-200"
-                                      :class="{ 'opacity-100 -translate-x-1 rtl:translate-x-1': selectedIndex === {{ $index }}, 'opacity-0 translate-x-2 rtl:-translate-x-2': selectedIndex !== {{ $index }} }">keyboard_return</span>
-                            </button>
-                        @endforeach
+                                    <div class="flex flex-col items-start flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 w-full">
+                                            <span class="text-sm font-bold truncate">{{ $result['title'] }}</span>
+                                            @if(str_contains($result['action'], 'tab:'))
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/50 border border-[var(--md-sys-color-outline)]/20 opacity-70 ml-auto whitespace-nowrap">TAB</span>
+                                            @elseif(str_contains($result['action'], 'route:'))
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/50 border border-[var(--md-sys-color-outline)]/20 opacity-70 ml-auto whitespace-nowrap">PAGE</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-xs opacity-60 truncate max-w-full block">{{ $result['subtitle'] }}</span>
+                                    </div>
+
+                                    <span class="material-symbols-rounded text-[20px] transition-transform duration-200"
+                                          :class="{ 'opacity-100 -translate-x-1 rtl:translate-x-1': selectedIndex === {{ $index }}, 'opacity-0 translate-x-2 rtl:-translate-x-2': selectedIndex !== {{ $index }} }">keyboard_return</span>
+                                </button>
+                            @endforeach
+                        @endif
+
                     @else
                         <div class="flex flex-col items-center justify-center py-16 opacity-40">
                             <span class="material-symbols-rounded text-[64px] mb-4 text-[var(--md-sys-color-outline)]">search_off</span>
@@ -125,7 +180,7 @@
                     <span class="flex items-center gap-1.5"><kbd class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/10 px-1.5 py-0.5 rounded shadow-sm min-w-[24px] text-center font-sans">↓</kbd> <kbd class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/10 px-1.5 py-0.5 rounded shadow-sm min-w-[24px] text-center font-sans">↑</kbd> پیمایش</span>
                     <span class="flex items-center gap-1.5"><kbd class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/10 px-1.5 py-0.5 rounded shadow-sm min-w-[24px] text-center font-sans">Esc</kbd> بستن</span>
                 </div>
-                <span class="opacity-50">Enterprise Navigation</span>
+                <span class="opacity-50">{{ $mode === 'content' ? 'Full Content Search' : 'Enterprise Navigation' }}</span>
             </div>
         </div>
     </div>

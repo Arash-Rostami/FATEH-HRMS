@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Post;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -11,10 +12,16 @@ use Livewire\Component;
 
 class Posts extends Component
 {
+    use FocusOnRecord;
+
     #[Locked]
     public int $page = 1;
-
     public $selectedPost = null;
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
+    }
 
     public function loadMore()
     {

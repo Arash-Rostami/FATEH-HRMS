@@ -13,31 +13,28 @@ use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Models\Message;
 use App\Models\User;
+use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
-
     public ?int $activeUserId = null;
     public string $search = '';
     public string $filter = 'all';
     public bool $mobileShowChat = false;
-
     public ?int $replyingToId = null;
     public ?array $replyingTo = null;
-
     public ?int $editingId = null;
     public int $editTimeLimit = 300;
-
     public ?int $deletingId = null;
     public ?array $lastDeleted = null;
-
     public int $messagesLimit = 10;
-
     private ?int $_cachedMessageTotal = null;
 
     #[Computed]
@@ -124,6 +121,11 @@ class Main extends Component
     public function filteredContacts(): array
     {
         return $this->contacts;
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     #[Computed]

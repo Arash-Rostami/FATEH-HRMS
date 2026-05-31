@@ -8,27 +8,25 @@ use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Task;
 use App\Models\User;
+use App\Traits\FocusOnRecord;
 use Exception;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
-    public TaskForm $form;
+    use FocusOnRecord;
 
+    public TaskForm $form;
     public array $tasks = ['todo' => [], 'in-progress' => [], 'done' => []];
     public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'done' => 0];
     public array $page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
-
     public bool $isCreateModalOpen = false;
     public bool $isEditModalOpen = false;
     public ?int $editingTaskId = null;
-
     public array $staffMembers = [];
-
     public array $columns = ['todo', 'in-progress', 'done'];
     public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
@@ -81,6 +79,11 @@ class Main extends Component
         }
 
         $this->isEditModalOpen = true;
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     public function loadTasks(): void

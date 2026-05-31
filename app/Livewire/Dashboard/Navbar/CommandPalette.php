@@ -3,7 +3,8 @@
 namespace App\Livewire\Dashboard\Navbar;
 
 use App\Livewire\Dashboard\Tabs;
-use App\Services\NavigationSearchService;
+use App\Services\Search\ContentService;
+use App\Services\Search\NavigationService;
 use Exception;
 use Livewire\Component;
 
@@ -12,6 +13,8 @@ class CommandPalette extends Component
     public string $query = '';
     public array $results = [];
 
+    /** 'navigate' = jump to a module (static list) | 'content' = search real records. */
+    public string $mode = 'navigate';
 
     public function render()
     {
@@ -43,6 +46,17 @@ class CommandPalette extends Component
         };
     }
 
+    /**
+     * Flip the "smart button" between navigation and full content search,
+     * then re-run the current query under the new engine.
+     */
+    public function toggleMode(): void
+    {
+        $this->mode = $this->mode === 'navigate' ? 'content' : 'navigate';
+        $this->results = [];
+        $this->updatedQuery();
+    }
+
     public function updatedQuery(): void
     {
         if (strlen($this->query) < 2) {
@@ -50,7 +64,9 @@ class CommandPalette extends Component
             return;
         }
 
-        $this->results = app(NavigationSearchService::class)->search($this->query);
+        $this->results = $this->mode === 'content'
+            ? app(ContentService::class)->search($this->query)
+            : app(NavigationService::class)->search($this->query);
     }
 
     private function handleEvent(string $target): void
@@ -83,7 +99,9 @@ class CommandPalette extends Component
 
     private function handleUrl(string $target): void
     {
-        $this->redirect($target);
+        // navigate:true keeps the SPA feel; the target module reads `?open={id}`
+        // via the WithRecordFocus trait and focuses the record in place.
+        $this->redirect($target, navigate: true);
     }
 
     private function resetPalette(): void

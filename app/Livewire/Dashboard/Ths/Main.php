@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Ths\Forms\RatingForm;
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Ticket;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -17,9 +18,10 @@ class Main extends Component
 {
     use WithFileUploads;
 
+    use FocusOnRecord;
+
     public TicketForm $ticket;
     public RatingForm $rating;
-
     public $ticketToRate = null;
     public ?array $selectedTicket = null;
     public string $activeTab = 'new';
@@ -32,6 +34,11 @@ class Main extends Component
     public function addFileInput(): void
     {
         $this->ticket->fileInputs[] = uniqid('', true);
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     public function loadMore(): void

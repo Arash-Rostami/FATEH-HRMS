@@ -13,11 +13,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Component;
 
 class UserFormPresenter
 {
     use FilamentFormDivider;
+
     public static function booking(): Repeater
     {
         return Repeater::make('booking')
@@ -172,9 +174,15 @@ class UserFormPresenter
         return Select::make('presence')
             ->label(__('resources/user/strings.form.presence'))
             ->options(
-                collect(PresenceStatus::cases())
-                    ->mapWithKeys(fn(PresenceStatus $c) => [$c->value => $c->label()])
+                collect(PresenceStatus::cases())->mapWithKeys(function ($status) {
+                    $icon = Blade::render(
+                        "<x-filament::icon icon=\"{$status->heroicon()}\" class=\"h-5 w-5\" />"
+                    );
+
+                    return [$status->value => "<div class='flex items-center gap-2'>{$icon}<span>{$status->label()}</span></div>"];
+                })->toArray()
             )
+            ->allowHtml()
             ->default(PresenceStatus::Onsite->value)
             ->required()
             ->native(false)

@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
 use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -16,10 +17,9 @@ use Livewire\WithPagination;
 
 class Main extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithFileUploads, WithPagination, FocusOnRecord;
 
     public SuggestionForm $form;
-
     public int $perPage = 5;
     public string $panel = 'empty';
     public string $search = '';
@@ -52,6 +52,11 @@ class Main extends Component
     public function departmentNames(): array
     {
         return Department::getCachedOptions()->toArray();
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     public function loadMore(): void

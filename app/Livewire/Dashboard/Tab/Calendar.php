@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Tab\Actions\SaveEventAction;
 use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Models\Event;
 use App\Models\Profile;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -16,14 +17,13 @@ use Throwable;
 
 class Calendar extends Component
 {
-    public EventForm $form;
+    use FocusOnRecord;
 
+    public EventForm $form;
     public int $currentYear;
     public int $currentMonth;
     public string $selectedDate;
-
     public bool $isCreateModalOpen = false;
-
     public ?int $deletingEventId = null;
 
     #[Computed]
@@ -151,6 +151,11 @@ class Calendar extends Component
         $this->form->private = (bool)$event->private;
 
         $this->isCreateModalOpen = true;
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     public function goToToday(): void

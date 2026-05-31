@@ -56,9 +56,9 @@ class UserResource extends Resource
                 ->schema([
                     UserFormPresenter::type(),
                     UserFormPresenter::role(),
-                    UserFormPresenter::status(),
-                    UserFormPresenter::divider(),
                     UserFormPresenter::presence(),
+                    UserFormPresenter::divider(),
+                    UserFormPresenter::status(),
                     UserFormPresenter::maximum(),
                 ])->columns(2),
 

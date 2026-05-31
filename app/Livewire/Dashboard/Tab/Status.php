@@ -51,6 +51,8 @@ class Status extends Component
             'remote' => $counts['remote'] ?? 0,
             'busy' => $counts['busy'] ?? 0,
             'mission' => $counts['mission'] ?? 0,
+            'grumpy' => $counts['grumpy'] ?? 0,
+            'angry' => $counts['angry'] ?? 0,
         ];
     }
 

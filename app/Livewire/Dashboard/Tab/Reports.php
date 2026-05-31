@@ -3,12 +3,15 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Report;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Reports extends Component
 {
+    use FocusOnRecord;
+
     public int $perPage = 10;
     public string $view = 'card';
     public bool $showModal = false;
@@ -36,6 +39,11 @@ class Reports extends Component
         }
 
         $this->dispatch('toast', message: 'فایل موجود نیست!', type: 'error');
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
     }
 
     #[Computed(seconds: 14400, cache: true)]
