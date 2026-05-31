@@ -23,15 +23,23 @@ enum PresenceStatus: string
         };
     }
 
+    public function badgeClasses(): string
+    {
+        return match ($this) {
+            self::Angry => 'animate-bounce',
+            default => '',
+        };
+    }
+
     public function cardClasses(): string
     {
         return match ($this) {
-            self::Onsite => 'text-emerald-400 bg-emerald-500/5 border-2 border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:shadow-xl hover:shadow-emerald-500/10',
-            self::Remote => 'text-blue-400 bg-blue-500/5 border-2 border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/10 hover:shadow-xl hover:shadow-blue-500/10',
-            self::Mission => 'text-amber-400 bg-amber-500/5 border-2 border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/10 hover:shadow-xl hover:shadow-amber-500/10',
-            self::Busy => 'text-rose-400 bg-rose-500/5 border-2 border-rose-500/20 hover:border-rose-500/50 hover:bg-rose-500/10 hover:shadow-xl hover:shadow-rose-500/10',
-            self::Grumpy => 'text-violet-400 bg-violet-500/5 border-2 border-violet-500/40 hover:border-violet-500/60 hover:bg-violet-500/10 hover:shadow-xl hover:shadow-violet-500/20 opacity-75 saturate-50',
-            self::Angry => 'text-red-500 bg-red-600/10 border-2 border-red-600/60 hover:border-red-500/80 hover:bg-red-600/20 hover:shadow-2xl hover:shadow-red-600/30 ring-1 ring-red-500/30',
+            self::Onsite => 'hover:-translate-y-0.5 text-emerald-400 bg-emerald-500/5 border-2 border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:shadow-xl hover:shadow-emerald-500/10',
+            self::Remote => 'hover:-translate-y-0.5 text-blue-400 bg-blue-500/5 border-2 border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/10 hover:shadow-xl hover:shadow-blue-500/10',
+            self::Mission => 'hover:-translate-y-0.5 text-amber-400 bg-amber-500/5 border-2 border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/10 hover:shadow-xl hover:shadow-amber-500/10',
+            self::Busy => 'hover:-translate-y-0.5 text-rose-400 bg-rose-500/5 border-2 border-rose-500/20 hover:border-rose-500/50 hover:bg-rose-500/10 hover:shadow-xl hover:shadow-rose-500/10',
+            self::Grumpy => 'hover:-translate-y-0.5 text-violet-400 bg-violet-500/5 border-2 border-violet-500/40 hover:border-violet-500/60 hover:bg-violet-500/10 hover:shadow-xl hover:shadow-violet-500/20 opacity-75 saturate-50',
+            self::Angry => 'hover:-translate-y-1 animate-pulse text-red-500 bg-red-600/10 border-2 border-red-600/60 hover:border-red-500/80 hover:bg-red-600/20 hover:shadow-2xl hover:shadow-red-600/30 ring-1 ring-red-500/30',
         };
     }
 
@@ -71,6 +79,15 @@ enum PresenceStatus: string
         };
     }
 
+    public function imageClasses(): string
+    {
+        return match ($this) {
+            self::Busy, self::Grumpy => 'animate-pulse',
+            self::Angry => 'animate-pulse drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]',
+            default => '',
+        };
+    }
+
     public function inactiveClass(): string
     {
         return match ($this) {
@@ -80,6 +97,14 @@ enum PresenceStatus: string
             self::Busy => 'text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-colors',
             self::Grumpy => 'text-violet-400 hover:bg-violet-500/10 hover:text-violet-500 transition-colors',
             self::Angry => 'text-red-500 hover:bg-red-600/20 hover:text-red-400 transition-colors',
+        };
+    }
+
+    public function isObscured(): bool
+    {
+        return match ($this) {
+            self::Grumpy, self::Angry => true,
+            default => false,
         };
     }
 
