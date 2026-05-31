@@ -9,8 +9,17 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+use App\Traits\FocusOnRecord;
+
 class Posts extends Component
 {
+    use FocusOnRecord;
+
+    public function focusRecord(int $id): void
+    {
+        $this->selectPost($id);
+    }
+
     #[Locked]
     public int $page = 1;
 

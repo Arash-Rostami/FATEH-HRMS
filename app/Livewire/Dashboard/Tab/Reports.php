@@ -6,9 +6,20 @@ use App\Models\Report;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Reports extends Component
 {
+    use FocusOnRecord;
+
+    public function focusRecord(int $id): void
+    {
+        if (Report::where('active', 1)->whereKey($id)->exists()) {
+            $this->activeReportId = $id;
+            $this->showModal = true;
+        }
+    }
+
     public int $perPage = 10;
     public string $view = 'card';
     public bool $showModal = false;

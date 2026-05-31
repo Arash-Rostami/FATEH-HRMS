@@ -11,10 +11,18 @@ use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+    protected function recordFocusType(): string { return 'resource'; }
+
+    public function focusRecord(int $id): void
+    {
+        $this->resourcesLimit = max($this->resourcesLimit, 50);
+    }
     #[Url(as: 'tab')]
     public $activeTab = 'seat';
     public $activeHistoryTab = 'upcoming';
@@ -165,6 +173,7 @@ class Main extends Component
             ->getPolicies($this->activeTab)['allow_overlap_release'] ?? false);
 
         return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
+            ->when($this->open, fn ($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
             ->limit($this->resourcesLimit)->get();
     }
 

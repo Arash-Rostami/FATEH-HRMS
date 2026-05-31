@@ -68,7 +68,7 @@
 
     <div class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($contactList as $contact)
-            <button wire:click="selectContact({{ $contact['id'] }})"
+            <button wire:key="contact-{{ $contact['id'] }}" data-rf="people-{{ $contact['id'] }}" wire:click="selectContact({{ $contact['id'] }})"
                     role="option"
                     aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                 @class([

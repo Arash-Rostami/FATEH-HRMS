@@ -11,10 +11,20 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
+    protected function recordFocusType(): string { return 'task'; }
+
+    public function focusRecord(int $id): void
+    {
+        $this->editTask($id);
+    }
+
     public TaskForm $form;
 
     public array $tasks = ['todo' => [], 'in-progress' => [], 'done' => []];

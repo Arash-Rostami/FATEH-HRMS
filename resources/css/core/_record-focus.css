@@ -1,0 +1,22 @@
+@keyframes record-focus-flash {
+    0%, 100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+    20%, 80% {
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent);
+        transform: scale(1.02);
+    }
+}
+
+.record-focus-flash {
+    animation: record-focus-flash 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .record-focus-flash {
+        animation: none !important;
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
+        transition: background-color 2s ease-out;
+    }
+}

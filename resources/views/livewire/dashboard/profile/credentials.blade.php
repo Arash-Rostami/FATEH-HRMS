@@ -30,7 +30,7 @@
         {{-- Credentials Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @forelse($this->credentials as $cred)
-                <div class="group relative flex flex-col rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] overflow-hidden transition-all duration-200 hover:border-[var(--md-sys-color-primary)]/40 hover:shadow-md hover:-translate-y-0.5 shadow-sm">
+                <div wire:key="cred-{{ $cred->id }}" data-rf="credentials-{{ $cred->id }}" class="group relative flex flex-col rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] overflow-hidden transition-all duration-200 hover:border-[var(--md-sys-color-primary)]/40 hover:shadow-md hover:-translate-y-0.5 shadow-sm">
 
                     {{-- Top accent --}}
                     <div class="h-[3px] w-full bg-[var(--md-sys-color-primary)]"

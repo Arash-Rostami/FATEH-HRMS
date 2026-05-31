@@ -16,9 +16,21 @@ use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
+    protected function recordFocusType(): string { return 'people'; }
+
+    public function focusRecord(int $userId): void
+    {
+        if (User::whereKey($userId)->exists()) {
+            $this->selectContact($userId, app(\App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction::class));
+        }
+    }
+
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
 

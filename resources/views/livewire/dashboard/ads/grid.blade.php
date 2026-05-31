@@ -1,9 +1,9 @@
 <div class="@container w-full" dir="rtl">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
         @forelse($this->ads as $ad)
-            <div wire:key="ad-{{ $ad->id }}" class="ad-flip-card group relative h-[380px] w-full max-w-[400px] mx-auto">
+            <div wire:key="ad-{{ $ad->id }}" data-rf="ad-{{ $ad->id }}" x-data @record-focus.window="if ($event.detail.type === 'ad' && $event.detail.id === {{ $ad->id }}) $refs.flip{{ $ad->id }}.checked = true" class="ad-flip-card group relative h-[380px] w-full max-w-[400px] mx-auto">
 
-                <input type="checkbox" id="flip-{{ $ad->id }}" class="ad-flip-toggle hidden">
+                <input x-ref="flip{{ $ad->id }}" type="checkbox" id="flip-{{ $ad->id }}" class="ad-flip-toggle hidden">
 
                 <div class="ad-flip-card-inner w-full h-full">
 

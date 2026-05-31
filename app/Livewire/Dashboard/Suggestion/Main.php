@@ -11,11 +11,23 @@ use App\Models\Suggestion;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
+    protected function recordFocusType(): string { return 'suggestion'; }
+
+    public function focusRecord(int $id): void
+    {
+        if (Suggestion::whereKey($id)->where('user_id', Auth::id())->exists()) {
+            $this->selectSuggestion($id);
+        }
+    }
+
     use WithFileUploads, WithPagination;
 
     public SuggestionForm $form;

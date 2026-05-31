@@ -6,9 +6,12 @@ use App\Models\Ad;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+    protected function recordFocusType(): string { return 'ad'; }
     public string $activeFilter = 'active';
     public string $search = '';
 
