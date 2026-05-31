@@ -3,12 +3,15 @@
 namespace App\Livewire\Dashboard\Ads;
 
 use App\Models\Ad;
+use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
     public string $activeFilter = 'active';
     public string $search = '';
 
@@ -27,6 +30,18 @@ class Main extends Component
             ->get();
     }
 
+    public function render()
+    {
+        return view('livewire.dashboard.ads')
+            ->extends('layouts.app')
+            ->section('content');
+    }
+
+    public function setFilter(string $filter)
+    {
+        $this->activeFilter = $filter;
+    }
+
     #[Computed]
     public function stats()
     {
@@ -36,15 +51,5 @@ class Main extends Component
         ];
     }
 
-    public function setFilter(string $filter)
-    {
-        $this->activeFilter = $filter;
-    }
-
-    public function render()
-    {
-        return view('livewire.dashboard.ads')
-            ->extends('layouts.app')
-            ->section('content');
-    }
+    protected function recordFocusType(): string { return 'ad'; }
 }

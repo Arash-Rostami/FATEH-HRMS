@@ -5,12 +5,14 @@ namespace App\Livewire\Dashboard\Authority;
 use App\Livewire\Dashboard\Authority\Presentation\AuthorityPresenter;
 use App\Models\Authority;
 use App\Models\Department;
+use App\Traits\FocusOnRecord;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Main extends Component
 {
+    use FocusOnRecord;
     use WithPagination;
 
     public string $activeDept = '';
@@ -25,6 +27,7 @@ class Main extends Component
             ->where('department_id', $this->activeDept)
             ->search($this->search)
             ->latest()
+            ->when($this->open, fn($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
             ->paginate($this->perPage);
     }
 
@@ -50,6 +53,9 @@ class Main extends Component
 
     public function mount(): void
     {
+        if ($this->open) {
+            $this->perPage = max($this->perPage, 50);
+        }
         $this->activeDept = auth()->user()->profile?->department_id ?? '';
     }
 
@@ -80,5 +86,10 @@ class Main extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+    }
+
+    protected function recordFocusType(): string
+    {
+        return 'authority';
     }
 }

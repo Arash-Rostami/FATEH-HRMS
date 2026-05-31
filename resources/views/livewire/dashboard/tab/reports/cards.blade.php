@@ -15,7 +15,7 @@
          dir="rtl">
 
         @foreach ($this->reports as $report)
-            <div wire:key="report-{{ $report->id }}"
+            <div wire:key="report-{{ $report->id }}" data-rf="reports-{{ $report->id }}"
                  data-report-id="{{ $report->id }}"
                  class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 transform hover:-translate-y-2 hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
                  @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">

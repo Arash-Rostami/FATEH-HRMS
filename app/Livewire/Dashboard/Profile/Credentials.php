@@ -5,9 +5,11 @@ namespace App\Livewire\Dashboard\Profile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Credentials extends Component
 {
+    use FocusOnRecord;
     public string $search = '';
 
     #[Computed]

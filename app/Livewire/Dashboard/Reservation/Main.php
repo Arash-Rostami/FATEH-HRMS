@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Reservation\Actions\CancelAction;
 use App\Models\Reservation;
 use App\Models\Resource;
 use App\Services\Reservation\ValidationService;
+use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -15,6 +16,8 @@ use Morilog\Jalali\Jalalian;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
     #[Url(as: 'tab')]
     public $activeTab = 'seat';
     public $activeHistoryTab = 'upcoming';
@@ -103,6 +106,11 @@ class Main extends Component
         }
     }
 
+    public function focusRecord(int $id): void
+    {
+        $this->resourcesLimit = max($this->resourcesLimit, 50);
+    }
+
     public static function getHistoryTabs(): array
     {
         return [
@@ -165,6 +173,7 @@ class Main extends Component
             ->getPolicies($this->activeTab)['allow_overlap_release'] ?? false);
 
         return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
+            ->when($this->open, fn($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
             ->limit($this->resourcesLimit)->get();
     }
 
@@ -231,6 +240,11 @@ class Main extends Component
 
         return Resource::available($this->activeTab, $start, $end, $this->filterFloor, $allowOverlap)
             ->count();
+    }
+
+    protected function recordFocusType(): string
+    {
+        return 'resource';
     }
 
     private function invalidateResourceCache(): void

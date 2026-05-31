@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
@@ -83,7 +84,15 @@ class Main extends Component
 
     public function focusRecord(int $id): void
     {
-        $this->selectPost($id);
+        $userId = auth()->id();
+
+        $owned = Task::whereKey($id)
+            ->where(fn(Builder $query) => $query->where('user_id', $userId)->orWhere('assigned_to', $userId)
+            )->exists();
+
+        if ($owned) {
+            $this->editTask($id);
+        }
     }
 
     public function loadTasks(): void
@@ -94,10 +103,8 @@ class Main extends Component
             $query = Task::query()
                 ->where('status', $column)
                 ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub->where('assigned_to', $userId)
-                    ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to')
-                    )
-                )
-                )
+                    ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
+                ))
                 ->when($this->activeTab === 'assigned-tasks', fn($q) => $q->where('user_id', $userId)
                     ->whereNotNull('assigned_to')
                     ->where('assigned_to', '!=', $userId)
@@ -199,5 +206,10 @@ class Main extends Component
             $task->update(['status' => $newColumn]);
             $this->loadTasks();
         }
+    }
+
+    protected function recordFocusType(): string
+    {
+        return 'task';
     }
 }

@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Dms;
 use App\Livewire\Dashboard\Dms\Actions\ConfirmReadAction;
 use App\Models\DMS;
 use App\Models\Read;
+use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
@@ -15,11 +16,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
     public string $search = '';
     public ?string $activeFilter = 'all';
     public int $perPage = 10;
     public bool $hasMorePages = true;
-
     #[Locked]
     public array $docIds = [];
 
@@ -56,7 +58,6 @@ class Main extends Component
     {
         $doc = DMS::visibleToUser()->where('file', $filename)->first();
         if (!$doc) return response()->view('errors.document-not-found', [], 404);
-
 
         $filePath = Storage::disk('public')->path($filename);
         if (!file_exists($filePath) || !is_file($filePath)) {
@@ -103,6 +104,10 @@ class Main extends Component
     public function mount(): void
     {
         $this->loadInitialDocs();
+
+        if ($this->open && !in_array($this->open, $this->docIds ?? [], true)) {
+            array_unshift($this->docIds, $this->open);
+        }
     }
 
     #[On('confirmation-confirmed')]
@@ -152,6 +157,8 @@ class Main extends Component
 
     public function updatedSearch(): void { $this->loadInitialDocs(); }
 
+    protected function recordFocusType(): string { return 'dms'; }
+
     private function getBaseQuery(): Builder
     {
         return DMS::query()
@@ -163,11 +170,10 @@ class Main extends Component
                 ->orWhereJsonContains('extra->Category', $search)
                 ->orWhereJsonContains('extra->type', $search)
                 ->orWhereJsonContains('extra->Type', $search)
-            )
-            )
+            ))
             ->when($this->activeFilter !== 'all', fn($query) => $query->where(fn($q) => $q->whereJsonContains('extra->type', $this->activeFilter)
                 ->orWhereJsonContains('extra->Type', $this->activeFilter)
-            )
-            )->latest();
+            ))
+            ->latest();
     }
 }

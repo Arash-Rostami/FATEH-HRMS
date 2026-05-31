@@ -6,7 +6,7 @@ export default function initRecordFocus() {
 
             // Let Alpine components react immediately (set activeId / open / flip).
             window.dispatchEvent(new CustomEvent('record-focus', {
-                detail: { type: String(data.type), id: Number(data.id) },
+                detail: {type: String(data.type), id: Number(data.id)},
             }));
 
             scrollToRecord(`${data.type}-${data.id}`);
@@ -25,7 +25,7 @@ function scrollToRecord(key, attempt = 0) {
         return;
     }
 
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.scrollIntoView({behavior: 'smooth', block: 'center'});
 
     el.classList.remove('record-focus-flash');
     void el.offsetWidth;                 // restart the animation if re-focused
@@ -33,7 +33,7 @@ function scrollToRecord(key, attempt = 0) {
     el.addEventListener(
         'animationend',
         () => el.classList.remove('record-focus-flash'),
-        { once: true },
+        {once: true},
     );
 }
 

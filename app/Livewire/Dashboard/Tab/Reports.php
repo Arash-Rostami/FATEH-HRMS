@@ -43,7 +43,10 @@ class Reports extends Component
 
     public function focusRecord(int $id): void
     {
-        $this->selectPost($id);
+        if (Report::where('active', 1)->whereKey($id)->exists()) {
+            $this->activeReportId = $id;
+            $this->showModal = true;
+        }
     }
 
     #[Computed(seconds: 14400, cache: true)]

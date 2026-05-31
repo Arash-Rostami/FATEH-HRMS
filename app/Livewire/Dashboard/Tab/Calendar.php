@@ -155,7 +155,10 @@ class Calendar extends Component
 
     public function focusRecord(int $id): void
     {
-        $this->selectPost($id);
+        $event = Event::where('user_id', Auth::id())->find($id);
+        if ($event) {
+            $this->selectDate(Jalalian::fromCarbon($event->date)->format('Y-m-d'));
+        }
     }
 
     public function goToToday(): void

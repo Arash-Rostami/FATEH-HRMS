@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Ticket;
 use App\Traits\FocusOnRecord;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -16,9 +17,8 @@ use Livewire\WithFileUploads;
 
 class Main extends Component
 {
-    use WithFileUploads;
-
     use FocusOnRecord;
+    use WithFileUploads;
 
     public TicketForm $ticket;
     public RatingForm $rating;
@@ -38,7 +38,14 @@ class Main extends Component
 
     public function focusRecord(int $id): void
     {
-        $this->selectPost($id);
+        $owned = Ticket::whereKey($id)
+            ->where(fn(Builder $q) => $q->where('requester_id', auth()->id())->orWhere('assigned_to', auth()->id())
+            )->exists();
+
+        if ($owned) {
+            $this->viewTicket($id);
+            $this->dispatch('ths-modal');
+        }
     }
 
     public function loadMore(): void
@@ -58,7 +65,9 @@ class Main extends Component
             ->whereNull('satisfaction_score')
             ->first();
 
-        if ($this->ticketToRate) $this->activeTab = 'rate';
+        if ($this->ticketToRate) {
+            $this->activeTab = 'rate';
+        }
     }
 
     public function rate($score): void
@@ -149,7 +158,9 @@ class Main extends Component
 
     public function updated($prop): void
     {
-        if (Str::startsWith($prop, 'ticket.files.')) $this->resetErrorBag($prop);
+        if (Str::startsWith($prop, 'ticket.files.')) {
+            $this->resetErrorBag($prop);
+        }
     }
 
     public function updatedTicketRequestType($value): void
@@ -163,6 +174,11 @@ class Main extends Component
         $ticket = Ticket::with('assignee')->find($ticketId);
         $this->selectedTicket = $ticket?->toArray();
         $this->modalTab = 'request';
+    }
+
+    protected function recordFocusType(): string
+    {
+        return 'ticket';
     }
 
     private function loadRequestAreas(): void

@@ -39,7 +39,7 @@
     /* --- General Scrollbar --- */
     * {
         scrollbar-width: thin;
-        scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 80%) transparent!important;
+        scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary), transparent 80%) transparent !important;
     }
 
     ::-webkit-scrollbar {
@@ -1012,13 +1012,15 @@
     outline: 2px solid var(--md-sys-color-primary);
     outline-offset: 3px;
     border-radius: inherit;
-    scroll-margin: 6rem;            /* keep clear of sticky headers when scrolled to */
+    scroll-margin: 6rem;
     position: relative;
     z-index: 5;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .record-focus-flash {
-        animation: none;
+        animation: none !important;
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
+        transition: background-color 2s ease-out;
     }
 }

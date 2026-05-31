@@ -23,22 +23,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
-/**
- * Full-site content search (the "smart" mode of the Command Palette) — MySQL.
- *
- * Searches the real Eloquent models behind every data-bearing dashboard module,
- * scoped to what the current user is allowed to see, then ranks and groups
- * matches by module, nearest result first.
- *
- * SPEED: ranking is pushed down to MySQL. Each resource query computes a
- * `search_relevance` score with a SQL CASE expression (Persian ي/ك folded via
- * REPLACE+LOWER so it matches NavigationSearchService::normalize), orders by it,
- * and LIMITs to the few rows we display. PHP only merges/orders the groups.
- * No external packages.
- *
- * Each result carries a `url:` deep-link ending in `?open={id}`, which the
- * target module reads via the WithRecordFocus trait to focus the exact record.
- */
 class ContentService
 {
     /** Rows returned per module group (MySQL already ranked + limited to this). */
@@ -73,7 +57,6 @@ class ContentService
         $builder = $resource['model']::query();
 
         // 1. Per-model visibility scope — wrapped in its OWN group so a scope that
-        //    uses orWhere can't escape the AND with the token filter.
         //    Result: WHERE (scope) AND (token1) AND (token2) ...
         if ($scope = $resource['scope'] ?? null) {
             $builder->where(function (Builder $q) use ($scope) {
@@ -153,7 +136,7 @@ class ContentService
 
         return [
             'id'       => $row->getKey(),
-            'title'    => $title !== '' ? $title : '—',
+            'title'    => $title !== '' ? superClean($title, 80) : '—',
             'subtitle' => $this->makeSubtitle($row, $resource),
             'icon'     => $resource['icon'],
             'group'    => $resource['group'],
@@ -171,10 +154,7 @@ class ContentService
             return $resource['group'];
         }
 
-        $value = strip_tags($this->resolveField($row, $field));
-        $value = trim(preg_replace('/\s+/u', ' ', $value));
-
-        return Str::limit($value, 80) ?: $resource['group'];
+        return superClean($this->resolveField($row, $field), 120) ?: $resource['group'];
     }
 
     protected function resolveField($row, string|callable $field): string
@@ -220,7 +200,7 @@ class ContentService
             [
                 'type' => 'feed', 'group' => 'اخبار و فیدها', 'icon' => 'rss_feed',
                 'model' => Feed::class, 'columns' => ['content', 'category'],
-                'titleField' => fn ($r) => $r->category ?: Str::limit(strip_tags((string) $r->content), 40),
+                'titleField' => fn ($r) => $r->category ?: superClean((string) $r->content, 40),
                 'subtitleField' => 'content',
                 'scope' => null,
                 'action' => fn ($r) => $tab('feed', $r->getKey()),
@@ -229,14 +209,14 @@ class ContentService
                 'type' => 'event', 'group' => 'تقویم و رویدادها', 'icon' => 'calendar_month',
                 'model' => Event::class, 'columns' => ['title', 'description'],
                 'titleField' => 'title', 'subtitleField' => 'description', 'orderBy' => 'date',
-                'scope' => fn (Builder $q) => $q->where('user_id', $me), // confirm: personal events
+                'scope' => fn (Builder $q) => $q->where('user_id', $me),
                 'action' => fn ($r) => $tab('calendar', $r->getKey()),
             ],
             [
                 'type' => 'report', 'group' => 'گزارشات', 'icon' => 'show_chart',
                 'model' => Report::class, 'columns' => ['title', 'description'],
                 'titleField' => 'title', 'subtitleField' => 'description',
-                'scope' => fn (Builder $q) => $q->where('active', 1), // verified
+                'scope' => fn (Builder $q) => $q->where('active', 1),
                 'action' => fn ($r) => $tab('reports', $r->getKey()),
             ],
             [
@@ -266,37 +246,47 @@ class ContentService
                 'type' => 'dms', 'group' => 'مدیریت اسناد', 'icon' => 'folder_managed',
                 'model' => DMS::class, 'columns' => ['title', 'code'],
                 'titleField' => 'title', 'subtitleField' => 'code',
-                'scope' => fn (Builder $q) => $q->visibleToUser(), // verified
+                'scope' => fn (Builder $q) => $q->visibleToUser(),
                 'action' => fn ($r) => $route('dms', $r->getKey()),
             ],
             [
-                'type' => 'ticket', 'group' => 'سیستم تیکت', 'icon' => 'support_agent',
-                'model' => Ticket::class, 'columns' => ['request_subject', 'description', 'request_type'],
-                'titleField' => 'request_subject', 'subtitleField' => 'description',
-                'scope' => fn (Builder $q) => $q->where('requester_id', $me)
-                    ->orWhere('assigned_to', $me), // confirm
+                'type' => 'ticket',
+                'group' => 'سیستم تیکت',
+                'icon' => 'support_agent',
+                'model' => Ticket::class,
+                'columns' => ['request_subject', 'description', 'request_type'],
+                'titleField' => 'request_subject',
+                'subtitleField' => 'description',
+                'scope' => fn (Builder $q) => $q->where(fn (Builder $query) =>
+                $query->where('requester_id', $me)->orWhere('assigned_to', $me)
+                ),
                 'action' => fn ($r) => $route('ths', $r->getKey()),
             ],
             [
-                'type' => 'task', 'group' => 'تسک بورد', 'icon' => 'view_kanban',
-                'model' => Task::class, 'columns' => ['title', 'description'],
-                'titleField' => 'title', 'subtitleField' => 'description',
-                'scope' => fn (Builder $q) => $q->where('user_id', $me)
-                    ->orWhere('assigned_to', $me), // confirm
+                'type' => 'task',
+                'group' => 'تسک بورد',
+                'icon' => 'view_kanban',
+                'model' => Task::class,
+                'columns' => ['title', 'description'],
+                'titleField' => 'title',
+                'subtitleField' => 'description',
+                'scope' => fn (Builder $q) => $q->where(fn (Builder $query) =>
+                $query->where('user_id', $me)->orWhere('assigned_to', $me)
+                ),
                 'action' => fn ($r) => $route('tasks', $r->getKey()),
             ],
             [
                 'type' => 'suggestion', 'group' => 'پیشنهادات', 'icon' => 'lightbulb',
                 'model' => Suggestion::class, 'columns' => ['title', 'description', 'purpose'],
                 'titleField' => 'title', 'subtitleField' => 'description',
-                'scope' => fn (Builder $q) => $q->where('user_id', $me), // confirm
+                'scope' => fn (Builder $q) => $q->where('user_id', $me),
                 'action' => fn ($r) => $route('suggestion', $r->getKey()),
             ],
             [
                 'type' => 'ad', 'group' => 'فرصت‌های شغلی', 'icon' => 'work',
                 'model' => Ad::class, 'columns' => ['position', 'skill', 'experience'],
                 'titleField' => 'position', 'subtitleField' => 'skill',
-                'scope' => fn (Builder $q) => $q->where('active', 1), // verified
+                'scope' => fn (Builder $q) => $q->where('active', 1),
                 'action' => fn ($r) => $route('ads', $r->getKey()),
             ],
             [
@@ -310,40 +300,41 @@ class ContentService
                 'type' => 'reservation', 'group' => 'رزرو فضا و منابع', 'icon' => 'meeting_room',
                 'model' => Resource::class, 'columns' => ['name', 'type'],
                 'titleField' => 'name', 'subtitleField' => 'type',
-                'scope' => fn (Builder $q) => $q->where('status', 'active'), // confirm
+                'scope' => fn (Builder $q) => $q->where('status', 'active'),
                 'action' => fn ($r) => $route('reservation', $r->getKey()),
             ],
 
-            // ============ People & profile-area modules ============
+            // ============ Users & profile-area modules ============
             [
                 'type' => 'people', 'group' => 'همکاران', 'icon' => 'badge',
                 'model' => User::class, 'columns' => ['name', 'email'],
                 'titleField' => 'name', 'subtitleField' => 'email',
-                'scope' => fn (Builder $q) => $q->whereKeyNot($me), // confirm
+                'scope' => fn (Builder $q) => $q->whereKeyNot($me),
                 'action' => fn ($r) => $route('contact', $r->getKey()),
             ],
             [
                 'type' => 'credential', 'group' => 'دسترسی‌های سازمانی', 'icon' => 'vpn_key',
                 'model' => Credential::class, 'columns' => ['app_name', 'username', 'note', 'link'],
                 'titleField' => 'app_name', 'subtitleField' => 'username',
-                'scope' => fn (Builder $q) => $q->where('user_id', $me), // own vault only
+                'scope' => fn (Builder $q) => $q->where('user_id', $me),
                 'action' => fn ($r) => $url('/profile?tab=credentials&open=' . $r->getKey()),
             ],
             [
                 'type' => 'onboarding', 'group' => 'آنبوردینگ', 'icon' => 'apartment',
                 'model' => Onboarding::class, 'columns' => ['welcome', 'mission', 'vision'],
-                'titleField' => fn ($r) => Str::limit(strip_tags((string) $r->welcome), 40) ?: 'آنبوردینگ',
+                'titleField' => fn ($r) => superClean((string) $r->welcome, 40) ?: 'آنبوردینگ',
                 'subtitleField' => 'mission',
-                'scope' => fn (Builder $q) => $q->where('is_active', 1), // confirm
-                'action' => fn ($r) => $url('/profile?tab=onboarding'), // single-record page
+                'scope' => fn (Builder $q) => $q->where('is_active', 1),
+                'action' => fn ($r) => $url('/profile?tab=onboarding'),
             ],
             [
                 'type' => 'message', 'group' => 'پیام‌رسان داخلی', 'icon' => 'perm_contact_calendar',
                 'model' => Message::class, 'columns' => ['body'],
-                'titleField' => fn ($r) => Str::limit(strip_tags((string) $r->body), 40) ?: 'پیام',
+                'titleField' => fn ($r) => superClean((string) $r->body, 40) ?: 'پیام',
                 'subtitleField' => 'body',
-                'scope' => fn (Builder $q) => $q->where('sender_id', $me)
-                    ->orWhere('recipient_id', $me),
+                'scope' => fn (Builder $q) => $q->where(fn (Builder $query) =>
+                $query->where('sender_id', $me)->orWhere('recipient_id', $me)
+                ),
                 // open the conversation with the OTHER party (works from either side)
                 'action' => fn ($r) => $route(
                     'contact',

@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Tab\Actions\UpdateCommentAction;
 use App\Livewire\Dashboard\Tab\Forms\CommentForm;
 use App\Models\Comment;
 use App\Models\Feed;
+use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -17,6 +18,8 @@ use Livewire\Component;
 
 class Feeds extends Component
 {
+    use FocusOnRecord;
+
     #[Locked]
     public array $feedIds = [];
 
@@ -105,6 +108,12 @@ class Feeds extends Component
     public function mount(): void
     {
         $this->loadInitialFeeds();
+
+        if ($this->open && !in_array($this->open, $this->feedIds ?? [], true)) {
+            array_unshift($this->feedIds, $this->open);
+            $this->selectedFeedId = $this->open;
+        }
+
         $this->assetsLoaded = true;
     }
 

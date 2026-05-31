@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Models\Photo;
+use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -11,6 +12,8 @@ use Livewire\Component;
 
 class Gallery extends Component
 {
+    use FocusOnRecord;
+
     #[Locked]
     public array $photoIds = [];
 
@@ -57,6 +60,12 @@ class Gallery extends Component
     public function mount(): void
     {
         $this->loadInitialPhotos();
+
+        if ($this->open && !in_array($this->open, $this->photoIds ?? [], true)) {
+            array_unshift($this->photoIds, $this->open);
+            $this->selectedPhotoId = $this->open;
+        }
+
         $this->assetsLoaded = true;
     }
 

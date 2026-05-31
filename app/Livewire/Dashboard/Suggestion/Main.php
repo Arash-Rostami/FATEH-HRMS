@@ -17,7 +17,9 @@ use Livewire\WithPagination;
 
 class Main extends Component
 {
-    use WithFileUploads, WithPagination, FocusOnRecord;
+    use FocusOnRecord;
+    use WithFileUploads;
+    use WithPagination;
 
     public SuggestionForm $form;
     public int $perPage = 5;
@@ -56,7 +58,9 @@ class Main extends Component
 
     public function focusRecord(int $id): void
     {
-        $this->selectPost($id);
+        if (Suggestion::whereKey($id)->where('user_id', Auth::id())->exists()) {
+            $this->selectSuggestion($id);
+        }
     }
 
     public function loadMore(): void
@@ -135,6 +139,11 @@ class Main extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+    }
+
+    protected function recordFocusType(): string
+    {
+        return 'suggestion';
     }
 
     private function resetForm(): void

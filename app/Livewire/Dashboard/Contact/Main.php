@@ -123,9 +123,11 @@ class Main extends Component
         return $this->contacts;
     }
 
-    public function focusRecord(int $id): void
+    public function focusRecord(int $userId): void
     {
-        $this->selectPost($id);
+        if (User::whereKey($userId)->exists()) {
+            $this->selectContact($userId, app(\App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction::class));
+        }
     }
 
     #[Computed]
@@ -298,6 +300,8 @@ class Main extends Component
         unset($this->contacts);
         $this->dispatch('show-toast', message: 'پیام بازیابی شد', type: 'success');
     }
+
+    protected function recordFocusType(): string { return 'people'; }
 
     private function invalidateMessageCache(): void
     {
