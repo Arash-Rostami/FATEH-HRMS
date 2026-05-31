@@ -11,11 +11,22 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
 class Calendar extends Component
 {
+    use FocusOnRecord;
+
+    public function focusRecord(int $id): void
+    {
+        $event = Event::where('user_id', Auth::id())->find($id);
+        if ($event) {
+            $this->selectDate(Jalalian::fromCarbon($event->date)->format('Y-m-d'));
+        }
+    }
+
     public EventForm $form;
 
     public int $currentYear;

@@ -14,9 +14,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Feeds extends Component
 {
+    use FocusOnRecord;
     #[Locked]
     public array $feedIds = [];
 
@@ -104,6 +106,11 @@ class Feeds extends Component
 
     public function mount(): void
     {
+        if ($this->open && ! in_array($this->open, $this->feedIds ?? [], true)) {
+            array_unshift($this->feedIds, $this->open);
+            $this->selectedFeedId = $this->open;
+        }
+
         $this->loadInitialFeeds();
         $this->assetsLoaded = true;
     }

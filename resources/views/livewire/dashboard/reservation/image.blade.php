@@ -1,4 +1,4 @@
-<div wire:key="resource-{{ $resource->id }}"
+<div wire:key="resource-{{ $resource->id }}" data-rf="resource-{{ $resource->id }}"
      class="group bg-[var(--md-sys-color-surface)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] shadow-[var(--md-sys-elevation-1)] hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col overflow-hidden relative h-full"
      style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent);">
 

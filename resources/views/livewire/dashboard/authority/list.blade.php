@@ -7,9 +7,10 @@
         @endphp
 
         <div
-            wire:key="authority-{{ $authority->id }}"
+            wire:key="authority-{{ $authority->id }}" data-rf="authority-{{ $authority->id }}"
             x-data="{ open: false }"
             @authority-toggle-all.window="open = $event.detail.open"
+            @record-focus.window="if ($event.detail.type === 'authority' && $event.detail.id === {{ $authority->id }}) open = true"
             class="rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] overflow-hidden transition-all duration-200"
             :class="open ? 'border-[var(--md-sys-color-outline)]' : ''"
         >

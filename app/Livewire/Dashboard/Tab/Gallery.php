@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Gallery extends Component
 {
+    use FocusOnRecord;
     #[Locked]
     public array $photoIds = [];
 
@@ -56,6 +58,11 @@ class Gallery extends Component
 
     public function mount(): void
     {
+        if ($this->open && ! in_array($this->open, $this->photoIds ?? [], true)) {
+            array_unshift($this->photoIds, $this->open);
+            $this->selectedPhotoId = $this->open;
+        }
+
         $this->loadInitialPhotos();
         $this->assetsLoaded = true;
     }

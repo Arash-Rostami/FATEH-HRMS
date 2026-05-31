@@ -11,10 +11,27 @@ use App\Models\Ticket;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Livewire\WithFileUploads;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+
+    protected function recordFocusType(): string { return 'ticket'; }
+
+    public function focusRecord(int $id): void
+    {
+        $owned = Ticket::whereKey($id)
+            ->where(fn ($q) => $q->where('requester_id', auth()->id())->orWhere('assigned_to', auth()->id()))
+            ->exists();
+
+        if ($owned) {
+            $this->viewTicket($id);
+            $this->dispatch('ths-modal');
+        }
+    }
+
     use WithFileUploads;
 
     public TicketForm $ticket;

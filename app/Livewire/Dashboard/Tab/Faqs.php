@@ -7,12 +7,20 @@ use App\Models\FAQ;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Traits\FocusOnRecord;
 
 class Faqs extends Component
 {
+    use FocusOnRecord;
     use WithPagination;
 
     public string $search = '';
+
+    public function mount(): void
+    {
+        if ($this->open) $this->perPage = max($this->perPage, 50);
+    }
+
     public ?string $selectedCategory = null;
     public ?string $selectedDepartment = null;
     public int $perPage = 10;
@@ -45,6 +53,7 @@ class Faqs extends Component
             ->when($this->selectedCategory, fn($q, $c) => $q->where('category', 'like', "%{$c}%"))
             ->when($this->selectedDepartment, fn($q, $d) => $q->where('department_id', 'like', "%{$d}%"))
             ->latest()
+            ->when($this->open, fn ($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
             ->paginate($this->perPage);
     }
 

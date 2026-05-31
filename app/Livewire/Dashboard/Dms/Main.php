@@ -11,10 +11,13 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 use Symfony\Component\HttpFoundation\Response;
 
 class Main extends Component
 {
+    use FocusOnRecord;
+    protected function recordFocusType(): string { return 'dms'; }
     public string $search = '';
     public ?string $activeFilter = 'all';
     public int $perPage = 10;
@@ -103,6 +106,10 @@ class Main extends Component
     public function mount(): void
     {
         $this->loadInitialDocs();
+
+        if ($this->open && ! in_array($this->open, $this->docIds ?? [], true)) {
+            array_unshift($this->docIds, $this->open);
+        }
     }
 
     #[On('confirmation-confirmed')]

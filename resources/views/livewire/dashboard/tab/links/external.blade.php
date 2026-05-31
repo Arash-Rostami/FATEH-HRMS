@@ -45,7 +45,7 @@
              @scroll.debounce.100ms="checkScroll"
         >
             @foreach($this->externalLinks as $link)
-                <a href="{{ $link->url }}"
+                <a wire:key="link-{{ $link->id }}" data-rf="links-{{ $link->id }}" href="{{ $link->url }}"
                    target="_blank"
                    class="snap-start shrink-0 w-36 md:w-40 group/card cursor-pointer focus:outline-none"
                 >

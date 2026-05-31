@@ -5,9 +5,11 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Link;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use App\Traits\FocusOnRecord;
 
 class Links extends Component
 {
+    use FocusOnRecord;
     #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.external')]
     public function externalLinks()
     {

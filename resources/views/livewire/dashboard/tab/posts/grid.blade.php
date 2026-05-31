@@ -10,7 +10,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
         @if($this->posts->isNotEmpty())
             @foreach($this->posts as $post)
-                <article
+                <article wire:key="post-{{ $post->id }}" data-rf="posts-{{ $post->id }}"
                     class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
                     wire:key="post-{{ $post->id }}"
                 >
