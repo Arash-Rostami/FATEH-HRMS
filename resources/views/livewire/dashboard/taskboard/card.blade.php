@@ -72,7 +72,18 @@
             </span>
         </div>
 
-        <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1">
+            @if(isset($task['assigned_to']) && $task['assigned_to'] === auth()->id() && $task['user_id'] !== auth()->id() && $column !== 'done')
+                <button
+                    wire:click="returnTask({{ $task['id'] }})"
+                    class="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-xl text-[10px] font-bold text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95"
+                    title="بازگرداندن به ایجادکننده"
+                >
+                    <span class="material-symbols-rounded text-base">keyboard_return</span>
+                    <span class="hidden sm:inline">بازگرداندن</span>
+                </button>
+            @endif
+
             @if($task['is_delegator'] && $column !== 'done')
                 <button
                     wire:click="undoAssignment({{ $task['id'] }})"

@@ -58,7 +58,7 @@ class TaskInfolistPresenter
     {
         return IconEntry::make('delegated')
             ->label(__('resources/task/strings.fields.delegated'))
-            ->getStateUsing(fn($record) => filled($record->assigned_to) && $record->assigned_to !== $record->user_id)
+            ->getStateUsing(fn($record) => $record->status === 'delegated')
             ->boolean()
             ->trueIcon('heroicon-o-arrow-right-on-rectangle')
             ->falseIcon('heroicon-o-minus')

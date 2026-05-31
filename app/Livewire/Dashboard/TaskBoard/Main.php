@@ -152,10 +152,10 @@ class Main extends Component
             ->section('content');
     }
 
-        public function switchTab(string $tab): void
+    public function switchTab(string $tab): void
     {
         $this->activeTab = $tab;
-        $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1, 'delegated' => 1];
+        $this->page = ['todo' => 1, 'in-progress' => 1, 'delegated' => 1, 'done' => 1];
         $this->loadTasks();
     }
 

@@ -114,12 +114,8 @@ class TaskTablePresenter
             ->trueLabel(__('resources/task/strings.filters.delegated'))
             ->falseLabel(__('resources/task/strings.filters.not_delegated'))
             ->queries(
-                true: fn(Builder $query) => $query->whereNotNull('assigned_to')
-                    ->whereColumn('assigned_to', '!=', 'user_id'),
-                false: fn(Builder $query) => $query->where(fn($q) => $q
-                    ->whereNull('assigned_to')
-                    ->orWhereColumn('assigned_to', 'user_id')
-                ),
+                true: fn(Builder $query) => $query->where('status', 'delegated'),
+                false: fn(Builder $query) => $query->where('status', '!=', 'delegated'),
             );
     }
 
@@ -158,7 +154,7 @@ class TaskTablePresenter
     {
         return IconColumn::make('is_delegated')
             ->label(__('resources/task/strings.fields.delegated'))
-            ->getStateUsing(fn($record) => filled($record->assigned_to) && $record->assigned_to !== $record->user_id)
+            ->getStateUsing(fn($record) => $record->status === 'delegated')
             ->boolean()
             ->trueIcon('heroicon-o-arrow-right-on-rectangle')
             ->falseIcon('heroicon-o-minus')

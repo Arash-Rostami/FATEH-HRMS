@@ -60,10 +60,10 @@ class ListTasks extends ListRecords
 
             'delegated' => Tab::make(__('resources/task/strings.tabs.delegated'))
                 ->icon('heroicon-o-arrow-right-on-rectangle')
+                ->badge(fn() => $this->getStats()->delegated_count ?: null)
+                ->badgeColor('info')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query
-                        ->whereNotNull('assigned_to')
-                        ->whereColumn('assigned_to', '!=', 'user_id')
+                    fn(Builder $query) => $query->where('status', 'delegated')
                 ),
 
             'trashed' => Tab::make(__('resources/task/strings.tabs.trashed'))
@@ -83,6 +83,7 @@ class ListTasks extends ListRecords
             ->selectRaw("
             SUM(CASE WHEN status = 'todo' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS todo_count,
             SUM(CASE WHEN status = 'in-progress' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS in_progress_count,
+            SUM(CASE WHEN status = 'delegated' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS delegated_count,
             SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? AND status != 'done' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS overdue_count,
             SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS trashed_count
         ", [now()])

@@ -11,6 +11,7 @@ enum TaskStatus: string implements HasColor, HasIcon, HasLabel
     case Todo = 'todo';
     case InProgress = 'in-progress';
     case Done = 'done';
+    case Delegated = 'delegated';
 
     public function getColor(): string
     {
@@ -18,6 +19,7 @@ enum TaskStatus: string implements HasColor, HasIcon, HasLabel
             self::Todo => 'gray',
             self::InProgress => 'warning',
             self::Done => 'success',
+            self::Delegated => 'info',
         };
     }
 
@@ -27,15 +29,17 @@ enum TaskStatus: string implements HasColor, HasIcon, HasLabel
             self::Todo => 'heroicon-o-clock',
             self::InProgress => 'heroicon-o-arrow-path',
             self::Done => 'heroicon-o-check-circle',
+            self::Delegated => 'heroicon-o-arrow-right-on-rectangle',
         };
     }
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::Todo => 'انجام نشده',
-            self::InProgress => 'در حال انجام',
-            self::Done => 'انجام شده',
+            self::Todo => __('resources/task/strings.status.todo') ?? 'انجام نشده',
+            self::InProgress => __('resources/task/strings.status.in_progress') ?? 'در حال انجام',
+            self::Done => __('resources/task/strings.status.done') ?? 'انجام شده',
+            self::Delegated => __('resources/task/strings.status.delegated') ?? 'تفویض‌شده',
         };
     }
 }

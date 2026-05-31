@@ -9,9 +9,10 @@ class TaskBoardPresenter
     public function columnConfig(): array
     {
         return [
-            'todo'        => ['title' => 'انجام نشده',   'icon' => '🧾', 'color' => 'primary',  'lightGradient' => 'from-rose-500 to-pink-600',    'darkGradient' => 'from-rose-700 to-pink-800'],
-            'in-progress' => ['title' => 'در حال انجام', 'icon' => '⏳', 'color' => 'secondary', 'lightGradient' => 'from-amber-500 to-orange-600',  'darkGradient' => 'from-amber-700 to-orange-800'],
-            'done'        => ['title' => 'انجام شده',    'icon' => '🎯', 'color' => 'tertiary',  'lightGradient' => 'from-emerald-500 to-green-600', 'darkGradient' => 'from-emerald-700 to-green-800'],
+            'todo'        => ['title' => __('resources/task/strings.status.todo') ?? 'انجام نشده',   'icon' => '🧾', 'color' => 'primary',  'lightGradient' => 'from-rose-500 to-pink-600',    'darkGradient' => 'from-rose-700 to-pink-800'],
+            'in-progress' => ['title' => __('resources/task/strings.status.in_progress') ?? 'در حال انجام', 'icon' => '⏳', 'color' => 'secondary', 'lightGradient' => 'from-amber-500 to-orange-600',  'darkGradient' => 'from-amber-700 to-orange-800'],
+            'delegated'   => ['title' => __('resources/task/strings.status.delegated') ?? 'تفویض‌شده',    'icon' => '🤝', 'color' => 'info', 'lightGradient' => 'from-blue-500 to-indigo-600',  'darkGradient' => 'from-blue-700 to-indigo-800'],
+            'done'        => ['title' => __('resources/task/strings.status.done') ?? 'انجام شده',    'icon' => '🎯', 'color' => 'tertiary',  'lightGradient' => 'from-emerald-500 to-green-600', 'darkGradient' => 'from-emerald-700 to-green-800'],
         ];
     }
 
