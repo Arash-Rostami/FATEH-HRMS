@@ -16,10 +16,9 @@
                  class="group relative flex flex-col items-center gap-2 p-3 pt-4
                      border shadow-sm rounded-2xl overflow-hidden cursor-pointer h-40
                      transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                     hover:-translate-y-0.5
                      {{ $p->cardClasses() }}">
 
-                <div class="relative z-10 mt-1">
+                <div class="relative z-10 mt-1 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">
                     <img
                         src="{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}"
                         alt="{{ $user->name }}"
@@ -27,7 +26,7 @@
                            ring-2 ring-{{ $p->color() }}-500 ring-offset-2
                            ring-offset-[var(--md-sys-color-surface-container)]
                            group-hover:scale-105 group-hover:ring-offset-4
-                           transition-all duration-300"
+                           transition-all duration-300 {{ $p->imageClasses() }}"
                         loading="lazy"
                     >
 
@@ -46,13 +45,13 @@
 
                     <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full
                             bg-{{ $p->color() }}-500 flex items-center justify-center
-                            border-2 border-[var(--md-sys-color-surface)] shadow-sm">
+                            border-2 border-[var(--md-sys-color-surface)] shadow-sm {{ $p->badgeClasses() }}">
                         <span
                             class="material-symbols-rounded text-white leading-none text-[10px]">{{ $p->icon() }}</span>
                     </div>
                 </div>
 
-                <div class="w-full text-center px-1 z-10 space-y-0.5">
+                <div class="w-full text-center px-1 z-10 space-y-0.5 {{ $p->isObscured() ? 'blur-[2px] opacity-60' : '' }} transition-all duration-300 group-hover:blur-none group-hover:opacity-100">
                     <p class="text-[11px] font-semibold text-[var(--md-sys-color-on-surface)] truncate leading-snug">
                         {{ $user->name }}
                     </p>
@@ -65,9 +64,10 @@
                         flex items-center justify-between px-2
                         bg-[var(--md-sys-color-surface-container-high)]/95
                         border-t border-{{ $p->color() }}-500/20
-                        transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                        transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                        {{ $p->isObscured() ? 'opacity-0 pointer-events-none' : '' }}">
 
-                    @if($user->sms_number)
+                    @if($user->sms_number && !$p->isObscured())
                         <button
                             @click.stop="$dispatch('open-sms-modal', { user: '{{ $user->id }}' })"
                             title="پیامک: {{ $user->sms_number }}"
@@ -81,16 +81,16 @@
                     @endif
 
                     <div class="flex items-center gap-0.5 text-{{ $p->color() }}-400">
-                        @if($user->getTodaysDeskExtension())
+                        @if($user->getTodaysDeskExtension() && !$p->isObscured())
                             <span class="material-symbols-rounded text-[11px]">domain</span>
                             <span
                                 class="text-[11px] font-bold tabular-nums">{{ $user->getTodaysDeskExtension() }}</span>
-                        @elseif(!$user->sms_number)
+                        @elseif(!$user->sms_number || $p->isObscured())
                             <span class="text-[10px] text-[var(--md-sys-color-outline)]">---</span>
                         @endif
                     </div>
 
-                    @if($user->sms_number || $user->getTodaysDeskExtension())
+                    @if(($user->sms_number || $user->getTodaysDeskExtension()) && !$p->isObscured())
                         <a href="tel:{{ $user->sms_number ?? $user->getTodaysDeskExtension() }}"
                            @click.stop
                            class="p-1.5 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
