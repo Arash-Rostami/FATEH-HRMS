@@ -17,9 +17,9 @@ class Main extends Component
 {
     public TaskForm $form;
 
-    public array $tasks = ['todo' => [], 'in-progress' => [], 'done' => []];
-    public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'done' => 0];
-    public array $page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
+    public array $tasks = ['todo' => [], 'in-progress' => [], 'delegated' => [], 'done' => []];
+    public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'delegated' => 0, 'done' => 0];
+    public array $page = ['todo' => 1, 'in-progress' => 1, 'delegated' => 1, 'done' => 1];
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
 
@@ -29,7 +29,7 @@ class Main extends Component
 
     public array $staffMembers = [];
 
-    public array $columns = ['todo', 'in-progress', 'done'];
+    public array $columns = ['todo', 'in-progress', 'delegated', 'done'];
     public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
 
@@ -152,10 +152,10 @@ class Main extends Component
             ->section('content');
     }
 
-    public function switchTab(string $tab): void
+        public function switchTab(string $tab): void
     {
         $this->activeTab = $tab;
-        $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1];
+        $this->page = ['todo' => 1, 'in-progress' => 1, 'done' => 1, 'delegated' => 1];
         $this->loadTasks();
     }
 
@@ -188,11 +188,30 @@ class Main extends Component
         $this->dispatch('toast', message: 'وظیفه با موفقیت بروزرسانی شد.', type: 'success');
     }
 
+    public function returnTask(int $taskId): void
+    {
+        $task = Task::find($taskId);
+
+        if ($task && $task->assigned_to === auth()->id()) {
+            $task->update([
+                'assigned_to' => null,
+                'status' => 'todo'
+            ]);
+            $this->loadTasks();
+            $this->dispatch('toast', message: 'وظیفه با موفقیت بازگردانده شد.', type: 'success');
+        }
+    }
+
     public function updateTaskStatus(int $taskId, string $newColumn): void
     {
         $task = Task::find($taskId);
 
-        if ($task?->can_change_status) {
+        if ($task?->can_change_status || $newColumn === 'delegated') {
+            if ($newColumn === 'delegated' && empty($task->assigned_to)) {
+                $this->editTask($taskId);
+                return;
+            }
+
             $task->update(['status' => $newColumn]);
             $this->loadTasks();
         }
