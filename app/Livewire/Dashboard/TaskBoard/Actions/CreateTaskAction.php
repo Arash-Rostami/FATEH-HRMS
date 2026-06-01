@@ -11,21 +11,13 @@ class CreateTaskAction
     {
         $form->validate();
 
-        $status = 'todo';
-        $userId = auth()->id();
-        $assignedTo = $form->selectedAssignee ?: null;
-
-        if ($assignedTo && $assignedTo != $userId) {
-            $status = 'delegated';
-        }
-
         return Task::create([
             'title'       => $form->newTitle,
             'description' => $form->newDescription,
-            'status'      => $status,
+            'status'      => 'todo',
             'deadline'    => $form->resolveDeadline(),
-            'user_id'     => $userId,
-            'assigned_to' => $assignedTo,
+            'user_id'     => auth()->id(),
+            'assigned_to' => $form->selectedAssignee ?: null,
         ]);
     }
 }

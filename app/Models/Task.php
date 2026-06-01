@@ -14,6 +14,24 @@ class Task extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saving(function (Task $task) {
+            // If assigned to someone else and currently in todo, make it delegated
+            if ($task->isDirty('assigned_to') || $task->isDirty('status')) {
+                if ($task->assigned_to && $task->assigned_to !== $task->user_id && $task->status === 'todo') {
+                    $task->status = 'delegated';
+                }
+
+                // If it was delegated but assigned_to is cleared or assigned back to creator, revert to todo
+                if ($task->status === 'delegated' && (!$task->assigned_to || $task->assigned_to === $task->user_id)) {
+                    $task->status = 'todo';
+                }
+            }
+        });
+    }
+
+
     protected $fillable = [
         'title',
         'description',
