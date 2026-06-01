@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'HRMS'),
+    'name' => env('APP_NAME', 'InterrA'),
     'company_name' => env('APP_NAME_ALT', 'اینترا'),
     'version' => env('APP_VERSION', 'β'),
     'developer' => env('DEVELOPER', 'Arash R.'),

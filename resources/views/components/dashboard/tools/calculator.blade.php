@@ -1,7 +1,5 @@
 <div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
-
     <x-ui.modals.backdrop x-show="open">
-
         <x-slot:icon>
             <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">calculate</span>
         </x-slot:icon>
@@ -12,12 +10,48 @@
         </x-slot:heading>
 
         <div class="px-5 pt-5">
-            <div class="flex flex-col rounded-xl px-4 pt-3 pb-3"
+            <div class="flex flex-col rounded-xl overflow-hidden"
                  style="background:var(--md-sys-color-surface-variant);border:1px solid var(--md-sys-color-outline-variant);">
-                <span class="text-[11px] mb-1 text-right" style="color:var(--md-sys-color-outline);">نتیجه</span>
-                <input type="text" x-model="formattedDisplay" x-ref="display" @click="copyToClipboard()" readonly
-                       class="bg-transparent text-2xl font-mono text-right outline-none cursor-copy w-full"
-                       style="color:var(--md-sys-color-on-surface);font-feature-settings:'tnum';" dir="ltr">
+
+                <div x-show="history.length > 0">
+                    <div class="flex items-center justify-between px-4 pt-2 pb-1">
+                        <span class="text-[10px]" style="color:var(--md-sys-color-outline);">نوار حساب</span>
+                        <div class="flex items-center gap-2">
+                            <button @click="copyLedger()"
+                                    class="flex items-center gap-1 text-[10px] transition-opacity hover:opacity-60"
+                                    style="color:var(--md-sys-color-primary);">
+                                <span class="material-symbols-rounded" style="font-size:12px;">content_copy</span>
+                                کپی رسید
+                            </button>
+                            <button @click="history = []"
+                                    class="text-[10px] transition-opacity hover:opacity-60"
+                                    style="color:var(--md-sys-color-error);">پاک کردن
+                            </button>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-2 flex flex-col-reverse gap-1 overflow-y-auto"
+                         style="max-height: 120px; scrollbar-width: none;">
+                        <template x-for="(item, index) in history" :key="index">
+                            <div
+                                class="flex justify-between items-center text-xs opacity-70 hover:opacity-100 transition-opacity">
+                                <span x-text="item.eq" dir="ltr" class="font-mono text-[10px]"
+                                      style="color:var(--md-sys-color-outline);"></span>
+                                <button @click="useHistory(item.res)"
+                                        class="font-mono font-bold cursor-pointer transition-colors"
+                                        style="color:var(--md-sys-color-primary);"
+                                        x-text="item.res" dir="ltr"></button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="px-4 pb-3 pt-1"
+                     :class="history.length > 0 ? 'border-t border-dashed' : ''"
+                     style="border-color:var(--md-sys-color-outline-variant);">
+                    <input type="text" x-model="formattedDisplay" x-ref="display" @click="copyToClipboard()" readonly
+                           class="bg-transparent text-2xl font-mono text-right outline-none w-full cursor-pointer"
+                           style="color:var(--md-sys-color-on-surface);font-feature-settings:'tnum';" dir="ltr">
+                </div>
             </div>
         </div>
 
@@ -54,6 +88,5 @@
                 </button>
             </div>
         </div>
-
     </x-ui.modals.backdrop>
 </div>

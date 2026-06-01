@@ -272,6 +272,9 @@
                     </div>
                 </div>
             </div>
+            <div class="relative right-4/5 bottom-1 opacity-50 p-0 m-0" >
+                <small>powered by {{ config('app.name') }}✨</small>
+            </div>
         </div>
     </div>
 </div>
