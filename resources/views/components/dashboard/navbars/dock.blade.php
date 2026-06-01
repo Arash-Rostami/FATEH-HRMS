@@ -4,6 +4,7 @@
     'iconExpr'    => "'timer'",
     'iconClass'   => '',
     'label'       => '',
+    'labelExpr'   => null,
     'valueExpr'   => "''",
     'alarm'       => 'false',
     'restoreFn'   => 'restore()',
@@ -17,7 +18,7 @@
      x-transition:leave="transition ease-in duration-200"
      x-transition:leave-start="opacity-100 translate-x-0"
      x-transition:leave-end="opacity-0 translate-x-8"
-     class="flex items-center justify-between overflow-hidden select-none rounded-md shadow-md
+     class="pointer-events-auto flex items-center justify-between overflow-hidden select-none rounded-md shadow-md
             pr-1.5 pl-3 py-1.5 transition-colors group w-[220px]"
      :class="{{ $alarm }} ? 'bg-red-500/20 border border-red-500/50 animate-pulse cursor-default'
                            : 'bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface)] cursor-pointer'"
@@ -36,9 +37,14 @@
 
         {{-- Label + value (hidden during alarm so alarm slot shows) --}}
         <div class="flex flex-col justify-center min-w-0" :class="{{ $alarm }} ? 'hidden' : ''">
-            <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)]">
-                {{ $label }}
-            </span>
+            @if($labelExpr)
+                <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)]"
+                      x-text="{{ $labelExpr }}"></span>
+            @else
+                <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)]">
+                    {{ $label }}
+                </span>
+            @endif
             <span class="text-[13px] font-bold leading-tight truncate text-[var(--md-sys-color-on-surface)]
                          [font-feature-settings:'tnum']"
                   x-text="{{ $valueExpr }}" dir="ltr"></span>
