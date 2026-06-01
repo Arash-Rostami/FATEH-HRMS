@@ -105,6 +105,7 @@ export default function calculator() {
         },
         destroyed() {
             this.open = false;
+            this.minimized = false;
             this.modal.classList.remove('flex');
             this.modal.classList.add('hidden');
         }
