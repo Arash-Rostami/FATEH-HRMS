@@ -77,37 +77,51 @@
 
     </x-ui.modals.backdrop>
 
-    {{-- Minimized tab --}}
-    <div
-        x-show="minimized"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-x-full"
-        x-transition:enter-end="opacity-100 translate-x-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-x-0"
-        x-transition:leave-end="opacity-0 translate-x-full"
-        class="fixed bottom-0 -translate-y-1/2 left-0 z-[999] flex flex-col items-center"
-    >
-        <div @click="restore()" class="flex flex-col items-center overflow-hidden cursor-pointer select-none w-[52px] rounded-r-[1.35rem] bg-[var(--md-sys-color-primary)] border border-white/10">
+        {{-- Minimized tab --}}
+    <template x-teleport="#tool-dock">
+        <div x-show="minimized"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="flex items-center justify-between overflow-hidden cursor-pointer select-none rounded-md bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)] shadow-md pr-1.5 pl-3 py-1.5 hover:bg-[var(--md-sys-color-surface)] transition-colors group w-[220px]"
+             @click="restore()">
 
-            <div class="flex w-full items-center justify-center py-4">
-                <div x-show="playing" class="flex items-end gap-[3px] h-5">
-                    <template x-for="(d,i) in [0,100,200,150,50]" :key="i">
-                        <span class="w-[3px] rounded-lg bg-[var(--md-sys-color-on-primary)] block animate-eq"
-                              :style="`animation-delay: ${d}ms; height: ${[10,20,14,20,10][i]}px`"
-                              style="transform-origin:bottom;"></span>
-                    </template>
+            <div class="flex items-center gap-3">
+                <div class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-inner">
+                    <div x-show="playing" class="flex items-end gap-[2px] h-4">
+                        <template x-for="(d,i) in [0,100,200,150,50]" :key="i">
+                            <span class="w-[2px] rounded-lg bg-[var(--md-sys-color-on-primary)] block animate-eq"
+                                  :style="`animation-delay: ${d}ms; height: ${[8,16,11,16,8][i]}px`"
+                                  style="transform-origin:bottom;"></span>
+                        </template>
+                    </div>
+                    <span x-show="!playing" class="material-symbols-rounded text-[18px]">radio</span>
                 </div>
-                <span x-show="!playing" class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[24px]">radio</span>
+
+                <div class="flex flex-col justify-center max-w-[90px]">
+                    <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)] leading-tight">رادیو</span>
+                    <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight truncate w-full"
+                          x-text="currentStationName || 'آماده'" dir="rtl"></span>
+                </div>
             </div>
 
-            <div class="w-full px-2 pb-2">
-                <button @click.stop="togglePlay()"
-                        class="flex h-8 w-full items-center justify-center rounded-lg border border-white/10 transition-colors duration-150 bg-[rgba(255,255,255,.12)] hover:bg-[rgba(255,255,255,.22)]">
-                    <span class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[18px]" x-text="playing ? 'pause' : 'play_arrow'"></span>
+            <div class="flex items-center gap-1">
+                <button @click.stop="togglePlay()" title="پخش/توقف"
+                        class="flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] transition-colors">
+                    <span class="material-symbols-rounded text-[18px]" x-text="playing ? 'pause' : 'play_arrow'"></span>
+                </button>
+                <button @click.stop="restore()" title="بزرگنمایی"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                    <span class="material-symbols-rounded text-[18px]">open_in_full</span>
+                </button>
+                <button @click.stop="closeModal()" title="بستن"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-red-500/10 hover:text-red-500 text-[var(--md-sys-color-outline)]">
+                    <span class="material-symbols-rounded text-[18px]">close</span>
                 </button>
             </div>
         </div>
-    </div>
-
+    </template>
 </div>

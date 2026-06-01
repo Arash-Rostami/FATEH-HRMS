@@ -89,4 +89,39 @@
             </div>
         </div>
     </x-ui.modals.backdrop>
+    <template x-teleport="#tool-dock">
+        <div x-show="minimized"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="flex items-center justify-between overflow-hidden cursor-pointer select-none rounded-md bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)] shadow-md pr-1.5 pl-3 py-1.5 hover:bg-[var(--md-sys-color-surface)] transition-colors group w-[220px]"
+             @click="restore()">
+
+            <div class="flex items-center gap-3">
+                <div class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-md bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-inner">
+                    <span class="material-symbols-rounded text-[18px]">calculate</span>
+                </div>
+
+                <div class="flex flex-col justify-center max-w-[100px]">
+                    <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)] leading-tight">ماشین حساب</span>
+                    <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight [font-feature-settings:'tnum'] truncate w-full"
+                          x-text="history.length ? history[0].res : (display ? formattedDisplay : 'آماده')" dir="ltr"></span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1">
+                <button @click.stop="restore()" title="بزرگنمایی"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                    <span class="material-symbols-rounded text-[18px]">open_in_full</span>
+                </button>
+                <button @click.stop="closeModal()" title="بستن"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-red-500/10 hover:text-red-500 text-[var(--md-sys-color-outline)]">
+                    <span class="material-symbols-rounded text-[18px]">close</span>
+                </button>
+            </div>
+        </div>
+    </template>
 </div>
