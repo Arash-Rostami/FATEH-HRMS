@@ -7,6 +7,7 @@
 
 <div
     {{ $attributes->merge(['class' => 'fixed inset-0 z-50 flex items-center justify-center bg-[var(--md-sys-color-primary)]/60']) }}
+    @click.self="{{ $minimizable ? $onMinimize : null }}"
     x-transition x-cloak
 >
     <div class="w-full {{ $width }} mx-4 overflow-hidden rounded-2xl shadow-lg"

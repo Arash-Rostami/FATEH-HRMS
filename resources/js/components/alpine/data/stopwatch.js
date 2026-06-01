@@ -6,13 +6,14 @@ export default function stopwatch(mp3) {
         alarmInterval: null,
         alarmAudioInstance: null,
         open: false,
+        minimized: false,
 
         init() {
             this.modal = this.$refs.stopwatchModal;
             if (this.modal) {
                 window.addEventListener('stopwatch', () => this.mounted());
                 window.addEventListener('keydown', (event) => {
-                    if (event.key === "Escape" && this.modal.classList.contains('flex')) this.destroyed();
+                    if (event.key === "Escape" && this.modal.classList.contains('flex')) this.minimize();
                 });
             }
             setInterval(() => {
@@ -65,7 +66,20 @@ export default function stopwatch(mp3) {
             const ss = Math.floor(s % 60).toString().padStart(2, '0');
             return `${mm}:${ss}`;
         },
+        minimize() {
+            this.minimized = true;
+            this.open = false;
+            this.modal.classList.remove('flex');
+            this.modal.classList.add('hidden');
+        },
+        restore() {
+            this.minimized = false;
+            this.open = true;
+            this.modal.classList.remove('hidden');
+            this.modal.classList.add('flex');
+        },
         closeModal() {
+            this.stopAlarm();
             this.destroyed();
         },
         mounted() {

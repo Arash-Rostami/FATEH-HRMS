@@ -79,7 +79,7 @@ export default function radio(id) {
             });
 
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.open) this.closeModal();
+                if (e.key === 'Escape' && this.open) this.minimize();
             });
 
             this.$watch('currentStationUrl', (url) => { this.handleStationChange(url); this.updateDisplay(); });

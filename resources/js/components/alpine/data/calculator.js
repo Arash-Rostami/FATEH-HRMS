@@ -5,6 +5,7 @@ export default function calculator() {
         history: [],
         modal: null,
         open: false,
+        minimized: false,
         calculationDone: false,
 
         init() {
@@ -12,7 +13,7 @@ export default function calculator() {
             if (this.modal) {
                 window.addEventListener('calculate', () => this.mounted());
                 window.addEventListener('keydown', (event) => {
-                    if (event.key === "Escape" && this.modal.classList.contains('flex')) this.destroyed();
+                    if (event.key === "Escape" && this.modal.classList.contains('flex')) this.minimize();
                 });
             }
         },
@@ -80,6 +81,18 @@ export default function calculator() {
             this.display = '';
             this.formattedDisplay = '';
             this.calculationDone = false;
+        },
+        minimize() {
+            this.minimized = true;
+            this.open = false;
+            this.modal.classList.remove('flex');
+            this.modal.classList.add('hidden');
+        },
+        restore() {
+            this.minimized = false;
+            this.open = true;
+            this.modal.classList.remove('hidden');
+            this.modal.classList.add('flex');
         },
         closeModal() {
             this.clearDisplay();

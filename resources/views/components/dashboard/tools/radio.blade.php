@@ -77,37 +77,36 @@
 
     </x-ui.modals.backdrop>
 
-    {{-- Minimized tab --}}
-    <div
-        x-show="minimized"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-x-full"
-        x-transition:enter-end="opacity-100 translate-x-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-x-0"
-        x-transition:leave-end="opacity-0 translate-x-full"
-        class="fixed bottom-0 -translate-y-1/2 left-0 z-[999] flex flex-col items-center"
-    >
-        <div @click="restore()" class="flex flex-col items-center overflow-hidden cursor-pointer select-none w-[52px] rounded-r-[1.35rem] bg-[var(--md-sys-color-primary)] border border-white/10">
+    {{-- ── Minimized dock pill ─────────────────────────────────────────── --}}
+    <template x-teleport="#tool-dock">
+        <x-dashboard.navbars.dock
+            show="minimized"
+            on-click="restore()"
+            label="رادیو"
+            value-expr="currentStationName || 'آماده'"
+            restore-fn="restore()"
+            close-fn="closeModal()">
 
-            <div class="flex w-full items-center justify-center py-4">
-                <div x-show="playing" class="flex items-end gap-[3px] h-5">
+            <x-slot:icon>
+                <div x-show="playing" class="flex items-end gap-[2px] h-4">
                     <template x-for="(d,i) in [0,100,200,150,50]" :key="i">
-                        <span class="w-[3px] rounded-lg bg-[var(--md-sys-color-on-primary)] block animate-eq"
-                              :style="`animation-delay: ${d}ms; height: ${[10,20,14,20,10][i]}px`"
+                        <span class="w-[2px] rounded-lg bg-[var(--md-sys-color-on-primary)] block animate-eq"
+                              :style="`animation-delay: ${d}ms; height: ${[8,16,11,16,8][i]}px`"
                               style="transform-origin:bottom;"></span>
                     </template>
                 </div>
-                <span x-show="!playing" class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[24px]">radio</span>
-            </div>
+                <span x-show="!playing" class="material-symbols-rounded text-[18px]">radio</span>
+            </x-slot:icon>
 
-            <div class="w-full px-2 pb-2">
-                <button @click.stop="togglePlay()"
-                        class="flex h-8 w-full items-center justify-center rounded-lg border border-white/10 transition-colors duration-150 bg-[rgba(255,255,255,.12)] hover:bg-[rgba(255,255,255,.22)]">
-                    <span class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[18px]" x-text="playing ? 'pause' : 'play_arrow'"></span>
+            <x-slot:controls>
+                <button @click.stop="togglePlay()" title="پخش/توقف"
+                        class="flex items-center justify-center rounded-md w-[28px] h-[28px]
+                               hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] transition-colors">
+                    <span class="material-symbols-rounded text-[18px]"
+                          x-text="playing ? 'pause' : 'play_arrow'"></span>
                 </button>
-            </div>
-        </div>
-    </div>
+            </x-slot:controls>
 
+            </x-dashboard.navbars.dock>
+    </template>
 </div>

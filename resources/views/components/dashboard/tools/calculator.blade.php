@@ -1,5 +1,5 @@
 <div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
-    <x-ui.modals.backdrop x-show="open">
+    <x-ui.modals.backdrop x-show="open" :minimizable="true">
         <x-slot:icon>
             <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">calculate</span>
         </x-slot:icon>
@@ -89,4 +89,31 @@
             </div>
         </div>
     </x-ui.modals.backdrop>
+    <template x-teleport="#tool-dock">
+        <div x-show="minimized"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="flex items-center gap-3 overflow-hidden cursor-pointer select-none rounded-[1.35rem] bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)] shadow-md pr-1.5 pl-4 py-1.5 hover:bg-[var(--md-sys-color-surface)] transition-colors group"
+             @click="restore()">
+
+            <div class="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-inner">
+                <span class="material-symbols-rounded text-[20px]">calculate</span>
+            </div>
+
+            <div class="flex flex-col justify-center min-w-[80px]">
+                <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)] leading-tight">ماشین حساب</span>
+                <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight [font-feature-settings:'tnum']"
+                      x-text="history.length ? history[0].res : (display ? formattedDisplay : 'آماده')" dir="ltr"></span>
+            </div>
+
+            <button @click.stop="closeModal()"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full w-[28px] h-[28px] hover:bg-red-500/10 hover:text-red-500 text-[var(--md-sys-color-outline)] mr-2">
+                <span class="material-symbols-rounded text-[18px]">close</span>
+            </button>
+        </div>
+    </template>
 </div>
