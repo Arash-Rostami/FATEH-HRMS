@@ -80,4 +80,58 @@
         </div>
 
     </x-ui.modals.backdrop>
+    <template x-teleport="#tool-dock">
+        <div x-show="minimized"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="flex items-center justify-between overflow-hidden select-none rounded-md border shadow-md pr-1.5 pl-3 py-1.5 transition-colors group w-[220px]"
+             :class="alarmInterval ? 'bg-red-500/20 border-red-500/50 animate-pulse' : 'bg-[var(--md-sys-color-surface-variant)] border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-surface)] cursor-pointer'"
+             @click="if(!alarmInterval) restore()">
+
+            <div class="flex items-center gap-3">
+                <div class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-md shadow-inner"
+                     :class="alarmInterval ? 'bg-red-500 text-white' : 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'">
+                    <span class="material-symbols-rounded text-[18px]" x-text="alarmInterval ? 'notifications_active' : 'timer'"></span>
+                </div>
+
+                <div class="flex flex-col justify-center max-w-[90px]" :class="{'opacity-0 hidden': alarmInterval}">
+                    <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)] leading-tight" x-text="timer.running ? 'در حال اجرا' : 'متوقف'"></span>
+                    <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight [font-feature-settings:'tnum']"
+                          x-text="formatSeconds(timer.seconds)" dir="ltr"></span>
+                </div>
+
+                <div class="flex flex-col justify-center max-w-[90px]" x-show="alarmInterval" style="display: none;">
+                    <span class="text-[12px] font-bold text-red-500 animate-bounce">آلارم!</span>
+                </div>
+            </div>
+
+            <!-- Normal state controls -->
+            <div class="flex items-center gap-1" x-show="!alarmInterval">
+                <button @click.stop="toggleTimer()" title="شروع/توقف"
+                        class="flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] transition-colors">
+                    <span class="material-symbols-rounded text-[18px]" x-text="timer.running ? 'pause' : 'play_arrow'"></span>
+                </button>
+                <button @click.stop="restore()" title="بزرگنمایی"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                    <span class="material-symbols-rounded text-[18px]">open_in_full</span>
+                </button>
+                <button @click.stop="closeModal()" title="بستن"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md w-[28px] h-[28px] hover:bg-red-500/10 hover:text-red-500 text-[var(--md-sys-color-outline)]">
+                    <span class="material-symbols-rounded text-[18px]">close</span>
+                </button>
+            </div>
+
+            <!-- Alarm state controls -->
+            <div class="flex items-center" x-show="alarmInterval" style="display: none;">
+                <button @click.stop="stopAlarm(); restore()"
+                        class="flex items-center justify-center rounded-md px-3 py-1 bg-red-500 text-white hover:bg-red-600 transition-colors text-[11px] font-bold">
+                    توقف
+                </button>
+            </div>
+        </div>
+    </template>
 </div>
