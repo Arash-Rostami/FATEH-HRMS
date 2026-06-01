@@ -7,21 +7,48 @@ export default () => ({
     init() {
         this.$nextTick(() => {
             this.setupScrollListener();
-            this.setupIntersectionObserver();
+            this.setupInfiniteScroll();
             this.updateActiveItem();
         });
 
-        Livewire.hook('morph.updated', ({ component, el }) => {
-            if (component.id === this.$wire.__instance.id) {
+
+        Livewire.hook('morph', ({ el }) => {
+            if (this.$root.contains(el)) {
                 this.$nextTick(() => {
                     this.updateActiveItem();
-                    if (this.$refs.loadTrigger && this.observer) {
-                        this.observer.disconnect();
-                        this.observer.observe(this.$refs.loadTrigger);
-                    }
+                    this.observeTrigger();
                 });
             }
         });
+    },
+
+    setupInfiniteScroll() {
+        this.observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) this.loadMore();
+        }, {
+            root: null,
+            threshold: 0,
+            rootMargin: '200px',
+        });
+        this.observeTrigger();
+    },
+
+    observeTrigger() {
+        if (!this.observer) return;
+        this.observer.disconnect();
+        if (this.$refs.loadTrigger) this.observer.observe(this.$refs.loadTrigger);
+    },
+
+    async loadMore() {
+        if (this.loading || !this.$wire.get('hasMorePages')) return;
+        this.loading = true;
+        try {
+            await this.$wire.loadMore();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            this.loading = false;
+        }
     },
 
     scrollNext() {
@@ -50,24 +77,6 @@ export default () => ({
                 timeout = null;
             }, 50);
         }, { passive: true });
-    },
-
-    setupIntersectionObserver() {
-        if (this.observer) this.observer.disconnect();
-
-        this.observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !this.loading && this.$wire.hasMorePages) {
-                this.loadMore();
-            }
-        }, {
-            root: this.$refs.feedContainer,
-            threshold: 0.1,
-            rootMargin: '0px 0px 200px 0px'
-        });
-
-        if (this.$refs.loadTrigger) {
-            this.observer.observe(this.$refs.loadTrigger);
-        }
     },
 
     updateActiveItem() {
@@ -102,18 +111,6 @@ export default () => ({
 
         if (closestId) {
             this.activeId = closestId;
-        }
-    },
-
-    async loadMore() {
-        if (this.loading) return;
-        this.loading = true;
-        try {
-            await this.$wire.loadMore();
-        } catch (e) {
-            console.error(e);
-        } finally {
-            this.loading = false;
         }
     }
 })

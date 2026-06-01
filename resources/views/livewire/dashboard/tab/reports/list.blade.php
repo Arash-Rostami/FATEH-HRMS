@@ -45,9 +45,12 @@
     @endforelse
 
     @if($this->hasMorePages)
-        <div x-intersect.threshold.10="$wire.loadMore()" class="py-8 flex justify-center w-full">
+        <div x-ref="loadTriggerList"
+             class="py-8 flex justify-center w-full">
             <div
-                class="w-8 h-8 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-xl animate-spin"></div>
+                class="w-8 h-8 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-xl animate-spin">
+                <x-ui.loaders.spinner/>
+            </div>
         </div>
     @endif
 </div>

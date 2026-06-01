@@ -87,7 +87,6 @@ class Feeds extends Component
 
     public function loadMore(): void
     {
-        dd('hi');
         if (!$this->hasMorePages) return;
 
         $newIds = Feed::latest()

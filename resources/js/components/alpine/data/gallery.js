@@ -12,13 +12,13 @@ export default function gallery() {
                 this.setupScrollListener();
                 this.setupIntersectionObserver();
                 this.initFancybox();
-
+z
                 setTimeout(() => {
                     this.updateActiveItem();
                 }, 100);
             });
 
-            Livewire.hook('morph.updated', ({component, el}) => {
+            Livewire.hook('morph', ({component, el}) => {
                 if (component.id === this.$wire.__instance.id) {
                     this.$nextTick(() => {
                         this.updateActiveItem();

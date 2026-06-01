@@ -76,15 +76,15 @@
                 </div>
             @endforeach
 
-            @if($hasMorePages)
-                <div
-                    x-ref="loadTrigger"
-                    wire:key="loader-{{ count($feedIds) }}"
-                    class="shrink-0 w-full md:w-24 h-24 md:h-full snap-center flex items-center justify-center opacity-60"
-                >
-                    <x-ui.loaders.spinner/>
-                </div>
-            @endif
+                @if($hasMorePages)
+                    <div
+                        x-ref="loadTrigger"
+                        wire:key="loader-{{ count($feedIds) }}"
+                        class="shrink-0 w-full md:w-24 h-24 md:h-full snap-center flex items-center justify-center opacity-60"
+                    >
+                        <x-ui.loaders.spinner/>
+                    </div>
+                @endif
 
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>

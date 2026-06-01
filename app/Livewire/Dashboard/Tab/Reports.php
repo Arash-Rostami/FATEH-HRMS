@@ -12,7 +12,7 @@ class Reports extends Component
 {
     use FocusOnRecord;
 
-    public int $perPage = 10;
+    public int $perPage = 5;
     public string $view = 'card';
     public bool $showModal = false;
     public ?int $activeReportId = null;
