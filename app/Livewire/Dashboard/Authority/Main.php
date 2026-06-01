@@ -24,10 +24,16 @@ class Main extends Component
     public function authorities()
     {
         return Authority::with('user.profile')
-            ->where('department_id', $this->activeDept)
-            ->search($this->search)
-            ->latest()
-            ->when($this->open, fn($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
+            ->when(
+                $this->open,
+                // FOCUS MODE: pin the listing to the single record chosen in the command palette.
+                fn($q) => $q->whereKey($this->open),
+                // NORMAL MODE: scope to the selected department + search.
+                fn($q) => $q
+                    ->where('department_id', $this->activeDept)
+                    ->search($this->search)
+                    ->latest()
+            )
             ->paginate($this->perPage);
     }
 
@@ -68,6 +74,7 @@ class Main extends Component
 
     public function setDept(string $code): void
     {
+        $this->open = null;
         $this->activeDept = $code;
         $this->resetPage();
     }
@@ -85,6 +92,7 @@ class Main extends Component
 
     public function updatedSearch(): void
     {
+        $this->open = null;
         $this->resetPage();
     }
 

@@ -40,25 +40,33 @@ class Faqs extends Component
     {
         return FAQ::query()
             ->with(['department', 'user'])
-            ->when($this->search, fn($q, $s) => $q->where(fn($sub) => $sub
-                ->where('question', 'like', "%{$s}%")
-                ->orWhere('answer', 'like', "%{$s}%")
-            ))
-            ->when($this->selectedCategory, fn($q, $c) => $q->where('category', 'like', "%{$c}%"))
-            ->when($this->selectedDepartment, fn($q, $d) => $q->where('department_id', 'like', "%{$d}%"))
-            ->latest()
-            ->when($this->open, fn($q) => $q->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$this->open]))
+            ->when(
+                $this->open,
+                // FOCUS MODE: pin the listing to the single record chosen in the command palette.
+                fn($q) => $q->whereKey($this->open),
+                // NORMAL MODE: apply the user's own filters.
+                fn($q) => $q
+                    ->when($this->search, fn($q, $s) => $q->where(fn($sub) => $sub
+                        ->where('question', 'like', "%{$s}%")
+                        ->orWhere('answer', 'like', "%{$s}%")
+                    ))
+                    ->when($this->selectedCategory, fn($q, $c) => $q->where('category', 'like', "%{$c}%"))
+                    ->when($this->selectedDepartment, fn($q, $d) => $q->where('department_id', 'like', "%{$d}%"))
+                    ->latest()
+            )
             ->paginate($this->perPage);
     }
 
     public function filterByCategory(?string $category): void
     {
+        $this->open = null; // any deliberate filtering exits focus mode
         $this->selectedCategory = $category === 'all' ? null : $category;
         $this->resetPage();
     }
 
     public function filterByDepartment(?string $departmentCode): void
     {
+        $this->open = null;
         $this->selectedDepartment = $departmentCode;
         $this->resetPage();
     }
@@ -82,6 +90,7 @@ class Faqs extends Component
 
     public function resetFilters(): void
     {
+        $this->open = null;
         $this->reset(['search', 'selectedCategory', 'selectedDepartment']);
         $this->resetPage();
     }
@@ -94,6 +103,7 @@ class Faqs extends Component
 
     public function updatedSearch(): void
     {
+        $this->open = null;
         $this->resetPage();
     }
 }

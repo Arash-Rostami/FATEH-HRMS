@@ -59,13 +59,18 @@ class Gallery extends Component
 
     public function mount(): void
     {
-        $this->loadInitialPhotos();
-
-        if ($this->open && !in_array($this->open, $this->photoIds ?? [], true)) {
-            array_unshift($this->photoIds, $this->open);
+        // FOCUS MODE: when arriving from the command palette with ?open={id},
+        // show nothing but that single photo (respecting department visibility).
+        if ($this->open && $this->getBaseQuery()->whereKey($this->open)->exists()) {
+            $this->photoIds = [$this->open];
             $this->selectedPhotoId = $this->open;
+            $this->hasMorePages = false;
+            $this->assetsLoaded = true;
+            return;
         }
 
+        $this->open = null; // stale/invalid id — fall back to the normal gallery
+        $this->loadInitialPhotos();
         $this->assetsLoaded = true;
     }
 
@@ -86,6 +91,13 @@ class Gallery extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.gallery');
+    }
+
+    /** Called by FocusOnRecord::clearFocus() when the user taps "show all". */
+    public function restoreAfterFocus(): void
+    {
+        $this->hasMorePages = true;
+        $this->loadInitialPhotos();
     }
 
     #[Computed]

@@ -103,11 +103,16 @@ class Main extends Component
 
     public function mount(): void
     {
-        $this->loadInitialDocs();
-
-        if ($this->open && !in_array($this->open, $this->docIds ?? [], true)) {
-            array_unshift($this->docIds, $this->open);
+        // FOCUS MODE: when arriving from the command palette with ?open={id},
+        // show nothing but that single document (if the user is allowed to see it).
+        if ($this->open && DMS::visibleToUser()->whereKey($this->open)->exists()) {
+            $this->docIds = [$this->open];
+            $this->hasMorePages = false;
+            return;
         }
+
+        $this->open = null;
+        $this->loadInitialDocs();
     }
 
     #[On('confirmation-confirmed')]
@@ -135,6 +140,13 @@ class Main extends Component
             ->section('content');
     }
 
+    /** Called by FocusOnRecord::clearFocus() when the user taps "show all". */
+    public function restoreAfterFocus(): void
+    {
+        $this->hasMorePages = true;
+        $this->loadInitialDocs();
+    }
+
     #[Computed]
     public function totalDocs()
     {
@@ -153,9 +165,17 @@ class Main extends Component
             ->values();
     }
 
-    public function updatedActiveFilter(): void { $this->loadInitialDocs(); }
+    public function updatedActiveFilter(): void
+    {
+        $this->open = null;
+        $this->loadInitialDocs();
+    }
 
-    public function updatedSearch(): void { $this->loadInitialDocs(); }
+    public function updatedSearch(): void
+    {
+        $this->open = null;
+        $this->loadInitialDocs();
+    }
 
     protected function recordFocusType(): string { return 'dms'; }
 

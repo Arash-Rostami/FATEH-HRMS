@@ -9,8 +9,7 @@ trait FocusOnRecord
     #[Url]
     public ?int $open = null;
 
-    /** Livewire lifecycle hook — auto-invoked during mount(); no wiring needed. */
-    public function mountWithRecordFocus(): void
+    public function mountFocusOnRecord(): void
     {
         if (! $this->open) {
             return;
@@ -23,7 +22,26 @@ trait FocusOnRecord
         $this->dispatch('record-focus', type: $this->recordFocusType(), id: (int) $this->open);
     }
 
-    /** Anchor namespace. Override in modules whose class basename is ambiguous. */
+    public function isFocusing(): bool
+    {
+        return $this->open !== null;
+    }
+
+    public function clearFocus(): void
+    {
+        $this->open = null;
+
+        // Paginated modules (WithPagination) jump back to page 1.
+        if (method_exists($this, 'resetPage')) {
+            $this->resetPage();
+        }
+
+        // ID-array / custom modules rebuild their full list (see restoreAfterFocus()).
+        if (method_exists($this, 'restoreAfterFocus')) {
+            $this->restoreAfterFocus();
+        }
+    }
+
     protected function recordFocusType(): string
     {
         return strtolower(class_basename(static::class));

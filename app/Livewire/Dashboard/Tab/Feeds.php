@@ -35,7 +35,6 @@ class Feeds extends Component
     public int $perPage = 3;
     public bool $hasMorePages = true;
 
-
     public function addComment($feedId, AddCommentAction $action, $parentId = null): void
     {
         $this->commentForm->content = $parentId
@@ -88,6 +87,7 @@ class Feeds extends Component
 
     public function loadMore(): void
     {
+        dd('hi');
         if (!$this->hasMorePages) return;
 
         $newIds = Feed::latest()
@@ -107,14 +107,24 @@ class Feeds extends Component
 
     public function mount(): void
     {
-        $this->loadInitialFeeds();
-
-        if ($this->open && !in_array($this->open, $this->feedIds ?? [], true)) {
-            array_unshift($this->feedIds, $this->open);
+        if ($this->open && Feed::whereKey($this->open)->exists()) {
+            $this->feedIds = [$this->open];
             $this->selectedFeedId = $this->open;
+            $this->hasMorePages = false;
+            $this->assetsLoaded = true;
+            return;
         }
 
+        $this->open = null;
+        $this->loadInitialFeeds();
         $this->assetsLoaded = true;
+    }
+
+    public function restoreAfterFocus(): void
+    {
+        $this->open = null;
+        $this->hasMorePages = true;
+        $this->loadInitialFeeds();
     }
 
     public function render()

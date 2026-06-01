@@ -6,6 +6,9 @@
 
     <x-ui.title icon="calendar_month" title="تقویم کاری"/>
 
+    @include('components.dashboard.header.focus-chip')
+
+
     <div class="w-full grid grid-cols-1 md:grid-cols-[30%_1fr] gap-6 items-stretch min-h-0">
 
         {{-- Sidebar --}}

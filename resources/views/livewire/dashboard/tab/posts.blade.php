@@ -6,6 +6,9 @@
 >
     <x-ui.title icon="campaign" title="پست‌ها" :count="$this->totalPosts"/>
 
+    @include('components.dashboard.header.focus-chip')
+
+
     <div class="flex-1 w-full relative overflow-hidden flex flex-col lg:flex-row gap-6">
         @include('livewire.dashboard.tab.posts.pinned')
 

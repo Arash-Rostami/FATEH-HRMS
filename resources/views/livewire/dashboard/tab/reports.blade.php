@@ -12,6 +12,9 @@
         />
     </div>
 
+    @include('components.dashboard.header.focus-chip')
+
+
     @include('livewire.dashboard.tab.reports.navigations')
 
 

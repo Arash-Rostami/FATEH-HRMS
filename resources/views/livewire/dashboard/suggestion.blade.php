@@ -11,6 +11,9 @@
             count="{{  $this->suggestions->total() }}"
         />
 
+        @include('components.dashboard.header.focus-chip')
+
+
         <div x-data="{ uploading: false, uploadProgress: 0, uploaded: false }"
              x-on:livewire-upload-start="uploading = true; uploaded = false"
              x-on:livewire-upload-finish="uploading = false; uploaded = true"

@@ -106,8 +106,27 @@ class Main extends Component
         }
     }
 
+    /**
+     * FOCUS: a resource is listed only inside its own type tab. If we don't switch
+     * `activeTab` to the resource's `type`, a non-"seat" resource is filtered out of
+     * resources() entirely and the record-focus dispatch has nothing to scroll to.
+     * So jump to the right tab, drop the floor filter, and widen the page size; the
+     * existing `->when($this->open, orderByRaw ...)` in resources() then floats it to
+     * the top where it gets scrolled to and flashed.
+     */
     public function focusRecord(int $id): void
     {
+        $resource = Resource::find($id);
+
+        if (! $resource) {
+            return;
+        }
+
+        if ($resource->type !== $this->activeTab) {
+            $this->activeTab = $resource->type;
+        }
+
+        $this->filterFloor = null;
         $this->resourcesLimit = max($this->resourcesLimit, 50);
     }
 

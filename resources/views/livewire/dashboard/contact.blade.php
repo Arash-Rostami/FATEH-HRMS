@@ -16,6 +16,7 @@
             title="مخاطبین"
             countLabel="نفر"/>
 
+        @include('components.dashboard.header.focus-chip')
 
         <div class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl">
 

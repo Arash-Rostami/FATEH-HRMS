@@ -11,14 +11,35 @@ class Links extends Component
 {
     use FocusOnRecord;
 
-    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.external')]
+
+    #[Computed]
     public function externalLinks()
+    {
+        $links = $this->externalLinksSource;
+
+        return $this->open
+            ? $links->where('id', $this->open)->values()
+            : $links;
+    }
+
+    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.external')]
+    public function externalLinksSource()
     {
         return Link::external()->orderBy('sequence')->get();
     }
 
-    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.internal')]
+    #[Computed]
     public function internalLinks()
+    {
+        $links = $this->internalLinksSource;
+
+        return $this->open
+            ? $links->where('id', $this->open)->values()
+            : $links;
+    }
+
+    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.internal')]
+    public function internalLinksSource()
     {
         return Link::internal()->orderBy('sequence')->get();
     }

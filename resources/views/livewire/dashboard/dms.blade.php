@@ -6,10 +6,12 @@
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
         <x-ui.title
-            icon="folder_open"
-            title="مستندات"
-            :count="$this->totalDocs"
-            countLabel="سند"/>
+                icon="folder_open"
+                title="مستندات"
+                :count="$this->totalDocs"
+                countLabel="سند"/>
+
+        @include('components.dashboard.header.focus-banner')
 
         <div class="mb-6 z-10 relative">
 

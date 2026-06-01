@@ -13,6 +13,9 @@
             :count="count($this->resources)"
             countLabel="مورد"/>
 
+        @include('components.dashboard.header.focus-chip')
+
+
         <div class="w-fit z-1 bg-[var(--md-sys-color-surface)]">
             <x-ui.buttons.tab-selector
                 wire:key="tab-selector-{{ $activeTab }}"

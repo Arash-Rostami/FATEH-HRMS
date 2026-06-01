@@ -1,8 +1,10 @@
 <div
-    class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-y-auto overflow-x-hidden space-y-6 pb-6 custom-scrollbar"
-    dir="rtl">
+        class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-y-auto overflow-x-hidden space-y-6 pb-6 custom-scrollbar"
+        dir="rtl">
 
     <x-ui.title icon="open_in_new" title="لینک‌ها و ابزارها" :count="$this->totalLinks" countLabel="لینک"/>
+
+    @include('components.dashboard.header.focus-banner')
 
     @include('livewire.dashboard.tab.links.internal')
 

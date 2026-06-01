@@ -13,6 +13,8 @@
             :count="$this->totalTickets"
         />
 
+        @include('components.dashboard.header.focus-chip')
+
         <x-ui.buttons.tab-selector
             :active-tab="$activeTab"
             :has-a11y="true"

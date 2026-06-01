@@ -58,7 +58,7 @@ class Main extends Component
 
     public function focusRecord(int $id): void
     {
-        if (Suggestion::whereKey($id)->where('user_id', Auth::id())->exists()) {
+        if (Suggestion::whereKey($id)->exists()) {
             $this->selectSuggestion($id);
         }
     }

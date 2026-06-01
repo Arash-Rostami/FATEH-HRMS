@@ -19,14 +19,21 @@ class Main extends Component
     public function ads()
     {
         return Ad::query()
-            ->when($this->activeFilter === 'active', fn(Builder $query) => $query->active())
-            ->when($this->activeFilter === 'archived', fn(Builder $query) => $query->inactive())
-            ->when($this->search, function (Builder $query) {
-                $query->where('position', 'like', "%{$this->search}%")
-                    ->orWhere('skill', 'like', "%{$this->search}%")
-                    ->orWhere('certificate', 'like', "%{$this->search}%");
-            })
-            ->latest()
+            ->when(
+                $this->open,
+                // FOCUS MODE: pin the listing to the single record chosen in the command palette.
+                fn(Builder $q) => $q->whereKey($this->open),
+                // NORMAL MODE: apply the active/archived filter + search.
+                fn(Builder $q) => $q
+                    ->when($this->activeFilter === 'active', fn(Builder $query) => $query->active())
+                    ->when($this->activeFilter === 'archived', fn(Builder $query) => $query->inactive())
+                    ->when($this->search, function (Builder $query) {
+                        $query->where('position', 'like', "%{$this->search}%")
+                            ->orWhere('skill', 'like', "%{$this->search}%")
+                            ->orWhere('certificate', 'like', "%{$this->search}%");
+                    })
+                    ->latest()
+            )
             ->get();
     }
 
@@ -39,6 +46,7 @@ class Main extends Component
 
     public function setFilter(string $filter)
     {
+        $this->open = null; // switching filter exits focus mode
         $this->activeFilter = $filter;
     }
 
@@ -49,6 +57,11 @@ class Main extends Component
             'active' => Ad::active()->count(),
             'archived' => Ad::inactive()->count(),
         ];
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->open = null;
     }
 
     protected function recordFocusType(): string { return 'ad'; }

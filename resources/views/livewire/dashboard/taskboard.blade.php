@@ -6,6 +6,9 @@
 
         @include('livewire.dashboard.taskboard.header')
 
+        @include('components.dashboard.header.focus-chip')
+
+
         <x-ui.buttons.tab-selector
                 :active-tab="$activeTab"
                 :tabs="[

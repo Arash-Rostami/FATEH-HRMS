@@ -155,9 +155,13 @@ class Calendar extends Component
 
     public function focusRecord(int $id): void
     {
-        $event = Event::where('user_id', Auth::id())->find($id);
+        $event = Event::find($id);
+
         if ($event) {
-            $this->selectDate(Jalalian::fromCarbon($event->date)->format('Y-m-d'));
+            $jalali = Jalalian::fromCarbon($event->date);
+            $this->currentYear = $jalali->getYear();
+            $this->currentMonth = $jalali->getMonth();
+            $this->selectedDate = $jalali->format('Y-m-d');
         }
     }
 
@@ -172,9 +176,15 @@ class Calendar extends Component
     public function mount(): void
     {
         $now = Jalalian::now();
-        $this->currentYear = $now->getYear();
-        $this->currentMonth = $now->getMonth();
-        $this->selectedDate = $now->format('Y-m-d');
+
+        if (!isset($this->currentYear)) {
+            $this->currentYear = $now->getYear();
+            $this->currentMonth = $now->getMonth();
+        }
+
+        if (!isset($this->selectedDate)) {
+            $this->selectedDate = $now->format('Y-m-d');
+        }
     }
 
     public function nextMonth(): void
