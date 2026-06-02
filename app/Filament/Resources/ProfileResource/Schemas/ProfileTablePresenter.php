@@ -12,7 +12,9 @@ use App\Models\Profile;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProfileTablePresenter
 {
@@ -43,6 +45,27 @@ class ProfileTablePresenter
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function detailsCount(): TextColumn
+    {
+        return TextColumn::make('details_count')
+            ->label(__('resources/profile/strings.table.details_count'))
+            ->badge()
+            ->color('info')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function hasDetailsFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('has_details')
+            ->label(__('resources/profile/strings.table.filter_has_details'))
+            ->queries(
+                true: fn(Builder $query): Builder => $query->whereHas('details'),
+                false: fn(Builder $query): Builder => $query->whereDoesntHave('details'),
+                blank: fn(Builder $query): Builder => $query,
+            );
     }
 
     public static function degreeFilter(): SelectFilter

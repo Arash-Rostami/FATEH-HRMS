@@ -10,7 +10,9 @@ use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
+use App\Enums\ProfileDetailGroup;
 use App\Models\Department;
+use App\Services\ProfileDetailCatalog;
 use App\Services\PersianDateFieldService;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
@@ -63,6 +65,57 @@ class ProfileFormPresenter
             ->reorderable(false)
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.about_me'));
+    }
+
+    public static function details(): Repeater
+    {
+        return Repeater::make('details')
+            ->relationship()
+            ->label(__('resources/profile/strings.form.details'))
+            ->schema([
+                Select::make('key')
+                    ->label(__('resources/profile/strings.form.detail_key'))
+                    ->options(ProfileDetailCatalog::selectGroups())
+                    ->searchable()
+                    ->required()
+                    ->distinct()
+                    ->getOptionLabelUsing(fn($value): string => ProfileDetailCatalog::definition($value)['label'] ?? $value)
+                    ->createOptionForm([
+                        TextInput::make('key')
+                            ->label(__('resources/profile/strings.form.detail_custom_key'))
+                            ->required()
+                            ->maxLength(191),
+                    ])
+                    ->createOptionUsing(fn(array $data): string => $data['key'])
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_key.required'),
+                        'distinct' => __('resources/profile/strings.validation.detail_key.distinct'),
+                    ]),
+
+                TextInput::make('value')
+                    ->label(__('resources/profile/strings.form.detail_value'))
+                    ->required()
+                    ->maxLength(2000)
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_value.required'),
+                    ]),
+            ])
+            ->mutateRelationshipDataBeforeCreateUsing(fn(array $data): array => self::detailWithSection($data))
+            ->mutateRelationshipDataBeforeSaveUsing(fn(array $data): array => self::detailWithSection($data))
+            ->addable()
+            ->deletable()
+            ->reorderable(false)
+            ->columns(2)
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.details'));
+    }
+
+    private static function detailWithSection(array $data): array
+    {
+        $data['section'] = ProfileDetailCatalog::definition($data['key'] ?? '')['section']
+            ?? ProfileDetailGroup::Other->value;
+
+        return $data;
     }
 
     public static function accessibility(): Textarea

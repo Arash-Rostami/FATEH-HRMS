@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\ProfileDetailGroup;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasDateHelpers;
+use App\Services\ProfileDetailCatalog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Profile extends Model
 {
@@ -55,6 +59,33 @@ class Profile extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id', 'code');
+    }
+
+    public function details(): HasMany
+    {
+        return $this->hasMany(ProfileDetail::class);
+    }
+
+    public function detailsMap(): Collection
+    {
+        return $this->details->pluck('value', 'key');
+    }
+
+    public function syncDetails(array $values): void
+    {
+        foreach ($values as $key => $value) {
+            if (blank($value)) {
+                $this->details()->where('key', $key)->delete();
+                continue;
+            }
+
+            $section = ProfileDetailCatalog::definition($key)['section'] ?? ProfileDetailGroup::Other->value;
+
+            $this->details()->updateOrCreate(
+                ['key' => $key],
+                ['section' => $section, 'value' => (string) $value],
+            );
+        }
     }
 
     public function getImageUrl(): ?string

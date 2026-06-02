@@ -110,6 +110,12 @@ class ProfileResource extends Resource
                             ProfileFormPresenter::favoriteColors(),
                         ])
                         ->columns(2),
+
+                    Tab::make(__('resources/profile/strings.form.section_details'))
+                        ->icon('heroicon-o-list-bullet')
+                        ->schema([
+                            ProfileFormPresenter::details(),
+                        ]),
                 ])
                 ->columnSpanFull()
                 ->persistTabInQueryString(),
@@ -119,7 +125,8 @@ class ProfileResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['user', 'department']);
+            ->with(['user', 'department', 'details'])
+            ->withCount('details');
     }
 
     public static function getGlobalSearchResultActions(Model $record): array
@@ -267,6 +274,12 @@ class ProfileResource extends Resource
                             ProfileInfolistPresenter::updatedAt(),
                         ])
                         ->columns(2),
+
+                    Tab::make(__('resources/profile/strings.infolist.section_details'))
+                        ->icon('heroicon-o-list-bullet')
+                        ->schema([
+                            ProfileInfolistPresenter::details(),
+                        ]),
                 ])
                 ->columnSpanFull()
                 ->persistTabInQueryString(),
@@ -289,6 +302,7 @@ class ProfileResource extends Resource
                 ProfileTablePresenter::cellphone(),
                 ProfileTablePresenter::startDate(),
                 ProfileTablePresenter::createdAt(),
+                ProfileTablePresenter::detailsCount(),
             ])
             ->groups([
                 ProfileTablePresenter::departmentGroup(),
@@ -303,6 +317,7 @@ class ProfileResource extends Resource
                 ProfileTablePresenter::genderFilter(),
                 ProfileTablePresenter::degreeFilter(),
                 ProfileTablePresenter::departmentFilter(),
+                ProfileTablePresenter::hasDetailsFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
+use App\Enums\ProfileDetailGroup;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
@@ -36,6 +37,27 @@ class ProfileInfolistPresenter
                 ->values()
                 ->toArray()
             )
+            ->columnSpanFull();
+    }
+
+    public static function details(): RepeatableEntry
+    {
+        return RepeatableEntry::make('details')
+            ->label(__('resources/profile/strings.infolist.details'))
+            ->schema([
+                TextEntry::make('section')
+                    ->label(__('resources/profile/strings.infolist.detail_section'))
+                    ->badge()
+                    ->formatStateUsing(fn($state): string => ProfileDetailGroup::tryFrom($state)?->getLabel() ?? $state)
+                    ->color(fn($state): string|array => ProfileDetailGroup::tryFrom($state)?->getColor() ?? 'gray'),
+                TextEntry::make('label')
+                    ->label(__('resources/profile/strings.infolist.detail_key'))
+                    ->weight('medium'),
+                TextEntry::make('display_value')
+                    ->label(__('resources/profile/strings.infolist.detail_value'))
+                    ->placeholder('-'),
+            ])
+            ->columns(3)
             ->columnSpanFull();
     }
 
