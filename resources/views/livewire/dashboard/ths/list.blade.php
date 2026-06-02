@@ -91,7 +91,9 @@
 
                     <td class="px-6 py-4">
                         @if($stat)
-                            <div title="{{ jdate($ticket->completion_date ?? now()) }}"
+                            <div
+                                dir="ltr"
+                                title="{{ jdate($ticket->completion_date ?? now()) }}"
                                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['color'] }}">
                                 <span
                                     class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>

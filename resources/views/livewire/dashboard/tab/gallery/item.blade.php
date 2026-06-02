@@ -34,7 +34,7 @@
                 {{ $photo->title }}
             </h3>
             <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                {{ jdate($photo->event_date)->format('%d %B %Y') }}
+                {{ toJalali($photo->event_date, 'j F Y') }}
             </span>
         </div>
         <div

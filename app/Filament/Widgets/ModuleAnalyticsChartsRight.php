@@ -164,7 +164,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'پست‌های منتشر شده', 'data' => $data, 'borderColor' => '#0ea5e9', 'backgroundColor' => 'rgba(14, 165, 233, 0.2)', 'fill' => true],
+                ['label' => 'اعلانات منتشر شده', 'data' => $data, 'borderColor' => '#0ea5e9', 'backgroundColor' => 'rgba(14, 165, 233, 0.2)', 'fill' => true],
             ],
             'labels' => $labels,
         ];

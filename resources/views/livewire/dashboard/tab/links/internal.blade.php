@@ -18,8 +18,7 @@
                     <span class="material-symbols-rounded text-xl">dataset_linked</span>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">سامانه‌های داخلی</h3>
-                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">منابع و ابزارهای درون‌سازمانی</p>
+                    <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]"> داخلی</h3>
                 </div>
             </div>
 

@@ -27,10 +27,10 @@
                     : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
                 class="flex shrink-0 items-center gap-2 h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200 {{ $status->ringClass() }}"
             >
-                <span
-                    class="material-symbols-rounded text-[18px] transition-colors"
-                    :class="$wire.activeFilter === '{{ $status->value }}' ? '' : 'text-{{ $status->color() }}-500'"
-                >
+               <span
+                   class="material-symbols-rounded text-[18px] transition-colors"
+                   :style="$wire.activeFilter === '{{ $status->value }}' ? '' : 'color: {{ $status->hex() }}'"
+               >
                     {{ $status->icon() }}
                 </span>
                 <span>{{ $status->label() }}</span>

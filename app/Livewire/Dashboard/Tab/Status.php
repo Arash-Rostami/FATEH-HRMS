@@ -59,12 +59,17 @@ class Status extends Component
     #[Computed]
     public function users()
     {
+        $rankOrder = implode("','", array_reverse(array_keys(User::RANKS)));
+
         return User::query()
             ->with(['profile.department'])
             ->active()
             ->when($this->activeFilter !== 'all', fn(Builder $query) => $query->where('presence', $this->activeFilter))
             ->when($this->search, fn(Builder $query) => $query->search($this->search))
-            ->orderBy('name')
+            ->leftJoin('profiles', 'profiles.user_id', '=', 'users.id')
+            ->select('users.*')
+            ->orderByRaw("FIELD(profiles.position, '{$rankOrder}') DESC")
+            ->orderByDesc('users.last_seen')
             ->get();
     }
 }

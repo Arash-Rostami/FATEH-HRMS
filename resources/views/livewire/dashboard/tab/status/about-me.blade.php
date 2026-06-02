@@ -25,18 +25,7 @@
                     <div class="relative group shrink-0">
                         <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-[var(--md-sys-color-surface-variant)] shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] border-2 border-[var(--md-sys-color-surface)] transition-transform duration-500 group-hover:scale-105 relative">
                             <template x-if="user?.image">
-                                <img :src="'/storage/' + user.image" :alt="user?.name" class="w-full h-full object-cover" />
-                            </template>
-
-                            <template x-if="!user?.image">
-                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--md-sys-color-primary-container)] to-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-primary)]">
-                                    <template x-if="user?.name">
-                                        <img :src="'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=random&color=fff'" class="w-full h-full object-cover opacity-90" />
-                                    </template>
-                                    <template x-if="!user?.name">
-                                        <span class="material-symbols-rounded text-3xl font-fill">person</span>
-                                    </template>
-                                </div>
+                                <img :src="user.image" :alt="user?.name" class="w-full h-full object-cover" />
                             </template>
                         </div>
                         <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-4 border-[var(--md-sys-color-surface)] shadow-sm"></div>

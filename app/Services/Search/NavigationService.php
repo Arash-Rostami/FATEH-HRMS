@@ -143,7 +143,7 @@ class NavigationService
             ],
             [
                 'id' => 'links',
-                'title' => 'لینک‌ها و ابزارها',
+                'title' => 'لینک‌ها و مسیرهای دیجیتال سازمان',
                 'subtitle' => 'دسترسی متمرکز به سامانه‌های داخلی و خارجی',
                 'icon' => 'open_in_new',
                 'action' => 'tab:links',

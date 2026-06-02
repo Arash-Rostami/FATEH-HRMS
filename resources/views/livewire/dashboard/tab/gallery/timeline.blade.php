@@ -48,7 +48,7 @@
                             :class="activeId == {{ $photo->id }} ? '!opacity-100 !translate-y-0' : ''"
                         >
                         <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] font-mono">
-                            {{ jdate($photo->event_date)->format('%d %B %Y') }}
+                            {{ toJalali($photo->event_date, 'j F Y') }}
                         </span>
                             <div
                                 class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-variant)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"></div>

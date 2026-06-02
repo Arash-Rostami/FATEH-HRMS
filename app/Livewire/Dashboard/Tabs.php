@@ -76,7 +76,7 @@ class Tabs extends Component
             ],
             'post' => [
                 'component' => Posts::class,
-                'label' => 'پست',
+                'label' => 'اعلانات',
                 'icon' => 'campaign',
                 'bg' => 'bg-secondary-container',
             ],

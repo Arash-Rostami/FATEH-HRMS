@@ -1,88 +1,132 @@
-<x-ui.modals.slideover show="panelOpen">
+<x-ui.modals.slideover show="panelOpen" class="w-screen max-w-none h-screen rounded-none">
     @if($this->selectedPost)
-        <div class="relative h-72 sm:h-96 w-full shrink-0 group">
-            <img src="{{ $selectedPost->image }}" class="w-full h-full object-cover">
-
-            <button
-                @click="togglePanel()"
-                class="absolute top-6 left-6 w-10 h-10 rounded-lg bg-black/40 text-white/90 flex items-center justify-center hover:bg-black/60 hover:scale-110 hover:text-white transition-all shadow-lg z-20 border border-white/10"
-            >
-                <span class="material-symbols-rounded font-bold">close</span>
-            </button>
-
-            <div
-                class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-surface)] via-black/20 to-transparent"></div>
-
-            <div class="absolute bottom-6 right-8 left-8 text-[var(--md-sys-color-on-surface)] z-10">
-                <div
-                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--md-sys-color-secondary-container)]/80 text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold mb-3 shadow-sm">
-                    <span class="material-symbols-rounded text-[14px]">new_releases</span>
-                    <span>خبر</span>
-                </div>
-                <h1 class="text-3xl sm:text-4xl font-black leading-tight drop-shadow-lg tracking-tight mb-2 text-white">
-                    {{ superClean($selectedPost->title, 200) }}
-                </h1>
-            </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-8 sm:p-10 bg-[var(--md-sys-color-surface)]">
-            <div
-                class="flex items-center gap-6 text-sm text-[var(--md-sys-color-on-surface-variant)] mb-8 pb-6 border-b border-[var(--md-sys-color-outline-variant)]/20">
-                <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
-                    <span
-                        class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">calendar_month</span>
-                    <span class="font-medium">{{ $selectedPost->created_at->format('Y/m/d H:i') }}</span>
-                </div>
-                <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface-container)] px-3 py-1.5 rounded-lg">
-                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">person</span>
-                    <span class="font-medium">ادمین سیستم</span>
-                </div>
-            </div>
-
-            <div
-                class="prose prose-lg prose-p:text-[var(--md-sys-color-on-surface)] prose-headings:text-[var(--md-sys-color-on-surface)] max-w-none leading-relaxed [&_*]:!bg-transparent [&_*]:!text-inherit">
-                {!! $selectedPost->body !!}
-            </div>
-        </div>
-
         <div
-            class="p-5 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] flex justify-between items-center shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative">
-            <x-ui.modals.popover>
-                <x-slot:trigger>
-                    <button
-                        @click="openShare('{{ addslashes(superClean($selectedPost->title, 200)) }}', '{{ addslashes(superClean($selectedPost->body, 300)) }}')"
-                        class="flex items-center gap-2 px-5 py-2.5 rounded-xl hover:bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-secondary-container)] transition-colors font-bold text-sm group"
-                    >
-                        <span class="material-symbols-rounded group-hover:scale-110 transition-transform">share</span>
-                        <span>اشتراک‌گذاری</span>
-                    </button>
-                </x-slot:trigger>
-
-                <x-slot:content>
-                    <button
-                        @click="copyToClipboard();"
-                        class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right w-full"
-                    >
-                        <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
-                        <span>کپی متن</span>
-                    </button>
-                    <button
-                        @click="sendEmail();"
-                        class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-on-surface)] text-sm transition-colors text-right border-t border-[var(--md-sys-color-outline-variant)]/20 w-full"
-                    >
-                        <span
-                            class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">mail</span>
-                        <span>ایمیل</span>
-                    </button>
-                </x-slot:content>
-            </x-ui.modals.popover>
-
-            <button
-                @click="togglePanel()"
-                class="px-8 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] font-bold text-sm shadow-md hover:shadow-xl hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:-translate-y-0.5 transition-all active:scale-95 active:shadow-sm"
+            x-data="{ imageViewer: false }"
+            class="flex h-full min-h-0 flex-col overflow-hidden bg-transparent"
+        >
+            <div
+                @click="imageViewer = true"
+                class="relative w-full shrink-0 overflow-hidden group cursor-zoom-in h-[42vh]"
             >
-                بستن
-            </button>
+                <img
+                    src="{{ $selectedPost->image }}"
+                    alt="{{ $selectedPost->title }}"
+                    class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                >
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
+
+                <button
+                    @click.stop="togglePanel()"
+                    class="absolute left-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/40 text-white/90 shadow-lg transition-all hover:scale-110 hover:bg-black/60 hover:text-white"
+                >
+                    <span class="material-symbols-rounded font-bold">close</span>
+                </button>
+
+                <button
+                    @click.stop="imageViewer = true"
+                    class="absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg backdrop-blur-sm transition-all hover:bg-black/50 hover:text-white"
+                >
+                    <span class="material-symbols-rounded text-[20px]">open_in_full</span>
+                </button>
+
+                <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-[var(--md-sys-color-secondary-container)]/80 px-3 py-1 text-xs font-bold text-[var(--md-sys-color-on-secondary-container)] shadow-sm backdrop-blur-sm">
+                            <span class="material-symbols-rounded text-[14px]">new_releases</span>
+                            <span>خبر</span>
+                        </span>
+
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm backdrop-blur-sm">
+                            <span class="material-symbols-rounded text-[14px] text-white/90">calendar_month</span>
+                            <span class="font-medium" dir="rtl">{{ toJalali($selectedPost->created_at, 'j F Y') }}</span>
+                        </span>
+
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm backdrop-blur-sm">
+                            <span class="material-symbols-rounded text-[14px] text-white/90">person</span>
+                            <span>ادمین سیستم</span>
+                        </span>
+                    </div>
+
+                    <h1 class="mt-4 max-w-4xl text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)] sm:text-4xl">
+                        {{ superClean($selectedPost->title, 200) }}
+                    </h1>
+                </div>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-transparent px-5 py-6 sm:px-8 sm:py-8">
+                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] [&_*]:!bg-transparent [&_*]:!text-inherit">
+                    {!! $selectedPost->body !!}
+                </div>
+            </div>
+
+            <div class="shrink-0 border-t border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] px-5 py-4 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] sm:px-8">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <x-ui.modals.popover>
+                        <x-slot:trigger>
+                            <button
+                                @click="openShare('{{ addslashes(superClean($selectedPost->title, 200)) }}', '{{ addslashes(superClean($selectedPost->body, 300)) }}')"
+                                class="inline-flex items-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[var(--md-sys-color-secondary-container)] hover:text-[var(--md-sys-color-on-secondary-container)] group"
+                            >
+                                <span class="material-symbols-rounded transition-transform group-hover:scale-110">share</span>
+                                <span>اشتراک‌گذاری</span>
+                            </button>
+                        </x-slot:trigger>
+
+                        <x-slot:content>
+                            <button
+                                @click="copyToClipboard();"
+                                class="flex w-full items-center gap-3 border-b border-[var(--md-sys-color-outline-variant)]/20 px-4 py-3 text-right text-sm text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-[var(--md-sys-color-primary)]/10"
+                            >
+                                <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
+                                <span>کپی متن</span>
+                            </button>
+                            <button
+                                @click="sendEmail();"
+                                class="flex w-full items-center gap-3 px-4 py-3 text-right text-sm text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-[var(--md-sys-color-primary)]/10"
+                            >
+                                <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">mail</span>
+                                <span>ایمیل</span>
+                            </button>
+                        </x-slot:content>
+                    </x-ui.modals.popover>
+
+                    <button
+                        @click="togglePanel()"
+                        class="inline-flex items-center justify-center rounded-md bg-[var(--md-sys-color-primary)] px-8 py-2.5 text-sm font-bold text-[var(--md-sys-color-on-primary)] shadow-md transition-all hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-xl active:scale-95 active:shadow-sm"
+                    >
+                        بستن
+                    </button>
+                </div>
+            </div>
+
+            <template x-teleport="body">
+                <div
+                    x-cloak
+                    x-show="imageViewer"
+                    x-transition.opacity.duration.200ms
+                    class="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-sm"
+                    @keydown.escape.window="imageViewer = false"
+                    @click.self="imageViewer = false"
+                >
+                    <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+                        <div class="relative w-full max-w-[min(96vw,1600px)] animate-backdrop-in">
+                            <img
+                                src="{{ $selectedPost->image }}"
+                                alt="{{ $selectedPost->title }}"
+                                class="max-h-[92vh] w-full select-none object-contain shadow-[0_30px_120px_rgba(0,0,0,0.6)]"
+                            >
+
+                            <button
+                                @click="imageViewer = false"
+                                class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-black/75"
+                            >
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
         </div>
     @else
         <x-ui.loaders.spinner/>

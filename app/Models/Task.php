@@ -99,14 +99,14 @@ class Task extends Model
     protected function createdFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn() => Jalalian::fromCarbon($this->created_at)->format('Y/m/d')
+            get: fn() => toJalali($this->created_at, 'j F Y')
         );
     }
 
     protected function deadlineFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->deadline ? Jalalian::fromCarbon($this->deadline)->format('Y/m/d') : null
+            get: fn() => $this->deadline ? toJalali($this->deadline, 'j F Y') : null
         );
     }
 

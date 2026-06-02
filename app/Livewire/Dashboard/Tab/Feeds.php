@@ -32,6 +32,9 @@ class Feeds extends Component
     public ?int $editingCommentId = null;
     public CommentForm $commentForm;
 
+    public string $search = '';
+    public ?string $selectedCategory = null;
+
     public int $perPage = 3;
     public bool $hasMorePages = true;
 
@@ -46,6 +49,37 @@ class Feeds extends Component
         data_forget($this, $parentId ? "replyComments.$parentId" : "newComments.$feedId");
         $this->commentForm->reset('content');
         unset($this->feeds);
+    }
+
+    #[Computed(seconds: 3600, cache: true, key: 'feed-categories')]
+    public function categories()
+    {
+        return Feed::query()
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+    }
+
+    public function filterByCategory(?string $category): void
+    {
+        $this->open = null;
+        $this->selectedCategory = $category === 'all' ? null : $category;
+        $this->resetFeed();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->open = null;
+        $this->resetFeed();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->open = null;
+        $this->reset(['search', 'selectedCategory']);
+        $this->resetFeed();
     }
 
     #[On("delete-comment-confirmed")]
@@ -76,12 +110,18 @@ class Feeds extends Component
 
     public function loadInitialFeeds(): void
     {
-        $this->feedIds = Feed::latest()->take($this->perPage)->pluck('id')->toArray();
-        $this->hasMorePages = count($this->feedIds) >= $this->perPage;
+        $query = $this->baseQuery()->latest();
 
-        if (!empty($this->feedIds) && !$this->selectedFeedId) {
-            $this->selectedFeedId = $this->feedIds[0];
+        if ($this->hasActiveFilters()) {
+            $this->feedIds = $query->pluck('id')->toArray();
+            $this->hasMorePages = false;
+        } else {
+            $this->feedIds = $query->take($this->perPage)->pluck('id')->toArray();
+            $this->hasMorePages = count($this->feedIds) >= $this->perPage;
         }
+
+        $this->selectedFeedId = $this->feedIds[0] ?? null;
+
         unset($this->feeds);
     }
 
@@ -89,7 +129,7 @@ class Feeds extends Component
     {
         if (!$this->hasMorePages) return;
 
-        $newIds = Feed::latest()
+        $newIds = $this->baseQuery()->latest()
             ->skip(count($this->feedIds))
             ->take($this->perPage)
             ->pluck('id')
@@ -162,5 +202,24 @@ class Feeds extends Component
 
         unset($this->feeds);
         $this->reset(['editingCommentId', 'commentForm']);
+    }
+
+    private function baseQuery()
+    {
+        return Feed::query()
+            ->when($this->search, fn($q, $s) => $q->where('content', 'like', "%{$s}%"))
+            ->when($this->selectedCategory, fn($q, $c) => $q->where('category', $c));
+    }
+
+    private function hasActiveFilters(): bool
+    {
+        return $this->search !== '' || $this->selectedCategory !== null;
+    }
+
+    private function resetFeed(): void
+    {
+        $this->selectedFeedId = null;
+        $this->hasMorePages = true;
+        $this->loadInitialFeeds();
     }
 }

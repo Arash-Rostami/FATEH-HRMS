@@ -1,9 +1,4 @@
-<div class="px-4 md:px-12 pt-2 md:pt-4 flex items-center justify-between mb-2 md:mb-4 relative z-10">
-    <h2 class="text-[var(--md-sys-color-on-surface)] text-xl md:text-2xl font-black tracking-tight flex items-center gap-3">
-        <span class="bg-[var(--md-sys-color-primary)] w-2 h-8 rounded-full"></span>
-        لیست گزارش‌ها
-    </h2>
-
+<div class="px-4 md:px-12 pt-2 md:pt-4 flex items-center justify-end mb-2 md:mb-4 relative z-10">
     <div
         class="hidden md:flex bg-[var(--md-sys-color-surface-container-high)] p-1 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm">
         <button @click="view = 'card'; $wire.toggleView('card')"

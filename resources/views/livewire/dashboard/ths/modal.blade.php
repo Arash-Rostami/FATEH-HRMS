@@ -91,7 +91,8 @@
                                     <span
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">تاریخ ایجاد</span>
                                     <span
-                                        class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] font-mono  flex-row-reverse flex">
+                                        dir="ltr"
+                                        class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] font-mono flex-row-reverse flex">
                                         {{ jdate($selectedTicket['created_at']) }}
                                     </span>
                                 </div>

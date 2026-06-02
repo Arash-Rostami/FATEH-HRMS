@@ -129,7 +129,7 @@
 
                     {{-- DATE --}}
                     <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
-                        {{ jdateOnly($item->created_at) }}
+                        {{ toJalali($item->created_at, 'j F Y') }}
                     </span>
                 </div>
 

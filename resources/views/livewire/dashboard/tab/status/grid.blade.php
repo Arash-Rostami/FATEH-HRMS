@@ -19,8 +19,7 @@
                      transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                      {{ $p->cardClasses() }}">
 
-                <div class="relative z-10 mt-1 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">
-                    <img
+                <div class="relative z-10 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">                    <img
                         src="{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}"
                         alt="{{ $user->name }}"
                         class="w-18 h-18 rounded-full object-cover
@@ -37,8 +36,8 @@
                                 border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow cursor-pointer hover:scale-110 transition-transform z-20"
                              title="درباره من"
                              @click.stop="$dispatch('open-about-me', {
-                             user: { name: '{{ $user->name }}', position: '{{ $user->profile?->position ?? "کارشناس" }}', image: '{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}' },
-                            aboutMe: @js($user->profile?->about_me ?? [])
+                             user: { name: '{{ $user->name }}', position: '{{ $user->profile?->positionLabel ?? "کارشناس" }}', image: '{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}' },
+                             aboutMe: @js($user->profile?->about_me ?? [])
                          })">
                             <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
                         </div>
@@ -56,8 +55,8 @@
                     <p class="text-[11px] font-semibold text-[var(--md-sys-color-on-surface)] truncate leading-snug">
                         {{ $user->name }}
                     </p>
-                    <p class="text-[9px] text-{{ $p->color() }}-400/70 truncate font-medium">
-                        {{ $user->profile?->position ?? 'کارشناس' }}
+                    <p class="text-[9px] text-{{ $p->color() }}-400/70 truncate font-medium pt-3">
+                        {{ $user->profile?->positionLabel ?? 'کارشناس' }}
                     </p>
                 </div>
 

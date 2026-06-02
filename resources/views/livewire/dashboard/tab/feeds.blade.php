@@ -12,6 +12,8 @@
 
     @include('components.dashboard.header.focus-banner')
 
+    @include('livewire.dashboard.tab.feeds.filters')
+
     @if($assetsLoaded)
         @include('livewire.dashboard.tab.feeds.styles')
     @endif

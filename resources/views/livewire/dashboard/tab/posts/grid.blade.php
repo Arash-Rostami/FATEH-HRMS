@@ -62,7 +62,7 @@
                 <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center mb-4">
                     <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-outline)] opacity-50">feed</span>
                 </div>
-                <span class="text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]">هیچ پستی یافت نشد.</span>
+                <span class="text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]">هیچ اعلانی یافت نشد.</span>
             </div>
         @endif
     </div>

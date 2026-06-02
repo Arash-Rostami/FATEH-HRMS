@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasDateHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -89,6 +90,12 @@ class Profile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getPositionLabelAttribute(): string
+    {
+        return Position::tryFrom($this->position)?->getLabel()
+            ?? ($this->position ?: 'کارشناس');
     }
 
     protected function casts(): array

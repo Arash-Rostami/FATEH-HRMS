@@ -2,7 +2,7 @@
     @forelse ($this->reports as $report)
         <div wire:key="report-list-{{ $report->id }}"
              class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
-             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
+             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
             <div
                 class="w-full md:w-32 h-48 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0">
@@ -19,7 +19,7 @@
                     class="flex items-center justify-center md:justify-start gap-3 text-xs text-[var(--md-sys-color-outline)]">
                             <span
                                 class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department->name ?? 'General' }}</span>
-                    <span>{{ jdate($report->created_at)->format('Y/m/d') }}</span>
+                    <span dir="rtl">{{  toJalali($report->created_at, 'j F Y') }}</span>
                 </div>
             </div>
 

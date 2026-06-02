@@ -98,7 +98,7 @@ class TabPresenter
             $tab('calendar', 'تقویم کاری',        'calendar_month',  'calendar'),
             $tab('gallery',  'گالری تصاویر',      'photo_library',   'gallery'),
             $tab('reports',  'گزارشات',           'show_chart',      'reports'),
-            $tab('links',    'لینک‌ها و ابزارها', 'open_in_new',     'links'),
+            $tab('links',    '', 'open_in_new',     'links'),
             $tab('status',   'وضعیت همکاران',     'badge',           'status'),
             $tab('faqs',     'پرسش‌های متداول',   'help',            'faqs'),
             $route('dms',          'مدیریت اسناد',     'folder_managed',         'dms'),

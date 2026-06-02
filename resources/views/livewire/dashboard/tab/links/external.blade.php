@@ -19,9 +19,7 @@
                     <span class="material-symbols-rounded text-xl">public</span>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">سامانه‌های خارجی</h3>
-                    <p class="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-0.5">وب‌سایت‌ها و منابع
-                        اینترنتی</p>
+                    <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]"> خارجی</h3>
                 </div>
             </div>
 

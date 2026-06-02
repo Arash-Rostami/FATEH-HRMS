@@ -73,8 +73,8 @@ class SuggestionPresenter
         return [
             'date' => $deadline,
             'passed' => $isPast,
-            'formatted' => ($isPast ? ' ⚠' : '') . jdateOnly($deadline),
-        ];
+            'formatted' => ($isPast ? ' ⚠' : '') . toJalali($deadline, 'j F Y'),
+            ];
     }
 
     public function departmentStatuses(): array
@@ -108,7 +108,7 @@ class SuggestionPresenter
         return [
             $this->buildInfoRow('person', 'ثبت‌کننده', $s->user?->name ?? '—'),
             $this->buildInfoRow('corporate_fare', 'واحد ثبت‌کننده', $userDep),
-            $this->buildInfoRow('calendar_today', 'تاریخ ثبت', jdateOnly($s->created_at)),
+            $this->buildInfoRow('calendar_today', 'تاریخ ثبت', toJalali($s->created_at, 'j F Y')),
             $this->buildInfoRow('schedule', 'مهلت بررسی', $deadline['formatted'], $deadline['passed'] ? 'warning' : 'text'),
             $this->buildInfoRow('edit_note', 'تکمیل شخصی', $this->isSelfFill() ? 'بله' : 'خیر', 'bool'),
             $this->buildInfoRow('how_to_reg', 'پاسخ‌های دریافتی', $this->formatResponseCount($totalDeps, $respondedDeps), $this->resolveResponseCountType($totalDeps)),

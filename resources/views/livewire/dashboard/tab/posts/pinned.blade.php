@@ -27,26 +27,30 @@
                         </div>
                     </div>
 
-                    <div class="p-6 lg:p-8 flex flex-col gap-3 flex-grow bg-[var(--md-sys-color-surface-container-high)] transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] group-hover:bg-[var(--md-sys-color-primary-container)]">
+                    <div class="p-6 lg:p-8 flex flex-col flex-grow gap-3 transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] bg-gradient-to-b from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-primary)] to-[var(--md-sys-color-on-primary-container)] group-hover:from-[var(--md-sys-color-primary-container)] group-hover:via-[var(--md-sys-color-primary-container)] group-hover:to-[var(--md-sys-color-primary-container)]">
 
-                        <h2 class="text-2xl lg:text-3xl font-bold leading-tight text-[var(--md-sys-color-on-surface)] transition-colors duration-300 group-hover:text-[var(--md-sys-color-primary)]">
+                        <h2 class="text-2xl lg:text-3xl font-bold leading-tight text-[var(--md-sys-color-on-primary)] transition-colors duration-300 group-hover:text-[var(--md-sys-color-on-primary-container)]">
                             {{ superClean($pin->title, 100) }}
                         </h2>
 
-                        <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm lg:text-base line-clamp-3 leading-relaxed font-light">
+                        <p class="text-sm lg:text-base font-light leading-relaxed line-clamp-3 text-[var(--md-sys-color-on-primary)] group-hover:text-[var(--md-sys-color-on-primary-container)]">
                             {{ superClean($pin->body, 150) }}
                         </p>
 
-                        <div class="flex items-center gap-3 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium mt-auto pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30">
-                            <div class="flex items-center gap-1.5 bg-[var(--md-sys-color-surface)] px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] group-hover:border-[var(--md-sys-color-outline)]/60">
+                        <div class="flex items-center gap-3 mt-auto pt-4 text-xs font-medium border-t border-[var(--md-sys-color-outline-variant)]/30 text-[var(--md-sys-color-on-surface-variant)]">
+
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-sm bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)]/40 transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] group-hover:border-[var(--md-sys-color-outline)]/60">
                                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">calendar_today</span>
                                 <span dir="rtl" class="font-sans">{{ toJalali($pin->created_at, 'j F Y') }}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 bg-[var(--md-sys-color-surface)] px-3 py-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] group-hover:border-[var(--md-sys-color-outline)]/60">
+
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border shadow-sm bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)]/40 transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] group-hover:border-[var(--md-sys-color-outline)]/60">
                                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">person</span>
                                 <span>ادمین</span>
                             </div>
+
                         </div>
+
                     </div>
                 </div>
             @endforeach

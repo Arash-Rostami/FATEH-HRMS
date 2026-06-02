@@ -18,7 +18,7 @@
             <div wire:key="report-{{ $report->id }}" data-rf="reports-{{ $report->id }}"
                  data-report-id="{{ $report->id }}"
                  class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 transform hover:-translate-y-2 hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
-                 @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => jdate($report->created_at)->format('Y/m/d')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
+                 @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
                 <div
                     class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
@@ -50,8 +50,8 @@
 
                             <div
                                 class="flex justify-between items-center mt-2 pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
-                                <span
-                                    class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-mono opacity-80">{{ jdate($report->created_at)->format('Y/m/d') }}</span>
+                                <span dit="rtl"
+                                    class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-mono opacity-80">{{ toJalali($report->created_at, 'j F Y') }}</span>
                                 <button wire:click.stop="download({{ $report->id }})"
                                         class="flex items-center gap-2 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm">
                                     <span>دانلود</span>

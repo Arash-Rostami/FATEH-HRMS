@@ -33,7 +33,7 @@
                 class="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors text-[22px]">search</span>
             <input
                 dir="rtl"
-                type="search"
+                type="text"
                 wire:model.live.debounce.500ms="{{ $searchModel }}"
                 placeholder="{{ $placeholder }}"
                 class="w-full h-12 pl-12 pr-12 rounded-xl text-base outline-none bg-[var(--md-sys-color-surface-container-high)] border border-transparent text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200"

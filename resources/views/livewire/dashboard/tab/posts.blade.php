@@ -4,7 +4,7 @@
     x-data="share()"
     @open-post-panel.window="panelOpen = true"
 >
-    <x-ui.title icon="campaign" title="پست‌ها" :count="$this->totalPosts"/>
+    <x-ui.title icon="campaign" title="اعلانات‌" :count="$this->totalPosts"/>
 
     @include('components.dashboard.header.focus-chip')
 

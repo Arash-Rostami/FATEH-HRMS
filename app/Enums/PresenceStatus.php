@@ -156,4 +156,16 @@ enum PresenceStatus: string
             self::Angry => ' نزدیک نشوید',
         };
     }
+
+    public function hex(): string
+    {
+        return match ($this) {
+            self::Onsite  => '#00A44A',
+            self::Remote  => '#002060',
+            self::Mission => '#FE9900',
+            self::Busy    => '#B00000',
+            self::Grumpy  => '#7C3AED',
+            self::Angry   => '#B00000',
+        };
+    }
 }

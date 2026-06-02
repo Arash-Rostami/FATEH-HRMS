@@ -379,7 +379,7 @@
                                 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
                         <span class="text-[10px] flex items-center gap-1 text-[var(--md-sys-color-on-surface-variant)]">
                             <span class="material-symbols-rounded text-xs">schedule</span>
-                            {{ jdateOnly($item['review']->created_at) }}
+                            {{ toJalali($item['review']->created_at, 'j F Y') }}
                         </span>
                             @if($item['is_action'])
                                 <span class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
