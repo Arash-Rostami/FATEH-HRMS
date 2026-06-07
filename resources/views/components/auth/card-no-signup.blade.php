@@ -1,11 +1,28 @@
 @props(['title' => '', 'description' => '', 'imageContent' => null])
 
-<div
-    class="flex items-center justify-center max-h-screen w-full p-0 bg-transparent animate-slide-in-top animate-delay-1250">
+<div class="flex items-center justify-center max-h-screen w-full p-0 bg-transparent animate-slide-in-top animate-delay-1250">
 
-    <div class="group w-full max-w-[540px] rounded-[32px] relative overflow-hidden isolate bg-gradient-to-bl from-[var(--md-sys-color-surface)]/80 via-[var(--md-sys-color-surface)]/98 to-[var(--md-sys-color-surface-container-low)] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)]/20 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:shadow-[0_32px_80px_-16px_rgba(0,0,0,0.15),0_8px_24px_-4px_rgba(0,0,0,0.1)] hover:ring-[var(--md-sys-color-outline-variant)]/40 hover:-translate-y-1.5 flex flex-col">
+    {{-- Full card — uses loginMinimized from root x-data in auth.blade.php --}}
+    <div
+        x-show="!loginMinimized"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+        class="group w-full max-w-[540px] rounded-[32px] relative overflow-hidden isolate bg-gradient-to-bl from-[var(--md-sys-color-surface)]/80 via-[var(--md-sys-color-surface)]/98 to-[var(--md-sys-color-surface-container-low)] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)]/20 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:shadow-[0_32px_80px_-16px_rgba(0,0,0,0.15),0_8px_24px_-4px_rgba(0,0,0,0.1)] hover:ring-[var(--md-sys-color-outline-variant)]/40 hover:-translate-y-1.5 flex flex-col">
 
         <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--md-sys-color-primary)]/30 to-transparent z-20"></div>
+
+        {{-- Minimize button — top-left of card --}}
+        <button
+            @click="loginMinimized = true"
+            class="absolute top-5 left-5 z-30 flex items-center justify-center rounded-xl border transition-all duration-150 hover:-translate-y-px active:scale-95"
+            style="width:36px;height:36px;background:color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent);"
+            title="کوچک کردن">
+            <span class="material-symbols-rounded" style="color:var(--md-sys-color-primary);font-size:18px;">remove</span>
+        </button>
 
         <div class="absolute top-0 -right-32 pointer-events-none h-64 w-64 opacity-20 bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:32px_32px] transition-opacity duration-700 ease-out group-hover:opacity-40"></div>
         <div class="dark:hidden absolute -top-32 -left-32 pointer-events-none h-64 w-64 overflow-hidden rounded-full opacity-[0.06] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-primary)_0,var(--md-sys-color-primary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-primary)_0,var(--md-sys-color-primary)_1px,transparent_1px,transparent_12px)] transition-opacity duration-700 ease-out group-hover:opacity-[0.12]"></div>

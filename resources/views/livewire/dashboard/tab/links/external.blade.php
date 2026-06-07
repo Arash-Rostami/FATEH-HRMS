@@ -57,7 +57,7 @@
                                 @php $linkImageUrl = Storage::disk('public')->exists($link->image) ? Storage::disk('public')->url($link->image) : asset($link->image); @endphp
                                 <img src="{{ $linkImageUrl }}"
                                      alt="{{ $link->url_title }}"
-                                     class="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
+                                     class="w-full h-full object-contain transition-transform duration-700 group-hover/card:scale-110"
                                      onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');"
                                 >
                             @endif
