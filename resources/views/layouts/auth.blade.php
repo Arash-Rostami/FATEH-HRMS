@@ -3,7 +3,6 @@
       x-data="{
           theme: localStorage.getItem('user-theme') || 'default',
           isDark: document.documentElement.classList.contains('dark'),
-          loginMinimized: false,
           videoBrightness: localStorage.getItem('video-brightness') || 60,
           useVideo: localStorage.getItem('use-video') !== 'false',
           videoIndex: 0,
@@ -36,16 +35,16 @@
           $watch('useVideo', val => localStorage.setItem('use-video', val));
       ">
 <head>
-{{--    '{{ asset('build/assets/video/1.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/2.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/3.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/4.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/5.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/6.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/1.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/2.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/3.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/4.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/5.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/6.mp4') }}',--}}
 
 
-{{--    '{{ asset('build/assets/video/mining-01.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/mining-02.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/mining-01.mp4') }}',--}}
+    {{--    '{{ asset('build/assets/video/mining-02.mp4') }}',--}}
     <x-dashboard.meta-tags/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -141,27 +140,6 @@
         <div class="w-full max-w-[650px] relative z-30 flex flex-col justify-center items-center my-auto opacity-[0.9]">
             <div class="group w-full">{{ $slot }}</div>
         </div>
-    </div>
-</div>
-
-{{-- Login card minimized pill — sits fixed at bottom-left of screen --}}
-<div
-    x-show="loginMinimized"
-    x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0 scale-90 translate-y-4"
-    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-    x-transition:leave="transition ease-in duration-200"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-90 translate-y-4"
-    x-cloak
-    class="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 px-4 py-2.5 rounded-2xl shadow-xl cursor-pointer select-none ring-1 ring-inset ring-white/20 hover:-translate-y-0.5 transition-all duration-300"
-    style="background:color-mix(in srgb,var(--md-sys-color-surface) 92%,transparent);backdrop-filter:blur(12px);"
-    @click="loginMinimized = false">
-    <img src="{{ asset('build/assets/img/dark.jpg') }}" alt="INTERRA" class="h-7 w-auto rounded-lg hidden dark:block">
-    <img src="{{ asset('build/assets/img/light.jpg') }}" alt="INTERRA" class="h-7 w-auto rounded-lg dark:hidden">
-    <span class="text-sm font-bold" style="color:var(--md-sys-color-on-surface-variant);">ورود به سیستم</span>
-    <div class="flex items-center justify-center rounded-xl transition-all duration-150 hover:bg-[var(--md-sys-color-primary)]/10" style="width:32px;height:32px;">
-        <span class="material-symbols-rounded" style="color:var(--md-sys-color-primary);font-size:18px;">open_in_full</span>
     </div>
 </div>
 
