@@ -1,0 +1,158 @@
+Installing dependencies from lock file
+Verifying lock file contents can be installed on current platform.
+Warning: The lock file is not up to date with the latest changes in composer.json. You may be getting outdated dependencies. It is recommended that you run `composer update` or `composer update <package name>`.
+Package operations: 114 installs, 0 updates, 0 removals
+  - Downloading voku/portable-ascii (2.0.3)
+  - Downloading symfony/polyfill-php80 (v1.33.0)
+  - Downloading symfony/polyfill-mbstring (v1.33.0)
+  - Downloading symfony/polyfill-ctype (v1.33.0)
+  - Downloading phpoption/phpoption (1.9.5)
+  - Downloading graham-campbell/result-type (v1.1.4)
+  - Downloading vlucas/phpdotenv (v5.6.3)
+  - Downloading symfony/css-selector (v7.4.6)
+  - Downloading tijsverkoyen/css-to-inline-styles (v2.4.0)
+  - Downloading symfony/deprecation-contracts (v3.6.0)
+  - Downloading symfony/var-dumper (v7.4.6)
+  - Downloading symfony/polyfill-uuid (v1.33.0)
+  - Downloading symfony/uid (v7.4.4)
+  - Downloading symfony/routing (v7.4.6)
+  - Downloading symfony/process (v7.4.5)
+  - Downloading symfony/polyfill-php85 (v1.33.0)
+  - Downloading symfony/polyfill-php84 (v1.33.0)
+  - Downloading symfony/polyfill-php83 (v1.33.0)
+  - Downloading symfony/polyfill-intl-normalizer (v1.33.0)
+  - Downloading symfony/polyfill-intl-idn (v1.33.0)
+  - Downloading symfony/mime (v7.4.7)
+  - Downloading psr/container (2.0.2)
+  - Downloading symfony/service-contracts (v3.6.1)
+  - Downloading psr/event-dispatcher (1.0.0)
+  - Downloading symfony/event-dispatcher-contracts (v3.6.0)
+  - Downloading symfony/event-dispatcher (v7.4.4)
+  - Downloading psr/log (3.0.2)
+  - Downloading doctrine/lexer (3.0.1)
+  - Downloading egulias/email-validator (4.0.4)
+  - Downloading symfony/mailer (v7.4.6)
+  - Downloading symfony/http-foundation (v7.4.7)
+  - Downloading symfony/error-handler (v7.4.4)
+  - Downloading symfony/http-kernel (v7.4.7)
+  - Downloading symfony/finder (v7.4.6)
+  - Downloading symfony/polyfill-intl-grapheme (v1.33.0)
+  - Downloading symfony/string (v7.4.6)
+  - Downloading symfony/console (v7.4.7)
+  - Downloading ramsey/collection (2.1.1)
+  - Downloading brick/math (0.14.8)
+  - Downloading ramsey/uuid (4.9.2)
+  - Downloading psr/simple-cache (3.0.0)
+  - Downloading nunomaduro/termwind (v2.4.0)
+  - Downloading symfony/translation-contracts (v3.6.1)
+  - Downloading symfony/translation (v7.4.6)
+  - Downloading psr/clock (1.0.0)
+  - Downloading symfony/clock (v7.4.0)
+  - Downloading carbonphp/carbon-doctrine-types (3.2.0)
+  - Downloading nesbot/carbon (3.11.3)
+  - Downloading monolog/monolog (3.10.0)
+  - Downloading psr/http-message (2.0)
+  - Downloading psr/http-factory (1.1.0)
+  - Downloading league/uri-interfaces (7.8.1)
+  - Downloading league/uri (7.8.1)
+  - Downloading league/mime-type-detection (1.16.0)
+  - Downloading league/flysystem-local (3.31.0)
+  - Downloading league/flysystem (3.32.0)
+  - Downloading nette/utils (v4.1.3)
+  - Downloading nette/schema (v1.3.5)
+  - Downloading dflydev/dot-access-data (v3.0.3)
+  - Downloading league/config (v1.2.0)
+  - Downloading league/commonmark (2.8.2)
+  - Downloading laravel/serializable-closure (v2.0.10)
+  - Downloading laravel/prompts (v0.3.16)
+  - Downloading guzzlehttp/uri-template (v1.0.5)
+  - Downloading psr/http-client (1.0.3)
+  - Downloading ralouphie/getallheaders (3.0.3)
+  - Downloading guzzlehttp/psr7 (2.9.0)
+  - Downloading guzzlehttp/promises (2.3.0)
+  - Downloading guzzlehttp/guzzle (7.10.0)
+  - Downloading fruitcake/php-cors (v1.4.0)
+  - Downloading dragonmantank/cron-expression (v3.6.0)
+  - Downloading doctrine/inflector (2.1.0)
+  - Downloading laravel/framework (v12.55.1)
+  - Downloading blade-ui-kit/blade-icons (1.9.1)
+  - Downloading blade-ui-kit/blade-heroicons (2.7.0)
+  - Downloading chillerlan/php-settings-container (3.3.0)
+  - Downloading danharrin/date-format-converter (v0.3.1)
+  - Downloading danharrin/livewire-rate-limiting (v2.2.0)
+  - Downloading dasprid/enum (1.0.7)
+  - Downloading paragonie/constant_time_encoding (v3.1.3)
+  - Downloading pragmarx/google2fa (v9.0.0)
+  - Downloading pragmarx/google2fa-qrcode (v3.0.0)
+  - Downloading masterminds/html5 (2.10.0)
+  - Downloading symfony/html-sanitizer (v7.4.8)
+  - Downloading spatie/laravel-package-tools (1.93.0)
+  - Downloading spatie/invade (2.1.0)
+  - Downloading ryangjchandler/blade-capture-directive (v1.1.1)
+  - Downloading nette/php-generator (v4.2.2)
+  - Downloading livewire/livewire (v4.2.1)
+  - Downloading league/uri-components (7.8.1)
+  - Downloading kirschbaum-development/eloquent-power-joins (4.3.1)
+  - Downloading filament/support (v5.5.0)
+  - Downloading openspout/openspout (v4.28.5)
+  - Downloading league/csv (9.28.0)
+  - Downloading filament/actions (v5.5.0)
+  - Downloading filament/notifications (v5.5.0)
+  - Downloading filament/schemas (v5.5.0)
+  - Downloading filament/infolists (v5.5.0)
+  - Downloading spatie/shiki-php (2.3.3)
+  - Downloading scrivo/highlight.php (v9.18.1.10)
+  - Downloading ueberdosis/tiptap-php (2.1.0)
+  - Downloading filament/forms (v5.5.0)
+  - Downloading filament/widgets (v5.5.0)
+  - Downloading filament/query-builder (v5.5.0)
+  - Downloading filament/tables (v5.5.0)
+  - Downloading chillerlan/php-qrcode (5.0.5)
+  - Downloading filament/filament (v5.5.0)
+  - Downloading bacon/bacon-qr-code (v3.0.4)
+  - Downloading laravel/fortify (v1.36.2)
+  - Downloading nikic/php-parser (v5.7.0)
+  - Downloading psy/psysh (v0.12.22)
+  - Downloading laravel/tinker (v2.11.1)
+  - Downloading beberlei/assert (v3.3.3)
+  - Downloading morilog/jalali (v3.5.0)
+   0/114 [>---------------------------]   0%    Failed to download voku/portable-ascii from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/voku/portable-ascii/2.0.3: Failed to connect to mirror2.chabokan.net port 443 after 12005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing voku/portable-ascii (2.0.3) into cache
+    Failed to download symfony/polyfill-php80 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-php80/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-php80 (v1.33.0) into cache
+    Failed to download symfony/polyfill-mbstring from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-mbstring/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-mbstring (v1.33.0) into cache
+    Failed to download symfony/polyfill-ctype from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-ctype/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-ctype (v1.33.0) into cache
+
+   4/114 [>---------------------------]   3%    Failed to download phpoption/phpoption from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpoption/phpoption/1.9.5: Failed to connect to mirror2.chabokan.net port 443 after 10082 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpoption/phpoption (1.9.5) into cache
+    Failed to download graham-campbell/result-type from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/graham-campbell/result-type/v1.1.4: Failed to connect to mirror2.chabokan.net port 443 after 10082 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing graham-campbell/result-type (v1.1.4) into cache
+    Failed to download vlucas/phpdotenv from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/vlucas/phpdotenv/v5.6.3: Failed to connect to mirror2.chabokan.net port 443 after 10082 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing vlucas/phpdotenv (v5.6.3) into cache
+    Failed to download symfony/css-selector from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/css-selector/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10082 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/css-selector (v7.4.6) into cache
+
+   8/114 [=>--------------------------]   7%    Failed to download tijsverkoyen/css-to-inline-styles from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/tijsverkoyen/css-to-inline-styles/v2.4.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing tijsverkoyen/css-to-inline-styles (v2.4.0) into cache
+    Failed to download symfony/deprecation-contracts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/deprecation-contracts/v3.6.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/deprecation-contracts (v3.6.0) into cache
+    Failed to download symfony/var-dumper from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/var-dumper/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/var-dumper (v7.4.6) into cache
+    Failed to download symfony/polyfill-uuid from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-uuid/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-uuid (v1.33.0) into cache
+
+  12/114 [==>-------------------------]  10%

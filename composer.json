@@ -91,11 +91,5 @@
         "secure-http": false
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://mirror2.chabokan.net/composer/"
-        }
-    ]
+    "prefer-stable": true
 }
