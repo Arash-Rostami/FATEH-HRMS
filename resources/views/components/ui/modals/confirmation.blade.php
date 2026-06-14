@@ -31,7 +31,7 @@
                 }
             })
         "
-        class="custom-modal"
+        class="custom-modal z-[200]"
         :class="{ 'active': active }"
         style="display: none;"
         x-show="show"
@@ -67,21 +67,11 @@
                     </button>
                 </template>
 
-{{--                <template x-if="type === 'livewire'">--}}
-{{--                    <button--}}
-{{--                        type="button"--}}
-{{--                        class="modal-btn modal-btn-confirm"--}}
-{{--                        @click="$wire.call(confirmMethod, confirmParams); show = false"--}}
-{{--                    >--}}
-{{--                        تایید--}}
-{{--                    </button>--}}
-{{--                </template>--}}
-
                 <template x-if="type === 'livewire'">
                     <button
                         type="button"
                         class="modal-btn modal-btn-confirm"
-                        @click="Livewire.dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
+                        @click="$wire.call(confirmMethod, confirmParams); show = false"
                     >
                         تایید
                     </button>
