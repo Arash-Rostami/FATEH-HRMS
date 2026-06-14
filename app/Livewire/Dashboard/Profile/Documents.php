@@ -87,7 +87,6 @@ class Documents extends Component
     {
         match (true) {
             str_starts_with($property, 'form.files.') => $this->showUploadConfirmation(str_replace('form.files.', '', $property)),
-            $property === 'form.customFile' && $value => $this->showCustomUploadConfirmation(),
             default => null,
         };
     }
