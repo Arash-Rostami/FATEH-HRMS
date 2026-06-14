@@ -76,11 +76,12 @@ class Calendar extends Component
 
         $todayStr = Jalalian::now()->format('Y-m-d');
 
+        $currentDate = clone $startDate;
+
         for ($day = 1; $day <= $daysInMonth; $day++) {
             try {
-                $jalali = new Jalalian($this->currentYear, $this->currentMonth, $day);
-                $dateString = $jalali->format('Y-m-d');
-                $mdKey = $jalali->toCarbon()->format('m-d');
+                $dateString = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
+                $mdKey = $currentDate->format('m-d');
 
                 $hasEvent = $monthEvents->has($dateString);
                 $hasBirthday = $birthdays->has($mdKey);
@@ -100,6 +101,8 @@ class Calendar extends Component
                     'hasAnniversary' => $hasAnniversary,
                     'eventCount' => $eventCount,
                 ];
+
+                $currentDate->addDay();
             } catch (Throwable $e) {
                 $days[] = null;
             }
