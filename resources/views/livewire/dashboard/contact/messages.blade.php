@@ -134,7 +134,13 @@
                                     </div>
                                 </div>
                             @endif
-                            <span>{!! $msg['body_html'] !!}</span>
+                            <span class="whitespace-pre-wrap break-words">@foreach($msg['body_segments'] as $segment)
+@if($segment['type'] === 'link')
+<a href="{{ $segment['content'] }}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 opacity-90 hover:opacity-100 transition-opacity">{{ $segment['content'] }}</a>
+@else
+{{ $segment['content'] }}
+@endif
+@endforeach</span>
                         </div>
 
                         @if($msg['is_last'])
@@ -143,7 +149,7 @@
                                         'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
                                         'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
                                     ])>
-                                <button x-on:click="copyMessage('{{ addslashes(strip_tags($msg['body_html'])) }}')"
+                                <button x-on:click='copyMessage(@js($msg["body"]))'
                                         class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
                                         title="کپی" aria-label="کپی">
                                     <span class="material-symbols-rounded text-[15px]">content_copy</span>

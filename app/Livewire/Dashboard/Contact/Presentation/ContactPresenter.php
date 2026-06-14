@@ -74,6 +74,7 @@ class ContactPresenter
             return [
                 'id'         => (int) ($msg['id'] ?? 0),
                 'body'       => $msg['body'] ?? '',
+                'body_segments' => $this->segmentize($msg['body'] ?? ''),
                 'body_html'  => nl2br($this->linkify(e($msg['body'] ?? '')), false),
                 'created_at' => $msg['created_at'] ?? null,
                 'time'       => $createdAt->format('H:i'),
@@ -104,6 +105,31 @@ class ContactPresenter
             'sender_name' => $replyTo['sender']['name'] ?? 'ناشناس',
             'body'        => Str::limit($replyTo['body'] ?? '', 60),
         ];
+    }
+
+    public function segmentize(string $text): array
+    {
+        if (empty($text)) {
+            return [];
+        }
+
+        $segments = [];
+        $parts = preg_split('/(https?:\/\/[^\s<]+)/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        foreach ($parts as $i => $part) {
+            if ($part === '') {
+                continue;
+            }
+            if ($i % 2 === 1) {
+                // Link
+                $segments[] = ['type' => 'link', 'content' => $part];
+            } else {
+                // Text
+                $segments[] = ['type' => 'text', 'content' => $part];
+            }
+        }
+
+        return $segments;
     }
 
     private function replyPreview(?array $replyTo): ?array
