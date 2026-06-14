@@ -99,25 +99,56 @@ class Main extends Component
     {
         $userId = auth()->id();
 
-        foreach ($this->columns as $column) {
-            $query = Task::query()
-                ->where('status', $column)
-                ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub->where('assigned_to', $userId)
-                    ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
-                ))
-                ->when($this->activeTab === 'assigned-tasks', fn($q) => $q->where('user_id', $userId)
-                    ->whereNotNull('assigned_to')
-                    ->where('assigned_to', '!=', $userId)
-                );
+        $baseQuery = Task::query()
+            ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub->where('assigned_to', $userId)
+                ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
+            ))
+            ->when($this->activeTab === 'assigned-tasks', fn($q) => $q->where('user_id', $userId)
+                ->whereNotNull('assigned_to')
+                ->where('assigned_to', '!=', $userId)
+            );
 
-            $this->totalCount[$column] = (clone $query)->count();
-            $this->tasks[$column] = $query
+        // Group counts in a single query to fix N+1 on count()
+        $counts = (clone $baseQuery)
+            ->whereIn('status', $this->columns)
+            ->groupBy('status')
+            ->selectRaw('status, count(*) as aggregate')
+            ->pluck('aggregate', 'status')
+            ->toArray();
+
+        $tasksQuery = null;
+
+        foreach ($this->columns as $column) {
+            $this->totalCount[$column] = $counts[$column] ?? 0;
+
+            // Prepare a subquery for each status with its specific pagination
+            $columnQuery = (clone $baseQuery)
+                ->select($this->columnsToSelect)
+                ->where('status', $column)
                 ->orderBy('created_at', 'desc')
                 ->skip(($this->page[$column] - 1) * $this->perPage)
-                ->take($this->perPage)
-                ->with($this->relationsToLoad)
-                ->get($this->columnsToSelect)
-                ->toArray();
+                ->take($this->perPage);
+
+            if ($tasksQuery === null) {
+                $tasksQuery = $columnQuery;
+            } else {
+                $tasksQuery->unionAll($columnQuery);
+            }
+        }
+
+        // Fetch all paginated tasks for all columns in a single query using UNION ALL
+        // and eager load relations only once for the combined result set.
+        if ($tasksQuery !== null) {
+            $allTasks = $tasksQuery->with($this->relationsToLoad)->get();
+
+            // Group the retrieved tasks back into their respective columns
+            foreach ($this->columns as $column) {
+                $this->tasks[$column] = $allTasks->where('status', $column)->values()->toArray();
+            }
+        } else {
+            foreach ($this->columns as $column) {
+                $this->tasks[$column] = [];
+            }
         }
     }
 
