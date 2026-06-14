@@ -1,5 +1,4 @@
 <div class="space-y-5 animate-[fade-in_0.4s_ease-out]"
-     @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
      dir="rtl">
 
     <div
