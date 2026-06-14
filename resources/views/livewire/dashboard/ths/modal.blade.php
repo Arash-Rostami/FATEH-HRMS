@@ -1,4 +1,5 @@
 @if($selectedTicket)
+    <template x-teleport="body">
     <div x-data="{ isClosing: false }" x-cloak>
         <div class="fixed inset-0 !z-[100000] flex items-center justify-center p-4 sm:p-6 animate-slide-down"
              x-show="!isClosing"
@@ -31,97 +32,125 @@
                     </div>
 
                     <button @click="isClosing = true; setTimeout(() => $wire.set('selectedTicket', null), 300)"
-                            class="p-2 pb-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
-                        <span class="material-symbols-rounded">close</span>
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-error)] transition-colors active:scale-95">
+                        <span class="material-symbols-rounded text-lg">close</span>
                     </button>
                 </div>
 
-                <div class="px-4 w-3/4 md:w-1/2">
-                    <x-ui.buttons.tab-selector
-                        :activeTab="$modalTab"
-                        action="$set('modalTab', "
-                        class="!w-full mb-0"
-                        buttonBaseClass="flex-1 relative px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 z-10 flex items-center justify-center gap-2"
-                        :tabs="[
-                                ['id' => 'request','label' => 'جزئیات ','icon' => 'description'],
-                                ['id' => 'response', 'label' => 'پاسخ و پیگیری','icon' => 'forum']
-                            ]"
-                    />
+                {{-- Tabs --}}
+                <div class="flex border-b border-[var(--md-sys-color-outline-variant)] px-6 bg-[var(--md-sys-color-surface-container-low)] gap-6 text-sm overflow-x-auto no-scrollbar">
+                    <button wire:click="$set('modalTab', 'details')"
+                            class="relative py-3 font-bold transition-colors whitespace-nowrap {{ $modalTab === 'details' ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]' }}">
+                        جزئیات تیکت
+                        @if($modalTab === 'details')
+                            <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--md-sys-color-primary)] rounded-t-full"></div>
+                        @endif
+                    </button>
+                    @if($selectedTicket['action_result'] || $selectedTicket['completion_date'])
+                        <button wire:click="$set('modalTab', 'response')"
+                                class="relative py-3 font-bold transition-colors whitespace-nowrap {{ $modalTab === 'response' ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]' }}">
+                            پاسخ و پیگیری
+                            @if($modalTab === 'response')
+                                <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--md-sys-color-primary)] rounded-t-full"></div>
+                            @endif
+                        </button>
+                    @endif
                 </div>
 
+                {{-- Body (Scrollable) --}}
+                <div class="flex-1 overflow-y-auto p-6 bg-[var(--md-sys-color-surface)] custom-scrollbar">
 
-                {{-- Scrollable Body --}}
-                <div
-                    class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[var(--md-sys-color-surface-container-lowest)]">
-                    @if($modalTab === 'request')
+                    @if($modalTab === 'details')
                         <div class="space-y-6 animate-[fade-in-up_0.3s_ease-out]">
-                            {{-- Status Badges Grid --}}
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                                <div
-                                    class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
-                                    <span
-                                        class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">حوزه</span>
-                                    <span
-                                        class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area']) }}</span>
-                                </div>
-                                <div
-                                    class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
-                                    <span
-                                        class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">وضعیت</span>
-                                    @php
-                                        $s = $selectedTicket['status'];
-                                        $col = $s==='open' ? 'text-[var(--md-sys-color-primary)]' : ($s==='in-progress'?'text-[var(--md-sys-color-tertiary)]':'text-[var(--md-sys-color-secondary)]');
-                                        $lbl = $s==='open' ? 'باز' : ($s==='in-progress'?'در حال بررسی':'بسته شده');
-                                    @endphp
-                                    <span class="text-xs font-bold {{ $col }}">{{ $lbl }}</span>
-                                </div>
-                                <div
-                                    class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
-                                    <span
-                                        class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">اولویت</span>
-                                    @php
-                                        $p = $selectedTicket['priority'];
-                                        $pCol = $p==='low'?'text-[var(--md-sys-color-primary)]':($p==='medium'?'text-[var(--md-sys-color-secondary)]':'text-[var(--md-sys-color-error)]');
-                                        $pLbl = $p==='low'?'کم':($p==='medium'?'متوسط':'زیاد');
-                                    @endphp
-                                    <span class="text-xs font-bold {{ $pCol }}">{{ $pLbl }}</span>
-                                </div>
-                                <div
-                                    class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
-                                    <span
-                                        class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">تاریخ ایجاد</span>
-                                    <span
-                                        dir="ltr"
-                                        class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] font-mono flex-row-reverse flex">
-                                        {{ jdate($selectedTicket['created_at']) }}
+                            {{-- Info Grid --}}
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {{-- Status --}}
+                                <div class="bg-[var(--md-sys-color-surface-container-lowest)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50">
+                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                                        <span class="material-symbols-rounded text-[14px]">timelapse</span>
+                                        وضعیت
+                                    </p>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold {{ $presenter->getStatusClass($selectedTicket['status']) }} shadow-sm">
+                                        {{ $presenter->getStatusLabel($selectedTicket['status']) }}
                                     </span>
+                                </div>
+                                {{-- Department --}}
+                                <div class="bg-[var(--md-sys-color-surface-container-lowest)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50">
+                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                                        <span class="material-symbols-rounded text-[14px]">domain</span>
+                                        دپارتمان
+                                    </p>
+                                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate">
+                                        {{ $selectedTicket['department']['name'] ?? 'نامشخص' }}
+                                    </p>
+                                </div>
+                                {{-- Category --}}
+                                <div class="bg-[var(--md-sys-color-surface-container-lowest)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50">
+                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                                        <span class="material-symbols-rounded text-[14px]">category</span>
+                                        دسته‌بندی
+                                    </p>
+                                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)] truncate">
+                                        {{ $selectedTicket['category']['name'] ?? 'عمومی' }}
+                                    </p>
+                                </div>
+                                {{-- Priority --}}
+                                <div class="bg-[var(--md-sys-color-surface-container-lowest)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50">
+                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-1.5 flex items-center gap-1">
+                                        <span class="material-symbols-rounded text-[14px]">priority</span>
+                                        اولویت
+                                    </p>
+                                    <p class="text-xs font-bold flex items-center gap-1 {{ $presenter->getPriorityClass($selectedTicket['priority']) }}">
+                                        {{ $presenter->getPriorityLabel($selectedTicket['priority']) }}
+                                        <span class="material-symbols-rounded text-[14px]">
+                                            {{ $selectedTicket['priority'] === 'high' ? 'arrow_upward' : ($selectedTicket['priority'] === 'low' ? 'arrow_downward' : 'horizontal_rule') }}
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
 
-                            {{-- Subject & Desc --}}
-                            <div
-                                class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-5 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm relative overflow-hidden">
-                                <div class="absolute top-0 right-0 w-1.5 h-full bg-[var(--md-sys-color-primary)]"></div>
-                                <h4 class="text-[var(--md-sys-color-on-surface)] font-bold mb-3 flex items-center gap-2">
-                                    <span
-                                        class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">subject</span>
-                                    {{ $selectedTicket['request_subject'] }}
+                            {{-- Description --}}
+                            <div>
+                                <h4 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-2 flex items-center gap-1.5">
+                                    <span class="material-symbols-rounded text-[14px]">subject</span>
+                                    شرح درخواست
                                 </h4>
-                                <div
-                                    class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed text-justify whitespace-pre-wrap pl-2 border-r border-[var(--md-sys-color-outline-variant)]/30 pr-4 mt-2">
+                                <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-xl p-4 text-sm text-[var(--md-sys-color-on-surface)] leading-loose text-justify border border-[var(--md-sys-color-outline-variant)]/30 whitespace-pre-wrap">
                                     {{ $selectedTicket['description'] }}
                                 </div>
                             </div>
 
-                            {{-- Requester Files --}}
-                            @if(!empty($selectedTicket['requester_files']))
-                                <div class="mt-4">
-                                    <h5 class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-3 flex items-center gap-1.5">
-                                        <span class="material-symbols-rounded text-[16px]">attachment</span>
-                                        فایل‌های ضمیمه شما:
-                                    </h5>
+                            {{-- Extra JSON --}}
+                            @if(isset($selectedTicket['extra']) && is_array($selectedTicket['extra']) && !empty($selectedTicket['extra']) && count(array_filter($selectedTicket['extra'], fn($k) => $k !== 'satisfaction_comment', ARRAY_FILTER_USE_KEY)) > 0)
+                                <div>
+                                    <h4 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span class="material-symbols-rounded text-[14px]">data_object</span>
+                                        اطلاعات تکمیلی
+                                    </h4>
+                                    <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        @foreach($selectedTicket['extra'] as $key => $value)
+                                            @if($key !== 'satisfaction_comment')
+                                                <div class="flex items-start gap-2">
+                                                    <span class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-bold min-w-[80px]">{{ __($key) }}:</span>
+                                                    <span class="text-xs text-[var(--md-sys-color-on-surface)] truncate" title="{{ is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}">
+                                                        {{ is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Request Files --}}
+                            @if(!empty($selectedTicket['request_files']))
+                                <div>
+                                    <h4 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span class="material-symbols-rounded text-[14px]">attachment</span>
+                                        فایل‌های ضمیمه شما
+                                    </h4>
                                     <div class="flex flex-wrap gap-3">
-                                        @foreach($selectedTicket['requester_files'] as $file)
+                                        @foreach($selectedTicket['request_files'] as $file)
                                             <a href="{{ Storage::url($file['file']) }}" target="_blank"
                                                class="group flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] transition-colors overflow-hidden relative shadow-sm hover:shadow-md">
                                                 @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
@@ -248,4 +277,5 @@
             </div>
         </div>
     </div>
+    </template>
 @endif
