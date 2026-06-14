@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
@@ -99,19 +100,25 @@ class Main extends Component
     {
         $userId = auth()->id();
 
-        foreach ($this->columns as $column) {
-            $query = Task::query()
-                ->where('status', $column)
-                ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub->where('assigned_to', $userId)
-                    ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
-                ))
-                ->when($this->activeTab === 'assigned-tasks', fn($q) => $q->where('user_id', $userId)
-                    ->whereNotNull('assigned_to')
-                    ->where('assigned_to', '!=', $userId)
-                );
+        $baseQuery = Task::query()
+            ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub->where('assigned_to', $userId)
+                ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
+            ))
+            ->when($this->activeTab === 'assigned-tasks', fn($q) => $q->where('user_id', $userId)
+                ->whereNotNull('assigned_to')
+                ->where('assigned_to', '!=', $userId)
+            );
 
-            $this->totalCount[$column] = (clone $query)->count();
-            $this->tasks[$column] = $query
+        $counts = (clone $baseQuery)
+            ->select('status', DB::raw('count(*) as aggregate'))
+            ->whereIn('status', $this->columns)
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        foreach ($this->columns as $column) {
+            $this->totalCount[$column] = $counts->get($column, 0);
+            $this->tasks[$column] = (clone $baseQuery)
+                ->where('status', $column)
                 ->orderBy('created_at', 'desc')
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)

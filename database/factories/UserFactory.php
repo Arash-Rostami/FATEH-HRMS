@@ -21,7 +21,7 @@ class UserFactory extends Factory
             'type' => fake()->randomElement(['employee', 'manager', 'customer']),
             'role' => fake()->randomElement(['user', 'admin']),
             'status' => fake()->randomElement(['active', 'inactive']),
-            'presence' => fake()->randomElement(['remote', 'office']),
+            'presence' => fake()->randomElement(['remote', 'onsite']),
             'booking' => [['key'=>'all','value'=>false],['key'=>'car','value'=>false],['key'=>'seat','value'=>true],['key'=>'spot','value'=>true],['key'=>'meeting','value'=>true]],
             'last_seen' => now(),
             'extra' => ['preferences' => ['theme' => 'light']],

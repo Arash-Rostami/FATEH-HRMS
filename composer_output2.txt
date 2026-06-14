@@ -1,0 +1,810 @@
+Installing dependencies from lock file (including require-dev)
+Verifying lock file contents can be installed on current platform.
+Package operations: 149 installs, 0 updates, 0 removals
+  - Downloading voku/portable-ascii (2.0.3)
+  - Downloading symfony/polyfill-php80 (v1.33.0)
+  - Downloading symfony/polyfill-mbstring (v1.33.0)
+  - Downloading symfony/polyfill-ctype (v1.33.0)
+  - Downloading phpoption/phpoption (1.9.5)
+  - Downloading graham-campbell/result-type (v1.1.4)
+  - Downloading vlucas/phpdotenv (v5.6.3)
+  - Downloading symfony/css-selector (v7.4.6)
+  - Downloading tijsverkoyen/css-to-inline-styles (v2.4.0)
+  - Downloading symfony/deprecation-contracts (v3.6.0)
+  - Downloading symfony/var-dumper (v7.4.6)
+  - Downloading symfony/polyfill-uuid (v1.33.0)
+  - Downloading symfony/uid (v7.4.4)
+  - Downloading symfony/routing (v7.4.6)
+  - Downloading symfony/process (v7.4.5)
+  - Downloading symfony/polyfill-php85 (v1.33.0)
+  - Downloading symfony/polyfill-php84 (v1.33.0)
+  - Downloading symfony/polyfill-php83 (v1.33.0)
+  - Downloading symfony/polyfill-intl-normalizer (v1.33.0)
+  - Downloading symfony/polyfill-intl-idn (v1.33.0)
+  - Downloading symfony/mime (v7.4.7)
+  - Downloading psr/container (2.0.2)
+  - Downloading symfony/service-contracts (v3.6.1)
+  - Downloading psr/event-dispatcher (1.0.0)
+  - Downloading symfony/event-dispatcher-contracts (v3.6.0)
+  - Downloading symfony/event-dispatcher (v7.4.4)
+  - Downloading psr/log (3.0.2)
+  - Downloading doctrine/lexer (3.0.1)
+  - Downloading egulias/email-validator (4.0.4)
+  - Downloading symfony/mailer (v7.4.6)
+  - Downloading symfony/http-foundation (v7.4.7)
+  - Downloading symfony/error-handler (v7.4.4)
+  - Downloading symfony/http-kernel (v7.4.7)
+  - Downloading symfony/finder (v7.4.6)
+  - Downloading symfony/polyfill-intl-grapheme (v1.33.0)
+  - Downloading symfony/string (v7.4.6)
+  - Downloading symfony/console (v7.4.7)
+  - Downloading ramsey/collection (2.1.1)
+  - Downloading brick/math (0.14.8)
+  - Downloading ramsey/uuid (4.9.2)
+  - Downloading psr/simple-cache (3.0.0)
+  - Downloading nunomaduro/termwind (v2.4.0)
+  - Downloading symfony/translation-contracts (v3.6.1)
+  - Downloading symfony/translation (v7.4.6)
+  - Downloading psr/clock (1.0.0)
+  - Downloading symfony/clock (v7.4.0)
+  - Downloading carbonphp/carbon-doctrine-types (3.2.0)
+  - Downloading nesbot/carbon (3.11.3)
+  - Downloading monolog/monolog (3.10.0)
+  - Downloading psr/http-message (2.0)
+  - Downloading psr/http-factory (1.1.0)
+  - Downloading league/uri-interfaces (7.8.1)
+  - Downloading league/uri (7.8.1)
+  - Downloading league/mime-type-detection (1.16.0)
+  - Downloading league/flysystem-local (3.31.0)
+  - Downloading league/flysystem (3.32.0)
+  - Downloading nette/utils (v4.1.3)
+  - Downloading nette/schema (v1.3.5)
+  - Downloading dflydev/dot-access-data (v3.0.3)
+  - Downloading league/config (v1.2.0)
+  - Downloading league/commonmark (2.8.2)
+  - Downloading laravel/serializable-closure (v2.0.10)
+  - Downloading laravel/prompts (v0.3.16)
+  - Downloading guzzlehttp/uri-template (v1.0.5)
+  - Downloading psr/http-client (1.0.3)
+  - Downloading ralouphie/getallheaders (3.0.3)
+  - Downloading guzzlehttp/psr7 (2.9.0)
+  - Downloading guzzlehttp/promises (2.3.0)
+  - Downloading guzzlehttp/guzzle (7.10.0)
+  - Downloading fruitcake/php-cors (v1.4.0)
+  - Downloading dragonmantank/cron-expression (v3.6.0)
+  - Downloading doctrine/inflector (2.1.0)
+  - Downloading laravel/framework (v12.55.1)
+  - Downloading blade-ui-kit/blade-icons (1.9.1)
+  - Downloading blade-ui-kit/blade-heroicons (2.7.0)
+  - Downloading chillerlan/php-settings-container (3.3.0)
+  - Downloading danharrin/date-format-converter (v0.3.1)
+  - Downloading danharrin/livewire-rate-limiting (v2.2.0)
+  - Downloading dasprid/enum (1.0.7)
+  - Downloading fakerphp/faker (v1.24.1)
+  - Downloading paragonie/constant_time_encoding (v3.1.3)
+  - Downloading pragmarx/google2fa (v9.0.0)
+  - Downloading pragmarx/google2fa-qrcode (v3.0.0)
+  - Downloading masterminds/html5 (2.10.0)
+  - Downloading symfony/html-sanitizer (v7.4.8)
+  - Downloading spatie/laravel-package-tools (1.93.0)
+  - Downloading spatie/invade (2.1.0)
+  - Downloading ryangjchandler/blade-capture-directive (v1.1.1)
+  - Downloading nette/php-generator (v4.2.2)
+  - Downloading livewire/livewire (v4.2.1)
+  - Downloading league/uri-components (7.8.1)
+  - Downloading kirschbaum-development/eloquent-power-joins (4.3.1)
+  - Downloading filament/support (v5.5.0)
+  - Downloading openspout/openspout (v4.28.5)
+  - Downloading league/csv (9.28.0)
+  - Downloading filament/actions (v5.5.0)
+  - Downloading filament/notifications (v5.5.0)
+  - Downloading filament/schemas (v5.5.0)
+  - Downloading filament/infolists (v5.5.0)
+  - Downloading spatie/shiki-php (2.3.3)
+  - Downloading scrivo/highlight.php (v9.18.1.10)
+  - Downloading ueberdosis/tiptap-php (2.1.0)
+  - Downloading filament/forms (v5.5.0)
+  - Downloading filament/widgets (v5.5.0)
+  - Downloading filament/query-builder (v5.5.0)
+  - Downloading filament/tables (v5.5.0)
+  - Downloading chillerlan/php-qrcode (5.0.5)
+  - Downloading filament/filament (v5.5.0)
+  - Downloading bacon/bacon-qr-code (v3.0.4)
+  - Downloading laravel/fortify (v1.36.2)
+  - Downloading laravel/pail (v1.2.6)
+  - Downloading laravel/pint (v1.29.0)
+  - Downloading symfony/yaml (v7.4.6)
+  - Downloading laravel/sail (v1.55.0)
+  - Downloading nikic/php-parser (v5.7.0)
+  - Downloading psy/psysh (v0.12.22)
+  - Downloading laravel/tinker (v2.11.1)
+  - Downloading hamcrest/hamcrest-php (v2.1.1)
+  - Downloading mockery/mockery (1.6.12)
+  - Downloading beberlei/assert (v3.3.3)
+  - Downloading morilog/jalali (v3.5.0)
+  - Downloading filp/whoops (2.18.4)
+  - Downloading nunomaduro/collision (v8.9.1)
+  - Downloading staabm/side-effects-detector (1.0.5)
+  - Downloading sebastian/version (5.0.2)
+  - Downloading sebastian/type (5.1.3)
+  - Downloading sebastian/recursion-context (6.0.3)
+  - Downloading sebastian/object-reflector (4.0.1)
+  - Downloading sebastian/object-enumerator (6.0.1)
+  - Downloading sebastian/global-state (7.0.2)
+  - Downloading sebastian/exporter (6.3.2)
+  - Downloading sebastian/environment (7.2.1)
+  - Downloading sebastian/diff (6.0.2)
+  - Downloading sebastian/comparator (6.3.3)
+  - Downloading sebastian/code-unit (3.0.3)
+  - Downloading sebastian/cli-parser (3.0.2)
+  - Downloading phpunit/php-timer (7.0.1)
+  - Downloading phpunit/php-text-template (4.0.1)
+  - Downloading phpunit/php-invoker (5.0.1)
+  - Downloading phpunit/php-file-iterator (5.1.1)
+  - Downloading theseer/tokenizer (1.3.1)
+  - Downloading sebastian/lines-of-code (3.0.1)
+  - Downloading sebastian/complexity (4.0.1)
+  - Downloading sebastian/code-unit-reverse-lookup (4.0.1)
+  - Downloading phpunit/php-code-coverage (11.0.12)
+  - Downloading phar-io/version (3.2.1)
+  - Downloading phar-io/manifest (2.0.4)
+  - Downloading myclabs/deep-copy (1.13.4)
+  - Downloading phpunit/phpunit (11.5.55)
+   0/149 [>---------------------------]   0%    Failed to download voku/portable-ascii from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/voku/portable-ascii/2.0.3: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing voku/portable-ascii (2.0.3) into cache
+    Failed to download symfony/polyfill-php80 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-php80/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-php80 (v1.33.0) into cache
+    Failed to download symfony/polyfill-mbstring from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-mbstring/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-mbstring (v1.33.0) into cache
+    Failed to download symfony/polyfill-ctype from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-ctype/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-ctype (v1.33.0) into cache
+
+   4/149 [>---------------------------]   2%    Failed to download phpoption/phpoption from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpoption/phpoption/1.9.5: Failed to connect to mirror2.chabokan.net port 443 after 10083 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpoption/phpoption (1.9.5) into cache
+    Failed to download graham-campbell/result-type from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/graham-campbell/result-type/v1.1.4: Failed to connect to mirror2.chabokan.net port 443 after 10083 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing graham-campbell/result-type (v1.1.4) into cache
+    Failed to download vlucas/phpdotenv from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/vlucas/phpdotenv/v5.6.3: Failed to connect to mirror2.chabokan.net port 443 after 10083 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing vlucas/phpdotenv (v5.6.3) into cache
+    Failed to download symfony/css-selector from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/css-selector/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10083 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/css-selector (v7.4.6) into cache
+
+   8/149 [=>--------------------------]   5%    Failed to download tijsverkoyen/css-to-inline-styles from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/tijsverkoyen/css-to-inline-styles/v2.4.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing tijsverkoyen/css-to-inline-styles (v2.4.0) into cache
+    Failed to download symfony/deprecation-contracts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/deprecation-contracts/v3.6.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/deprecation-contracts (v3.6.0) into cache
+    Failed to download symfony/var-dumper from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/var-dumper/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/var-dumper (v7.4.6) into cache
+    Failed to download symfony/polyfill-uuid from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-uuid/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-uuid (v1.33.0) into cache
+
+  12/149 [==>-------------------------]   8%    Failed to download symfony/uid from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/uid/v7.4.4: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/uid (v7.4.4) into cache
+    Failed to download symfony/routing from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/routing/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/routing (v7.4.6) into cache
+    Failed to download symfony/process from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/process/v7.4.5: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/process (v7.4.5) into cache
+    Failed to download symfony/polyfill-php85 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-php85/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-php85 (v1.33.0) into cache
+
+  16/149 [===>------------------------]  10%    Failed to download symfony/polyfill-php84 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-php84/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-php84 (v1.33.0) into cache
+    Failed to download symfony/polyfill-php83 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-php83/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-php83 (v1.33.0) into cache
+    Failed to download symfony/polyfill-intl-normalizer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-intl-normalizer/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-intl-normalizer (v1.33.0) into cache
+    Failed to download symfony/polyfill-intl-idn from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-intl-idn/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-intl-idn (v1.33.0) into cache
+
+  20/149 [===>------------------------]  13%    Failed to download symfony/mime from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/mime/v7.4.7: Failed to connect to mirror2.chabokan.net port 443 after 10002 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/mime (v7.4.7) into cache
+    Failed to download psr/container from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/container/2.0.2: Failed to connect to mirror2.chabokan.net port 443 after 10002 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/container (2.0.2) into cache
+    Failed to download symfony/service-contracts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/service-contracts/v3.6.1: Failed to connect to mirror2.chabokan.net port 443 after 10002 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/service-contracts (v3.6.1) into cache
+    Failed to download psr/event-dispatcher from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/event-dispatcher/1.0.0: Failed to connect to mirror2.chabokan.net port 443 after 10002 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/event-dispatcher (1.0.0) into cache
+
+  24/149 [====>-----------------------]  16%    Failed to download symfony/event-dispatcher-contracts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/event-dispatcher-contracts/v3.6.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/event-dispatcher-contracts (v3.6.0) into cache
+    Failed to download symfony/event-dispatcher from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/event-dispatcher/v7.4.4: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/event-dispatcher (v7.4.4) into cache
+    Failed to download psr/log from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/log/3.0.2: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/log (3.0.2) into cache
+    Failed to download doctrine/lexer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/doctrine/lexer/3.0.1: Failed to connect to mirror2.chabokan.net port 443 after 12006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing doctrine/lexer (3.0.1) into cache
+
+  28/149 [=====>----------------------]  18%    Failed to download egulias/email-validator from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/egulias/email-validator/4.0.4: Failed to connect to mirror2.chabokan.net port 443 after 10107 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing egulias/email-validator (4.0.4) into cache
+    Failed to download symfony/mailer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/mailer/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10107 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/mailer (v7.4.6) into cache
+    Failed to download symfony/http-foundation from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/http-foundation/v7.4.7: Failed to connect to mirror2.chabokan.net port 443 after 10107 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/http-foundation (v7.4.7) into cache
+    Failed to download symfony/error-handler from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/error-handler/v7.4.4: Failed to connect to mirror2.chabokan.net port 443 after 10107 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/error-handler (v7.4.4) into cache
+
+  32/149 [======>---------------------]  21%    Failed to download symfony/http-kernel from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/http-kernel/v7.4.7: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/http-kernel (v7.4.7) into cache
+    Failed to download symfony/finder from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/finder/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/finder (v7.4.6) into cache
+    Failed to download symfony/polyfill-intl-grapheme from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/polyfill-intl-grapheme/v1.33.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/polyfill-intl-grapheme (v1.33.0) into cache
+    Failed to download symfony/string from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/string/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/string (v7.4.6) into cache
+
+  36/149 [======>---------------------]  24%    Failed to download symfony/console from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/console/v7.4.7: Failed to connect to mirror2.chabokan.net port 443 after 12006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/console (v7.4.7) into cache
+    Failed to download ramsey/collection from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/ramsey/collection/2.1.1: Failed to connect to mirror2.chabokan.net port 443 after 12006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing ramsey/collection (2.1.1) into cache
+    Failed to download brick/math from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/brick/math/0.14.8: Failed to connect to mirror2.chabokan.net port 443 after 12006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing brick/math (0.14.8) into cache
+    Failed to download ramsey/uuid from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/ramsey/uuid/4.9.2: Failed to connect to mirror2.chabokan.net port 443 after 12006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing ramsey/uuid (4.9.2) into cache
+
+  40/149 [=======>--------------------]  26%    Failed to download psr/simple-cache from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/simple-cache/3.0.0: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/simple-cache (3.0.0) into cache
+    Failed to download nunomaduro/termwind from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nunomaduro/termwind/v2.4.0: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nunomaduro/termwind (v2.4.0) into cache
+    Failed to download symfony/translation-contracts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/translation-contracts/v3.6.1: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/translation-contracts (v3.6.1) into cache
+    Failed to download symfony/translation from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/translation/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/translation (v7.4.6) into cache
+
+  44/149 [========>-------------------]  29%    Failed to download psr/clock from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/clock/1.0.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/clock (1.0.0) into cache
+    Failed to download symfony/clock from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/clock/v7.4.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/clock (v7.4.0) into cache
+    Failed to download carbonphp/carbon-doctrine-types from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/carbonphp/carbon-doctrine-types/3.2.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing carbonphp/carbon-doctrine-types (3.2.0) into cache
+    Failed to download nesbot/carbon from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nesbot/carbon/3.11.3: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nesbot/carbon (3.11.3) into cache
+
+  48/149 [=========>------------------]  32%    Failed to download monolog/monolog from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/monolog/monolog/3.10.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing monolog/monolog (3.10.0) into cache
+    Failed to download psr/http-message from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/http-message/2.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/http-message (2.0) into cache
+    Failed to download psr/http-factory from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/http-factory/1.1.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/http-factory (1.1.0) into cache
+    Failed to download league/uri-interfaces from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/uri-interfaces/7.8.1: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/uri-interfaces (7.8.1) into cache
+
+  52/149 [=========>------------------]  34%    Failed to download league/uri from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/uri/7.8.1: Failed to connect to mirror2.chabokan.net port 443 after 10089 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/uri (7.8.1) into cache
+    Failed to download league/mime-type-detection from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/mime-type-detection/1.16.0: Failed to connect to mirror2.chabokan.net port 443 after 10089 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/mime-type-detection (1.16.0) into cache
+    Failed to download league/flysystem-local from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/flysystem-local/3.31.0: Failed to connect to mirror2.chabokan.net port 443 after 10089 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/flysystem-local (3.31.0) into cache
+    Failed to download league/flysystem from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/flysystem/3.32.0: Failed to connect to mirror2.chabokan.net port 443 after 10089 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/flysystem (3.32.0) into cache
+
+  56/149 [==========>-----------------]  37%    Failed to download nette/utils from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nette/utils/v4.1.3: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nette/utils (v4.1.3) into cache
+    Failed to download nette/schema from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nette/schema/v1.3.5: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nette/schema (v1.3.5) into cache
+    Failed to download dflydev/dot-access-data from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/dflydev/dot-access-data/v3.0.3: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing dflydev/dot-access-data (v3.0.3) into cache
+    Failed to download league/config from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/config/v1.2.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/config (v1.2.0) into cache
+
+  60/149 [===========>----------------]  40%    Failed to download league/commonmark from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/commonmark/2.8.2: Failed to connect to mirror2.chabokan.net port 443 after 12001 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/commonmark (2.8.2) into cache
+    Failed to download laravel/serializable-closure from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/serializable-closure/v2.0.10: Failed to connect to mirror2.chabokan.net port 443 after 12000 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/serializable-closure (v2.0.10) into cache
+    Failed to download laravel/prompts from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/prompts/v0.3.16: Failed to connect to mirror2.chabokan.net port 443 after 12000 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/prompts (v0.3.16) into cache
+    Failed to download guzzlehttp/uri-template from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/guzzlehttp/uri-template/v1.0.5: Failed to connect to mirror2.chabokan.net port 443 after 12000 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing guzzlehttp/uri-template (v1.0.5) into cache
+
+  64/149 [============>---------------]  42%    Failed to download psr/http-client from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psr/http-client/1.0.3: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psr/http-client (1.0.3) into cache
+    Failed to download ralouphie/getallheaders from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/ralouphie/getallheaders/3.0.3: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing ralouphie/getallheaders (3.0.3) into cache
+    Failed to download guzzlehttp/psr7 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/guzzlehttp/psr7/2.9.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing guzzlehttp/psr7 (2.9.0) into cache
+    Failed to download guzzlehttp/promises from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/guzzlehttp/promises/2.3.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing guzzlehttp/promises (2.3.0) into cache
+
+  68/149 [============>---------------]  45%    Failed to download guzzlehttp/guzzle from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/guzzlehttp/guzzle/7.10.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing guzzlehttp/guzzle (7.10.0) into cache
+    Failed to download fruitcake/php-cors from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/fruitcake/php-cors/v1.4.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing fruitcake/php-cors (v1.4.0) into cache
+    Failed to download dragonmantank/cron-expression from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/dragonmantank/cron-expression/v3.6.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing dragonmantank/cron-expression (v3.6.0) into cache
+    Failed to download doctrine/inflector from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/doctrine/inflector/2.1.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing doctrine/inflector (2.1.0) into cache
+
+  72/149 [=============>--------------]  48%    Failed to download laravel/framework from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/framework/v12.55.1: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/framework (v12.55.1) into cache
+    Failed to download blade-ui-kit/blade-icons from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/blade-ui-kit/blade-icons/1.9.1: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing blade-ui-kit/blade-icons (1.9.1) into cache
+    Failed to download blade-ui-kit/blade-heroicons from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/blade-ui-kit/blade-heroicons/2.7.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing blade-ui-kit/blade-heroicons (2.7.0) into cache
+    Failed to download chillerlan/php-settings-container from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/chillerlan/php-settings-container/3.3.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing chillerlan/php-settings-container (3.3.0) into cache
+
+  76/149 [==============>-------------]  51%    Failed to download danharrin/date-format-converter from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/danharrin/date-format-converter/v0.3.1: Failed to connect to mirror2.chabokan.net port 443 after 10123 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing danharrin/date-format-converter (v0.3.1) into cache
+    Failed to download danharrin/livewire-rate-limiting from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/danharrin/livewire-rate-limiting/v2.2.0: Failed to connect to mirror2.chabokan.net port 443 after 10123 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing danharrin/livewire-rate-limiting (v2.2.0) into cache
+    Failed to download dasprid/enum from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/dasprid/enum/1.0.7: Failed to connect to mirror2.chabokan.net port 443 after 10123 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing dasprid/enum (1.0.7) into cache
+    Failed to download fakerphp/faker from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/fakerphp/faker/v1.24.1: Failed to connect to mirror2.chabokan.net port 443 after 10123 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing fakerphp/faker (v1.24.1) into cache
+
+  80/149 [===============>------------]  53%    Failed to download paragonie/constant_time_encoding from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/paragonie/constant_time_encoding/v3.1.3: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing paragonie/constant_time_encoding (v3.1.3) into cache
+    Failed to download pragmarx/google2fa from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/pragmarx/google2fa/v9.0.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing pragmarx/google2fa (v9.0.0) into cache
+    Failed to download pragmarx/google2fa-qrcode from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/pragmarx/google2fa-qrcode/v3.0.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing pragmarx/google2fa-qrcode (v3.0.0) into cache
+    Failed to download masterminds/html5 from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/masterminds/html5/2.10.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing masterminds/html5 (2.10.0) into cache
+
+  84/149 [===============>------------]  56%    Failed to download symfony/html-sanitizer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/html-sanitizer/v7.4.8: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/html-sanitizer (v7.4.8) into cache
+    Failed to download spatie/laravel-package-tools from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/spatie/laravel-package-tools/1.93.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing spatie/laravel-package-tools (1.93.0) into cache
+    Failed to download spatie/invade from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/spatie/invade/2.1.0: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing spatie/invade (2.1.0) into cache
+    Failed to download ryangjchandler/blade-capture-directive from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/ryangjchandler/blade-capture-directive/v1.1.1: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing ryangjchandler/blade-capture-directive (v1.1.1) into cache
+
+  88/149 [================>-----------]  59%    Failed to download nette/php-generator from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nette/php-generator/v4.2.2: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nette/php-generator (v4.2.2) into cache
+    Failed to download livewire/livewire from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/livewire/livewire/v4.2.1: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing livewire/livewire (v4.2.1) into cache
+    Failed to download league/uri-components from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/uri-components/7.8.1: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/uri-components (7.8.1) into cache
+    Failed to download kirschbaum-development/eloquent-power-joins from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/kirschbaum-development/eloquent-power-joins/4.3.1: Failed to connect to mirror2.chabokan.net port 443 after 10005 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing kirschbaum-development/eloquent-power-joins (4.3.1) into cache
+
+  92/149 [=================>----------]  61%    Failed to download filament/support from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/support/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/support (v5.5.0) into cache
+    Failed to download openspout/openspout from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/openspout/openspout/v4.28.5: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing openspout/openspout (v4.28.5) into cache
+    Failed to download league/csv from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/league/csv/9.28.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing league/csv (9.28.0) into cache
+    Failed to download filament/actions from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/actions/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/actions (v5.5.0) into cache
+
+  96/149 [==================>---------]  64%    Failed to download filament/notifications from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/notifications/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/notifications (v5.5.0) into cache
+    Failed to download filament/schemas from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/schemas/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/schemas (v5.5.0) into cache
+    Failed to download filament/infolists from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/infolists/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 12010 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/infolists (v5.5.0) into cache
+    Failed to download spatie/shiki-php from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/spatie/shiki-php/2.3.3: Failed to connect to mirror2.chabokan.net port 443 after 12009 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing spatie/shiki-php (2.3.3) into cache
+
+ 100/149 [==================>---------]  67%    Failed to download scrivo/highlight.php from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/scrivo/highlight.php/v9.18.1.10: Failed to connect to mirror2.chabokan.net port 443 after 10393 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing scrivo/highlight.php (v9.18.1.10) into cache
+    Failed to download ueberdosis/tiptap-php from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/ueberdosis/tiptap-php/2.1.0: Failed to connect to mirror2.chabokan.net port 443 after 10393 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing ueberdosis/tiptap-php (2.1.0) into cache
+    Failed to download filament/forms from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/forms/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10393 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/forms (v5.5.0) into cache
+    Failed to download filament/widgets from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/widgets/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10393 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/widgets (v5.5.0) into cache
+
+ 104/149 [===================>--------]  69%    Failed to download filament/query-builder from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/query-builder/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/query-builder (v5.5.0) into cache
+    Failed to download filament/tables from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/tables/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/tables (v5.5.0) into cache
+    Failed to download chillerlan/php-qrcode from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/chillerlan/php-qrcode/5.0.5: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing chillerlan/php-qrcode (5.0.5) into cache
+    Failed to download filament/filament from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filament/filament/v5.5.0: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filament/filament (v5.5.0) into cache
+
+ 108/149 [====================>-------]  72%    Failed to download bacon/bacon-qr-code from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/bacon/bacon-qr-code/v3.0.4: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing bacon/bacon-qr-code (v3.0.4) into cache
+    Failed to download laravel/fortify from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/fortify/v1.36.2: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/fortify (v1.36.2) into cache
+    Failed to download laravel/pail from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/pail/v1.2.6: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/pail (v1.2.6) into cache
+    Failed to download laravel/pint from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/pint/v1.29.0: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/pint (v1.29.0) into cache
+
+ 112/149 [=====================>------]  75%    Failed to download symfony/yaml from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/symfony/yaml/v7.4.6: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing symfony/yaml (v7.4.6) into cache
+    Failed to download laravel/sail from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/sail/v1.55.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/sail (v1.55.0) into cache
+    Failed to download nikic/php-parser from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nikic/php-parser/v5.7.0: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nikic/php-parser (v5.7.0) into cache
+    Failed to download psy/psysh from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/psy/psysh/v0.12.22: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing psy/psysh (v0.12.22) into cache
+
+ 116/149 [=====================>------]  77%    Failed to download laravel/tinker from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/laravel/tinker/v2.11.1: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing laravel/tinker (v2.11.1) into cache
+    Failed to download hamcrest/hamcrest-php from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/hamcrest/hamcrest-php/v2.1.1: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing hamcrest/hamcrest-php (v2.1.1) into cache
+    Failed to download mockery/mockery from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/mockery/mockery/1.6.12: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing mockery/mockery (1.6.12) into cache
+    Failed to download beberlei/assert from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/beberlei/assert/v3.3.3: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing beberlei/assert (v3.3.3) into cache
+
+ 120/149 [======================>-----]  80%    Failed to download morilog/jalali from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/morilog/jalali/v3.5.0: Failed to connect to mirror2.chabokan.net port 443 after 12009 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing morilog/jalali (v3.5.0) into cache
+    Failed to download filp/whoops from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/filp/whoops/2.18.4: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing filp/whoops (2.18.4) into cache
+    Failed to download nunomaduro/collision from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/nunomaduro/collision/v8.9.1: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing nunomaduro/collision (v8.9.1) into cache
+    Failed to download staabm/side-effects-detector from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/staabm/side-effects-detector/1.0.5: Failed to connect to mirror2.chabokan.net port 443 after 12008 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing staabm/side-effects-detector (1.0.5) into cache
+
+ 124/149 [=======================>----]  83%    Failed to download sebastian/version from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/version/5.0.2: Failed to connect to mirror2.chabokan.net port 443 after 10088 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/version (5.0.2) into cache
+    Failed to download sebastian/type from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/type/5.1.3: Failed to connect to mirror2.chabokan.net port 443 after 10087 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/type (5.1.3) into cache
+    Failed to download sebastian/recursion-context from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/recursion-context/6.0.3: Failed to connect to mirror2.chabokan.net port 443 after 10087 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/recursion-context (6.0.3) into cache
+    Failed to download sebastian/object-reflector from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/object-reflector/4.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10087 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/object-reflector (4.0.1) into cache
+
+ 128/149 [========================>---]  85%    Failed to download sebastian/object-enumerator from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/object-enumerator/6.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/object-enumerator (6.0.1) into cache
+    Failed to download sebastian/global-state from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/global-state/7.0.2: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/global-state (7.0.2) into cache
+    Failed to download sebastian/exporter from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/exporter/6.3.2: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/exporter (6.3.2) into cache
+    Failed to download sebastian/environment from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/environment/7.2.1: Failed to connect to mirror2.chabokan.net port 443 after 10003 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/environment (7.2.1) into cache
+
+ 132/149 [========================>---]  88%    Failed to download sebastian/diff from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/diff/6.0.2: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/diff (6.0.2) into cache
+    Failed to download sebastian/comparator from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/comparator/6.3.3: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/comparator (6.3.3) into cache
+    Failed to download sebastian/code-unit from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/code-unit/3.0.3: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/code-unit (3.0.3) into cache
+    Failed to download sebastian/cli-parser from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/cli-parser/3.0.2: Failed to connect to mirror2.chabokan.net port 443 after 12007 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/cli-parser (3.0.2) into cache
+
+ 136/149 [=========================>--]  91%    Failed to download phpunit/php-timer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/php-timer/7.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/php-timer (7.0.1) into cache
+    Failed to download phpunit/php-text-template from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/php-text-template/4.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/php-text-template (4.0.1) into cache
+    Failed to download phpunit/php-invoker from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/php-invoker/5.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/php-invoker (5.0.1) into cache
+    Failed to download phpunit/php-file-iterator from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/php-file-iterator/5.1.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/php-file-iterator (5.1.1) into cache
+
+ 140/149 [==========================>-]  93%    Failed to download theseer/tokenizer from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/theseer/tokenizer/1.3.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing theseer/tokenizer (1.3.1) into cache
+    Failed to download sebastian/lines-of-code from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/lines-of-code/3.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/lines-of-code (3.0.1) into cache
+    Failed to download sebastian/complexity from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/complexity/4.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/complexity (4.0.1) into cache
+    Failed to download sebastian/code-unit-reverse-lookup from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/sebastian/code-unit-reverse-lookup/4.0.1: Failed to connect to mirror2.chabokan.net port 443 after 10004 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing sebastian/code-unit-reverse-lookup (4.0.1) into cache
+
+ 144/149 [===========================>]  96%    Failed to download phpunit/php-code-coverage from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/php-code-coverage/11.0.12: Failed to connect to mirror2.chabokan.net port 443 after 10006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/php-code-coverage (11.0.12) into cache
+    Failed to download phar-io/version from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phar-io/version/3.2.1: Failed to connect to mirror2.chabokan.net port 443 after 10006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phar-io/version (3.2.1) into cache
+    Failed to download phar-io/manifest from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phar-io/manifest/2.0.4: Failed to connect to mirror2.chabokan.net port 443 after 10006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phar-io/manifest (2.0.4) into cache
+    Failed to download myclabs/deep-copy from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/myclabs/deep-copy/1.13.4: Failed to connect to mirror2.chabokan.net port 443 after 10006 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing myclabs/deep-copy (1.13.4) into cache
+
+ 148/149 [===========================>]  99%    Failed to download phpunit/phpunit from dist: curl error 28 while downloading https://mirror2.chabokan.net/composer/p/phpunit/phpunit/11.5.55: Failed to connect to mirror2.chabokan.net port 443 after 10000 ms: Timeout was reached
+    Now trying to download from source
+  - Syncing phpunit/phpunit (11.5.55) into cache
+
+ 149/149 [============================] 100%
+  - Installing voku/portable-ascii (2.0.3): Cloning b1d923f880 from cache
+  - Installing symfony/polyfill-php80 (v1.33.0): Cloning 0cc9dd0f17 from cache
+  - Installing symfony/polyfill-mbstring (v1.33.0): Cloning 6d857f4d76 from cache
+  - Installing symfony/polyfill-ctype (v1.33.0): Cloning a3cc8b044a from cache
+  - Installing phpoption/phpoption (1.9.5): Cloning 75365b9198 from cache
+  - Installing graham-campbell/result-type (v1.1.4): Cloning e01f4a8214 from cache
+  - Installing vlucas/phpdotenv (v5.6.3): Cloning 955e7815d6 from cache
+  - Installing symfony/css-selector (v7.4.6): Cloning 2e7c52c647 from cache
+  - Installing tijsverkoyen/css-to-inline-styles (v2.4.0): Cloning f0292ccf0e from cache
+  - Installing symfony/deprecation-contracts (v3.6.0): Cloning 63afe740e9 from cache
+  - Installing symfony/var-dumper (v7.4.6): Cloning 045321c440 from cache
+    Skipped installation of bin Resources/bin/var-dump-server for package symfony/var-dumper: name conflicts with an existing file
+  - Installing symfony/polyfill-uuid (v1.33.0): Cloning 21533be36c from cache
+  - Installing symfony/uid (v7.4.4): Cloning 7719ce8aba from cache
+  - Installing symfony/routing (v7.4.6): Cloning 238d749c56 from cache
+  - Installing symfony/process (v7.4.5): Cloning 608476f460 from cache
+  - Installing symfony/polyfill-php85 (v1.33.0): Cloning d4e5fcd4ab from cache
+  - Installing symfony/polyfill-php84 (v1.33.0): Cloning d8ced4d875 from cache
+  - Installing symfony/polyfill-php83 (v1.33.0): Cloning 17f6f9a6b1 from cache
+  - Installing symfony/polyfill-intl-normalizer (v1.33.0): Cloning 3833d7255c from cache
+  - Installing symfony/polyfill-intl-idn (v1.33.0): Cloning 9614ac4d80 from cache
+  - Installing symfony/mime (v7.4.7): Cloning da5ab4fde3 from cache
+  - Installing psr/container (2.0.2): Cloning c71ecc56df from cache
+  - Installing symfony/service-contracts (v3.6.1): Cloning 45112560a3 from cache
+  - Installing psr/event-dispatcher (1.0.0): Cloning dbefd12671 from cache
+  - Installing symfony/event-dispatcher-contracts (v3.6.0): Cloning 59eb412e93 from cache
+  - Installing symfony/event-dispatcher (v7.4.4): Cloning dc2c0eba1a from cache
+  - Installing psr/log (3.0.2): Cloning f16e1d5863 from cache
+  - Installing doctrine/lexer (3.0.1): Cloning 31ad66abc0 from cache
+  - Installing egulias/email-validator (4.0.4): Cloning d42c8731f0 from cache
+  - Installing symfony/mailer (v7.4.6): Cloning b02726f39a from cache
+  - Installing symfony/http-foundation (v7.4.7): Cloning f94b3e7b7d from cache
+  - Installing symfony/error-handler (v7.4.4): Cloning 8da531f364 from cache
+    Skipped installation of bin Resources/bin/patch-type-declarations for package symfony/error-handler: name conflicts with an existing file
+  - Installing symfony/http-kernel (v7.4.7): Cloning 3b3fcf386c from cache
+  - Installing symfony/finder (v7.4.6): Cloning 8655bf1076 from cache
+  - Installing symfony/polyfill-intl-grapheme (v1.33.0): Cloning 380872130d from cache
+  - Installing symfony/string (v7.4.6): Cloning 9f209231af from cache
+  - Installing symfony/console (v7.4.7): Cloning e1e6770440 from cache
+  - Installing ramsey/collection (2.1.1): Cloning 344572933a from cache
+  - Installing brick/math (0.14.8): Cloning 63422359a4 from cache
+  - Installing ramsey/uuid (4.9.2): Cloning 8429c78ca3 from cache
+    Install of ramsey/uuid failed
+  - Installing psr/simple-cache (3.0.0): Cloning 764e0b3939 from cache
+  - Installing nunomaduro/termwind (v2.4.0): Cloning 712a31b768 from cache
+  - Installing symfony/translation-contracts (v3.6.1): Cloning 65a8bc8208 from cache
+  - Installing symfony/translation (v7.4.6): Cloning 1888cf0643 from cache
+  - Installing psr/clock (1.0.0): Cloning e41a24703d from cache
+  - Installing symfony/clock (v7.4.0): Cloning 9169f24776 from cache
+  - Installing carbonphp/carbon-doctrine-types (3.2.0): Cloning 18ba5ddfec from cache
+  - Installing nesbot/carbon (3.11.3): Cloning 6a7e652845 from cache
+    Skipped installation of bin bin/carbon for package nesbot/carbon: name conflicts with an existing file
+  - Installing monolog/monolog (3.10.0): Cloning b321dd6749 from cache
+  - Installing psr/http-message (2.0): Cloning 402d35bcb9 from cache
+  - Installing psr/http-factory (1.1.0): Cloning 2b4765fddf from cache
+  - Installing league/uri-interfaces (7.8.1): Cloning 85d5c77c5d from cache
+  - Installing league/uri (7.8.1): Cloning 08cf38e392 from cache
+  - Installing league/mime-type-detection (1.16.0): Cloning 2d6702ff21 from cache
+  - Installing league/flysystem-local (3.31.0): Cloning 2f669db18a from cache
+  - Installing league/flysystem (3.32.0): Cloning 254b1595b1 from cache
+  - Installing nette/utils (v4.1.3): Cloning bb3ea637e3 from cache
+  - Installing nette/schema (v1.3.5): Cloning f0ab1a3cda from cache
+  - Installing dflydev/dot-access-data (v3.0.3): Cloning a23a2bf4f3 from cache
+  - Installing league/config (v1.2.0): Cloning 754b3604fb from cache
+  - Installing league/commonmark (2.8.2): Cloning 59fb075d21 from cache
+  - Installing laravel/serializable-closure (v2.0.10): Cloning 870fc81d2f from cache
+  - Installing laravel/prompts (v0.3.16): Cloning 11e7d5f938 from cache
+  - Installing guzzlehttp/uri-template (v1.0.5): Cloning 4f4bbd4e71 from cache
+  - Installing psr/http-client (1.0.3): Cloning bb5906edc1 from cache
+  - Installing ralouphie/getallheaders (3.0.3): Cloning 120b605dfe from cache
+  - Installing guzzlehttp/psr7 (2.9.0): Cloning 7d0ed42f28 from cache
+  - Installing guzzlehttp/promises (2.3.0): Cloning 481557b130 from cache
+  - Installing guzzlehttp/guzzle (7.10.0): Cloning b51ac707cf from cache
+  - Installing fruitcake/php-cors (v1.4.0): Cloning 38aaa6c3fd from cache
+  - Installing dragonmantank/cron-expression (v3.6.0): Cloning d61a8a9604 from cache
+  - Installing doctrine/inflector (2.1.0): Cloning 6d6c96277e from cache
+  - Installing laravel/framework (v12.55.1): Cloning 6d9185a248 from cache
+  - Installing blade-ui-kit/blade-icons (1.9.1): Cloning 377eede719 from cache
+    Skipped installation of bin bin/blade-icons-generate for package blade-ui-kit/blade-icons: name conflicts with an existing file
+  - Installing blade-ui-kit/blade-heroicons (2.7.0): Cloning 66fa8ba09d from cache
+  - Installing chillerlan/php-settings-container (3.3.0): Cloning a0a487cbf5 from cache
+  - Installing danharrin/date-format-converter (v0.3.1): Cloning 7c31171bc9 from cache
+  - Installing danharrin/livewire-rate-limiting (v2.2.0): Cloning c03e649220 from cache
+  - Installing dasprid/enum (1.0.7): Cloning b5874fa9ed from cache
+  - Installing fakerphp/faker (v1.24.1): Cloning e0ee18eb1e from cache
+  - Installing paragonie/constant_time_encoding (v3.1.3): Cloning d5b01a39b3 from cache
+  - Installing pragmarx/google2fa (v9.0.0): Cloning e6bc62dd6a from cache
+  - Installing pragmarx/google2fa-qrcode (v3.0.0): Cloning ce4d8a729b from cache
+  - Installing masterminds/html5 (2.10.0): Cloning fcf91eb643 from cache
+  - Installing symfony/html-sanitizer (v7.4.8): Cloning 9a79c53c4b from cache
+  - Installing spatie/laravel-package-tools (1.93.0): Cloning 0d097bce95 from cache
+  - Installing spatie/invade (2.1.0): Cloning b920f6411d from cache
+  - Installing ryangjchandler/blade-capture-directive (v1.1.1): Cloning 3f9e80b56f from cache
+  - Installing nette/php-generator (v4.2.2): Cloning 0d7060926f from cache
+  - Installing livewire/livewire (v4.2.1): Cloning 93e972fa42 from cache
+  - Installing league/uri-components (7.8.1): Cloning 848ff9db2f from cache
+  - Installing kirschbaum-development/eloquent-power-joins (4.3.1): Cloning 3f77b096c1 from cache
+  - Installing filament/support (v5.5.0): Cloning 3382f95970 from cache
+  - Installing openspout/openspout (v4.28.5): Cloning ab05a09fe6 from cache
+  - Installing league/csv (9.28.0): Cloning 6582ace29a from cache
+  - Installing filament/actions (v5.5.0): Cloning 2de4a4ff59 from cache
+  - Installing filament/notifications (v5.5.0): Cloning 44944f1ec4 from cache
+  - Installing filament/schemas (v5.5.0): Cloning ead604d3a9 from cache
+  - Installing filament/infolists (v5.5.0): Cloning d67da624ed from cache
+  - Installing spatie/shiki-php (2.3.3): Cloning 9d50ff4d98 from cache
+  - Installing scrivo/highlight.php (v9.18.1.10): Cloning 850f4b4469 from cache
+  - Installing ueberdosis/tiptap-php (2.1.0): Cloning 6ea321fa66 from cache
+  - Installing filament/forms (v5.5.0): Cloning e9c2aea05d from cache
+  - Installing filament/widgets (v5.5.0): Cloning 9d01585553 from cache
+  - Installing filament/query-builder (v5.5.0): Cloning 31b53bcd79 from cache
+  - Installing filament/tables (v5.5.0): Cloning f3205e5113 from cache
+  - Installing chillerlan/php-qrcode (5.0.5): Cloning 7b66282572 from cache
+  - Installing filament/filament (v5.5.0): Cloning 2bacfe5143 from cache
+  - Installing bacon/bacon-qr-code (v3.0.4): Cloning 3feed0e212 from cache
+  - Installing laravel/fortify (v1.36.2): Cloning b36e0782e6 from cache
+  - Installing laravel/pail (v1.2.6): Cloning aa71a01c30 from cache
+  - Installing laravel/pint (v1.29.0): Cloning bdec963f53 from cache
+    Skipped installation of bin builds/pint for package laravel/pint: name conflicts with an existing file
+  - Installing symfony/yaml (v7.4.6): Cloning 58751048de from cache
+    Skipped installation of bin Resources/bin/yaml-lint for package symfony/yaml: name conflicts with an existing file
+  - Installing laravel/sail (v1.55.0): Cloning 67dc1b72da from cache
+    Skipped installation of bin bin/sail for package laravel/sail: name conflicts with an existing file
+  - Installing nikic/php-parser (v5.7.0): Cloning dca41cd15c from cache
+    Skipped installation of bin bin/php-parse for package nikic/php-parser: name conflicts with an existing file
+  - Installing psy/psysh (v0.12.22): Cloning 3be75d5b92 from cache
+    Skipped installation of bin bin/psysh for package psy/psysh: name conflicts with an existing file
+  - Installing laravel/tinker (v2.11.1): Cloning c9f80cc835 from cache
+  - Installing hamcrest/hamcrest-php (v2.1.1): Cloning f8b1c0173b from cache
+  - Installing mockery/mockery (1.6.12): Cloning 1f4efdd7d3 from cache
+  - Installing beberlei/assert (v3.3.3): Cloning b5fd8eacd8 from cache
+  - Installing morilog/jalali (v3.5.0): Cloning 40b906c405 from cache
+  - Installing filp/whoops (2.18.4): Cloning d2102955e4 from cache
+  - Installing nunomaduro/collision (v8.9.1): Cloning a1ed3fa530 from cache
+  - Installing staabm/side-effects-detector (1.0.5): Cloning d8334211a1 from cache
+  - Installing sebastian/version (5.0.2): Cloning c687e3387b from cache
+  - Installing sebastian/type (5.1.3): Cloning f77d2d4e78 from cache
+  - Installing sebastian/recursion-context (6.0.3): Cloning f6458abbf3 from cache
+  - Installing sebastian/object-reflector (4.0.1): Cloning 6e1a43b411 from cache
+  - Installing sebastian/object-enumerator (6.0.1): Cloning f5b498e631 from cache
+  - Installing sebastian/global-state (7.0.2): Cloning 3be331570a from cache
+  - Installing sebastian/exporter (6.3.2): Cloning 70a298763b from cache
+  - Installing sebastian/environment (7.2.1): Cloning a5c7503869 from cache
+  - Installing sebastian/diff (6.0.2): Cloning b4ccd85712 from cache
+  - Installing sebastian/comparator (6.3.3): Cloning 2c95e1e86c from cache
+  - Installing sebastian/code-unit (3.0.3): Cloning 54391c61e4 from cache
+  - Installing sebastian/cli-parser (3.0.2): Cloning 15c5dd40dc from cache
+  - Installing phpunit/php-timer (7.0.1): Cloning 3b415def83 from cache
+  - Installing phpunit/php-text-template (4.0.1): Cloning 3e0404dc6b from cache
+  - Installing phpunit/php-invoker (5.0.1): Cloning c1ca381473 from cache
+  - Installing phpunit/php-file-iterator (5.1.1): Cloning 2f3a64888c from cache
+  - Installing theseer/tokenizer (1.3.1): Cloning b7489ce515 from cache
+  - Installing sebastian/lines-of-code (3.0.1): Cloning d36ad0d782 from cache
+  - Installing sebastian/complexity (4.0.1): Cloning ee41d384ab from cache
+  - Installing sebastian/code-unit-reverse-lookup (4.0.1): Cloning 183a9b2632 from cache
+  - Installing phpunit/php-code-coverage (11.0.12): Cloning 2c1ed04922 from cache
+  - Installing phar-io/version (3.2.1): Cloning 4f7fd7836c from cache
+  - Installing phar-io/manifest (2.0.4): Cloning 54750ef60c from cache
+  - Installing myclabs/deep-copy (1.13.4): Cloning 07d290f0c4 from cache
+  - Installing phpunit/phpunit (11.5.55): Cloning adc7262fcc from cache
+    Skipped installation of bin phpunit for package phpunit/phpunit: name conflicts with an existing file
+    0 [>---------------------------]    0 [->--------------------------]The following exception is caused by a process timeout
+Check https://getcomposer.org/doc/06-config.md#process-timeout for details
+
+In Process.php line 1205:
+
+  The process "'git' 'clone' '--no-checkout' '/home/jules/.cache/composer/vcs
+  /https---github.com-ramsey-uuid.git/' '/app/vendor/ramsey/uuid' '--dissocia
+  te' '--reference' '/home/jules/.cache/composer/vcs/https---github.com-ramse
+  y-uuid.git/'" exceeded the timeout of 300 seconds.
+
+
+install [--prefer-source] [--prefer-dist] [--prefer-install PREFER-INSTALL] [--dry-run] [--download-only] [--dev] [--no-suggest] [--no-dev] [--no-security-blocking] [--no-autoloader] [--no-progress] [--no-install] [--audit] [--audit-format AUDIT-FORMAT] [-v|vv|vvv|--verbose] [-o|--optimize-autoloader] [-a|--classmap-authoritative] [--apcu-autoloader] [--apcu-autoloader-prefix APCU-AUTOLOADER-PREFIX] [--ignore-platform-req IGNORE-PLATFORM-REQ] [--ignore-platform-reqs] [--] [<packages>...]
