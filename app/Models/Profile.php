@@ -73,17 +73,34 @@ class Profile extends Model
 
     public function syncDetails(array $values): void
     {
+        $keysToDelete = [];
+        $recordsToUpsert = [];
+
         foreach ($values as $key => $value) {
             if (blank($value)) {
-                $this->details()->where('key', $key)->delete();
+                $keysToDelete[] = $key;
                 continue;
             }
 
             $section = ProfileDetailCatalog::definition($key)['section'] ?? ProfileDetailGroup::Other->value;
 
-            $this->details()->updateOrCreate(
-                ['key' => $key],
-                ['section' => $section, 'value' => (string) $value],
+            $recordsToUpsert[] = [
+                'profile_id' => $this->id,
+                'key' => $key,
+                'section' => $section,
+                'value' => (string) $value,
+            ];
+        }
+
+        if (!empty($keysToDelete)) {
+            $this->details()->whereIn('key', $keysToDelete)->delete();
+        }
+
+        if (!empty($recordsToUpsert)) {
+            $this->details()->upsert(
+                $recordsToUpsert,
+                ['profile_id', 'key'],
+                ['section', 'value']
             );
         }
     }
