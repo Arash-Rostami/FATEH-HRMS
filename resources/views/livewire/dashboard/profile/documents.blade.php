@@ -1,4 +1,6 @@
-<div class="space-y-5 animate-[fade-in_0.4s_ease-out]" dir="rtl">
+<div class="space-y-5 animate-[fade-in_0.4s_ease-out]"
+     @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
+     dir="rtl">
 
     <div
         class="relative overflow-hidden rounded-2xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 p-5">
