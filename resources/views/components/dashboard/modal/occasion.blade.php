@@ -40,6 +40,7 @@
 @endphp
 
 @if($occasionType)
+<template x-teleport="body">
     <div
         x-data="occasion"
         x-show="show"
@@ -142,4 +143,5 @@
             </div>
         </div>
     </div>
+</template>
 @endif
