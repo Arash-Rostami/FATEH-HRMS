@@ -17,6 +17,7 @@ use App\Services\PersianDateFieldService;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Get;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -79,6 +80,17 @@ class ProfileFormPresenter
                     ->searchable()
                     ->required()
                     ->distinct()
+                    ->live()
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('value_text', null);
+                        $set('value_number', null);
+                        $set('value_textarea', null);
+                        $set('value_select', null);
+                        $set('value_date', null);
+                        $set('value_date_year', null);
+                        $set('value_date_month', null);
+                        $set('value_date_day', null);
+                    })
                     ->getOptionLabelUsing(fn($value): string => ProfileDetailCatalog::definition($value)['label'] ?? $value)
                     ->createOptionForm([
                         TextInput::make('key')
@@ -92,14 +104,53 @@ class ProfileFormPresenter
                         'distinct' => __('resources/profile/strings.validation.detail_key.distinct'),
                     ]),
 
-                TextInput::make('value')
+                TextInput::make('value_text')
                     ->label(__('resources/profile/strings.form.detail_value'))
                     ->required()
                     ->maxLength(2000)
+                    ->visible(fn(Get $get): bool => in_array(ProfileDetailCatalog::definition($get('key'))['type'] ?? 'text', ['text', 'url', 'email']))
                     ->validationMessages([
                         'required' => __('resources/profile/strings.validation.detail_value.required'),
                     ]),
+
+                TextInput::make('value_number')
+                    ->label(__('resources/profile/strings.form.detail_value'))
+                    ->required()
+                    ->numeric()
+                    ->visible(fn(Get $get): bool => (ProfileDetailCatalog::definition($get('key'))['type'] ?? '') === 'number')
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_value.required'),
+                    ]),
+
+                Textarea::make('value_textarea')
+                    ->label(__('resources/profile/strings.form.detail_value'))
+                    ->required()
+                    ->maxLength(2000)
+                    ->visible(fn(Get $get): bool => (ProfileDetailCatalog::definition($get('key'))['type'] ?? '') === 'textarea')
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_value.required'),
+                    ]),
+
+                Select::make('value_select')
+                    ->label(__('resources/profile/strings.form.detail_value'))
+                    ->required()
+                    ->native(false)
+                    ->searchable()
+                    ->options(fn(Get $get): array => ProfileDetailCatalog::definition($get('key'))['options'] ?? [])
+                    ->visible(fn(Get $get): bool => (ProfileDetailCatalog::definition($get('key'))['type'] ?? '') === 'select')
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_value.required'),
+                    ]),
+
+                PersianDateFieldService::make(
+                    prefix: 'value_date',
+                    label: 'مقدار (تاریخ)',
+                    required: true,
+                    yearFrom: 1330,
+                    yearTo: 1410
+                )->visible(fn(Get $get): bool => (ProfileDetailCatalog::definition($get('key'))['type'] ?? '') === 'date'),
             ])
+            ->mutateRelationshipDataBeforeFillUsing(fn(array $data): array => self::detailBeforeFill($data))
             ->mutateRelationshipDataBeforeCreateUsing(fn(array $data): array => self::detailWithSection($data))
             ->mutateRelationshipDataBeforeSaveUsing(fn(array $data): array => self::detailWithSection($data))
             ->addable()
@@ -110,10 +161,49 @@ class ProfileFormPresenter
             ->helperText(__('resources/profile/strings.hints.details'));
     }
 
+    private static function detailBeforeFill(array $data): array
+    {
+        $type = ProfileDetailCatalog::definition($data['key'] ?? '')['type'] ?? 'text';
+
+        if ($type === 'date') {
+            $data['value_date'] = $data['value'] ?? null;
+        } elseif ($type === 'select') {
+            $data['value_select'] = $data['value'] ?? null;
+        } elseif ($type === 'number') {
+            $data['value_number'] = $data['value'] ?? null;
+        } elseif ($type === 'textarea') {
+            $data['value_textarea'] = $data['value'] ?? null;
+        } else {
+            $data['value_text'] = $data['value'] ?? null;
+        }
+
+        return $data;
+    }
+
     private static function detailWithSection(array $data): array
     {
-        $data['section'] = ProfileDetailCatalog::definition($data['key'] ?? '')['section']
-            ?? ProfileDetailGroup::Other->value;
+        $def = ProfileDetailCatalog::definition($data['key'] ?? '');
+        $type = $def['type'] ?? 'text';
+
+        if ($type === 'date') {
+            $data['value'] = $data['value_date'] ?? null;
+        } elseif ($type === 'select') {
+            $data['value'] = $data['value_select'] ?? null;
+        } elseif ($type === 'number') {
+            $data['value'] = $data['value_number'] ?? null;
+        } elseif ($type === 'textarea') {
+            $data['value'] = $data['value_textarea'] ?? null;
+        } else {
+            $data['value'] = $data['value_text'] ?? null;
+        }
+
+        unset(
+            $data['value_date'], $data['value_select'], $data['value_number'],
+            $data['value_textarea'], $data['value_text'],
+            $data['value_date_year'], $data['value_date_month'], $data['value_date_day']
+        );
+
+        $data['section'] = $def['section'] ?? ProfileDetailGroup::Other->value;
 
         return $data;
     }
