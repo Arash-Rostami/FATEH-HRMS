@@ -15,7 +15,28 @@ class SaveDetailsAction
 
         $profile = Auth::user()->profile;
 
-        $profile->syncDetails($form->values);
+        $values = $form->values;
+        foreach (\App\Services\ProfileDetailCatalog::definitions() as $key => $def) {
+            if ($def['type'] === 'date') {
+                $year = $values[$key . 'Year'] ?? null;
+                $month = $values[$key . 'Month'] ?? null;
+                $day = $values[$key . 'Day'] ?? null;
+
+                if ($year && $month && $day) {
+                    $values[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
+                                     str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
+                                     str_pad($day, 2, '0', STR_PAD_LEFT);
+                } else {
+                    $values[$key] = null;
+                }
+
+                unset($values[$key . 'Year']);
+                unset($values[$key . 'Month']);
+                unset($values[$key . 'Day']);
+            }
+        }
+
+        $profile->syncDetails($values);
 
         return $profile;
     }

@@ -60,31 +60,5 @@ class DetailsForm extends Form
         );
     }
 
-    public function getFormattedValues(): array
-    {
-        $formattedValues = [];
 
-        // Loop through all catalog definitions instead of $this->values
-        // to ensure we process every field, including virtual date parts
-        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
-            if ($def['type'] === 'date') {
-                $year = $this->values[$key . 'Year'] ?? null;
-                $month = $this->values[$key . 'Month'] ?? null;
-                $day = $this->values[$key . 'Day'] ?? null;
-
-                if ($year && $month && $day) {
-                    $formattedValues[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
-                                             str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
-                                             str_pad($day, 2, '0', STR_PAD_LEFT);
-                } else {
-                    // Fallback to existing value if parts are missing
-                    $formattedValues[$key] = $this->values[$key] ?? null;
-                }
-            } else {
-                $formattedValues[$key] = $this->values[$key] ?? null;
-            }
-        }
-
-        return $formattedValues;
-    }
 }
