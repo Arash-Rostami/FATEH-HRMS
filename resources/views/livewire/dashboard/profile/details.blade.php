@@ -45,8 +45,12 @@
                                 <x-ui.forms.input type="number" :label="$def['label']" :name="$name" wire:model="{{ $name }}"/>
 
                             @elseif($def['type'] === 'date')
-                                <x-ui.forms.input type="text" inputmode="numeric" :label="$def['label']" :name="$name"
-                                                  wire:model="{{ $name }}" :placeholder="$def['help'] ?? null"/>
+                                <x-ui.forms.jalali-date
+                                    :label="$def['label']"
+                                    :prefix="$name"
+                                    :startYear="1350"
+                                    :endYear="1410"
+                                />
 
                             @else
                                 <x-ui.forms.input type="text" :label="$def['label']" :name="$name" wire:model="{{ $name }}"/>
