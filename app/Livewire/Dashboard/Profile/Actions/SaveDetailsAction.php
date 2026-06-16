@@ -15,6 +15,15 @@ class SaveDetailsAction
 
         $profile = Auth::user()->profile;
 
+        $formattedValues = $this->getFormattedValues($form);
+
+        $profile->syncDetails($formattedValues);
+
+        return $profile;
+    }
+
+    public function getFormattedValues(DetailsForm $form): array
+    {
         $values = $form->values;
         foreach (\App\Services\ProfileDetailCatalog::definitions() as $key => $def) {
             if ($def['type'] === 'date') {
@@ -24,8 +33,8 @@ class SaveDetailsAction
 
                 if ($year && $month && $day) {
                     $values[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
-                                     str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
-                                     str_pad($day, 2, '0', STR_PAD_LEFT);
+                        str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
+                        str_pad($day, 2, '0', STR_PAD_LEFT);
                 } else {
                     $values[$key] = null;
                 }
@@ -36,8 +45,6 @@ class SaveDetailsAction
             }
         }
 
-        $profile->syncDetails($values);
-
-        return $profile;
+        return $values;
     }
 }
