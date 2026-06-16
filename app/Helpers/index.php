@@ -156,12 +156,11 @@ if (!function_exists('getFileExtension')) {
 if (!function_exists('convertToPersian')) {
     function convertToPersian(?string $string): ?string
     {
-        if ($string === null) return null;
-
-        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-        return str_replace($english, $persian, $string);
+        return $string === null ? null : str_replace(
+            range(0, 9),
+            ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'],
+            $string
+        );
     }
 }
 

@@ -22,9 +22,23 @@ class Details extends Component
 
         $existing = $profile ? $profile->detailsMap()->toArray() : [];
 
-        $this->form->values = collect(ProfileDetailCatalog::keys())
+        $values = collect(ProfileDetailCatalog::keys())
             ->mapWithKeys(fn($key) => [$key => $existing[$key] ?? ''])
             ->all();
+
+        foreach ($values as $key => $value) {
+            $def = ProfileDetailCatalog::definition($key);
+            if ($def && $def['type'] === 'date' && !empty($value)) {
+                $parts = explode('/', $value);
+                if (count($parts) === 3) {
+                    $values[$key . 'Year'] = (int) $parts[0];
+                    $values[$key . 'Month'] = (int) $parts[1];
+                    $values[$key . 'Day'] = (int) $parts[2];
+                }
+            }
+        }
+
+        $this->form->values = $values;
     }
 
     public function render(DetailsPresenter $presenter)

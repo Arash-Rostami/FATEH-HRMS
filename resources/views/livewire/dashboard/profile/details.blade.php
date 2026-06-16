@@ -29,12 +29,27 @@
                             @php($name = 'form.values.' . $key)
 
                             @if($def['type'] === 'select')
-                                <x-ui.forms.select :label="$def['label']" :name="$name" wire:model="{{ $name }}">
-                                    <option value="">انتخاب کنید</option>
-                                    @foreach($def['options'] as $optValue => $optLabel)
-                                        <option value="{{ $optValue }}">{{ $optLabel }}</option>
-                                    @endforeach
-                                </x-ui.forms.select>
+                                @if(($def['searchable'] ?? false))
+                                    <x-ui.forms.select
+                                        :label="$def['label']"
+                                        :name="$name"
+                                        wire:model="{{ $name }}"
+                                        :searchable="true"
+                                        :options="array_values($def['options'])"
+                                    />
+                                @else
+                                    <x-ui.forms.select
+                                        :label="$def['label']"
+                                        :name="$name"
+                                        wire:model="{{ $name }}"
+                                        :searchable="false"
+                                    >
+                                        <option value="">انتخاب کنید</option>
+                                        @foreach($def['options'] as $optValue => $optLabel)
+                                            <option value="{{ $optValue }}">{{ convertToPersian($optLabel) }}</option>
+                                        @endforeach
+                                    </x-ui.forms.select>
+                                @endif
 
                             @elseif($def['type'] === 'textarea')
                                 <div class="col-span-1 md:col-span-2 lg:col-span-3">
@@ -45,8 +60,12 @@
                                 <x-ui.forms.input type="number" :label="$def['label']" :name="$name" wire:model="{{ $name }}"/>
 
                             @elseif($def['type'] === 'date')
-                                <x-ui.forms.input type="text" inputmode="numeric" :label="$def['label']" :name="$name"
-                                                  wire:model="{{ $name }}" :placeholder="$def['help'] ?? null"/>
+                                <x-ui.forms.date
+                                    :label="$def['label']"
+                                    prefix="form.values.{{ $key }}"
+                                    :startYear="1350"
+                                    :endYear="1410"
+                                />
 
                             @else
                                 <x-ui.forms.input type="text" :label="$def['label']" :name="$name" wire:model="{{ $name }}"/>

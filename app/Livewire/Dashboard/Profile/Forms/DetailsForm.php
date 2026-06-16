@@ -9,32 +9,49 @@ class DetailsForm extends Form
 {
     public array $values = [];
 
-    protected function rules(): array
+    public function normalize(): void
     {
-        return ProfileDetailCatalog::rules('values');
-    }
-
-    protected function validationAttributes(): array
-    {
-        return ProfileDetailCatalog::attributes('values');
+        $this->values = array_map(fn($v) => $v === '' ? null : $v, $this->values);
     }
 
     protected function messages(): array
     {
         return [
             'values.*.integer' => ':attribute باید یک عدد صحیح باشد.',
-            'values.*.min'     => ':attribute نمی‌تواند منفی باشد.',
-            'values.*.max'     => 'مقدار واردشده برای :attribute بیش از حد مجاز است.',
-            'values.*.in'      => 'مقدار انتخاب‌شده برای :attribute نامعتبر است.',
-            'values.*.string'  => ':attribute باید به صورت متن باشد.',
+            'values.*.min' => ':attribute نمی‌تواند کمتر از مقدار مجاز باشد.',
+            'values.*.max' => 'مقدار واردشده برای :attribute بیش از حد مجاز است.',
+            'values.*.in' => 'مقدار انتخاب‌شده برای :attribute نامعتبر است.',
+            'values.*.string' => ':attribute باید به صورت متن باشد.',
         ];
     }
 
-    public function normalize(): void
+    protected function rules(): array
     {
-        $this->values = array_map(
-            fn($v) => $v === '' ? null : $v,
-            $this->values,
-        );
+        $rules = ProfileDetailCatalog::rules('values');
+
+        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
+            if ($def['type'] === 'date') {
+                $rules["values.{$key}Year"] = 'nullable|integer|min:1300|max:1500';
+                $rules["values.{$key}Month"] = 'nullable|integer|min:1|max:12';
+                $rules["values.{$key}Day"] = 'nullable|integer|min:1|max:31';
+            }
+        }
+
+        return $rules;
+    }
+
+    protected function validationAttributes(): array
+    {
+        $attrs = ProfileDetailCatalog::attributes('values');
+
+        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
+            if ($def['type'] === 'date') {
+                $attrs["values.{$key}Year"] = 'سال ' . $def['label'];
+                $attrs["values.{$key}Month"] = 'ماه ' . $def['label'];
+                $attrs["values.{$key}Day"] = 'روز ' . $def['label'];
+            }
+        }
+
+        return $attrs;
     }
 }

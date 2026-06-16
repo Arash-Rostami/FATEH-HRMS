@@ -168,35 +168,12 @@
                     <x-ui.forms.input type="number" label="تعداد فرزندان" name="form.number_of_children"
                                       wire:model="form.number_of_children" icon="child_care"/>
 
-                    <div
-                        class="col-span-1 md:col-span-2 lg:col-span-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-variant)]/20 p-4">
-                        <div class="flex items-center gap-2 text-[var(--md-sys-color-on-surface-variant)] mb-4">
-                            <span class="material-symbols-rounded text-lg">calendar_month</span>
-                            <span class="text-sm font-bold">تاریخ تولد</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-3">
-                            <x-ui.forms.select label="سال" name="form.birthYear" wire:model="form.birthYear">
-                                <option value="">سال</option>
-                                @foreach($birthYearRange as $year)
-                                    <option value="{{ $year }}">{{ $year }}</option>
-                                @endforeach
-                            </x-ui.forms.select>
-
-                            <x-ui.forms.select label="ماه" name="form.birthMonth" wire:model="form.birthMonth">
-                                <option value="">ماه</option>
-                                @foreach(range(1, 12) as $month)
-                                    <option value="{{ $month }}">{{ $month }}</option>
-                                @endforeach
-                            </x-ui.forms.select>
-
-                            <x-ui.forms.select label="روز" name="form.birthDay" wire:model="form.birthDay">
-                                <option value="">روز</option>
-                                @foreach(range(1, 31) as $day)
-                                    <option value="{{ $day }}">{{ $day }}</option>
-                                @endforeach
-                            </x-ui.forms.select>
-                        </div>
-                    </div>
+                    <x-ui.forms.date
+                        label="تاریخ تولد"
+                        prefix="form.birth"
+                        :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 70"
+                        :endYear="\Morilog\Jalali\Jalalian::now()->getYear() - 15"
+                    />
 
                     <x-ui.forms.input label="شماره ملی" name="form.id_card_number" wire:model="form.id_card_number"
                                       icon="fingerprint"/>

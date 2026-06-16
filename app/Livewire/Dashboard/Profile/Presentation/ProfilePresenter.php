@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Profile\Presentation;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class ProfilePresenter
 {
@@ -19,10 +20,8 @@ class ProfilePresenter
         if (!$profile) return 0;
 
         $fields = [
-            'personnel_id', 'gender', 'employment_type', 'marital_status',
-            'id_card_number', 'degree', 'field', 'birthdate',
-            'cellphone', 'address', 'department_id', 'position',
-            'insurance', 'emergency_phone', 'start_date',
+            'personnel_id', 'gender', 'employment_type', 'marital_status', 'id_card_number', 'degree', 'field', 'birthdate',
+            'cellphone', 'address', 'department_id', 'position', 'insurance', 'emergency_phone', 'start_date',
         ];
 
         $filled = collect($fields)->filter(fn($f) => $profile->{$f} !== null && $profile->{$f} !== '')->count();
@@ -32,23 +31,48 @@ class ProfilePresenter
 
     public function departmentName(User $user): string
     {
-        return $user->profile?->department?->description ?? $user->profile?->department?->name ??'واحد عمومی';
+        return $user->profile?->department?->description ?? $user->profile?->department?->name ?? 'واحد عمومی';
     }
 
     public function lastSeen(User $user): string
     {
-        if (!$user->last_seen) {
-            return 'هم‌اکنون';
-        }
+        if (!$user->last_seen) return 'هم‌اکنون';
+
         return Carbon::parse($user->last_seen)->diffForHumans();
     }
 
     public function memberSince(User $user): string
     {
-        if (!$user->created_at) {
-            return 'نامشخص';
+        $date = $user->profile?->start_date ?? $this->user->created_at;
+        if (!$date) return 'تازه';
+
+
+        $diff = now()->diff($date);
+        $parts = [];
+
+        if ($diff->y > 0) $parts[] = convertToPersian($diff->y) . ' سال';
+
+        if ($diff->m > 0) $parts[] = convertToPersian($diff->m) . ' ماه';
+
+
+        if (empty($parts)) {
+            if ($diff->d > 0) return convertToPersian($diff->d) . ' روز';
+
+            return 'تازه';
         }
-        return Carbon::parse($user->created_at)->diffForHumans(null, true);
+
+        return implode(' و ', $parts);
+    }
+
+
+    public function bioSnippet(User $user): ?string
+    {
+        $aboutMe = $user->profile?->about_me;
+
+        $aboutText = is_array($aboutMe) ? collect($aboutMe)->implode(' | ') : (string)$aboutMe;
+        if (blank($aboutText)) return null;
+
+        return $aboutText;
     }
 
     public function position(User $user): string
@@ -61,8 +85,8 @@ class ProfilePresenter
     {
         return [
             'info' => ['label' => 'اطلاعات فردی', 'icon' => 'person', 'sub' => 'مشخصات و تماس', 'title' => 'ویرایش اطلاعات فردی', 'component' => 'dashboard.profile.info', 'key' => 'tab-info', 'lazy' => false],
-            'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => true],
             'details' => ['label' => 'اطلاعات تکمیلی', 'icon' => 'list_alt', 'sub' => 'سوابق و جزئیات', 'title' => 'اطلاعات تکمیلی پرسنلی', 'component' => 'dashboard.profile.details', 'key' => 'tab-details', 'lazy' => true],
+            'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => true],
             'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'cloud_upload', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => true],
             'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'vpn_key', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => true],
             'onboarding' => ['label' => 'آنبوردینگ', 'icon' => 'apartment', 'sub' => 'آشنایی با شرکت', 'title' => 'آنبوردینگ (آشنایی با شرکت)', 'component' => 'dashboard.profile.onboarding', 'key' => 'tab-onboarding', 'lazy' => true],

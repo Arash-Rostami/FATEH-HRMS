@@ -30,6 +30,7 @@ class Main extends Component
             'position'       => $presenter->position($user),
             'departmentName' => $presenter->departmentName($user),
             'memberSince'    => $presenter->memberSince($user),
+            'bioSnippet'     => $presenter->bioSnippet($user),
             'lastSeen'       => $presenter->lastSeen($user),
             'tabs'           => $presenter->tabs(),
         ])->extends('layouts.app')->section('content');
