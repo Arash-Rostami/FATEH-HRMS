@@ -26,6 +26,7 @@ class SaveDetailsAction
     public function getFormattedValues(DetailsForm $form): array
     {
         $values = $form->values;
+        $formatted = [];
         foreach (ProfileDetailCatalog::definitions() as $key => $def) {
             if ($def['type'] === 'date') {
                 $year = $values[$key . 'Year'] ?? null;
@@ -33,18 +34,21 @@ class SaveDetailsAction
                 $day = $values[$key . 'Day'] ?? null;
 
                 if ($year && $month && $day) {
-                    $values[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
+                    $formatted[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
                         str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
                         str_pad($day, 2, '0', STR_PAD_LEFT);
-                } else {
-                    $values[$key] = null;
+                } elseif (array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)) {
+                    // if part of date is submitted but not all, treat it as empty rather than preserving old invalid value
+                    $formatted[$key] = null;
+                } elseif (array_key_exists($key, $values)) {
+                    $formatted[$key] = $values[$key];
                 }
-
-                unset($values[$key . 'Year']);
-                unset($values[$key . 'Month']);
-                unset($values[$key . 'Day']);
+            } else {
+                if (array_key_exists($key, $values)) {
+                    $formatted[$key] = $values[$key];
+                }
             }
         }
-        return $values;
+        return $formatted;
     }
 }
