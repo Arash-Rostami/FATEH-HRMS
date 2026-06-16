@@ -1,6 +1,6 @@
 @props(['alignment' => 'bottom-full left-0 origin-bottom-left'])
 
-<div class="relative" x-data="{ open: false }" @click.away="open = false">
+<div class="relative animate-slide-down" x-data="{ open: false }" @click.away="open = false">
     <div @click="open = !open" class="cursor-pointer">
         {{ $trigger }}
     </div>

@@ -77,7 +77,7 @@ trait HasProfileHierarchy
     {
         return static::active()
             ->whereHas('profile', fn(Builder $q) => $q
-                ->where('department_id', $departmentCode) // Optimized: direct column check
+                ->where('department_id', $departmentCode)
                 ->whereIn('position', array_keys(static::RANKS))
             )
             ->get()

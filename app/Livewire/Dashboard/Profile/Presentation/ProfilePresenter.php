@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
+use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -31,7 +32,7 @@ class ProfilePresenter
 
     public function departmentName(User $user): string
     {
-        return $user->profile?->department?->name ?? 'واحد عمومی';
+        return $user->profile?->department?->description ?? $user->profile?->department?->name ??'واحد عمومی';
     }
 
     public function lastSeen(User $user): string
@@ -52,7 +53,8 @@ class ProfilePresenter
 
     public function position(User $user): string
     {
-        return $user->profile?->position ?? 'کارمند';
+        return Position::tryFrom($user->profile?->position ?? '')
+            ?->getLabel() ?? Position::Employee->getLabel();
     }
 
     public function tabs(): array

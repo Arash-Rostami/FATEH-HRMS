@@ -1,6 +1,7 @@
 <div
     class="relative w-full overflow-hidden rounded-2xl bg-[var(--md-sys-color-surface)] shadow-sm border border-[var(--md-sys-color-outline-variant)]/50">
-    <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, var(--md-sys-color-on-surface) 1px, transparent 0); background-size: 24px 24px;"></div>
+    <div class="absolute inset-0 opacity-[0.03]"
+         style="background-image: radial-gradient(circle at 2px 2px, var(--md-sys-color-on-surface) 1px, transparent 0); background-size: 24px 24px;"></div>
 
     <div
         class="relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -20,8 +21,8 @@
                     class="absolute bottom-0 right-0 w-6 h-6 bg-[var(--md-sys-color-primary)] border-2 border-[var(--md-sys-color-surface)] rounded-full flex items-center justify-center shadow-sm"
                     title="وضعیت: فعال"
                 >
-                                    <span
-                                        class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-primary)]">check</span>
+                    <span
+                        class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-primary)]">check</span>
                 </div>
             </div>
 
@@ -33,7 +34,7 @@
                     <span
                         class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[10px] font-bold tracking-wide uppercase">
                                         {{ $position }}
-                                    </span>
+                    </span>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3 mt-1">
@@ -43,11 +44,11 @@
                                         {{ $departmentName }}
                                     </span>
                     |
-                    <span
-                        class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
                                         <span class="material-symbols-rounded text-[16px] opacity-70">schedule</span>
-                                        عضویت: {{ $memberSince }}
-                                    </span>
+                        مدت همکاری:
+                        {{ $memberSince }}
+                    </span>
                 </div>
             </div>
         </div>
