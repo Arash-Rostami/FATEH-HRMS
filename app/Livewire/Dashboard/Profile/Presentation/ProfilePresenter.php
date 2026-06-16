@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 class ProfilePresenter
 {
@@ -23,7 +24,7 @@ class ProfilePresenter
             'insurance', 'emergency_phone', 'start_date',
         ];
 
-        $filled = collect($fields)->filter(fn($f) => !empty($profile->{$f}))->count();
+        $filled = collect($fields)->filter(fn($f) => $profile->{$f} !== null && $profile->{$f} !== '')->count();
 
         return (int)round(($filled / count($fields)) * 100);
     }
@@ -35,12 +36,18 @@ class ProfilePresenter
 
     public function lastSeen(User $user): string
     {
-        return $user->last_seen?->diffForHumans() ?? 'هم‌اکنون';
+        if (!$user->last_seen) {
+            return 'هم‌اکنون';
+        }
+        return Carbon::parse($user->last_seen)->diffForHumans();
     }
 
     public function memberSince(User $user): string
     {
-        return $user->created_at->diffForHumans(null, true);
+        if (!$user->created_at) {
+            return 'نامشخص';
+        }
+        return Carbon::parse($user->created_at)->diffForHumans(null, true);
     }
 
     public function position(User $user): string

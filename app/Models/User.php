@@ -352,13 +352,16 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
             'last_seen' => 'datetime',
+            'password' => 'hashed',
             'extra' => 'array',
             'maximum' => 'integer',
             'presence' => PresenceStatus::class,
         ];
     }
+
 
     protected function smsNumber(): Attribute
     {

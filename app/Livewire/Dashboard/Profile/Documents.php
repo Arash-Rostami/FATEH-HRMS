@@ -67,6 +67,7 @@ class Documents extends Component
         $this->pendingUploadKey = 'custom_upload_pending';
         $this->pendingFileName = $this->form->customFile?->getClientOriginalName() ?? 'فایل سفارشی';
 
+        $this->dispatch('close-modal', name: 'upload-custom-modal');
         $this->dispatchConfirmation("آیا از صحت فایل سفارشی «{$this->pendingFileName}» اطمینان دارید؟");
     }
 
@@ -85,11 +86,9 @@ class Documents extends Component
 
     public function updated(string $property, mixed $value): void
     {
-        match (true) {
-            str_starts_with($property, 'form.files.') => $this->showUploadConfirmation(str_replace('form.files.', '', $property)),
-            $property === 'form.customFile' && $value => $this->showCustomUploadConfirmation(),
-            default => null,
-        };
+        if (str_starts_with($property, 'form.files.')) {
+            $this->showUploadConfirmation(str_replace('form.files.', '', $property));
+        }
     }
 
     private function dispatchConfirmation(string $message): void

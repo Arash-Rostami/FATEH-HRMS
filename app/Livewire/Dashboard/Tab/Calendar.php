@@ -10,6 +10,7 @@ use App\Models\Profile;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
@@ -61,26 +62,31 @@ class Calendar extends Component
 
         $monthEvents = Event::query()
             ->whereBetween('date', [$startDate, $endDate])
-            ->where(fn($q) => $q->where('user_id', Auth::id())->orWhere('private', false))
+            ->where(function ($q) {
+                $q->where('user_id', Auth::id())->orWhere('private', false);
+            })
             ->get()
             ->groupBy(fn($e) => Jalalian::fromCarbon($e->date)->format('Y-m-d'));
 
-        $profiles = Profile::select('id', 'birthdate', 'start_date')->get();
+        $profiles = Profile::select('id', 'birthdate', 'start_date')
+            ->whereNotNull('birthdate')
+            ->orWhereNotNull('start_date')
+            ->get();
 
-        $birthdays = $profiles->pluck('birthdate')->filter()->map->format('m-d')->flip();
-        $anniversaries = $profiles->pluck('start_date')->filter()->map->format('m-d')->flip();
+        $birthdays = $profiles->pluck('birthdate')->filter()->map(fn($d) => $d->format('m-d'))->flip();
+        $anniversaries = $profiles->pluck('start_date')->filter()->map(fn($d) => $d->format('m-d'))->flip();
 
         for ($i = 0; $i < $startDayOfWeek; $i++) {
             $days[] = null;
         }
 
         $todayStr = Jalalian::now()->format('Y-m-d');
+        $currentDate = clone $startDate;
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             try {
-                $jalali = new Jalalian($this->currentYear, $this->currentMonth, $day);
-                $dateString = $jalali->format('Y-m-d');
-                $mdKey = $jalali->toCarbon()->format('m-d');
+                $dateString = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
+                $mdKey = $currentDate->format('m-d');
 
                 $hasEvent = $monthEvents->has($dateString);
                 $hasBirthday = $birthdays->has($mdKey);
@@ -100,6 +106,8 @@ class Calendar extends Component
                     'hasAnniversary' => $hasAnniversary,
                     'eventCount' => $eventCount,
                 ];
+
+                $currentDate->addDay();
             } catch (Throwable $e) {
                 $days[] = null;
             }
@@ -141,7 +149,9 @@ class Calendar extends Component
     {
         $event = Event::where('user_id', Auth::id())->find($eventId);
 
-        if (!$event) return;
+        if (!$event) {
+            return;
+        }
 
         $this->form->editingId = $eventId;
         $this->form->title = $event->title;
@@ -218,7 +228,7 @@ class Calendar extends Component
     {
         try {
             $action->execute($this->form, Auth::id());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $this->addError('form.date', 'تاریخ نامعتبر است');
             return;
         }
@@ -235,7 +245,9 @@ class Calendar extends Component
     #[Computed]
     public function selectedDayEvents(): Collection
     {
-        if (!$this->selectedDate) return collect();
+        if (!$this->selectedDate) {
+            return collect();
+        }
 
         try {
             $gregorianDate = Jalalian::fromFormat('Y-m-d', $this->selectedDate)->toCarbon();
@@ -247,7 +259,9 @@ class Calendar extends Component
 
         $events = Event::query()
             ->whereDate('date', $gregorianDate)
-            ->where(fn($q) => $q->where('user_id', Auth::id())->orWhere('private', false))
+            ->where(function ($q) {
+                $q->where('user_id', Auth::id())->orWhere('private', false);
+            })
             ->latest('date')
             ->get()
             ->map(fn($event) => [
@@ -263,10 +277,13 @@ class Calendar extends Component
         $profiles = Profile::query()
             ->select('id', 'user_id', 'birthdate', 'start_date', 'image')
             ->with('user:id,name')
-            ->where(fn($q) => $q
-                ->where(fn($q1) => $q1->whereMonth('birthdate', $month)->whereDay('birthdate', $day))
-                ->orWhere(fn($q2) => $q2->whereMonth('start_date', $month)->whereDay('start_date', $day))
-            )->get();
+            ->where(function ($q) use ($month, $day) {
+                $q->where(function ($q1) use ($month, $day) {
+                    $q1->whereMonth('birthdate', $month)->whereDay('birthdate', $day);
+                })->orWhere(function ($q2) use ($month, $day) {
+                    $q2->whereMonth('start_date', $month)->whereDay('start_date', $day);
+                });
+            })->get();
 
         $birthdays = $profiles->filter(fn($p) => $p->birthdate?->month === $month && $p->birthdate?->day === $day)
             ->map(fn($p) => [
