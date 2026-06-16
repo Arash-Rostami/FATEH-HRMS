@@ -23,6 +23,9 @@ class Main extends Component
         $presenter = new ProfilePresenter();
         $user = $this->user;
 
+        // Eager load relationships to prevent N+1 queries during presentation
+        $user->loadMissing(['profile.department']);
+
         return view('livewire.dashboard.profile', [
             'user'           => $user,
             'completion'     => $presenter->completion($user),
@@ -31,6 +34,9 @@ class Main extends Component
             'departmentName' => $presenter->departmentName($user),
             'memberSince'    => $presenter->memberSince($user),
             'lastSeen'       => $presenter->lastSeen($user),
+            'roleBadge'      => $presenter->roleBadge($user),
+            'bioSnippet'     => $presenter->bioSnippet($user),
+            'joinDate'       => $presenter->joinDate($user),
             'tabs'           => $presenter->tabs(),
         ])->extends('layouts.app')->section('content');
     }

@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Profile\Presentation;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class ProfilePresenter
 {
@@ -45,16 +46,80 @@ class ProfilePresenter
 
     public function memberSince(User $user): string
     {
-        if (!$user->created_at) {
+        $date = $user->profile?->start_date ?? $user->created_at;
+        if (!$date) {
             return 'نامشخص';
         }
-        return Carbon::parse($user->created_at)->diffForHumans(null, true);
+
+        $diff = now()->diff(Carbon::parse($date));
+        $parts = [];
+
+        if ($diff->y > 0) {
+            $parts[] = $this->toPersianDigits($diff->y) . ' سال';
+        }
+
+        if ($diff->m > 0) {
+            $parts[] = $this->toPersianDigits($diff->m) . ' ماه';
+        }
+
+        if (empty($parts)) {
+            if ($diff->d > 0) {
+                return $this->toPersianDigits($diff->d) . ' روز';
+            }
+            return 'تازه‌وارد';
+        }
+
+        return implode(' و ', $parts);
     }
 
     public function position(User $user): string
     {
         return Position::tryFrom($user->profile?->position ?? '')
             ?->getLabel() ?? Position::Employee->getLabel();
+    }
+
+    public function roleBadge(User $user): ?string
+    {
+        return match ($user->role) {
+            'developer' => 'توسعه‌دهنده',
+            'admin'     => 'مدیر سیستم',
+            default     => null,
+        };
+    }
+
+    public function bioSnippet(User $user, int $limit = 60): ?string
+    {
+        $aboutMe = $user->profile?->about_me;
+
+        $aboutText = is_array($aboutMe) ? collect($aboutMe)->implode(' ') : (string) $aboutMe;
+
+        if (blank($aboutText)) {
+            return null;
+        }
+
+        return Str::limit($aboutText, $limit);
+    }
+
+    public function joinDate(User $user, string $format = 'Y/m/d'): ?string
+    {
+        $date = $user->profile?->start_date ?? $user->created_at;
+
+        if (!$date) return null;
+
+        if (class_exists(\Morilog\Jalali\Jalalian::class)) {
+            return $this->toPersianDigits(\Morilog\Jalali\Jalalian::fromCarbon(Carbon::parse($date))->format($format));
+        }
+
+        return $this->toPersianDigits(Carbon::parse($date)->format($format));
+    }
+
+    protected function toPersianDigits(string|int $value): string
+    {
+        return str_replace(
+            range(0, 9),
+            ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'],
+            (string) $value
+        );
     }
 
     public function tabs(): array
