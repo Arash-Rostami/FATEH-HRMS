@@ -27,28 +27,31 @@ class SaveDetailsAction
     {
         $values = $form->values;
         $formatted = [];
+
         foreach (ProfileDetailCatalog::definitions() as $key => $def) {
             if ($def['type'] === 'date') {
-                $year = $values[$key . 'Year'] ?? null;
-                $month = $values[$key . 'Month'] ?? null;
-                $day = $values[$key . 'Day'] ?? null;
+                if (
+                    array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)
+                ) {
+                    $year = $values[$key . 'Year'] ?? null;
+                    $month = $values[$key . 'Month'] ?? null;
+                    $day = $values[$key . 'Day'] ?? null;
 
-                if ($year && $month && $day) {
-                    $formatted[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
-                        str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
-                        str_pad($day, 2, '0', STR_PAD_LEFT);
-                } elseif (array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)) {
-                    // if part of date is submitted but not all, treat it as empty rather than preserving old invalid value
-                    $formatted[$key] = null;
+                    $formatted[$key] = ($year && $month && $day)
+                        ? sprintf('%04d/%02d/%02d', $year, $month, $day)
+                        : null;
                 } elseif (array_key_exists($key, $values)) {
                     $formatted[$key] = $values[$key];
                 }
-            } else {
-                if (array_key_exists($key, $values)) {
-                    $formatted[$key] = $values[$key];
-                }
+
+                continue;
+            }
+
+            if (array_key_exists($key, $values)) {
+                $formatted[$key] = $values[$key];
             }
         }
+
         return $formatted;
     }
 }
