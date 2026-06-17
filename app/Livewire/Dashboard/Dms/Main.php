@@ -158,8 +158,15 @@ class Main extends Component
     {
         return DMS::visibleToUser()
             ->get()
-            ->filter(fn($item) => isset($item->extra['Type']) || isset($item->extra['type']))
-            ->map(fn($item) => $item->extra['Type'] ?? $item->extra['type'])
+            ->flatMap(function ($item) {
+                $types = [];
+                if (isset($item->extra['Type'])) $types[] = $item->extra['Type'];
+                if (isset($item->extra['type'])) $types[] = $item->extra['type'];
+                if (!empty($item->tags) && is_array($item->tags)) {
+                    $types = array_merge($types, $item->tags);
+                }
+                return $types;
+            })
             ->filter()
             ->unique()
             ->values();
@@ -188,11 +195,13 @@ class Main extends Component
                 ->orWhere('version', 'like', "%{$search}%")
                 ->orWhereJsonContains('extra->category', $search)
                 ->orWhereJsonContains('extra->Category', $search)
+                ->orWhereJsonContains('tags', $search)
                 ->orWhereJsonContains('extra->type', $search)
                 ->orWhereJsonContains('extra->Type', $search)
             ))
             ->when($this->activeFilter !== 'all', fn($query) => $query->where(fn($q) => $q->whereJsonContains('extra->type', $this->activeFilter)
                 ->orWhereJsonContains('extra->Type', $this->activeFilter)
+                ->orWhereJsonContains('tags', $this->activeFilter)
             ))
             ->latest();
     }

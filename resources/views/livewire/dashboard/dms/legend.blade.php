@@ -1,20 +1,24 @@
 <div wire:loading.delay
      class="absolute inset-0 bg-[var(--md-sys-color-surface)]/50 z-50 flex items-center justify-center rounded-2xl">
-    <div
-        class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
 </div>
 
-@if ($this->docs->whereNotIn('id', $this->confirmedDocs)->isNotEmpty())
-    <div
-        class="relative z-20 bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
+@if ($this->receivePendingCount > 0 || $this->readPendingCount > 0)
+    <div class="relative z-20 bg-[var(--md-sys-color-error)]/10 border border-[var(--md-sys-color-error)]/30 text-[var(--md-sys-color-on-error-container)] rounded-2xl p-4 shadow-sm flex gap-4 items-start animate-fade-in-up">
         <div class="shrink-0 mt-1">
             <span class="material-symbols-rounded text-2xl text-[var(--md-sys-color-error)]">error</span>
         </div>
         <div class="text-sm leading-relaxed text-justify">
             <p class="font-bold mb-1">اقدام مورد نیاز</p>
-            این اسناد توسط سازمان به طور رسمی صادر شده‌اند. با کلیک بر روی
-            "مشاهده سند"، تأیید می‌کنید که محتوای آن‌ها را مطالعه کرده و از آن مطلع شدید.
-            این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می‌شود.
+            در کارتابل شما،
+            @if($this->receivePendingCount > 0)
+                <span class="font-bold">{{ $this->receivePendingCount }}</span> سند نیاز به تایید دریافت
+            @endif
+            @if($this->receivePendingCount > 0 && $this->readPendingCount > 0) و @endif
+            @if($this->readPendingCount > 0)
+                <span class="font-bold">{{ $this->readPendingCount }}</span> سند نیاز به تایید مطالعه
+            @endif
+            دارند؛ لطفاً اقدام بفرمایید. این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می شود.
         </div>
     </div>
 @endif
@@ -22,28 +26,27 @@
 <div class="px-5 py-3 inline-flex flex-col gap-3.5">
     <div title="راهنمای وضعیت سند"
          class="flex items-center gap-6 text-sm font-medium text-[var(--md-sys-color-on-surface)] cursor-help">
-        <div class="flex items-center gap-3 group">
-            <div
-                class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-error)] shadow-inner group-hover:scale-105 transition-transform"
-                title="نشانگر امضا نشده">
-                <div
-                    class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent"></div>
-                <div
-                    class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-error)]/20 rounded-s-md"></div>
+
+        <div class="flex items-center gap-2 group">
+            <div class="relative flex items-center justify-center w-6 h-6 rounded-md bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] group-hover:scale-105 transition-transform" title="نیازمند تایید دریافت">
+                <span class="material-symbols-rounded text-[16px]">edit_document</span>
             </div>
-            <span>امضا نشده</span>
+            <span>نیازمند تایید دریافت</span>
         </div>
 
-        <div class="flex items-center gap-3 group">
-            <div
-                class="relative overflow-hidden w-12 h-5 border-l-2 border-l-[var(--md-sys-color-outline)] shadow-inner group-hover:scale-105 transition-transform"
-                title="نشانگر خوانده نشده">
-                <div
-                    class="absolute inset-0 bg-gradient-to-l from-[var(--md-sys-color-outline-variant)]/40 to-transparent"></div>
-                <div
-                    class="absolute inset-y-0 start-0 w-7 bg-[var(--md-sys-color-outline)]/40 rounded-s-md"></div>
+        <div class="flex items-center gap-2 group">
+            <div class="relative flex items-center justify-center w-6 h-6 rounded-md bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] group-hover:scale-105 transition-transform" title="نیازمند تایید مطالعه">
+                <span class="material-symbols-rounded text-[16px]">menu_book</span>
             </div>
-            <span>خوانده نشده</span>
+            <span>نیازمند تایید مطالعه</span>
         </div>
+
+        <div class="flex items-center gap-2 group">
+            <div class="relative flex items-center justify-center w-6 h-6 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] group-hover:scale-105 transition-transform" title="مطالعه شده">
+                <span class="material-symbols-rounded text-[16px]">check_circle</span>
+            </div>
+            <span>مطالعه شده</span>
+        </div>
+
     </div>
 </div>
