@@ -14,11 +14,6 @@
                     <span class="material-symbols-rounded text-[18px]">tag</span>نسخه
                 </div>
             </th>
-            <th class="py-4 px-6 font-semibold whitespace-nowrap">
-                <div class="flex items-center justify-center gap-1.5">
-                    <span class="material-symbols-rounded text-[18px]">download</span>فایل
-                </div>
-            </th>
             <th class="py-4 px-6 font-semibold whitespace-nowrap max-w-xs">
                 <div class="flex items-center justify-start gap-1.5">
                     <span class="material-symbols-rounded text-[18px]">group</span>واحد(های) ذی نفع
@@ -31,12 +26,17 @@
             </th>
             <th class="py-4 px-6 font-semibold whitespace-nowrap">
                 <div class="flex items-center justify-start gap-1.5">
+                    <span class="material-symbols-rounded text-[18px]">list</span>جزییات
+                </div>
+            </th>
+            <th class="py-4 px-6 font-semibold whitespace-nowrap">
+                <div class="flex items-center justify-start gap-1.5">
                     <span class="material-symbols-rounded text-[18px]">comment</span>توضیحات
                 </div>
             </th>
             <th class="py-4 px-6 font-semibold whitespace-nowrap">
                 <div class="flex items-center justify-center gap-1.5">
-                    <span class="material-symbols-rounded text-[18px]">visibility</span>مشاهده
+                    <span class="material-symbols-rounded text-[18px]">visibility</span>مشاهده و تایید
                 </div>
             </th>
         </tr>
@@ -45,50 +45,49 @@
         @forelse($this->docs as $doc)
             @php($isConfirmed = in_array($doc->id, $this->confirmedDocs))
             @php($isRead = in_array($doc->id, $this->readDocs))
-            <tr @class([
-                       'transition-colors hover:bg-[var(--md-sys-color-surface-container-low)]',
-                       'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-l-3 border-l-[var(--md-sys-color-error)]' => !$isConfirmed && !$isRead ,
-                       'bg-gradient-to-l from-[var(--md-sys-color-outline-variant)]/30 to-transparent border-l-3 border-l-[var(--md-sys-color-outline)]' => $isConfirmed && !$isRead ,
-                       'border-l-3 border-l-transparent'  => $isConfirmed && $isRead
-                    ])>
-                <td class="py-4 px-6 min-w-[200px] align-middle text-right">
-                    <div class="flex flex-col items-start gap-1.5">
+            <tr class="transition-colors hover:bg-[var(--md-sys-color-surface-container-low)] relative">
+                <td class="py-4 px-6 min-w-[200px] align-middle text-right relative">
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-10 rounded-l-md overflow-hidden">
+                        @if (!$isConfirmed)
+                            <div class="w-full h-full bg-[var(--md-sys-color-error)]" title="نیازمند تایید دریافت"></div>
+                        @elseif ($isConfirmed && !$isRead)
+                            <div class="w-full h-full bg-[var(--md-sys-color-tertiary)]" title="نیازمند تایید مطالعه"></div>
+                        @else
+                            <div class="w-full h-full bg-[var(--md-sys-color-primary)]" title="مطالعه شده"></div>
+                        @endif
+                    </div>
+                    <div class="flex flex-col items-start gap-1.5 pr-2">
                         <span
                             title="{{ 'ایجاده شده در: ' . jdateOnly($doc->created_at) . ' 📆 بروزرسانی شده در: ' . jdateOnly($doc->updated_at) }}"
                             class="font-bold text-base text-[var(--md-sys-color-on-surface)] leading-relaxed block mt-0.5 cursor-help">
                             {{ $doc->title ?? 'بدون عنوان' }}
                         </span>
-                        <span title="مشاهده تمامی تگ های مشابه"
-                              class="text-xs font-medium px-2.5 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] inline-flex items-center gap-1 w-max cursor-pointer hover:opacity-80 transition-opacity"
-                              wire:click="$set('search', '{{ optional($doc->extra)['category'] ?? optional($doc->extra)['Category'] }}')">
-                            <span class="material-symbols-rounded text-[14px]">sell</span>
-                            {{ optional($doc->extra)['category'] ?? optional($doc->extra)['Category'] ?? 'بدون دسته‌بندی' }}
-                        </span>
+                        <div class="flex flex-wrap gap-1.5">
+                            @php($cat = optional($doc->extra)['category'] ?? optional($doc->extra)['Category'])
+                            @if($cat)
+                                <span title="مشاهده تمامی تگ های مشابه"
+                                      class="text-xs font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] inline-flex items-center gap-1 w-max cursor-pointer hover:opacity-80 transition-opacity"
+                                      wire:click="$set('search', '{{ $cat }}')">
+                                    <span class="material-symbols-rounded text-[12px]">sell</span>
+                                    {{ $cat }}
+                                </span>
+                            @endif
+                            @if(is_array($doc->tags))
+                                @foreach($doc->tags as $tag)
+                                    <span title="مشاهده تمامی تگ های مشابه"
+                                          class="text-xs font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-1 w-max cursor-pointer hover:opacity-80 transition-opacity border border-[var(--md-sys-color-outline-variant)]"
+                                          wire:click="$set('search', '{{ $tag }}')">
+                                        <span class="material-symbols-rounded text-[12px]">tag</span>
+                                        {{ $tag }}
+                                    </span>
+                                @endforeach
+                            @endif
+                        </div>
                     </div>
                 </td>
                 <td class="py-4 px-6 font-mono text-[var(--md-sys-color-on-surface-variant)] align-middle text-center"
                     dir="ltr">
                     {{ $doc->code ?? '' }} - {{ $doc->version ?? 'N/A' }}
-                </td>
-                <td class="py-4 px-6 align-middle text-center whitespace-nowrap">
-                    @if ($doc->file)
-                        @if($isConfirmed)
-                            <a href="{{ route('secure-file', $doc->file) }}" target="_blank"
-                               wire:click="incrementRead({{ $doc->id }})"
-                               class="inline-flex flex-col items-center justify-center gap-1.5 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] p-2.5 rounded-xl transition-colors">
-                                <span class="material-symbols-rounded text-2xl">search</span>
-                                <span class="text-xs font-medium">مشاهده سند</span>
-                            </a>
-                        @else
-                            <button @click="confirmAndSend({{ $doc->id }}, '{{ $doc->file }}')"
-                                    class="inline-flex flex-col items-center justify-center gap-1.5 text-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error-container)] hover:bg-[var(--md-sys-color-error-container)] p-2.5 rounded-xl transition-colors">
-                                <span class="material-symbols-rounded text-2xl">draw</span>
-                                <span class="text-xs font-medium">تأیید خواندن</span>
-                            </button>
-                        @endif
-                    @else
-                        <span class="text-[var(--md-sys-color-outline)] text-xs">فایل ندارد</span>
-                    @endif
                 </td>
                 <td class="py-4 px-6 max-w-[150px] align-middle text-right">
                     <div class="truncate text-[var(--md-sys-color-on-surface-variant)] text-xs leading-relaxed"
@@ -102,16 +101,70 @@
                         {!! $doc->getStatusIcon() ?? '-' !!}
                     </span>
                 </td>
-                <td class="py-4 px-6 text-xs text-[var(--md-sys-color-on-surface-variant)] max-w-[200px] truncate align-middle text-right"
-                    title="{{ $doc->revision ?? '' }}">
-                    {{ $doc->revision ?? 'بدون توضیح' }}
+                <td class="py-4 px-6 align-middle text-right min-w-[150px]">
+                    <div class="flex flex-col gap-1 text-xs">
+                        @php($extraDetails = collect($doc->extra ?? [])->except(['category', 'Category', 'type', 'Type', 'users']))
+                        @forelse($extraDetails as $key => $value)
+                            <div class="flex items-center gap-1.5 border-b border-[var(--md-sys-color-outline-variant)]/30 pb-1 last:border-0 last:pb-0">
+                                <span class="font-semibold text-[var(--md-sys-color-primary)] whitespace-nowrap">{{ $key }}:</span>
+                                <span class="text-[var(--md-sys-color-on-surface-variant)] truncate" title="{{ $value }}">{{ $value }}</span>
+                            </div>
+                        @empty
+                            <span class="text-[var(--md-sys-color-outline)] italic">بدون جزییات</span>
+                        @endforelse
+                    </div>
                 </td>
-                <td class="py-4 px-6 align-middle text-center font-mono font-medium text-[var(--md-sys-color-primary)]">
-                    <span
-                        class="bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] px-2.5 py-1.5 rounded-lg inline-flex items-center justify-center gap-1.5">
-                        {{ $doc->reads->sum('read_count') ?? 0 }}
-                        <span class="material-symbols-rounded text-[14px]">bar_chart</span>
-                    </span>
+                <td class="py-4 px-6 text-xs text-[var(--md-sys-color-on-surface-variant)] align-middle text-right min-w-[180px]">
+                    <div class="flex flex-col gap-2">
+                        @if ($doc->file)
+                            @php
+                                $ext = strtolower(pathinfo($doc->file, PATHINFO_EXTENSION));
+                                $iconInfo = match($ext) {
+                                    'pdf' => ['bg-[var(--md-sys-color-error-container)]', 'text-[var(--md-sys-color-on-error-container)]', 'picture_as_pdf', 'سند PDF'],
+                                    'xlsx', 'xls', 'csv' => ['bg-[var(--md-sys-color-tertiary-container)]', 'text-[var(--md-sys-color-on-tertiary-container)]', 'table', 'فایل اکسل'],
+                                    'docx', 'doc' => ['bg-[var(--md-sys-color-primary-container)]', 'text-[var(--md-sys-color-on-primary-container)]', 'description', 'سند Word'],
+                                    default => ['bg-[var(--md-sys-color-surface-variant)]', 'text-[var(--md-sys-color-on-surface-variant)]', 'insert_drive_file', 'فایل ضمیمه'],
+                                };
+                            @endphp
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md w-max {{ $iconInfo[0] }} {{ $iconInfo[1] }} border border-current/10">
+                                <span class="material-symbols-rounded text-[14px]">{{ $iconInfo[2] }}</span>
+                                <span class="font-medium text-[11px]">{{ $iconInfo[3] }}</span>
+                            </div>
+                        @endif
+                        <div class="leading-relaxed line-clamp-2" title="{{ $doc->revision ?? '' }}">
+                            {{ $doc->revision ?? 'بدون توضیح' }}
+                        </div>
+                    </div>
+                </td>
+                <td class="py-4 px-6 align-middle text-center whitespace-nowrap">
+                    @if ($doc->file)
+                        @if(!$isConfirmed)
+                            <button wire:click="confirmRead({{ $doc->id }})"
+                                    class="inline-flex flex-col items-center justify-center gap-1 text-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error-container)] hover:bg-[var(--md-sys-color-error-container)] px-3 py-2 rounded-xl transition-colors border border-[var(--md-sys-color-error)]/20 shadow-sm w-[110px]">
+                                <span class="material-symbols-rounded text-xl">edit_document</span>
+                                <span class="text-[11px] font-bold">تایید دریافت</span>
+                            </button>
+                        @elseif ($isConfirmed && !$isRead)
+                            <a href="{{ route('secure-file', $doc->file) }}" target="_blank"
+                               wire:click="incrementRead({{ $doc->id }})"
+                               class="inline-flex flex-col items-center justify-center gap-1 text-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary-container)] px-3 py-2 rounded-xl transition-colors border border-[var(--md-sys-color-tertiary)]/20 shadow-sm w-[110px]">
+                                <span class="material-symbols-rounded text-xl">menu_book</span>
+                                <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                            </a>
+                        @else
+                            <a href="{{ route('secure-file', $doc->file) }}" target="_blank"
+                               wire:click="incrementRead({{ $doc->id }})"
+                               class="inline-flex flex-col items-center justify-center gap-1 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary-container)] px-3 py-2 rounded-xl transition-colors w-[110px]">
+                                <span class="material-symbols-rounded text-xl">visibility</span>
+                                <span class="text-[11px] font-medium">مشاهده مجدد</span>
+                            </a>
+                        @endif
+                    @else
+                        <span class="text-[var(--md-sys-color-outline)] text-xs inline-flex items-center gap-1 bg-[var(--md-sys-color-surface-variant)] px-2 py-1 rounded-md">
+                            <span class="material-symbols-rounded text-[14px]">link_off</span>
+                            فایل ندارد
+                        </span>
+                    @endif
                 </td>
             </tr>
         @empty
