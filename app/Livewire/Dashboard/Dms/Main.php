@@ -175,7 +175,15 @@ class Main extends Component
                 if (isset($item->extra['Type'])) $types[] = $item->extra['Type'];
                 if (isset($item->extra['type'])) $types[] = $item->extra['type'];
                 if (!empty($item->tags) && is_array($item->tags)) {
-                    $types = array_merge($types, $item->tags);
+                    foreach ($item->tags as $tag) {
+                        $parts = explode(',', $tag);
+                        foreach ($parts as $part) {
+                            $val = trim($part);
+                            if ($val !== '') {
+                                $types[] = $val;
+                            }
+                        }
+                    }
                 }
                 return $types;
             })
@@ -208,12 +216,14 @@ class Main extends Component
                 ->orWhereJsonContains('extra->category', $search)
                 ->orWhereJsonContains('extra->Category', $search)
                 ->orWhereJsonContains('tags', $search)
+                ->orWhere('tags', 'like', "%{$search}%")
                 ->orWhereJsonContains('extra->type', $search)
                 ->orWhereJsonContains('extra->Type', $search)
             ))
             ->when($this->activeFilter !== 'all', fn($query) => $query->where(fn($q) => $q->whereJsonContains('extra->type', $this->activeFilter)
                 ->orWhereJsonContains('extra->Type', $this->activeFilter)
                 ->orWhereJsonContains('tags', $this->activeFilter)
+                ->orWhere('tags', 'like', "%{$this->activeFilter}%")
             ))
             ->latest();
     }
