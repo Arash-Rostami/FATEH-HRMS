@@ -41,7 +41,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => RequestType::tryFrom($record->request_type))
+            ->getStateUsing(fn($record) => $record->request_type)
             ->badge();
     }
 
@@ -49,8 +49,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->getStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area
-            )
+            ->getStateUsing(fn($record) => Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null))
             ->placeholder('—');
     }
 
@@ -66,6 +65,16 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('extra.department')
             ->label(__('resources/ths/strings.fields.department'))
+            ->getStateUsing(fn($record) => \App\Models\Department::find($record->extra['department'] ?? '')?->name ?? $record->extra['department'] ?? null)
+            ->placeholder('—')
+            ->icon('heroicon-o-user');
+    }
+
+    public static function targetDepartment(): TextEntry
+    {
+        return TextEntry::make('extra.target_department')
+            ->label('واحد هدف')
+            ->getStateUsing(fn($record) => \App\Models\Department::find($record->extra['target_department'] ?? '')?->name ?? $record->extra['target_department'] ?? null)
             ->placeholder('—')
             ->icon('heroicon-o-building-office-2');
     }

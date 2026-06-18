@@ -160,6 +160,7 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::requestArea(),
                                     TicketInfolistPresenter::requester(),
                                     TicketInfolistPresenter::department(),
+                    TicketInfolistPresenter::targetDepartment(),
                                     TicketInfolistPresenter::subject(),
                                     TicketInfolistPresenter::description(),
                                     TicketInfolistPresenter::requesterFiles(),
