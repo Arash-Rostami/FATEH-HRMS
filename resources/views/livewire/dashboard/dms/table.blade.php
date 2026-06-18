@@ -1,5 +1,6 @@
 <div class="overflow-x-auto pr-4 pl-1 -mr-4">
-    <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm min-w-max">
+    <div
+        class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm min-w-max">
         <table class="w-full border-separate border-spacing-0 text-sm">
             <thead class="bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)]">
             <tr>
@@ -56,37 +57,45 @@
                                             flex items-center justify-center text-white border border-white/30">
 
                                     @if (!$isConfirmed)
-                                        <div class="w-full h-full bg-[var(--md-sys-color-error)] flex items-center justify-center relative"
-                                             title="نیازمند تایید دریافت">
+                                        <div
+                                            class="w-full h-full bg-[var(--md-sys-color-error)] flex items-center justify-center relative"
+                                            title="نیازمند تایید دریافت">
                                             <span class="material-symbols-rounded text-[19px]">edit_document</span>
-                                            <div class="absolute -left-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
+                                            <div
+                                                class="absolute -left-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
                                         </div>
 
                                     @elseif ($isConfirmed && !$isRead)
-                                        <div class="w-full h-full bg-[var(--md-sys-color-tertiary)] flex items-center justify-center relative"
-                                             title="نیازمند تایید مطالعه">
+                                        <div
+                                            class="w-full h-full bg-[var(--md-sys-color-tertiary)] flex items-center justify-center relative"
+                                            title="نیازمند تایید مطالعه">
                                             <span class="material-symbols-rounded text-[19px]">menu_book</span>
-                                            <div class="absolute -right-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
+                                            <div
+                                                class="absolute -right-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
                                         </div>
 
                                     @else
-                                        <div class="w-full h-full bg-[var(--md-sys-color-primary)] flex items-center justify-center relative"
-                                             title="مطالعه شده">
+                                        <div
+                                            class="w-full h-full bg-[var(--md-sys-color-primary)] flex items-center justify-center relative"
+                                            title="مطالعه شده">
                                             <span class="material-symbols-rounded text-[20px]">check_circle</span>
-                                            <div class="absolute -right-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
+                                            <div
+                                                class="absolute -right-px top-2 bottom-2 w-[3px] bg-white/40 rounded-l"></div>
                                         </div>
                                     @endif
                                 </div>
 
                                 {{-- Depth layer for premium dictionary tab look --}}
-                                <div class="absolute inset-0 rounded-r-3xl border border-white/20 pointer-events-none"></div>
+                                <div
+                                    class="absolute inset-0 rounded-r-3xl border border-white/20 pointer-events-none"></div>
                             </div>
                         </div>
 
                         {{-- Document Content --}}
                         <div class="flex flex-col items-start gap-1.5 pl-2 relative z-10">
-                            <span title="{{ 'ایجاده شده در: ' . jdateOnly($doc->created_at) . ' 📆 بروزرسانی شده در: ' . jdateOnly($doc->updated_at) }}"
-                                  class="font-bold text-base text-[var(--md-sys-color-on-surface)] leading-relaxed block cursor-help">
+                            <span
+                                title="{{ 'ایجاده شده در: ' . jdateOnly($doc->created_at) . ' 📆 بروزرسانی شده در: ' . jdateOnly($doc->updated_at) }}"
+                                class="font-bold text-base text-[var(--md-sys-color-on-surface)] leading-relaxed block cursor-help">
                                 {{ $doc->title ?? 'بدون عنوان' }}
                             </span>
                             <div class="flex flex-wrap gap-1.5">
@@ -102,20 +111,23 @@
                                     </span>
                                 @endif
                                 @if(is_array($doc->tags))
-                                    @foreach($doc->tags as $tag)
-                                        <span title="مشاهده تمامی تگ های مشابه"
-                                              class="text-xs font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-1 w-max cursor-pointer hover:opacity-80 transition-opacity border border-[var(--md-sys-color-outline-variant)]"
-                                              wire:click="$set('search', '{{ $tag }}')">
-                                            <span class="material-symbols-rounded text-[12px]">tag</span>
-                                            {{ $tag }}
-                                        </span>
+                                    @foreach($doc->tags as $key => $tagVal)
+                                        @foreach((array) $tagVal as $tag)
+                                            <span title="مشاهده تمامی تگ های مشابه"
+                                                  class="text-xs font-medium px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-1 w-max cursor-pointer hover:opacity-80 transition-opacity border border-[var(--md-sys-color-outline-variant)]"
+                                                  wire:click="$set('activeFilter', '{{ strtolower($key) }}|{{ $tag }}')">
+                                                <span class="material-symbols-rounded !text-[12px]">tag</span>
+                                                {{ $tag }}
+                                            </span>
+                                        @endforeach
                                     @endforeach
                                 @endif
                             </div>
                         </div>
                     </td>
 
-                    <td class="py-4 px-6 font-mono text-[var(--md-sys-color-on-surface-variant)] align-middle text-center border-b border-[var(--md-sys-color-outline-variant)]" dir="ltr">
+                    <td class="py-4 px-6 font-mono text-[var(--md-sys-color-on-surface-variant)] align-middle text-center border-b border-[var(--md-sys-color-outline-variant)]"
+                        dir="ltr">
                         {{ $doc->code ?? '' }} - {{ $doc->version ?? 'N/A' }}
                     </td>
                     <td class="py-4 px-6 max-w-[150px] align-middle text-right border-b border-[var(--md-sys-color-outline-variant)]">
@@ -125,7 +137,8 @@
                         </div>
                     </td>
                     <td class="py-4 px-6 align-middle text-center cursor-help border-b border-[var(--md-sys-color-outline-variant)]">
-                        <span title="{{ $doc->getStatusInFarsi() }}" class="inline-flex items-center justify-center text-lg">
+                        <span title="{{ $doc->getStatusInFarsi() }}"
+                              class="inline-flex items-center justify-center text-lg">
                             {!! $doc->getStatusIcon() ?? '-' !!}
                         </span>
                     </td>
@@ -135,9 +148,11 @@
                                 $extraDetails = collect($doc->extra ?? [])->except(['category', 'Category', 'type', 'Type', 'users']);
                             @endphp
                             @forelse($extraDetails as $key => $value)
-                                <div class="flex items-center gap-1.5 border-b border-[var(--md-sys-color-outline-variant)]/30 pb-1 last:border-0 last:pb-0">
+                                <div
+                                    class="flex items-center gap-1.5 border-b border-[var(--md-sys-color-outline-variant)]/30 pb-1 last:border-0 last:pb-0">
                                     <span class="font-semibold text-[var(--md-sys-color-primary)] whitespace-nowrap">{{ $key }}:</span>
-                                    <span class="text-[var(--md-sys-color-on-surface-variant)] truncate" title="{{ $value }}">{{ $value }}</span>
+                                    <span class="text-[var(--md-sys-color-on-surface-variant)] truncate"
+                                          title="{{ $value }}">{{ $value }}</span>
                                 </div>
                             @empty
                                 <span class="text-[var(--md-sys-color-outline)] italic">بدون جزییات</span>
@@ -156,7 +171,8 @@
                                         default => ['bg-[var(--md-sys-color-surface-variant)]', 'text-[var(--md-sys-color-on-surface-variant)]', 'insert_drive_file', 'فایل ضمیمه'],
                                     };
                                 @endphp
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md w-max {{ $iconInfo[0] }} {{ $iconInfo[1] }} border border-current/10">
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md w-max {{ $iconInfo[0] }} {{ $iconInfo[1] }} border border-current/10">
                                     <span class="material-symbols-rounded text-[14px]">{{ $iconInfo[2] }}</span>
                                     <span class="font-medium text-[11px]">{{ $iconInfo[3] }}</span>
                                 </div>
@@ -170,7 +186,7 @@
                         @if ($doc->file)
                             @if(!$isConfirmed)
                                 <button wire:click="confirmRead({{ $doc->id }})"
-                                        class="inline-flex flex-col items-center justify-center gap-1 text-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error-container)] hover:bg-[var(--md-sys-color-error-container)] px-3 py-2 rounded-xl transition-colors border border-[var(--md-sys-color-error)]/20 shadow-sm w-[110px]">
+                                        class="inline-flex flex-col items-center justify-center gap-1 text-[var(--md-sys-color-error)] hover:text-white hover:bg-[var(--md-sys-color-error)] px-3 py-2 rounded-xl transition-colors border border-[var(--md-sys-color-error)]/20 shadow-sm w-[110px]">
                                     <span class="material-symbols-rounded text-xl">edit_document</span>
                                     <span class="text-[11px] font-bold">تایید دریافت</span>
                                 </button>
@@ -190,7 +206,8 @@
                                 </a>
                             @endif
                         @else
-                            <span class="text-[var(--md-sys-color-outline)] text-xs inline-flex items-center gap-1 bg-[var(--md-sys-color-surface-variant)] px-2 py-1 rounded-md">
+                            <span
+                                class="text-[var(--md-sys-color-outline)] text-xs inline-flex items-center gap-1 bg-[var(--md-sys-color-surface-variant)] px-2 py-1 rounded-md">
                                 <span class="material-symbols-rounded text-[14px]">link_off</span>
                                 فایل ندارد
                             </span>

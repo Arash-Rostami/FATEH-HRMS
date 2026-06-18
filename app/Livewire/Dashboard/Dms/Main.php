@@ -18,24 +18,15 @@ class Main extends Component
 {
     use FocusOnRecord;
 
+    private const FILTER_LABELS = ['type' => 'دسته بندی'];
+
+
     public string $search = '';
     public ?string $activeFilter = 'all';
     public int $perPage = 10;
     public bool $hasMorePages = true;
     #[Locked]
     public array $docIds = [];
-
-    #[Computed]
-    public function receivePendingCount()
-    {
-        return DMS::visibleToUser()->whereNotIn('id', $this->confirmedDocs)->count();
-    }
-
-    #[Computed]
-    public function readPendingCount()
-    {
-        return DMS::visibleToUser()->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs)->count();
-    }
 
     public function confirmRead(int $docId, ConfirmReadAction $action): void
     {
@@ -64,6 +55,33 @@ class Main extends Component
             ->whereIn('id', $this->docIds)
             ->orderByRaw("FIELD(id, {$idsString})")
             ->get();
+    }
+
+    public function filterGroupLabel(string $key): string
+    {
+        return self::FILTER_LABELS[$key] ?? $key;
+    }
+
+    #[Computed]
+    public function filterGroups(): array
+    {
+        $groups = [];
+
+        DMS::visibleToUser()->get()->each(function ($item) use (&$groups) {
+            foreach (['type', 'Type'] as $k) {
+                foreach ((array)($item->extra[$k] ?? []) as $v) {
+                    if ($v) $groups['type'][] = $v;
+                }
+            }
+            foreach (($item->tags ?? []) as $key => $vals) {
+                $group = strtolower($key) === 'type' ? 'type' : strtolower($key);
+                foreach ((array)$vals as $v) {
+                    if ($v) $groups[$group][] = $v;
+                }
+            }
+        });
+
+        return array_map(fn($v) => array_values(array_unique($v)), $groups);
     }
 
     public function getAuthorizedFile(string $filename): Response
@@ -145,12 +163,43 @@ class Main extends Component
             ->toArray();
     }
 
+    #[Computed]
+    public function readPendingCount()
+    {
+        return DMS::visibleToUser()->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs)->count();
+    }
+
+    #[Computed]
+    public function receivePendingCount()
+    {
+        return DMS::visibleToUser()->whereNotIn('id', $this->confirmedDocs)->count();
+    }
+
     public function render()
     {
         return view('livewire.dashboard.dms')
             ->extends('layouts.app')
             ->section('content');
     }
+
+//    #[Computed]
+//    public function types()
+//    {
+//        return DMS::visibleToUser()
+//            ->get()
+//            ->flatMap(function ($item) {
+//                $types = [];
+//                if (isset($item->extra['Type'])) $types[] = $item->extra['Type'];
+//                if (isset($item->extra['type'])) $types[] = $item->extra['type'];
+//                if (!empty($item->tags) && is_array($item->tags)) {
+//                    $types = array_merge($types, $item->tags);
+//                }
+//                return $types;
+//            })
+//            ->filter()
+//            ->unique()
+//            ->values();
+//    }
 
     /** Called by FocusOnRecord::clearFocus() when the user taps "show all". */
     public function restoreAfterFocus(): void
@@ -163,25 +212,6 @@ class Main extends Component
     public function totalDocs()
     {
         return DMS::visibleToUser()->count();
-    }
-
-    #[Computed]
-    public function types()
-    {
-        return DMS::visibleToUser()
-            ->get()
-            ->flatMap(function ($item) {
-                $types = [];
-                if (isset($item->extra['Type'])) $types[] = $item->extra['Type'];
-                if (isset($item->extra['type'])) $types[] = $item->extra['type'];
-                if (!empty($item->tags) && is_array($item->tags)) {
-                    $types = array_merge($types, $item->tags);
-                }
-                return $types;
-            })
-            ->filter()
-            ->unique()
-            ->values();
     }
 
     public function updatedActiveFilter(): void
@@ -198,23 +228,33 @@ class Main extends Component
 
     protected function recordFocusType(): string { return 'dms'; }
 
+
     private function getBaseQuery(): Builder
     {
         return DMS::query()
             ->visibleToUser()
-            ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")
+            ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
+                ->where('title', 'like', "%{$search}%")
                 ->orWhere('code', 'like', "%{$search}%")
                 ->orWhere('version', 'like', "%{$search}%")
                 ->orWhereJsonContains('extra->category', $search)
                 ->orWhereJsonContains('extra->Category', $search)
-                ->orWhereJsonContains('tags', $search)
                 ->orWhereJsonContains('extra->type', $search)
                 ->orWhereJsonContains('extra->Type', $search)
             ))
-            ->when($this->activeFilter !== 'all', fn($query) => $query->where(fn($q) => $q->whereJsonContains('extra->type', $this->activeFilter)
-                ->orWhereJsonContains('extra->Type', $this->activeFilter)
-                ->orWhereJsonContains('tags', $this->activeFilter)
-            ))
+            ->when($this->activeFilter !== 'all', function ($query) {
+                [$key, $value] = explode('|', $this->activeFilter, 2) + ['', ''];
+                $key === 'type'
+                    ? $query->where(fn($q) => $q
+                    ->whereJsonContains('extra->type', $value)
+                    ->orWhereJsonContains('extra->Type', $value)
+                    ->orWhereJsonContains('tags->type', $value)
+                    ->orWhereJsonContains('tags->Type', $value)
+                )
+                    : $query->where(fn($q) => $q->whereJsonContains("tags->{$key}", $value)
+                    ->orWhereJsonContains("tags->" . ucfirst($key), $value)
+                );
+            })
             ->latest();
     }
 }
