@@ -15,10 +15,7 @@ class SaveDetailsAction
         $form->validate();
 
         $profile = Auth::user()?->profile;
-
-        $formattedValues = $this->getFormattedValues($form);
-
-        $profile->syncDetails($formattedValues);
+        $profile->syncDetails($this->getFormattedValues($form));
 
         return $profile;
     }
@@ -26,25 +23,31 @@ class SaveDetailsAction
     public function getFormattedValues(DetailsForm $form): array
     {
         $values = $form->values;
+        $formatted = [];
+
         foreach (ProfileDetailCatalog::definitions() as $key => $def) {
             if ($def['type'] === 'date') {
-                $year = $values[$key . 'Year'] ?? null;
-                $month = $values[$key . 'Month'] ?? null;
-                $day = $values[$key . 'Day'] ?? null;
+                if (
+                    array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)
+                ) {
+                    $year = $values[$key . 'Year'] ?? null;
+                    $month = $values[$key . 'Month'] ?? null;
+                    $day = $values[$key . 'Day'] ?? null;
 
-                if ($year && $month && $day) {
-                    $values[$key] = str_pad($year, 4, '0', STR_PAD_LEFT) . '/' .
-                        str_pad($month, 2, '0', STR_PAD_LEFT) . '/' .
-                        str_pad($day, 2, '0', STR_PAD_LEFT);
-                } else {
-                    $values[$key] = null;
+                    $formatted[$key] = ($year && $month && $day)
+                        ? sprintf('%04d/%02d/%02d', $year, $month, $day) : null;
+                } elseif (array_key_exists($key, $values)) {
+                    $formatted[$key] = $values[$key];
                 }
 
-                unset($values[$key . 'Year']);
-                unset($values[$key . 'Month']);
-                unset($values[$key . 'Day']);
+                continue;
+            }
+
+            if (array_key_exists($key, $values)) {
+                $formatted[$key] = $values[$key];
             }
         }
-        return $values;
+
+        return $formatted;
     }
 }

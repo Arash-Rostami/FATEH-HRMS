@@ -45,6 +45,12 @@ class DmsExporter extends Exporter
             ExportColumn::make('revision')
                 ->label(__('resources/dms/strings.fields.revision')),
 
+
+            ExportColumn::make('tags')
+                ->label(__('resources/dms/strings.fields.tags'))
+                ->state(fn($record) => is_array($record->tags) ? implode(', ', $record->tags) : ''),
+
+
             ExportColumn::make('created_at')
                 ->label(__('resources/dms/strings.fields.created_at')),
         ];

@@ -21,6 +21,17 @@ class DmsInfolistPresenter
             ->copyable();
     }
 
+    public static function tags(): TextEntry
+    {
+        return TextEntry::make('tags')
+            ->label(__('resources/dms/strings.fields.tags'))
+            ->badge()
+            ->separator(',')
+            ->placeholder('—');
+    }
+
+
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')

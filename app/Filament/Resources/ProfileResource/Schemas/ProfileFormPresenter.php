@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
-use App\Traits\FilamentFormDivider;
+use App\Enums\ProfileDetailGroup;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
@@ -10,10 +10,10 @@ use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
-use App\Enums\ProfileDetailGroup;
 use App\Models\Department;
-use App\Services\ProfileDetailCatalog;
 use App\Services\PersianDateFieldService;
+use App\Services\ProfileDetailCatalog;
+use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -21,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
+use Filament\Schemas\Components\Utilities\Get;
 
 class ProfileFormPresenter
 {
@@ -44,19 +45,19 @@ class ProfileFormPresenter
                 TextInput::make('value')
                     ->label('مقدار'),
             ])
-            ->afterStateHydrated(fn($component, $state) => $component->state(
-                collect($state ?? [])
-                    ->map(fn($v, $k) => ['key' => $k, 'value' => $v])
-                    ->values()
-                    ->all()
-            )
-            )
+            ->afterStateHydrated(function ($component, $state) {
+                $formatted = [];
+                foreach ($state ?? [] as $k => $v) {
+                    $formatted[] = ['key' => $k, 'value' => $v];
+                }
+                $component->state($formatted);
+            })
             ->saveRelationshipsUsing(function ($component, $record) {
-                $record->update([
-                    'about_me' => collect($component->getState() ?? [])
-                        ->mapWithKeys(fn($item) => [$item['key'] => $item['value']])
-                        ->all()
-                ]);
+                $data = [];
+                foreach ($component->getState() ?? [] as $item) {
+                    $data[$item['key']] = $item['value'];
+                }
+                $record->update(['about_me' => $data]);
             })
             ->grid(2)
             ->dehydrated(false)
@@ -65,57 +66,6 @@ class ProfileFormPresenter
             ->reorderable(false)
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.about_me'));
-    }
-
-    public static function details(): Repeater
-    {
-        return Repeater::make('details')
-            ->relationship()
-            ->label(__('resources/profile/strings.form.details'))
-            ->schema([
-                Select::make('key')
-                    ->label(__('resources/profile/strings.form.detail_key'))
-                    ->options(ProfileDetailCatalog::selectGroups())
-                    ->searchable()
-                    ->required()
-                    ->distinct()
-                    ->getOptionLabelUsing(fn($value): string => ProfileDetailCatalog::definition($value)['label'] ?? $value)
-                    ->createOptionForm([
-                        TextInput::make('key')
-                            ->label(__('resources/profile/strings.form.detail_custom_key'))
-                            ->required()
-                            ->maxLength(191),
-                    ])
-                    ->createOptionUsing(fn(array $data): string => $data['key'])
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.detail_key.required'),
-                        'distinct' => __('resources/profile/strings.validation.detail_key.distinct'),
-                    ]),
-
-                TextInput::make('value')
-                    ->label(__('resources/profile/strings.form.detail_value'))
-                    ->required()
-                    ->maxLength(2000)
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.detail_value.required'),
-                    ]),
-            ])
-            ->mutateRelationshipDataBeforeCreateUsing(fn(array $data): array => self::detailWithSection($data))
-            ->mutateRelationshipDataBeforeSaveUsing(fn(array $data): array => self::detailWithSection($data))
-            ->addable()
-            ->deletable()
-            ->reorderable(false)
-            ->columns(2)
-            ->columnSpanFull()
-            ->helperText(__('resources/profile/strings.hints.details'));
-    }
-
-    private static function detailWithSection(array $data): array
-    {
-        $data['section'] = ProfileDetailCatalog::definition($data['key'] ?? '')['section']
-            ?? ProfileDetailGroup::Other->value;
-
-        return $data;
     }
 
     public static function accessibility(): Textarea
@@ -242,6 +192,82 @@ class ProfileFormPresenter
             ->helperText(__('resources/profile/strings.hints.department_id'));
     }
 
+    public static function details(): Repeater
+    {
+        $label = __('resources/profile/strings.form.detail_value');
+        $requiredMessage = __('resources/profile/strings.validation.detail_value.required');
+
+        return Repeater::make('details')
+            ->relationship()
+            ->label(__('resources/profile/strings.form.details'))
+            ->schema([
+                Select::make('key')
+                    ->label(__('resources/profile/strings.form.detail_key'))
+                    ->options(ProfileDetailCatalog::selectGroups())
+                    ->searchable()
+                    ->required()
+                    ->distinct()
+                    ->live()
+                    ->afterStateUpdated(fn(callable $set) => self::resetDetailValues($set))
+                    ->getOptionLabelUsing(fn($value): string => ProfileDetailCatalog::definition($value)['label'] ?? $value)
+                    ->createOptionForm([
+                        TextInput::make('key')->label(__('resources/profile/strings.form.detail_custom_key'))->required()->maxLength(191),
+                    ])
+                    ->createOptionUsing(fn(array $data): string => $data['key'])
+                    ->validationMessages([
+                        'required' => __('resources/profile/strings.validation.detail_key.required'),
+                        'distinct' => __('resources/profile/strings.validation.detail_key.distinct'),
+                    ]),
+
+                TextInput::make('value_text')
+                    ->label($label)
+                    ->required()
+                    ->maxLength(2000)
+                    ->visible(fn(Get $get): bool => in_array(self::getDetailType($get('key')), ['text', 'url', 'email']))
+                    ->validationMessages(['required' => $requiredMessage]),
+
+                TextInput::make('value_number')
+                    ->label($label)
+                    ->required()
+                    ->numeric()
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'number')
+                    ->validationMessages(['required' => $requiredMessage]),
+
+                Textarea::make('value_textarea')
+                    ->label($label)
+                    ->required()
+                    ->maxLength(2000)
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'textarea')
+                    ->validationMessages(['required' => $requiredMessage]),
+
+                Select::make('value_select')
+                    ->label($label)
+                    ->required()
+                    ->native(false)
+                    ->searchable()
+                    ->options(fn(Get $get): array => ProfileDetailCatalog::definition($get('key'))['options'] ?? [])
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'select')
+                    ->validationMessages(['required' => $requiredMessage]),
+
+                PersianDateFieldService::make(
+                    prefix: 'value_date',
+                    label: $label,
+                    required: true,
+                    yearFrom: 1330,
+                    yearTo: 1410
+                )->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'date'),
+            ])
+            ->mutateRelationshipDataBeforeFillUsing(fn(array $data): array => self::hydrateDetailValue($data))
+            ->mutateRelationshipDataBeforeCreateUsing(fn(array $data): array => self::dehydrateDetailValue($data))
+            ->mutateRelationshipDataBeforeSaveUsing(fn(array $data): array => self::dehydrateDetailValue($data))
+            ->addable()
+            ->deletable()
+            ->reorderable(false)
+            ->columns(2)
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.details'));
+    }
+
     public static function emergencyPhone(): TextInput
     {
         return TextInput::make('emergency_phone')
@@ -314,25 +340,24 @@ class ProfileFormPresenter
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.favorite_colors'))
             ->afterStateHydrated(function (Repeater $component, mixed $state): void {
-                $normalized = collect($state ?? [])
-                    ->map(function ($item) {
-                        if (is_string($item)) return ['color' => $item];
-                        if (is_array($item)) return ['color' => $item['color'] ?? null];
-
-                        return ['color' => null];
-                    })
-                    ->filter(fn($item) => filled($item['color']))
-                    ->values()
-                    ->all();
-
+                $normalized = [];
+                foreach ($state ?? [] as $item) {
+                    $color = is_string($item) ? $item : ($item['color'] ?? null);
+                    if (filled($color)) {
+                        $normalized[] = ['color' => $color];
+                    }
+                }
                 $component->state($normalized);
             })
             ->dehydrateStateUsing(function ($state): array {
-                return collect($state ?? [])
-                    ->map(fn($item) => is_array($item) ? ($item['color'] ?? null) : $item)
-                    ->filter()
-                    ->values()
-                    ->all();
+                $colors = [];
+                foreach ($state ?? [] as $item) {
+                    $color = is_array($item) ? ($item['color'] ?? null) : $item;
+                    if ($color) {
+                        $colors[] = $color;
+                    }
+                }
+                return $colors;
             });
     }
 
@@ -497,7 +522,6 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.user_id'))
             ->relationship('user', 'name')
             ->searchable()
-            ->preload()
             ->required()
             ->columnSpanFull()
             ->native(false)
@@ -523,5 +547,42 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.zip_code'))
             ->maxLength(20)
             ->helperText(__('resources/profile/strings.hints.zip_code'));
+    }
+
+    private static function dehydrateDetailValue(array $data): array
+    {
+        $type = self::getDetailType($data['key'] ?? '');
+        $data['value'] = $data["value_{$type}"] ?? null;
+
+        foreach (['text', 'number', 'textarea', 'select', 'date', 'date_year', 'date_month', 'date_day'] as $t) {
+            unset($data["value_{$t}"]);
+        }
+
+        $data['section'] = ProfileDetailCatalog::definition($data['key'] ?? '')['section'] ?? ProfileDetailGroup::Other->value;
+
+        return $data;
+    }
+
+    private static function getDetailType(?string $key): string
+    {
+        return ProfileDetailCatalog::definition($key ?? '')['type'] ?? 'text';
+    }
+
+    private static function hydrateDetailValue(array $data): array
+    {
+        $type = self::getDetailType($data['key'] ?? '');
+        $data["value_{$type}"] = $data['value'] ?? null;
+
+        return $data;
+    }
+
+    private static function resetDetailValues(callable $set): void
+    {
+        foreach (['text', 'number', 'textarea', 'select', 'date'] as $type) {
+            $set("value_{$type}", null);
+        }
+        $set('value_date_year', null);
+        $set('value_date_month', null);
+        $set('value_date_day', null);
     }
 }

@@ -36,11 +36,13 @@ class DMS extends Model
         'version',
         'title',
         'status',
+        'type',
         'owners',
         'users',
         'revision',
         'combined_read_count',
-        'extra'
+        'extra',
+        'tags',
     ];
 
     public function departments()
@@ -61,6 +63,16 @@ class DMS extends Model
     public function reads(): HasMany
     {
         return $this->hasMany(Read::class, 'document_id');
+    }
+
+    public function scopeNonSystematic($query)
+    {
+        return $query->where('type', false);
+    }
+
+    public function scopeSystematic($query)
+    {
+        return $query->where('type', true);
     }
 
     public function scopeVisibleToUser($query)
@@ -86,6 +98,8 @@ class DMS extends Model
             'owners' => 'array',
             'users' => 'array',
             'extra' => 'array',
+            'tags' => 'array',
+            'type' => 'boolean',
         ];
     }
 }

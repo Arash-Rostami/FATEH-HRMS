@@ -10,6 +10,7 @@ use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Set;
@@ -31,6 +32,14 @@ class DmsFormPresenter
                 'required' => __('resources/dms/strings.validation.code.required'),
                 'max' => __('resources/dms/strings.validation.code.max_length'),
             ]);
+    }
+
+    public static function tags(): KeyValue
+    {
+        return KeyValue::make('tags')
+            ->label(__('resources/dms/strings.fields.tags'))
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.fields.tags_hint'));
     }
 
     public static function extra(): KeyValue

@@ -738,10 +738,7 @@
     }
 
     .fi-fo-repeater-item {
-        @apply !rounded-2xl !border !border-[var(--md-sys-color-outline-variant)]
-        !bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),_transparent_60%)]
-        !p-4;
-        animation: slideUpFade 0.35s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+        @apply !rounded-2xl !border !border-[var(--md-sys-color-outline-variant)] !bg-[var(--md-sys-color-surface-variant)] !p-4;
     }
 
     .fi-fo-key-value-item {

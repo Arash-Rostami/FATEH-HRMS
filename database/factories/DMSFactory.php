@@ -18,11 +18,13 @@ class DMSFactory extends Factory
             'version' => fake()->numerify('1.#'),
             'title' => fake()->sentence(),
             'status' => fake()->randomElement(['live', 'under_review', 'obsolete']),
+            'type' => true,
             'owners' => [fake()->numberBetween(1, 50)],
             'users' => [fake()->numberBetween(1, 50)],
             'revision' => fake()->paragraph(),
             'combined_read_count' => fake()->numberBetween(0, 100),
             'extra' => [],
+            'tags' => [],
         ];
     }
 }

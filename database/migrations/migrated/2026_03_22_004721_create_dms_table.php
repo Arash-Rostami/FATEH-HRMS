@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('title');
             $table->enum('status', ['live', 'under_review', 'obsolete']);
             $table->json('owners')->nullable();
+            $table->boolean('type')->nullable()->default(false);
             $table->json('users')->nullable();
             $table->text('revision')->nullable();
             $table->integer('combined_read_count')->default(0);
             $table->json('extra')->nullable();
+            $table->json('tags')->nullable();
             $table->timestamps();
 
             $table->index('status');

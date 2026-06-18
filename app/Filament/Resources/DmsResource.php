@@ -51,6 +51,7 @@ class DmsResource extends Resource
                     DmsFormPresenter::users(),
                     DmsFormPresenter::divider(),
                     DmsFormPresenter::ownersPreview(),
+                    DmsFormPresenter::tags(),
                     DmsFormPresenter::extra(),
                 ])
                 ->columns(2),
@@ -135,6 +136,7 @@ class DmsResource extends Resource
                     DmsInfolistPresenter::usersCount(),
                     DmsInfolistPresenter::ownersPreview(),
 
+                    DmsInfolistPresenter::tags(),
                     DmsInfolistPresenter::extra(),
                     DmsInfolistPresenter::createdAt(),
                     DmsInfolistPresenter::updatedAt(),

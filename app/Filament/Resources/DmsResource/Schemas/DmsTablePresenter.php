@@ -136,6 +136,7 @@ class DmsTablePresenter
             ->collapsible();
     }
 
+
     public static function title(): TextColumn
     {
         return TextColumn::make('title')
