@@ -64,7 +64,7 @@
                                     <span
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">حوزه</span>
                                         <span
-                                            class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area']) }}</span>
+                                            class="text-xs font-medium text-[var(--md-sys-color-on-surface)]">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area'], $selectedTicket['extra']['target_department'] ?? null) }}</span>
                                     </div>
                                     <div
                                         class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">

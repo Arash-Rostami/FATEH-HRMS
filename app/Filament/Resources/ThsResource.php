@@ -40,6 +40,7 @@ class ThsResource extends Resource
                                 ->schema([
                                     TicketFormPresenter::requesterId(),
                                     TicketFormPresenter::departmentDisplay(),
+                    TicketFormPresenter::targetDepartment(),
                                 ])
                                 ->columns(2),
 
@@ -159,6 +160,7 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::requestArea(),
                                     TicketInfolistPresenter::requester(),
                                     TicketInfolistPresenter::department(),
+                    TicketInfolistPresenter::targetDepartment(),
                                     TicketInfolistPresenter::subject(),
                                     TicketInfolistPresenter::description(),
                                     TicketInfolistPresenter::requesterFiles(),

@@ -73,10 +73,7 @@ class Ticket extends Model
     {
         return Attribute::make(
             set: function ($value) {
-                $scalar = $value instanceof \BackedEnum ? $value->value : (string)$value;
-                return in_array(strtolower($scalar), ['support', 'access', 'development'])
-                    ? strtolower($scalar)
-                    : 'support';
+                return $value instanceof \BackedEnum ? $value->value : (string)$value;
             }
         );
     }

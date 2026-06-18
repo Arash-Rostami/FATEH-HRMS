@@ -15,9 +15,17 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'description'];
+    protected $fillable = ['code', 'name', 'description', 'ticket_options'];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
+
+
+    protected function casts(): array
+    {
+        return [
+            'ticket_options' => 'array',
+        ];
+    }
 
 
     public function authorities(): HasMany
@@ -35,6 +43,14 @@ class Department extends Model
         return once(fn() => Cache::remember('department_options',
             now()->addYear(),
             fn() => self::orderBy('name')->pluck('description', 'code'))
+        );
+    }
+
+    public static function getCachedOptionsExcludingEmptyTickets(): Collection
+    {
+        return once(fn() => Cache::remember('department_options_with_tickets',
+            now()->addYear(),
+            fn() => self::whereNotNull('ticket_options')->where('ticket_options', '!=', '[]')->where('ticket_options', '!=', 'null')->orderBy('name')->pluck('name', 'code'))
         );
     }
 
@@ -75,7 +91,10 @@ class Department extends Model
 
     protected static function booted(): void
     {
-        $forgetCache = fn() => Cache::forget('department_options');
+        $forgetCache = function() {
+            Cache::forget('department_options');
+            Cache::forget('department_options_with_tickets');
+        };
 
         static::saved($forgetCache);
         static::deleted($forgetCache);

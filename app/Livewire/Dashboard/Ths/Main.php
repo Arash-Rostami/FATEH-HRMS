@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Ths\Actions\SubmitTicketAction;
 use App\Livewire\Dashboard\Ths\Forms\RatingForm;
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,6 +29,8 @@ class Main extends Component
     public string $direction = 'up';
     public string $modalTab = 'request';
     public array $requestAreas = [];
+    public array $departmentOptions = [];
+
     public int $perPage = 10;
     public string $ticketSearch = '';
 
@@ -58,6 +61,7 @@ class Main extends Component
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
         $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
+        $this->departmentOptions = Department::getCachedOptionsExcludingEmptyTickets()->toArray();
         $this->loadRequestAreas();
 
         $this->ticketToRate = Ticket::where('requester_id', auth()->id())
@@ -165,10 +169,22 @@ class Main extends Component
 
     public function updatedTicketRequestType($value): void
     {
-        $this->requestAreas = Ticket::$requestAreaOptions[$value] ?? [];
+        $this->loadRequestAreas();
         $this->ticket->requestArea = '';
     }
 
+    public function updatedTicketTargetDepartment($value): void
+    {
+        $deptCode = $value !== 'N/A' ? $value : null;
+        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($deptCode);
+
+        if (!array_key_exists($this->ticket->requestType, $this->ticket->requestTypeOptions)) {
+            $this->ticket->requestType = array_key_first($this->ticket->requestTypeOptions) ?? 'support';
+        }
+
+        $this->loadRequestAreas();
+        $this->ticket->requestArea = '';
+    }
     public function viewTicket($ticketId): void
     {
         $ticket = Ticket::with('assignee')->find($ticketId);
@@ -183,6 +199,8 @@ class Main extends Component
 
     private function loadRequestAreas(): void
     {
-        $this->requestAreas = Ticket::$requestAreaOptions[$this->ticket->requestType] ?? [];
+        $deptCode = $this->ticket->targetDepartment !== 'N/A' ? $this->ticket->targetDepartment : null;
+        $options = Ticket::getCustomRequestAreaOptions($deptCode, $this->ticket->requestType);
+        $this->requestAreas = empty($options) ? (Ticket::$requestAreaOptions[$this->ticket->requestType] ?? []) : $options;
     }
 }

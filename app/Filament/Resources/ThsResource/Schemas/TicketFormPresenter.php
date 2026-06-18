@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
@@ -130,6 +130,19 @@ class TicketFormPresenter
             ->dehydrated(true);
     }
 
+    public static function targetDepartment(): Select
+    {
+        return Select::make('extra.target_department')
+            ->label('واحد هدف')
+            ->options(\App\Models\Department::getCachedOptionsExcludingEmptyTickets())
+            ->searchable()
+            ->live()
+            ->afterStateUpdated(function (callable $set) {
+                $set('request_area', null);
+                $set('request_type', null);
+            });
+    }
+
     public static function description(): Textarea
     {
         return Textarea::make('description')
@@ -178,11 +191,12 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.request_area'))
             ->options(function (Get $get) {
                 $type = $get('request_type');
+                $dept = $get('extra.target_department');
                 $key = $type instanceof \BackedEnum ? $type->value : (string)$type;
 
-                return collect(Ticket::$requestAreaOptions[$key] ?? [])
+                return collect(Ticket::getCustomRequestAreaOptions($dept, $key))
                     ->filter(fn($label, $areaKey) => $areaKey !== '')
-                    ->map(fn($label, $areaKey) => Ticket::getAdminAreaLabelHtml($key, $areaKey))
+                    ->map(fn($label, $areaKey) => Ticket::getCustomAdminAreaLabelHtml($key, $areaKey, $dept))
                     ->toArray();
             })
             ->preload()
@@ -214,7 +228,7 @@ class TicketFormPresenter
     {
         return Select::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(RequestType::class)
+            ->options(fn (Get $get) => \App\Models\Ticket::getCustomRequestTypeOptions($get('extra.target_department')))
             ->required()
             ->live()
             ->native(false)
