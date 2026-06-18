@@ -28,6 +28,7 @@ class Main extends Component
     public string $direction = 'up';
     public string $modalTab = 'request';
     public array $requestAreas = [];
+    public array $departmentOptions = [];
     public int $perPage = 10;
     public string $ticketSearch = '';
 
@@ -58,6 +59,7 @@ class Main extends Component
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
         $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
+        $this->departmentOptions = \App\Models\Department::pluck('name', 'code')->toArray();
         $this->loadRequestAreas();
 
         $this->ticketToRate = Ticket::where('requester_id', auth()->id())
@@ -165,7 +167,13 @@ class Main extends Component
 
     public function updatedTicketRequestType($value): void
     {
-        $this->requestAreas = Ticket::$requestAreaOptions[$value] ?? [];
+        $this->loadRequestAreas();
+        $this->ticket->requestArea = '';
+    }
+
+    public function updatedTicketDepartment($value): void
+    {
+        $this->loadRequestAreas();
         $this->ticket->requestArea = '';
     }
 
@@ -183,6 +191,8 @@ class Main extends Component
 
     private function loadRequestAreas(): void
     {
-        $this->requestAreas = Ticket::$requestAreaOptions[$this->ticket->requestType] ?? [];
+        $deptCode = $this->ticket->department !== 'N/A' ? $this->ticket->department : null;
+        $options = Ticket::getCustomRequestAreaOptions($deptCode, $this->ticket->requestType);
+        $this->requestAreas = empty($options) ? (Ticket::$requestAreaOptions[$this->ticket->requestType] ?? []) : $options;
     }
 }

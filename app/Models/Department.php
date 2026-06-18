@@ -15,9 +15,17 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'description'];
+    protected $fillable = ['code', 'name', 'description', 'ticket_options'];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
+
+
+    protected function casts(): array
+    {
+        return [
+            'ticket_options' => 'array',
+        ];
+    }
 
 
     public function authorities(): HasMany

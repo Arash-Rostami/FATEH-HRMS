@@ -4,7 +4,15 @@
     <div class="space-y-4">
         <x-ui.title icon="tune" title="دسته‌بندی تیکت"/>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+
+            <x-ui.forms.select label="واحد سازمانی (اختیاری)" name="ticket.department"
+                               wire:model.live="ticket.department" icon="domain">
+                <option value="N/A">پیش‌فرض (بدون واحد)</option>
+                @foreach ($departmentOptions as $code => $name)
+                    <option value="{{ $code }}">{{ $name }}</option>
+                @endforeach
+            </x-ui.forms.select>
 
             <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
                                wire:model.live="ticket.requestType" icon="category">
@@ -16,7 +24,7 @@
 
             <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
                                wire:model.live="ticket.requestArea"
-                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea)">
+                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->department)">
                 @foreach($requestAreas as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach

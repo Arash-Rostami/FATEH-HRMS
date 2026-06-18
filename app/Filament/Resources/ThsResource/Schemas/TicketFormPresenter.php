@@ -122,12 +122,14 @@ class TicketFormPresenter
             ->validationMessages(['date_format' => __('resources/ths/strings.validation.completion_deadline_time.invalid')]);
     }
 
-    public static function departmentDisplay(): TextInput
+    public static function departmentDisplay(): Select
     {
-        return TextInput::make('extra.department')
+        return Select::make('extra.department')
             ->label(__('resources/ths/strings.fields.department'))
-            ->readOnly()
-            ->dehydrated(true);
+            ->options(\App\Models\Department::pluck('name', 'code'))
+            ->searchable()
+            ->live()
+            ->afterStateUpdated(fn(callable $set) => $set('request_area', null));
     }
 
     public static function description(): Textarea
@@ -178,11 +180,12 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.request_area'))
             ->options(function (Get $get) {
                 $type = $get('request_type');
+                $dept = $get('extra.department');
                 $key = $type instanceof \BackedEnum ? $type->value : (string)$type;
 
-                return collect(Ticket::$requestAreaOptions[$key] ?? [])
+                return collect(Ticket::getCustomRequestAreaOptions($dept, $key))
                     ->filter(fn($label, $areaKey) => $areaKey !== '')
-                    ->map(fn($label, $areaKey) => Ticket::getAdminAreaLabelHtml($key, $areaKey))
+                    ->map(fn($label, $areaKey) => Ticket::getCustomAdminAreaLabelHtml($key, $areaKey, $dept))
                     ->toArray();
             })
             ->preload()

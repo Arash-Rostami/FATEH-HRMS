@@ -19,14 +19,14 @@ class TicketPresenter
         return Carbon::parse($ticket[$col])->diffForHumans();
     }
 
-    public function requestAreaLabel(string $requestType, string $requestArea): string
+    public function requestAreaLabel(string $requestType, string $requestArea, ?string $department = null): string
     {
-        return (Ticket::$requestAreaOptions[$requestType] ?? [])[$requestArea] ?? 'یافت نشد';
+        return Ticket::getCustomRequestAreaLabel($requestType, $requestArea, $department);
     }
 
-    public function requestAreaIcon(?string $area, string $fallback = 'location_on'): string
+    public function requestAreaIcon(?string $area, ?string $department = null, string $fallback = 'location_on'): string
     {
-        return $area ? Ticket::getMaterialIconForArea($area) : $fallback;
+        return $area ? Ticket::getCustomMaterialIconForArea($area, $department) : $fallback;
     }
 
 }

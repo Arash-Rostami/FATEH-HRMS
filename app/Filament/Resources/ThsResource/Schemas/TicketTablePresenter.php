@@ -107,6 +107,7 @@ class TicketTablePresenter
     {
         return TextColumn::make('extra.department')
             ->label(__('resources/ths/strings.fields.department'))
+            ->formatStateUsing(fn($state) => \App\Models\Department::find($state)?->name ?? $state)
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
     }
@@ -269,6 +270,14 @@ class TicketTablePresenter
                 ? 'danger' : 'gray'
             )
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function departmentFilter(): SelectFilter
+    {
+        return SelectFilter::make('department')
+            ->label(__('resources/ths/strings.fields.department'))
+            ->options(\App\Models\Department::pluck('name', 'code'))
+            ->attribute('extra->department');
     }
 
     public static function typeFilter(): SelectFilter

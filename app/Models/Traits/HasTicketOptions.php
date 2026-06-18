@@ -181,23 +181,106 @@ trait HasTicketOptions
                 </div>";
     }
 
+
+    public static function getCustomRequestAreaOptions(?string $departmentCode, string $requestType): array
+    {
+        if (!$departmentCode) {
+            return self::$requestAreaOptions[$requestType] ?? [];
+        }
+
+        $department = \App\Models\Department::find($departmentCode);
+        if (!$department || empty($department->ticket_options)) {
+            return self::$requestAreaOptions[$requestType] ?? [];
+        }
+
+        $customOptions = collect($department->ticket_options)
+            ->filter(fn($option) => $option['request_type'] === $requestType)
+            ->pluck('area_label', 'area_key')
+            ->toArray();
+
+        if (empty($customOptions)) {
+            return self::$requestAreaOptions[$requestType] ?? [];
+        }
+
+        return ['' => 'انتخاب نمایید'] + $customOptions;
+    }
+
+    public static function getCustomRequestAreaLabel(string $requestType, string $requestArea, ?string $departmentCode = null): string
+    {
+        $options = self::getCustomRequestAreaOptions($departmentCode, $requestType);
+        return $options[$requestArea] ?? self::getRequestAreaOptions($requestType, $requestArea);
+    }
+
+    public static function getCustomMaterialIconForArea(?string $area, ?string $departmentCode = null): string
+    {
+        if ($departmentCode) {
+            $department = \App\Models\Department::find($departmentCode);
+            if ($department && !empty($department->ticket_options)) {
+                $customOption = collect($department->ticket_options)->firstWhere('area_key', $area);
+                if ($customOption && !empty($customOption['icon'])) {
+                    return $customOption['icon'];
+                }
+            }
+        }
+        return self::getMaterialIconForArea($area);
+    }
+
+    public static function getCustomHeroiconForArea(?string $area, ?string $departmentCode = null): string
+    {
+        if ($departmentCode) {
+            $department = \App\Models\Department::find($departmentCode);
+            if ($department && !empty($department->ticket_options)) {
+                $customOption = collect($department->ticket_options)->firstWhere('area_key', $area);
+                if ($customOption && !empty($customOption['icon'])) {
+                    return $customOption['icon'];
+                }
+            }
+        }
+        return self::getHeroiconForArea($area);
+    }
+
+    public static function getCustomAdminAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
+    {
+        $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
+        if ($areaKey === '') return $label;
+
+        $icon = self::getCustomHeroiconForArea($areaKey, $departmentCode);
+
+        return Blade::render(
+            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
+        );
+    }
+
+    public static function getCustomUserAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
+    {
+        $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
+        if ($areaKey === '') return $label;
+
+        $icon = self::getCustomMaterialIconForArea($areaKey, $departmentCode);
+
+        return "<div class='flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'>
+                    <span class='material-symbols-rounded text-primary-500 text-xl'>{$icon}</span>
+                    <span class='text-sm font-medium text-gray-800 dark:text-gray-200'>{$label}</span>
+                </div>";
+    }
+
     public function getMaterialIcon(): string
     {
-        return self::getMaterialIconForArea($this->request_area);
+        return self::getCustomMaterialIconForArea($this->request_area, $this->extra['department'] ?? null);
     }
 
     public function getHeroicon(): string
     {
-        return self::getHeroiconForArea($this->request_area);
+        return self::getCustomHeroiconForArea($this->request_area, $this->extra['department'] ?? null);
     }
 
     public function getAdminAreaBadge(): HtmlString
     {
-        return new HtmlString(self::getAdminAreaLabelHtml($this->request_type, $this->request_area));
+        return new HtmlString(self::getCustomAdminAreaLabelHtml($this->request_type, $this->request_area, $this->extra['department'] ?? null));
     }
 
     public function getUserAreaBadge(): HtmlString
     {
-        return new HtmlString(self::getUserAreaLabelHtml($this->request_type, $this->request_area));
+        return new HtmlString(self::getCustomUserAreaLabelHtml($this->request_type, $this->request_area, $this->extra['department'] ?? null));
     }
 }

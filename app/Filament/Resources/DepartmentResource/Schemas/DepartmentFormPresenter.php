@@ -5,6 +5,8 @@ namespace App\Filament\Resources\DepartmentResource\Schemas;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 
 class DepartmentFormPresenter
 {
@@ -48,4 +50,31 @@ class DepartmentFormPresenter
                 'max' => __('resources/department/strings.validation.name_max'),
             ]);
     }
-}
+
+
+    public static function ticketOptions(): Repeater
+    {
+        return Repeater::make('ticket_options')
+            ->label(__('resources/department/strings.fields.ticket_options'))
+            ->schema([
+                Select::make('request_type')
+                    ->label('نوع درخواست')
+                    ->options(\App\Models\Ticket::$requestTypeOptions)
+                    ->required(),
+                TextInput::make('area_key')
+                    ->label('کلید حوزه (انگلیسی)')
+                    ->required(),
+                TextInput::make('area_label')
+                    ->label('عنوان حوزه (فارسی)')
+                    ->required(),
+                TextInput::make('icon')
+                    ->label('آیکون (اختیاری)')
+                    ->placeholder('مثال: heroicon-o-check'),
+            ])
+            ->columns(4)
+            ->defaultItems(0)
+            ->columnSpanFull()
+            ->collapsible()
+            ->reorderableWithButtons()
+            ->helperText(__('resources/department/strings.hints.ticket_options'));
+    }}
