@@ -266,21 +266,21 @@ trait HasTicketOptions
 
     public function getMaterialIcon(): string
     {
-        return self::getCustomMaterialIconForArea($this->request_area, $this->extra['department'] ?? null);
+        return self::getCustomMaterialIconForArea($this->request_area, $this->extra['target_department'] ?? null);
     }
 
     public function getHeroicon(): string
     {
-        return self::getCustomHeroiconForArea($this->request_area, $this->extra['department'] ?? null);
+        return self::getCustomHeroiconForArea($this->request_area, $this->extra['target_department'] ?? null);
     }
 
     public function getAdminAreaBadge(): HtmlString
     {
-        return new HtmlString(self::getCustomAdminAreaLabelHtml($this->request_type, $this->request_area, $this->extra['department'] ?? null));
+        return new HtmlString(self::getCustomAdminAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
     }
 
     public function getUserAreaBadge(): HtmlString
     {
-        return new HtmlString(self::getCustomUserAreaLabelHtml($this->request_type, $this->request_area, $this->extra['department'] ?? null));
+        return new HtmlString(self::getCustomUserAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
     }
 }

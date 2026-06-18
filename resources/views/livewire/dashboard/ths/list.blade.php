@@ -105,10 +105,10 @@
                     <td class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-rounded">
-                                {{ $presenter->requestAreaIcon($ticket->request_area, $ticket->extra['department'] ?? null) }}
+                                {{ $presenter->requestAreaIcon($ticket->request_area, $ticket->extra['target_department'] ?? null) }}
                             </span>
 
-                            {{ $presenter->requestAreaLabel($ticket->request_type, $ticket->request_area, $ticket->extra['department'] ?? null) }}
+                            {{ $presenter->requestAreaLabel($ticket->request_type, $ticket->request_area, $ticket->extra['target_department'] ?? null) }}
                         </div>
                     </td>
 

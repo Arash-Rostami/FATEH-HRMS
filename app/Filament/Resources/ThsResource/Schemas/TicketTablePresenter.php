@@ -105,8 +105,8 @@ class TicketTablePresenter
 
     public static function department(): TextColumn
     {
-        return TextColumn::make('extra.department')
-            ->label(__('resources/ths/strings.fields.department'))
+        return TextColumn::make('extra.target_department')
+            ->label('واحد هدف')
             ->formatStateUsing(fn($state) => \App\Models\Department::find($state)?->name ?? $state)
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
@@ -274,10 +274,10 @@ class TicketTablePresenter
 
     public static function departmentFilter(): SelectFilter
     {
-        return SelectFilter::make('department')
-            ->label(__('resources/ths/strings.fields.department'))
+        return SelectFilter::make('target_department')
+            ->label('واحد هدف')
             ->options(\App\Models\Department::pluck('name', 'code'))
-            ->attribute('extra->department');
+            ->attribute('extra->target_department');
     }
 
     public static function typeFilter(): SelectFilter

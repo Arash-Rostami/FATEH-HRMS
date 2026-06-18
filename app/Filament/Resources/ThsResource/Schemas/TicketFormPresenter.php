@@ -122,10 +122,18 @@ class TicketFormPresenter
             ->validationMessages(['date_format' => __('resources/ths/strings.validation.completion_deadline_time.invalid')]);
     }
 
-    public static function departmentDisplay(): Select
+    public static function departmentDisplay(): TextInput
     {
-        return Select::make('extra.department')
+        return TextInput::make('extra.department')
             ->label(__('resources/ths/strings.fields.department'))
+            ->readOnly()
+            ->dehydrated(true);
+    }
+
+    public static function targetDepartment(): Select
+    {
+        return Select::make('extra.target_department')
+            ->label('واحد هدف')
             ->options(\App\Models\Department::pluck('name', 'code'))
             ->searchable()
             ->live()
@@ -180,7 +188,7 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.request_area'))
             ->options(function (Get $get) {
                 $type = $get('request_type');
-                $dept = $get('extra.department');
+                $dept = $get('extra.target_department');
                 $key = $type instanceof \BackedEnum ? $type->value : (string)$type;
 
                 return collect(Ticket::getCustomRequestAreaOptions($dept, $key))

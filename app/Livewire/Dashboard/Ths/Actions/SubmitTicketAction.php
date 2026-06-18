@@ -24,7 +24,7 @@ class SubmitTicketAction
             'description'     => $form->description,
             'requester_files' => $this->storeFiles($form->files) ?: null,
             'requester_id'    => auth()->id(),
-            'extra'           => ['department' => $form->department ?? 'N/A'],
+            'extra'           => ['department' => $form->department ?? 'N/A', 'target_department' => $form->targetDepartment ?? 'N/A'],
         ]);
     }
 

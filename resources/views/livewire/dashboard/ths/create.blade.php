@@ -6,8 +6,8 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
 
-            <x-ui.forms.select label="واحد سازمانی (اختیاری)" name="ticket.department"
-                               wire:model.live="ticket.department" icon="domain">
+            <x-ui.forms.select label="واحد سازمانی (اختیاری)" name="ticket.targetDepartment"
+                               wire:model.live="ticket.targetDepartment" icon="domain">
                 <option value="N/A">پیش‌فرض (بدون واحد)</option>
                 @foreach ($departmentOptions as $code => $name)
                     <option value="{{ $code }}">{{ $name }}</option>
@@ -24,7 +24,7 @@
 
             <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
                                wire:model.live="ticket.requestArea"
-                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->department)">
+                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
                 @foreach($requestAreas as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach

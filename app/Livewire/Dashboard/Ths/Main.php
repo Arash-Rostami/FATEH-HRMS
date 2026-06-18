@@ -171,7 +171,7 @@ class Main extends Component
         $this->ticket->requestArea = '';
     }
 
-    public function updatedTicketDepartment($value): void
+    public function updatedTicketTargetDepartment($value): void
     {
         $this->loadRequestAreas();
         $this->ticket->requestArea = '';
@@ -191,7 +191,7 @@ class Main extends Component
 
     private function loadRequestAreas(): void
     {
-        $deptCode = $this->ticket->department !== 'N/A' ? $this->ticket->department : null;
+        $deptCode = $this->ticket->targetDepartment !== 'N/A' ? $this->ticket->targetDepartment : null;
         $options = Ticket::getCustomRequestAreaOptions($deptCode, $this->ticket->requestType);
         $this->requestAreas = empty($options) ? (Ticket::$requestAreaOptions[$this->ticket->requestType] ?? []) : $options;
     }
