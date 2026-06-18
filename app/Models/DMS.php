@@ -40,7 +40,8 @@ class DMS extends Model
         'users',
         'revision',
         'combined_read_count',
-        'extra'
+        'extra',
+        'tags'
     ];
 
     public function departments()
@@ -86,6 +87,7 @@ class DMS extends Model
             'owners' => 'array',
             'users' => 'array',
             'extra' => 'array',
+            'tags' => 'array',
         ];
     }
 }

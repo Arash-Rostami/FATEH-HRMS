@@ -23,6 +23,7 @@ class DMSFactory extends Factory
             'revision' => fake()->paragraph(),
             'combined_read_count' => fake()->numberBetween(0, 100),
             'extra' => [],
+            'tags' => [],
         ];
     }
 }

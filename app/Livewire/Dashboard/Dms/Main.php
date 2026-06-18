@@ -25,6 +25,18 @@ class Main extends Component
     #[Locked]
     public array $docIds = [];
 
+    #[Computed]
+    public function receivePendingCount()
+    {
+        return DMS::visibleToUser()->whereNotIn('id', $this->confirmedDocs)->count();
+    }
+
+    #[Computed]
+    public function readPendingCount()
+    {
+        return DMS::visibleToUser()->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs)->count();
+    }
+
     public function confirmRead(int $docId, ConfirmReadAction $action): void
     {
         $action->execute($docId);
