@@ -9,7 +9,7 @@ class TicketForm extends Form
 {
     public string $requester = '';
     public string $department = '';
-    public string $targetDepartment = 'N/A';
+    public string $targetDepartment = '';
     public array $fileInputs = [];
     public array $requestTypeOptions = [];
 

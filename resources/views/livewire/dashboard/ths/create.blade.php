@@ -4,17 +4,21 @@
     <div class="space-y-4">
         <x-ui.title icon="tune" title="دسته‌بندی تیکت"/>
 
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
-            <x-ui.forms.select label="واحد سازمانی (اختیاری)" name="ticket.targetDepartment"
-                               wire:model.live="ticket.targetDepartment" icon="domain">
-                <option value="N/A">پیش‌فرض (بدون واحد)</option>
-                @foreach ($departmentOptions as $code => $name)
-                    <option value="{{ $code }}">{{ $name }}</option>
-                @endforeach
-            </x-ui.forms.select>
+            <div class="col-span-1 sm:col-span-3">
+                <x-ui.forms.select label="واحد سازمانی ارجاع‌شونده (اختیاری)" name="ticket.targetDepartment"
+                                   wire:model.live="ticket.targetDepartment" icon="domain">
+                    <option value="">انتخاب واحد سازمانی...</option>
+                    <option value="N/A">پیش‌فرض (پشتیبانی عمومی)</option>
+                    @foreach ($departmentOptions as $code => $name)
+                        <option value="{{ $code }}">{{ $name }}</option>
+                    @endforeach
+                </x-ui.forms.select>
+            </div>
 
-            <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
+            @if($this->ticket->targetDepartment !== '')
+                <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
                                wire:model.live="ticket.requestType" icon="category">
                 @foreach ($ticket->requestTypeOptions as  $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
@@ -58,6 +62,7 @@
                 @error('ticket.priority') <p
                         class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
             </div>
+            @endif
 
         </div>
     </div>

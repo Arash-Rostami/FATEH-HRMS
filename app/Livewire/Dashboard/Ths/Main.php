@@ -58,9 +58,9 @@ class Main extends Component
     {
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
-        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($this->ticket->targetDepartment ?? null);
+        $this->ticket->requestTypeOptions = [];
         $this->departmentOptions = \App\Models\Department::pluck('name', 'code')->toArray();
-        $this->loadRequestAreas();
+        // Request areas load only after department is selected
 
         $this->ticketToRate = Ticket::where('requester_id', auth()->id())
             ->where('status', 'closed')

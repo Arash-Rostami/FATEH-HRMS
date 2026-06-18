@@ -186,7 +186,7 @@ trait HasTicketOptions
     {
         $defaults = self::$requestTypeOptions;
 
-        if (!$departmentCode) {
+        if (empty($departmentCode) || $departmentCode === 'N/A') {
             return $defaults;
         }
 
@@ -195,14 +195,14 @@ trait HasTicketOptions
             return $defaults;
         }
 
-        $customTypes = collect($department->ticket_options)
+        return collect($department->ticket_options)
             ->pluck('request_type')
             ->unique()
-            ->filter(fn($type) => !array_key_exists($type, $defaults))
-            ->mapWithKeys(fn($type) => [$type => $type])
+            ->mapWithKeys(function ($type) use ($defaults) {
+                // Use the translated label if it exists in defaults, otherwise use the raw string
+                return [$type => $defaults[$type] ?? $type];
+            })
             ->toArray();
-
-        return array_merge($defaults, $customTypes);
     }
 
     public static function getCustomRequestAreaOptions(?string $departmentCode, string $requestType): array
