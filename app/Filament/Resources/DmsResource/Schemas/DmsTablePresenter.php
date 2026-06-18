@@ -6,8 +6,10 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Department;
 use App\Models\Read;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -52,6 +54,19 @@ class DmsTablePresenter
             ->color(fn($record) => in_array('ALL', $record->owners ?? []) ? 'success' : 'primary')
             ->tooltip(fn($record) => $record->getDepartmentDescriptions() ?? $record->getDepartmentDescriptions())
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function type(): IconColumn
+    {
+        return IconColumn::make('type')
+            ->label(__('resources/dms/strings.fields.type'))
+            ->boolean();
+    }
+
+    public static function typeFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('type')
+            ->label(__('resources/dms/strings.fields.type'));
     }
 
     public static function ownersFilter(): Filter
