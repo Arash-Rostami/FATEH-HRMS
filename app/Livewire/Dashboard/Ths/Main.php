@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Ths\Actions\SubmitTicketAction;
 use App\Livewire\Dashboard\Ths\Forms\RatingForm;
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,6 +30,7 @@ class Main extends Component
     public string $modalTab = 'request';
     public array $requestAreas = [];
     public array $departmentOptions = [];
+
     public int $perPage = 10;
     public string $ticketSearch = '';
 
@@ -58,9 +60,9 @@ class Main extends Component
     {
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
-        $this->ticket->requestTypeOptions = [];
-        $this->departmentOptions = \App\Models\Department::pluck('name', 'code')->toArray();
-        // Request areas load only after department is selected
+        $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
+        $this->departmentOptions = Department::getCachedOptionsExcludingEmptyTickets()->toArray();
+        $this->loadRequestAreas();
 
         $this->ticketToRate = Ticket::where('requester_id', auth()->id())
             ->where('status', 'closed')
@@ -173,11 +175,16 @@ class Main extends Component
 
     public function updatedTicketTargetDepartment($value): void
     {
-        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($value !== 'N/A' ? $value : null);
+        $deptCode = $value !== 'N/A' ? $value : null;
+        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($deptCode);
+
+        if (!array_key_exists($this->ticket->requestType, $this->ticket->requestTypeOptions)) {
+            $this->ticket->requestType = array_key_first($this->ticket->requestTypeOptions) ?? 'support';
+        }
+
         $this->loadRequestAreas();
         $this->ticket->requestArea = '';
     }
-
     public function viewTicket($ticketId): void
     {
         $ticket = Ticket::with('assignee')->find($ticketId);

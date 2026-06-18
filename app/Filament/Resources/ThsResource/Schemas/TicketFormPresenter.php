@@ -134,7 +134,7 @@ class TicketFormPresenter
     {
         return Select::make('extra.target_department')
             ->label('واحد هدف')
-            ->options(\App\Models\Department::pluck('name', 'code'))
+            ->options(\App\Models\Department::getCachedOptionsExcludingEmptyTickets())
             ->searchable()
             ->live()
             ->afterStateUpdated(function (callable $set) {

@@ -46,6 +46,14 @@ class Department extends Model
         );
     }
 
+    public static function getCachedOptionsExcludingEmptyTickets(): Collection
+    {
+        return once(fn() => Cache::remember('department_options_with_tickets',
+            now()->addYear(),
+            fn() => self::whereNotNull('ticket_options')->where('ticket_options', '!=', '[]')->where('ticket_options', '!=', 'null')->orderBy('name')->pluck('name', 'code'))
+        );
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class, 'department_id', 'code');
@@ -83,7 +91,10 @@ class Department extends Model
 
     protected static function booted(): void
     {
-        $forgetCache = fn() => Cache::forget('department_options');
+        $forgetCache = function() {
+            Cache::forget('department_options');
+            Cache::forget('department_options_with_tickets');
+        };
 
         static::saved($forgetCache);
         static::deleted($forgetCache);

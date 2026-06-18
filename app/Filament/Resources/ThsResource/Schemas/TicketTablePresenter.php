@@ -276,7 +276,7 @@ class TicketTablePresenter
     {
         return SelectFilter::make('target_department')
             ->label('واحد هدف')
-            ->options(\App\Models\Department::pluck('name', 'code'))
+            ->options(\App\Models\Department::getCachedOptionsExcludingEmptyTickets())
             ->attribute('extra->target_department');
     }
 
