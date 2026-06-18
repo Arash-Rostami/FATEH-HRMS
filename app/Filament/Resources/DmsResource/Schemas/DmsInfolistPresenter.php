@@ -7,6 +7,7 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
@@ -30,6 +31,12 @@ class DmsInfolistPresenter
             ->placeholder('—');
     }
 
+    public static function type(): IconEntry
+    {
+        return IconEntry::make('type')
+            ->label(__('resources/dms/strings.fields.type'))
+            ->boolean();
+    }
 
 
     public static function createdAt(): TextEntry

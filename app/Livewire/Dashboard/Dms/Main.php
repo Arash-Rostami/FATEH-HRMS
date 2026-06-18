@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,6 +22,8 @@ class Main extends Component
     private const FILTER_LABELS = ['type' => 'دسته بندی'];
 
 
+    #[Url(as: 'tab')]
+    public string $activeTab = 'systematic';
     public string $search = '';
     public ?string $activeFilter = 'all';
     public int $perPage = 10;
@@ -211,11 +214,22 @@ class Main extends Component
     #[Computed]
     public function totalDocs()
     {
-        return DMS::visibleToUser()->count();
+        return DMS::visibleToUser()
+            ->when($this->activeTab === 'systematic', fn($query) => $query->systematic(), fn($query) => $query->nonSystematic())
+            ->count();
     }
 
     public function updatedActiveFilter(): void
     {
+        $this->open = null;
+        $this->loadInitialDocs();
+    }
+
+    public function switchTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->search = "";
+        $this->activeFilter = "all";
         $this->open = null;
         $this->loadInitialDocs();
     }
@@ -233,6 +247,7 @@ class Main extends Component
     {
         return DMS::query()
             ->visibleToUser()
+            ->when($this->activeTab === 'systematic', fn($query) => $query->systematic(), fn($query) => $query->nonSystematic())
             ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
                 ->where('title', 'like', "%{$search}%")
                 ->orWhere('code', 'like', "%{$search}%")

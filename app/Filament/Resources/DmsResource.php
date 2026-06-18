@@ -38,6 +38,7 @@ class DmsResource extends Resource
                     DmsFormPresenter::code(),
                     DmsFormPresenter::version(),
                     DmsFormPresenter::status(),
+                    DmsFormPresenter::type(),
                     DmsFormPresenter::divider(),
                     DmsFormPresenter::file(),
                     DmsFormPresenter::revision(),
@@ -129,6 +130,7 @@ class DmsResource extends Resource
                     DmsInfolistPresenter::code(),
                     DmsInfolistPresenter::version(),
                     DmsInfolistPresenter::status(),
+                    DmsInfolistPresenter::type(),
                     DmsInfolistPresenter::file(),
                     DmsInfolistPresenter::revision(),
 
@@ -165,6 +167,7 @@ class DmsResource extends Resource
                 DmsTablePresenter::code(),
                 DmsTablePresenter::version(),
                 DmsTablePresenter::status(),
+                DmsTablePresenter::type(),
                 DmsTablePresenter::owners(),
                 DmsTablePresenter::usersCount(),
                 DmsTablePresenter::readCount(),
@@ -175,6 +178,7 @@ class DmsResource extends Resource
                 DmsTablePresenter::ownersGroup(),
             ])
             ->filters([
+                DmsTablePresenter::typeFilter(),
                 DmsTablePresenter::ownersFilter(),
                 self::createdAtFilter(),
             ])

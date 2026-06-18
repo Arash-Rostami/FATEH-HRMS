@@ -12,6 +12,7 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
@@ -40,6 +41,14 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.tags'))
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.fields.tags_hint'));
+    }
+
+    public static function type(): Toggle
+    {
+        return Toggle::make('type')
+            ->label(__('resources/dms/strings.fields.type'))
+            ->default(true)
+            ->helperText(__('resources/dms/strings.hints.type'));
     }
 
     public static function extra(): KeyValue
