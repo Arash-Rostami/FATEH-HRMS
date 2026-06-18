@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
@@ -137,7 +137,10 @@ class TicketFormPresenter
             ->options(\App\Models\Department::pluck('name', 'code'))
             ->searchable()
             ->live()
-            ->afterStateUpdated(fn(callable $set) => $set('request_area', null));
+            ->afterStateUpdated(function (callable $set) {
+                $set('request_area', null);
+                $set('request_type', null);
+            });
     }
 
     public static function description(): Textarea
@@ -225,7 +228,7 @@ class TicketFormPresenter
     {
         return Select::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(RequestType::class)
+            ->options(fn (Get $get) => \App\Models\Ticket::getCustomRequestTypeOptions($get('extra.target_department')))
             ->required()
             ->live()
             ->native(false)

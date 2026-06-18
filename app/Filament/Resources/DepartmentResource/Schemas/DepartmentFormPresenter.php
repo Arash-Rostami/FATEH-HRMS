@@ -57,9 +57,9 @@ class DepartmentFormPresenter
         return Repeater::make('ticket_options')
             ->label(__('resources/department/strings.fields.ticket_options'))
             ->schema([
-                Select::make('request_type')
+                TextInput::make('request_type')
                     ->label('نوع درخواست')
-                    ->options(\App\Models\Ticket::$requestTypeOptions)
+                    ->datalist(array_keys(\App\Models\Ticket::$requestTypeOptions))
                     ->required(),
                 TextInput::make('area_key')
                     ->label('کلید حوزه (انگلیسی)')

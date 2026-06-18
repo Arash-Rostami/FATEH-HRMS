@@ -58,7 +58,7 @@ class Main extends Component
     {
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->fileInputs[] = uniqid('', true);
-        $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
+        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($this->ticket->targetDepartment ?? null);
         $this->departmentOptions = \App\Models\Department::pluck('name', 'code')->toArray();
         $this->loadRequestAreas();
 
@@ -173,6 +173,7 @@ class Main extends Component
 
     public function updatedTicketTargetDepartment($value): void
     {
+        $this->ticket->requestTypeOptions = Ticket::getCustomRequestTypeOptions($value !== 'N/A' ? $value : null);
         $this->loadRequestAreas();
         $this->ticket->requestArea = '';
     }

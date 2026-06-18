@@ -182,6 +182,29 @@ trait HasTicketOptions
     }
 
 
+        public static function getCustomRequestTypeOptions(?string $departmentCode): array
+    {
+        $defaults = self::$requestTypeOptions;
+
+        if (!$departmentCode) {
+            return $defaults;
+        }
+
+        $department = \App\Models\Department::find($departmentCode);
+        if (!$department || empty($department->ticket_options)) {
+            return $defaults;
+        }
+
+        $customTypes = collect($department->ticket_options)
+            ->pluck('request_type')
+            ->unique()
+            ->filter(fn($type) => !array_key_exists($type, $defaults))
+            ->mapWithKeys(fn($type) => [$type => $type])
+            ->toArray();
+
+        return array_merge($defaults, $customTypes);
+    }
+
     public static function getCustomRequestAreaOptions(?string $departmentCode, string $requestType): array
     {
         if (!$departmentCode) {
