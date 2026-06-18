@@ -7,6 +7,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Illuminate\Support\Str;
 
 class DepartmentFormPresenter
 {
@@ -67,9 +68,14 @@ class DepartmentFormPresenter
                 TextInput::make('area_label')
                     ->label('عنوان حوزه (فارسی)')
                     ->required(),
-                TextInput::make('icon')
-                    ->label('آیکون (اختیاری)')
-                    ->placeholder('مثال: heroicon-o-check'),
+                Select::make('icon')
+                    ->label(__('resources/department/strings.fields.icon') ?? 'آیکون (اختیاری)')
+                    ->helperText(__('resources/department/strings.hints.icon') ?? '')
+                    ->searchable()
+                    ->native(false)
+                    ->allowHtml()
+                    ->getSearchResultsUsing(fn(string $search) => static::getIconSearchResults($search))
+                    ->getOptionLabelUsing(fn(string $value) => static::getIconOptionLabel($value)),
             ])
             ->columns(4)
             ->defaultItems(0)
@@ -77,4 +83,41 @@ class DepartmentFormPresenter
             ->collapsible()
             ->reorderableWithButtons()
             ->helperText(__('resources/department/strings.hints.ticket_options'));
-    }}
+    }
+
+    private static function formatIconSvg(string $svg): string
+    {
+        $svg = preg_replace('/\s+(width|height)="[^"]*"/', '', $svg);
+        return str_replace('<svg', '<svg class="w-4 h-4"', $svg);
+    }
+
+    private static function getIconOptionLabel(string $value): string
+    {
+        $name = str_replace('heroicon-', '', $value);
+        $name = preg_replace('/[^a-z0-9\-]/', '', $name);
+        $file = base_path("vendor/blade-ui-kit/blade-heroicons/resources/svg/{$name}.svg");
+
+        return static::formatIconSvg(file_exists($file) && is_file($file) ? file_get_contents($file) : '');
+    }
+
+    private static function getIconSearchResults(string $search): array
+    {
+        $search = Str::slug($search);
+
+        if (empty($search)) {
+            return [];
+        }
+
+        $options = [];
+        $files = glob(base_path("vendor/blade-ui-kit/blade-heroicons/resources/svg/*{$search}*.svg"));
+
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                $name = basename($file, '.svg');
+                $options["heroicon-{$name}"] = static::formatIconSvg(file_get_contents($file));
+            }
+        }
+
+        return $options;
+    }
+}
