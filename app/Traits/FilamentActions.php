@@ -121,7 +121,6 @@ trait FilamentActions
     {
         return ViewAction::make()
             ->tooltip(__('resources/general/strings.table.action_view'))
-            ->iconButton()
-            ->slideOver();
+            ->iconButton();
     }
 }

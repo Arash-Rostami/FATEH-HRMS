@@ -129,6 +129,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
+            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
             ->getStateUsing(fn($record) => Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null))
             ->placeholder('—');
     }

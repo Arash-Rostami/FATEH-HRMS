@@ -27,7 +27,8 @@
 
 
                 <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea">
+                                   wire:model.live="ticket.requestArea"
+                                   :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
                     @foreach($requestAreas as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
@@ -69,8 +70,8 @@
     </div>
 
     @if($this->ticket->targetDepartment !== '')
-    {{-- ── Section 2: Content + Attachments ── --}}
-    <div class="space-y-4">
+        {{-- ── Section 2: Content + Attachments ── --}}
+        <div class="space-y-4">
 
             <x-ui.title icon="edit_note" title="محتوای تیکت"/>
 
@@ -174,21 +175,22 @@
                 </div>
 
             </div>
-    </div>
+        </div>
 
-    {{-- ── Actions ── --}}
-    <div class="flex items-center justify-between gap-3 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/50">
-        <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:flex items-center gap-1.5">
-            <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">info</span>
-            فیلدهای * (ضروری) را تکمیل کنید
-        </p>
-        <x-ui.buttons.submit
-            target="submitTicket"
-            text="ثبت درخواست"
-            loading-text="در حال ارسال..."
-            icon="send"
-            class="px-6 h-11 font-bold rounded-xl shadow-md mr-auto"
-        />
-    </div>
+        {{-- ── Actions ── --}}
+        <div
+            class="flex items-center justify-between gap-3 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/50">
+            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] hidden sm:flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">info</span>
+                فیلدهای * (ضروری) را تکمیل کنید
+            </p>
+            <x-ui.buttons.submit
+                target="submitTicket"
+                text="ثبت درخواست"
+                loading-text="در حال ارسال..."
+                icon="send"
+                class="px-6 h-11 font-bold rounded-xl shadow-md mr-auto"
+            />
+        </div>
     @endif
 </form>

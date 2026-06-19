@@ -33,9 +33,9 @@ enum TicketPriority: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): string
     {
         return match ($this) {
-            self::Low => 'heroicon-o-arrow-down',
-            self::Medium => 'heroicon-o-minus',
-            self::High => 'heroicon-o-arrow-up',
+            self::Low => 'heroicon-o-arrow-down-circle',
+            self::Medium => 'heroicon-o-chart-bar-square',
+            self::High => 'heroicon-o-arrow-up-circle',
         };
     }
 }

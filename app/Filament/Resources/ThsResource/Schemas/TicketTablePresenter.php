@@ -63,6 +63,7 @@ class TicketTablePresenter
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->tooltip(fn($record) => self::deadlineDelta($record))
             ->color(fn($record) => self::deadlineColor($record))
+            ->alignRight()
             ->sortable()
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: false);
@@ -174,9 +175,9 @@ class TicketTablePresenter
     {
         return TextColumn::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->formatStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area
-            )
+            ->formatStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area)
             ->searchable()
+            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -275,15 +276,13 @@ class TicketTablePresenter
             ->copyableState(fn($record) => $record->id)
             ->tooltip(__('resources/ths/strings.fields.click_to_copy'))
             ->sortable()
-            ->searchable(['id', 'extra->target_department', 'created_at'])
+            ->searchable(['id', 'extra->target_department'])
             ->color(fn($record) => (
                 $record->completion_deadline && $record->completion_date && $record->completion_date > $record->completion_deadline)
                 ? 'danger' : 'gray'
             )
             ->toggleable(isToggledHiddenByDefault: false);
     }
-
-
 
     public static function typeFilter(): SelectFilter
     {
