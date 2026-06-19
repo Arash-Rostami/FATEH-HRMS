@@ -6,6 +6,7 @@
 @import './core/animation.css';
 @import './core/dashboard.css';
 @import './core/notification.css';
+@import './components/ambient-status.css';
 
 
 @variant dark (&:where(.dark, .dark *));

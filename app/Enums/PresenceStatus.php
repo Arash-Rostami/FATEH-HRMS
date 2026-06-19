@@ -168,4 +168,16 @@ enum PresenceStatus: string
             self::Angry   => '#B00000',
         };
     }
+
+    public function effectType(): string
+    {
+        return match ($this) {
+            self::Onsite  => 'onsite',
+            self::Remote  => 'remote',
+            self::Mission => 'mission',
+            self::Busy    => 'busy',
+            self::Grumpy  => 'grumpy',
+            self::Angry   => 'angry',
+        };
+    }
 }

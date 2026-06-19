@@ -34,6 +34,7 @@ import reservation from "./data/reservation.js";
 import radio from "./data/radio.js";
 import contact from "./data/contact.js";
 import energyChart from "./data/energyChart.js";
+import ambientStatus from "./data/ambientStatus.js";
 
 
 export default function initAlpine() {
@@ -85,6 +86,7 @@ export default function initAlpine() {
         Alpine.data('radio', radio)
         Alpine.data('contact', contact)
         Alpine.data('energyChart', energyChart)
+        Alpine.data('ambientStatus', ambientStatus)
 
     })
 }
