@@ -28,10 +28,10 @@ class InfoPresenter
         3 => ['label' => 'تکمیلی',  'icon' => 'tune',   'sub' => 'تماس و سایر'],
     ];
 
-    public static array $colors = [
-        '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#000000',
-        '#ffffff', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6',
-    ];
+        public static function getColors(): array
+    {
+        return array_map(fn($case) => $case->value, \App\Filament\Resources\ProfileResource\Enums\FavoriteColor::cases());
+    }
 
     public static array $birthYearRange = [];
 
@@ -46,7 +46,7 @@ class InfoPresenter
         return [
             'steps'          => self::$steps,
             'stepFields'     => self::$stepFields,
-            'colors'         => self::$colors,
+            'colors'         => self::getColors(),
             'birthYearRange' => self::$birthYearRange,
             'existingImage'  => $existingImage,
             'departments'    => $departments,

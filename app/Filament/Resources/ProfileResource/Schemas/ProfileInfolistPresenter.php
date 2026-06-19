@@ -11,10 +11,8 @@ use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
 use App\Models\Profile;
-use Filament\Infolists\Components\ColorEntry;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 
 class ProfileInfolistPresenter
 {
@@ -197,21 +195,20 @@ class ProfileInfolistPresenter
             ->placeholder('-');
     }
 
-    public static function favoriteColors(): RepeatableEntry
+                public static function favoriteColors(): \Filament\Infolists\Components\TextEntry
     {
-        return RepeatableEntry::make('favorite_colors')
+        return \Filament\Infolists\Components\TextEntry::make('favorite_colors')
             ->label(__('resources/profile/strings.infolist.favorite_colors'))
-            ->schema([
-                ColorEntry::make('color')
-                    ->label(__('resources/profile/strings.infolist.favorite_colors')),
-            ])
-            ->getStateUsing(fn($record): array => collect($record->favorite_colors ?? [])
-                ->map(fn($v) => ['color' => $v])
-                ->values()
-                ->toArray()
-            )
+            ->badge()
+            ->color(fn ($state) => $state)
             ->columnSpanFull();
     }
+
+
+
+
+
+
 
     public static function field(): TextEntry
     {
