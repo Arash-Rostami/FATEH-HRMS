@@ -45,7 +45,7 @@
     </div>
 
     <!-- Original Card Content -->
-    <div {{ $attributes->except('wire:key') }} class="{{ $attributes->get('class') }} relative z-10 w-full h-full bg-inherit border-inherit shadow-inherit">
+    <div {{ $attributes->except('wire:key')->class('relative z-10 w-full h-full bg-inherit border-inherit shadow-inherit') }}>
         {{ $slot }}
     </div>
 </div>

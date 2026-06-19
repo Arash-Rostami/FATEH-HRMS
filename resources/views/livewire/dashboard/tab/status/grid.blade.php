@@ -5,7 +5,7 @@
         @forelse($this->users as $user)
             @php($p = presence($user->presence))
 
-            <x-status-ambient :status="$p" wire:key="user-{{ $user->id }}"
+            <x-status-ambient :status="$p" wire:key="user-{{ $user->id }}-{{ $p->effectType() }}"
                  x-data
                  title="{{ $p->sublabel() }}"
                  x-transition:enter="transition ease-out duration-300"
