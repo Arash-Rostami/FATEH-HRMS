@@ -18,18 +18,23 @@
             </div>
 
             @if($this->ticket->targetDepartment !== '')
-                <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                                   wire:model.live="ticket.requestType" icon="category">
+                                <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
+                                   wire:model.live="ticket.requestType" icon="category" hasIcons>
                     @foreach ($ticket->requestTypeOptions as  $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+                        @php $svg = Blade::render("<x-icon name='" . \App\Models\Ticket::getHeroiconForType($value) . "' class='w-5 h-5' />"); @endphp
+                        <option value="{{ $value }}" data-svg="{{ $svg }}">
+                            {{ $label }}
+                        </option>
                     @endforeach
                 </x-ui.forms.select>
 
-
                 <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea">
+                                   wire:model.live="ticket.requestArea" icon="location_on" hasIcons>
                     @foreach($requestAreas as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+                        @php $svg = Blade::render("<x-icon name='" . \App\Models\Ticket::getCustomHeroiconForArea($value, $this->ticket->targetDepartment) . "' class='w-5 h-5' />"); @endphp
+                        <option value="{{ $value }}" data-svg="{{ $svg }}">
+                            {{ $label }}
+                        </option>
                     @endforeach
                 </x-ui.forms.select>
 

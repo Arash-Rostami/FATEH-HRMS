@@ -174,8 +174,8 @@ class TicketTablePresenter
     {
         return TextColumn::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->formatStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area
-            )
+            ->formatStateUsing(fn($record) => Ticket::getCustomAdminAreaLabelHtml($record->request_type, $record->request_area, $record->extra['target_department'] ?? null))
+            ->html()
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
