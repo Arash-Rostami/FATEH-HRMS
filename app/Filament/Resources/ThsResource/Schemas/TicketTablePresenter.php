@@ -170,12 +170,13 @@ class TicketTablePresenter
             ->options(TicketPriority::class);
     }
 
-    public static function requestArea(): TextColumn
+        public static function requestArea(): TextColumn
     {
         return TextColumn::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->formatStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area
+            ->formatStateUsing(fn($record) => \App\Models\Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area
             )
+            ->icon(fn($record) => \App\Models\Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: true);
     }

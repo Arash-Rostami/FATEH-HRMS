@@ -125,11 +125,12 @@ class TicketInfolistPresenter
             ->badge();
     }
 
-    public static function requestArea(): TextEntry
+        public static function requestArea(): TextEntry
     {
         return TextEntry::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
             ->getStateUsing(fn($record) => Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null))
+            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
             ->placeholder('—');
     }
 

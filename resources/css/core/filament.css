@@ -436,6 +436,7 @@
         border-radius: 0 1rem 1rem 0 !important;
         margin-inline-start: auto !important;
         margin-inline-end: 0 !important;
+        animation: none !important;
     }
 
 
@@ -894,7 +895,7 @@
 
     .fi-modal-window {
         @apply !rounded-2xl !mx-3;
-        animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+
     }
 
     .fi-ta {
