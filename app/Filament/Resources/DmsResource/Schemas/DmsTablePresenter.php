@@ -6,8 +6,10 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Department;
 use App\Models\Read;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -134,6 +136,19 @@ class DmsTablePresenter
             ->getKeyFromRecordUsing(fn($record): string => (string)$record?->status)
             ->titlePrefixedWithLabel(false)
             ->collapsible();
+    }
+
+    public static function type(): IconColumn
+    {
+        return IconColumn::make('type')
+            ->label(__('resources/dms/strings.fields.type'))
+            ->boolean();
+    }
+
+    public static function typeFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('type')
+            ->label(__('resources/dms/strings.fields.type'));
     }
 
 

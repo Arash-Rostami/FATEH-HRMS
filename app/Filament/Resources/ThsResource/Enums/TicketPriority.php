@@ -15,9 +15,9 @@ enum TicketPriority: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Low => 'پایین',
-            self::Medium => 'متوسط',
-            self::High => 'بالا',
+            self::Low => 'عادی',
+            self::Medium => 'فوری',
+            self::High => 'خیلی فوری',
         };
     }
 

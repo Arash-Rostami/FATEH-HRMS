@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DmsResource\Schemas;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -21,17 +22,6 @@ class DmsInfolistPresenter
             ->copyable();
     }
 
-    public static function tags(): TextEntry
-    {
-        return TextEntry::make('tags')
-            ->label(__('resources/dms/strings.fields.tags'))
-            ->badge()
-            ->separator(',')
-            ->placeholder('—');
-    }
-
-
-
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
@@ -43,7 +33,6 @@ class DmsInfolistPresenter
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
-
 
     public static function extra(): KeyValueEntry
     {
@@ -141,12 +130,28 @@ class DmsInfolistPresenter
             ->badge();
     }
 
+    public static function tags(): TextEntry
+    {
+        return TextEntry::make('tags')
+            ->label(__('resources/dms/strings.fields.tags'))
+            ->badge()
+            ->separator(',')
+            ->placeholder('—');
+    }
+
     public static function title(): TextEntry
     {
         return TextEntry::make('title')
             ->label(__('resources/dms/strings.fields.title'))
             ->size(TextSize::Medium)
             ->columnSpanFull();
+    }
+
+    public static function type(): IconEntry
+    {
+        return IconEntry::make('type')
+            ->label(__('resources/dms/strings.fields.type'))
+            ->boolean();
     }
 
     public static function updatedAt(): TextEntry

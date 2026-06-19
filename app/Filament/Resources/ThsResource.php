@@ -40,8 +40,9 @@ class ThsResource extends Resource
                                 ->schema([
                                     TicketFormPresenter::requesterId(),
                                     TicketFormPresenter::departmentDisplay(),
+                                    TicketFormPresenter::targetDepartment(),
                                 ])
-                                ->columns(2),
+                                ->columns(3),
 
                             Section::make(__('resources/ths/strings.form.section_request'))
                                 ->icon('heroicon-o-document-text')
@@ -159,6 +160,7 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::requestArea(),
                                     TicketInfolistPresenter::requester(),
                                     TicketInfolistPresenter::department(),
+                                    TicketInfolistPresenter::targetDepartment(),
                                     TicketInfolistPresenter::subject(),
                                     TicketInfolistPresenter::description(),
                                     TicketInfolistPresenter::requesterFiles(),
@@ -205,6 +207,7 @@ class ThsResource extends Resource
         return $table
             ->columns([
                 TicketTablePresenter::ticketId(),
+                TicketTablePresenter::targetDepartment(),
                 TicketTablePresenter::status(),
                 TicketTablePresenter::requester(),
                 TicketTablePresenter::priority(),
@@ -225,6 +228,7 @@ class ThsResource extends Resource
                 TicketTablePresenter::typeGroup(),
             ])
             ->filters([
+                TicketTablePresenter::departmentFilter(),
                 TicketTablePresenter::priorityFilter(),
                 TicketTablePresenter::typeFilter(),
                 TicketTablePresenter::assigneeFilter(),

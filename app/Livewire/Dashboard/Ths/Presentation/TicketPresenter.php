@@ -10,7 +10,10 @@ class TicketPresenter
     public function formatId(?array $ticket): string
     {
         if (!$ticket) return '';
-        return sprintf('T-%s-%04d', Carbon::parse($ticket['created_at'])->format('ym'), (int) $ticket['id']);
+
+        $prefix = $ticket['extra']['target_department'] ?? 'T';
+
+        return sprintf('%s-%s-%04d', strtoupper($prefix), Carbon::parse($ticket['created_at'])->format('ym'), (int) $ticket['id']);
     }
 
     public function formatTimestamp(?array $ticket, string $col): string
@@ -19,14 +22,13 @@ class TicketPresenter
         return Carbon::parse($ticket[$col])->diffForHumans();
     }
 
-    public function requestAreaLabel(string $requestType, string $requestArea): string
+    public function requestAreaLabel(string $requestType, string $requestArea, ?string $department = null): string
     {
-        return (Ticket::$requestAreaOptions[$requestType] ?? [])[$requestArea] ?? 'یافت نشد';
+        return Ticket::getCustomRequestAreaLabel($requestType, $requestArea, $department);
     }
 
-    public function requestAreaIcon(?string $area, string $fallback = 'location_on'): string
+    public function requestAreaIcon(?string $area, ?string $department = null, string $fallback = 'location_on'): string
     {
-        return $area ? Ticket::getMaterialIconForArea($area) : $fallback;
+        return $area ? Ticket::getCustomMaterialIconForArea($area, $department) : $fallback;
     }
-
 }

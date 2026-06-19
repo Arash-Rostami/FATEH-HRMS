@@ -12,11 +12,11 @@
             <p class="font-bold mb-1">اقدام مورد نیاز</p>
             در کارتابل شما،
             @if($this->receivePendingCount > 0)
-                <span class="font-bold">{{ $this->receivePendingCount }}</span> سند نیاز به تایید دریافت
+                <span class="font-bold">{{ convertToPersian($this->receivePendingCount) }}</span> سند نیاز به تایید دریافت
             @endif
             @if($this->receivePendingCount > 0 && $this->readPendingCount > 0) و @endif
             @if($this->readPendingCount > 0)
-                <span class="font-bold">{{ $this->readPendingCount }}</span> سند نیاز به تایید مطالعه
+                <span class="font-bold">{{ convertToPersian($this->readPendingCount) }}</span> سند نیاز به تایید مطالعه
             @endif
             دارند؛ لطفاً اقدام بفرمایید. این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می شود.
         </div>

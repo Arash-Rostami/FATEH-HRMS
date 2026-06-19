@@ -17,14 +17,17 @@ class SubmitTicketAction
             ->filter()->toArray();
 
         Ticket::create([
-            'request_type'    => $form->requestType,
-            'request_area'    => $form->requestArea,
-            'priority'        => $form->priority,
+            'request_type' => $form->requestType,
+            'request_area' => $form->requestArea,
+            'priority' => $form->priority,
             'request_subject' => $form->subject,
-            'description'     => $form->description,
+            'description' => $form->description,
             'requester_files' => $this->storeFiles($form->files) ?: null,
-            'requester_id'    => auth()->id(),
-            'extra'           => ['department' => $form->department ?? 'N/A'],
+            'requester_id' => auth()->id(),
+            'extra' => [
+                'department' => $form->department ?? 'N/A',
+                'target_department' => empty($form->targetDepartment) ? 'N/A' : $form->targetDepartment
+            ]
         ]);
     }
 

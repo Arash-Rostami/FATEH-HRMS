@@ -61,7 +61,7 @@
                 @php
                     $prio = $priorityMap[$ticket->priority] ?? null;
                     $stat = $statusMap[$ticket->status] ?? null;
-                    $fId = 'TN-' . $ticket->created_at->format('ym') . '-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT);
+                    $fId = $presenter->formatId($ticket->toArray());
                 @endphp
                 <tr wire:key="ticket-{{ $ticket->id }}" data-rf="ticket-{{ $ticket->id }}" class="hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer"
                     wire:click="viewTicket({{ $ticket->id }}); $dispatch('ths-modal')">

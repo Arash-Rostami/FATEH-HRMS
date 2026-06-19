@@ -45,6 +45,7 @@ class DepartmentResource extends Resource
                     DepartmentFormPresenter::name(),
                     DepartmentFormPresenter::divider(),
                     DepartmentFormPresenter::description(),
+                    DepartmentFormPresenter::ticketOptions(),
                 ])
                 ->columnSpanFull()
                 ->columns(2),

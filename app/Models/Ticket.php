@@ -7,6 +7,7 @@ use App\Models\Traits\HasTicketOptions;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Ticket extends Model
 {
@@ -45,6 +46,26 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'requester_id');
     }
 
+    protected function departmentId(): Attribute
+    {
+        return Attribute::make(get: fn() => $this->extra['department'] ?? null);
+    }
+
+    protected function targetDepartmentId(): Attribute
+    {
+        return Attribute::make(get: fn() => $this->extra['target_department'] ?? null);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function targetDepartment(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'target_department_id');
+    }
+
     protected function casts(): array
     {
         return [
@@ -73,10 +94,7 @@ class Ticket extends Model
     {
         return Attribute::make(
             set: function ($value) {
-                $scalar = $value instanceof \BackedEnum ? $value->value : (string)$value;
-                return in_array(strtolower($scalar), ['support', 'access', 'development'])
-                    ? strtolower($scalar)
-                    : 'support';
+                return $value instanceof \BackedEnum ? $value->value : (string)$value;
             }
         );
     }

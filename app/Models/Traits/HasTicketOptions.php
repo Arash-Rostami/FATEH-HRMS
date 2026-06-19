@@ -2,6 +2,7 @@
 
 namespace App\Models\Traits;
 
+use App\Models\Department;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 
@@ -63,58 +64,125 @@ trait HasTicketOptions
         ],
     ];
 
-    public static function getRequestAreaOptions(string $requestType, ?string $requestArea): string
+    public function getAdminAreaBadge(): HtmlString
     {
-        return self::$requestAreaOptions[$requestType][$requestArea] ?? 'یافت نشد';
+        return new HtmlString(self::getCustomAdminAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
     }
 
-    public static function getMaterialIconForArea(?string $area): string
+    public static function getAdminAreaLabelHtml(string $requestType, string $areaKey): string
     {
-        $icons = [
-            'windows_office' => 'desktop_windows',
-            'vpn' => 'vpn_key',
-            'voip_telephone' => 'phone_in_talk',
-            'printer_scanner' => 'print',
-            'remote_working' => 'home_work',
-            'host_domain' => 'dns',
-            'backups_restore' => 'settings_backup_restore',
-            'purchase_requests' => 'shopping_cart',
-            'generate_bi_reports' => 'monitoring',
-            'hardware_equipment' => 'devices',
-            'software_license' => 'key',
-            'security_antivirus' => 'security',
-            'cctv_security' => 'videocam',
-            'training_guidance' => 'school',
-            'bi' => 'query_stats',
-            'rahkaran' => 'business',
-            'file_server' => 'folder_shared',
-            'mizito' => 'extension',
-            'chargoon' => 'settings_applications',
-            'hrms' => 'groups',
-            'bms' => 'factory',
-            'sarv_crm' => 'handshake',
-            'email' => 'email',
-            'active_directory' => 'badge',
-            'password_reset' => 'lock_reset',
-            'internet_proxy' => 'router',
-            'database' => 'database',
-            'project_management' => 'checklist',
-            'physical_access' => 'meeting_room',
-            'microservice' => 'grid_view',
-            'application' => 'app_shortcut',
-            'automation' => 'smart_toy',
-            'feature_request' => 'add_task',
-            'api_integration' => 'api',
-            'db_optimization' => 'speed',
-            'other' => 'more_horiz',
-        ];
+        $label = self::getRequestAreaOptions($requestType, $areaKey);
 
-        return $icons[$area] ?? 'help_outline';
+        if ($areaKey === '') {
+            return $label;
+        }
+
+        $icon = self::getHeroiconForArea($areaKey);
+
+        return Blade::render(
+            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
+        );
+    }
+
+    public static function getCustomAdminAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
+    {
+        $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
+
+        if ($areaKey === '') {
+            return $label;
+        }
+
+        $icon = self::getCustomHeroiconForArea($areaKey, $departmentCode);
+
+        return Blade::render(
+            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
+        );
+    }
+
+    public static function getCustomHeroiconForArea(?string $area, ?string $departmentCode = null): string
+    {
+        return self::extractCustomIcon($area, $departmentCode) ?? self::getHeroiconForArea($area);
+    }
+
+    public static function getCustomMaterialIconForArea(?string $area, ?string $departmentCode = null): string
+    {
+        return self::extractCustomIcon($area, $departmentCode) ?? self::getMaterialIconForArea($area);
+    }
+
+    public static function getCustomRequestAreaLabel(string $requestType, string $requestArea, ?string $departmentCode = null): string
+    {
+        $options = self::getCustomRequestAreaOptions($departmentCode, $requestType);
+
+        return $options[$requestArea] ?? self::getRequestAreaOptions($requestType, $requestArea);
+    }
+
+    public static function getCustomRequestAreaOptions(?string $departmentCode, string $requestType): array
+    {
+        $defaults = self::$requestAreaOptions[$requestType] ?? [];
+        $options = self::fetchDepartmentTicketOptions($departmentCode);
+
+        if (!$options) {
+            return $defaults;
+        }
+
+        $customOptions = [];
+
+        foreach ($options as $opt) {
+            if (($opt['request_type'] ?? null) === $requestType && !empty($opt['area_key'])) {
+                $customOptions[$opt['area_key']] = $opt['area_label'] ?? '';
+            }
+        }
+
+        if (empty($customOptions)) {
+            return $defaults;
+        }
+
+        return ['' => 'انتخاب نمایید'] + $customOptions;
+    }
+
+    public static function getCustomRequestTypeOptions(?string $departmentCode): array
+    {
+        $defaults = self::$requestTypeOptions;
+        $options = self::fetchDepartmentTicketOptions($departmentCode);
+
+        if (!$options) {
+            return $defaults;
+        }
+
+        $types = [];
+        foreach ($options as $opt) {
+            if (isset($opt['request_type'])) {
+                $type = $opt['request_type'];
+                $types[$type] = $defaults[$type] ?? $type;
+            }
+        }
+        return $types ?: $defaults;
+    }
+
+    public static function getCustomUserAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
+    {
+        $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
+
+        if ($areaKey === '') {
+            return $label;
+        }
+
+        $icon = self::getCustomMaterialIconForArea($areaKey, $departmentCode);
+
+        return "<div class='flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'>
+                    <span class='material-symbols-rounded text-primary-500 text-xl'>{$icon}</span>
+                    <span class='text-sm font-medium text-gray-800 dark:text-gray-200'>{$label}</span>
+                </div>";
+    }
+
+    public function getHeroicon(): string
+    {
+        return self::getCustomHeroiconForArea($this->request_area, $this->extra['target_department'] ?? null);
     }
 
     public static function getHeroiconForArea(?string $area): string
     {
-        $icons = [
+        static $icons = [
             'windows_office' => 'heroicon-o-computer-desktop',
             'vpn' => 'heroicon-o-globe-alt',
             'voip_telephone' => 'heroicon-o-phone',
@@ -156,22 +224,72 @@ trait HasTicketOptions
         return $icons[$area] ?? 'heroicon-o-question-mark-circle';
     }
 
-    public static function getAdminAreaLabelHtml(string $requestType, string $areaKey): string
+    public function getMaterialIcon(): string
     {
-        $label = self::getRequestAreaOptions($requestType, $areaKey);
-        if ($areaKey === '') return $label;
+        return self::getCustomMaterialIconForArea($this->request_area, $this->extra['target_department'] ?? null);
+    }
 
-        $icon = self::getHeroiconForArea($areaKey);
+    public static function getMaterialIconForArea(?string $area): string
+    {
+        static $icons = [
+            'windows_office' => 'desktop_windows',
+            'vpn' => 'vpn_key',
+            'voip_telephone' => 'phone_in_talk',
+            'printer_scanner' => 'print',
+            'remote_working' => 'home_work',
+            'host_domain' => 'dns',
+            'backups_restore' => 'settings_backup_restore',
+            'purchase_requests' => 'shopping_cart',
+            'generate_bi_reports' => 'monitoring',
+            'hardware_equipment' => 'devices',
+            'software_license' => 'key',
+            'security_antivirus' => 'security',
+            'cctv_security' => 'videocam',
+            'training_guidance' => 'school',
+            'bi' => 'query_stats',
+            'rahkaran' => 'business',
+            'file_server' => 'folder_shared',
+            'mizito' => 'extension',
+            'chargoon' => 'settings_applications',
+            'hrms' => 'groups',
+            'bms' => 'factory',
+            'sarv_crm' => 'handshake',
+            'email' => 'email',
+            'active_directory' => 'badge',
+            'password_reset' => 'lock_reset',
+            'internet_proxy' => 'router',
+            'database' => 'database',
+            'project_management' => 'checklist',
+            'physical_access' => 'meeting_room',
+            'microservice' => 'grid_view',
+            'application' => 'app_shortcut',
+            'automation' => 'smart_toy',
+            'feature_request' => 'add_task',
+            'api_integration' => 'api',
+            'db_optimization' => 'speed',
+            'other' => 'more_horiz',
+        ];
 
-        return Blade::render(
-            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
-        );
+        return $icons[$area] ?? 'help_outline';
+    }
+
+    public static function getRequestAreaOptions(string $requestType, ?string $requestArea): string
+    {
+        return self::$requestAreaOptions[$requestType][$requestArea] ?? 'یافت نشد';
+    }
+
+    public function getUserAreaBadge(): HtmlString
+    {
+        return new HtmlString(self::getCustomUserAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
     }
 
     public static function getUserAreaLabelHtml(string $requestType, string $areaKey): string
     {
         $label = self::getRequestAreaOptions($requestType, $areaKey);
-        if ($areaKey === '') return $label;
+
+        if ($areaKey === '') {
+            return $label;
+        }
 
         $icon = self::getMaterialIconForArea($areaKey);
 
@@ -181,23 +299,37 @@ trait HasTicketOptions
                 </div>";
     }
 
-    public function getMaterialIcon(): string
+    private static function extractCustomIcon(?string $area, ?string $departmentCode): ?string
     {
-        return self::getMaterialIconForArea($this->request_area);
+        $options = self::fetchDepartmentTicketOptions($departmentCode);
+
+        if ($options) {
+            foreach ($options as $opt) {
+                if (($opt['area_key'] ?? null) === $area && !empty($opt['icon'])) {
+                    return $opt['icon'];
+                }
+            }
+        }
+
+        return null;
     }
 
-    public function getHeroicon(): string
+    private static function fetchDepartmentTicketOptions(?string $departmentCode): ?array
     {
-        return self::getHeroiconForArea($this->request_area);
-    }
+        if (!$departmentCode) {
+            return null;
+        }
 
-    public function getAdminAreaBadge(): HtmlString
-    {
-        return new HtmlString(self::getAdminAreaLabelHtml($this->request_type, $this->request_area));
-    }
+        static $cache = [];
 
-    public function getUserAreaBadge(): HtmlString
-    {
-        return new HtmlString(self::getUserAreaLabelHtml($this->request_type, $this->request_area));
+        if (array_key_exists($departmentCode, $cache)) {
+            return $cache[$departmentCode];
+        }
+
+        $department = Department::find($departmentCode);
+        $options = $department && !empty($department->ticket_options) ? $department->ticket_options : null;
+        $cache[$departmentCode] = $options;
+
+        return $options;
     }
 }

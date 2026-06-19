@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,7 +21,8 @@ class Main extends Component
 
     private const FILTER_LABELS = ['type' => 'دسته بندی'];
 
-
+    #[Url(as: 'tab')]
+    public string $activeTab = 'systematic';
     public string $search = '';
     public ?string $activeFilter = 'all';
     public int $perPage = 10;
@@ -35,7 +37,7 @@ class Main extends Component
     }
 
     #[Computed]
-    public function confirmedDocs()
+    public function confirmedDocs(): array
     {
         return Read::where('user_id', auth()->id())
             ->where('read', true)
@@ -47,12 +49,15 @@ class Main extends Component
     #[Computed]
     public function docs()
     {
-        if (empty($this->docIds)) return collect();
+        if (empty($this->docIds)) {
+            return collect();
+        }
 
-        $idsString = implode(',', $this->docIds);
+        $safeIds = array_map('intval', $this->docIds);
+        $idsString = implode(',', $safeIds);
 
         return DMS::with('reads')
-            ->whereIn('id', $this->docIds)
+            ->whereIn('id', $safeIds)
             ->orderByRaw("FIELD(id, {$idsString})")
             ->get();
     }
@@ -67,29 +72,40 @@ class Main extends Component
     {
         $groups = [];
 
-        DMS::visibleToUser()->get()->each(function ($item) use (&$groups) {
-            foreach (['type', 'Type'] as $k) {
-                foreach ((array)($item->extra[$k] ?? []) as $v) {
-                    if ($v) $groups['type'][] = $v;
+        $this->applyTabFilter(DMS::visibleToUser())
+            ->get()
+            ->each(function ($item) use (&$groups) {
+                foreach (['type', 'Type'] as $k) {
+                    foreach ((array)($item->extra[$k] ?? []) as $v) {
+                        if ($v) {
+                            $groups['type'][] = $v;
+                        }
+                    }
                 }
-            }
-            foreach (($item->tags ?? []) as $key => $vals) {
-                $group = strtolower($key) === 'type' ? 'type' : strtolower($key);
-                foreach ((array)$vals as $v) {
-                    if ($v) $groups[$group][] = $v;
+                foreach (($item->tags ?? []) as $key => $vals) {
+                    $group = strtolower($key);
+                    foreach ((array)$vals as $v) {
+                        if ($v) {
+                            $groups[$group][] = $v;
+                        }
+                    }
                 }
-            }
-        });
+            });
 
         return array_map(fn($v) => array_values(array_unique($v)), $groups);
     }
 
     public function getAuthorizedFile(string $filename): Response
     {
-        $doc = DMS::visibleToUser()->where('file', basename($filename))->first();
-        if (!$doc) return response()->view('errors.document-not-found', [], 404);
+        $safeFilename = basename($filename);
+        $doc = DMS::visibleToUser()->where('file', $safeFilename)->first();
 
-        $filePath = Storage::disk('public')->path($filename);
+        if (!$doc) {
+            return response()->view('errors.document-not-found', [], 404);
+        }
+
+        $filePath = Storage::disk('public')->path($safeFilename);
+
         if (!file_exists($filePath) || !is_file($filePath)) {
             return response()->view('errors.document-not-found', [], 404);
         }
@@ -114,7 +130,9 @@ class Main extends Component
 
     public function loadMore(): void
     {
-        if (!$this->hasMorePages) return;
+        if (!$this->hasMorePages) {
+            return;
+        }
 
         $newIds = $this->getBaseQuery()
             ->skip(count($this->docIds))
@@ -133,8 +151,6 @@ class Main extends Component
 
     public function mount(): void
     {
-        // FOCUS MODE: when arriving from the command palette with ?open={id},
-        // show nothing but that single document (if the user is allowed to see it).
         if ($this->open && DMS::visibleToUser()->whereKey($this->open)->exists()) {
             $this->docIds = [$this->open];
             $this->hasMorePages = false;
@@ -153,7 +169,7 @@ class Main extends Component
     }
 
     #[Computed]
-    public function readDocs()
+    public function readDocs(): array
     {
         return Read::where('user_id', auth()->id())
             ->where('read', true)
@@ -164,15 +180,20 @@ class Main extends Component
     }
 
     #[Computed]
-    public function readPendingCount()
+    public function readPendingCount(): int
     {
-        return DMS::visibleToUser()->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs)->count();
+        return $this->applyTabFilter(DMS::visibleToUser())
+            ->whereIn('id', $this->confirmedDocs)
+            ->whereNotIn('id', $this->readDocs)
+            ->count();
     }
 
     #[Computed]
-    public function receivePendingCount()
+    public function receivePendingCount(): int
     {
-        return DMS::visibleToUser()->whereNotIn('id', $this->confirmedDocs)->count();
+        return $this->applyTabFilter(DMS::visibleToUser())
+            ->whereNotIn('id', $this->confirmedDocs)
+            ->count();
     }
 
     public function render()
@@ -182,36 +203,25 @@ class Main extends Component
             ->section('content');
     }
 
-//    #[Computed]
-//    public function types()
-//    {
-//        return DMS::visibleToUser()
-//            ->get()
-//            ->flatMap(function ($item) {
-//                $types = [];
-//                if (isset($item->extra['Type'])) $types[] = $item->extra['Type'];
-//                if (isset($item->extra['type'])) $types[] = $item->extra['type'];
-//                if (!empty($item->tags) && is_array($item->tags)) {
-//                    $types = array_merge($types, $item->tags);
-//                }
-//                return $types;
-//            })
-//            ->filter()
-//            ->unique()
-//            ->values();
-//    }
-
-    /** Called by FocusOnRecord::clearFocus() when the user taps "show all". */
     public function restoreAfterFocus(): void
     {
         $this->hasMorePages = true;
         $this->loadInitialDocs();
     }
 
-    #[Computed]
-    public function totalDocs()
+    public function switchTab(string $tab): void
     {
-        return DMS::visibleToUser()->count();
+        $this->activeTab = $tab;
+        $this->search = "";
+        $this->activeFilter = "all";
+        $this->open = null;
+        $this->loadInitialDocs();
+    }
+
+    #[Computed]
+    public function totalDocs(): int
+    {
+        return $this->applyTabFilter(DMS::visibleToUser())->count();
     }
 
     public function updatedActiveFilter(): void
@@ -226,13 +236,19 @@ class Main extends Component
         $this->loadInitialDocs();
     }
 
-    protected function recordFocusType(): string { return 'dms'; }
+    protected function recordFocusType(): string
+    {
+        return 'dms';
+    }
 
+    private function applyTabFilter(Builder $query): Builder
+    {
+        return $this->activeTab === 'systematic' ? $query->systematic() : $query->nonSystematic();
+    }
 
     private function getBaseQuery(): Builder
     {
-        return DMS::query()
-            ->visibleToUser()
+        return $this->applyTabFilter(DMS::visibleToUser())
             ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
                 ->where('title', 'like', "%{$search}%")
                 ->orWhere('code', 'like', "%{$search}%")
@@ -243,16 +259,20 @@ class Main extends Component
                 ->orWhereJsonContains('extra->Type', $search)
             ))
             ->when($this->activeFilter !== 'all', function ($query) {
-                [$key, $value] = explode('|', $this->activeFilter, 2) + ['', ''];
+                $parts = explode('|', $this->activeFilter, 2);
+                $key = $parts[0] ?? '';
+                $value = $parts[1] ?? '';
+
                 $key === 'type'
                     ? $query->where(fn($q) => $q
                     ->whereJsonContains('extra->type', $value)
                     ->orWhereJsonContains('extra->Type', $value)
-                    ->orWhereJsonContains('tags->type', $value)
-                    ->orWhereJsonContains('tags->Type', $value)
+                    ->whereJsonContains('tags->type', $value, 'or')
+                    ->whereJsonContains('tags->Type', $value, 'or')
                 )
-                    : $query->where(fn($q) => $q->whereJsonContains("tags->{$key}", $value)
-                    ->orWhereJsonContains("tags->" . ucfirst($key), $value)
+                    : $query->where(fn($q) => $q
+                    ->whereJsonContains("tags->{$key}", $value)
+                    ->whereJsonContains("tags->" . ucfirst($key), $value, 'or')
                 );
             })
             ->latest();

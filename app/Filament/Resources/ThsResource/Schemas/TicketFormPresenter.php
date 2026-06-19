@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
+use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
@@ -21,6 +22,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 class TicketFormPresenter
 {
     use FilamentFormDivider;
+
     public static function actionResult(): Textarea
     {
         return Textarea::make('action_result')
@@ -178,11 +180,12 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.request_area'))
             ->options(function (Get $get) {
                 $type = $get('request_type');
+                $dept = $get('extra.target_department');
                 $key = $type instanceof \BackedEnum ? $type->value : (string)$type;
 
-                return collect(Ticket::$requestAreaOptions[$key] ?? [])
+                return collect(Ticket::getCustomRequestAreaOptions($dept, $key))
                     ->filter(fn($label, $areaKey) => $areaKey !== '')
-                    ->map(fn($label, $areaKey) => Ticket::getAdminAreaLabelHtml($key, $areaKey))
+                    ->map(fn($label, $areaKey) => Ticket::getCustomAdminAreaLabelHtml($key, $areaKey, $dept))
                     ->toArray();
             })
             ->preload()
@@ -214,7 +217,7 @@ class TicketFormPresenter
     {
         return Select::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(RequestType::class)
+            ->options(fn(Get $get) => Ticket::getCustomRequestTypeOptions($get('extra.target_department')))
             ->required()
             ->live()
             ->native(false)
@@ -293,6 +296,16 @@ class TicketFormPresenter
                 $set('completion_date', $state?->value === 'closed' ? now()->format('Y-m-d H:i:s') : null);
             })
             ->validationMessages(['required' => __('resources/ths/strings.validation.status.required')]);
+    }
+
+    public static function targetDepartment(): Select
+    {
+        return Select::make('extra.target_department')
+            ->label(__('resources/ths/strings.fields.target_department'))
+            ->options(fn() => Department::getCachedOptions()->toArray())
+            ->searchable()
+            ->live()
+            ->afterStateUpdated(fn(callable $set) => $set('request_area', null));
     }
 
     private static function acceptedMimeTypes(): array

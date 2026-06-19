@@ -85,7 +85,6 @@
                                     @endif
                                 </div>
 
-                                {{-- Depth layer for premium dictionary tab look --}}
                                 <div
                                     class="absolute inset-0 rounded-r-3xl border border-white/20 pointer-events-none"></div>
                             </div>

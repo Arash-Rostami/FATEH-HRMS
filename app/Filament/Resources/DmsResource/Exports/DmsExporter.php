@@ -27,6 +27,10 @@ class DmsExporter extends Exporter
             ExportColumn::make('version')
                 ->label(__('resources/dms/strings.fields.version')),
 
+            ExportColumn::make('type')
+                ->label(__('resources/dms/strings.fields.type'))
+                ->state(fn($record) => $record->type ? __('resources/dms/strings.type.systematic') : __('resources/dms/strings.type.non_systematic')),
+
             ExportColumn::make('status')
                 ->label(__('resources/dms/strings.fields.status'))
                 ->state(fn($record) => DocumentStatus::tryFrom($record->status)?->getLabel() ?? $record->status),

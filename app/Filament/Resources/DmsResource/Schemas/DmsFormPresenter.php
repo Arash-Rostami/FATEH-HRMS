@@ -13,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -32,6 +33,19 @@ class DmsFormPresenter
                 'required' => __('resources/dms/strings.validation.code.required'),
                 'max' => __('resources/dms/strings.validation.code.max_length'),
             ]);
+    }
+
+    public static function type(): Toggle
+    {
+        return Toggle::make('type')
+            ->label(__('resources/dms/strings.fields.type_label'))
+            ->default(true)
+            ->columnSpanFull()
+            ->live()
+            ->helperText(fn ($state) => $state
+                ? __('resources/dms/strings.hints.type.systematic')
+                : __('resources/dms/strings.hints.type.non_systematic')
+            );
     }
 
     public static function tags(): KeyValue

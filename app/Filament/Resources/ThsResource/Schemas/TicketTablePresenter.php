@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
+use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
+use App\Models\Department;
 use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
 use App\Models\Ticket;
 use Carbon\Carbon;
@@ -105,12 +107,20 @@ class TicketTablePresenter
 
     public static function department(): TextColumn
     {
-        return TextColumn::make('extra.department')
+        return TextColumn::make('department.description')
             ->label(__('resources/ths/strings.fields.department'))
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function targetDepartment(): TextColumn
+    {
+        return TextColumn::make('targetDepartment.description')
+            ->label(__('resources/ths/strings.fields.target_department'))
+            ->icon('heroicon-o-building-office')
+            ->placeholder(__('resources/ths/strings.fields.target_department_default'))
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
     public static function effectiveness(): TextColumn
     {
         return TextColumn::make('effectiveness')
@@ -128,11 +138,7 @@ class TicketTablePresenter
 
     public static function formatTicketId(mixed $record): string
     {
-        return sprintf(
-            'T-%s-%04d',
-            Carbon::parse($record->created_at)->format('ym'),
-            (int)$record->id
-        );
+        return (new TicketPresenter())->formatId($record?->toArray());
     }
 
     public static function overdueFilter(): Filter
@@ -230,6 +236,14 @@ class TicketTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
+    public static function departmentFilter(): SelectFilter
+    {
+        return SelectFilter::make('target_department')
+            ->label(__('resources/ths/strings.fields.target_department'))
+            ->options(Department::getCachedOptions()->toArray())
+            ->placeholder(__('resources/ths/strings.fields.target_department_default'))
+            ->attribute('extra->target_department');
+    }
 
     public static function statusGroup(): Group
     {
@@ -249,7 +263,7 @@ class TicketTablePresenter
             ->limit(50)
             ->tooltip(fn($state) => $state)
             ->searchable()
-            ->toggleable(isToggledHiddenByDefault: false);
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function ticketId(): TextColumn
@@ -258,18 +272,18 @@ class TicketTablePresenter
             ->label(__('resources/ths/strings.fields.ticket_id'))
             ->formatStateUsing(fn($record) => self::formatTicketId($record))
             ->copyable()
-            ->copyableState(fn($record) => self::formatTicketId($record))
+            ->copyableState(fn($record) => $record->id)
             ->tooltip(__('resources/ths/strings.fields.click_to_copy'))
             ->sortable()
-            ->searchable(query: fn(Builder $q, string $search) => $q
-                ->whereRaw("CONCAT('T-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, 4, '0')) LIKE ?", ["%{$search}%"])
-            )
+            ->searchable(['id', 'extra->target_department', 'created_at'])
             ->color(fn($record) => (
                 $record->completion_deadline && $record->completion_date && $record->completion_date > $record->completion_deadline)
                 ? 'danger' : 'gray'
             )
             ->toggleable(isToggledHiddenByDefault: false);
     }
+
+
 
     public static function typeFilter(): SelectFilter
     {

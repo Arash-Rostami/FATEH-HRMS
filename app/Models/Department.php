@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,12 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'description'];
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'ticket_options'
+    ];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
 
@@ -63,6 +69,21 @@ class Department extends Model
         return $this->hasMany(Review::class, 'department_id', 'code');
     }
 
+    public function scopeExcludingEmptyTicketOptions(Builder $query): Builder
+    {
+        return $query->whereNotNull('ticket_options')
+            ->whereJsonLength('ticket_options', '>', 0);
+    }
+
+    public static function getCachedOptionsExcludingEmptyTickets(): Collection
+    {
+        return once(fn() => Cache::remember(
+            'department_options_with_tickets',
+            now()->addYear(),
+            fn() => self::excludingEmptyTicketOptions()->orderBy('name')->pluck('description', 'code')
+        ));
+    }
+
     public function user(): HasOneThrough
     {
         return $this->hasOneThrough(User::class, Profile::class, 'department_id', 'id', 'code');
@@ -75,9 +96,19 @@ class Department extends Model
 
     protected static function booted(): void
     {
-        $forgetCache = fn() => Cache::forget('department_options');
+        $forgetCache = function () {
+            Cache::forget('department_options');
+            Cache::forget('department_options_with_tickets');
+        };
 
         static::saved($forgetCache);
         static::deleted($forgetCache);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'ticket_options' => 'array',
+        ];
     }
 }

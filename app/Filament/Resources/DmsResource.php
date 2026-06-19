@@ -34,6 +34,7 @@ class DmsResource extends Resource
             Section::make(__('resources/dms/strings.form.section_details'))
                 ->icon('heroicon-o-document-text')
                 ->schema([
+                    DmsFormPresenter::type(),
                     DmsFormPresenter::title(),
                     DmsFormPresenter::code(),
                     DmsFormPresenter::version(),
@@ -126,6 +127,7 @@ class DmsResource extends Resource
                 ->hiddenLabel()
                 ->schema([
                     DmsInfolistPresenter::title(),
+                    DmsInfolistPresenter::type(),
                     DmsInfolistPresenter::code(),
                     DmsInfolistPresenter::version(),
                     DmsInfolistPresenter::status(),
@@ -161,6 +163,7 @@ class DmsResource extends Resource
         return $table
             ->columns([
                 DmsTablePresenter::id(),
+                DmsTablePresenter::type(),
                 DmsTablePresenter::title(),
                 DmsTablePresenter::code(),
                 DmsTablePresenter::version(),
@@ -175,6 +178,7 @@ class DmsResource extends Resource
                 DmsTablePresenter::ownersGroup(),
             ])
             ->filters([
+                DmsTablePresenter::typeFilter(),
                 DmsTablePresenter::ownersFilter(),
                 self::createdAtFilter(),
             ])
