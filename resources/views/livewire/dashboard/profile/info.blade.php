@@ -304,18 +304,28 @@
                             <span
                                 class="font-bold text-sm text-[var(--md-sys-color-on-surface)]">رنگ‌های مورد علاقه</span>
                         </div>
-                        <div class="flex flex-wrap gap-3">
-                            @foreach($colors as $color)
-                                <label class="cursor-pointer relative flex items-center justify-center">
-                                    <input type="checkbox" wire:model="form.favoriteColors" value="{{ $color }}"
-                                           class="peer sr-only">
-                                    <div style="background-color: {{ $color }}"
-                                         class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
-                                    <span
-                                        class="material-symbols-rounded absolute text-white drop-shadow-md mix-blend-difference text-sm"
-                                        :class="$wire.form.favoriteColors.includes('{{ $color }}') ? 'opacity-100' : 'opacity-0'">check</span>
-                                </label>
-                            @endforeach
+                        <div x-data="{ expanded: false, get colors() { return Array.isArray($wire.form.favoriteColors) ? $wire.form.favoriteColors : []; } }" class="relative">
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($colors as $index => $color)
+                                    <label class="cursor-pointer relative flex items-center justify-center transition-all duration-300"
+                                           x-show="expanded || colors.includes('{{ $color }}') || {{ $index }} < 7"
+                                           x-transition.opacity.duration.300ms>
+                                        <input type="checkbox" wire:model="form.favoriteColors" value="{{ $color }}"
+                                               class="peer sr-only">
+                                        <div style="background-color: {{ $color }}"
+                                             class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
+                                        <span class="material-symbols-rounded absolute text-white drop-shadow-md mix-blend-difference text-sm transition-opacity duration-200"
+                                              :class="colors.includes('{{ $color }}') ? 'opacity-100' : 'opacity-0'">check</span>
+                                    </label>
+                                @endforeach
+
+                                <button type="button" @click="expanded = !expanded"
+                                        class="w-9 h-9 flex items-center justify-center rounded-xl border border-dashed border-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-all hover:scale-110 shadow-sm"
+                                        title="نمایش بیشتر/کمتر">
+                                    <span class="material-symbols-rounded text-[20px] transition-transform duration-300"
+                                          :class="expanded ? 'rotate-180' : ''">expand_more</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

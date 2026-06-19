@@ -195,12 +195,13 @@ class ProfileInfolistPresenter
             ->placeholder('-');
     }
 
-                public static function favoriteColors(): \Filament\Infolists\Components\TextEntry
+    public static function favoriteColors(): \Filament\Infolists\Components\TextEntry
     {
         return \Filament\Infolists\Components\TextEntry::make('favorite_colors')
             ->label(__('resources/profile/strings.infolist.favorite_colors'))
             ->badge()
-            ->color(fn ($state) => $state)
+            ->formatStateUsing(fn (string $state): string => \App\Filament\Resources\ProfileResource\Enums\FavoriteColor::tryFrom($state)?->getLabel() ?? $state)
+            ->color(fn (string $state): array => \Filament\Support\Colors\Color::hex($state))
             ->columnSpanFull();
     }
 
