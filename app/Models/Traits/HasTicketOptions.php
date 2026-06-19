@@ -64,26 +64,6 @@ trait HasTicketOptions
         ],
     ];
 
-    public function getAdminAreaBadge(): HtmlString
-    {
-        return new HtmlString(self::getCustomAdminAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
-    }
-
-    public static function getAdminAreaLabelHtml(string $requestType, string $areaKey): string
-    {
-        $label = self::getRequestAreaOptions($requestType, $areaKey);
-
-        if ($areaKey === '') {
-            return $label;
-        }
-
-        $icon = self::getHeroiconForArea($areaKey);
-
-        return Blade::render(
-            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
-        );
-    }
-
     public static function getCustomAdminAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
     {
         $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
@@ -157,22 +137,6 @@ trait HasTicketOptions
             }
         }
         return $types ?: $defaults;
-    }
-
-    public static function getCustomUserAreaLabelHtml(string $requestType, string $areaKey, ?string $departmentCode = null): string
-    {
-        $label = self::getCustomRequestAreaLabel($requestType, $areaKey, $departmentCode);
-
-        if ($areaKey === '') {
-            return $label;
-        }
-
-        $icon = self::getCustomMaterialIconForArea($areaKey, $departmentCode);
-
-        return "<div class='flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'>
-                    <span class='material-symbols-rounded text-primary-500 text-xl'>{$icon}</span>
-                    <span class='text-sm font-medium text-gray-800 dark:text-gray-200'>{$label}</span>
-                </div>";
     }
 
     public function getHeroicon(): string
@@ -298,27 +262,6 @@ trait HasTicketOptions
     public static function getRequestAreaOptions(string $requestType, ?string $requestArea): string
     {
         return self::$requestAreaOptions[$requestType][$requestArea] ?? 'یافت نشد';
-    }
-
-    public function getUserAreaBadge(): HtmlString
-    {
-        return new HtmlString(self::getCustomUserAreaLabelHtml($this->request_type, $this->request_area, $this->extra['target_department'] ?? null));
-    }
-
-    public static function getUserAreaLabelHtml(string $requestType, string $areaKey): string
-    {
-        $label = self::getRequestAreaOptions($requestType, $areaKey);
-
-        if ($areaKey === '') {
-            return $label;
-        }
-
-        $icon = self::getMaterialIconForArea($areaKey);
-
-        return "<div class='flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700'>
-                    <span class='material-symbols-rounded text-primary-500 text-xl'>{$icon}</span>
-                    <span class='text-sm font-medium text-gray-800 dark:text-gray-200'>{$label}</span>
-                </div>";
     }
 
     private static function extractCustomIcon(?string $area, ?string $departmentCode): ?string
