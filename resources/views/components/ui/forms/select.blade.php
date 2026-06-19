@@ -1,11 +1,11 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد'])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'htmlOptions' => [], 'emptyText' => 'موردی یافت نشد'])
 
 <div
     class="relative group w-full md3-input-group"
     @if($searchable)
         x-data="{
         open: false, pos: {}, search: '',
-        selected: @entangle($attributes->wire('model')->value() ?? ''),
+        selected: @entangle($attributes->wire('model')?->value() ?? ''),
         options: @js($options),
         get filtered() {
             if (!this.search) return this.options.slice(0, 50);
@@ -30,12 +30,52 @@
         </div>
     @endif
 
-    @if(!$searchable)
+    @if(!$searchable && empty($htmlOptions))
         <select
             name="{{ $name }}" id="{{ $name }}"
             {{ $disabled ? 'disabled' : '' }}
             {!! $attributes->merge(['class' => 'md3-input peer appearance-none ' . ($icon ? 'pr-10' : '')]) !!}
         >{{ $slot }}</select>
+    @elseif(!empty($htmlOptions))
+        <input type="hidden" name="{{ $name }}" x-ref="hiddenInput" {{ $attributes->wire('model') }}/>
+        <div x-data="{
+            open: false, pos: {},
+            selected: @entangle($attributes->wire('model')?->value() ?? ''),
+            htmlOptions: @js($htmlOptions),
+            select(v) {
+                this.selected = v; this.open = false;
+                if(this.$refs.hiddenInput) {
+                    this.$refs.hiddenInput.value = v;
+                    this.$refs.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        }">
+            <div
+                @click="pos = $el.getBoundingClientRect(); open = !open"
+                @click.away="open = false"
+                {!! $attributes->merge(['class' => 'md3-input peer cursor-pointer flex items-center min-h-[3.5rem] ' . ($icon ? 'pr-10' : '')]) !!}
+            >
+                <div x-html="(selected !== null && selected !== '' && htmlOptions[selected]) ? htmlOptions[selected] : ''" class="w-full truncate text-sm"></div>
+            </div>
+
+            <template x-teleport="body">
+                <div
+                    x-show="open"
+                    x-cloak x-transition
+                    :style="{ position:'fixed', zIndex:9999, top:pos.bottom+'px', left:pos.left+'px', width:pos.width+'px' }"
+                    class="mt-1 bg-white dark:bg-gray-800 border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg max-h-60 overflow-y-auto text-right"
+                >
+                    <template x-for="(html, val) in htmlOptions" :key="val">
+                        <div
+                            @click="select(val)"
+                            class="px-4 py-2.5 cursor-pointer text-sm transition-colors"
+                            :class="selected == val ? 'bg-[var(--md-sys-color-primary-container)]' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            x-html="html">
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
     @else
         <input
             type="text"

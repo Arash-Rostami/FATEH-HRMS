@@ -17,20 +17,29 @@
                 </x-ui.forms.select>
             </div>
 
-            @if($this->ticket->targetDepartment !== '')
+                        @if($this->ticket->targetDepartment !== '')
+                @php
+                    $typeHtmlOptions = [];
+                    foreach ($ticket->requestTypeOptions as $val => $lbl) {
+                        $icon = \App\Models\Ticket::getMaterialIconForType($val);
+                        $typeHtmlOptions[$val] = "<div class='flex items-center gap-3'><span class='material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl'>{$icon}</span><span>{$lbl}</span></div>";
+                    }
+
+                    $areaHtmlOptions = [];
+                    foreach ($requestAreas as $val => $lbl) {
+                        $icon = \App\Models\Ticket::getCustomMaterialIconForArea($val, $this->ticket->targetDepartment);
+                        $areaHtmlOptions[$val] = "<div class='flex items-center gap-3'><span class='material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl'>{$icon}</span><span>{$lbl}</span></div>";
+                    }
+                @endphp
+
                 <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                                   wire:model.live="ticket.requestType" icon="category">
-                    @foreach ($ticket->requestTypeOptions as  $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
+                                   wire:model.live="ticket.requestType" icon="category"
+                                   :htmlOptions="$typeHtmlOptions">
                 </x-ui.forms.select>
 
-
                 <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea">
-                    @foreach($requestAreas as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
+                                   wire:model.live="ticket.requestArea" icon="location_on"
+                                   :htmlOptions="$areaHtmlOptions">
                 </x-ui.forms.select>
 
                 <div class="space-y-1.5">

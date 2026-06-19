@@ -99,6 +99,27 @@ trait HasTicketOptions
         );
     }
 
+    public static function getHeroiconForType(?string $type): string
+    {
+        static $icons = [
+            'support' => 'heroicon-o-lifebuoy',
+            'access' => 'heroicon-o-key',
+            'development' => 'heroicon-o-code-bracket',
+        ];
+
+        return $icons[$type] ?? 'heroicon-o-tag';
+    }
+
+    public static function getMaterialIconForType(?string $type): string
+    {
+        static $icons = [
+            'support' => 'support_agent',
+            'access' => 'key',
+            'development' => 'code',
+        ];
+
+        return $icons[$type] ?? 'category';
+    }
     public static function getCustomHeroiconForArea(?string $area, ?string $departmentCode = null): string
     {
         return self::extractCustomIcon($area, $departmentCode) ?? self::getHeroiconForArea($area);
