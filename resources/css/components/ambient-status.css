@@ -1,0 +1,136 @@
+/*
+    Ambient Status Effects
+    Uses standard Tailwind variables but allows for custom scoping
+*/
+
+/* Angry Canvas Layer Overrides */
+.ambient-effect-layer .eb-container {
+    pointer-events: none;
+    z-index: -1;
+    overflow: visible;
+}
+
+.ambient-effect-layer .eb-glow-1 {
+    box-shadow: 0 0 20px 4px var(--effect-color);
+    border-radius: inherit;
+    mix-blend-mode: screen;
+}
+
+.ambient-effect-layer .eb-glow-2 {
+    box-shadow: inset 0 0 15px 2px var(--effect-color);
+    border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ambient-effect-layer .eb-container canvas {
+        display: none;
+    }
+    .ambient-effect-layer .eb-glow-1,
+    .ambient-effect-layer .eb-glow-2 {
+        box-shadow: 0 0 5px 1px var(--effect-color);
+        opacity: 0.5;
+    }
+}
+
+/* Grumpy Static/Glitch Border */
+@keyframes grumpyNoise {
+    0%   { opacity: 0.8; box-shadow: inset 0 0 0 2px var(--effect-color), 0 0 0 1px var(--effect-color); }
+    25%  { opacity: 0.4; box-shadow: inset 0 0 0 3px var(--effect-color), 0 0 0 0px var(--effect-color); }
+    50%  { opacity: 0.7; box-shadow: inset 0 0 0 1px var(--effect-color), 0 0 0 2px var(--effect-color); }
+    75%  { opacity: 0.3; box-shadow: inset 0 0 0 4px var(--effect-color), 0 0 0 1px var(--effect-color); }
+    100% { opacity: 0.8; box-shadow: inset 0 0 0 2px var(--effect-color), 0 0 0 1px var(--effect-color); }
+}
+
+.grumpy-noise {
+    border: 1px solid var(--effect-color);
+    opacity: 0.6;
+    mix-blend-mode: multiply;
+}
+
+.dark .grumpy-noise {
+    mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .grumpy-noise {
+        animation: grumpyNoise 3s infinite steps(2);
+    }
+}
+
+
+/* Busy Pulsing Locked Ring */
+@keyframes busyPulse {
+    0%   { box-shadow: 0 0 0 0 var(--effect-color); opacity: 0.7; }
+    70%  { box-shadow: 0 0 0 6px var(--effect-color); opacity: 0; }
+    100% { box-shadow: 0 0 0 0 var(--effect-color); opacity: 0; }
+}
+
+.busy-pulse {
+    border: 2px solid var(--effect-color);
+    opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .busy-pulse::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        animation: busyPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+}
+
+
+/* Mission Traveling Dash */
+.mission-dash {
+    fill: none;
+    stroke: var(--effect-color);
+    stroke-width: 3;
+    stroke-dasharray: 40 120;
+    stroke-linecap: round;
+    opacity: 0.7;
+}
+
+@keyframes missionTravel {
+    0% { stroke-dashoffset: 160; }
+    100% { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .mission-dash {
+        animation: missionTravel 3s linear infinite;
+    }
+}
+
+
+/* Remote Soft Glow Ripple */
+@keyframes remoteRipple {
+    0%   { box-shadow: 0 0 10px 0 var(--effect-color), inset 0 0 5px 0 var(--effect-color); opacity: 0.6; transform: scale(1); }
+    50%  { box-shadow: 0 0 20px 2px var(--effect-color), inset 0 0 10px 1px var(--effect-color); opacity: 0.3; transform: scale(1.02); }
+    100% { box-shadow: 0 0 10px 0 var(--effect-color), inset 0 0 5px 0 var(--effect-color); opacity: 0.6; transform: scale(1); }
+}
+
+.remote-glow {
+    box-shadow: 0 0 10px 0 var(--effect-color);
+    opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .remote-glow {
+        animation: remoteRipple 4s ease-in-out infinite;
+    }
+}
+
+
+/* Onsite Gentle Lift */
+.onsite-lift {
+    box-shadow: 0 4px 15px -3px var(--effect-color);
+    opacity: 0.15;
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* When the parent card is hovered, increase the shadow */
+.ambient-status-wrapper:hover .onsite-lift {
+    opacity: 0.3;
+    box-shadow: 0 8px 20px -4px var(--effect-color);
+}

@@ -5,7 +5,7 @@
         @forelse($this->users as $user)
             @php($p = presence($user->presence))
 
-            <div wire:key="user-{{ $user->id }}"
+            <x-status-ambient :status="$p" wire:key="user-{{ $user->id }}"
                  x-data
                  title="{{ $p->sublabel() }}"
                  x-transition:enter="transition ease-out duration-300"
@@ -101,7 +101,7 @@
                         <div class="w-7"></div>
                     @endif
                 </div>
-            </div>
+            </x-status-ambient>
 
         @empty
             <div class="col-span-full flex flex-col items-center justify-center py-16 gap-3
