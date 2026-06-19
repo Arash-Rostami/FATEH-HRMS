@@ -19,19 +19,19 @@
 
             @if($this->ticket->targetDepartment !== '')
                 <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                               wire:model.live="ticket.requestType" icon="category">
-                @foreach ($ticket->requestTypeOptions as  $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
+                               wire:model.live="ticket.requestType"
+                               :options="$ticket->requestTypeOptions"
+                               :icons="collect($ticket->requestTypeOptions)->mapWithKeys(fn($label, $key) => [$key => 'category'])->toArray()">
             </x-ui.forms.select>
 
 
+                        @php
+                $areaIcons = collect($requestAreas)->mapWithKeys(fn($label, $key) => [$key => $presenter->requestAreaIcon($key, $this->ticket->targetDepartment)])->toArray();
+            @endphp
             <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
                                wire:model.live="ticket.requestArea"
-                               :icon="$presenter->requestAreaIcon($this->ticket->requestArea, $this->ticket->targetDepartment)">
-                @foreach($requestAreas as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
+                               :options="$requestAreas"
+                               :icons="$areaIcons">
             </x-ui.forms.select>
 
             <div class="space-y-1.5">
