@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AdResource\Schemas;
 use App\Filament\Resources\AdResource\Enums\AdGender;
 use App\Filament\Resources\AdResource\Enums\AdStatus;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 
 class AdInfolistPresenter
 {
@@ -40,6 +41,21 @@ class AdInfolistPresenter
         return TextEntry::make('experience')
             ->label(__('resources/ad/strings.fields.experience'))
             ->placeholder('-')
+            ->columnSpanFull();
+    }
+
+    public static function extra(): RepeatableEntry
+    {
+        return RepeatableEntry::make('extra')
+            ->label(__('resources/ad/strings.fields.extra'))
+            ->schema([
+                TextEntry::make('key')
+                    ->label(__('resources/ad/strings.fields.extra_key'))
+                    ->weight('bold'),
+                TextEntry::make('value')
+                    ->label(__('resources/ad/strings.fields.extra_value')),
+            ])
+            ->columns(2)
             ->columnSpanFull();
     }
 

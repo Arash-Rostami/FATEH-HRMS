@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Ad;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class AdFactory extends Factory
 {
@@ -20,6 +19,16 @@ class AdFactory extends Factory
             'gender' => fake()->randomElement(['Male', 'Female', 'Any']),
             'link' => fake()->url(),
             'active' => fake()->boolean(),
+            'extra' => [
+                [
+                    'key' => 'شرح شغل',
+                    'value' => fake()->text(100),
+                ],
+                [
+                    'key' => 'مزایا',
+                    'value' => fake()->text(100),
+                ]
+            ],
         ];
     }
 }

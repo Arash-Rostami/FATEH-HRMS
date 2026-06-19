@@ -29,6 +29,18 @@ class AdExporter extends Exporter
             ExportColumn::make('certificate')->label(__('resources/ad/strings.fields.certificate')),
             ExportColumn::make('skill')->label(__('resources/ad/strings.fields.skill')),
             ExportColumn::make('experience')->label(__('resources/ad/strings.fields.experience')),
+            ExportColumn::make('extra')
+                ->label(__('resources/ad/strings.fields.extra'))
+                ->formatStateUsing(function ($state) {
+                    if (!is_array($state)) return '-';
+                    $formatted = [];
+                    foreach ($state as $item) {
+                        if (isset($item['key']) && isset($item['value'])) {
+                            $formatted[] = $item['key'] . ': ' . $item['value'];
+                        }
+                    }
+                    return implode(', ', $formatted) ?: '-';
+                }),
             ExportColumn::make('created_at')->label(__('resources/ad/strings.fields.created_at')),
         ];
     }

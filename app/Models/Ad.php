@@ -20,7 +20,8 @@ class Ad extends Model
         'experience',
         'gender',
         'link',
-        'active'
+        'active',
+        'extra'
     ];
 
     protected function avatar(): Attribute
@@ -78,6 +79,7 @@ class Ad extends Model
     {
         return [
             'active' => 'boolean',
+            'extra' => 'array',
         ];
     }
 }
