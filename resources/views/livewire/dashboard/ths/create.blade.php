@@ -17,29 +17,25 @@
                 </x-ui.forms.select>
             </div>
 
-                        @if($this->ticket->targetDepartment !== '')
-                @php
-                    $typeHtmlOptions = [];
-                    foreach ($ticket->requestTypeOptions as $val => $lbl) {
-                        $icon = \App\Models\Ticket::getMaterialIconForType($val);
-                        $typeHtmlOptions[$val] = "<div class='flex items-center gap-3'><span class='material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl'>{$icon}</span><span>{$lbl}</span></div>";
-                    }
-
-                    $areaHtmlOptions = [];
-                    foreach ($requestAreas as $val => $lbl) {
-                        $icon = \App\Models\Ticket::getCustomMaterialIconForArea($val, $this->ticket->targetDepartment);
-                        $areaHtmlOptions[$val] = "<div class='flex items-center gap-3'><span class='material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl'>{$icon}</span><span>{$lbl}</span></div>";
-                    }
-                @endphp
-
-                <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                                   wire:model.live="ticket.requestType" icon="category"
-                                   :htmlOptions="$typeHtmlOptions">
+            @if($this->ticket->targetDepartment !== '')
+                                <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
+                                   wire:model.live="ticket.requestType" icon="category" hasIcons>
+                    @foreach ($ticket->requestTypeOptions as  $value => $label)
+                        @php $svg = Blade::render("<x-icon name='" . \App\Models\Ticket::getHeroiconForType($value) . "' class='w-5 h-5' />"); @endphp
+                        <option value="{{ $value }}" data-svg="{{ $svg }}">
+                            {{ $label }}
+                        </option>
+                    @endforeach
                 </x-ui.forms.select>
 
                 <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea" icon="location_on"
-                                   :htmlOptions="$areaHtmlOptions">
+                                   wire:model.live="ticket.requestArea" icon="location_on" hasIcons>
+                    @foreach($requestAreas as $value => $label)
+                        @php $svg = Blade::render("<x-icon name='" . \App\Models\Ticket::getCustomHeroiconForArea($value, $this->ticket->targetDepartment) . "' class='w-5 h-5' />"); @endphp
+                        <option value="{{ $value }}" data-svg="{{ $svg }}">
+                            {{ $label }}
+                        </option>
+                    @endforeach
                 </x-ui.forms.select>
 
                 <div class="space-y-1.5">

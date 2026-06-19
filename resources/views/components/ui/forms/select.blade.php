@@ -1,11 +1,11 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'htmlOptions' => [], 'emptyText' => 'موردی یافت نشد'])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'hasIcons' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد'])
 
 <div
     class="relative group w-full md3-input-group"
     @if($searchable)
         x-data="{
         open: false, pos: {}, search: '',
-        selected: @entangle($attributes->wire('model')?->value() ?? ''),
+        selected: @if($attributes->wire('model')) @entangle($attributes->wire('model')->value()) @else null @endif,
         options: @js($options),
         get filtered() {
             if (!this.search) return this.options.slice(0, 50);
@@ -30,32 +30,47 @@
         </div>
     @endif
 
-    @if(!$searchable && empty($htmlOptions))
+    @if(!$searchable && !$hasIcons)
         <select
             name="{{ $name }}" id="{{ $name }}"
             {{ $disabled ? 'disabled' : '' }}
             {!! $attributes->merge(['class' => 'md3-input peer appearance-none ' . ($icon ? 'pr-10' : '')]) !!}
         >{{ $slot }}</select>
-    @elseif(!empty($htmlOptions))
-        <input type="hidden" name="{{ $name }}" x-ref="hiddenInput" {{ $attributes->wire('model') }}/>
+    @elseif($hasIcons)
         <div x-data="{
             open: false, pos: {},
-            selected: @entangle($attributes->wire('model')?->value() ?? ''),
-            htmlOptions: @js($htmlOptions),
+            selected: @if($attributes->wire('model')) @entangle($attributes->wire('model')->value()) @else null @endif,
+            opts: [],
+            updateOpts() {
+                this.opts = Array.from(this.$refs.native.options).map(o => ({ v: o.value, t: o.text, svg: o.dataset.svg || '' }));
+            },
+            get selectedText() { return this.opts.find(o => o.v == this.selected)?.t || ''; },
+            get selectedSvg() { return this.opts.find(o => o.v == this.selected)?.svg || ''; },
             select(v) {
                 this.selected = v; this.open = false;
-                if(this.$refs.hiddenInput) {
-                    this.$refs.hiddenInput.value = v;
-                    this.$refs.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-                }
+                this.$refs.native.value = v;
+                this.$refs.native.dispatchEvent(new Event('change', { bubbles: true }));
             }
-        }">
+        }"
+        x-init="
+            updateOpts();
+            new MutationObserver(() => updateOpts()).observe($refs.native, { childList: true });
+        "
+        class="relative"
+        >
+            <select x-ref="native" name="{{ $name }}" id="{{ $name }}" {{ $attributes->wire('model') }} class="hidden">{{ $slot }}</select>
+
             <div
                 @click="pos = $el.getBoundingClientRect(); open = !open"
                 @click.away="open = false"
-                {!! $attributes->merge(['class' => 'md3-input peer cursor-pointer flex items-center min-h-[3.5rem] ' . ($icon ? 'pr-10' : '')]) !!}
+                {!! $attributes->merge(['class' => 'md3-input peer cursor-pointer flex items-center h-[3.5rem] ' . ($icon ? 'pr-10' : '')]) !!}
             >
-                <div x-html="(selected !== null && selected !== '' && htmlOptions[selected]) ? htmlOptions[selected] : ''" class="w-full truncate text-sm"></div>
+                <div class="flex items-center gap-3 w-full truncate text-sm text-[var(--md-sys-color-on-surface)]">
+                    <template x-if="selectedSvg">
+                        <span class="text-[var(--md-sys-color-primary)] w-5 h-5 flex items-center justify-center shrink-0" x-html="selectedSvg"></span>
+                    </template>
+                    <span x-text="selectedText"></span>
+                </div>
             </div>
 
             <template x-teleport="body">
@@ -65,12 +80,16 @@
                     :style="{ position:'fixed', zIndex:9999, top:pos.bottom+'px', left:pos.left+'px', width:pos.width+'px' }"
                     class="mt-1 bg-white dark:bg-gray-800 border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg max-h-60 overflow-y-auto text-right"
                 >
-                    <template x-for="(html, val) in htmlOptions" :key="val">
+                    <template x-for="opt in opts" :key="opt.v">
                         <div
-                            @click="select(val)"
-                            class="px-4 py-2.5 cursor-pointer text-sm transition-colors"
-                            :class="selected == val ? 'bg-[var(--md-sys-color-primary-container)]' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
-                            x-html="html">
+                            @click="select(opt.v)"
+                            class="flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm transition-colors"
+                            :class="selected == opt.v ? 'bg-[var(--md-sys-color-primary-container)]' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                        >
+                            <template x-if="opt.svg">
+                                <span class="text-[var(--md-sys-color-primary)] w-5 h-5 flex items-center justify-center shrink-0" x-html="opt.svg"></span>
+                            </template>
+                            <span x-text="opt.t"></span>
                         </div>
                     </template>
                 </div>
