@@ -180,6 +180,28 @@ trait HasTicketOptions
         return self::getCustomHeroiconForArea($this->request_area, $this->extra['target_department'] ?? null);
     }
 
+    public static function getHeroiconForType(?string $type): string
+    {
+        static $icons = [
+            'support' => 'heroicon-o-lifebuoy',
+            'access' => 'heroicon-o-key',
+            'development' => 'heroicon-o-code-bracket',
+        ];
+
+        return $icons[$type] ?? 'heroicon-o-tag';
+    }
+
+    public static function getMaterialIconForType(?string $type): string
+    {
+        static $icons = [
+            'support' => 'support_agent',
+            'access' => 'key',
+            'development' => 'code',
+        ];
+
+        return $icons[$type] ?? 'category';
+    }
+
     public static function getHeroiconForArea(?string $area): string
     {
         static $icons = [

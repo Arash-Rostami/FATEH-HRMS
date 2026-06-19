@@ -19,17 +19,17 @@
 
             @if($this->ticket->targetDepartment !== '')
                 <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
-                                   wire:model.live="ticket.requestType" icon="category">
+                                   wire:model.live="ticket.requestType" icon="category" style="font-family: 'Material Symbols Rounded', inherit;">
                     @foreach ($ticket->requestTypeOptions as  $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+                        <option value="{{ $value }}">{{ \App\Models\Ticket::getMaterialIconForType($value) }} {{ $label }}</option>
                     @endforeach
                 </x-ui.forms.select>
 
 
                 <x-ui.forms.select label="حوزه درخواست" name="ticket.requestArea"
-                                   wire:model.live="ticket.requestArea">
+                                   wire:model.live="ticket.requestArea" style="font-family: 'Material Symbols Rounded', inherit;">
                     @foreach($requestAreas as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+                        <option value="{{ $value }}">{{ \App\Models\Ticket::getMaterialIconForArea($value) }} {{ $label }}</option>
                     @endforeach
                 </x-ui.forms.select>
 
