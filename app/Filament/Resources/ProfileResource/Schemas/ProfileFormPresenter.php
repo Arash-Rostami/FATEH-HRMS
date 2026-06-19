@@ -14,10 +14,8 @@ use App\Models\Department;
 use App\Services\PersianDateFieldService;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\FilamentFormDivider;
-use Filament\Forms\Components\ColorPicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
@@ -321,45 +319,18 @@ class ProfileFormPresenter
         )->helperText(__('resources/profile/strings.hints.end_date'));
     }
 
-    public static function favoriteColors(): Repeater
+        public static function favoriteColors(): \Filament\Forms\Components\Select
     {
-        return Repeater::make('favorite_colors')
+        return \Filament\Forms\Components\Select::make('favorite_colors')
             ->label(__('resources/profile/strings.form.favorite_colors'))
-            ->schema([
-                ColorPicker::make('color')
-                    ->label(__('resources/profile/strings.form.favorite_color_item'))
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.favorite_color.required'),
-                    ])
-            ])
-            ->grid(4)
-            ->columns(1)
-            ->addable()
-            ->deletable()
-            ->reorderable(false)
+            ->multiple()
+            ->options(\App\Filament\Resources\ProfileResource\Enums\FavoriteColor::class)
+            ->searchable()
             ->columnSpanFull()
-            ->helperText(__('resources/profile/strings.hints.favorite_colors'))
-            ->afterStateHydrated(function (Repeater $component, mixed $state): void {
-                $normalized = [];
-                foreach ($state ?? [] as $item) {
-                    $color = is_string($item) ? $item : ($item['color'] ?? null);
-                    if (filled($color)) {
-                        $normalized[] = ['color' => $color];
-                    }
-                }
-                $component->state($normalized);
-            })
-            ->dehydrateStateUsing(function ($state): array {
-                $colors = [];
-                foreach ($state ?? [] as $item) {
-                    $color = is_array($item) ? ($item['color'] ?? null) : $item;
-                    if ($color) {
-                        $colors[] = $color;
-                    }
-                }
-                return $colors;
-            });
+            ->helperText(__('resources/profile/strings.hints.favorite_colors'));
     }
+
+
 
     public static function field(): TextInput
     {
