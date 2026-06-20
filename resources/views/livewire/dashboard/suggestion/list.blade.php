@@ -1,4 +1,4 @@
-<x-ui.forms.card class="!p-0 gap-0 overflow-hidden">
+<x-ui.forms.card class="!p-0 gap-0 overflow-hidden h-[calc(100vh-6rem)] flex flex-col">
 
     <div class="p-3 flex flex-col gap-3 animate-enter stagger-1 shadow-lg">
 
@@ -28,7 +28,7 @@
     </div>
 
     {{-- LIST --}}
-    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList">
+    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
         @forelse($this->suggestions as $item)
             @php($p = $this->presenter($item))

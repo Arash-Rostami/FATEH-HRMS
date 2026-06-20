@@ -184,16 +184,26 @@
                         </p>
                         <p class="text-[11px]"
                            style="color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 65%, transparent)">
-                            PDF, PNG, JPG — حداکثر ۲ مگابایت
+                            PDF, PNG, JPG — حداکثر ۱۰ مگابایت
                         </p>
                     </div>
                 </template>
 
                 <template x-if="uploaded">
-                    <div class="text-center pointer-events-none">
-                    <span class="material-symbols-rounded text-4xl block text-[var(--md-sys-color-primary)]">
-                        check_circle
-                    </span>
+                    <div class="text-center pointer-events-none w-full h-full flex flex-col items-center justify-center p-2">
+                        @if($this->form->attachment)
+                            @if(in_array($this->form->attachment->extension(), ["png", "jpg", "jpeg"]))
+                                <img src="{{ $this->form->attachment->temporaryUrl() }}" class="h-16 object-contain rounded-md mb-1 border border-[var(--md-sys-color-outline-variant)]">
+                            @else
+                                <span class="material-symbols-rounded text-4xl block text-[var(--md-sys-color-primary)]">
+                                    description
+                                </span>
+                            @endif
+                        @else
+                            <span class="material-symbols-rounded text-4xl block text-[var(--md-sys-color-primary)]">
+                                check_circle
+                            </span>
+                        @endif
                         <p class="text-sm font-bold text-[var(--md-sys-color-primary)]">
                             آپلود موفق
                         </p>
@@ -309,6 +319,7 @@
 
     <div class="flex justify-center gap-3 pb-8">
         <x-ui.buttons.form
+            class="w-40 justify-center"
             icon="send"
             loading="submit"
             wire:click="submit"
@@ -318,7 +329,7 @@
         </x-ui.buttons.form>
 
         <x-ui.buttons.form
-            class="!bg-[var(--md-sys-color-error)] !text-[var(--md-sys-color-on-primary)]"
+            class="w-40 justify-center !bg-[var(--md-sys-color-error)] !text-[var(--md-sys-color-on-primary)]"
             variant="ghost"
             wire:click="$set('panel', 'empty')"
         >
