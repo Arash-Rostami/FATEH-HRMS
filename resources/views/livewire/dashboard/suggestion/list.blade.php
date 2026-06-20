@@ -1,4 +1,4 @@
-<x-ui.forms.card class="!p-0 gap-0 overflow-hidden">
+<x-ui.forms.card class="!p-0 gap-0 overflow-hidden h-[calc(130vh-6rem)] flex flex-col">
 
     <div class="p-3 flex flex-col gap-3 animate-enter stagger-1 shadow-lg">
 
@@ -19,7 +19,7 @@
         <x-ui.forms.search
             name="search"
             model="search"
-            placeholder="جستجو در پیشنهادها ..."
+            placeholder="جستجو در پیشنهادات ..."
             debounce="400"
             icon="manage_search"
             :clearable="true"
@@ -28,7 +28,7 @@
     </div>
 
     {{-- LIST --}}
-    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList">
+    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
         @forelse($this->suggestions as $item)
             @php($p = $this->presenter($item))
@@ -50,23 +50,23 @@
                         class="absolute right-0 top-4 bottom-4 w-0.5 rounded-r-full bg-[var(--md-sys-color-primary)] animate-expand origin-center"></div>
                 @endif
 
-                    <div class="flex justify-between items-start gap-3 mb-2">
+                <div class="flex justify-between items-start gap-3 mb-2">
                     <span class="text-[11px] font-mono text-[var(--md-sys-color-on-surface-variant)] dir-ltr">
                         SN-{{ $item->created_at->format('Ymd') }}-{{ str_pad($item->id, 6, '0', STR_PAD_LEFT) }}
                     </span>
 
-                        <div class="flex items-center gap-2">
-                            @if($p->requiresMyAction())
-                              <x-ui.notification-badge />
-                            @endif
+                    <div class="flex items-center gap-2">
+                        @if($p->requiresMyAction())
+                            <x-ui.notification-badge />
+                        @endif
 
-                            <span
-                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 {{ $p->stageBadgeClasses() }}">
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 {{ $p->stageBadgeClasses() }}">
                             <span> {{ $stage['badge_icon'] }}</span>
                             <span>{{ $stage['label']  }}</span>
                         </span>
-                        </div>
                     </div>
+                </div>
 
                 <h3 title="{{ $item->title }}"
                     class="font-bold text-sm mb-2 line-clamp-1 text-[var(--md-sys-color-on-surface)]"

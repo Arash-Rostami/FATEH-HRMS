@@ -11,14 +11,19 @@
             count="{{  $this->suggestions->total() }}"
         />
 
+        @include('livewire.dashboard.suggestion.leaderboard')
+
         @include('components.dashboard.header.focus-chip')
 
 
-        <div x-data="{ uploading: false, uploadProgress: 0, uploaded: false }"
-             x-on:livewire-upload-start="uploading = true; uploaded = false"
-             x-on:livewire-upload-finish="uploading = false; uploaded = true"
-             x-on:livewire-upload-error="uploading = false"
-             x-on:livewire-upload-progress="uploadProgress = $event.detail.progress">
+        <div x-data="{ uploading: false, progress: 0 }"
+             x-on:livewire-upload-start="uploading = true"
+             x-on:livewire-upload-finish="uploading = false; progress = 0"
+             x-on:livewire-upload-error="uploading = false; progress = 0"
+             x-on:livewire-upload-progress="progress = $event.detail.progress"
+
+
+        >
 
             <div class="flex flex-col md:flex-row gap-4">
                 <aside class="w-full md:w-80 shrink-0">

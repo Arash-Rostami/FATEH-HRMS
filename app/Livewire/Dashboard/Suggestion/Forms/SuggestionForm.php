@@ -22,7 +22,7 @@ class SuggestionForm extends Form
     #[Validate('required|array|min:1')]
     public array $rule = [];
 
-    #[Validate('nullable|file|mimes:pdf,png,jpg|max:2048')]
+    #[Validate('nullable|file|mimes:pdf,png,jpg|max:10240')]
     public $attachment = null;
 
     public bool $selfFill = false;
@@ -30,6 +30,23 @@ class SuggestionForm extends Form
     public string $descriptionTeam = '';
     public array $feedback = [];
     public array $descriptionDepts = [];
+
+    public function validated(): array
+    {
+        return $this->validate();
+    }
+
+    protected function attributes(): array
+    {
+        return [
+            'title' => 'عنوان',
+            'descriptionSelf' => 'توضیحات',
+            'departments' => 'واحدها',
+            'purpose' => 'هدف',
+            'rule' => 'قوانین',
+            'attachment' => 'پیوست',
+        ];
+    }
 
     protected function messages(): array
     {
@@ -50,24 +67,7 @@ class SuggestionForm extends Form
             'rule.min' => 'حداقل یک قانون باید انتخاب شود.',
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
             'attachment.mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
-            'attachment.max' => 'حجم فایل نباید بیشتر از ۲ مگابایت باشد.',
+            'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
         ];
-    }
-
-    protected function attributes(): array
-    {
-        return [
-            'title' => 'عنوان',
-            'descriptionSelf' => 'توضیحات',
-            'departments' => 'واحدها',
-            'purpose' => 'هدف',
-            'rule' => 'قوانین',
-            'attachment' => 'پیوست',
-        ];
-    }
-
-    public function validated(): array
-    {
-        return $this->validate();
     }
 }

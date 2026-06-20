@@ -90,6 +90,19 @@ class Main extends Component
         ])->extends('layouts.app')->section('content');
     }
 
+    #[Computed]
+    public function topContributors()
+    {
+        return Suggestion::query()
+            ->select('user_id', \DB::raw('count(*) as total_suggestions'), \DB::raw("SUM(stage = 'accepted') as accepted_suggestions"))
+            ->with('user')
+            ->groupBy('user_id')
+            ->orderByDesc('accepted_suggestions')
+            ->orderByDesc('total_suggestions')
+            ->limit(3)
+            ->get();
+    }
+
     public function selectSuggestion(int $id): void
     {
         $this->selectedId = $id;
