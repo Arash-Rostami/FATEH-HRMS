@@ -114,6 +114,12 @@ class ProfileDetailCatalog
 
     public static function grouped(): array
     {
+        static $cachedGrouped = null;
+
+        if ($cachedGrouped !== null) {
+            return $cachedGrouped;
+        }
+
         $out = [];
         foreach (ProfileDetailGroup::ordered() as $group) {
             $out[$group->value] = [];
@@ -121,7 +127,10 @@ class ProfileDetailCatalog
         foreach (self::definitions() as $key => $def) {
             $out[$def['section']][$key] = $def;
         }
-        return array_filter($out);
+
+        $cachedGrouped = array_filter($out);
+
+        return $cachedGrouped;
     }
 
     public static function isSystem(string $key): bool

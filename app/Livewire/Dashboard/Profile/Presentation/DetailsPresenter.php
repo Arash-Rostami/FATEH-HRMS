@@ -9,6 +9,12 @@ class DetailsPresenter
 {
     public function groups(): array
     {
+        static $cachedGroups = null;
+
+        if ($cachedGroups !== null) {
+            return $cachedGroups;
+        }
+
         $out = [];
         foreach (ProfileDetailCatalog::grouped() as $section => $fields) {
             $out[] = [
@@ -16,6 +22,9 @@ class DetailsPresenter
                 'fields' => $fields,
             ];
         }
-        return $out;
+
+        $cachedGroups = $out;
+
+        return $cachedGroups;
     }
 }
