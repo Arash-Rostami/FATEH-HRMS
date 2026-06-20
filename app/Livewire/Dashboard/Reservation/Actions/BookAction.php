@@ -42,6 +42,9 @@ class BookAction
         $resource = $master->resource;
         $booker = $master->user;
 
+        $occurrences = [];
+        $now = now();
+
         for ($i = 1; $i < $count; $i++) {
             $occStart = $start->copy()->addDays($i * $intervalDays);
             $occEnd = $end->copy()->addDays($i * $intervalDays);
@@ -52,7 +55,7 @@ class BookAction
                 continue;
             }
 
-            Reservation::create([
+            $occurrences[] = [
                 'user_id' => $master->user_id,
                 'resource_id' => $master->resource_id,
                 'start_time' => $occStart,
@@ -60,7 +63,25 @@ class BookAction
                 'is_full_day' => $isFullDay,
                 'status' => 'active',
                 'parent_id' => $master->id,
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (!empty($occurrences)) {
+            Reservation::insert($occurrences);
+
+            $inserted = Reservation::where('parent_id', $master->id)
+                ->where('created_at', '>=', $now)
+                ->get();
+            $syncService = app(\App\Services\Reservation\EventSyncService::class);
+
+            foreach ($inserted as $reservation) {
+                // Set relationships to avoid N+1 querying during event sync
+                $reservation->setRelation('user', $booker);
+                $reservation->setRelation('resource', $resource);
+                $syncService->sync($reservation);
+            }
         }
     }
 }
