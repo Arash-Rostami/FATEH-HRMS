@@ -30,8 +30,8 @@
             </div>
         </div>
 
-        <x-ui.modals.base wire:model="showWorkflowModal" title="فلوچارت روند بررسی پیشنهاد" contentClass="max-w-5xl w-full">
-            <div class="space-y-4">
+        <x-ui.modals.base wire:model="showWorkflowModal" title="فلوچارت روند بررسی پیشنهاد" contentClass="max-w-[95vw] w-full">
+            <div class="w-full">
                 <img src="{{ asset('build/assets/img/suggestion.png') }}" alt="Flowchart" class="w-full h-auto rounded-xl shadow-sm">
             </div>
         </x-ui.modals.base>

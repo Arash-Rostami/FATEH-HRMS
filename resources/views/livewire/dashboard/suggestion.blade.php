@@ -21,8 +21,6 @@
              x-on:livewire-upload-finish="uploading = false; progress = 0"
              x-on:livewire-upload-error="uploading = false; progress = 0"
              x-on:livewire-upload-progress="progress = $event.detail.progress"
-
-
         >
 
             <div class="flex flex-col md:flex-row gap-4">

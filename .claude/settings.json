@@ -1,0 +1,54 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Loading code-reviewer skill…",
+            "timeout": 30,
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Before doing anything else in this session, carefully read and internalize the skills at .claude/skills/code-reviewer/SKILL.md and .claude/skills/laravel-performance/SKILL.md. Summarize the key review and performance rules in your own words, then follow them strictly for all future code-related actions in this session.\"}}'"
+          },
+          {
+            "type": "command",
+            "statusMessage": "Loading model delegation policy…",
+            "timeout": 30,
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Model delegation policy for this project: handle all planning, architecture, and code review yourself, never delegate those. Skip delegation for one-liners or trivial edits, write those directly. For code-generation tasks you judge to be non-trivial low or mid complexity, first explicitly ask the user via a direct question whether to delegate that specific task to the glm-5.2:cloud model. Delegation is always optional and never mandatory, only proceed if the user clearly says yes to that exact question, otherwise write the code yourself. The delegation prompt sent to glm-5.2:cloud must instruct it to first read and follow .claude/skills/laravel-performance/SKILL.md and .claude/skills/code-reviewer/SKILL.md before writing any code. To delegate, send a chat completion request to the local Ollama server at http://localhost:11434/api/chat with model set to glm-5.2:cloud, that instruction plus a clear task prompt including relevant file context, and stream:false. Review the returned code yourself for correctness, security, and fit with the codebase before presenting or applying it. If the delegation attempt fails for any technical reason, such as a connection error, a timeout, the model not being pulled, or an invalid or empty response, do not retry repeatedly and do not leave the task unfinished, immediately fall back to writing the code yourself in this same turn, exactly as if delegation had never been attempted, and briefly tell the user the delegation attempt failed and you handled it directly instead. The same immediate fallback applies if the request technically succeeds but the returned code is clearly the wrong language, off topic, incomplete, or otherwise unusable for the task, treat that the same as a technical failure rather than trying to salvage or re-prompt it, write it yourself instead. Before delegating, always scan the relevant file context for secrets, credentials, API keys, tokens, passwords, connection strings, or other sensitive values, if any are present anywhere in that context, do not delegate at all regardless of what the user said yes to, write the code yourself instead and tell the user briefly why delegation was skipped.\"}}'"
+          },
+          {
+            "type": "command",
+            "statusMessage": "Loading documentation-sync policy…",
+            "timeout": 30,
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Documentation-sync policy for this project: whenever you establish, confirm, or discover a new reusable pattern, convention, or key learning during this session that is relevant to this project architecture, update the relevant module documentation file yourself, for example app/Filament/filament.md, app/Livewire/livewirePattern.md, or any other module-level *.md that documents patterns and conventions such as app/Services/Search/setupPattern.md. Append or edit concisely, matching the existing style and structure of that doc, and only add what is genuinely new, never duplicate what is already documented. The PostToolUse reviewer only checks literal code correctness and has no file access, so it never flags documentation drift, this check is entirely your own responsibility based on what you actually changed. Do this proactively as part of completing the task, not only when explicitly asked. This keeps project documentation synchronized with the actual codebase over time.\"}}'"
+          },
+          {
+            "type": "command",
+            "statusMessage": "Loading review-action policy…",
+            "timeout": 30,
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Review-action policy for this project: the PostToolUse reviewer only checks literal code correctness, bugs, security, and obvious performance red flags in the diff itself, with no file access and no opinion on architecture. The reviewer is an LLM judgment call, not a deterministic linter, so it can be wrong. Before acting on any flag, first verify in your own judgment that the issue is genuinely present and accurately described, looking at the actual code yourself rather than trusting the flag blindly. If it looks like a false positive or simply does not apply, say briefly why you are not changing anything and stop there, do not apply an unnecessary change just because something was flagged. If the issue is real, act on it immediately in the same turn. Fix it directly using the established patterns already in this codebase, meaning Action, Validator, Presenter, or Service classes as appropriate, never by removing or replacing those patterns. Apply straightforward, low risk fixes directly without asking first. Pause and ask the user first only when the fix is architecturally significant, for example it changes a public interface, alters data shape, touches multiple modules, or carries meaningful behavioral risk. If a fix you apply triggers another review flag on the same file, use judgment to stop after at most two fix cycles and surface anything remaining to the user rather than looping indefinitely.\"}}'"
+          },
+          {
+            "type": "command",
+            "statusMessage": "Loading bypass-phrase policy…",
+            "timeout": 30,
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Bypass policy for this project: if the user message contains the phrase vanilla mode, matched case insensitively, and clearly used as an actual instruction rather than quoted, referenced, or appearing incidentally inside unrelated text or code, treat it as a standing instruction to drop all project specific policy behavior for the remainder of the conversation, meaning no proactive skill loading mindset, no model delegation policy, no documentation sync policy, no review action policy. Behave as a default Claude Code session with no project specific policy active. Resume normal project policy only when the user explicitly says resume project mode, matched case insensitively with the same instruction versus incidental distinction, or a new session starts. This bypass affects only how you, Claude, behave, it does not and cannot disable the PostToolUse reviewer hook itself, since that hook fires automatically on Edit and Write tool calls and has no visibility into chat content at all, so tell the user plainly if they ask for a file edit while in vanilla mode that the reviewer will still fire regardless of the phrase.\"}}'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "statusMessage": "Sanity-checking the code just written…",
+            "timeout": 30,
+            "model": "claude-sonnet-4-6",
+            "prompt": "Check only the literal code change in $ARGUMENTS. You have no access to any other file, so judge only what is shown to you here, nothing more.\n\nPass if the code is syntactically correct PHP, Blade, or JS, has no obvious bug or unhandled edge case, no obvious security hole such as injection, XSS, missing auth check, or data leakage, and no obvious performance red flag such as a query inside a loop, a missing eager load that would clearly cause N plus one, or an unbounded query over what is evidently a large table.\n\nFail only if one of those is clearly present in the code shown. State exactly what is wrong and the concrete one or two line fix as the reason. Do not comment on architecture, abstractions, naming conventions, or whether a Service or Action class should exist, that is out of scope for this check."
+          }
+        ]
+      }
+    ]
+  }
+}
