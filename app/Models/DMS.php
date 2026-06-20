@@ -45,9 +45,15 @@ class DMS extends Model
         'tags',
     ];
 
+    protected static ?\Illuminate\Database\Eloquent\Collection $cachedDepartments = null;
+
     public function departments()
     {
-        return Department::whereIn('code', $this->owners)->get();
+        if (self::$cachedDepartments === null) {
+            self::$cachedDepartments = Department::all();
+        }
+
+        return self::$cachedDepartments->whereIn('code', $this->owners)->values();
     }
 
     public function getStatusIcon()
