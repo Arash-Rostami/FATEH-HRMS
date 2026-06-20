@@ -7,6 +7,7 @@ use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Department;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
