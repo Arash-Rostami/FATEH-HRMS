@@ -37,13 +37,7 @@ trait HasStageHelpers
         }
 
         // Check if ALL departments have been reviewed
-        $allDeptsReviewed = true;
-        foreach ($deptCodes as $code) {
-            if (!isset($otherDepWithValidFeedBack[$code])) {
-                $allDeptsReviewed = false;
-                break;
-            }
-        }
+        $allDeptsReviewed = collect($deptCodes)->every(fn($code) => isset($otherDepWithValidFeedBack[$code]));
 
         $newStage = match (true) {
             !$hasMyDeptReview => 'team_remarks',
