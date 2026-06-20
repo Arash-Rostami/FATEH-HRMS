@@ -7,6 +7,7 @@ use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Department;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
@@ -45,9 +46,15 @@ class DMS extends Model
         'tags',
     ];
 
+    protected static ?\Illuminate\Database\Eloquent\Collection $cachedDepartments = null;
+
     public function departments()
     {
-        return Department::whereIn('code', $this->owners)->get();
+        if (self::$cachedDepartments === null) {
+            self::$cachedDepartments = Department::all();
+        }
+
+        return self::$cachedDepartments->whereIn('code', $this->owners)->values();
     }
 
     public function getStatusIcon()
