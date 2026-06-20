@@ -58,6 +58,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
@@ -128,6 +129,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom',

@@ -23,7 +23,7 @@ class FeedInfolistPresenter
     {
         return TextEntry::make('comments_count')
             ->label(__('resources/feed/strings.fields.comments_count'))
-            ->getStateUsing(fn($record) => $record->comments()->count())
+            ->getStateUsing(fn($record) => $record->comments_count ?? $record->comments()->count())
             ->badge()
             ->color('primary')
             ->icon('heroicon-o-chat-bubble-left');
@@ -94,7 +94,7 @@ class FeedInfolistPresenter
     {
         return TextEntry::make('reactions_count')
             ->label(__('resources/feed/strings.fields.reactions_count'))
-            ->getStateUsing(fn($record) => $record->reactions()->count())
+            ->getStateUsing(fn($record) => $record->reactions_count ?? $record->reactions()->count())
             ->badge()
             ->color('warning')
             ->icon('heroicon-o-face-smile');

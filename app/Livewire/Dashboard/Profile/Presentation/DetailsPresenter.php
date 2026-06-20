@@ -9,13 +9,15 @@ class DetailsPresenter
 {
     public function groups(): array
     {
-        $out = [];
-        foreach (ProfileDetailCatalog::grouped() as $section => $fields) {
-            $out[] = [
-                'group'  => ProfileDetailGroup::from($section),
-                'fields' => $fields,
-            ];
-        }
-        return $out;
+        return once(function () {
+            $out = [];
+            foreach (ProfileDetailCatalog::grouped() as $section => $fields) {
+                $out[] = [
+                    'group'  => ProfileDetailGroup::from($section),
+                    'fields' => $fields,
+                ];
+            }
+            return $out;
+        });
     }
 }

@@ -28,9 +28,9 @@
                   ]"
         />
 
-        <div class="flex justify-center mb-8">
+        <div class="w-full mb-8">
             <div x-show="activeTab==='survey'"
-                 class="animate-fade"
+                 class="w-full animate-fade"
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
@@ -59,7 +59,7 @@
                 @endif
             </div>
             <div x-show="activeTab==='chart'"
-                 class="animate-fade">
+                 class="w-full animate-fade" style="display: none;">
                 <livewire:dashboard.energy.chart/>
             </div>
         </div>

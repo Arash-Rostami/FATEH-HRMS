@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\HasDepartmentHelpers;
 use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasUserHelpers;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -45,9 +46,11 @@ class DMS extends Model
         'tags',
     ];
 
-    public function departments()
+    public function departments(): Collection
     {
-        return Department::whereIn('code', $this->owners)->get();
+        if (empty($this->owners)) return new Collection();
+
+        return once(fn() => Department::whereIn('code', $this->owners)->get());
     }
 
     public function getStatusIcon()
@@ -87,9 +90,11 @@ class DMS extends Model
             });
     }
 
-    public function users()
+    public function users(): Collection
     {
-        return User::whereIn('id', $this->users)->get();
+        if (empty($this->users)) return new Collection();
+
+        return once(fn() => User::whereIn('id', $this->users)->get());
     }
 
     protected function casts(): array

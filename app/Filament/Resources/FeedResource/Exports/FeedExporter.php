@@ -7,6 +7,7 @@ use App\Models\Feed;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class FeedExporter extends Exporter
 {
@@ -25,10 +26,10 @@ class FeedExporter extends Exporter
                 ->state(fn($record) => strip_tags($record->content ?? '')),
             ExportColumn::make('comments_count')
                 ->label(__('resources/feed/strings.fields.comments_count'))
-                ->state(fn($record) => $record->comments()->count()),
+                ->state(fn($record) => isset($record->comments_count) ? $record->comments_count : $record->comments()->count()),
             ExportColumn::make('reactions_count')
                 ->label(__('resources/feed/strings.fields.reactions_count'))
-                ->state(fn($record) => $record->reactions()->count()),
+                ->state(fn($record) => isset($record->reactions_count) ? $record->reactions_count : $record->reactions()->count()),
             ExportColumn::make('created_at')->label(__('resources/feed/strings.fields.created_at')),
         ];
     }
@@ -38,5 +39,10 @@ class FeedExporter extends Exporter
         $count = number_format($export->successful_rows);
 
         return __('resources/feed/strings.export.completed', ['count' => $count]);
+    }
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->withCount(['comments', 'reactions']);
     }
 }

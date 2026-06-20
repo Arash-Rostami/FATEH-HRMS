@@ -111,17 +111,18 @@ class ProfileDetailCatalog
             'city_code' => ['section' => 'other', 'label' => 'کد شهر', 'type' => 'text'],
         ];
     }
-
     public static function grouped(): array
     {
-        $out = [];
-        foreach (ProfileDetailGroup::ordered() as $group) {
-            $out[$group->value] = [];
-        }
-        foreach (self::definitions() as $key => $def) {
-            $out[$def['section']][$key] = $def;
-        }
-        return array_filter($out);
+        return once(function () {
+            $out = [];
+            foreach (ProfileDetailGroup::ordered() as $group) {
+                $out[$group->value] = [];
+            }
+            foreach (self::definitions() as $key => $def) {
+                $out[$def['section']][$key] = $def;
+            }
+            return array_filter($out);
+        });
     }
 
     public static function isSystem(string $key): bool

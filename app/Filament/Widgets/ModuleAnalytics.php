@@ -135,7 +135,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
                 ->color('success'),
             Stat::make(
                 'پرتراکم‌ترین واحدها',
-                        new HtmlString("
+                new HtmlString("
                             <div class='text-[14px] sm:text-md font-medium tracking-tighter flex items-center gap-1'>
                                  <span>{$mostDense}</span>
                             </div>
@@ -473,7 +473,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
             ->first();
 
-        $mostDense = Department::withCount('reports')->get()->sortByDesc('reports_count')->first()?->description ?? 'نامشخص';
+        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->description ?? 'نامشخص';
 
         return [
             Stat::make('واحدها با بیشترین گزارش', $mostDense)

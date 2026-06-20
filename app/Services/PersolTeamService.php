@@ -20,63 +20,81 @@ class PersolTeamService
         $viewerProfile = $viewer->profile;
         $viewerDepartment = $viewerProfile->department_id;
         $isManager = $viewer->isDeptHead();
-        $rulesApplied = false;
 
-        switch ($viewerDepartment) {
-            case 'MA':
-                $rulesApplied = true;
-                if ($viewerProfile->gender == 'female') {
-                    $query->where(function (Builder $q) {
-                        $q->whereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->where('department_id', '!=', 'MA'))
-                            ->orWhereHas('profile', fn(Builder $pq) => $pq->where('department_id', 'CX'));
-                    });
-                } elseif ($viewerProfile->gender == 'male') {
-                    $query->where(function (Builder $q) {
-                        $q->whereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->whereNotIn('department_id', ['CP', 'WP', 'CH', 'MA']))
-                            ->orWhereHas('profile', fn(Builder $pq) => $pq->where('department_id', 'SO')->where('position', 'senior'));
-                    });
-                }
-                break;
-
-            case 'MK':
-                if ($isManager) {
-                    $rulesApplied = true;
-                    $query->where(function (Builder $q) use ($viewerDepartment) {
-                        $q->whereHas('profile', fn(Builder $pq) => $pq->where('department', $viewerDepartment))
-                            ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->whereIn('department_id', ['CP', 'WP', 'CH']))
-                            ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'expert')->whereIn('department_id', ['CH', 'SO']));
-                    });
-                }
-                break;
-
-            case 'HC':
-            case 'HR':
-                if ($isManager) {
-                    $rulesApplied = true;
-                    $query->whereHas('profile', fn(Builder $pq) => $pq->whereIn('department_id', [$viewerDepartment, 'AS', 'HC', 'HR']));
-                }
-                break;
-
-            case 'CP':
-                $rulesApplied = true;
-                if ($viewer->surname == 'Rashidbeygi') {
-                    $query->where('surname', 'Adami');
-                } elseif ($viewer->surname == 'Shirzadeh') {
-                    $query->where('surname', 'Nafar');
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-                break;
-
-            default:
-                if ($isManager) {
-                    $rulesApplied = true;
-                    $query->whereHas('profile', fn(Builder $q) => $q->where('department_id', $viewerDepartment));
-                }
-        }
+        $rulesApplied = match ($viewerDepartment) {
+            'MA' => $this->applyMARules($query, $viewerProfile),
+            'MK' => $this->applyMKRules($query, $viewerDepartment, $isManager),
+            'HC', 'HR' => $this->applyHCRules($query, $viewerDepartment, $isManager),
+            'CP' => $this->applyCPRules($query, $viewer),
+            default => $this->applyDefaultRules($query, $viewerDepartment, $isManager),
+        };
 
         if (!$rulesApplied) {
             $query->whereRaw('1 = 0');
         }
+    }
+
+    private function applyMARules(Builder $query, $viewerProfile): bool
+    {
+        if ($viewerProfile->gender == 'female') {
+            $query->where(function (Builder $q) {
+                $q->whereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->where('department_id', '!=', 'MA'))
+                    ->orWhereHas('profile', fn(Builder $pq) => $pq->where('department_id', 'CX'));
+            });
+        } elseif ($viewerProfile->gender == 'male') {
+            $query->where(function (Builder $q) {
+                $q->whereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->whereNotIn('department_id', ['CP', 'WP', 'CH', 'MA']))
+                    ->orWhereHas('profile', fn(Builder $pq) => $pq->where('department_id', 'SO')->where('position', 'senior'));
+            });
+        }
+
+        return true;
+    }
+
+    private function applyMKRules(Builder $query, ?string $viewerDepartment, bool $isManager): bool
+    {
+        if ($isManager) {
+            $query->where(function (Builder $q) use ($viewerDepartment) {
+                $q->whereHas('profile', fn(Builder $pq) => $pq->where('department', $viewerDepartment))
+                    ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->whereIn('department_id', ['CP', 'WP', 'CH']))
+                    ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'expert')->whereIn('department_id', ['CH', 'SO']));
+            });
+            return true;
+        }
+
+        return false;
+    }
+
+    private function applyHCRules(Builder $query, ?string $viewerDepartment, bool $isManager): bool
+    {
+        if ($isManager) {
+            $query->whereHas('profile', fn(Builder $pq) => $pq->whereIn('department_id', [$viewerDepartment, 'AS', 'HC', 'HR']));
+            return true;
+        }
+
+        return false;
+    }
+
+    private function applyCPRules(Builder $query, User $viewer): bool
+    {
+        if ($viewer->surname == 'Rashidbeygi') {
+            $query->where('surname', 'Adami');
+        } elseif ($viewer->surname == 'Shirzadeh') {
+            $query->where('surname', 'Nafar');
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return true;
+    }
+
+    private function applyDefaultRules(Builder $query, ?string $viewerDepartment, bool $isManager): bool
+    {
+        if ($isManager) {
+            $query->whereHas('profile', fn(Builder $q) => $q->where('department_id', $viewerDepartment));
+            return true;
+        }
+
+        return false;
     }
 }
