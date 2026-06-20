@@ -58,13 +58,13 @@
              x-on:livewire-upload-progress="uploadProgress = $event.detail.progress">
 
             <div class="flex flex-col md:flex-row gap-4">
-                <aside class="w-full md:w-80 shrink-0">
+                <aside class="w-full md:w-80 shrink-0 md:sticky md:top-8 self-start">
 
                     @include('livewire.dashboard.suggestion.list')
 
                 </aside>
 
-                <main class="flex-1 min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-6rem)] md:overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
+                <main class="flex-1 min-w-0">
 
                     @includeWhen($panel === 'empty', 'livewire.dashboard.suggestion.placeholder')
 
