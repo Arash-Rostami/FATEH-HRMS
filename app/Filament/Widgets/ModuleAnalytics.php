@@ -10,6 +10,7 @@ use Filament\Schemas\Schema;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Computed;
 
@@ -120,7 +121,9 @@ class ModuleAnalytics extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function departmentsData(): array
     {
-        $departments = Department::withCount('users')->get();
+        $departments = Cache::remember('module_analytics_departments', 300, function () {
+            return Department::withCount('users')->get();
+        });
 
         $total = $departments->count();
         $withUsers = $departments->filter(fn($d) => $d->users_count > 0)->count();
