@@ -22,7 +22,7 @@ class SuggestionForm extends Form
     #[Validate('required|array|min:1')]
     public array $rule = [];
 
-    #[Validate('nullable|file|mimes:pdf,png,jpg|max:10240')]
+    #[Validate('nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:10240')]
     public $attachment = null;
 
     public bool $selfFill = false;
@@ -49,7 +49,7 @@ class SuggestionForm extends Form
             'rule.array' => 'قوانین باید به صورت آرایه باشند.',
             'rule.min' => 'حداقل یک قانون باید انتخاب شود.',
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
-            'attachment.mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
+            'attachment.mimes' => 'فرمت فایل باید pdf، png، jpg، jpeg یا webp باشد.',
             'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
         ];
     }
