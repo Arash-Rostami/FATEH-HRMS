@@ -5,21 +5,22 @@
         @forelse($this->users as $user)
             @php($p = presence($user->presence))
 
-            <div wire:key="user-{{ $user->id }}"
-                 x-data
-                 title="{{ $p->sublabel() }}"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95"
-                 class="group relative flex flex-col items-center gap-2 p-3 pt-4
+            <x-ui.decor.status :status="$p" wire:key="user-{{ $user->id }}-{{ $p->effectType() }}"
+                               x-data
+                               title="{{ $p->sublabel() }}"
+                               x-transition:enter="transition ease-out duration-300"
+                               x-transition:enter-start="opacity-0 scale-95"
+                               x-transition:enter-end="opacity-100 scale-100"
+                               x-transition:leave="transition ease-in duration-200"
+                               x-transition:leave-start="opacity-100 scale-100"
+                               x-transition:leave-end="opacity-0 scale-95"
+                               class="group relative flex flex-col items-center gap-2 p-3 pt-4
                      border shadow-sm rounded-2xl overflow-hidden cursor-pointer h-40
                      transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                      {{ $p->cardClasses() }}">
 
-                <div class="relative z-10 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">                    <img
+                <div class="relative z-10 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">
+                    <img
                         src="{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}"
                         alt="{{ $user->name }}"
                         class="w-18 h-18 rounded-full object-cover
@@ -101,7 +102,7 @@
                         <div class="w-7"></div>
                     @endif
                 </div>
-            </div>
+            </x-ui.decor.status>
 
         @empty
             <div class="col-span-full flex flex-col items-center justify-center py-16 gap-3

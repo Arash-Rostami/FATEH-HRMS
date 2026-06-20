@@ -22,6 +22,7 @@ class CreateAdsTable extends Migration
             $table->enum('gender', ['Male', 'Female', 'Any'])->default('Any');
             $table->string('link');
             $table->boolean('active')->default(true);
+            $table->json('extra')->nullable();
             $table->timestamps();
 
             $table->index('position');

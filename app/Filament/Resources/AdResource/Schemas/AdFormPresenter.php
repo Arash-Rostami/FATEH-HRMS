@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AdResource\Schemas;
 
 use App\Filament\Resources\AdResource\Enums\AdGender;
 use App\Traits\FilamentFormDivider;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\Toggle;
 class AdFormPresenter
 {
     use FilamentFormDivider;
+
     public static function active(): Toggle
     {
         return Toggle::make('active')
@@ -47,6 +49,29 @@ class AdFormPresenter
             ])
             ->columnSpanFull()
             ->helperText(__('resources/ad/strings.hints.experience'));
+    }
+
+    public static function extra(): Repeater
+    {
+        return Repeater::make('extra')
+            ->label(__('resources/ad/strings.fields.extra'))
+            ->schema([
+                TextInput::make('key')
+                    ->label(__('resources/ad/strings.fields.extra_key'))
+                    ->required()
+                    ->maxLength(255)
+                    ->helperText(__('resources/ad/strings.hints.extra_key')),
+                Textarea::make('value')
+                    ->label(__('resources/ad/strings.fields.extra_value'))
+                    ->required()
+                    ->rows(3)
+                    ->helperText(__('resources/ad/strings.hints.extra_value')),
+            ])
+            ->columns(1)
+            ->defaultItems(0)
+            ->reorderable(true)
+            ->collapsible()
+            ->cloneable();
     }
 
     public static function gender(): Select

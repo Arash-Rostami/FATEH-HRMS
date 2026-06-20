@@ -260,20 +260,20 @@
                     <x-ui.forms.input label="شماره بیمه" name="form.insurance" wire:model="form.insurance"
                                       icon="health_and_safety"/>
                     <x-ui.forms.select label="سابقه کار" name="form.work_experience" wire:model="form.work_experience"
-                                      icon="history">
-                                    <option value="" disabled selected hidden>سابقه کار</option>
-                                    <option value="student">دانشجو / بدون سابقه</option>
-                                    <option value="0-1">کمتر از ۱ سال</option>
-                                    <option value="1-2">۱ تا ۲ سال</option>
-                                    <option value="2-3">۲ تا ۳ سال</option>
-                                    <option value="3-5">۳ تا ۵ سال</option>
-                                    <option value="5-7">۵ تا ۷ سال</option>
-                                    <option value="7-10">۷ تا ۱۰ سال</option>
-                                    <option value="10-15">۱۰ تا ۱۵ سال</option>
-                                    <option value="15-20">۱۵ تا ۲۰ سال</option>
-                                    <option value="20+">بیشتر از ۲۰ سال</option>
-                                    <option value="freelance">فریلنس / پروژه‌ای</option>
-                                    <option value="career_change">تغییر مسیر شغلی / شروع مجدد</option>
+                                       icon="history">
+                        <option value="" disabled selected hidden>سابقه کار</option>
+                        <option value="student">دانشجو / بدون سابقه</option>
+                        <option value="0-1">کمتر از ۱ سال</option>
+                        <option value="1-2">۱ تا ۲ سال</option>
+                        <option value="2-3">۲ تا ۳ سال</option>
+                        <option value="3-5">۳ تا ۵ سال</option>
+                        <option value="5-7">۵ تا ۷ سال</option>
+                        <option value="7-10">۷ تا ۱۰ سال</option>
+                        <option value="10-15">۱۰ تا ۱۵ سال</option>
+                        <option value="15-20">۱۵ تا ۲۰ سال</option>
+                        <option value="20+">بیشتر از ۲۰ سال</option>
+                        <option value="freelance">فریلنس / پروژه‌ای</option>
+                        <option value="career_change">تغییر مسیر شغلی / شروع مجدد</option>
                     </x-ui.forms.select>
 
                     <div class="col-span-1 md:col-span-3">
@@ -304,18 +304,29 @@
                             <span
                                 class="font-bold text-sm text-[var(--md-sys-color-on-surface)]">رنگ‌های مورد علاقه</span>
                         </div>
-                        <div class="flex flex-wrap gap-3">
-                            @foreach($colors as $color)
-                                <label class="cursor-pointer relative flex items-center justify-center">
-                                    <input type="checkbox" wire:model="form.favoriteColors" value="{{ $color }}"
-                                           class="peer sr-only">
-                                    <div style="background-color: {{ $color }}"
-                                         class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
-                                    <span
-                                        class="material-symbols-rounded absolute text-white drop-shadow-md mix-blend-difference text-sm"
-                                        :class="$wire.form.favoriteColors.includes('{{ $color }}') ? 'opacity-100' : 'opacity-0'">check</span>
-                                </label>
-                            @endforeach
+                        <div x-data="{ expanded: false, get colors() { return Array.isArray($wire.form.favoriteColors) ? $wire.form.favoriteColors : []; } }" class="relative">
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($colors as $index => $color)
+                                    <label class="cursor-pointer relative flex items-center justify-center transition-all duration-300"
+                                           x-show="expanded || colors.includes('{{ $color }}') || {{ $index }} < 7"
+                                           x-transition.opacity.duration.300ms>
+                                        <input type="checkbox" wire:model="form.favoriteColors" value="{{ $color }}"
+                                               class="peer sr-only">
+                                        <div style="background-color: {{ $color }}"
+                                             class="w-9 h-9 rounded-xl border border-[var(--md-sys-color-outline-variant)] shadow-sm peer-checked:ring-2 peer-checked:ring-[var(--md-sys-color-primary)] peer-checked:ring-offset-1 peer-checked:border-transparent transition-all hover:scale-110"></div>
+                                        <span class="material-symbols-rounded absolute text-white drop-shadow-md mix-blend-difference text-sm transition-opacity duration-200"
+                                              :class="colors.includes('{{ $color }}') ? 'opacity-100' : 'opacity-0'">check</span>
+                                    </label>
+                                @endforeach
+
+                                    <button type="button" @click="expanded = !expanded"
+                                            class="animate-pulse h-10 px-4 min-w-[110px] flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-all hover:scale-110 shadow-sm"
+                                            :title="expanded ? 'نمایش کمتر' : 'نمایش بیشتر'">
+                                         <span class="material-symbols-rounded text-[16px] transition-transform duration-300"
+                                               :class="expanded ? 'rotate-180' : ''">expand_more</span>
+                                        <span class="text-sm select-none" x-text="expanded ? 'کمتر' : 'بیشتر'"></span>
+                                    </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Ad extends Model
 {
@@ -20,19 +20,9 @@ class Ad extends Model
         'experience',
         'gender',
         'link',
-        'active'
+        'active',
+        'extra'
     ];
-
-    protected function avatar(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => match($this->gender) {
-                'Male'   => ['icon' => 'face_6', 'color' => 'blue', 'title' => 'آقایان'],
-                'Female' => ['icon' => 'face_3', 'color' => 'pink', 'title' => 'خانم‌ها'],
-                default  => ['icon' => 'group', 'color' => 'green', 'title' => 'همه'],
-            }
-        );
-    }
 
     public static function countActiveJobs(): int
     {
@@ -74,10 +64,22 @@ class Ad extends Model
         return $query->where('active', false);
     }
 
+    protected function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => match ($this->gender) {
+                'Male' => ['icon' => 'manage_accounts', 'color' => 'blue', 'title' => 'آقایان'],
+                'Female' => ['icon' => 'badge', 'color' => 'pink', 'title' => 'خانم‌ها'],
+                default => ['icon' => 'group', 'color' => 'green', 'title' => 'همه'],
+            }
+        );
+    }
+
     protected function casts(): array
     {
         return [
             'active' => 'boolean',
+            'extra' => 'array',
         ];
     }
 }

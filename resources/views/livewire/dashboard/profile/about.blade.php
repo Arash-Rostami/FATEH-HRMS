@@ -22,8 +22,8 @@
                 <x-ui.forms.input
                     wire:model="form.movies"
                     name="form.movies"
-                    label="فیلم و سریال"
-                    placeholder="مثلا: معمولا فیلم زیاد میبینم مخصوصا ژانر تاریخی..."
+                    label=" فیلم و سریال و تاتر"
+                    placeholder="مثلا: معمولا فیلم در موضوع و مخصوصا ژانر ..."
                     icon="movie"
                 />
 
@@ -31,7 +31,7 @@
                     wire:model="form.music"
                     name="form.music"
                     label="موسیقی و پادکست"
-                    placeholder="مثلا: به موسیقی و پادکست هم علاقه دارم..."
+                    placeholder="مثلا: نوع موسیقی، خواننده ویا نوع پادکست مورد علاقم ..."
                     icon="headphones"
                 />
 

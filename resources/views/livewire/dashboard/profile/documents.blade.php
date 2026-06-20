@@ -1,32 +1,49 @@
-<div class="space-y-5 animate-[fade-in_0.4s_ease-out]"
-     dir="rtl">
+<div class="space-y-5 animate-[fade-in_0.4s_ease-out]" dir="rtl">
 
-    <div
-        class="relative overflow-hidden rounded-2xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 p-5">
+    <div class="relative overflow-hidden rounded-2xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] border border-[var(--md-sys-color-tertiary)]/20 p-5">
         <div class="absolute -right-4 -top-4 opacity-[0.08] pointer-events-none">
             <span class="material-symbols-rounded text-[100px]">cloud_upload</span>
         </div>
+
         <div class="relative z-10 flex gap-4 items-start md:items-center">
-            <div
-                class="w-10 h-10 flex-shrink-0 rounded-xl bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] flex items-center justify-center shadow-inner">
+            <div class="w-10 h-10 flex-shrink-0 mt-1 rounded-xl bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] flex items-center justify-center shadow-inner">
                 <span class="material-symbols-rounded text-[22px]">info</span>
             </div>
-            <div>
-                <h3 class="text-sm font-bold tracking-tight mb-0.5">راهنمای بارگذاری مدارک</h3>
-                <p class="text-xs opacity-90 leading-relaxed">تصاویر اسکن شده با کیفیت مناسب و حجم کمتر از ۲ مگابایت. پس
-                    از تایید نهایی، امکان ویرایش وجود نخواهد داشت.</p>
+
+            <div class="flex-1">
+                <h3 class="text-sm font-bold tracking-tight mb-2">راهنمای بارگذاری مدارک و الزامات پرونده</h3>
+                <p class="text-xs opacity-90 leading-relaxed mb-4">
+                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۲ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
+                </p>
+
+                <ul class="text-xs opacity-90 leading-relaxed space-y-3">
+                    <li class="flex items-start gap-2">
+                        <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">document_scanner</span>
+                        <span>تصاویر مدارک باید دارای کادربندی استاندارد باشند؛ لطفاً از بارگذاری تصاویر زاویه‌دار، فاقد نور مناسب یا ناخوانا اکیداً خودداری فرمایید.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">group</span>
+                        <span>علاوه بر مدارک هویتی پایه، بارگذاری تصویر <strong>تمامی صفحات</strong> شناسنامه همسر و فرزندان نیز الزامی است.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">policy</span>
+                        <span>همچنین، ارائه و بارگذاری تصویر گواهی معتبر عدم سوء پیشینه کیفری. </span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="material-symbols-rounded text-[16px] opacity-80 shrink-0">account_balance</span>
+                        <span>بارگذاری تصویر مستندات بانکی (یک برگه) حاوی شماره حساب فعال به نام شخص متقاضی، منحصراً نزد <strong>بانک تجارت</strong>.</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 
-    <div
-        class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
+    <div class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
         <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
             <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">folder_open</span>
             <div>
                 <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">بارگذاری مدارک هویتی</h3>
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">تصاویر اسکن شده مدارک خود را
-                    با کیفیت مناسب بارگذاری نمایید.</p>
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">تصاویر اسکن شده مدارک خود را با کیفیت مناسب بارگذاری نمایید.</p>
             </div>
         </div>
         <div class="p-6">

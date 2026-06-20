@@ -60,6 +60,15 @@ class AdResource extends Resource
                 ])
                 ->columns(1)
                 ->columnSpanFull(),
+
+            Section::make(__('resources/ad/strings.form.section_extra'))
+                ->icon('heroicon-o-document-text')
+                ->description(__('resources/ad/strings.form.section_extra_description'))
+                ->schema([
+                    AdFormPresenter::extra(),
+                ])
+                ->columns(1)
+                ->columnSpanFull(),
         ]);
     }
 
@@ -158,6 +167,17 @@ class AdResource extends Resource
                                     AdInfolistPresenter::updatedAt(),
                                 ])
                                 ->columns(2)
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/ad/strings.infolist.tab_extra'))
+                        ->icon('heroicon-o-document-text')
+                        ->schema([
+                            Section::make()
+                                ->schema([
+                                    AdInfolistPresenter::extra(),
+                                ])
+                                ->columns(1)
                                 ->columnSpanFull(),
                         ]),
                 ])

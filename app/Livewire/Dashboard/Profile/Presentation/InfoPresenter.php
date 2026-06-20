@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
+use App\Enums\FavoriteColor;
 use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 
 class InfoPresenter
@@ -23,16 +24,10 @@ class InfoPresenter
     ];
 
     public static array $steps = [
-        1 => ['label' => 'شخصی',   'icon' => 'person', 'sub' => 'اطلاعات پایه'],
-        2 => ['label' => 'سازمانی', 'icon' => 'badge',  'sub' => 'مشخصات هویتی'],
-        3 => ['label' => 'تکمیلی',  'icon' => 'tune',   'sub' => 'تماس و سایر'],
+        1 => ['label' => 'شخصی', 'icon' => 'person', 'sub' => 'اطلاعات پایه'],
+        2 => ['label' => 'سازمانی', 'icon' => 'badge', 'sub' => 'مشخصات هویتی'],
+        3 => ['label' => 'تکمیلی', 'icon' => 'tune', 'sub' => 'تماس و سایر'],
     ];
-
-    public static array $colors = [
-        '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#000000',
-        '#ffffff', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6',
-    ];
-
     public static array $birthYearRange = [];
 
     public function __construct()
@@ -41,15 +36,20 @@ class InfoPresenter
         self::$birthYearRange = range($now - 696, $now - 616);
     }
 
+    public static function getColors(): array
+    {
+        return array_map(fn($case) => $case->value, FavoriteColor::cases());
+    }
+
     public function toView(ProfileForm $form, ?string $existingImage, array $departments): array
     {
         return [
-            'steps'          => self::$steps,
-            'stepFields'     => self::$stepFields,
-            'colors'         => self::$colors,
+            'steps' => self::$steps,
+            'stepFields' => self::$stepFields,
+            'colors' => self::getColors(),
             'birthYearRange' => self::$birthYearRange,
-            'existingImage'  => $existingImage,
-            'departments'    => $departments,
+            'existingImage' => $existingImage,
+            'departments' => $departments,
         ];
     }
 }
