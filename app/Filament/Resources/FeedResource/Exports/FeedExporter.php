@@ -12,6 +12,11 @@ class FeedExporter extends Exporter
 {
     protected static ?string $model = Feed::class;
 
+    public static function modifyQuery(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->withCount(['comments', 'reactions']);
+    }
+
     public static function getColumns(): array
     {
         return [
@@ -25,10 +30,10 @@ class FeedExporter extends Exporter
                 ->state(fn($record) => strip_tags($record->content ?? '')),
             ExportColumn::make('comments_count')
                 ->label(__('resources/feed/strings.fields.comments_count'))
-                ->state(fn($record) => $record->comments()->count()),
+                ->state(fn($record) => $record->comments_count ?? $record->comments()->count()),
             ExportColumn::make('reactions_count')
                 ->label(__('resources/feed/strings.fields.reactions_count'))
-                ->state(fn($record) => $record->reactions()->count()),
+                ->state(fn($record) => $record->reactions_count ?? $record->reactions()->count()),
             ExportColumn::make('created_at')->label(__('resources/feed/strings.fields.created_at')),
         ];
     }
