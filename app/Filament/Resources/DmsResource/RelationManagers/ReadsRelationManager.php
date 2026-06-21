@@ -41,7 +41,6 @@ class ReadsRelationManager extends RelationManager
                 ->schema([
                     TextEntry::make('user.name')->label('کاربر'),
                     TextEntry::make('read_count')->label('تعداد مطالعه'),
-                    TextEntry::make('combined_read_count')->label('مجموع مطالعه'),
                     TextEntry::make('updated_at')->label('آخرین مطالعه')->dateTime(),
                 ])
                 ->columnSpanFull()
@@ -61,10 +60,6 @@ class ReadsRelationManager extends RelationManager
                     ->boolean(),
                 TextColumn::make('read_count')
                     ->label(__('resources/dms/strings.fields.read_count'))
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('combined_read_count')
-                    ->label('مجموع مطالعه')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('updated_at')

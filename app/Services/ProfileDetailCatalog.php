@@ -186,11 +186,11 @@ class ProfileDetailCatalog
     private static function ruleFor(array $def): string
     {
         return match ($def['type']) {
-            'number' => 'nullable|integer|min:0|max:1000000',
+            'number' => 'nullable|numeric|min:0|max:1000000',
             'textarea' => 'nullable|string|max:2000',
             'date' => 'nullable|string|max:20',
             'select' => 'nullable|string|in:' . implode(',', array_keys($def['options'] ?? [])),
-            default => 'nullable|string|max:255',
+            default => 'nullable|string|max:2000',
         };
     }
 }

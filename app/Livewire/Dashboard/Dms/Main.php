@@ -97,14 +97,13 @@ class Main extends Component
 
     public function getAuthorizedFile(string $filename): Response
     {
-        $safeFilename = basename($filename);
-        $doc = DMS::visibleToUser()->where('file', $safeFilename)->first();
+        $doc = DMS::visibleToUser()->where('file', $filename)->first();
 
         if (!$doc) {
             return response()->view('errors.document-not-found', [], 404);
         }
 
-        $filePath = Storage::disk('public')->path($safeFilename);
+        $filePath = Storage::disk('public')->path($doc->file);
 
         if (!file_exists($filePath) || !is_file($filePath)) {
             return response()->view('errors.document-not-found', [], 404);

@@ -13,6 +13,7 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -23,6 +24,8 @@ class Main extends Component
 
     public TicketForm $ticket;
     public RatingForm $rating;
+
+    #[Locked]
     public $ticketToRate = null;
     public ?array $selectedTicket = null;
     public string $activeTab = 'new';
@@ -100,6 +103,7 @@ class Main extends Component
 
         $this->ticketToRate = null;
         $this->activeTab = 'new';
+        $this->direction = 'up';
         $this->dispatch('toast', message: 'از بازخورد شما سپاسگزاریم.', type: 'success');
     }
 
@@ -187,8 +191,16 @@ class Main extends Component
     }
     public function viewTicket($ticketId): void
     {
-        $ticket = Ticket::with('assignee')->find($ticketId);
-        $this->selectedTicket = $ticket?->toArray();
+        $ticket = Ticket::with('assignee')
+            ->whereKey($ticketId)
+            ->where(fn(Builder $q) => $q->where('requester_id', auth()->id())->orWhere('assigned_to', auth()->id()))
+            ->first();
+
+        if (!$ticket) {
+            return;
+        }
+
+        $this->selectedTicket = $ticket->toArray();
         $this->modalTab = 'request';
     }
 

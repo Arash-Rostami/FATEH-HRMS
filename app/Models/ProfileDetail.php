@@ -18,9 +18,14 @@ class ProfileDetail extends Model
     public function getDisplayValueAttribute(): ?string
     {
         $def = ProfileDetailCatalog::definition($this->key);
+        $type = $def['type'] ?? null;
 
-        if (($def['type'] ?? null) === 'select') {
+        if ($type === 'select') {
             return $def['options'][$this->value] ?? $this->value;
+        }
+
+        if ($type === 'date' && filled($this->value)) {
+            return toJalali($this->value, 'Y/m/d');
         }
 
         return $this->value;

@@ -84,7 +84,7 @@ class DMS extends Model
             ->where(function ($query) {
                 $query
                     ->whereJsonContains('owners', 'ALL')
-                    ->orWhereJsonContains('owners', auth()->user()?->profile?->department)
+                    ->orWhereJsonContains('owners', auth()->user()?->profile?->department_id)
                     ->orWhereJsonContains('users', (string)auth()->id())
                     ->orWhereJsonContains('users', auth()->id());
             });
@@ -95,6 +95,16 @@ class DMS extends Model
         if (empty($this->users)) return new Collection();
 
         return once(fn() => User::whereIn('id', $this->users)->get());
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (DMS $document): void {
+            if ($document->wasChanged('file') || $document->wasChanged('revision')) {
+                $document->reads()->update(['read' => false, 'read_count' => 0]);
+                $document->newQuery()->whereKey($document->getKey())->update(['combined_read_count' => 0]);
+            }
+        });
     }
 
     protected function casts(): array

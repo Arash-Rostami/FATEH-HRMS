@@ -8,13 +8,13 @@ class ConfirmReadAction
 {
     public function execute(int $docId, bool $increment = false): bool
     {
-        $document = DMS::find($docId);
+        $document = DMS::visibleToUser()->find($docId);
 
         if (!$document) return false;
 
-        $readRecord = $document->reads()->firstOrCreate(
+        $readRecord = $document->reads()->updateOrCreate(
             ['user_id' => auth()->id()],
-            ['read_count' => 0, 'read' => true]
+            ['read' => true]
         );
 
         if ($increment) {

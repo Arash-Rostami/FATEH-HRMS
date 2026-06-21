@@ -6,8 +6,10 @@ use App\Livewire\Dashboard\Profile\Actions\SaveDetailsAction;
 use App\Livewire\Dashboard\Profile\Forms\DetailsForm;
 use App\Livewire\Dashboard\Profile\Presentation\DetailsPresenter;
 use App\Services\ProfileDetailCatalog;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Morilog\Jalali\Jalalian;
 
 class Details extends Component
 {
@@ -29,11 +31,12 @@ class Details extends Component
         foreach ($values as $key => $value) {
             $def = ProfileDetailCatalog::definition($key);
             if ($def && $def['type'] === 'date' && !empty($value)) {
-                $parts = explode('/', $value);
-                if (count($parts) === 3) {
-                    $values[$key . 'Year'] = (int) $parts[0];
-                    $values[$key . 'Month'] = (int) $parts[1];
-                    $values[$key . 'Day'] = (int) $parts[2];
+                try {
+                    $jalali = Jalalian::fromCarbon(Carbon::parse($value));
+                    $values[$key . 'Year'] = $jalali->getYear();
+                    $values[$key . 'Month'] = $jalali->getMonth();
+                    $values[$key . 'Day'] = $jalali->getDay();
+                } catch (\Throwable) {
                 }
             }
         }

@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Profile\Forms\DetailsForm;
 use App\Models\Profile;
 use App\Services\ProfileDetailCatalog;
 use Illuminate\Support\Facades\Auth;
+use Morilog\Jalali\Jalalian;
 
 class SaveDetailsAction
 {
@@ -30,12 +31,11 @@ class SaveDetailsAction
                 if (
                     array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)
                 ) {
-                    $year = $values[$key . 'Year'] ?? null;
-                    $month = $values[$key . 'Month'] ?? null;
-                    $day = $values[$key . 'Day'] ?? null;
-
-                    $formatted[$key] = ($year && $month && $day)
-                        ? sprintf('%04d/%02d/%02d', $year, $month, $day) : null;
+                    $formatted[$key] = $this->assembleDate(
+                        $values[$key . 'Year'] ?? null,
+                        $values[$key . 'Month'] ?? null,
+                        $values[$key . 'Day'] ?? null
+                    );
                 } elseif (array_key_exists($key, $values)) {
                     $formatted[$key] = $values[$key];
                 }
@@ -49,5 +49,20 @@ class SaveDetailsAction
         }
 
         return $formatted;
+    }
+
+    private function assembleDate(mixed $year, mixed $month, mixed $day): ?string
+    {
+        if (!$year || !$month || !$day) {
+            return null;
+        }
+
+        try {
+            return Jalalian::fromFormat('Y/m/d', sprintf('%04d/%02d/%02d', $year, $month, $day))
+                ->toCarbon()
+                ->format('Y-m-d');
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

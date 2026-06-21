@@ -6,10 +6,8 @@ use App\Livewire\Dashboard\Profile\Actions\DeleteProfileImageAction;
 use App\Livewire\Dashboard\Profile\Actions\SaveProfileAction;
 use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 use App\Livewire\Dashboard\Profile\Presentation\InfoPresenter;
-use App\Models\Department;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -32,12 +30,6 @@ class Info extends Component
             $this->existingImage = auth()->user()->getInitialsAvatarUrl();
             $this->dispatch('toast', message: 'تصویر پروفایل با موفقیت حذف شد.', type: 'success');
         }
-    }
-
-    #[Computed]
-    public function departments(): array
-    {
-        return Department::getCachedOptions()->toArray();
     }
 
     public function mount(): void
@@ -79,7 +71,7 @@ class Info extends Component
     {
         return view(
             'livewire.dashboard.profile.info',
-            $presenter->toView($this->form, $this->existingImage, $this->departments)
+            $presenter->toView($this->form, $this->existingImage)
         );
     }
 

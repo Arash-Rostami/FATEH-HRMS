@@ -277,6 +277,7 @@ Everything else — `$activeTab`, computed properties, `$this->items`, event lis
 - [ ] No `$this->reset()` wiping state that was just set — use scoped `$this->form->reset()`
 - [ ] Actions receive Form Objects and models — never the component itself
 - [ ] Post-action side effects (toast, redirect, tab) stay in `Main`, not in Action
+- [ ] Public properties holding an Eloquent model or record id are `#[Locked]` unless the client is meant to change them — prevents the client swapping the id to act on another user's record (IDOR)
 
 ---
 
@@ -289,3 +290,14 @@ Everything else — `$activeTab`, computed properties, `$this->items`, event lis
 - Do not create a Form Object for state that is never submitted (search, pagination, tab — these stay on `Main`)
 - Do not create a Validator for Actions with only 1–2 simple guards — inline them
 - Do not over-split: if a component has one simple form and no formatting helpers, Form Object + Action is enough — no Presenter or Validator needed
+
+---
+
+## Persian (Jalali) date convention
+
+Dates are **stored as Gregorian `Y-m-d`** and converted to Jalali only at the edges. This matches the Filament side (`PersianDateFieldService`), so a date saved in one panel round-trips correctly in the other.
+
+- **On submit** (Action): assemble the Jalali year/month/day parts into Gregorian — `Jalalian::fromFormat('Y/m/d', sprintf('%04d/%02d/%02d', $y, $m, $d))->toCarbon()->format('Y-m-d')`. Wrap in `try/catch` returning `null`, since a UI that exposes a flat 1–31 day list can submit an invalid Jalali date.
+- **On hydrate** (`mount`): convert stored Gregorian back to Jalali parts — `Jalalian::fromCarbon(Carbon::parse($value))` → `getYear()/getMonth()/getDay()`.
+- **Validation**: gate the parts all-or-nothing with `required_with`, and validate calendar validity with `CalendarUtils::checkDate($y, $m, $d, true)` (leap-year aware) inside a closure rule.
+- **Display**: format with the `toJalali($value, 'Y/m/d')` helper — it is calendar-safe (returns already-Jalali strings untouched, converts Gregorian ones), so it tolerates legacy mixed-format rows.

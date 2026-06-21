@@ -43,7 +43,8 @@ class ProfileFormPresenter
                         'required' => __('resources/profile/strings.validation.about_me_key.required'),
                     ]),
                 TextInput::make('value')
-                    ->label('مقدار'),
+                    ->label('مقدار')
+                    ->maxLength(2000),
             ])
             ->afterStateHydrated(function ($component, $state) {
                 $formatted = [];

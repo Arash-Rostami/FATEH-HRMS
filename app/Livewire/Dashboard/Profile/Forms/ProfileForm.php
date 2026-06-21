@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\Profile\Forms;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Form;
 use Livewire\Attributes\Validate;
 
@@ -25,13 +27,11 @@ class ProfileForm extends Form
     #[Validate('nullable|string|max:50')]
     public ?string $employment_status = '';
 
-    #[Validate('nullable|string|max:20')]
     public ?string $id_card_number = '';
 
-    #[Validate('required|string|max:20')]
     public string $id_booklet_number = '';
 
-    #[Validate('required|string|max:255')]
+    #[Validate('required|string|in:undergraduate,graduate,postgraduate')]
     public string $degree = '';
 
     #[Validate('required|string|max:255')]
@@ -56,9 +56,6 @@ class ProfileForm extends Form
     public ?string $accessibility = '';
 
     #[Validate('nullable|string|max:50')]
-    public ?string $department_id = '';
-
-    #[Validate('nullable|string|max:50')]
     public ?string $position = '';
 
     #[Validate('required|string|max:50')]
@@ -70,7 +67,7 @@ class ProfileForm extends Form
     #[Validate('required|string|max:50')]
     public string $emergency_relationship = '';
 
-    #[Validate('required|string|max:50')]
+    #[Validate('required|string|in:student,0-1,1-2,2-3,3-5,5-7,7-10,10-15,15-20,20+,freelance,career_change')]
     public string $work_experience = '';
 
     #[Validate('nullable|string|max:1000')]
@@ -94,6 +91,16 @@ class ProfileForm extends Form
     #[Validate('nullable|integer')]
     public ?int $birthDay = null;
 
+    protected function rules(): array
+    {
+        $profileId = Auth::user()?->profile?->getKey();
+
+        return [
+            'id_card_number' => ['nullable', 'string', 'max:20', Rule::unique('profiles', 'id_card_number')->ignore($profileId)],
+            'id_booklet_number' => ['required', 'string', 'max:20', Rule::unique('profiles', 'id_booklet_number')->ignore($profileId)],
+        ];
+    }
+
     /**
      * Get validation messages (Persian)
      */
@@ -104,7 +111,11 @@ class ProfileForm extends Form
             'marital_status.required' => 'انتخاب وضعیت تأهل الزامی می‌باشد.',
             'number_of_children.required' => 'وارد کردن تعداد فرزندان الزامی است.',
             'id_booklet_number.required' => 'وارد کردن شماره شناسنامه الزامی است.',
+            'id_card_number.unique' => __('resources/profile/strings.validation.id_card_number.unique'),
+            'id_booklet_number.unique' => __('resources/profile/strings.validation.id_booklet_number.unique'),
             'degree.required' => 'انتخاب مقطع تحصیلی الزامی می‌باشد.',
+            'degree.in' => 'مقطع تحصیلی انتخاب‌شده نامعتبر است.',
+            'work_experience.in' => 'سابقه کاری انتخاب‌شده نامعتبر است.',
             'field.required' => 'وارد کردن رشته تحصیلی الزامی است.',
             'cellphone.required' => 'وارد کردن شماره تلفن همراه الزامی است.',
             'zip_code.required' => 'وارد کردن کد پستی الزامی است.',

@@ -204,7 +204,7 @@ class TicketFormPresenter
         return TextInput::make('request_subject')
             ->label(__('resources/ths/strings.fields.subject'))
             ->required()
-            ->maxLength(500)
+            ->maxLength(255)
             ->helperText(__('resources/ths/strings.hints.request_subject'))
             ->validationMessages([
                 'required' => __('resources/ths/strings.validation.request_subject.required'),
@@ -311,12 +311,14 @@ class TicketFormPresenter
     private static function acceptedMimeTypes(): array
     {
         return [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+            'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml',
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.oasis.opendocument.text',
+            'application/vnd.oasis.opendocument.spreadsheet',
         ];
     }
 

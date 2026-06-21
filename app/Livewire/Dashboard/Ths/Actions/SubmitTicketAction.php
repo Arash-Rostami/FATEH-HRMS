@@ -26,7 +26,7 @@ class SubmitTicketAction
             'requester_id' => auth()->id(),
             'extra' => [
                 'department' => $form->department ?? 'N/A',
-                'target_department' => empty($form->targetDepartment) ? 'N/A' : $form->targetDepartment
+                'target_department' => empty($form->targetDepartment) || $form->targetDepartment === 'N/A' ? null : $form->targetDepartment
             ]
         ]);
     }

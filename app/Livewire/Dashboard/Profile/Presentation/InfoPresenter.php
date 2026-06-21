@@ -41,7 +41,7 @@ class InfoPresenter
         return array_map(fn($case) => $case->value, FavoriteColor::cases());
     }
 
-    public function toView(ProfileForm $form, ?string $existingImage, array $departments): array
+    public function toView(ProfileForm $form, ?string $existingImage): array
     {
         return [
             'steps' => self::$steps,
@@ -49,7 +49,6 @@ class InfoPresenter
             'colors' => self::getColors(),
             'birthYearRange' => self::$birthYearRange,
             'existingImage' => $existingImage,
-            'departments' => $departments,
         ];
     }
 }

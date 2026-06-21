@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\DMS;
 use App\Models\Read;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class ReadFactory extends Factory
 {
@@ -13,11 +14,11 @@ class ReadFactory extends Factory
     public function definition(): array
     {
         return [
-            'document_id' => fake()->numberBetween(1, 50),
-            'user_id' => fake()->numberBetween(1, 50),
-            'read' => fake()->boolean(),
-            'read_count' => fake()->numberBetween(1, 100),
-            'combined_read_count' => fake()->numberBetween(1, 100),
+            'document_id' => DMS::inRandomOrder()->value('id') ?? DMS::factory(),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'read' => true,
+            'read_count' => fake()->numberBetween(0, 100),
+            'combined_read_count' => 0,
         ];
     }
 }
