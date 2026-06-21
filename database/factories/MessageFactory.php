@@ -13,10 +13,10 @@ class MessageFactory extends Factory
     public function definition(): array
     {
         return [
-            'sender_id' => fake()->numberBetween(1, 50),
-            'recipient_id' => fake()->numberBetween(1, 50),
+            'sender_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'recipient_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'body' => fake()->paragraph(),
-            'reply_to_id' => fake()->numberBetween(1, 50),
+            'reply_to_id' => null,
             'is_edited' => fake()->boolean(),
             'read_at' => now(),
         ];

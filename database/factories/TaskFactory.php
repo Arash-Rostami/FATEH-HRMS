@@ -16,9 +16,9 @@ class TaskFactory extends Factory
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(['todo', 'in-progress', 'done']),
-            'deadline' => '',
-            'user_id' => fake()->numberBetween(1, 50),
-            'assigned_to' => fake()->numberBetween(1, 100),
+            'deadline' => now()->addDays(fake()->numberBetween(1, 10)),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'assigned_to' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
         ];
     }
 }

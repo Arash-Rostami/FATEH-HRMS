@@ -13,8 +13,8 @@ class ReactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'feed_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'feed_id' => \App\Models\Feed::inRandomOrder()->value('id') ?? \App\Models\Feed::factory(),
             'emoji' => fake()->word(),
         ];
     }

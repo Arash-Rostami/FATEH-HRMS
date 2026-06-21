@@ -13,8 +13,8 @@ class AuthorityFactory extends Factory
     public function definition(): array
     {
         return [
-            'department_id' => fake()->word(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'department_id' => \App\Models\Department::inRandomOrder()->value('code') ?? \App\Models\Department::factory()->create()->code,
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'sub_duty' => fake()->boolean(),
             'details' => [],
         ];

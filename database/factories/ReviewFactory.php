@@ -16,11 +16,11 @@ class ReviewFactory extends Factory
             'comments' => fake()->paragraph(),
             'actions' => fake()->paragraph(),
             'feedback' => fake()->randomElement(['agree', 'neutral', 'disagree', 'incomplete', 'unknown']),
-            'department_id' => fake()->paragraph(),
+            'department_id' => \App\Models\Department::inRandomOrder()->value('code') ?? \App\Models\Department::factory()->create()->code,
             'complete' => fake()->boolean(),
             'referral' => [],
-            'user_id' => fake()->numberBetween(1, 50),
-            'suggestion_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'suggestion_id' => \App\Models\Suggestion::inRandomOrder()->value('id') ?? \App\Models\Suggestion::factory(),
         ];
     }
 }

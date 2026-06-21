@@ -17,7 +17,7 @@ class PostFactory extends Factory
             'body' => fake()->paragraph(),
             'image' => fake()->imageUrl(),
             'pinned' => fake()->boolean(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
         ];
     }
 }

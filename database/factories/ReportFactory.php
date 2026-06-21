@@ -13,13 +13,12 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
             'cover_image' => fake()->imageUrl(),
-            'department_id' => fake()->word(),
+            'department_id' => \App\Models\Department::inRandomOrder()->value('code') ?? \App\Models\Department::factory()->create()->code,
             'file_path' => fake()->word(),
-            'active' => fake()->randomElement(['active', 'inactive']),
         ];
     }
 }

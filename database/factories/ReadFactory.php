@@ -14,8 +14,8 @@ class ReadFactory extends Factory
     public function definition(): array
     {
         return [
-            'document_id' => DMS::inRandomOrder()->value('id') ?? DMS::factory(),
-            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'document_id' => \App\Models\DMS::inRandomOrder()->value('id') ?? \App\Models\DMS::factory(),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'read' => true,
             'read_count' => fake()->numberBetween(0, 100),
             'combined_read_count' => 0,

@@ -13,11 +13,11 @@ class FeedFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'category' => fake()->word(),
             'content' => fake()->word(),
-            'media_paths' => fake()->word(),
-            'poll_options' => fake()->word(),
+            'media_paths' => [],
+            'poll_options' => [],
         ];
     }
 }

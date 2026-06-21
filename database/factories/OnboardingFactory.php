@@ -21,7 +21,7 @@ class OnboardingFactory extends Factory
             'schedule' => fake()->paragraph(),
             'extras' => [],
             'is_active' => fake()->boolean(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
         ];
     }
 }
