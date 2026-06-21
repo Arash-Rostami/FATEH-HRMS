@@ -13,9 +13,9 @@ class PhotoFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'url' => fake()->imageUrl(), // string image
-            'caption' => fake()->sentence(),
+            'department_id' => \App\Models\Department::inRandomOrder()->value('id') ?? \App\Models\Department::factory(),
+            'path' => json_encode([fake()->imageUrl()]),
+            'title' => fake()->sentence(),
         ];
     }
 }

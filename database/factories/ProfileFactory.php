@@ -13,16 +13,16 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'manager_id' => null,
-            'department_id' => fake()->numberBetween(1, 10),
-            'personnel_code' => fake()->unique()->numerify('PC-####'),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+
+            'department_id' => \App\Models\Department::inRandomOrder()->value('id') ?? \App\Models\Department::factory(),
+            'personnel_id' => fake()->unique()->numerify('PC-####'),
             'position' => fake()->jobTitle(),
-            'phone' => fake()->phoneNumber(),
+            'landline' => fake()->phoneNumber(),
             'cellphone' => fake()->phoneNumber(),
             'image' => fake()->imageUrl(), // specific request simple string image
-            'bio' => fake()->paragraph(),
-            'birthday' => fake()->date(),
+            'about_me' => fake()->paragraph(),
+            'birthdate' => fake()->date(),
         ];
     }
 }
