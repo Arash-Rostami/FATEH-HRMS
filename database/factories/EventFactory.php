@@ -13,13 +13,13 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
-            'date' => '',
+            'date' => fake()->date(),
             'private' => fake()->boolean(),
-            'date_jalali' => fake()->word(),
-            'date_time_part' => fake()->word(),
+
+
         ];
     }
 }

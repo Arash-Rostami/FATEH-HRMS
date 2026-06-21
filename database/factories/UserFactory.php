@@ -22,10 +22,6 @@ class UserFactory extends Factory
             'role' => fake()->randomElement(['user', 'admin']),
             'status' => fake()->randomElement(['active', 'inactive']),
             'presence' => fake()->randomElement(['remote', 'office']),
-            'booking' => [['key'=>'all','value'=>false],['key'=>'car','value'=>false],['key'=>'seat','value'=>true],['key'=>'spot','value'=>true],['key'=>'meeting','value'=>true]],
-            'last_seen' => now(),
-            'extra' => ['preferences' => ['theme' => 'light']],
-            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
     }
 }
