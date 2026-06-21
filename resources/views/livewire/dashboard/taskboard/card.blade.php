@@ -1,6 +1,6 @@
 <div
     :draggable="{{ $task['can_change_status'] ? 'true' : 'false' }}"
-    @dragstart="{{ $task['can_change_status'] ? 'handleDragStart(, '. $task['id'] . ')' : 'event.preventDefault()' }}"
+    @dragstart="{{ $task['can_change_status'] ? 'handleDragStart($event, '. $task['id'] . ')' : 'event.preventDefault()' }}"
     @dragend="handleDragEnd($event)"
     class="group relative flex flex-col gap-3 p-4 md:p-5 pt-6 rounded-2xl bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40 hover:-translate-y-1 transition-all duration-300 {{ $task['can_change_status'] ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80' }} active:scale-[0.98] select-none"
     dir="rtl"
