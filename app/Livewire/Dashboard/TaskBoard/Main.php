@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Notifications\Notification;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
@@ -31,6 +32,33 @@ class Main extends Component
     public array $columns = ['todo', 'in-progress', 'done'];
     public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
+
+    public function assignTask(int $taskId, ?int $userId): void
+    {
+        $task = Task::find($taskId);
+
+        if (!$task || !$task->can_change_status) {
+            return;
+        }
+
+        $task->update(['assigned_to' => $userId]);
+
+        if ($userId && $userId !== auth()->id()) {
+            $assignee = User::find($userId);
+            if ($assignee) {
+                Notification::make()
+                    ->title('وظیفه جدید به شما محول شد')
+                    ->body("وظیفه «{$task->title}» توسط " . auth()->user()->name . " به شما ارجاع شد.")
+                    ->success()
+                    ->sendToDatabase($assignee);
+            }
+            $this->switchTab('assigned-tasks');
+        } else {
+            $this->loadTasks();
+        }
+
+        $this->dispatch('toast', message: 'وظیفه با موفقیت ارجاع داده شد.', type: 'success');
+    }
 
     public function createTask(CreateTaskAction $action): void
     {
