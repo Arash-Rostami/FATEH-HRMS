@@ -15,8 +15,8 @@ class ReservationFactory extends Factory
         // Null start_time/end_time for full-day reservations
         $isFullDay = fake()->boolean(20);
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'resource_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'resource_id' => \App\Models\Resource::inRandomOrder()->value('id') ?? \App\Models\Resource::factory(),
             'start_time' => $isFullDay ? null : now()->addDays(fake()->numberBetween(1, 10))->setHour(9),
             'end_time' => $isFullDay ? null : now()->addDays(fake()->numberBetween(1, 10))->setHour(10),
             'is_full_day' => $isFullDay,

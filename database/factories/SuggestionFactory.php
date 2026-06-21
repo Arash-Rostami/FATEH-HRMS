@@ -19,12 +19,12 @@ class SuggestionFactory extends Factory
             'purpose' => [],
             'rule' => [],
             'attachment' => fake()->paragraph(),
-            'stage' => fake()->word(),
+            'stage' => fake()->randomElement(['pending', 'approved', 'rejected']),
             'self_fill' => fake()->boolean(),
             'abort' => fake()->boolean(),
             'priority' => fake()->randomElement(['low', 'medium', 'high']),
             'comments' => fake()->paragraph(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
         ];
     }
 }

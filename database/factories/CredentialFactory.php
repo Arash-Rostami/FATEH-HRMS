@@ -13,10 +13,10 @@ class CredentialFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
             'app_name' => fake()->name(),
             'username' => fake()->name(),
-            'password' => fake()->paragraph(),
+            'password' => fake()->password(),
             'link' => fake()->url(),
             'note' => fake()->paragraph(),
         ];

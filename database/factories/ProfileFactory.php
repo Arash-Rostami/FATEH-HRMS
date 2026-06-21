@@ -13,16 +13,20 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'manager_id' => null,
-            'department_id' => fake()->numberBetween(1, 10),
-            'personnel_code' => fake()->unique()->numerify('PC-####'),
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+                        'department_id' => \App\Models\Department::inRandomOrder()->value('code') ?? \App\Models\Department::factory()->create()->code,
+            'personnel_id' => fake()->unique()->numerify('PC-####'),
+            'gender' => fake()->randomElement(['female', 'male']),
+            'employment_type' => fake()->randomElement(['fulltime', 'parttime', 'contract']),
+            'marital_status' => fake()->randomElement(['married', 'single']),
+            'employment_status' => fake()->randomElement(['probational', 'working', 'terminated']),
+            'degree' => fake()->randomElement(['undergraduate', 'graduate', 'postgraduate']),
             'position' => fake()->jobTitle(),
-            'phone' => fake()->phoneNumber(),
+            'landline' => fake()->phoneNumber(),
             'cellphone' => fake()->phoneNumber(),
             'image' => fake()->imageUrl(), // specific request simple string image
-            'bio' => fake()->paragraph(),
-            'birthday' => fake()->date(),
+            'about_me' => fake()->paragraph(),
+            'birthdate' => fake()->date(),
         ];
     }
 }

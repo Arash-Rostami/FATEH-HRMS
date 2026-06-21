@@ -12,14 +12,14 @@ class EnergyTestFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'mind_score' => '',
-            'emotion_score' => '',
-            'physique_score' => '',
-            'soul_score' => '',
-            'overall_score' => '',
+            'user_id' => \App\Models\User::inRandomOrder()->value('id') ?? \App\Models\User::factory(),
+            'mind_score' => fake()->numberBetween(1, 100),
+            'emotion_score' => fake()->numberBetween(1, 100),
+            'physique_score' => fake()->numberBetween(1, 100),
+            'soul_score' => fake()->numberBetween(1, 100),
+            'overall_score' => fake()->numberBetween(1, 100),
             'answers' => [],
-            'month_index' => '',
+            'month_index' => fake()->numberBetween(1, 100),
             'completed_at' => now(),
         ];
     }
