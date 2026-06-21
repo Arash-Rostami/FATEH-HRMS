@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use App\Models\FAQ;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class FAQFactory extends Factory
 {
@@ -13,8 +14,8 @@ class FAQFactory extends Factory
     public function definition(): array
     {
         return [
-            'department_id' => fake()->word(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code,
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'category' => fake()->word(),
             'question' => fake()->paragraph(),
             'answer' => fake()->paragraph(),

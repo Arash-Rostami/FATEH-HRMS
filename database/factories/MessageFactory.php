@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class MessageFactory extends Factory
 {
@@ -13,10 +13,10 @@ class MessageFactory extends Factory
     public function definition(): array
     {
         return [
-            'sender_id' => fake()->numberBetween(1, 50),
-            'recipient_id' => fake()->numberBetween(1, 50),
+            'sender_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'recipient_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'body' => fake()->paragraph(),
-            'reply_to_id' => fake()->numberBetween(1, 50),
+            'reply_to_id' => null,
             'is_edited' => fake()->boolean(),
             'read_at' => now(),
         ];

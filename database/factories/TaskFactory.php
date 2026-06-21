@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class TaskFactory extends Factory
 {
@@ -16,9 +16,9 @@ class TaskFactory extends Factory
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(['todo', 'in-progress', 'done']),
-            'deadline' => '',
-            'user_id' => fake()->numberBetween(1, 50),
-            'assigned_to' => fake()->numberBetween(1, 100),
+            'deadline' => now()->addDays(fake()->numberBetween(1, 10)),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'assigned_to' => User::inRandomOrder()->value('id') ?? User::factory(),
         ];
     }
 }

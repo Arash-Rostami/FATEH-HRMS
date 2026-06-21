@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use App\Models\Profile;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class ProfileFactory extends Factory
 {
@@ -13,16 +14,20 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'manager_id' => null,
-            'department_id' => fake()->numberBetween(1, 10),
-            'personnel_code' => fake()->unique()->numerify('PC-####'),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory(),
+            'personnel_id' => fake()->unique()->numerify('PC-####'),
+            'gender' => fake()->randomElement(['female', 'male']),
+            'employment_type' => fake()->randomElement(['fulltime', 'parttime', 'contract']),
+            'marital_status' => fake()->randomElement(['married', 'single']),
+            'employment_status' => fake()->randomElement(['probational', 'working', 'terminated']),
+            'degree' => fake()->randomElement(['undergraduate', 'graduate', 'postgraduate']),
             'position' => fake()->jobTitle(),
-            'phone' => fake()->phoneNumber(),
+            'landline' => fake()->phoneNumber(),
             'cellphone' => fake()->phoneNumber(),
-            'image' => fake()->imageUrl(), // specific request simple string image
-            'bio' => fake()->paragraph(),
-            'birthday' => fake()->date(),
+            'image' => fake()->imageUrl(),
+            'about_me' => ['bio' => fake()->sentence()],
+            'birthdate' => fake()->date(),
         ];
     }
 }

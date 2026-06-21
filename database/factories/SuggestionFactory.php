@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Suggestion;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,12 +20,12 @@ class SuggestionFactory extends Factory
             'purpose' => [],
             'rule' => [],
             'attachment' => fake()->paragraph(),
-            'stage' => fake()->word(),
+            'stage' => fake()->randomElement(['pending', 'approved', 'rejected']),
             'self_fill' => fake()->boolean(),
             'abort' => fake()->boolean(),
             'priority' => fake()->randomElement(['low', 'medium', 'high']),
             'comments' => fake()->paragraph(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
         ];
     }
 }

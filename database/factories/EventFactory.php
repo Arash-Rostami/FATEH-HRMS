@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class EventFactory extends Factory
 {
@@ -13,13 +13,12 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
-            'date' => '',
+            'date' => now()->addDays(fake()->numberBetween(1, 10)),
             'private' => fake()->boolean(),
-            'date_jalali' => fake()->word(),
-            'date_time_part' => fake()->word(),
+
         ];
     }
 }

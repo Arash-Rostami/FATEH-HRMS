@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Feed;
 use App\Models\Reaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class ReactionFactory extends Factory
 {
@@ -13,8 +14,8 @@ class ReactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'feed_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'feed_id' => Feed::inRandomOrder()->value('id') ?? Feed::factory(),
             'emoji' => fake()->word(),
         ];
     }

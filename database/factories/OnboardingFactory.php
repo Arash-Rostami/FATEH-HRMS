@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Onboarding;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class OnboardingFactory extends Factory
 {
@@ -21,7 +21,7 @@ class OnboardingFactory extends Factory
             'schedule' => fake()->paragraph(),
             'extras' => [],
             'is_active' => fake()->boolean(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
         ];
     }
 }

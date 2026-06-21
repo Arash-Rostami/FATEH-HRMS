@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use App\Models\Photo;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class PhotoFactory extends Factory
 {
@@ -13,9 +13,11 @@ class PhotoFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
-            'url' => fake()->imageUrl(), // string image
-            'caption' => fake()->sentence(),
+            'path' => [fake()->imageUrl()],
+            'title' => fake()->sentence(),
+            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code,
+            'description' => fake()->paragraph(),
+            'event_date' => fake()->date(),
         ];
     }
 }

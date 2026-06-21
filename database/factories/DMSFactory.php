@@ -20,10 +20,10 @@ class DMSFactory extends Factory
             'title' => fake()->sentence(),
             'status' => fake()->randomElement(['live', 'under_review', 'obsolete']),
             'type' => fake()->boolean(),
-            'owners' => [Department::inRandomOrder()->value('code') ?? 'ALL'],
-            'users' => array_filter([User::inRandomOrder()->value('id')]),
+            'owners' => [(Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code) ?? 'ALL'],
+            'users' => array_filter([(string)(User::inRandomOrder()->value('id') ?? User::factory()->create()->id)]),
             'revision' => fake()->paragraph(),
-            'combined_read_count' => fake()->numberBetween(0, 100),
+            'combined_read_count' => 0,
             'extra' => [],
             'tags' => [],
         ];

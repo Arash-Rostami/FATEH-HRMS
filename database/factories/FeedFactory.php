@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Feed;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class FeedFactory extends Factory
 {
@@ -13,11 +13,11 @@ class FeedFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'category' => fake()->word(),
             'content' => fake()->word(),
-            'media_paths' => fake()->word(),
-            'poll_options' => fake()->word(),
+            'media_paths' => [],
+            'poll_options' => [],
         ];
     }
 }

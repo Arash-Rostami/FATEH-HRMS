@@ -2,9 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class ReportFactory extends Factory
 {
@@ -13,13 +14,12 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
             'cover_image' => fake()->imageUrl(),
-            'department_id' => fake()->word(),
+            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code,
             'file_path' => fake()->word(),
-            'active' => fake()->randomElement(['active', 'inactive']),
         ];
     }
 }

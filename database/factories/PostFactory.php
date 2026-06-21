@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class PostFactory extends Factory
 {
@@ -17,7 +17,7 @@ class PostFactory extends Factory
             'body' => fake()->paragraph(),
             'image' => fake()->imageUrl(),
             'pinned' => fake()->boolean(),
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
         ];
     }
 }

@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Credential;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 
 class CredentialFactory extends Factory
 {
@@ -13,10 +13,10 @@ class CredentialFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fake()->numberBetween(1, 50),
+            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'app_name' => fake()->name(),
             'username' => fake()->name(),
-            'password' => fake()->paragraph(),
+            'password' => fake()->password(),
             'link' => fake()->url(),
             'note' => fake()->paragraph(),
         ];
