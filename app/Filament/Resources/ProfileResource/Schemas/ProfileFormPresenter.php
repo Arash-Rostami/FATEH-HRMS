@@ -32,9 +32,33 @@ class ProfileFormPresenter
         $core = ['bio', 'movies', 'music', 'hobbies', 'food', 'sports'];
 
         return Repeater::make('about_me')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.about_me'))
             ->schema([
                 TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label('کلید')
                     ->disabled(fn($get): bool => in_array($get('key'), $core))
                     ->dehydrated()
@@ -43,6 +67,18 @@ class ProfileFormPresenter
                         'required' => __('resources/profile/strings.validation.about_me_key.required'),
                     ]),
                 TextInput::make('value')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label('مقدار')
                     ->maxLength(2000),
             ])
@@ -72,6 +108,18 @@ class ProfileFormPresenter
     public static function accessibility(): Textarea
     {
         return Textarea::make('accessibility')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.accessibility'))
             ->rows(2)
             ->columnSpanFull()
@@ -81,6 +129,18 @@ class ProfileFormPresenter
     public static function address(): Textarea
     {
         return Textarea::make('address')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.address'))
             ->rows(3)
             ->columnSpanFull()
@@ -90,10 +150,34 @@ class ProfileFormPresenter
     public static function attachments(): Repeater
     {
         return Repeater::make('attachments')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.attachments'))
             ->defaultItems(1)
             ->schema([
                 TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label('نام پیوست')
                     ->required()
                     ->maxLength(255)
@@ -103,6 +187,18 @@ class ProfileFormPresenter
                     ]),
 
                 Select::make('category')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label('نوع پیوست')
                     ->options([
                         'pdf' => 'PDF',
@@ -118,6 +214,18 @@ class ProfileFormPresenter
                     ]),
 
                 FileUpload::make('path')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label('فایل پیوست')
                     ->disk('public')
                     ->downloadable()
@@ -164,6 +272,18 @@ class ProfileFormPresenter
     public static function cellphone(): TextInput
     {
         return TextInput::make('cellphone')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.cellphone'))
             ->tel()
             ->maxLength(20)
@@ -173,6 +293,18 @@ class ProfileFormPresenter
     public static function degree(): Select
     {
         return Select::make('degree')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.degree'))
             ->options(Degree::class)
             ->required()
@@ -186,6 +318,18 @@ class ProfileFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.department_id'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
@@ -199,10 +343,34 @@ class ProfileFormPresenter
         $requiredMessage = __('resources/profile/strings.validation.detail_value.required');
 
         return Repeater::make('details')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->relationship()
             ->label(__('resources/profile/strings.form.details'))
             ->schema([
                 Select::make('key')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/profile/strings.form.detail_key'))
                     ->options(ProfileDetailCatalog::selectGroups())
                     ->searchable()
@@ -212,7 +380,19 @@ class ProfileFormPresenter
                     ->afterStateUpdated(fn(callable $set) => self::resetDetailValues($set))
                     ->getOptionLabelUsing(fn($value): string => ProfileDetailCatalog::definition($value)['label'] ?? $value)
                     ->createOptionForm([
-                        TextInput::make('key')->label(__('resources/profile/strings.form.detail_custom_key'))->required()->maxLength(191),
+                        TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])->label(__('resources/profile/strings.form.detail_custom_key'))->required()->maxLength(191),
                     ])
                     ->createOptionUsing(fn(array $data): string => $data['key'])
                     ->validationMessages([
@@ -221,6 +401,18 @@ class ProfileFormPresenter
                     ]),
 
                 TextInput::make('value_text')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label($label)
                     ->required()
                     ->maxLength(2000)
@@ -228,6 +420,18 @@ class ProfileFormPresenter
                     ->validationMessages(['required' => $requiredMessage]),
 
                 TextInput::make('value_number')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label($label)
                     ->required()
                     ->numeric()
@@ -235,6 +439,18 @@ class ProfileFormPresenter
                     ->validationMessages(['required' => $requiredMessage]),
 
                 Textarea::make('value_textarea')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label($label)
                     ->required()
                     ->maxLength(2000)
@@ -242,6 +458,18 @@ class ProfileFormPresenter
                     ->validationMessages(['required' => $requiredMessage]),
 
                 Select::make('value_select')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label($label)
                     ->required()
                     ->native(false)
@@ -272,6 +500,18 @@ class ProfileFormPresenter
     public static function emergencyPhone(): TextInput
     {
         return TextInput::make('emergency_phone')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.emergency_phone'))
             ->tel()
             ->maxLength(20)
@@ -281,6 +521,18 @@ class ProfileFormPresenter
     public static function emergencyRelationship(): TextInput
     {
         return TextInput::make('emergency_relationship')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.emergency_relationship'))
             ->maxLength(100)
             ->helperText(__('resources/profile/strings.hints.emergency_relationship'));
@@ -289,6 +541,18 @@ class ProfileFormPresenter
     public static function employmentStatus(): Select
     {
         return Select::make('employment_status')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.employment_status'))
             ->options(EmploymentStatus::class)
             ->required()
@@ -302,6 +566,18 @@ class ProfileFormPresenter
     public static function employmentType(): Select
     {
         return Select::make('employment_type')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.employment_type'))
             ->options(EmploymentType::class)
             ->required()
@@ -325,9 +601,33 @@ class ProfileFormPresenter
     public static function favoriteColors(): Repeater
     {
         return Repeater::make('favorite_colors')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.favorite_colors'))
             ->schema([
                 ColorPicker::make('color')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/profile/strings.form.favorite_color_item'))
                     ->validationMessages([
                         'required' => __('resources/profile/strings.validation.favorite_color.required'),
@@ -366,6 +666,18 @@ class ProfileFormPresenter
     public static function field(): TextInput
     {
         return TextInput::make('field')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.field'))
             ->maxLength(255)
             ->columnSpanFull()
@@ -375,6 +687,18 @@ class ProfileFormPresenter
     public static function gender(): Select
     {
         return Select::make('gender')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.gender'))
             ->options(Gender::class)
             ->required()
@@ -388,6 +712,18 @@ class ProfileFormPresenter
     public static function idBookletNumber(): TextInput
     {
         return TextInput::make('id_booklet_number')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.id_booklet_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
@@ -400,6 +736,18 @@ class ProfileFormPresenter
     public static function idCardNumber(): TextInput
     {
         return TextInput::make('id_card_number')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.id_card_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
@@ -412,6 +760,18 @@ class ProfileFormPresenter
     public static function image(): FileUpload
     {
         return FileUpload::make('image')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.image'))
             ->avatar()
             ->downloadable()
@@ -428,6 +788,18 @@ class ProfileFormPresenter
     public static function insurance(): TextInput
     {
         return TextInput::make('insurance')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.insurance'))
             ->maxLength(255)
             ->helperText(__('resources/profile/strings.hints.insurance'));
@@ -436,6 +808,18 @@ class ProfileFormPresenter
     public static function interests(): Textarea
     {
         return Textarea::make('interests')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.interests'))
             ->rows(3)
             ->columnSpanFull()
@@ -445,6 +829,18 @@ class ProfileFormPresenter
     public static function landline(): TextInput
     {
         return TextInput::make('landline')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.landline'))
             ->tel()
             ->maxLength(20)
@@ -454,6 +850,18 @@ class ProfileFormPresenter
     public static function licensePlate(): TextInput
     {
         return TextInput::make('license_plate')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.license_plate'))
             ->maxLength(20)
             ->helperText(__('resources/profile/strings.hints.license_plate'));
@@ -462,6 +870,18 @@ class ProfileFormPresenter
     public static function maritalStatus(): Select
     {
         return Select::make('marital_status')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.marital_status'))
             ->options(MaritalStatus::class)
             ->required()
@@ -475,6 +895,18 @@ class ProfileFormPresenter
     public static function numberOfChildren(): Select
     {
         return Select::make('number_of_children')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.number_of_children'))
             ->options(collect(range(0, 10))->mapWithKeys(fn($n) => [$n => (string)$n]))
             ->default(0)
@@ -485,6 +917,18 @@ class ProfileFormPresenter
     public static function personnelId(): TextInput
     {
         return TextInput::make('personnel_id')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.personnel_id'))
             ->unique(ignoreRecord: true)
             ->maxLength(50)
@@ -497,6 +941,18 @@ class ProfileFormPresenter
     public static function position(): Select
     {
         return Select::make('position')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.position'))
             ->required()
             ->options(Position::class)
@@ -521,6 +977,18 @@ class ProfileFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.user_id'))
             ->relationship('user', 'name')
             ->searchable()
@@ -536,6 +1004,18 @@ class ProfileFormPresenter
     public static function workExperience(): Select
     {
         return Select::make('work_experience')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label('سابقه کاری')
             ->options(WorkExperience::class)
             ->native(false)
@@ -546,6 +1026,18 @@ class ProfileFormPresenter
     public static function zipCode(): TextInput
     {
         return TextInput::make('zip_code')
+            ->validationMessages([
+                'required' => __('resources/profile/strings.validation.generic.required'),
+                'unique' => __('resources/profile/strings.validation.generic.unique'),
+                'max' => __('resources/profile/strings.validation.generic.max'),
+                'min' => __('resources/profile/strings.validation.generic.min'),
+                'email' => __('resources/profile/strings.validation.generic.email'),
+                'numeric' => __('resources/profile/strings.validation.generic.numeric'),
+                'mimes' => __('resources/profile/strings.validation.generic.mimes'),
+                'url' => __('resources/profile/strings.validation.generic.url'),
+                'in' => __('resources/profile/strings.validation.generic.in'),
+                'exists' => __('resources/profile/strings.validation.generic.exists')
+            ])
             ->label(__('resources/profile/strings.form.zip_code'))
             ->maxLength(20)
             ->helperText(__('resources/profile/strings.hints.zip_code'));

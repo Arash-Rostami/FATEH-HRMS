@@ -19,6 +19,18 @@ class AuthorityFormPresenter
     public static function approvedDelegation(): Select
     {
         return Select::make('details.approved_delegation')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.approved_delegation'))
             ->options(DelegationLevel::class)
             ->nullable()
@@ -28,6 +40,18 @@ class AuthorityFormPresenter
     public static function coDelegate(): TextInput
     {
         return TextInput::make('details.co_delegate')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.co_delegate'))
             ->maxLength(255)
             ->nullable()
@@ -37,6 +61,18 @@ class AuthorityFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
@@ -48,6 +84,18 @@ class AuthorityFormPresenter
     public static function duty(): RichEditor
     {
         return RichEditor::make('details.duty')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.duty'))
             ->nullable()
             ->maxLength(2000)
@@ -94,6 +142,18 @@ class AuthorityFormPresenter
     public static function executionProcedure(): Select
     {
         return Select::make('details.execution_procedure')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.execution_procedure'))
             ->options(ExecutionProcedure::class)
             ->nullable()
@@ -103,6 +163,18 @@ class AuthorityFormPresenter
     public static function impactScore(): Select
     {
         return Select::make('details.impact_score')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.impact_score'))
             ->options(ImpactScore::class)
             ->nullable()
@@ -112,6 +184,18 @@ class AuthorityFormPresenter
     public static function proposedDelegation(): Select
     {
         return Select::make('details.proposed_delegation')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.proposed_delegation'))
             ->options(DelegationLevel::class)
             ->nullable()
@@ -121,6 +205,18 @@ class AuthorityFormPresenter
     public static function repeatFrequency(): Select
     {
         return Select::make('details.repeat_frequency')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.repeat_frequency'))
             ->options(RepeatFrequency::class)
             ->nullable()
@@ -130,6 +226,18 @@ class AuthorityFormPresenter
     public static function subDuty(): Toggle
     {
         return Toggle::make('sub_duty')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.sub_duty'))
             ->inline(false)
             ->helperText(__('resources/authority/strings.hints.sub_duty'));
@@ -138,6 +246,18 @@ class AuthorityFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/authority/strings.validation.generic.required'),
+                'unique' => __('resources/authority/strings.validation.generic.unique'),
+                'max' => __('resources/authority/strings.validation.generic.max'),
+                'min' => __('resources/authority/strings.validation.generic.min'),
+                'email' => __('resources/authority/strings.validation.generic.email'),
+                'numeric' => __('resources/authority/strings.validation.generic.numeric'),
+                'mimes' => __('resources/authority/strings.validation.generic.mimes'),
+                'url' => __('resources/authority/strings.validation.generic.url'),
+                'in' => __('resources/authority/strings.validation.generic.in'),
+                'exists' => __('resources/authority/strings.validation.generic.exists')
+            ])
             ->label(__('resources/authority/strings.fields.user'))
             ->relationship('user', 'name')
             ->default(auth()->id() ?? null)

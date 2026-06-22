@@ -18,6 +18,18 @@ class DepartmentFormPresenter
     public static function code(): TextInput
     {
         return TextInput::make('code')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.code'))
             ->required()
             ->maxLength(10)
@@ -35,6 +47,18 @@ class DepartmentFormPresenter
     public static function description(): Textarea
     {
         return Textarea::make('description')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.description'))
             ->nullable()
             ->rows(3)
@@ -45,6 +69,18 @@ class DepartmentFormPresenter
     public static function name(): TextInput
     {
         return TextInput::make('name')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.name'))
             ->required()
             ->maxLength(255)
@@ -58,6 +94,18 @@ class DepartmentFormPresenter
     public static function sections(): TagsInput
     {
         return TagsInput::make('sections')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.sections'))
             ->placeholder(__('resources/department/strings.fields.sections_placeholder'))
             ->helperText(__('resources/department/strings.hints.sections'))
@@ -67,9 +115,33 @@ class DepartmentFormPresenter
     public static function ticketOptions(): Repeater
     {
         return Repeater::make('ticket_options')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.ticket_options'))
             ->schema([
                 TextInput::make('request_type')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/department/strings.fields.request_type'))
                     ->datalist(array_keys(Ticket::$requestTypeOptions))
                     ->required()
@@ -78,6 +150,18 @@ class DepartmentFormPresenter
                     ]),
 
                 TextInput::make('area_key')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/department/strings.fields.area_key'))
                     ->placeholder(__('resources/department/strings.fields.area_key_placeholder'))
                     ->required()
@@ -88,6 +172,18 @@ class DepartmentFormPresenter
                     ]),
 
                 TextInput::make('area_label')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/department/strings.fields.area_label'))
                     ->required()
                     ->validationMessages([
@@ -95,6 +191,18 @@ class DepartmentFormPresenter
                     ]),
 
                 Select::make('icon')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/department/strings.fields.icon'))
                     ->helperText(__('resources/department/strings.hints.icon'))
                     ->options(fn () => static::getAllIcons())
@@ -114,6 +222,18 @@ class DepartmentFormPresenter
     public static function units(): TagsInput
     {
         return TagsInput::make('units')
+            ->validationMessages([
+                'required' => __('resources/department/strings.validation.generic.required'),
+                'unique' => __('resources/department/strings.validation.generic.unique'),
+                'max' => __('resources/department/strings.validation.generic.max'),
+                'min' => __('resources/department/strings.validation.generic.min'),
+                'email' => __('resources/department/strings.validation.generic.email'),
+                'numeric' => __('resources/department/strings.validation.generic.numeric'),
+                'mimes' => __('resources/department/strings.validation.generic.mimes'),
+                'url' => __('resources/department/strings.validation.generic.url'),
+                'in' => __('resources/department/strings.validation.generic.in'),
+                'exists' => __('resources/department/strings.validation.generic.exists')
+            ])
             ->label(__('resources/department/strings.fields.units'))
             ->placeholder(__('resources/department/strings.fields.units_placeholder'))
             ->helperText(__('resources/department/strings.hints.units'))

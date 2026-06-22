@@ -22,6 +22,18 @@ class ReservationFormPresenter
     public static function cancelReason(): Select
     {
         return Select::make('cancel_reason')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.cancel_reason'))
             ->options(CancelReason::class)
             ->nullable()
@@ -45,6 +57,18 @@ class ReservationFormPresenter
     public static function endTime(): DateTimePicker
     {
         return DateTimePicker::make('end_time')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.end_time'))
             ->required(fn(Get $get) => !$get('is_full_day'))
             ->seconds(false)
@@ -63,6 +87,18 @@ class ReservationFormPresenter
     public static function isFullDay(): Toggle
     {
         return Toggle::make('is_full_day')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.is_full_day'))
             ->onColor('success')
             ->columnSpanFull()
@@ -73,6 +109,18 @@ class ReservationFormPresenter
     public static function fullDayDate(): DatePicker
     {
         return DatePicker::make('start_time')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.start_time'))
             ->required(fn(Get $get) => (bool)$get('is_full_day'))
             ->native(false)
@@ -83,6 +131,18 @@ class ReservationFormPresenter
     public static function isRecurring(): Toggle
     {
         return Toggle::make('is_recurring')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.is_recurring'))
             ->dehydrated(false)
             ->afterStateUpdated(fn(Set $set, bool $state) => $state && $set('recur_pattern', 'daily'))
@@ -95,6 +155,18 @@ class ReservationFormPresenter
     public static function parentId(): Select
     {
         return Select::make('parent_id')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.parent_id'))
             ->helperText(__('resources/reservation/strings.descriptions.parent_id'))
             ->options(fn() => Reservation::roots()->with(['resource', 'user'])->get()->pluck('resource_dropdown_label', 'id'))
@@ -111,6 +183,18 @@ class ReservationFormPresenter
     public static function recurCount(): TextInput
     {
         return TextInput::make('recur_count')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.recur_count'))
             ->numeric()
             ->minValue(2)
@@ -131,6 +215,18 @@ class ReservationFormPresenter
     public static function recurPattern(): Select
     {
         return Select::make('recur_pattern')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.recur_pattern'))
             ->options(__('resources/reservation/strings.recur_patterns'))
             ->native(false)
@@ -148,6 +244,18 @@ class ReservationFormPresenter
     public static function resourceId(): Select
     {
         return Select::make('resource_id')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.resource'))
             ->options(fn() => Resource::orderBy('name')->get()->pluck('labeled_name', 'id'))
             ->searchable()
@@ -163,6 +271,18 @@ class ReservationFormPresenter
     public static function startTime(): DateTimePicker
     {
         return DateTimePicker::make('start_time')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.start_time'))
             ->required(fn(Get $get) => !$get('is_full_day'))
             ->seconds(false)
@@ -179,6 +299,18 @@ class ReservationFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.status'))
             ->options(ReservationStatus::class)
             ->default('active')
@@ -194,6 +326,18 @@ class ReservationFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/reservation/strings.validation.generic.required'),
+                'unique' => __('resources/reservation/strings.validation.generic.unique'),
+                'max' => __('resources/reservation/strings.validation.generic.max'),
+                'min' => __('resources/reservation/strings.validation.generic.min'),
+                'email' => __('resources/reservation/strings.validation.generic.email'),
+                'numeric' => __('resources/reservation/strings.validation.generic.numeric'),
+                'mimes' => __('resources/reservation/strings.validation.generic.mimes'),
+                'url' => __('resources/reservation/strings.validation.generic.url'),
+                'in' => __('resources/reservation/strings.validation.generic.in'),
+                'exists' => __('resources/reservation/strings.validation.generic.exists')
+            ])
             ->label(__('resources/reservation/strings.fields.user'))
             ->options(fn() => User::orderBy('name')->pluck('name', 'id'))
             ->searchable()

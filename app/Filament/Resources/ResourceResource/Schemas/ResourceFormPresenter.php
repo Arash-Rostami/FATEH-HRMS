@@ -18,6 +18,18 @@ class ResourceFormPresenter
     public static function capacity(): TextInput
     {
         return TextInput::make('metadata.capacity')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.capacity'))
             ->numeric()
             ->nullable()
@@ -31,6 +43,18 @@ class ResourceFormPresenter
     public static function extension(): TextInput
     {
         return TextInput::make('metadata.extension')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.extension'))
             ->maxLength(255)
             ->nullable()
@@ -44,6 +68,18 @@ class ResourceFormPresenter
     public static function floor(): TextInput
     {
         return TextInput::make('metadata.floor')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.floor'))
             ->maxLength(255)
             ->nullable()
@@ -57,6 +93,18 @@ class ResourceFormPresenter
     public static function image(): FileUpload
     {
         return FileUpload::make('image')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.image'))
             ->image()
             ->downloadable()
@@ -75,6 +123,18 @@ class ResourceFormPresenter
     public static function name(): TextInput
     {
         return TextInput::make('name')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.name'))
             ->required()
             ->maxLength(255)
@@ -88,6 +148,18 @@ class ResourceFormPresenter
     public static function notes(): Textarea
     {
         return Textarea::make('metadata.notes')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.notes'))
             ->maxLength(1000)
             ->nullable()
@@ -102,6 +174,18 @@ class ResourceFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.status'))
             ->options(ResourceStatus::class)
             ->default('active')
@@ -116,6 +200,18 @@ class ResourceFormPresenter
     public static function type(): Select
     {
         return Select::make('type')
+            ->validationMessages([
+                'required' => __('resources/resource/strings.validation.generic.required'),
+                'unique' => __('resources/resource/strings.validation.generic.unique'),
+                'max' => __('resources/resource/strings.validation.generic.max'),
+                'min' => __('resources/resource/strings.validation.generic.min'),
+                'email' => __('resources/resource/strings.validation.generic.email'),
+                'numeric' => __('resources/resource/strings.validation.generic.numeric'),
+                'mimes' => __('resources/resource/strings.validation.generic.mimes'),
+                'url' => __('resources/resource/strings.validation.generic.url'),
+                'in' => __('resources/resource/strings.validation.generic.in'),
+                'exists' => __('resources/resource/strings.validation.generic.exists')
+            ])
             ->label(__('resources/resource/strings.fields.type'))
             ->options(ResourceType::class)
             ->required()

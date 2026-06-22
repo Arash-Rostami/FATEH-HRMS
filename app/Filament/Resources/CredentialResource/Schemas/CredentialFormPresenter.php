@@ -15,6 +15,18 @@ class CredentialFormPresenter
     {
         $isAdmin = auth()->user()?->hasElevatedRole() ?? false;
         return TextInput::make('app_name')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.app_name'))
             ->required()
             ->maxLength(255)
@@ -29,6 +41,18 @@ class CredentialFormPresenter
     public static function link(): TextInput
     {
         return TextInput::make('link')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.link'))
             ->url()
             ->maxLength(500)
@@ -46,6 +70,18 @@ class CredentialFormPresenter
     public static function note(): Textarea
     {
         return Textarea::make('note')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.note'))
             ->nullable()
             ->hint('⚠️')
@@ -58,6 +94,18 @@ class CredentialFormPresenter
     public static function password(): TextInput
     {
         return TextInput::make('password')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.password'))
             ->password()
             ->revealable()
@@ -73,6 +121,18 @@ class CredentialFormPresenter
     {
         $isAdmin = auth()->user()?->hasElevatedRole() ?? false;
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.user'))
             ->relationship('user', 'name')
             ->searchable()
@@ -90,6 +150,18 @@ class CredentialFormPresenter
     public static function username(): TextInput
     {
         return TextInput::make('username')
+            ->validationMessages([
+                'required' => __('resources/credential/strings.validation.generic.required'),
+                'unique' => __('resources/credential/strings.validation.generic.unique'),
+                'max' => __('resources/credential/strings.validation.generic.max'),
+                'min' => __('resources/credential/strings.validation.generic.min'),
+                'email' => __('resources/credential/strings.validation.generic.email'),
+                'numeric' => __('resources/credential/strings.validation.generic.numeric'),
+                'mimes' => __('resources/credential/strings.validation.generic.mimes'),
+                'url' => __('resources/credential/strings.validation.generic.url'),
+                'in' => __('resources/credential/strings.validation.generic.in'),
+                'exists' => __('resources/credential/strings.validation.generic.exists')
+            ])
             ->label(__('resources/credential/strings.fields.username'))
             ->required()
             ->maxLength(255)

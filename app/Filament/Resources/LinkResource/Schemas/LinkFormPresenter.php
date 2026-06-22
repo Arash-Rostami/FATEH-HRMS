@@ -20,6 +20,18 @@ class LinkFormPresenter
     public static function companyIps(): TagsInput
     {
         return TagsInput::make('extra')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.extra'))
             ->placeholder(__('resources/link/strings.fields.extra_placeholder'))
             ->helperText(__('resources/link/strings.fields.extra_hint'))
@@ -31,6 +43,18 @@ class LinkFormPresenter
     public static function icon(): FileUpload
     {
         return FileUpload::make('icon')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.icon'))
             ->disk('public')
             ->directory('link/icon')
@@ -54,6 +78,18 @@ class LinkFormPresenter
     public static function iconDescription(): Textarea
     {
         return Textarea::make('icon_description')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.icon_description'))
             ->rows(2)
             ->maxLength(500)
@@ -66,6 +102,18 @@ class LinkFormPresenter
     public static function image(): FileUpload
     {
         return FileUpload::make('image')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.image'))
             ->disk('public')
             ->directory('link/image')
@@ -92,6 +140,18 @@ class LinkFormPresenter
     public static function imageDescription(): Textarea
     {
         return Textarea::make('image_description')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.image_description'))
             ->rows(2)
             ->maxLength(500)
@@ -104,6 +164,18 @@ class LinkFormPresenter
     public static function internalUrl(): TextInput
     {
         return TextInput::make('internal_url')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.internal_url'))
             ->url()
             ->maxLength(2048)
@@ -119,6 +191,18 @@ class LinkFormPresenter
     public static function linkType(): Radio
     {
         return Radio::make('link')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.link_type'))
             ->options(LinkType::class)
             ->required()
@@ -133,6 +217,18 @@ class LinkFormPresenter
     public static function sequence(): Select
     {
         return Select::make('sequence')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.sequence'))
             ->options(fn() => collect(range(0, 100))->mapWithKeys(fn($i) => [$i => $i])->toArray())
             ->default(0)
@@ -144,6 +240,18 @@ class LinkFormPresenter
     public static function url(): TextInput
     {
         return TextInput::make('url')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.url'))
             ->required()
             ->url()
@@ -160,6 +268,18 @@ class LinkFormPresenter
     public static function urlDescription(): Textarea
     {
         return Textarea::make('url_description')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.url_description'))
             ->rows(2)
             ->maxLength(1000)
@@ -172,6 +292,18 @@ class LinkFormPresenter
     public static function urlTitle(): TextInput
     {
         return TextInput::make('url_title')
+            ->validationMessages([
+                'required' => __('resources/link/strings.validation.generic.required'),
+                'unique' => __('resources/link/strings.validation.generic.unique'),
+                'max' => __('resources/link/strings.validation.generic.max'),
+                'min' => __('resources/link/strings.validation.generic.min'),
+                'email' => __('resources/link/strings.validation.generic.email'),
+                'numeric' => __('resources/link/strings.validation.generic.numeric'),
+                'mimes' => __('resources/link/strings.validation.generic.mimes'),
+                'url' => __('resources/link/strings.validation.generic.url'),
+                'in' => __('resources/link/strings.validation.generic.in'),
+                'exists' => __('resources/link/strings.validation.generic.exists')
+            ])
             ->label(__('resources/link/strings.fields.url_title'))
             ->required()
             ->maxLength(255)

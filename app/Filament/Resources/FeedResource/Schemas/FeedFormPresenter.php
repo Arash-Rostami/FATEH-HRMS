@@ -23,6 +23,18 @@ class FeedFormPresenter
     public static function category(): Select
     {
         return Select::make('category')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.category'))
             ->options(FeedCategory::class)
             ->required()
@@ -36,6 +48,18 @@ class FeedFormPresenter
     public static function content(): RichEditor
     {
         return RichEditor::make('content')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.content'))
             ->required()
             ->maxLength(10000)
@@ -74,6 +98,18 @@ class FeedFormPresenter
     public static function mediaImages(): FileUpload
     {
         return FileUpload::make('media_images')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.media_images'))
             ->multiple()
             ->disk('public')
@@ -98,6 +134,18 @@ class FeedFormPresenter
     public static function mediaVideos(): FileUpload
     {
         return FileUpload::make('media_videos')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.media_videos'))
             ->disk('public')
             ->directory('feed/video')
@@ -138,9 +186,33 @@ class FeedFormPresenter
     public static function pollOptions(): Repeater
     {
         return Repeater::make('poll_options')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.poll_options'))
             ->schema([
                 TextInput::make('option')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/feed/strings.fields.poll_option'))
                     ->placeholder('✎')
                     ->required()
@@ -189,6 +261,18 @@ class FeedFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/feed/strings.validation.generic.required'),
+                'unique' => __('resources/feed/strings.validation.generic.unique'),
+                'max' => __('resources/feed/strings.validation.generic.max'),
+                'min' => __('resources/feed/strings.validation.generic.min'),
+                'email' => __('resources/feed/strings.validation.generic.email'),
+                'numeric' => __('resources/feed/strings.validation.generic.numeric'),
+                'mimes' => __('resources/feed/strings.validation.generic.mimes'),
+                'url' => __('resources/feed/strings.validation.generic.url'),
+                'in' => __('resources/feed/strings.validation.generic.in'),
+                'exists' => __('resources/feed/strings.validation.generic.exists')
+            ])
             ->label(__('resources/feed/strings.fields.creator'))
             ->relationship('user', 'name')
             ->default(auth()->id())

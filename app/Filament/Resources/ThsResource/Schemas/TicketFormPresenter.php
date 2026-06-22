@@ -26,6 +26,18 @@ class TicketFormPresenter
     public static function actionResult(): Textarea
     {
         return Textarea::make('action_result')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.action_result'))
             ->rows(3)
             ->maxLength(5000)
@@ -38,6 +50,18 @@ class TicketFormPresenter
     public static function additionalNotes(): Textarea
     {
         return Textarea::make('additional_notes')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.additional_notes'))
             ->rows(2)
             ->maxLength(2000)
@@ -50,6 +74,18 @@ class TicketFormPresenter
     public static function assignedTo(): Select
     {
         return Select::make('assigned_to')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.assignee'))
             ->relationship('assignee', 'name')
             ->searchable()
@@ -73,9 +109,33 @@ class TicketFormPresenter
     public static function assigneeFiles(): Repeater
     {
         return Repeater::make('assignee_files')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.assignee_files'))
             ->schema([
                 FileUpload::make('file')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/ths/strings.fields.file'))
                     ->disk('public')
                     ->directory('ticket/assignee')
@@ -116,6 +176,18 @@ class TicketFormPresenter
     public static function completionDeadlineTime(): TextInput
     {
         return TextInput::make('completion_deadline_time')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.deadline_time'))
             ->type('time')
             ->default('09:00')
@@ -127,6 +199,18 @@ class TicketFormPresenter
     public static function departmentDisplay(): TextInput
     {
         return TextInput::make('extra.department')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.department'))
             ->readOnly()
             ->dehydrated(true);
@@ -135,6 +219,18 @@ class TicketFormPresenter
     public static function description(): Textarea
     {
         return Textarea::make('description')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.description'))
             ->required()
             ->rows(4)
@@ -150,6 +246,18 @@ class TicketFormPresenter
     public static function effectiveness(): Select
     {
         return Select::make('effectiveness')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.effectiveness'))
             ->options([
                 '5' => '★★★★★ — بسیار مؤثر',
@@ -165,6 +273,18 @@ class TicketFormPresenter
     public static function priority(): Select
     {
         return Select::make('priority')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.priority'))
             ->options(TicketPriority::class)
             ->required()
@@ -177,6 +297,18 @@ class TicketFormPresenter
     public static function requestArea(): Select
     {
         return Select::make('request_area')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.request_area'))
             ->options(function (Get $get) {
                 $type = $get('request_type');
@@ -202,6 +334,18 @@ class TicketFormPresenter
     public static function requestSubject(): TextInput
     {
         return TextInput::make('request_subject')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.subject'))
             ->required()
             ->maxLength(255)
@@ -216,6 +360,18 @@ class TicketFormPresenter
     public static function requestType(): Select
     {
         return Select::make('request_type')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.request_type'))
             ->options(fn(Get $get) => Ticket::getCustomRequestTypeOptions($get('extra.target_department')))
             ->required()
@@ -229,9 +385,33 @@ class TicketFormPresenter
     public static function requesterFiles(): Repeater
     {
         return Repeater::make('requester_files')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.requester_files'))
             ->schema([
                 FileUpload::make('file')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/ths/strings.fields.file'))
                     ->disk('public')
                     ->directory('ticket/requester')
@@ -255,6 +435,18 @@ class TicketFormPresenter
     public static function requesterId(): Select
     {
         return Select::make('requester_id')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.requester'))
             ->relationship('requester', 'name')
             ->searchable()
@@ -273,6 +465,18 @@ class TicketFormPresenter
     public static function satisfactionScore(): Select
     {
         return Select::make('satisfaction_score')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.satisfaction'))
             ->disabledOn('edit')
             ->options(['5' => '★★★★★', '4' => '★★★★', '3' => '★★★', '2' => '★★', '1' => '★'])
@@ -283,6 +487,18 @@ class TicketFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.status'))
             ->options(TicketStatus::class)
             ->required()
@@ -301,6 +517,18 @@ class TicketFormPresenter
     public static function targetDepartment(): Select
     {
         return Select::make('extra.target_department')
+            ->validationMessages([
+                'required' => __('resources/ths/strings.validation.generic.required'),
+                'unique' => __('resources/ths/strings.validation.generic.unique'),
+                'max' => __('resources/ths/strings.validation.generic.max'),
+                'min' => __('resources/ths/strings.validation.generic.min'),
+                'email' => __('resources/ths/strings.validation.generic.email'),
+                'numeric' => __('resources/ths/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ths/strings.validation.generic.mimes'),
+                'url' => __('resources/ths/strings.validation.generic.url'),
+                'in' => __('resources/ths/strings.validation.generic.in'),
+                'exists' => __('resources/ths/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ths/strings.fields.target_department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()

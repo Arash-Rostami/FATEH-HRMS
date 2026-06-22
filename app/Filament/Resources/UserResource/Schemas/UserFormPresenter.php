@@ -23,9 +23,33 @@ class UserFormPresenter
     public static function booking(): Repeater
     {
         return Repeater::make('booking')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.booking'))
             ->schema([
                 Toggle::make('value')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/user/strings.form.booking_value'))
                     ->columnSpanFull()
                     ->live()
@@ -47,6 +71,18 @@ class UserFormPresenter
                         }
                     }),
                 TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/user/strings.form.booking_key'))
                     ->dehydrated(true)
                     ->required()
@@ -83,6 +119,18 @@ class UserFormPresenter
     public static function email(): TextInput
     {
         return TextInput::make('email')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.email'))
             ->email()
             ->required()
@@ -99,6 +147,18 @@ class UserFormPresenter
     public static function extra(): KeyValue
     {
         return KeyValue::make('extra')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.extra'))
             ->keyLabel(__('resources/user/strings.form.extra_key'))
             ->valueLabel(__('resources/user/strings.form.extra_value'))
@@ -111,6 +171,18 @@ class UserFormPresenter
     public static function maximum(): TextInput
     {
         return TextInput::make('maximum')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.maximum'))
             ->numeric()
             ->integer()
@@ -128,6 +200,18 @@ class UserFormPresenter
     public static function name(): TextInput
     {
         return TextInput::make('name')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.name'))
             ->required()
             ->maxLength(255)
@@ -141,6 +225,18 @@ class UserFormPresenter
     public static function password(): TextInput
     {
         return TextInput::make('password')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.password'))
             ->password()
             ->revealable()
@@ -160,6 +256,18 @@ class UserFormPresenter
     public static function passwordConfirmation(): TextInput
     {
         return TextInput::make('password_confirmation')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.password_confirmation'))
             ->password()
             ->revealable()
@@ -172,6 +280,18 @@ class UserFormPresenter
     public static function presence(): Select
     {
         return Select::make('presence')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.presence'))
             ->options(
                 collect(PresenceStatus::cases())->mapWithKeys(function ($status) {
@@ -195,6 +315,18 @@ class UserFormPresenter
     public static function role(): Select
     {
         return Select::make('role')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.role'))
             ->options(UserRole::class)
             ->default(UserRole::User->value)
@@ -209,6 +341,18 @@ class UserFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.status'))
             ->options(UserStatus::class)
             ->default(UserStatus::Active->value)
@@ -223,6 +367,18 @@ class UserFormPresenter
     public static function type(): Select
     {
         return Select::make('type')
+            ->validationMessages([
+                'required' => __('resources/user/strings.validation.generic.required'),
+                'unique' => __('resources/user/strings.validation.generic.unique'),
+                'max' => __('resources/user/strings.validation.generic.max'),
+                'min' => __('resources/user/strings.validation.generic.min'),
+                'email' => __('resources/user/strings.validation.generic.email'),
+                'numeric' => __('resources/user/strings.validation.generic.numeric'),
+                'mimes' => __('resources/user/strings.validation.generic.mimes'),
+                'url' => __('resources/user/strings.validation.generic.url'),
+                'in' => __('resources/user/strings.validation.generic.in'),
+                'exists' => __('resources/user/strings.validation.generic.exists')
+            ])
             ->label(__('resources/user/strings.form.type'))
             ->options(UserType::class)
             ->default(UserType::Employee->value)

@@ -13,6 +13,18 @@ class ContactFormPresenter
     public static function body(): Textarea
     {
         return Textarea::make('body')
+            ->validationMessages([
+                'required' => __('resources/contact/strings.validation.generic.required'),
+                'unique' => __('resources/contact/strings.validation.generic.unique'),
+                'max' => __('resources/contact/strings.validation.generic.max'),
+                'min' => __('resources/contact/strings.validation.generic.min'),
+                'email' => __('resources/contact/strings.validation.generic.email'),
+                'numeric' => __('resources/contact/strings.validation.generic.numeric'),
+                'mimes' => __('resources/contact/strings.validation.generic.mimes'),
+                'url' => __('resources/contact/strings.validation.generic.url'),
+                'in' => __('resources/contact/strings.validation.generic.in'),
+                'exists' => __('resources/contact/strings.validation.generic.exists')
+            ])
             ->label(__('resources/contact/strings.fields.body'))
             ->required()
             ->rows(5)
@@ -25,6 +37,18 @@ class ContactFormPresenter
     public static function recipient(): Select
     {
         return Select::make('recipient_id')
+            ->validationMessages([
+                'required' => __('resources/contact/strings.validation.generic.required'),
+                'unique' => __('resources/contact/strings.validation.generic.unique'),
+                'max' => __('resources/contact/strings.validation.generic.max'),
+                'min' => __('resources/contact/strings.validation.generic.min'),
+                'email' => __('resources/contact/strings.validation.generic.email'),
+                'numeric' => __('resources/contact/strings.validation.generic.numeric'),
+                'mimes' => __('resources/contact/strings.validation.generic.mimes'),
+                'url' => __('resources/contact/strings.validation.generic.url'),
+                'in' => __('resources/contact/strings.validation.generic.in'),
+                'exists' => __('resources/contact/strings.validation.generic.exists')
+            ])
             ->label(__('resources/contact/strings.fields.recipient'))
             ->relationship('recipient', 'name')
             ->disabled()
@@ -34,6 +58,18 @@ class ContactFormPresenter
     public static function replyToPreview(): TextInput
     {
         return TextInput::make('reply_preview')
+            ->validationMessages([
+                'required' => __('resources/contact/strings.validation.generic.required'),
+                'unique' => __('resources/contact/strings.validation.generic.unique'),
+                'max' => __('resources/contact/strings.validation.generic.max'),
+                'min' => __('resources/contact/strings.validation.generic.min'),
+                'email' => __('resources/contact/strings.validation.generic.email'),
+                'numeric' => __('resources/contact/strings.validation.generic.numeric'),
+                'mimes' => __('resources/contact/strings.validation.generic.mimes'),
+                'url' => __('resources/contact/strings.validation.generic.url'),
+                'in' => __('resources/contact/strings.validation.generic.in'),
+                'exists' => __('resources/contact/strings.validation.generic.exists')
+            ])
             ->label(__('resources/contact/strings.fields.reply_to'))
             ->formatStateUsing(fn($state, $record) => $record?->replyTo
                 ? '[' . ($record->replyTo->sender?->name ?? '?') . ']: ' . mb_substr(strip_tags($record->replyTo->body ?? ''), 0, 120)
@@ -47,6 +83,18 @@ class ContactFormPresenter
     public static function sender(): Select
     {
         return Select::make('sender_id')
+            ->validationMessages([
+                'required' => __('resources/contact/strings.validation.generic.required'),
+                'unique' => __('resources/contact/strings.validation.generic.unique'),
+                'max' => __('resources/contact/strings.validation.generic.max'),
+                'min' => __('resources/contact/strings.validation.generic.min'),
+                'email' => __('resources/contact/strings.validation.generic.email'),
+                'numeric' => __('resources/contact/strings.validation.generic.numeric'),
+                'mimes' => __('resources/contact/strings.validation.generic.mimes'),
+                'url' => __('resources/contact/strings.validation.generic.url'),
+                'in' => __('resources/contact/strings.validation.generic.in'),
+                'exists' => __('resources/contact/strings.validation.generic.exists')
+            ])
             ->label(__('resources/contact/strings.fields.sender'))
             ->relationship('sender', 'name')
             ->disabled()

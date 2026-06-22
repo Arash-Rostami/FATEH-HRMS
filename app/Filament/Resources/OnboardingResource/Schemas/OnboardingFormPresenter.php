@@ -26,6 +26,18 @@ class OnboardingFormPresenter
     {
         return [
             Select::make('_extras_template')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                 ->label('✨ افزودن سریع از الگوها')
                 ->live()
                 ->multiple()
@@ -40,15 +52,51 @@ class OnboardingFormPresenter
                 ->columnSpanFull(),
 
             Repeater::make('extras')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                 ->label(__('resources/onboarding/strings.fields.extras'))
                 ->schema([
                     TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                         ->label(__('resources/onboarding/strings.repeater.extra_key'))
                         ->maxLength(100)
                         ->helperText(__('resources/onboarding/strings.repeater.extra_key_hint'))
                         ->placeholder('e.g. parking, dress_code'),
 
                     TextInput::make('display_title')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                         ->label(__('resources/onboarding/strings.repeater.extra_display_title'))
                         ->maxLength(100)
                         ->nullable(),
@@ -66,14 +114,50 @@ class OnboardingFormPresenter
     public static function guides(): Repeater
     {
         return Repeater::make('guides')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__('resources/onboarding/strings.fields.guides'))
             ->schema([
                 TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.guide_title'))
                     ->maxLength(255)
                     ->columnSpanFull(),
 
                 FileUpload::make('url')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.guide_file'))
                     ->disk('public')
                     ->directory('onboarding/guides')
@@ -93,8 +177,32 @@ class OnboardingFormPresenter
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
                     ),
-                TextInput::make('ext')->hidden()->dehydrated(),
-                TextInput::make('size')->hidden()->dehydrated(),
+                TextInput::make('ext')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])->hidden()->dehydrated(),
+                TextInput::make('size')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])->hidden()->dehydrated(),
             ])
             ->columns(2)
             ->collapsed()
@@ -125,6 +233,18 @@ class OnboardingFormPresenter
     public static function isActive(): Toggle
     {
         return Toggle::make('is_active')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__('resources/onboarding/strings.fields.is_active'))
             ->helperText(__('resources/onboarding/strings.fields.is_active_hint'))
             ->inline(false)
@@ -146,6 +266,18 @@ class OnboardingFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__('resources/onboarding/strings.fields.user_id'))
             ->helperText(__('resources/onboarding/strings.fields.user_id_hint'))
             ->relationship('user', 'name')
@@ -157,14 +289,50 @@ class OnboardingFormPresenter
     public static function videos(): Repeater
     {
         return Repeater::make('videos')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__('resources/onboarding/strings.fields.videos'))
             ->schema([
                 TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.video_title'))
                     ->maxLength(255)
                     ->columnSpanFull(),
 
                 FileUpload::make('url')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.video_url'))
                     ->disk('public')
                     ->downloadable()
@@ -178,6 +346,18 @@ class OnboardingFormPresenter
                     ),
 
                 FileUpload::make('thumbnail')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.video_thumbnail'))
                     ->disk('public')
                     ->directory('onboarding/thumbnail')
@@ -193,6 +373,18 @@ class OnboardingFormPresenter
                     ->nullable(),
 
                 TextInput::make('duration')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/onboarding/strings.repeater.video_duration'))
                     ->placeholder('3:45')
                     ->maxLength(10)
@@ -220,6 +412,18 @@ class OnboardingFormPresenter
     private static function makeExtraValueEditor(): RichEditor
     {
         return RichEditor::make('value')
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__('resources/onboarding/strings.repeater.extra_value'))
             ->maxLength(20000)
             ->validationMessages([
@@ -252,6 +456,18 @@ class OnboardingFormPresenter
         }
 
         return RichEditor::make($field)
+            ->validationMessages([
+                'required' => __('resources/onboarding/strings.validation.generic.required'),
+                'unique' => __('resources/onboarding/strings.validation.generic.unique'),
+                'max' => __('resources/onboarding/strings.validation.generic.max'),
+                'min' => __('resources/onboarding/strings.validation.generic.min'),
+                'email' => __('resources/onboarding/strings.validation.generic.email'),
+                'numeric' => __('resources/onboarding/strings.validation.generic.numeric'),
+                'mimes' => __('resources/onboarding/strings.validation.generic.mimes'),
+                'url' => __('resources/onboarding/strings.validation.generic.url'),
+                'in' => __('resources/onboarding/strings.validation.generic.in'),
+                'exists' => __('resources/onboarding/strings.validation.generic.exists')
+            ])
             ->label(__("resources/onboarding/strings.fields.{$field}"))
             ->required($required)
             ->maxLength(50000)

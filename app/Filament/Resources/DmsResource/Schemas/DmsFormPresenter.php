@@ -25,6 +25,18 @@ class DmsFormPresenter
     public static function code(): TextInput
     {
         return TextInput::make('code')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
@@ -38,6 +50,18 @@ class DmsFormPresenter
     public static function type(): Toggle
     {
         return Toggle::make('type')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.type_label'))
             ->default(true)
             ->columnSpanFull()
@@ -51,6 +75,18 @@ class DmsFormPresenter
     public static function tags(): KeyValue
     {
         return KeyValue::make('tags')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.tags'))
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.fields.tags_hint'));
@@ -59,6 +95,18 @@ class DmsFormPresenter
     public static function extra(): KeyValue
     {
         return KeyValue::make('extra')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.extra'))
             ->keyLabel(__('resources/dms/strings.fields.extra_key'))
             ->valueLabel(__('resources/dms/strings.fields.extra_value'))
@@ -69,6 +117,18 @@ class DmsFormPresenter
     public static function file(): FileUpload
     {
         return FileUpload::make('file')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.file'))
             ->disk('public')
             ->directory('dms')
@@ -90,6 +150,18 @@ class DmsFormPresenter
     public static function owners(): Select
     {
         return Select::make('owners')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.owners'))
             ->options(fn() => array_merge(
                 ['ALL' => __('resources/dms/strings.fields.all_departments')],
@@ -110,6 +182,18 @@ class DmsFormPresenter
     public static function ownersPreview(): Textarea
     {
         return Textarea::make('owners_preview_display')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.owners_preview'))
             ->disabled()
             ->dehydrated(false)
@@ -126,6 +210,18 @@ class DmsFormPresenter
     public static function revision(): Textarea
     {
         return Textarea::make('revision')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.revision'))
             ->rows(6)
             ->maxLength(3000)
@@ -141,6 +237,18 @@ class DmsFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.status'))
             ->options(DocumentStatus::class)
             ->required()
@@ -154,6 +262,18 @@ class DmsFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.title'))
             ->required()
             ->maxLength(255)
@@ -167,6 +287,18 @@ class DmsFormPresenter
     public static function users(): Select
     {
         return Select::make('users')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.users'))
             ->helperText(__('resources/dms/strings.fields.users_hint'))
             ->options(fn() => User::getCachedActiveOptions()->toArray())
@@ -179,6 +311,18 @@ class DmsFormPresenter
     public static function version(): TextInput
     {
         return TextInput::make('version')
+            ->validationMessages([
+                'required' => __('resources/dms/strings.validation.generic.required'),
+                'unique' => __('resources/dms/strings.validation.generic.unique'),
+                'max' => __('resources/dms/strings.validation.generic.max'),
+                'min' => __('resources/dms/strings.validation.generic.min'),
+                'email' => __('resources/dms/strings.validation.generic.email'),
+                'numeric' => __('resources/dms/strings.validation.generic.numeric'),
+                'mimes' => __('resources/dms/strings.validation.generic.mimes'),
+                'url' => __('resources/dms/strings.validation.generic.url'),
+                'in' => __('resources/dms/strings.validation.generic.in'),
+                'exists' => __('resources/dms/strings.validation.generic.exists')
+            ])
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)

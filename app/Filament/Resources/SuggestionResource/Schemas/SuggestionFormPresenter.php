@@ -20,6 +20,18 @@ class SuggestionFormPresenter
     public static function attachment(): FileUpload
     {
         return FileUpload::make('attachment')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.attachment'))
             ->disk('public')
             ->directory('suggestions')
@@ -39,6 +51,18 @@ class SuggestionFormPresenter
     public static function departments(): Select
     {
         return Select::make('departments')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.departments'))
             ->helperText(__('resources/suggestion/strings.form.departments_helper'))
             ->multiple()
@@ -51,6 +75,18 @@ class SuggestionFormPresenter
     public static function description(): RichEditor
     {
         return RichEditor::make('description')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.description'))
             ->required()
             ->minLength(10)
@@ -95,6 +131,18 @@ class SuggestionFormPresenter
     public static function priority(): Select
     {
         return Select::make('priority')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.priority'))
             ->options(Suggestion::PRIORITIES)
             ->default('low')
@@ -105,6 +153,18 @@ class SuggestionFormPresenter
     public static function purpose(): CheckboxList
     {
         return CheckboxList::make('purpose')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.purpose'))
             ->options(Suggestion::PURPOSES)
             ->required()
@@ -118,6 +178,18 @@ class SuggestionFormPresenter
     public static function rule(): CheckboxList
     {
         return CheckboxList::make('rule')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.rule'))
             ->options(Suggestion::RULES)
             ->required()
@@ -131,6 +203,18 @@ class SuggestionFormPresenter
     public static function selfFill(): Toggle
     {
         return Toggle::make('self_fill')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.self_fill'))
             ->helperText(__('resources/suggestion/strings.form.self_fill_helper'))
             ->inline(false)
@@ -141,6 +225,18 @@ class SuggestionFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.title'))
             ->required()
             ->minLength(3)
@@ -157,6 +253,18 @@ class SuggestionFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.generic.required'),
+                'unique' => __('resources/suggestion/strings.validation.generic.unique'),
+                'max' => __('resources/suggestion/strings.validation.generic.max'),
+                'min' => __('resources/suggestion/strings.validation.generic.min'),
+                'email' => __('resources/suggestion/strings.validation.generic.email'),
+                'numeric' => __('resources/suggestion/strings.validation.generic.numeric'),
+                'mimes' => __('resources/suggestion/strings.validation.generic.mimes'),
+                'url' => __('resources/suggestion/strings.validation.generic.url'),
+                'in' => __('resources/suggestion/strings.validation.generic.in'),
+                'exists' => __('resources/suggestion/strings.validation.generic.exists')
+            ])
             ->label(__('resources/suggestion/strings.fields.submitter'))
             ->relationship('user', 'name')
             ->searchable(['name', 'email'])
