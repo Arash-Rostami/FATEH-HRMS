@@ -52,6 +52,11 @@ class Task extends Model
         return self::query()->forUser($userId)->status('todo')->count();
     }
 
+    public static function getPendingCount(int $userId): int
+    {
+        return self::query()->forUser($userId)->status('pending')->count();
+    }
+
     public function scopeForUser(Builder $query, int $userId): void
     {
         $query->where(fn(Builder $q) => $q->where('assigned_to', $userId)

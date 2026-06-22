@@ -33,7 +33,7 @@ class TabPresenter
                 'key' => 'tasks',
                 'icon' => 'checklist',
                 'label' => 'وظایف باز من',
-                'value' => Task::getTodoCount($uid) + Task::getInProgressCount($uid),
+                'value' => Task::getTodoCount($uid) + Task::getInProgressCount($uid) + Task::getPendingCount($uid),
                 'nav' => ['type' => 'route', 'name' => 'tasks'],
             ],
             [

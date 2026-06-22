@@ -98,6 +98,7 @@ class TaskTablePresenter
             ->color(fn($record) => match (true) {
                 !$record->deadline => 'gray',
                 $record->status === 'done' => 'success',
+                $record->status === 'pending' => 'danger',
                 $record->deadline->isPast() => 'danger',
                 $record->deadline->diffInDays(now()) <= 2 => 'warning',
                 default => 'primary',
