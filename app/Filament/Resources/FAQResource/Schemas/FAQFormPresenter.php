@@ -18,6 +18,18 @@ class FAQFormPresenter
     public static function answer(): RichEditor
     {
         return RichEditor::make('answer')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
             ->label(__('resources/faq/strings.fields.answer'))
             ->required()
             ->maxLength(5000)
@@ -64,11 +76,35 @@ class FAQFormPresenter
     public static function category(): Select
     {
         return Select::make('category')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
             ->label(__('resources/faq/strings.fields.category'))
             ->searchable()
             ->options(fn(): array => FAQ::distinct()->orderBy('category')->pluck('category', 'category')->toArray())
             ->createOptionForm([
                 TextInput::make('category')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/faq/strings.fields.category'))
                     ->required()
                     ->maxLength(100),
@@ -85,6 +121,18 @@ class FAQFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
             ->label(__('resources/faq/strings.fields.department'))
             ->searchable()
             ->options(fn() => Department::getCachedOptions()->toArray())
@@ -96,6 +144,18 @@ class FAQFormPresenter
     public static function question(): RichEditor
     {
         return RichEditor::make('question')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
             ->label(__('resources/faq/strings.fields.question'))
             ->required()
             ->maxLength(1000)
@@ -126,6 +186,18 @@ class FAQFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/faq/strings.validation.generic.required'),
+                'unique' => __('resources/faq/strings.validation.generic.unique'),
+                'max' => __('resources/faq/strings.validation.generic.max'),
+                'min' => __('resources/faq/strings.validation.generic.min'),
+                'email' => __('resources/faq/strings.validation.generic.email'),
+                'numeric' => __('resources/faq/strings.validation.generic.numeric'),
+                'mimes' => __('resources/faq/strings.validation.generic.mimes'),
+                'url' => __('resources/faq/strings.validation.generic.url'),
+                'in' => __('resources/faq/strings.validation.generic.in'),
+                'exists' => __('resources/faq/strings.validation.generic.exists')
+            ])
             ->label(__('resources/faq/strings.fields.user'))
             ->relationship('user', 'name')
             ->afterStateHydrated(fn($state, callable $set) => $set('user_id', $state ?? auth()->id()))

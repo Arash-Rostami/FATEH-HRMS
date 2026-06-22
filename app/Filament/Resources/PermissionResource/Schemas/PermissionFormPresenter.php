@@ -17,10 +17,34 @@ class PermissionFormPresenter
     public static function abilities(): Repeater
     {
         return Repeater::make('abilities')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
             ->label(__('resources/permission/strings.fields.abilities'))
             ->addActionLabel(__('resources/permission/strings.form.add_module'))
             ->schema([
                 Select::make('module')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/permission/strings.fields.module'))
                     ->options(fn() => Permission::availableModules())
                     ->required()
@@ -32,6 +56,18 @@ class PermissionFormPresenter
                     ]),
 
                 CheckboxList::make('actions')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/permission/strings.fields.actions'))
                     ->options(fn() => self::actionOptions())
                     ->columns(5)
@@ -51,6 +87,18 @@ class PermissionFormPresenter
     public static function excludedModules(): CheckboxList
     {
         return CheckboxList::make('excluded_modules')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
             ->label(__('resources/permission/strings.fields.excluded_modules'))
             ->options(fn() => Permission::availableModules())
             ->columns(3)
@@ -62,6 +110,18 @@ class PermissionFormPresenter
     public static function isSuperAdmin(): Toggle
     {
         return Toggle::make('is_super_admin')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
             ->label(__('resources/permission/strings.fields.is_super_admin'))
             ->onIcon('heroicon-m-shield-check')
             ->offIcon('heroicon-m-shield-exclamation')
@@ -73,6 +133,18 @@ class PermissionFormPresenter
     public static function user(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.generic.required'),
+                'unique' => __('resources/permission/strings.validation.generic.unique'),
+                'max' => __('resources/permission/strings.validation.generic.max'),
+                'min' => __('resources/permission/strings.validation.generic.min'),
+                'email' => __('resources/permission/strings.validation.generic.email'),
+                'numeric' => __('resources/permission/strings.validation.generic.numeric'),
+                'mimes' => __('resources/permission/strings.validation.generic.mimes'),
+                'url' => __('resources/permission/strings.validation.generic.url'),
+                'in' => __('resources/permission/strings.validation.generic.in'),
+                'exists' => __('resources/permission/strings.validation.generic.exists')
+            ])
             ->label(__('resources/permission/strings.fields.user'))
             ->options(fn() => User::getCachedAllOptions())
             ->required()

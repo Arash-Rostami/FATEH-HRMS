@@ -26,6 +26,18 @@ class TaskFormPresenter
     public static function actionSource(): Textarea
     {
         return Textarea::make('action_source')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.action_source'))
             ->rows(2)
             ->maxLength(2000)
@@ -37,6 +49,18 @@ class TaskFormPresenter
     public static function actionSourceDomain(): Textarea
     {
         return Textarea::make('action_source_domain')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.action_source_domain'))
             ->rows(2)
             ->maxLength(2000)
@@ -48,6 +72,18 @@ class TaskFormPresenter
     public static function assignedTo(): Select
     {
         return Select::make('assigned_to')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.assignee'))
             ->helperText(__('resources/task/strings.fields.assignee_hint'))
             ->relationship('assignee', 'name')
@@ -59,9 +95,33 @@ class TaskFormPresenter
     public static function attachments(): Repeater
     {
         return Repeater::make('attachments')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.attachments'))
             ->schema([
                 FileUpload::make('file')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/task/strings.fields.file'))
                     ->disk('public')
                     ->directory('task/attachments')
@@ -84,6 +144,18 @@ class TaskFormPresenter
     public static function collaborators(): Select
     {
         return Select::make('collaborators')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.collaborators'))
             ->multiple()
             ->options(fn() => User::getCachedActiveOptions())
@@ -95,6 +167,18 @@ class TaskFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
@@ -121,6 +205,18 @@ class TaskFormPresenter
     public static function deadlineTime(): TextInput
     {
         return TextInput::make('deadline_time')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.deadline_time'))
             ->type('time')
             ->default('17:00')
@@ -137,6 +233,18 @@ class TaskFormPresenter
     public static function description(): Textarea
     {
         return Textarea::make('description')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.description'))
             ->rows(3)
             ->maxLength(5000)
@@ -149,6 +257,18 @@ class TaskFormPresenter
     public static function project(): TextInput
     {
         return TextInput::make('project')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.project'))
             ->maxLength(255)
             ->nullable()
@@ -158,6 +278,18 @@ class TaskFormPresenter
     public static function responsibleUserId(): Select
     {
         return Select::make('responsible_user_id')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.responsible_user'))
             ->relationship('responsibleUser', 'name')
             ->searchable()
@@ -169,6 +301,18 @@ class TaskFormPresenter
     public static function scheme(): TextInput
     {
         return TextInput::make('scheme')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.scheme'))
             ->maxLength(255)
             ->nullable()
@@ -178,6 +322,18 @@ class TaskFormPresenter
     public static function section(): Select
     {
         return Select::make('section')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.section'))
             ->options(fn(Get $get) => Department::find($get('department_id'))?->sectionsOptions() ?? [])
             ->searchable()
@@ -188,6 +344,18 @@ class TaskFormPresenter
     public static function state(): Select
     {
         return Select::make('state')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.state'))
             ->options(TaskState::class)
             ->nullable()
@@ -197,6 +365,18 @@ class TaskFormPresenter
     public static function status(): Select
     {
         return Select::make('status')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.status'))
             ->options(TaskStatus::class)
             ->required()
@@ -210,6 +390,18 @@ class TaskFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.title'))
             ->required()
             ->maxLength(255)
@@ -223,6 +415,18 @@ class TaskFormPresenter
     public static function unit(): Select
     {
         return Select::make('unit')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.unit'))
             ->options(fn(Get $get) => Department::find($get('department_id'))?->unitsOptions() ?? [])
             ->searchable()
@@ -233,6 +437,18 @@ class TaskFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/task/strings.validation.generic.required'),
+                'unique' => __('resources/task/strings.validation.generic.unique'),
+                'max' => __('resources/task/strings.validation.generic.max'),
+                'min' => __('resources/task/strings.validation.generic.min'),
+                'email' => __('resources/task/strings.validation.generic.email'),
+                'numeric' => __('resources/task/strings.validation.generic.numeric'),
+                'mimes' => __('resources/task/strings.validation.generic.mimes'),
+                'url' => __('resources/task/strings.validation.generic.url'),
+                'in' => __('resources/task/strings.validation.generic.in'),
+                'exists' => __('resources/task/strings.validation.generic.exists')
+            ])
             ->label(__('resources/task/strings.fields.creator'))
             ->relationship('creator', 'name')
             ->searchable()

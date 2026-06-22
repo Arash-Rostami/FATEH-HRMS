@@ -19,6 +19,18 @@ class ReportFormPresenter
     public static function active(): Toggle
     {
         return Toggle::make('active')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.active'))
             ->default(true)
             ->helperText(__('resources/report/strings.hints.active'))
@@ -28,6 +40,18 @@ class ReportFormPresenter
     public static function coverImage(): FileUpload
     {
         return FileUpload::make('cover_image')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.cover_image'))
             ->image()
             ->downloadable()
@@ -44,6 +68,18 @@ class ReportFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
@@ -54,6 +90,18 @@ class ReportFormPresenter
     public static function description(): RichEditor
     {
         return RichEditor::make('description')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.description'))
             ->nullable()
             ->maxLength(65535)
@@ -99,6 +147,18 @@ class ReportFormPresenter
     public static function filePath(): FileUpload
     {
         return FileUpload::make('file_path')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.file_path'))
             ->downloadable()
             ->openable()
@@ -121,6 +181,18 @@ class ReportFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.title'))
             ->required()
             ->maxLength(255)
@@ -134,6 +206,18 @@ class ReportFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/report/strings.validation.generic.required'),
+                'unique' => __('resources/report/strings.validation.generic.unique'),
+                'max' => __('resources/report/strings.validation.generic.max'),
+                'min' => __('resources/report/strings.validation.generic.min'),
+                'email' => __('resources/report/strings.validation.generic.email'),
+                'numeric' => __('resources/report/strings.validation.generic.numeric'),
+                'mimes' => __('resources/report/strings.validation.generic.mimes'),
+                'url' => __('resources/report/strings.validation.generic.url'),
+                'in' => __('resources/report/strings.validation.generic.in'),
+                'exists' => __('resources/report/strings.validation.generic.exists')
+            ])
             ->label(__('resources/report/strings.fields.user'))
             ->relationship('user', 'name')
             ->searchable()

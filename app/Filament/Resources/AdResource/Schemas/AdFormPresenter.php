@@ -17,6 +17,18 @@ class AdFormPresenter
     public static function active(): Toggle
     {
         return Toggle::make('active')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.active'))
             ->default(true)
             ->onColor('success')
@@ -28,6 +40,18 @@ class AdFormPresenter
     public static function certificate(): Textarea
     {
         return Textarea::make('certificate')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.certificate'))
             ->rows(4)
             ->maxLength(2000)
@@ -41,6 +65,18 @@ class AdFormPresenter
     public static function experience(): Textarea
     {
         return Textarea::make('experience')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.experience'))
             ->rows(4)
             ->maxLength(2000)
@@ -54,14 +90,50 @@ class AdFormPresenter
     public static function extra(): Repeater
     {
         return Repeater::make('extra')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.extra'))
             ->schema([
                 TextInput::make('key')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/ad/strings.fields.extra_key'))
                     ->required()
                     ->maxLength(255)
                     ->helperText(__('resources/ad/strings.hints.extra_key')),
                 Textarea::make('value')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
                     ->label(__('resources/ad/strings.fields.extra_value'))
                     ->required()
                     ->rows(3)
@@ -77,6 +149,18 @@ class AdFormPresenter
     public static function gender(): Select
     {
         return Select::make('gender')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.gender'))
             ->options(AdGender::class)
             ->default(AdGender::Any->value)
@@ -91,6 +175,18 @@ class AdFormPresenter
     public static function link(): TextInput
     {
         return TextInput::make('link')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.link'))
             ->required()
             ->url()
@@ -105,6 +201,18 @@ class AdFormPresenter
     public static function position(): TextInput
     {
         return TextInput::make('position')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.position'))
             ->maxLength(255)
             ->helperText(__('resources/ad/strings.hints.position'))
@@ -116,6 +224,18 @@ class AdFormPresenter
     public static function skill(): Textarea
     {
         return Textarea::make('skill')
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.generic.required'),
+                'unique' => __('resources/ad/strings.validation.generic.unique'),
+                'max' => __('resources/ad/strings.validation.generic.max'),
+                'min' => __('resources/ad/strings.validation.generic.min'),
+                'email' => __('resources/ad/strings.validation.generic.email'),
+                'numeric' => __('resources/ad/strings.validation.generic.numeric'),
+                'mimes' => __('resources/ad/strings.validation.generic.mimes'),
+                'url' => __('resources/ad/strings.validation.generic.url'),
+                'in' => __('resources/ad/strings.validation.generic.in'),
+                'exists' => __('resources/ad/strings.validation.generic.exists')
+            ])
             ->label(__('resources/ad/strings.fields.skill'))
             ->rows(4)
             ->maxLength(2000)

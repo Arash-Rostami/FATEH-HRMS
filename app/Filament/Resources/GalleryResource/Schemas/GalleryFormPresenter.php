@@ -21,6 +21,18 @@ class GalleryFormPresenter
     public static function departmentId(): Select
     {
         return Select::make('department_id')
+            ->validationMessages([
+                'required' => __('resources/gallery/strings.validation.generic.required'),
+                'unique' => __('resources/gallery/strings.validation.generic.unique'),
+                'max' => __('resources/gallery/strings.validation.generic.max'),
+                'min' => __('resources/gallery/strings.validation.generic.min'),
+                'email' => __('resources/gallery/strings.validation.generic.email'),
+                'numeric' => __('resources/gallery/strings.validation.generic.numeric'),
+                'mimes' => __('resources/gallery/strings.validation.generic.mimes'),
+                'url' => __('resources/gallery/strings.validation.generic.url'),
+                'in' => __('resources/gallery/strings.validation.generic.in'),
+                'exists' => __('resources/gallery/strings.validation.generic.exists')
+            ])
             ->label(__('resources/gallery/strings.fields.department'))
             ->helperText(__('resources/gallery/strings.fields.department_hint'))
             ->options(fn() => Department::getCachedOptions()->toArray())
@@ -32,6 +44,18 @@ class GalleryFormPresenter
     public static function description(): Textarea
     {
         return Textarea::make('description')
+            ->validationMessages([
+                'required' => __('resources/gallery/strings.validation.generic.required'),
+                'unique' => __('resources/gallery/strings.validation.generic.unique'),
+                'max' => __('resources/gallery/strings.validation.generic.max'),
+                'min' => __('resources/gallery/strings.validation.generic.min'),
+                'email' => __('resources/gallery/strings.validation.generic.email'),
+                'numeric' => __('resources/gallery/strings.validation.generic.numeric'),
+                'mimes' => __('resources/gallery/strings.validation.generic.mimes'),
+                'url' => __('resources/gallery/strings.validation.generic.url'),
+                'in' => __('resources/gallery/strings.validation.generic.in'),
+                'exists' => __('resources/gallery/strings.validation.generic.exists')
+            ])
             ->label(__('resources/gallery/strings.fields.description'))
             ->rows(2)
             ->maxLength(2000)
@@ -56,6 +80,18 @@ class GalleryFormPresenter
     public static function path(): FileUpload
     {
         return FileUpload::make('path')
+            ->validationMessages([
+                'required' => __('resources/gallery/strings.validation.generic.required'),
+                'unique' => __('resources/gallery/strings.validation.generic.unique'),
+                'max' => __('resources/gallery/strings.validation.generic.max'),
+                'min' => __('resources/gallery/strings.validation.generic.min'),
+                'email' => __('resources/gallery/strings.validation.generic.email'),
+                'numeric' => __('resources/gallery/strings.validation.generic.numeric'),
+                'mimes' => __('resources/gallery/strings.validation.generic.mimes'),
+                'url' => __('resources/gallery/strings.validation.generic.url'),
+                'in' => __('resources/gallery/strings.validation.generic.in'),
+                'exists' => __('resources/gallery/strings.validation.generic.exists')
+            ])
             ->label(__('resources/gallery/strings.fields.photos'))
             ->disk('public')
             ->directory('gallery')
@@ -87,6 +123,18 @@ class GalleryFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/gallery/strings.validation.generic.required'),
+                'unique' => __('resources/gallery/strings.validation.generic.unique'),
+                'max' => __('resources/gallery/strings.validation.generic.max'),
+                'min' => __('resources/gallery/strings.validation.generic.min'),
+                'email' => __('resources/gallery/strings.validation.generic.email'),
+                'numeric' => __('resources/gallery/strings.validation.generic.numeric'),
+                'mimes' => __('resources/gallery/strings.validation.generic.mimes'),
+                'url' => __('resources/gallery/strings.validation.generic.url'),
+                'in' => __('resources/gallery/strings.validation.generic.in'),
+                'exists' => __('resources/gallery/strings.validation.generic.exists')
+            ])
             ->label(__('resources/gallery/strings.fields.title'))
             ->required()
             ->columnSpan(2)

@@ -19,6 +19,18 @@ class PostFormPresenter
     public static function body(): RichEditor
     {
         return RichEditor::make('body')
+            ->validationMessages([
+                'required' => __('resources/post/strings.validation.generic.required'),
+                'unique' => __('resources/post/strings.validation.generic.unique'),
+                'max' => __('resources/post/strings.validation.generic.max'),
+                'min' => __('resources/post/strings.validation.generic.min'),
+                'email' => __('resources/post/strings.validation.generic.email'),
+                'numeric' => __('resources/post/strings.validation.generic.numeric'),
+                'mimes' => __('resources/post/strings.validation.generic.mimes'),
+                'url' => __('resources/post/strings.validation.generic.url'),
+                'in' => __('resources/post/strings.validation.generic.in'),
+                'exists' => __('resources/post/strings.validation.generic.exists')
+            ])
             ->label(__('resources/post/strings.fields.body'))
             ->required()
             ->maxLength(50000)
@@ -62,6 +74,18 @@ class PostFormPresenter
     public static function image(): FileUpload
     {
         return FileUpload::make('image')
+            ->validationMessages([
+                'required' => __('resources/post/strings.validation.generic.required'),
+                'unique' => __('resources/post/strings.validation.generic.unique'),
+                'max' => __('resources/post/strings.validation.generic.max'),
+                'min' => __('resources/post/strings.validation.generic.min'),
+                'email' => __('resources/post/strings.validation.generic.email'),
+                'numeric' => __('resources/post/strings.validation.generic.numeric'),
+                'mimes' => __('resources/post/strings.validation.generic.mimes'),
+                'url' => __('resources/post/strings.validation.generic.url'),
+                'in' => __('resources/post/strings.validation.generic.in'),
+                'exists' => __('resources/post/strings.validation.generic.exists')
+            ])
             ->label(__('resources/post/strings.fields.image'))
             ->disk('public')
             ->directory('post/image')
@@ -79,6 +103,18 @@ class PostFormPresenter
     public static function pinned(): Toggle
     {
         return Toggle::make('pinned')
+            ->validationMessages([
+                'required' => __('resources/post/strings.validation.generic.required'),
+                'unique' => __('resources/post/strings.validation.generic.unique'),
+                'max' => __('resources/post/strings.validation.generic.max'),
+                'min' => __('resources/post/strings.validation.generic.min'),
+                'email' => __('resources/post/strings.validation.generic.email'),
+                'numeric' => __('resources/post/strings.validation.generic.numeric'),
+                'mimes' => __('resources/post/strings.validation.generic.mimes'),
+                'url' => __('resources/post/strings.validation.generic.url'),
+                'in' => __('resources/post/strings.validation.generic.in'),
+                'exists' => __('resources/post/strings.validation.generic.exists')
+            ])
             ->label(__('resources/post/strings.fields.pinned'))
             ->helperText(__('resources/post/strings.fields.pinned_hint'))
             ->inline(false)
@@ -88,6 +124,18 @@ class PostFormPresenter
     public static function title(): RichEditor
     {
         return RichEditor::make('title')
+            ->validationMessages([
+                'required' => __('resources/post/strings.validation.generic.required'),
+                'unique' => __('resources/post/strings.validation.generic.unique'),
+                'max' => __('resources/post/strings.validation.generic.max'),
+                'min' => __('resources/post/strings.validation.generic.min'),
+                'email' => __('resources/post/strings.validation.generic.email'),
+                'numeric' => __('resources/post/strings.validation.generic.numeric'),
+                'mimes' => __('resources/post/strings.validation.generic.mimes'),
+                'url' => __('resources/post/strings.validation.generic.url'),
+                'in' => __('resources/post/strings.validation.generic.in'),
+                'exists' => __('resources/post/strings.validation.generic.exists')
+            ])
             ->label(__('resources/post/strings.fields.title'))
             ->required()
             ->maxLength(700)
@@ -116,6 +164,18 @@ class PostFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/post/strings.validation.generic.required'),
+                'unique' => __('resources/post/strings.validation.generic.unique'),
+                'max' => __('resources/post/strings.validation.generic.max'),
+                'min' => __('resources/post/strings.validation.generic.min'),
+                'email' => __('resources/post/strings.validation.generic.email'),
+                'numeric' => __('resources/post/strings.validation.generic.numeric'),
+                'mimes' => __('resources/post/strings.validation.generic.mimes'),
+                'url' => __('resources/post/strings.validation.generic.url'),
+                'in' => __('resources/post/strings.validation.generic.in'),
+                'exists' => __('resources/post/strings.validation.generic.exists')
+            ])
             ->label(__('resources/post/strings.fields.user'))
             ->relationship('user', 'name')
             ->searchable()

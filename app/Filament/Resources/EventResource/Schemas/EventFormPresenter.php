@@ -24,6 +24,18 @@ class EventFormPresenter
     public static function dateTimePart(): TimePicker
     {
         return TimePicker::make('date_time_part')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.generic.required'),
+                'unique' => __('resources/event/strings.validation.generic.unique'),
+                'max' => __('resources/event/strings.validation.generic.max'),
+                'min' => __('resources/event/strings.validation.generic.min'),
+                'email' => __('resources/event/strings.validation.generic.email'),
+                'numeric' => __('resources/event/strings.validation.generic.numeric'),
+                'mimes' => __('resources/event/strings.validation.generic.mimes'),
+                'url' => __('resources/event/strings.validation.generic.url'),
+                'in' => __('resources/event/strings.validation.generic.in'),
+                'exists' => __('resources/event/strings.validation.generic.exists')
+            ])
             ->label(__('resources/event/strings.fields.time'))
             ->native(false)
             ->columnSpan(2)
@@ -38,6 +50,18 @@ class EventFormPresenter
     public static function description(): Textarea
     {
         return Textarea::make('description')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.generic.required'),
+                'unique' => __('resources/event/strings.validation.generic.unique'),
+                'max' => __('resources/event/strings.validation.generic.max'),
+                'min' => __('resources/event/strings.validation.generic.min'),
+                'email' => __('resources/event/strings.validation.generic.email'),
+                'numeric' => __('resources/event/strings.validation.generic.numeric'),
+                'mimes' => __('resources/event/strings.validation.generic.mimes'),
+                'url' => __('resources/event/strings.validation.generic.url'),
+                'in' => __('resources/event/strings.validation.generic.in'),
+                'exists' => __('resources/event/strings.validation.generic.exists')
+            ])
             ->label(__('resources/event/strings.fields.description'))
             ->rows(5)
             ->maxLength(3000)
@@ -51,6 +75,18 @@ class EventFormPresenter
     public static function private(): Toggle
     {
         return Toggle::make('private')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.generic.required'),
+                'unique' => __('resources/event/strings.validation.generic.unique'),
+                'max' => __('resources/event/strings.validation.generic.max'),
+                'min' => __('resources/event/strings.validation.generic.min'),
+                'email' => __('resources/event/strings.validation.generic.email'),
+                'numeric' => __('resources/event/strings.validation.generic.numeric'),
+                'mimes' => __('resources/event/strings.validation.generic.mimes'),
+                'url' => __('resources/event/strings.validation.generic.url'),
+                'in' => __('resources/event/strings.validation.generic.in'),
+                'exists' => __('resources/event/strings.validation.generic.exists')
+            ])
             ->label(__('resources/event/strings.fields.private'))
             ->helperText(__('resources/event/strings.fields.private_hint'))
             ->live()
@@ -61,6 +97,18 @@ class EventFormPresenter
     public static function title(): TextInput
     {
         return TextInput::make('title')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.generic.required'),
+                'unique' => __('resources/event/strings.validation.generic.unique'),
+                'max' => __('resources/event/strings.validation.generic.max'),
+                'min' => __('resources/event/strings.validation.generic.min'),
+                'email' => __('resources/event/strings.validation.generic.email'),
+                'numeric' => __('resources/event/strings.validation.generic.numeric'),
+                'mimes' => __('resources/event/strings.validation.generic.mimes'),
+                'url' => __('resources/event/strings.validation.generic.url'),
+                'in' => __('resources/event/strings.validation.generic.in'),
+                'exists' => __('resources/event/strings.validation.generic.exists')
+            ])
             ->label(__('resources/event/strings.fields.title'))
             ->required()
             ->maxLength(255)
@@ -74,6 +122,18 @@ class EventFormPresenter
     public static function userId(): Select
     {
         return Select::make('user_id')
+            ->validationMessages([
+                'required' => __('resources/event/strings.validation.generic.required'),
+                'unique' => __('resources/event/strings.validation.generic.unique'),
+                'max' => __('resources/event/strings.validation.generic.max'),
+                'min' => __('resources/event/strings.validation.generic.min'),
+                'email' => __('resources/event/strings.validation.generic.email'),
+                'numeric' => __('resources/event/strings.validation.generic.numeric'),
+                'mimes' => __('resources/event/strings.validation.generic.mimes'),
+                'url' => __('resources/event/strings.validation.generic.url'),
+                'in' => __('resources/event/strings.validation.generic.in'),
+                'exists' => __('resources/event/strings.validation.generic.exists')
+            ])
             ->label(__('resources/event/strings.fields.user'))
             ->helperText(__('resources/event/strings.fields.user_hint'))
             ->relationship('user', 'name')
