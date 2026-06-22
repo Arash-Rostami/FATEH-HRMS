@@ -41,6 +41,14 @@ class ListTasks extends ListRecords
                     fn(Builder $query) => $query->where('status', 'in-progress')
                 ),
 
+            'pending' => Tab::make(__('resources/task/strings.tabs.pending') ?? 'در انتظار')
+                ->icon('heroicon-o-pause-circle')
+                ->badge(fn() => $this->getStats()->pending_count ?: null)
+                ->badgeColor('danger')
+                ->modifyQueryUsing(
+                    fn(Builder $query) => $query->where('status', 'pending')
+                ),
+
             'done' => Tab::make(__('resources/task/strings.tabs.done'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(
@@ -83,6 +91,7 @@ class ListTasks extends ListRecords
             ->selectRaw("
             SUM(CASE WHEN status = 'todo' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS todo_count,
             SUM(CASE WHEN status = 'in-progress' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS in_progress_count,
+            SUM(CASE WHEN status = 'pending' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS pending_count,
             SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? AND status != 'done' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS overdue_count,
             SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS trashed_count
         ", [now()])
