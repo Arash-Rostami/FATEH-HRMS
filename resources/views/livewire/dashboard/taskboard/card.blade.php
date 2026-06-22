@@ -1,11 +1,26 @@
+@php
+    $colState = $presenter->columnState($task['status']);
+@endphp
+
 <div
-    draggable="true"
-    @dragstart="handleDragStart($event, {{ $task['id'] }})"
+    :draggable="{{ $task['can_change_status'] ? 'true' : 'false' }}"
+    @dragstart="{{ $task['can_change_status'] ? 'handleDragStart($event, '. $task['id'] . ')' : 'event.preventDefault()' }}"
     @dragend="handleDragEnd($event)"
-    class="group relative flex flex-col gap-3 p-4 md:p-5 pt-6 rounded-2xl bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40 hover:-translate-y-1 transition-all duration-300 cursor-grab active:cursor-grabbing active:scale-[0.98] select-none"
+    class="group relative flex flex-col {{ $density === 'compact' ? 'gap-2 p-2.5 md:p-3 pt-5' : 'gap-3 p-4 md:p-5 pt-6' }} rounded-2xl animate-bubble-in {{ $task['status'] === 'pending' ? 'bg-[var(--md-sys-color-error-container)]/30 border-[var(--md-sys-color-error)] border-2 shadow-[0_0_15px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] animate-pulse-slow' : 'bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40' }} hover:-translate-y-1 transition-all duration-300 {{ $task['can_change_status'] ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80' }} active:scale-[0.98] select-none"
     dir="rtl"
 >
-    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 md:w-40 h-[2px] rounded-b-full opacity-80 group-hover:opacity-100 transition-opacity bg-gradient-to-r {{ $presenter->columnConfig()[$task['status']]['lightGradient'] ?? $columnConfig['todo']['lightGradient'] }} animate-subtle-pulse" style="box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-{{ $presenter->columnConfig()[$task['status']]['color'] ?? 'primary' }}) 40%, transparent);"></div>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 md:w-40 h-[2px] rounded-b-full opacity-80 group-hover:opacity-100 transition-opacity bg-gradient-to-r {{ $colState['lightGradient'] }} animate-subtle-pulse" style="box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-{{ $colState['color'] }}) 40%, transparent);"></div>
+
+    @if($selectionMode)
+        <button
+            wire:click="toggleTaskSelection({{ $task['id'] }})"
+            class="absolute top-3 right-3 min-w-[28px] min-h-[28px] rounded-lg border-2 flex items-center justify-center transition-all duration-150 {{ in_array($task['id'], $selectedTasks) ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]' }}"
+        >
+            @if(in_array($task['id'], $selectedTasks))
+                <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary)]">check</span>
+            @endif
+        </button>
+    @endif
 
     <div class="flex items-start justify-between gap-3 mt-1">
         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-snug line-clamp-2 flex-1">
@@ -21,9 +36,54 @@
                 <span class="material-symbols-rounded text-xl">delete</span>
             </button>
         @endif
+
+        @if($task['can_change_status'])
+            <div x-data="{ open: false }" class="relative">
+                <button
+                    @click="open = !open"
+                    @click.away="open = false"
+                    class="opacity-0 group-hover:opacity-100 min-w-[32px] min-h-[32px] p-1 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 flex items-center justify-center"
+                    title="محول کردن"
+                >
+                    <span class="material-symbols-rounded text-lg">person_add</span>
+                </button>
+                <div
+                    x-show="open"
+                    x-transition
+                    class="absolute left-0 mt-2 w-48 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg z-50 overflow-hidden"
+                    style="display: none;"
+                >
+                    <div class="p-2 border-b border-[var(--md-sys-color-outline-variant)]/40 text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                        محول کردن به:
+                    </div>
+                    <ul class="max-h-40 overflow-y-auto custom-scrollbar">
+                        <li>
+                            <button
+                                wire:click="assignTask({{ $task['id'] }}, null)"
+                                @click="open = false"
+                                class="w-full text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors"
+                            >
+                                بدون مسئول (خودم)
+                            </button>
+                        </li>
+                        @foreach($staffMembers as $staff)
+                            <li>
+                                <button
+                                    wire:click="assignTask({{ $task['id'] }}, {{ $staff['id'] }})"
+                                    @click="open = false"
+                                    class="w-full text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors {{ $task['assigned_to'] === $staff['id'] ? 'bg-[var(--md-sys-color-primary-container)]/50 text-[var(--md-sys-color-primary)] font-bold' : '' }}"
+                                >
+                                    {{ $staff['full_name'] }}
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
     </div>
 
-    @if(!empty($task['description']))
+    @if(!empty($task['description']) && $density !== 'compact')
         <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed">
             {{ superClean($task['description']) }}
         </p>
@@ -68,7 +128,7 @@
                 #{{ $task['id'] }} • {{ $task['created_formatted'] }}
             </span>
             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border">
-                {{ $presenter->columnConfig()[$task['status']]['title'] ?? $columnConfig['todo']['title'] }}
+                {{ $colState['title'] }}
             </span>
         </div>
 

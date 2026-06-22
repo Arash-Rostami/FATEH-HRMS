@@ -1463,3 +1463,29 @@ _(Extending the 20 rules listed above)_
 **29. Navigation badges return `null` not `'0'`** — `getNavigationBadge()` must cast the count to null when zero: `return (string) $count ?: null;`. An empty badge clutters the sidebar.
 
 **30. `FilamentMenuService` owns the user menu** — no menu items are ever defined inline in `AdminPanelProvider`. The service class is the single source of truth for all user menu actions.
+
+**31. Embed a `HasOne` companion table via `->relationship()`, never a new resource/relation manager** — when a model has a 1:1 companion table that's purely supplementary (e.g. `Task` → `TaskDetail`, mirroring the existing `User` → `Profile`/`ProfileDetail` pattern), do **not** create a separate Resource or RelationManager for it. Instead, add a new `Tab` to the parent resource's existing `Tabs::make()` and bind a `Section` directly to the relation:
+
+```php
+Tab::make('اطلاعات تکمیلی (BI)')
+    ->icon('heroicon-o-chart-bar-square')
+    ->schema([
+        Section::make('طبقه‌بندی و گزارش‌گیری')
+            ->icon('heroicon-o-chart-bar-square')
+            ->relationship('detail')   // HasOne on the parent model
+            ->schema([
+                TaskFormPresenter::departmentId(),
+                TaskFormPresenter::unit(),
+                // ...
+            ])
+            ->columns(2),
+    ]),
+```
+
+`->relationship($name)` on `Section`/`Group`/`Fieldset` (confirmed in `vendor/filament/schemas/src/Components/Concerns/EntanglesStateWithSingularRelationship.php`) works for `HasOne`, `BelongsTo`, and `MorphOne` and auto-creates/fills/saves the related row with zero custom page hooks — every parent record gets its companion row the moment it's created, even if every field in the tab is left blank. New fields on the companion model are added as more methods on the **same** `*FormPresenter`/`*InfolistPresenter` classes (no new Schemas classes), and `getEloquentQuery()` just needs the relation added to `->with([...])`. The same applies to the matching `infolist()` — use a second `Tab` there too, with a plain (non-bound) `Section` of `TextEntry`s pointed at the dot-path (`detail.department.name`, `detail.unit`, etc.).
+
+Field-level convention for the companion table itself: when an FK-like column stores another model's natural key (not its surrogate `id`) — e.g. `task_details.department_id` storing `departments.code` — name the column `*_id` anyway for uniformity with the rest of the codebase, and declare the relation with an explicit owner key: `belongsTo(Department::class, 'department_id', 'code')`.
+
+> **Eloquent gotcha:** never declare a column in both `casts()` (e.g. `'units' => 'array'`) **and** an `Attribute::make()` accessor/mutator for that same key. `HasAttributes::setAttribute()` checks for an attribute-mutator first and short-circuits — it never reaches the cast's JSON-encode step, so a `set` callback returning a plain array gets merged into `$this->attributes` using the array's own keys as column names (`Unknown column '0'`). If you need custom set/get logic (e.g. dedupe-on-write) for a JSON column, drop it from `casts()` and do the `json_encode`/`json_decode` by hand inside the `Attribute::make(get: ..., set: ...)` pair instead — don't combine the two mechanisms for the same key.
+
+**32. Date/time display must read from the model's own accessor, never re-derive the format inline in a Schema** — when a model already exposes a formatted-date accessor consumed by the Livewire side (e.g. `Task::createdFormatted`/`Task::deadlineFormatted`, appended via `$appends`), the matching Filament `TextColumn`/`TextEntry` must call that **same** accessor (`fn($state, $record) => $record->created_formatted`) instead of independently calling `toJalali($state, '...')` with its own format string. Two independently-typed format strings for the same conceptual field is exactly how the admin table (`Y/m/d`) and the Livewire Kanban card (`j F Y`) silently drifted apart for `created_at`/`deadline` on `TaskResource` — found during a full cross-panel consistency audit, fixed by pointing both `TaskTablePresenter`/`TaskInfolistPresenter` at the model accessor. The underlying column still binds to the real DB field (`TextColumn::make('created_at')`) so `->sortable()` keeps working — only the **display closure** changes. For date fields that have no Livewire-facing equivalent and thus no model accessor (e.g. `deleted_at`, `updated_at`), there's nothing to bind to — at minimum reuse the exact same `toJalali(...)` format string already used elsewhere in the same resource's other date columns, so the resource is internally consistent even without a cross-panel counterpart to check against.

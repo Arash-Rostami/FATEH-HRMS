@@ -2,11 +2,8 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Forms;
 
-use Carbon\Carbon;
-use Exception;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
-use Morilog\Jalali\CalendarUtils;
 
 class TaskForm extends Form
 {
@@ -25,6 +22,38 @@ class TaskForm extends Form
     #[Validate('nullable|string')]
     public ?string $newDescription = null;
 
+    #[Validate('nullable|string|max:10')]
+    public ?string $departmentId = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $unit = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $section = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $project = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $scheme = null;
+
+    #[Validate('nullable|string|max:2000')]
+    public ?string $actionSourceDomain = null;
+
+    #[Validate('nullable|string|max:2000')]
+    public ?string $actionSource = null;
+
+    #[Validate('array')]
+    public array $collaborators = [];
+
+    #[Validate('nullable|integer|exists:users,id')]
+    public ?int $responsibleUserId = null;
+
+    #[Validate('nullable|in:extension,suspension,completion')]
+    public ?string $state = null;
+
+    public array $attachments = [];
+    public array $existingAttachments = [];
 
     public $selectedAssignee = null;
     protected array $validationAttributes = [
@@ -33,17 +62,32 @@ class TaskForm extends Form
         'deadlineYear' => 'سال سررسید',
         'deadlineMonth' => 'ماه سررسید',
         'deadlineDay' => 'روز سررسید',
+        'departmentId' => 'واحد سازمانی/دپارتمان',
+        'unit' => 'واحد (زیرمجموعه)',
+        'section' => 'بخش (زیرمجموعه)',
+        'project' => 'پروژه',
+        'scheme' => 'طرح',
+        'actionSourceDomain' => 'حوزه منشاء اقدام',
+        'actionSource' => 'منشاء اقدام',
+        'collaborators' => 'همکاران',
+        'responsibleUserId' => 'جوابگو',
+        'state' => 'تعیین تکلیف',
     ];
 
-    /** @throws Exception */
-    public function resolveDeadline(): ?Carbon
+    public function detailAttributes(): array
     {
-        if (!$this->deadlineYear || !$this->deadlineMonth || !$this->deadlineDay) return null;
-
-        return CalendarUtils::createCarbonFromFormat(
-            'Y/m/d',
-            sprintf('%s/%02d/%02d', $this->deadlineYear, $this->deadlineMonth, $this->deadlineDay)
-        );
+        return [
+            'department_id' => $this->departmentId,
+            'unit' => $this->unit,
+            'section' => $this->section,
+            'project' => $this->project,
+            'scheme' => $this->scheme,
+            'action_source_domain' => $this->actionSourceDomain,
+            'action_source' => $this->actionSource,
+            'collaborators' => $this->collaborators,
+            'responsible_user_id' => $this->responsibleUserId,
+            'state' => $this->state,
+        ];
     }
 
     protected function messages(): array
@@ -55,6 +99,10 @@ class TaskForm extends Form
             'deadlineMonth.max' => 'ماه باید بین 1 تا 12 باشد.',
             'deadlineDay.min' => 'روز باید بین 1 تا 31 باشد.',
             'deadlineDay.max' => 'روز باید بین 1 تا 31 باشد.',
+            'actionSourceDomain.max' => 'حوزه منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
+            'actionSource.max' => 'منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
+            'responsibleUserId.exists' => 'کاربر جوابگوی انتخاب‌شده معتبر نیست.',
+            'state.in' => 'تعیین تکلیف انتخاب‌شده معتبر نیست.',
         ];
     }
 }

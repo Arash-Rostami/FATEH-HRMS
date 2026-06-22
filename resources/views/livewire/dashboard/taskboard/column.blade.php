@@ -5,6 +5,7 @@
 @endphp
 
 <div
+    x-data="{ collapsed: localStorage.getItem('taskboard-collapsed-{{ $column }}') === '1' }"
     class="flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-[350px] h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] md:h-[calc(100vh-220px)] flex flex-col gap-3 md:gap-4 rounded-3xl bg-[var(--md-sys-color-on-primary)]  p-3 md:p-4 shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 transition-all duration-300"
     :class="dragTask && $el.closest('[data-column=\" {{ $column }}\"]') ? 'bg-[var(--md-sys-color-primary-container)]/20 border-dashed border-2 border-[var(--md-sys-color-primary)] scale-[1.02]' : ''"
 @dragover.prevent="handleDragOver($event)"
@@ -32,21 +33,33 @@ data-column="{{ $column }}"
         </div>
     </div>
 
-    <!-- Add Button (Only for TO-DO) -->
-    @if($column === 'todo')
+    <div class="flex items-center gap-1">
+        <!-- Collapse Toggle -->
         <button
-            wire:click="openCreateModal"
-            class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
-            title="افزودن سریع"
+            class="ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+            @click="collapsed = !collapsed; localStorage.setItem('taskboard-collapsed-{{ $column }}', collapsed ? '1' : '0')"
+            title="جمع/باز کردن ستون"
         >
-            <span class="material-symbols-rounded text-xl">add</span>
+            <span class="material-symbols-rounded text-lg transition-transform duration-300" :class="collapsed ? 'rotate-180' : ''">expand_more</span>
         </button>
-    @endif
+
+        <!-- Add Button (Only for TO-DO) -->
+        @if($column === 'todo')
+            <button
+                wire:click="openCreateModal"
+                class="ripple-effect min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                title="افزودن سریع"
+            >
+                <span class="material-symbols-rounded text-xl">add</span>
+            </button>
+        @endif
+    </div>
 </div>
 
+<div x-show="!collapsed" class="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
+
 <!-- Tasks Container -->
-<div class="flex-1 overflow-y-auto overflow-x-hidden space-y-3 px-1 scroll-smooth"
-     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
+<div class="flex-1 overflow-y-auto overflow-x-hidden {{ $density === 'compact' ? 'space-y-1.5' : 'space-y-3' }} px-1 scroll-smooth container-scrollbar custom-scrollbar">
     @forelse($columnTasks as $task)
         @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column])
     @empty
@@ -99,4 +112,6 @@ data-column="{{ $column }}"
         </button>
     </div>
     @endif
-    </div>
+
+</div>
+</div>

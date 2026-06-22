@@ -278,6 +278,7 @@ Everything else — `$activeTab`, computed properties, `$this->items`, event lis
 - [ ] Actions receive Form Objects and models — never the component itself
 - [ ] Post-action side effects (toast, redirect, tab) stay in `Main`, not in Action
 - [ ] Public properties holding an Eloquent model or record id are `#[Locked]` unless the client is meant to change them — prevents the client swapping the id to act on another user's record (IDOR)
+- [ ] Bulk-action Actions (operating on a client-supplied array of ids, e.g. `selectedTasks`) filter the loaded models through the same `can_*` accessor the single-record method already uses, *inside* the Action — e.g. `Task::whereIn('id', $taskIds)->get()->filter(fn($t) => $t->can_change_status)` — rather than trusting the array as-is. The accessor is computed server-side from `auth()->id()`, so any id the user doesn't own is silently dropped instead of acted on
 
 ---
 
@@ -301,3 +302,4 @@ Dates are **stored as Gregorian `Y-m-d`** and converted to Jalali only at the ed
 - **On hydrate** (`mount`): convert stored Gregorian back to Jalali parts — `Jalalian::fromCarbon(Carbon::parse($value))` → `getYear()/getMonth()/getDay()`.
 - **Validation**: gate the parts all-or-nothing with `required_with`, and validate calendar validity with `CalendarUtils::checkDate($y, $m, $d, true)` (leap-year aware) inside a closure rule.
 - **Display**: format with the `toJalali($value, 'Y/m/d')` helper — it is calendar-safe (returns already-Jalali strings untouched, converts Gregorian ones), so it tolerates legacy mixed-format rows.
+- **Cross-panel consistency**: if a model exposes its own formatted-date accessor (e.g. `Task::createdFormatted`/`deadlineFormatted` via `$appends`), that accessor is the single source of truth for that field's display format — Blade reads it directly (`$task['created_formatted']`), and the matching Filament `TextColumn`/`TextEntry` must call the **same** accessor rather than calling `toJalali()` again with its own format string. See `filament.md` rule 32 — this is exactly how `TaskResource`'s admin table (`Y/m/d`) and the Kanban card (`j F Y`) drifted apart for the same two fields.

@@ -2,14 +2,32 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
+use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class TaskInfolistPresenter
 {
+    public static function actionSource(): TextEntry
+    {
+        return TextEntry::make('detail.action_source')
+            ->label(__('resources/task/strings.fields.action_source'))
+            ->placeholder('—')
+            ->columnSpanFull();
+    }
+
+    public static function actionSourceDomain(): TextEntry
+    {
+        return TextEntry::make('detail.action_source_domain')
+            ->label(__('resources/task/strings.fields.action_source_domain'))
+            ->placeholder('—')
+            ->columnSpanFull();
+    }
+
     public static function assignee(): TextEntry
     {
         return TextEntry::make('assignee.name')
@@ -18,11 +36,36 @@ class TaskInfolistPresenter
             ->icon('heroicon-o-user-plus');
     }
 
+    public static function attachments(): RepeatableEntry
+    {
+        return RepeatableEntry::make('detail.attachments')
+            ->label(__('resources/task/strings.fields.attachments'))
+            ->schema([
+                TextEntry::make('file')
+                    ->hiddenLabel()
+                    ->formatStateUsing(fn($state) => __('resources/task/strings.fields.view_file'))
+                    ->url(fn($state) => $state ? asset('storage/' . $state) : null)
+                    ->openUrlInNewTab()
+                    ->color('primary')
+                    ->placeholder('—'),
+            ])
+            ->columnSpanFull();
+    }
+
+    public static function collaborators(): TextEntry
+    {
+        return TextEntry::make('detail.collaborators')
+            ->label(__('resources/task/strings.fields.collaborators'))
+            ->getStateUsing(fn($record) => $record->detail?->collaboratorNames() ?? [])
+            ->badge()
+            ->placeholder('—');
+    }
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
             ->label(__('resources/task/strings.fields.created_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->formatStateUsing(fn($state, $record) => $state ? $record->created_formatted : '—')
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -39,14 +82,15 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : null)
+            ->formatStateUsing(fn($state, $record) => $state ? $record->deadline_formatted : null)
             ->alignRight()
             ->iconPosition(IconPosition::After)
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('—')
             ->color(fn($record) => match (true) {
                 !$record->deadline => 'gray',
-                $record->status === 'done' => 'success',
+                $record->status === TaskStatus::Done->value => 'success',
+                $record->status === TaskStatus::Pending->value => 'danger',
                 $record->deadline->isPast() => 'danger',
                 $record->deadline->diffInDays(now()) <= 2 => 'warning',
                 default => 'primary',
@@ -70,11 +114,19 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('deleted_at')
             ->label(__('resources/task/strings.fields.deleted_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : null)
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : null)
             ->placeholder('—')
             ->color('danger')
             ->icon('heroicon-o-trash')
             ->hidden(fn($record) => !$record->deleted_at);
+    }
+
+    public static function department(): TextEntry
+    {
+        return TextEntry::make('detail.department.name')
+            ->label(__('resources/task/strings.fields.department'))
+            ->placeholder('—')
+            ->icon('heroicon-o-building-office-2');
     }
 
     public static function description(): TextEntry
@@ -83,6 +135,44 @@ class TaskInfolistPresenter
             ->label(__('resources/task/strings.fields.description'))
             ->placeholder('—')
             ->columnSpanFull();
+    }
+
+    public static function project(): TextEntry
+    {
+        return TextEntry::make('detail.project')
+            ->label(__('resources/task/strings.fields.project'))
+            ->placeholder('—');
+    }
+
+    public static function responsibleUser(): TextEntry
+    {
+        return TextEntry::make('detail.responsibleUser.name')
+            ->label(__('resources/task/strings.fields.responsible_user'))
+            ->placeholder('—')
+            ->icon('heroicon-o-user');
+    }
+
+    public static function scheme(): TextEntry
+    {
+        return TextEntry::make('detail.scheme')
+            ->label(__('resources/task/strings.fields.scheme'))
+            ->placeholder('—');
+    }
+
+    public static function section(): TextEntry
+    {
+        return TextEntry::make('detail.section')
+            ->label(__('resources/task/strings.fields.section'))
+            ->placeholder('—');
+    }
+
+    public static function state(): TextEntry
+    {
+        return TextEntry::make('detail.state')
+            ->label(__('resources/task/strings.fields.state'))
+            ->getStateUsing(fn($record) => TaskState::tryFrom($record->detail?->state ?? ''))
+            ->badge()
+            ->placeholder('—');
     }
 
     public static function status(): TextEntry
@@ -101,11 +191,18 @@ class TaskInfolistPresenter
             ->columnSpanFull();
     }
 
+    public static function unit(): TextEntry
+    {
+        return TextEntry::make('detail.unit')
+            ->label(__('resources/task/strings.fields.unit'))
+            ->placeholder('—');
+    }
+
     public static function updatedAt(): TextEntry
     {
         return TextEntry::make('updated_at')
             ->label(__('resources/task/strings.fields.updated_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : '—')
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

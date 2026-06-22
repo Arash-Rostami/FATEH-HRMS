@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
+use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Task;
 use App\Traits\FilamentHeaderActions;
 use Filament\Resources\Pages\ListRecords;
@@ -30,7 +31,7 @@ class ListTasks extends ListRecords
                 ->badge(fn() => $this->getStats()->todo_count ?: null)
                 ->badgeColor('gray')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query->where('status', 'todo')
+                    fn(Builder $query) => $query->where('status', TaskStatus::Todo->value)
                 ),
 
             'in_progress' => Tab::make(__('resources/task/strings.tabs.in_progress'))
@@ -38,13 +39,21 @@ class ListTasks extends ListRecords
                 ->badge(fn() => $this->getStats()->in_progress_count ?: null)
                 ->badgeColor('warning')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query->where('status', 'in-progress')
+                    fn(Builder $query) => $query->where('status', TaskStatus::InProgress->value)
+                ),
+
+            'pending' => Tab::make(__('resources/task/strings.tabs.pending') ?? 'در انتظار')
+                ->icon('heroicon-o-pause-circle')
+                ->badge(fn() => $this->getStats()->pending_count ?: null)
+                ->badgeColor('danger')
+                ->modifyQueryUsing(
+                    fn(Builder $query) => $query->where('status', TaskStatus::Pending->value)
                 ),
 
             'done' => Tab::make(__('resources/task/strings.tabs.done'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query->where('status', 'done')
+                    fn(Builder $query) => $query->where('status', TaskStatus::Done->value)
                 ),
 
             'overdue' => Tab::make(__('resources/task/strings.tabs.overdue'))
@@ -55,7 +64,7 @@ class ListTasks extends ListRecords
                     fn(Builder $query) => $query
                         ->whereNotNull('deadline')
                         ->where('deadline', '<', now())
-                        ->where('status', '!=', 'done')
+                        ->where('status', '!=', TaskStatus::Done->value)
                 ),
 
             'delegated' => Tab::make(__('resources/task/strings.tabs.delegated'))
@@ -81,11 +90,18 @@ class ListTasks extends ListRecords
         return once(fn() => Task::query()
             ->withTrashed()
             ->selectRaw("
-            SUM(CASE WHEN status = 'todo' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS todo_count,
-            SUM(CASE WHEN status = 'in-progress' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS in_progress_count,
-            SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? AND status != 'done' AND deleted_at IS NULL THEN 1 ELSE 0 END) AS overdue_count,
+            SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS todo_count,
+            SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS in_progress_count,
+            SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS pending_count,
+            SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? AND status != ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS overdue_count,
             SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS trashed_count
-        ", [now()])
+        ", [
+                TaskStatus::Todo->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::Pending->value,
+                now(),
+                TaskStatus::Done->value
+            ])
             ->first()
         );
     }

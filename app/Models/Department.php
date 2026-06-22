@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +21,9 @@ class Department extends Model
         'code',
         'name',
         'description',
-        'ticket_options'
+        'ticket_options',
+        'units',
+        'sections',
     ];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
@@ -84,6 +87,16 @@ class Department extends Model
         ));
     }
 
+    public function sectionsOptions(): array
+    {
+        return array_combine($this->sections ?? [], $this->sections ?? []);
+    }
+
+    public function unitsOptions(): array
+    {
+        return array_combine($this->units ?? [], $this->units ?? []);
+    }
+
     public function user(): HasOneThrough
     {
         return $this->hasOneThrough(User::class, Profile::class, 'department_id', 'id', 'code');
@@ -110,5 +123,21 @@ class Department extends Model
         return [
             'ticket_options' => 'array',
         ];
+    }
+
+    protected function sections(): Attribute
+    {
+        return Attribute::make(
+            get: fn(?string $value) => $value ? array_values(json_decode($value, true)) : [],
+            set: fn(?array $value) => ['sections' => json_encode(array_values(array_unique(array_filter($value ?? []))))],
+        );
+    }
+
+    protected function units(): Attribute
+    {
+        return Attribute::make(
+            get: fn(?string $value) => $value ? array_values(json_decode($value, true)) : [],
+            set: fn(?array $value) => ['units' => json_encode(array_values(array_unique(array_filter($value ?? []))))],
+        );
     }
 }

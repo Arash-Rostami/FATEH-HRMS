@@ -12,6 +12,8 @@ use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\TrashedFilter;
@@ -31,34 +33,64 @@ class TaskResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/task/strings.form.section_meta'))
-                ->icon('heroicon-o-users')
-                ->schema([
-                    TaskFormPresenter::userId(),
-                    TaskFormPresenter::assignedTo(),
-                    TaskFormPresenter::divider(),
-                    TaskFormPresenter::status(),
-                ])
-                ->columns(3),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/task/strings.form.tab_main'))
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->schema([
+                            Section::make(__('resources/task/strings.form.section_meta'))
+                                ->icon('heroicon-o-users')
+                                ->schema([
+                                    TaskFormPresenter::userId(),
+                                    TaskFormPresenter::assignedTo(),
+                                    TaskFormPresenter::divider(),
+                                    TaskFormPresenter::status(),
+                                ])
+                                ->columns(3),
 
+                            Section::make(__('resources/task/strings.form.section_deadline'))
+                                ->icon('heroicon-o-calendar')
+                                ->schema([
+                                    TaskFormPresenter::deadlineDate(),
+                                    TaskFormPresenter::deadlineTime(),
+                                ])
+                                ->columns(2),
 
-            Section::make(__('resources/task/strings.form.section_deadline'))
-                ->icon('heroicon-o-calendar')
-                ->schema([
-                    TaskFormPresenter::deadlineDate(),
-                    TaskFormPresenter::deadlineTime(),
-                ])
-                ->columns(2),
+                            Section::make(__('resources/task/strings.form.section_content'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    TaskFormPresenter::title(),
+                                    TaskFormPresenter::divider(),
+                                    TaskFormPresenter::description(),
+                                ])
+                                ->columnSpanFull()
+                                ->columns(2),
+                        ]),
 
-            Section::make(__('resources/task/strings.form.section_content'))
-                ->icon('heroicon-o-document-text')
-                ->schema([
-                    TaskFormPresenter::title(),
-                    TaskFormPresenter::divider(),
-                    TaskFormPresenter::description(),
+                    Tab::make(__('resources/task/strings.form.tab_bi'))
+                        ->icon('heroicon-o-chart-bar-square')
+                        ->schema([
+                            Section::make(__('resources/task/strings.form.section_bi'))
+                                ->icon('heroicon-o-chart-bar-square')
+                                ->relationship('detail')
+                                ->schema([
+                                    TaskFormPresenter::departmentId(),
+                                    TaskFormPresenter::unit(),
+                                    TaskFormPresenter::section(),
+                                    TaskFormPresenter::project(),
+                                    TaskFormPresenter::scheme(),
+                                    TaskFormPresenter::actionSourceDomain(),
+                                    TaskFormPresenter::actionSource(),
+                                    TaskFormPresenter::collaborators(),
+                                    TaskFormPresenter::responsibleUserId(),
+                                    TaskFormPresenter::state(),
+                                    TaskFormPresenter::attachments(),
+                                ])
+                                ->columns(2),
+                        ]),
                 ])
                 ->columnSpanFull()
-                ->columns(2),
+                ->persistTabInQueryString(),
         ]);
     }
 
@@ -66,7 +98,7 @@ class TaskResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScope(SoftDeletingScope::class)
-            ->with(['creator', 'assignee']);
+            ->with(['creator', 'assignee', 'detail.department', 'detail.responsibleUser']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -121,24 +153,55 @@ class TaskResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    TaskInfolistPresenter::status(),
-                    TaskInfolistPresenter::creator(),
-                    TaskInfolistPresenter::assignee(),
-                    TaskInfolistPresenter::delegatedIcon(),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/task/strings.infolist.tab_main'))
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([
+                                    TaskInfolistPresenter::status(),
+                                    TaskInfolistPresenter::creator(),
+                                    TaskInfolistPresenter::assignee(),
+                                    TaskInfolistPresenter::delegatedIcon(),
 
-                    TaskInfolistPresenter::title(),
-                    TaskInfolistPresenter::description(),
-                    TaskInfolistPresenter::deadline(),
+                                    TaskInfolistPresenter::title(),
+                                    TaskInfolistPresenter::description(),
+                                    TaskInfolistPresenter::deadline(),
 
-                    TaskInfolistPresenter::createdAt(),
-                    TaskInfolistPresenter::updatedAt(),
-                    TaskInfolistPresenter::deletedAt(),
+                                    TaskInfolistPresenter::createdAt(),
+                                    TaskInfolistPresenter::updatedAt(),
+                                    TaskInfolistPresenter::deletedAt(),
+                                ])
+                                ->columnSpanFull()
+                                ->columns(3),
+                        ]),
+
+                    Tab::make(__('resources/task/strings.infolist.tab_bi'))
+                        ->icon('heroicon-o-chart-bar-square')
+                        ->schema([
+                            Section::make(__('resources/task/strings.infolist.section_bi'))
+                                ->icon('heroicon-o-chart-bar-square')
+                                ->schema([
+                                    TaskInfolistPresenter::department(),
+                                    TaskInfolistPresenter::unit(),
+                                    TaskInfolistPresenter::section(),
+                                    TaskInfolistPresenter::project(),
+                                    TaskInfolistPresenter::scheme(),
+                                    TaskInfolistPresenter::actionSourceDomain(),
+                                    TaskInfolistPresenter::actionSource(),
+                                    TaskInfolistPresenter::collaborators(),
+                                    TaskInfolistPresenter::responsibleUser(),
+                                    TaskInfolistPresenter::state(),
+                                    TaskInfolistPresenter::attachments(),
+                                ])
+                                ->columnSpanFull()
+                                ->columns(2),
+                        ]),
                 ])
                 ->columnSpanFull()
-                ->columns(3),
+                ->persistTabInQueryString(),
         ]);
     }
 
@@ -154,6 +217,12 @@ class TaskResource extends Resource
                 TaskTablePresenter::isDelegated(),
                 TaskTablePresenter::deadline(),
                 TaskTablePresenter::description(),
+                TaskTablePresenter::department(),
+                TaskTablePresenter::unit(),
+                TaskTablePresenter::project(),
+                TaskTablePresenter::scheme(),
+                TaskTablePresenter::state(),
+                TaskTablePresenter::responsibleUser(),
                 TaskTablePresenter::deletedAt(),
                 TaskTablePresenter::createdAt(),
             ])

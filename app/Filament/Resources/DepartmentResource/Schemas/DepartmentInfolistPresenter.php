@@ -45,6 +45,22 @@ class DepartmentInfolistPresenter
             ->weight(FontWeight::Bold);
     }
 
+    public static function sections(): TextEntry
+    {
+        return TextEntry::make('sections')
+            ->label(__('resources/department/strings.fields.sections'))
+            ->badge()
+            ->placeholder('-');
+    }
+
+    public static function units(): TextEntry
+    {
+        return TextEntry::make('units')
+            ->label(__('resources/department/strings.fields.units'))
+            ->badge()
+            ->placeholder('-');
+    }
+
     public static function updatedAt(): TextEntry
     {
         return TextEntry::make('updated_at')

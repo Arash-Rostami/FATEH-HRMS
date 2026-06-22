@@ -6,6 +6,7 @@ use App\Models\Ticket;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Cache;
@@ -54,6 +55,15 @@ class DepartmentFormPresenter
             ]);
     }
 
+    public static function sections(): TagsInput
+    {
+        return TagsInput::make('sections')
+            ->label(__('resources/department/strings.fields.sections'))
+            ->placeholder(__('resources/department/strings.fields.sections_placeholder'))
+            ->helperText(__('resources/department/strings.hints.sections'))
+            ->splitKeys(['Enter', ',', ' ']);
+    }
+
     public static function ticketOptions(): Repeater
     {
         return Repeater::make('ticket_options')
@@ -99,6 +109,15 @@ class DepartmentFormPresenter
             ->collapsible()
             ->reorderableWithButtons()
             ->helperText(__('resources/department/strings.hints.ticket_options'));
+    }
+
+    public static function units(): TagsInput
+    {
+        return TagsInput::make('units')
+            ->label(__('resources/department/strings.fields.units'))
+            ->placeholder(__('resources/department/strings.fields.units_placeholder'))
+            ->helperText(__('resources/department/strings.hints.units'))
+            ->splitKeys(['Enter', ',', ' ']);
     }
 
     private static function formatIconSvg(string $svg): string

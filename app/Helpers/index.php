@@ -193,6 +193,17 @@ if (!function_exists('toJalaliSmart')) {
     }
 }
 
+if (!function_exists('jNow')) {
+    function jNow(string $part = 'year'): int
+    {
+        return match($part) {
+            'month' => jdate()->getMonth(),
+            'day'   => jdate()->getDay(),
+            default => jdate()->getYear(),
+        };
+    }
+}
+
 if (!function_exists('canAdmin')) {
     function canAdmin(): bool
     {

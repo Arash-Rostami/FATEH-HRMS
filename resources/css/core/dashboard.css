@@ -1156,6 +1156,10 @@
 .focus-chip__close:disabled{ opacity: 0.6; cursor: progress; }
 .focus-chip__close .material-symbols-rounded { font-size: 0.9rem; line-height: 1; }
 
+[draggable="true"]:active {
+    cursor: grabbing;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .focus-chip,
     .focus-chip__icon { animation: none !important; }
@@ -1165,7 +1169,6 @@
     .focus-banner,
     .focus-banner__pulse { animation: none !important; }
 }
-
 
 @media (prefers-reduced-motion: reduce) {
     .record-focus-flash {

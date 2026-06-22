@@ -77,6 +77,48 @@ class DepartmentTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function sections(): TextColumn
+    {
+        return TextColumn::make('sections')
+            ->label(__('resources/department/strings.fields.sections'))
+            ->badge()
+            ->placeholder('-')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function sectionsCount(): TextColumn
+    {
+        return TextColumn::make('sections_count')
+            ->label(__('resources/department/strings.fields.sections_count'))
+            ->getStateUsing(fn(Model $record): int => count($record->sections ?? []))
+            ->badge()
+            ->color('info')
+            ->icon('heroicon-m-squares-2x2')
+            ->sortable(false)
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function units(): TextColumn
+    {
+        return TextColumn::make('units')
+            ->label(__('resources/department/strings.fields.units'))
+            ->badge()
+            ->placeholder('-')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function unitsCount(): TextColumn
+    {
+        return TextColumn::make('units_count')
+            ->label(__('resources/department/strings.fields.units_count'))
+            ->getStateUsing(fn(Model $record): int => count($record->units ?? []))
+            ->badge()
+            ->color('warning')
+            ->icon('heroicon-m-building-office')
+            ->sortable(false)
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
     public static function usersCount(): TextColumn
     {
         return TextColumn::make('users_count')

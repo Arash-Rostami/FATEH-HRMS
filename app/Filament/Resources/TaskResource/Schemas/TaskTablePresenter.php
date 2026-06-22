@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
+use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -49,7 +50,7 @@ class TaskTablePresenter
     {
         return TextColumn::make('created_at')
             ->label(__('resources/task/strings.fields.created_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->formatStateUsing(fn($state, $record) => $state ? $record->created_formatted : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
@@ -92,12 +93,13 @@ class TaskTablePresenter
     {
         return TextColumn::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->formatStateUsing(fn($state, $record) => $state ? $record->deadline_formatted : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignCenter()
             ->color(fn($record) => match (true) {
                 !$record->deadline => 'gray',
-                $record->status === 'done' => 'success',
+                $record->status === TaskStatus::Done->value => 'success',
+                $record->status === TaskStatus::Pending->value => 'danger',
                 $record->deadline->isPast() => 'danger',
                 $record->deadline->diffInDays(now()) <= 2 => 'warning',
                 default => 'primary',
@@ -127,10 +129,18 @@ class TaskTablePresenter
     {
         return TextColumn::make('deleted_at')
             ->label(__('resources/task/strings.fields.deleted_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('—')
             ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function department(): TextColumn
+    {
+        return TextColumn::make('detail.department.name')
+            ->label(__('resources/task/strings.fields.department'))
+            ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -179,6 +189,40 @@ class TaskTablePresenter
             ->toggle();
     }
 
+    public static function project(): TextColumn
+    {
+        return TextColumn::make('detail.project')
+            ->label(__('resources/task/strings.fields.project'))
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function responsibleUser(): TextColumn
+    {
+        return TextColumn::make('detail.responsibleUser.name')
+            ->label(__('resources/task/strings.fields.responsible_user'))
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function scheme(): TextColumn
+    {
+        return TextColumn::make('detail.scheme')
+            ->label(__('resources/task/strings.fields.scheme'))
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function state(): TextColumn
+    {
+        return TextColumn::make('detail.state')
+            ->label(__('resources/task/strings.fields.state'))
+            ->getStateUsing(fn($record) => TaskState::tryFrom($record->detail?->state ?? ''))
+            ->badge()
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
     public static function status(): TextColumn
     {
         return TextColumn::make('status')
@@ -220,5 +264,13 @@ class TaskTablePresenter
             ->limit(60)
             ->tooltip(fn($state) => strlen($state ?? '') > 60 ? $state : null)
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function unit(): TextColumn
+    {
+        return TextColumn::make('detail.unit')
+            ->label(__('resources/task/strings.fields.unit'))
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 }

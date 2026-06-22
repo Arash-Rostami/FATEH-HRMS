@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
@@ -42,6 +43,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function detail(): HasOne
+    {
+        return $this->hasOne(TaskDetail::class);
+    }
+
     public static function getInProgressCount(int $userId): int
     {
         return self::query()->forUser($userId)->status('in-progress')->count();
@@ -50,6 +56,11 @@ class Task extends Model
     public static function getTodoCount(int $userId): int
     {
         return self::query()->forUser($userId)->status('todo')->count();
+    }
+
+    public static function getPendingCount(int $userId): int
+    {
+        return self::query()->forUser($userId)->status('pending')->count();
     }
 
     public function scopeForUser(Builder $query, int $userId): void
