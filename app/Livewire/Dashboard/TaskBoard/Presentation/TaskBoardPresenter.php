@@ -11,6 +11,7 @@ class TaskBoardPresenter
         return [
             'todo'        => ['title' => 'انجام نشده',   'icon' => '🧾', 'color' => 'primary',  'lightGradient' => 'from-rose-500 to-pink-600',    'darkGradient' => 'from-rose-700 to-pink-800'],
             'in-progress' => ['title' => 'در حال انجام', 'icon' => '⏳', 'color' => 'secondary', 'lightGradient' => 'from-amber-500 to-orange-600',  'darkGradient' => 'from-amber-700 to-orange-800'],
+            'pending'     => ['title' => 'متوقف / در انتظار', 'icon' => '🛑', 'color' => 'error', 'lightGradient' => 'from-red-600 to-red-700', 'darkGradient' => 'from-red-800 to-red-900'],
             'done'        => ['title' => 'انجام شده',    'icon' => '🎯', 'color' => 'tertiary',  'lightGradient' => 'from-emerald-500 to-green-600', 'darkGradient' => 'from-emerald-700 to-green-800'],
         ];
     }
