@@ -98,7 +98,11 @@ class EventTablePresenter
             ->label(__('resources/event/strings.fields.user'))
             ->relationship('user', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/event/strings.validation.user_id.exists'),
+                'in' => __('resources/event/strings.validation.user_id.in')
+            ]);
     }
 
     public static function visibilityFilter(): TernaryFilter

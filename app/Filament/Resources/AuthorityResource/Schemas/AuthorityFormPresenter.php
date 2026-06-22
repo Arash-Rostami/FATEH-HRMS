@@ -22,7 +22,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.approved_delegation'))
             ->options(DelegationLevel::class)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.approved_delegation'));
+            ->helperText(__('resources/authority/strings.hints.approved_delegation'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.details_approved_delegation.in')
+            ]);
     }
 
     public static function coDelegate(): TextInput
@@ -31,7 +34,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.co_delegate'))
             ->maxLength(255)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.co_delegate'));
+            ->helperText(__('resources/authority/strings.hints.co_delegate'))
+            ->validationMessages([
+                'max' => __('resources/authority/strings.validation.details_co_delegate.max')
+            ]);
     }
 
     public static function departmentId(): Select
@@ -42,7 +48,10 @@ class AuthorityFormPresenter
             ->searchable()
             ->preload()
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.department_id'));
+            ->helperText(__('resources/authority/strings.hints.department_id'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.department_id.in')
+            ]);
     }
 
     public static function duty(): RichEditor
@@ -97,7 +106,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.execution_procedure'))
             ->options(ExecutionProcedure::class)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.execution_procedure'));
+            ->helperText(__('resources/authority/strings.hints.execution_procedure'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.details_execution_procedure.in')
+            ]);
     }
 
     public static function impactScore(): Select
@@ -106,7 +118,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.impact_score'))
             ->options(ImpactScore::class)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.impact_score'));
+            ->helperText(__('resources/authority/strings.hints.impact_score'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.details_impact_score.in')
+            ]);
     }
 
     public static function proposedDelegation(): Select
@@ -115,7 +130,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.proposed_delegation'))
             ->options(DelegationLevel::class)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.proposed_delegation'));
+            ->helperText(__('resources/authority/strings.hints.proposed_delegation'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.details_proposed_delegation.in')
+            ]);
     }
 
     public static function repeatFrequency(): Select
@@ -124,7 +142,10 @@ class AuthorityFormPresenter
             ->label(__('resources/authority/strings.fields.repeat_frequency'))
             ->options(RepeatFrequency::class)
             ->nullable()
-            ->helperText(__('resources/authority/strings.hints.repeat_frequency'));
+            ->helperText(__('resources/authority/strings.hints.repeat_frequency'))
+            ->validationMessages([
+                'in' => __('resources/authority/strings.validation.details_repeat_frequency.in')
+            ]);
     }
 
     public static function subDuty(): Toggle

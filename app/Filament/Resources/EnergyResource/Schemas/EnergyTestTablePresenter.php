@@ -145,7 +145,10 @@ class EnergyTestTablePresenter
             ->query(fn(Builder $query, array $data) => $query
                 ->when(filled($data['min']), fn($query) => $query->where('overall_score', '>=', $data['min']))
                 ->when(filled($data['max']), fn($query) => $query->where('overall_score', '<=', $data['max']))
-            );
+            )
+            ->validationMessages([
+                'numeric' => __('resources/energy/strings.validation.score_range.numeric')
+            ]);
     }
 
     public static function soulScore(): TextColumn
@@ -175,7 +178,11 @@ class EnergyTestTablePresenter
             ->label(__('resources/energy/strings.fields.user'))
             ->relationship('user', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/energy/strings.validation.user_id.exists'),
+                'in' => __('resources/energy/strings.validation.user_id.in')
+            ]);
     }
 
     public static function userGroup(): Group

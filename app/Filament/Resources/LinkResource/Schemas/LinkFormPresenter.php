@@ -45,7 +45,9 @@ class LinkFormPresenter
             ->helperText(__('resources/link/strings.hints.icon'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
-                'max' => __('resources/link/strings.validation.max_file', ['max' => 512]),
+                'max' => __('resources/link/strings.validation.max_file', ['max' => 512,
+                'mimes' => __('resources/link/strings.validation.icon.mimes')
+            ]),
                 'mimetypes' => __('resources/link/strings.validation.mimetypes'),
                 'image' => __('resources/link/strings.validation.image'),
             ]);
@@ -83,7 +85,9 @@ class LinkFormPresenter
             ->helperText(__('resources/link/strings.hints.image'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
-                'max' => __('resources/link/strings.validation.max_file', ['max' => 1024]),
+                'max' => __('resources/link/strings.validation.max_file', ['max' => 1024,
+                'mimes' => __('resources/link/strings.validation.image.mimes')
+            ]),
                 'mimetypes' => __('resources/link/strings.validation.mimetypes'),
                 'image' => __('resources/link/strings.validation.image'),
             ]);
@@ -127,6 +131,7 @@ class LinkFormPresenter
             ->helperText(__('resources/link/strings.hints.link_type'))
             ->validationMessages([
                 'required' => __('resources/link/strings.validation.required'),
+                'in' => __('resources/link/strings.validation.link.in')
             ]);
     }
 
@@ -138,7 +143,10 @@ class LinkFormPresenter
             ->default(0)
             ->searchable()
             ->native(false)
-            ->helperText(__('resources/link/strings.fields.sequence_hint'));
+            ->helperText(__('resources/link/strings.fields.sequence_hint'))
+            ->validationMessages([
+                'in' => __('resources/link/strings.validation.sequence.in')
+            ]);
     }
 
     public static function url(): TextInput

@@ -71,7 +71,10 @@ class LinkTablePresenter
     {
         return SelectFilter::make('link')
             ->label(__('resources/link/strings.fields.link_type'))
-            ->options(LinkType::class);
+            ->options(LinkType::class)
+            ->validationMessages([
+                'in' => __('resources/link/strings.validation.link.in')
+            ]);
     }
 
     public static function sequence(): TextColumn

@@ -72,7 +72,10 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('degree')
             ->label(__('resources/profile/strings.table.filter_degree'))
-            ->options(Degree::class);
+            ->options(Degree::class)
+            ->validationMessages([
+                'in' => __('resources/profile/strings.validation.degree.in')
+            ]);
     }
 
     public static function department(): TextColumn
@@ -88,7 +91,10 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('department_id')
             ->label(__('resources/profile/strings.table.filter_department'))
-            ->options(fn() => Department::getCachedOptions()->toArray());
+            ->options(fn() => Department::getCachedOptions()->toArray())
+            ->validationMessages([
+                'in' => __('resources/profile/strings.validation.department_id.in')
+            ]);
     }
 
     public static function departmentGroup(): Group
@@ -115,7 +121,10 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('employment_status')
             ->label(__('resources/profile/strings.table.filter_employment_status'))
-            ->options(EmploymentStatus::class);
+            ->options(EmploymentStatus::class)
+            ->validationMessages([
+                'in' => __('resources/profile/strings.validation.employment_status.in')
+            ]);
     }
 
     public static function employmentStatusGroup(): Group
@@ -142,7 +151,10 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('employment_type')
             ->label(__('resources/profile/strings.table.filter_employment_type'))
-            ->options(EmploymentType::class);
+            ->options(EmploymentType::class)
+            ->validationMessages([
+                'in' => __('resources/profile/strings.validation.employment_type.in')
+            ]);
     }
 
     public static function employmentTypeGroup(): Group
@@ -167,7 +179,10 @@ class ProfileTablePresenter
     {
         return SelectFilter::make('gender')
             ->label(__('resources/profile/strings.table.filter_gender'))
-            ->options(Gender::class);
+            ->options(Gender::class)
+            ->validationMessages([
+                'in' => __('resources/profile/strings.validation.gender.in')
+            ]);
     }
 
     public static function genderGroup(): Group

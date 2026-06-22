@@ -74,7 +74,10 @@ class UserTablePresenter
             ->numeric()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true)
-            ->color('warning');
+            ->color('warning')
+            ->validationMessages([
+                'numeric' => __('resources/user/strings.validation.maximum.numeric')
+            ]);
     }
 
     public static function name(): TextColumn
@@ -104,7 +107,10 @@ class UserTablePresenter
             ->options(
                 collect(PresenceStatus::cases())
                     ->mapWithKeys(fn(PresenceStatus $c) => [$c->value => $c->label()])
-            );
+            )
+            ->validationMessages([
+                'in' => __('resources/user/strings.validation.presence.in')
+            ]);
     }
 
     public static function presenceGroup(): Group
@@ -131,7 +137,10 @@ class UserTablePresenter
     {
         return SelectFilter::make('role')
             ->label(__('resources/user/strings.table.filter_role'))
-            ->options(UserRole::class);
+            ->options(UserRole::class)
+            ->validationMessages([
+                'in' => __('resources/user/strings.validation.role.in')
+            ]);
     }
 
     public static function roleGroup(): Group
@@ -158,7 +167,10 @@ class UserTablePresenter
     {
         return SelectFilter::make('status')
             ->label(__('resources/user/strings.table.filter_status'))
-            ->options(UserStatus::class);
+            ->options(UserStatus::class)
+            ->validationMessages([
+                'in' => __('resources/user/strings.validation.status.in')
+            ]);
     }
 
     public static function statusGroup(): Group

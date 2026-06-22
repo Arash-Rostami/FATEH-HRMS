@@ -45,7 +45,10 @@ class SuggestionFormPresenter
             ->options(fn(): array => Department::getCachedOptions()->toArray())
             ->searchable()
             ->preload()
-            ->columnSpanFull();
+            ->columnSpanFull()
+            ->validationMessages([
+                'in' => __('resources/suggestion/strings.validation.departments.in')
+            ]);
     }
 
     public static function description(): RichEditor
@@ -89,6 +92,7 @@ class SuggestionFormPresenter
             ->validationMessages([
                 'required' => __('resources/suggestion/strings.validation.description.required'),
                 'min' => __('resources/suggestion/strings.validation.description.min'),
+                'max' => __('resources/suggestion/strings.validation.description.max')
             ]);
     }
 
@@ -99,7 +103,10 @@ class SuggestionFormPresenter
             ->options(Suggestion::PRIORITIES)
             ->default('low')
             ->native(false)
-            ->helperText(__('resources/suggestion/strings.hints.priority'));
+            ->helperText(__('resources/suggestion/strings.hints.priority'))
+            ->validationMessages([
+                'in' => __('resources/suggestion/strings.validation.priority.in')
+            ]);
     }
 
     public static function purpose(): CheckboxList
@@ -111,7 +118,9 @@ class SuggestionFormPresenter
             ->columns(3)
             ->bulkToggleable()
             ->helperText(__('resources/suggestion/strings.hints.purpose'))
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.purpose.required')])
+            ->validationMessages(['required' => __('resources/suggestion/strings.validation.purpose.required'),
+                'in' => __('resources/suggestion/strings.validation.purpose.in')
+            ])
             ->columnSpanFull();
     }
 
@@ -124,7 +133,9 @@ class SuggestionFormPresenter
             ->columns(2)
             ->bulkToggleable()
             ->helperText(__('resources/suggestion/strings.hints.rule'))
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.rule.required')])
+            ->validationMessages(['required' => __('resources/suggestion/strings.validation.rule.required'),
+                'in' => __('resources/suggestion/strings.validation.rule.in')
+            ])
             ->columnSpanFull();
     }
 
@@ -167,7 +178,11 @@ class SuggestionFormPresenter
             ->helperText(__('resources/suggestion/strings.fields.user_locked'))
             ->preload()
             ->required()
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.user_id.required')])
+            ->validationMessages([
+                'required' => __('resources/suggestion/strings.validation.user_id.required'),
+                'exists' => __('resources/suggestion/strings.validation.user_id.invalid'),
+                'in' => __('resources/suggestion/strings.validation.user_id.invalid'),
+            ])
             ->default(fn() => auth()->id());
     }
 }

@@ -84,7 +84,10 @@ class ResourceTablePresenter
     {
         return SelectFilter::make('status')
             ->label(__('resources/resource/strings.filters.status'))
-            ->options(ResourceStatus::class);
+            ->options(ResourceStatus::class)
+            ->validationMessages([
+                'in' => __('resources/resource/strings.validation.status.in')
+            ]);
     }
 
     public static function type(): TextColumn
@@ -103,7 +106,10 @@ class ResourceTablePresenter
     {
         return SelectFilter::make('type')
             ->label(__('resources/resource/strings.filters.type'))
-            ->options(ResourceType::class);
+            ->options(ResourceType::class)
+            ->validationMessages([
+                'in' => __('resources/resource/strings.validation.type.in')
+            ]);
     }
 
     public static function typeGroup(): Group

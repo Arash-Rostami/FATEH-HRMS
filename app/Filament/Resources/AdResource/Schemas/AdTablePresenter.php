@@ -88,7 +88,10 @@ class AdTablePresenter
     {
         return SelectFilter::make('gender')
             ->label(__('resources/ad/strings.fields.gender'))
-            ->options(AdGender::class);
+            ->options(AdGender::class)
+            ->validationMessages([
+                'in' => __('resources/ad/strings.validation.gender.in')
+            ]);
     }
 
     public static function genderGroup(): Group

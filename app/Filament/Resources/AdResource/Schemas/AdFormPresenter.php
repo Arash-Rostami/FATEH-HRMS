@@ -71,7 +71,11 @@ class AdFormPresenter
             ->defaultItems(0)
             ->reorderable(true)
             ->collapsible()
-            ->cloneable();
+            ->cloneable()
+            ->validationMessages([
+                'required' => __('resources/ad/strings.validation.extra.required'),
+                'max' => __('resources/ad/strings.validation.extra.max')
+            ]);
     }
 
     public static function gender(): Select
@@ -85,6 +89,7 @@ class AdFormPresenter
             ->helperText(__('resources/ad/strings.hints.gender'))
             ->validationMessages([
                 'required' => __('resources/ad/strings.validation.gender.required'),
+                'in' => __('resources/ad/strings.validation.gender.in')
             ]);
     }
 
@@ -99,6 +104,7 @@ class AdFormPresenter
             ->validationMessages([
                 'required' => __('resources/ad/strings.validation.link.required'),
                 'url' => __('resources/ad/strings.validation.link.url'),
+                'max' => __('resources/ad/strings.validation.link.max')
             ]);
     }
 

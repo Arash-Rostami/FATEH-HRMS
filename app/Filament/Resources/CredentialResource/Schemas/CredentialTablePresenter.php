@@ -104,7 +104,11 @@ class CredentialTablePresenter
             ->relationship('user', 'name')
             ->searchable()
             ->preload()
-            ->visible(fn() => auth()->user()?->hasElevatedRole());
+            ->visible(fn() => auth()->user()?->hasElevatedRole())
+            ->validationMessages([
+                'exists' => __('resources/credential/strings.validation.user_id.exists'),
+                'in' => __('resources/credential/strings.validation.user_id.in')
+            ]);
     }
 
     public static function userGroup(): Group

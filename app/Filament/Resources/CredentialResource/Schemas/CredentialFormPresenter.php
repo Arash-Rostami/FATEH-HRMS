@@ -84,6 +84,8 @@ class CredentialFormPresenter
             ->helperText(__('resources/credential/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/credential/strings.validation.user_required'),
+                'exists' => __('resources/credential/strings.validation.user_id.exists'),
+                'in' => __('resources/credential/strings.validation.user_id.in')
             ]);
     }
 

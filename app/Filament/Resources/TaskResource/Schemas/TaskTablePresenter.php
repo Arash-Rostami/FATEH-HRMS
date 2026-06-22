@@ -28,7 +28,11 @@ class TaskTablePresenter
             ->label(__('resources/task/strings.fields.assignee'))
             ->relationship('assignee', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/task/strings.validation.assigned_to.exists'),
+                'in' => __('resources/task/strings.validation.assigned_to.in')
+            ]);
     }
 
     public static function assigneeGroup(): Group
@@ -71,7 +75,11 @@ class TaskTablePresenter
             ->label(__('resources/task/strings.fields.creator'))
             ->relationship('creator', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/task/strings.validation.user_id.exists'),
+                'in' => __('resources/task/strings.validation.user_id.in')
+            ]);
     }
 
     public static function creatorGroup(): Group
@@ -193,7 +201,10 @@ class TaskTablePresenter
     {
         return SelectFilter::make('status')
             ->label(__('resources/task/strings.fields.status'))
-            ->options(TaskStatus::class);
+            ->options(TaskStatus::class)
+            ->validationMessages([
+                'in' => __('resources/task/strings.validation.status.in')
+            ]);
     }
 
     public static function statusGroup(): Group

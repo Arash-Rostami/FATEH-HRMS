@@ -87,7 +87,10 @@ class DmsTablePresenter
                     ->implode(' ┆ ');
 
                 return [__('resources/dms/strings.fields.owners') . ': ' . $names];
-            });
+            })
+            ->validationMessages([
+                'in' => __('resources/dms/strings.validation.owners.in')
+            ]);
     }
 
     public static function ownersGroup(): Group

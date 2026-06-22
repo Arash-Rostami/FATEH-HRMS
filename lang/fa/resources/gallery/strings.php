@@ -34,6 +34,7 @@ return [
     ],
 
     'validation' => [
+
         'title_required' => 'وارد کردن عنوان گالری الزامی است.',
         'title_max_length' => 'عنوان گالری نمی‌تواند بیشتر از :length کاراکتر باشد.',
         'description_max_length' => 'متن توضیحات طولانی‌تر از حد مجاز است (حداکثر :length کاراکتر).',

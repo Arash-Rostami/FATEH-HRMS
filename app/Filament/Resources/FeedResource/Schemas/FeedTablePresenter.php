@@ -26,7 +26,10 @@ class FeedTablePresenter
     {
         return SelectFilter::make('category')
             ->label(__('resources/feed/strings.fields.category'))
-            ->options(FeedCategory::class);
+            ->options(FeedCategory::class)
+            ->validationMessages([
+                'in' => __('resources/feed/strings.validation.category.in')
+            ]);
     }
 
     public static function categoryGroup(): Group

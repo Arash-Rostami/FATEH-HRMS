@@ -65,7 +65,8 @@ class DepartmentFormPresenter
                     ->required()
                     ->validationMessages([
                         'required' => __('resources/department/strings.validation.request_type_required'),
-                    ]),
+                'in' => __('resources/department/strings.validation.ticket_options.in')
+            ]),
 
                 TextInput::make('area_key')
                     ->label(__('resources/department/strings.fields.area_key'))

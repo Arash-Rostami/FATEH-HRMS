@@ -30,7 +30,11 @@ class TicketTablePresenter
             ->label(__('resources/ths/strings.fields.assignee'))
             ->relationship('assignee', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/ths/strings.validation.assigned_to.exists'),
+                'in' => __('resources/ths/strings.validation.assigned_to.in')
+            ]);
     }
 
     public static function assigneeGroup(): Group
@@ -168,7 +172,10 @@ class TicketTablePresenter
     {
         return SelectFilter::make('priority')
             ->label(__('resources/ths/strings.fields.priority'))
-            ->options(TicketPriority::class);
+            ->options(TicketPriority::class)
+            ->validationMessages([
+                'in' => __('resources/ths/strings.validation.priority.in')
+            ]);
     }
 
     public static function requestArea(): TextColumn
@@ -208,7 +215,11 @@ class TicketTablePresenter
             ->label(__('resources/ths/strings.fields.requester'))
             ->relationship('requester', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/ths/strings.validation.requester_id.exists'),
+                'in' => __('resources/ths/strings.validation.requester_id.in')
+            ]);
     }
 
     public static function satisfaction(): TextColumn
@@ -243,7 +254,10 @@ class TicketTablePresenter
             ->label(__('resources/ths/strings.fields.target_department'))
             ->options(Department::getCachedOptions()->toArray())
             ->placeholder(__('resources/ths/strings.fields.target_department_default'))
-            ->attribute('extra->target_department');
+            ->attribute('extra->target_department')
+            ->validationMessages([
+                'in' => __('resources/ths/strings.validation.target_department.in')
+            ]);
     }
 
     public static function statusGroup(): Group
@@ -288,7 +302,10 @@ class TicketTablePresenter
     {
         return SelectFilter::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(RequestType::class);
+            ->options(RequestType::class)
+            ->validationMessages([
+                'in' => __('resources/ths/strings.validation.request_type.in')
+            ]);
     }
 
     public static function typeGroup(): Group

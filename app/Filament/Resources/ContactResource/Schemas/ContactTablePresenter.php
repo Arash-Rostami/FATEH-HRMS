@@ -149,7 +149,11 @@ class ContactTablePresenter
             ->label(__('resources/contact/strings.fields.recipient'))
             ->relationship('recipient', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/contact/strings.validation.recipient_id.exists'),
+                'in' => __('resources/contact/strings.validation.recipient_id.in')
+            ]);
     }
 
     public static function recipientGroup(): Group
@@ -175,7 +179,11 @@ class ContactTablePresenter
             ->label(__('resources/contact/strings.fields.sender'))
             ->relationship('sender', 'name')
             ->searchable()
-            ->preload();
+            ->preload()
+            ->validationMessages([
+                'exists' => __('resources/contact/strings.validation.sender_id.exists'),
+                'in' => __('resources/contact/strings.validation.sender_id.in')
+            ]);
     }
 
     public static function senderGroup(): Group

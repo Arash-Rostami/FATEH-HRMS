@@ -22,7 +22,11 @@ class TaskFormPresenter
             ->relationship('assignee', 'name')
             ->searchable()
             ->preload()
-            ->nullable();
+            ->nullable()
+            ->validationMessages([
+                'exists' => __('resources/task/strings.validation.assigned_to.exists'),
+                'in' => __('resources/task/strings.validation.assigned_to.in')
+            ]);
     }
 
     public static function deadlineDate(): FusedGroup
@@ -75,6 +79,7 @@ class TaskFormPresenter
             ->helperText(__('resources/task/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/task/strings.validation.status.required'),
+                'in' => __('resources/task/strings.validation.status.in')
             ]);
     }
 
@@ -102,6 +107,8 @@ class TaskFormPresenter
             ->required()
             ->validationMessages([
                 'required' => __('resources/task/strings.validation.user_id.required'),
+                'exists' => __('resources/task/strings.validation.user_id.invalid'),
+                'in' => __('resources/task/strings.validation.user_id.invalid')
             ]);
     }
 }
