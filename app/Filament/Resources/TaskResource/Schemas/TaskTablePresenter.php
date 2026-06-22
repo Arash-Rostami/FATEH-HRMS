@@ -97,8 +97,8 @@ class TaskTablePresenter
             ->alignCenter()
             ->color(fn($record) => match (true) {
                 !$record->deadline => 'gray',
-                $record->status === 'done' => 'success',
-                $record->status === 'pending' => 'danger',
+                $record->status === TaskStatus::Done->value => 'success',
+                $record->status === TaskStatus::Pending->value => 'danger',
                 $record->deadline->isPast() => 'danger',
                 $record->deadline->diffInDays(now()) <= 2 => 'warning',
                 default => 'primary',
@@ -175,7 +175,7 @@ class TaskTablePresenter
             ->query(fn(Builder $query) => $query
                 ->whereNotNull('deadline')
                 ->where('deadline', '<', now())
-                ->where('status', '!=', 'done')
+                ->where('status', '!=', TaskStatus::Done->value)
             )
             ->toggle();
     }
