@@ -77,10 +77,7 @@ class UserFormPresenter
                     $items->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all()
                 );
             })
-            ->helperText(__('resources/user/strings.hints.booking'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.validation.booking.required')
-            ]);
+            ->helperText(__('resources/user/strings.hints.booking'));
     }
 
     public static function email(): TextInput
@@ -96,7 +93,6 @@ class UserFormPresenter
                 'required' => __('resources/user/strings.form.email_required'),
                 'unique' => __('resources/user/strings.form.email_unique'),
                 'email' => __('resources/user/strings.form.email_invalid'),
-                'max' => __('resources/user/strings.validation.email.max')
             ]);
     }
 
@@ -126,7 +122,6 @@ class UserFormPresenter
             ->validationMessages([
                 'required' => __('resources/user/strings.form.maximum_required'),
                 'min' => __('resources/user/strings.form.maximum_min'),
-                'numeric' => __('resources/user/strings.validation.maximum.numeric')
             ]);
     }
 
@@ -171,10 +166,7 @@ class UserFormPresenter
             ->required()
             ->visible(fn(string $operation): bool => $operation === 'create')
             ->dehydrated(false)
-            ->helperText(__('resources/user/strings.hints.password_confirmation'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.validation.password_confirmation.required')
-            ]);
+            ->helperText(__('resources/user/strings.hints.password_confirmation'));
     }
 
     public static function presence(): Select
@@ -197,7 +189,6 @@ class UserFormPresenter
             ->helperText(__('resources/user/strings.hints.presence'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.presence_required'),
-                'in' => __('resources/user/strings.validation.presence.in')
             ]);
     }
 
@@ -212,7 +203,6 @@ class UserFormPresenter
             ->helperText(__('resources/user/strings.hints.role'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.role_required'),
-                'in' => __('resources/user/strings.validation.role.in')
             ]);
     }
 
@@ -227,7 +217,6 @@ class UserFormPresenter
             ->helperText(__('resources/user/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.status_required'),
-                'in' => __('resources/user/strings.validation.status.in')
             ]);
     }
 
@@ -242,7 +231,6 @@ class UserFormPresenter
             ->helperText(__('resources/user/strings.hints.type'))
             ->validationMessages([
                 'required' => __('resources/user/strings.form.type_required'),
-                'in' => __('resources/user/strings.validation.type.in')
             ]);
     }
 }

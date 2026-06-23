@@ -60,11 +60,7 @@ class OnboardingFormPresenter
                 ->addActionLabel(__('resources/onboarding/strings.actions.add_extra'))
                 ->columnSpanFull()
                 ->reorderable(),
-        ]
-            ->validationMessages([
-                'max' => __('resources/onboarding/strings.validation._extras_template.max'),
-                'in' => __('resources/onboarding/strings.validation._extras_template.in')
-            ]);
+        ];
     }
 
     public static function guides(): Repeater
@@ -104,11 +100,7 @@ class OnboardingFormPresenter
             ->collapsed()
             ->addActionLabel(__('resources/onboarding/strings.actions.add_guide'))
             ->columnSpanFull()
-            ->reorderable()
-            ->validationMessages([
-                'max' => __('resources/onboarding/strings.validation.guides.max'),
-                'mimes' => __('resources/onboarding/strings.validation.guides.mimes')
-            ]);
+            ->reorderable();
     }
 
     public static function hydrateGuidesWithFileMeta(array $data): array
@@ -159,11 +151,7 @@ class OnboardingFormPresenter
             ->relationship('user', 'name')
             ->searchable()
             ->preload()
-            ->nullable()
-            ->validationMessages([
-                'exists' => __('resources/onboarding/strings.validation.user_id.exists'),
-                'in' => __('resources/onboarding/strings.validation.user_id.in')
-            ]);
+            ->nullable();
     }
 
     public static function videos(): Repeater
@@ -214,11 +202,7 @@ class OnboardingFormPresenter
             ->collapsed()
             ->addActionLabel(__('resources/onboarding/strings.actions.add_video'))
             ->columnSpanFull()
-            ->reorderable()
-            ->validationMessages([
-                'max' => __('resources/onboarding/strings.validation.videos.max'),
-                'mimes' => __('resources/onboarding/strings.validation.videos.mimes')
-            ]);
+            ->reorderable();
     }
 
     public static function vision(): RichEditor
@@ -240,7 +224,6 @@ class OnboardingFormPresenter
             ->maxLength(20000)
             ->validationMessages([
                 'max' => __('resources/onboarding/strings.validation.extra_value.max_length'),
-                'required' => __('resources/onboarding/strings.validation.value.required')
             ])
             ->columnSpanFull()
             ->textColors([

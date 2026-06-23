@@ -40,4 +40,19 @@ return [
         'date_until' => 'تا تاریخ',
     ],
 
+
+    'validation' => [
+        'required' => 'وارد کردن «:attribute» الزامی است.',
+        'exists'   => '«:attribute» انتخاب شده نامعتبر است.',
+        'in'       => '«:attribute» انتخاب شده نامعتبر است.',
+        'unique'   => 'این «:attribute» قبلاً ثبت شده است.',
+        'max'      => 'طول «:attribute» بیش از حد مجاز است.',
+        'min'      => 'طول «:attribute» کمتر از حد مجاز است.',
+        'mimes'    => 'فرمت فایل «:attribute» نامعتبر است.',
+        'email'    => 'فرمت ایمیل «:attribute» نامعتبر است.',
+        'url'      => 'فرمت لینک «:attribute» نامعتبر است.',
+        'numeric'  => '«:attribute» باید یک عدد باشد.',
+        'date'     => 'تاریخ «:attribute» نامعتبر است.',
+    ],
+
 ];

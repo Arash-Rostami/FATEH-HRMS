@@ -67,11 +67,7 @@ class TicketFormPresenter
                 }
             })
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.assigned_to'))
-            ->validationMessages([
-                'exists' => __('resources/ths/strings.validation.assigned_to.exists'),
-                'in' => __('resources/ths/strings.validation.assigned_to.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.assigned_to'));
     }
 
     public static function assigneeFiles(): Repeater
@@ -89,8 +85,7 @@ class TicketFormPresenter
                     ->validationMessages([
                         'max' => __('resources/ths/strings.validation.assignee_files.max_size'),
                         'mimetypes' => __('resources/ths/strings.validation.assignee_files.mime_types'),
-                'mimes' => __('resources/ths/strings.validation.assignee_files.mimes')
-            ])
+                    ])
                     ->openable()
                     ->downloadable(),
             ])
@@ -164,10 +159,7 @@ class TicketFormPresenter
                 '1' => '★☆☆☆☆ — بی‌اثر',
             ])
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.effectiveness'))
-            ->validationMessages([
-                'in' => __('resources/ths/strings.validation.effectiveness.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.effectiveness'));
     }
 
     public static function priority(): Select
@@ -179,9 +171,7 @@ class TicketFormPresenter
             ->default(TicketPriority::Low->value)
             ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.priority'))
-            ->validationMessages(['required' => __('resources/ths/strings.validation.priority.required'),
-                'in' => __('resources/ths/strings.validation.priority.in')
-            ]);
+            ->validationMessages(['required' => __('resources/ths/strings.validation.priority.required')]);
     }
 
     public static function requestArea(): Select
@@ -206,7 +196,6 @@ class TicketFormPresenter
             ->helperText(__('resources/ths/strings.hints.request_area'))
             ->validationMessages([
                 'required' => __('resources/ths/strings.validation.request_area.required'),
-                'in' => __('resources/ths/strings.validation.request_area.in')
             ]);
     }
 
@@ -234,9 +223,7 @@ class TicketFormPresenter
             ->native(false)
             ->afterStateUpdated(fn(callable $set) => $set('request_area', null))
             ->helperText(__('resources/ths/strings.hints.request_type'))
-            ->validationMessages(['required' => __('resources/ths/strings.validation.request_type.required'),
-                'in' => __('resources/ths/strings.validation.request_type.in')
-            ]);
+            ->validationMessages(['required' => __('resources/ths/strings.validation.request_type.required')]);
     }
 
     public static function requesterFiles(): Repeater
@@ -254,8 +241,7 @@ class TicketFormPresenter
                     ->validationMessages([
                         'max' => __('resources/ths/strings.validation.requester_files.max_size'),
                         'mimetypes' => __('resources/ths/strings.validation.requester_files.mime_types'),
-                'mimes' => __('resources/ths/strings.validation.requester_files.mimes')
-            ])
+                    ])
                     ->openable()
                     ->downloadable(),
             ])
@@ -281,10 +267,7 @@ class TicketFormPresenter
                 $deptId = $state ? User::with('profile')->find($state)?->profile?->department_id : null;
                 $set('extra.department', $deptId ?? '');
             })
-            ->validationMessages(['required' => __('resources/ths/strings.validation.requester_id.required'),
-                'exists' => __('resources/ths/strings.validation.requester_id.invalid'),
-                'in' => __('resources/ths/strings.validation.requester_id.invalid')
-            ]);
+            ->validationMessages(['required' => __('resources/ths/strings.validation.requester_id.required')]);
     }
 
     public static function satisfactionScore(): Select
@@ -294,10 +277,7 @@ class TicketFormPresenter
             ->disabledOn('edit')
             ->options(['5' => '★★★★★', '4' => '★★★★', '3' => '★★★', '2' => '★★', '1' => '★'])
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.satisfaction_score'))
-            ->validationMessages([
-                'in' => __('resources/ths/strings.validation.satisfaction_score.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.satisfaction_score'));
     }
 
     public static function status(): Select
@@ -315,9 +295,7 @@ class TicketFormPresenter
             ->afterStateUpdated(function (mixed $state, callable $set) {
                 $set('completion_date', $state?->value === 'closed' ? now()->format('Y-m-d H:i:s') : null);
             })
-            ->validationMessages(['required' => __('resources/ths/strings.validation.status.required'),
-                'in' => __('resources/ths/strings.validation.status.in')
-            ]);
+            ->validationMessages(['required' => __('resources/ths/strings.validation.status.required')]);
     }
 
     public static function targetDepartment(): Select

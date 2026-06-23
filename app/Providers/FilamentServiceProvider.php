@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Filament\Forms\Components\Field;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
@@ -13,6 +14,34 @@ class FilamentServiceProvider extends ServiceProvider
     {
         $this->registerCoreScripts();
         $this->registerComponentHooks();
+        $this->configureFilamentComponents();
+    }
+
+    private function configureFilamentComponents(): void
+    {
+        Field::configureUsing(function (Field $field): void {
+            // Wait until the field is fully configured before inspecting its rules
+            $field->validationMessages(function () use ($field) {
+                $name = str_replace(['_', '-'], ' ', $field->getName());
+                // In Persian, we might just say "فیلد انتخابی" if we don't have a specific label yet.
+                // We'll use the label if available.
+                $label = $field->getLabel() ?: $name;
+
+                return [
+                    'required' => __('resources/general/strings.validation.required', ['attribute' => $label]),
+                    'exists'   => __('resources/general/strings.validation.exists', ['attribute' => $label]),
+                    'in'       => __('resources/general/strings.validation.in', ['attribute' => $label]),
+                    'unique'   => __('resources/general/strings.validation.unique', ['attribute' => $label]),
+                    'max'      => __('resources/general/strings.validation.max', ['attribute' => $label]),
+                    'min'      => __('resources/general/strings.validation.min', ['attribute' => $label]),
+                    'mimes'    => __('resources/general/strings.validation.mimes', ['attribute' => $label]),
+                    'email'    => __('resources/general/strings.validation.email', ['attribute' => $label]),
+                    'url'      => __('resources/general/strings.validation.url', ['attribute' => $label]),
+                    'numeric'  => __('resources/general/strings.validation.numeric', ['attribute' => $label]),
+                    'date'     => __('resources/general/strings.validation.date', ['attribute' => $label]),
+                ];
+            });
+        });
     }
 
     private function registerComponentHooks(): void

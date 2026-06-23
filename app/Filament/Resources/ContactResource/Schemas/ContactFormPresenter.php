@@ -19,9 +19,7 @@ class ContactFormPresenter
             ->maxLength(10000)
             ->columnSpanFull()
             ->helperText(__('resources/contact/strings.hints.body'))
-            ->validationMessages(['required' => __('resources/contact/strings.validation.body_required'),
-                'max' => __('resources/contact/strings.validation.body.max')
-            ]);
+            ->validationMessages(['required' => __('resources/contact/strings.validation.body_required')]);
     }
 
     public static function recipient(): Select
@@ -30,11 +28,7 @@ class ContactFormPresenter
             ->label(__('resources/contact/strings.fields.recipient'))
             ->relationship('recipient', 'name')
             ->disabled()
-            ->dehydrated(false)
-            ->validationMessages([
-                'exists' => __('resources/contact/strings.validation.recipient_id.exists'),
-                'in' => __('resources/contact/strings.validation.recipient_id.in')
-            ]);
+            ->dehydrated(false);
     }
 
     public static function replyToPreview(): TextInput

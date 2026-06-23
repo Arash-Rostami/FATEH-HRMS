@@ -104,9 +104,7 @@ class DmsFormPresenter
             })
             ->required()
             ->helperText(__('resources/dms/strings.hints.owners'))
-            ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required'),
-                'in' => __('resources/dms/strings.validation.owners.in')
-            ]);
+            ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required')]);
     }
 
     public static function ownersPreview(): Textarea
@@ -150,7 +148,6 @@ class DmsFormPresenter
             ->helperText(__('resources/dms/strings.hints.status'))
             ->validationMessages([
                 'required' => __('resources/dms/strings.validation.status.required'),
-                'in' => __('resources/dms/strings.validation.status.in')
             ]);
     }
 
@@ -176,10 +173,7 @@ class DmsFormPresenter
             ->multiple()
             ->searchable()
             ->preload()
-            ->nullable()
-            ->validationMessages([
-                'in' => __('resources/dms/strings.validation.users.in')
-            ]);
+            ->nullable();
     }
 
     public static function version(): TextInput

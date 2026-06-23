@@ -64,10 +64,6 @@ return [
     ],
 
     'validation' => [
-        'edit' => [
-            'url' => 'فرمت لینک «edit» نامعتبر است.',
-        ],
-
         'detail_key' => [
             'required' => 'انتخاب عنوان اطلاعات الزامی است.',
             'distinct' => 'هر عنوان تنها یک‌بار قابل ثبت است.',
@@ -77,43 +73,33 @@ return [
         ],
         'personnel_id' => [
             'unique' => 'این کد پرسنلی قبلاً ثبت شده است.',
-
         ],
         'id_card_number' => [
             'unique' => 'این شماره ملی قبلاً ثبت شده است.',
-
         ],
         'id_booklet_number' => [
             'unique' => 'این شماره شناسنامه قبلاً ثبت شده است.',
-
         ],
         'gender' => [
             'required' => 'جنسیت الزامی است.',
-
         ],
         'employment_type' => [
             'required' => 'نوع استخدام الزامی است.',
-
         ],
         'employment_status' => [
             'required' => 'وضعیت استخدام الزامی است.',
-
         ],
         'marital_status' => [
             'required' => 'وضعیت تأهل الزامی است.',
-
         ],
         'degree' => [
             'required' => 'مقطع تحصیلی الزامی است.',
-
         ],
         'position' => [
             'required' => 'سمت الزامی است.',
-
         ],
         'user_id' => [
             'required' => 'کاربر الزامی است.',
-            'invalid'   => 'کاربر نامعتبر است.',
         ],
         'about_me_key' => [
             'required' => 'کلید الزامی است.',

@@ -77,10 +77,7 @@ class ReservationTablePresenter
                     ->title(__('resources/reservation/strings.actions.cancel_success'))
                     ->success()
                     ->send();
-            })
-            ->validationMessages([
-                'in' => __('resources/reservation/strings.validation.cancel.in')
-            ]);
+            });
     }
 
     public static function createdAt(): TextColumn
@@ -174,10 +171,7 @@ class ReservationTablePresenter
             ->query(fn(Builder $query, array $data) => $query->when(
                 $data['value'] ?? null,
                 fn($q, $v) => $q->whereHas('resource', fn($q) => $q->where('type', $v))
-            ))
-            ->validationMessages([
-                'in' => __('resources/reservation/strings.validation.resource_type.in')
-            ]);
+            ));
     }
 
     public static function startTime(): TextColumn
@@ -218,10 +212,7 @@ class ReservationTablePresenter
     {
         return SelectFilter::make('status')
             ->label(__('resources/reservation/strings.filters.status'))
-            ->options(ReservationStatus::class)
-            ->validationMessages([
-                'in' => __('resources/reservation/strings.validation.status.in')
-            ]);
+            ->options(ReservationStatus::class);
     }
 
     public static function user(): TextColumn

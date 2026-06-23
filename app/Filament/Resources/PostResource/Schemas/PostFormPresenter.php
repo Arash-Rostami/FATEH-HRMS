@@ -73,11 +73,7 @@ class PostFormPresenter
             ->image()
             ->imagePreviewHeight('160')
             ->columnSpanFull()
-            ->helperText(__('resources/post/strings.hints.image'))
-            ->validationMessages([
-                'max' => __('resources/post/strings.validation.image.max'),
-                'mimes' => __('resources/post/strings.validation.image.mimes')
-            ]);
+            ->helperText(__('resources/post/strings.hints.image'));
     }
 
     public static function pinned(): Toggle
@@ -132,8 +128,6 @@ class PostFormPresenter
             ->required()
             ->validationMessages([
                 'required' => __('resources/post/strings.validation.user_id.required'),
-                'exists' => __('resources/post/strings.validation.user_id.invalid'),
-                'in' => __('resources/post/strings.validation.user_id.invalid')
             ]);
     }
 }

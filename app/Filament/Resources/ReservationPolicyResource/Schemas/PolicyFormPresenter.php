@@ -56,7 +56,6 @@ class PolicyFormPresenter
             ->columnSpanFull()
             ->validationMessages([
                 'array' => __('resources/policy/strings.validation.invalid_array'),
-                'in' => __('resources/reservationpolicy/strings.validation.allowed_days.in')
             ]);
     }
 

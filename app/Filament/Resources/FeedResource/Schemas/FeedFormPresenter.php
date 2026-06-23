@@ -30,7 +30,6 @@ class FeedFormPresenter
             ->helperText(__('resources/feed/strings.hints.category'))
             ->validationMessages([
                 'required' => __('resources/feed/strings.validation.category.required'),
-                'in' => __('resources/feed/strings.validation.category.in')
             ]);
     }
 
@@ -93,11 +92,7 @@ class FeedFormPresenter
             ->panelLayout('grid')
             ->reorderable()
             ->columnSpanFull()
-            ->helperText(__('resources/feed/strings.hints.media_images'))
-            ->validationMessages([
-                'max' => __('resources/feed/strings.validation.media_images.max'),
-                'mimes' => __('resources/feed/strings.validation.media_images.mimes')
-            ]);
+            ->helperText(__('resources/feed/strings.hints.media_images'));
     }
 
     public static function mediaVideos(): FileUpload
@@ -125,11 +120,7 @@ class FeedFormPresenter
             )
             ->columnSpanFull()
             ->reorderable()
-            ->helperText(__('resources/feed/strings.hints.media_videos'))
-            ->validationMessages([
-                'max' => __('resources/feed/strings.validation.media_videos.max'),
-                'mimes' => __('resources/feed/strings.validation.media_videos.mimes')
-            ]);
+            ->helperText(__('resources/feed/strings.hints.media_videos'));
     }
 
     public static function mergeMediaPaths(array $data): array
@@ -178,11 +169,7 @@ class FeedFormPresenter
             ->addActionLabel(__('resources/feed/strings.actions.add_poll_option'))
             ->visible(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
             ->columnSpanFull()
-            ->helperText(__('resources/feed/strings.hints.poll_options'))
-            ->validationMessages([
-                'required' => __('resources/feed/strings.validation.poll_options.required'),
-                'max' => __('resources/feed/strings.validation.poll_options.max')
-            ]);
+            ->helperText(__('resources/feed/strings.hints.poll_options'));
     }
 
     public static function splitMediaPaths(array $data): array
@@ -212,8 +199,6 @@ class FeedFormPresenter
             ->helperText(__('resources/feed/strings.hints.user_id'))
             ->validationMessages([
                 'required' => __('resources/feed/strings.validation.user_id.required'),
-                'exists' => __('resources/feed/strings.validation.user_id.invalid'),
-                'in' => __('resources/feed/strings.validation.user_id.invalid')
             ]);
     }
 }

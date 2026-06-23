@@ -84,8 +84,6 @@ class EventFormPresenter
             ->visible(fn($get) => (bool)$get('private'))
             ->validationMessages([
                 'required' => __('resources/event/strings.validation.user_id.required'),
-                'exists' => __('resources/event/strings.validation.user_id.invalid'),
-                'in' => __('resources/event/strings.validation.user_id.invalid')
             ]);
     }
 }

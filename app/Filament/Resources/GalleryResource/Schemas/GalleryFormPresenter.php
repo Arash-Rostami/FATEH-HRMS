@@ -26,10 +26,7 @@ class GalleryFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->preload()
-            ->nullable()
-            ->validationMessages([
-                'in' => __('resources/gallery/strings.validation.department_id.in')
-            ]);
+            ->nullable();
     }
 
     public static function description(): Textarea
@@ -81,9 +78,7 @@ class GalleryFormPresenter
             ->helperText(__('resources/gallery/strings.hints.path'))
             ->validationMessages([
                 'required' => __('resources/gallery/strings.validation.photos_required'),
-                'max' => __('resources/gallery/strings.validation.photos_max_files', ['max' => 50,
-                'mimes' => __('resources/gallery/strings.validation.path.mimes')
-            ]),
+                'max' => __('resources/gallery/strings.validation.photos_max_files', ['max' => 50]),
                 'max_size' => __('resources/gallery/strings.validation.photos_max_size'),
                 'mimetypes' => __('resources/gallery/strings.validation.photos_mimetypes'),
             ]);

@@ -92,10 +92,7 @@ class UserInfolistPresenter
             ->label(__('resources/user/strings.infolist.maximum'))
             ->numeric()
             ->suffix(' رزرو')
-            ->color('warning')
-            ->validationMessages([
-                'numeric' => __('resources/user/strings.validation.maximum.numeric')
-            ]);
+            ->color('warning');
     }
 
     public static function booking(): RepeatableEntry

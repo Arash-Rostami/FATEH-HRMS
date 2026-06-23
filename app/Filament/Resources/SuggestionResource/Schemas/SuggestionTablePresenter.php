@@ -58,10 +58,7 @@ class SuggestionTablePresenter
             ->searchable()
             ->query(fn(Builder $query, array $data) => $query
                 ->when($data['value'] ?? null, fn($query, $code) => $query->whereJsonContains('departments', $code))
-            )
-            ->validationMessages([
-                'in' => __('resources/suggestion/strings.validation.departments.in')
-            ]);
+            );
     }
 
     public static function disagreeCount(): TextColumn
@@ -181,11 +178,7 @@ class SuggestionTablePresenter
             ->label(__('resources/suggestion/strings.filters.submitter'))
             ->relationship('user', 'name')
             ->searchable()
-            ->preload()
-            ->validationMessages([
-                'exists' => __('resources/suggestion/strings.validation.user_id.exists'),
-                'in' => __('resources/suggestion/strings.validation.user_id.in')
-            ]);
+            ->preload();
     }
 
     public static function submitterGroup(): Group

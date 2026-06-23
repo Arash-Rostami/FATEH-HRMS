@@ -63,10 +63,7 @@ class PostResource extends Resource
             Action::make('edit')
                 ->icon('heroicon-m-pencil')
                 ->url(static::getUrl('edit', ['record' => $record])),
-        ]
-            ->validationMessages([
-                'url' => __('resources/post/strings.validation.edit.url')
-            ]);
+        ];
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

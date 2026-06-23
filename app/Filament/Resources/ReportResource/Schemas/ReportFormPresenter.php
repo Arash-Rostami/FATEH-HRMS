@@ -38,10 +38,7 @@ class ReportFormPresenter
             ->imageEditor()
             ->maxSize(2048)
             ->nullable()
-            ->helperText(__('resources/report/strings.hints.cover_image'))
-            ->validationMessages([
-                'max' => __('resources/report/strings.validation.cover_image.max')
-            ]);
+            ->helperText(__('resources/report/strings.hints.cover_image'));
     }
 
     public static function departmentId(): Select
@@ -51,10 +48,7 @@ class ReportFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->nullable()
-            ->helperText(__('resources/report/strings.hints.department_id'))
-            ->validationMessages([
-                'in' => __('resources/report/strings.validation.department_id.in')
-            ]);
+            ->helperText(__('resources/report/strings.hints.department_id'));
     }
 
     public static function description(): RichEditor
@@ -121,8 +115,6 @@ class ReportFormPresenter
             ->helperText(__('resources/report/strings.hints.file_path'))
             ->validationMessages([
                 'required' => __('resources/report/strings.validation.file_path.required'),
-                'max' => __('resources/report/strings.validation.file_path.max'),
-                'mimes' => __('resources/report/strings.validation.file_path.mimes')
             ]);
     }
 
@@ -150,8 +142,6 @@ class ReportFormPresenter
             ->required()
             ->validationMessages([
                 'required' => __('resources/report/strings.validation.user_id.required'),
-                'exists' => __('resources/report/strings.validation.user_id.invalid'),
-                'in' => __('resources/report/strings.validation.user_id.invalid')
             ]);
     }
 }

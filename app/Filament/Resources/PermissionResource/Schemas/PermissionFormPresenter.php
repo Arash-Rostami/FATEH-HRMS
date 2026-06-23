@@ -83,7 +83,6 @@ class PermissionFormPresenter
             ->validationMessages([
                 'required' => __('resources/permission/strings.validation.user_required'),
                 'unique' => __('resources/permission/strings.validation.user_unique'),
-                'in' => __('resources/permission/strings.validation.user_id.in')
             ]);
     }
 

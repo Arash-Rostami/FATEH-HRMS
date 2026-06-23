@@ -79,8 +79,6 @@ class FAQFormPresenter
             ->helperText(__('resources/faq/strings.hints.category'))
             ->validationMessages([
                 'required' => __('resources/faq/strings.validation.category_required'),
-                'max' => __('resources/faq/strings.validation.category.max'),
-                'in' => __('resources/faq/strings.validation.category.in')
             ]);
     }
 
@@ -91,10 +89,7 @@ class FAQFormPresenter
             ->searchable()
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->nullable()
-            ->helperText(__('resources/faq/strings.hints.department_id'))
-            ->validationMessages([
-                'in' => __('resources/faq/strings.validation.department_id.in')
-            ]);
+            ->helperText(__('resources/faq/strings.hints.department_id'));
     }
 
 
@@ -139,6 +134,6 @@ class FAQFormPresenter
             ->dehydrated(true)
             ->hint(__('resources/faq/strings.hint.user_locked'))
             ->required()
-            ->validationMessages(['required' => __('resources/faq/strings.validation.user_required'), 'exists' => __('resources/faq/strings.validation.user_invalid'), 'in' => __('resources/faq/strings.validation.user_invalid')]);
+            ->validationMessages(['required' => __('resources/faq/strings.validation.user_required')]);
     }
 }
