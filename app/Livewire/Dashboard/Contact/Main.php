@@ -256,13 +256,21 @@ class Main extends Component
 
     public function send(SendMessageAction $action): void
     {
-        $action->execute($this->composer, $this->activeUserId, $this->replyingToId);
-        $this->composer->reset();
-        $this->replyingToId = null;
-        $this->replyingTo = null;
-        $this->invalidateMessageCache();
-        unset($this->contacts);
-        $this->dispatch('message-sent');
+        try {
+            $action->execute($this->composer, $this->activeUserId, $this->replyingToId);
+            $this->composer->reset();
+            $this->replyingToId = null;
+            $this->replyingTo = null;
+            $this->invalidateMessageCache();
+            unset($this->contacts);
+            $this->dispatch('message-sent');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('message-error');
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
+        } catch (\Exception $e) {
+            $this->dispatch('message-error');
+            $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
+        }
     }
 
     public function setFilter(string $filter): void { $this->filter = $filter; }
