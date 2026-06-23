@@ -1,8 +1,24 @@
 <div id="msg-viewport"
      x-ref="msgViewport"
-     wire:poll.10s
+     x-data="{ bgOption: 'a' }"
      class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-md py-6 space-y-1 msg-scrollbar relative bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]"
      role="log" aria-label="پیام‌ها" aria-live="polite">
+
+    {{-- Background comparison overlays — TEMPORARY, for picking a final direction. Remove this toggle and whichever option isn't chosen. --}}
+    <div x-show="bgOption === 'a'" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div class="absolute top-0 -right-24 h-56 w-56 opacity-[0.18] bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
+        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-[0.05] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px)]"></div>
+    </div>
+    <div x-show="bgOption === 'b'" style="display:none" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div class="absolute inset-0 opacity-[0.16] bg-[linear-gradient(135deg,var(--md-sys-color-primary)_0%,var(--md-sys-color-tertiary)_100%)]"></div>
+        <div class="absolute top-0 -right-24 h-56 w-56 opacity-20 bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
+        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-10 bg-[image:repeating-linear-gradient(45deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_14px)]"></div>
+    </div>
+    <button type="button" x-on:click="bgOption = bgOption === 'a' ? 'b' : 'a'"
+            class="absolute top-2 left-2 z-20 px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-md bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]"
+            title="مقایسه پس‌زمینه (موقت) — گزینه فعال:" aria-label="تغییر گزینه پس‌زمینه">
+        <span x-text="bgOption === 'a' ? 'پس‌زمینه: A (ساده)' : 'پس‌زمینه: B (پررنگ)'"></span>
+    </button>
 
     @if($this->totalMessages > count($this->messages))
         <div class="flex justify-center py-2">
@@ -43,7 +59,11 @@
                     @if($msg['is_last'])
                         <div
                             class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            <img src="{{ $activeContact->getProfileImageUrl() ?? $activeContact->getInitialsAvatarUrl() }}" class="w-full h-full object-cover" alt="profile image">
+                            <x-ui.avatar
+                                :existingImage="$activeContact->getProfileImageUrl()"
+                                :alt="$activeContact->name"
+                                icon-size="text-base"
+                                class="rounded-lg" />
                         </div>
                     @else
                         <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -134,7 +154,38 @@
                                     </div>
                                 </div>
                             @endif
-                            <span>{!! $msg['body_html'] !!}</span>
+                            @if($msg['body'] !== '')
+                                <span>{!! $msg['body_html'] !!}</span>
+                            @endif
+                            @if(count($msg['attachments']))
+                                <div @class(['flex flex-wrap gap-1.5', 'mt-2' => $msg['body'] !== ''])>
+                                    @foreach($msg['attachments'] as $i => $att)
+                                        @if($att['is_image'])
+                                            <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer"
+                                               class="block w-32 h-32 rounded-lg overflow-hidden border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+                                                <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"
+                                                     class="w-full h-full object-cover">
+                                            </a>
+                                        @else
+                                            <button type="button" wire:click="downloadAttachment({{ $msg['id'] }}, {{ $i }})"
+                                               @class([
+                                                   'flex items-center gap-2 px-2.5 py-2 rounded-lg max-w-[220px] transition-colors text-right',
+                                                   'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_12%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_18%,transparent)]' => $msg['is_mine'],
+                                                   'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)]' => !$msg['is_mine'],
+                                               ])>
+                                                <span class="material-symbols-rounded text-[18px] flex-shrink-0">description</span>
+                                                <span class="min-w-0">
+                                                    <span class="block text-[11px] font-medium truncate">{{ $att['name'] }}</span>
+                                                    <span @class([
+                                                        'block text-[9px] opacity-70',
+                                                    ])>{{ $att['size_label'] }}</span>
+                                                </span>
+                                                <span class="material-symbols-rounded text-[15px] flex-shrink-0 opacity-70">download</span>
+                                            </button>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         @if($msg['is_last'])

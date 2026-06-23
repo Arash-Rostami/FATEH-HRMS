@@ -19,6 +19,9 @@ return [
         'updated_at' => 'آخرین بروزرسانی',
         'deleted_at' => 'تاریخ حذف',
         'prune_status' => 'وضعیت حذف خودکار',
+        'attachments'    => 'پیوست‌ها',
+        'download_file'  => 'دریافت فایل',
+        'no_attachments' => 'بدون پیوست',
     ],
 
     'form' => [
@@ -50,6 +53,9 @@ return [
         'has_reply'     => 'نوع پیام',
         'is_reply'      => 'پاسخ',
         'not_reply'     => 'پیام اصلی',
+        'has_attachments'    => 'وضعیت پیوست',
+        'with_attachments'   => 'دارای پیوست',
+        'without_attachments' => 'بدون پیوست',
         'date_range'    => 'بازه تاریخ',
         'date_from'     => 'از تاریخ',
         'date_until'    => 'تا تاریخ',
@@ -59,12 +65,9 @@ return [
     'hints' => [
         'body' => 'متن پیام در سیستم رمزنگاری‌شده ذخیره می‌شود و فقط گیرنده می‌تواند آن را مشاهده کند.',
     ],
-
-    'validation' => [
-        'body_required' => 'متن پیام الزامی است.',
-    ],
-
     'export' => [
         'completed' => ':count ردیف با موفقیت صادر شد.',
+        'attachments_count' => 'تعداد پیوست',
+        'attachment_names'  => 'نام فایل‌های پیوست',
     ],
 ];

@@ -465,7 +465,7 @@
                 </p>
                 @enderror
 
-                <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment"/>
+                <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment" :maximizable="true"/>
 
                 <x-ui.buttons.form icon="send" wire:click="submitFeedback" wire:loading.attr="disabled">
                     ثبت بازخورد
@@ -525,6 +525,7 @@
                     name="decisionComment"
                     :rows="4"
                     wire:model="decisionForm.decisionComment"
+                    :maximizable="true"
                 />
 
                 @if($decisionForm->decision === 'accepted')
@@ -573,6 +574,7 @@
                                     :rows="3"
                                     wire:model="decisionForm.referralActions"
                                     placeholder="دستورالعمل اجرایی خود را برای واحدهای انتخاب شده بنویسید..."
+                                    :maximizable="true"
                                 />
                             </div>
                         @endif

@@ -15,6 +15,7 @@
                     placeholder="روایت خلاصه‌ای از تولد، تحصیل، کار، مهارت و چندتا چیز دیگر که با من است..."
                     rows="4"
                     icon="auto_stories"
+                    :maximizable="true"
                 />
             </div>
 

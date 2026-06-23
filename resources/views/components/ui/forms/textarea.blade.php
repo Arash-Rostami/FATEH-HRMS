@@ -1,6 +1,12 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'rows' => 3])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'rows' => 3, 'maximizable' => false])
 
-<div class="relative group w-full md3-input-group">
+<div
+    class="relative group w-full md3-input-group"
+    @if($maximizable)
+        wire:ignore.self
+        x-data="{ value: @entangle($attributes->wire('model')->value() ?? '').live, fullscreen: false }"
+    @endif
+>
     @if($icon)
         <div class="absolute top-4 right-0 pr-3 flex items-start pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors">
             <span class="material-symbols-rounded text-[20px]">{{ $icon }}</span>
@@ -13,7 +19,7 @@
         rows="{{ $rows }}"
         {{ $disabled ? 'disabled' : '' }}
         {!! $attributes->merge([
-            'class' => 'md3-input peer ' . ($icon ? 'pr-10' : '')
+            'class' => 'md3-input peer ' . ($icon ? 'pr-10' : '') . ($maximizable ? ' pl-10' : '')
         ]) !!}
         placeholder=" "
     >{{ $slot }}</textarea>
@@ -21,6 +27,11 @@
            class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">
         {{ $label }}
     </label>
+
+    @if($maximizable)
+        <x-ui.forms.maximize-trigger class="top-3 left-0"/>
+        <x-ui.forms.maximize-overlay :icon="$icon ?? 'edit'" :title="$label" :disabled="$disabled"/>
+    @endif
 
     @error($name)
         <p class="mt-1 text-xs text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>

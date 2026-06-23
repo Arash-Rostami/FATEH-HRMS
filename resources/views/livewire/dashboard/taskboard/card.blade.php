@@ -151,6 +151,14 @@
                 >
                     <span class="material-symbols-rounded text-xl">edit</span>
                 </button>
+            @elseif($task['is_delegator'])
+                <button
+                    wire:click="viewTask({{ $task['id'] }})"
+                    class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    title="مشاهده"
+                >
+                    <span class="material-symbols-rounded text-xl">visibility</span>
+                </button>
             @endif
         </div>
     </div>

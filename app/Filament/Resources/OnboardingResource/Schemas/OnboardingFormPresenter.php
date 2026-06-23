@@ -222,9 +222,6 @@ class OnboardingFormPresenter
         return RichEditor::make('value')
             ->label(__('resources/onboarding/strings.repeater.extra_value'))
             ->maxLength(20000)
-            ->validationMessages([
-                'max' => __('resources/onboarding/strings.validation.extra_value.max_length'),
-            ])
             ->columnSpanFull()
             ->textColors([
                 'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),
@@ -243,19 +240,10 @@ class OnboardingFormPresenter
 
     private static function makeRichEditor(string $field, bool $required = true): RichEditor
     {
-        $messages = [
-            'max' => __("resources/onboarding/strings.validation.{$field}.max_length"),
-        ];
-
-        if ($required) {
-            $messages['required'] = __("resources/onboarding/strings.validation.{$field}.required");
-        }
-
         return RichEditor::make($field)
             ->label(__("resources/onboarding/strings.fields.{$field}"))
             ->required($required)
             ->maxLength(50000)
-            ->validationMessages($messages)
             ->columnSpanFull()
             ->textColors([
                 'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),

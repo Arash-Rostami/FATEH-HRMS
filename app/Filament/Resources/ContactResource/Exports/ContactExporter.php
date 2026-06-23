@@ -18,6 +18,16 @@ class ContactExporter extends Exporter
             ExportColumn::make('sender.name')->label(__('resources/contact/strings.fields.sender')),
             ExportColumn::make('recipient.name')->label(__('resources/contact/strings.fields.recipient')),
             ExportColumn::make('body')->label(__('resources/contact/strings.fields.body')),
+            ExportColumn::make('attachments_count')
+                ->label(__('resources/contact/strings.export.attachments_count'))
+                ->state(fn(Message $record) => count($record->attachments ?? [])),
+            ExportColumn::make('attachment_names')
+                ->label(__('resources/contact/strings.export.attachment_names'))
+                ->state(fn(Message $record) => collect($record->attachments ?? [])
+                    ->pluck('name')
+                    ->filter()
+                    ->implode(' | ')
+                ),
             ExportColumn::make('is_edited')
                 ->label(__('resources/contact/strings.fields.is_edited'))
                 ->formatStateUsing(fn($state) => $state ? 'بله' : 'خیر'),

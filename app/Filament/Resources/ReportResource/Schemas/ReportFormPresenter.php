@@ -89,10 +89,6 @@ class ReportFormPresenter
                     'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
-            ])
-            ->validationMessages([
-                'required' => __('resources/report/strings.validation.description.required'),
-                'max' => __('resources/report/strings.validation.description.max_length'),
             ]);
     }
 
@@ -112,10 +108,7 @@ class ReportFormPresenter
             ])
             ->maxSize(5048)
             ->required()
-            ->helperText(__('resources/report/strings.hints.file_path'))
-            ->validationMessages([
-                'required' => __('resources/report/strings.validation.file_path.required'),
-            ]);
+            ->helperText(__('resources/report/strings.hints.file_path'));
     }
 
     public static function title(): TextInput
@@ -124,11 +117,7 @@ class ReportFormPresenter
             ->label(__('resources/report/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/report/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/report/strings.validation.title.required'),
-                'max' => __('resources/report/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/report/strings.hints.title'));
     }
 
     public static function userId(): Select
@@ -139,9 +128,6 @@ class ReportFormPresenter
             ->searchable()
             ->preload()
             ->helperText(__('resources/report/strings.hints.user_id'))
-            ->required()
-            ->validationMessages([
-                'required' => __('resources/report/strings.validation.user_id.required'),
-            ]);
+            ->required();
     }
 }

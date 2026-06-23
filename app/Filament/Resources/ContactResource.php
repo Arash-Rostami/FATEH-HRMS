@@ -49,6 +49,7 @@ class ContactResource extends Resource
                 ->icon('heroicon-o-chat-bubble-left')
                 ->schema([
                     ContactFormPresenter::replyToPreview(),
+                    ContactFormPresenter::attachmentsPreview(),
                     ContactFormPresenter::body(),
                 ])
                 ->columns(1),
@@ -127,6 +128,7 @@ class ContactResource extends Resource
 
                     ContactInfolistPresenter::replyTo(),
                     ContactInfolistPresenter::body(),
+                    ContactInfolistPresenter::attachments(),
 
                     ContactInfolistPresenter::updatedAt(),
                     ContactInfolistPresenter::deletedAt(),
@@ -146,6 +148,7 @@ class ContactResource extends Resource
                 ContactTablePresenter::recipient(),
                 ContactTablePresenter::body(),
                 ContactTablePresenter::hasReply(),
+                ContactTablePresenter::attachmentsCount(),
                 ContactTablePresenter::isEdited(),
                 ContactTablePresenter::createdAt(),
                 ContactTablePresenter::readAt(),
@@ -160,6 +163,7 @@ class ContactResource extends Resource
                 ContactTablePresenter::unreadFilter(),
                 ContactTablePresenter::editedFilter(),
                 ContactTablePresenter::hasReplyFilter(),
+                ContactTablePresenter::hasAttachmentsFilter(),
                 ContactTablePresenter::senderFilter(),
                 ContactTablePresenter::recipientFilter(),
                 self::createdAtFilter(),

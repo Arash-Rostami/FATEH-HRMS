@@ -13,16 +13,16 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('recipient_id')->constrained('users')->cascadeOnDelete();
             $table->text('body');
+            $table->json('attachments')->nullable();
             $table->foreignId('reply_to_id')->nullable()->constrained('messages')->nullOnDelete();
             $table->boolean('is_edited')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
-            $table->index(['recipient_id', 'read_at']);
-            $table->index(['sender_id', 'recipient_id']);
-            $table->index(['reply_to_id']);
-            $table->index(['deleted_at']);
+            $table->index(['sender_id', 'recipient_id', 'created_at'], 'idx_sender_recipient_created');
+            $table->index(['recipient_id', 'sender_id', 'created_at'], 'idx_recipient_sender_created');
+            $table->index(['recipient_id', 'read_at'], 'idx_recipient_read_at');
         });
     }
 

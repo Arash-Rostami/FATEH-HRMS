@@ -31,9 +31,6 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.certificate'))
             ->rows(4)
             ->maxLength(2000)
-            ->validationMessages([
-                'max' => __('resources/ad/strings.validation.certificate.max_length'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/ad/strings.hints.certificate'));
     }
@@ -44,9 +41,6 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.experience'))
             ->rows(4)
             ->maxLength(2000)
-            ->validationMessages([
-                'max' => __('resources/ad/strings.validation.experience.max_length'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/ad/strings.hints.experience'));
     }
@@ -82,10 +76,7 @@ class AdFormPresenter
             ->default(AdGender::Any->value)
             ->required()
             ->native(false)
-            ->helperText(__('resources/ad/strings.hints.gender'))
-            ->validationMessages([
-                'required' => __('resources/ad/strings.validation.gender.required'),
-            ]);
+            ->helperText(__('resources/ad/strings.hints.gender'));
     }
 
     public static function link(): TextInput
@@ -95,11 +86,7 @@ class AdFormPresenter
             ->required()
             ->url()
             ->maxLength(500)
-            ->helperText(__('resources/ad/strings.hints.link'))
-            ->validationMessages([
-                'required' => __('resources/ad/strings.validation.link.required'),
-                'url' => __('resources/ad/strings.validation.link.url'),
-            ]);
+            ->helperText(__('resources/ad/strings.hints.link'));
     }
 
     public static function position(): TextInput
@@ -107,10 +94,7 @@ class AdFormPresenter
         return TextInput::make('position')
             ->label(__('resources/ad/strings.fields.position'))
             ->maxLength(255)
-            ->helperText(__('resources/ad/strings.hints.position'))
-            ->validationMessages([
-                'max' => __('resources/ad/strings.validation.position.max_length'),
-            ]);
+            ->helperText(__('resources/ad/strings.hints.position'));
     }
 
     public static function skill(): Textarea
@@ -119,9 +103,6 @@ class AdFormPresenter
             ->label(__('resources/ad/strings.fields.skill'))
             ->rows(4)
             ->maxLength(2000)
-            ->validationMessages([
-                'max' => __('resources/ad/strings.validation.skill.max_length'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/ad/strings.hints.skill'));
     }

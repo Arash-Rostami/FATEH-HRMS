@@ -225,7 +225,8 @@
                                              x-init="(el) => { el.addEventListener('load', (e) => setDirection(e)); setDirection(el); }"
                                              wire:model="form.address"
                                              icon="location_on"
-                                             rows="2"/>
+                                             rows="2"
+                                             :maximizable="true"/>
                     </div>
                 </div>
             </div>

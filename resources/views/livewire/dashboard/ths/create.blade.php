@@ -81,7 +81,7 @@
                     <x-ui.forms.input label=" موضوع تیکت *" name="ticket.subject"
                                       wire:model="ticket.subject" icon="label"/>
                     <x-ui.forms.textarea label="توضیحات تکمیلی *" name="ticket.description"
-                                         wire:model="ticket.description" icon="description" rows="5"/>
+                                         wire:model="ticket.description" icon="description" rows="5" :maximizable="true"/>
                 </div>
 
                 <div

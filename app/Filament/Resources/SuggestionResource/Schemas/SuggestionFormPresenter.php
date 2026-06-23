@@ -17,6 +17,7 @@ use Filament\Forms\Components\Toggle;
 class SuggestionFormPresenter
 {
     use FilamentFormDivider;
+
     public static function attachment(): FileUpload
     {
         return FileUpload::make('attachment')
@@ -29,10 +30,6 @@ class SuggestionFormPresenter
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
             ->maxSize(2048)
             ->helperText(__('resources/suggestion/strings.hints.attachment'))
-            ->validationMessages([
-                'mimes' => __('resources/suggestion/strings.validation.attachment.mimes'),
-                'max' => __('resources/suggestion/strings.validation.attachment.max'),
-            ])
             ->columnSpanFull();
     }
 
@@ -85,11 +82,7 @@ class SuggestionFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
-            ->helperText(__('resources/suggestion/strings.hints.description'))
-            ->validationMessages([
-                'required' => __('resources/suggestion/strings.validation.description.required'),
-                'min' => __('resources/suggestion/strings.validation.description.min'),
-            ]);
+            ->helperText(__('resources/suggestion/strings.hints.description'));
     }
 
     public static function priority(): Select
@@ -111,7 +104,6 @@ class SuggestionFormPresenter
             ->columns(3)
             ->bulkToggleable()
             ->helperText(__('resources/suggestion/strings.hints.purpose'))
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.purpose.required')])
             ->columnSpanFull();
     }
 
@@ -124,7 +116,6 @@ class SuggestionFormPresenter
             ->columns(2)
             ->bulkToggleable()
             ->helperText(__('resources/suggestion/strings.hints.rule'))
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.rule.required')])
             ->columnSpanFull();
     }
 
@@ -146,11 +137,6 @@ class SuggestionFormPresenter
             ->minLength(3)
             ->maxLength(255)
             ->helperText(__('resources/suggestion/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/suggestion/strings.validation.title.required'),
-                'min' => __('resources/suggestion/strings.validation.title.min'),
-                'max' => __('resources/suggestion/strings.validation.title.max'),
-            ])
             ->columnSpanFull();
     }
 
@@ -167,7 +153,6 @@ class SuggestionFormPresenter
             ->helperText(__('resources/suggestion/strings.fields.user_locked'))
             ->preload()
             ->required()
-            ->validationMessages(['required' => __('resources/suggestion/strings.validation.user_id.required')])
             ->default(fn() => auth()->id());
     }
 }

@@ -6,69 +6,16 @@
     cancel-text="انصراف"
 >
     <div class="modal-inner-card" dir="rtl">
-        <div class="group relative">
-            <input
-                type="text"
-                wire:model="form.title"
-                placeholder=" "
-                class="peer block w-full rounded-t-xl border-b-2 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-highest)] px-4 pb-3 pt-6 text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] focus:outline-none transition-colors"
-            >
-            <label
-                class="pointer-events-none absolute right-4 top-4 origin-[100%_0] -translate-y-3 scale-75 text-sm text-[var(--md-sys-color-on-surface-variant)] transition-all peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-[var(--md-sys-color-primary)]">
-                عنوان رویداد
-            </label>
-            @error('form.title') <span
-                class="text-xs text-[var(--md-sys-color-error)] mt-1 block">{{ $message }}</span>
-            @enderror
-        </div>
+        <x-ui.forms.input label="عنوان رویداد" name="form.title" wire:model="form.title"/>
 
         <!-- Date & Time -->
         <div class="grid grid-cols-2 gap-4">
-            <div class="group relative">
-                <input
-                    type="text"
-                    wire:model="form.date"
-                    placeholder=" "
-                    class="peer block w-full rounded-t-xl border-b-2 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-highest)] px-4 pb-3 pt-6 text-[var(--md-sys-color-on-surface)] text-center ltr focus:border-[var(--md-sys-color-primary)] focus:outline-none transition-colors"
-                >
-                <label
-                    class="pointer-events-none absolute right-4 top-4 origin-[100%_0] -translate-y-3 scale-75 text-sm text-[var(--md-sys-color-on-surface-variant)] transition-all peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-[var(--md-sys-color-primary)]">
-                    تاریخ
-                </label>
-                @error('form.date') <span
-                    class="text-xs text-[var(--md-sys-color-error)] mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="group relative">
-                <input
-                    type="time"
-                    wire:model="form.time"
-                    class="peer block w-full rounded-t-xl border-b-2 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-highest)] px-4 pb-3 pt-6 text-[var(--md-sys-color-on-surface)] text-center focus:border-[var(--md-sys-color-primary)] focus:outline-none transition-colors"
-                >
-                <label
-                    class="pointer-events-none absolute right-4 top-4 origin-[100%_0] -translate-y-3 scale-75 text-sm text-[var(--md-sys-color-on-surface-variant)] transition-all peer-focus:text-[var(--md-sys-color-primary)]">
-                    زمان
-                </label>
-                @error('form.time') <span
-                    class="text-xs text-[var(--md-sys-color-error)] mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            <x-ui.forms.input label="تاریخ" name="form.date" wire:model="form.date" class="text-center ltr"/>
+            <x-ui.forms.input label="زمان" name="form.time" type="time" wire:model="form.time" class="text-center"/>
         </div>
 
         <!-- Description -->
-        <div class="group relative">
-        <textarea
-            wire:model="form.description"
-            rows="3"
-            placeholder=" "
-            class="peer block w-full rounded-t-xl border-b-2 border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-highest)] px-4 pb-3 pt-6 text-[var(--md-sys-color-on-surface)] focus:border-[var(--md-sys-color-primary)] focus:outline-none transition-colors resize-none"
-        ></textarea>
-            <label
-                class="pointer-events-none absolute right-4 top-4 origin-[100%_0] -translate-y-3 scale-75 text-sm text-[var(--md-sys-color-on-surface-variant)] transition-all peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-[var(--md-sys-color-primary)]">
-                توضیحات تکمیلی
-            </label>
-        </div>
+        <x-ui.forms.textarea label="توضیحات تکمیلی" name="form.description" wire:model="form.description" rows="3" :maximizable="true"/>
 
         <!-- Privacy Toggle -->
         <div

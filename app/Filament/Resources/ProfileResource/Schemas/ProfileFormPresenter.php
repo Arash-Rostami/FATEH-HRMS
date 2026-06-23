@@ -38,10 +38,7 @@ class ProfileFormPresenter
                     ->label('کلید')
                     ->disabled(fn($get): bool => in_array($get('key'), $core))
                     ->dehydrated()
-                    ->required()
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.about_me_key.required'),
-                    ]),
+                    ->required(),
                 TextInput::make('value')
                     ->label('مقدار')
                     ->maxLength(2000),
@@ -96,11 +93,7 @@ class ProfileFormPresenter
                 TextInput::make('key')
                     ->label('نام پیوست')
                     ->required()
-                    ->maxLength(255)
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.attachment_key.required'),
-                        'max' => __('resources/profile/strings.validation.attachment_key.max'),
-                    ]),
+                    ->maxLength(255),
 
                 Select::make('category')
                     ->label('نوع پیوست')
@@ -112,10 +105,7 @@ class ProfileFormPresenter
                         'custom' => 'سفارشی'
                     ])
                     ->required()
-                    ->native(false)
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.attachment_category.required'),
-                    ]),
+                    ->native(false),
 
                 FileUpload::make('path')
                     ->label('فایل پیوست')
@@ -132,11 +122,7 @@ class ProfileFormPresenter
                     ->directory('profiles/docs')
                     ->maxSize(5120)
                     ->required()
-                    ->columnSpanFull()
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.attachment_path.required'),
-                        'max' => __('resources/profile/strings.validation.attachment_path.max'),
-                    ]),
+                    ->columnSpanFull(),
             ])
             ->columns(2)
             ->addable()
@@ -177,10 +163,7 @@ class ProfileFormPresenter
             ->options(Degree::class)
             ->required()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.degree'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.degree.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.degree'));
     }
 
     public static function departmentId(): Select
@@ -214,32 +197,25 @@ class ProfileFormPresenter
                     ->createOptionForm([
                         TextInput::make('key')->label(__('resources/profile/strings.form.detail_custom_key'))->required()->maxLength(191),
                     ])
-                    ->createOptionUsing(fn(array $data): string => $data['key'])
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.detail_key.required'),
-                        'distinct' => __('resources/profile/strings.validation.detail_key.distinct'),
-                    ]),
+                    ->createOptionUsing(fn(array $data): string => $data['key']),
 
                 TextInput::make('value_text')
                     ->label($label)
                     ->required()
                     ->maxLength(2000)
-                    ->visible(fn(Get $get): bool => in_array(self::getDetailType($get('key')), ['text', 'url', 'email']))
-                    ->validationMessages(['required' => $requiredMessage]),
+                    ->visible(fn(Get $get): bool => in_array(self::getDetailType($get('key')), ['text', 'url', 'email'])),
 
                 TextInput::make('value_number')
                     ->label($label)
                     ->required()
                     ->numeric()
-                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'number')
-                    ->validationMessages(['required' => $requiredMessage]),
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'number'),
 
                 Textarea::make('value_textarea')
                     ->label($label)
                     ->required()
                     ->maxLength(2000)
-                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'textarea')
-                    ->validationMessages(['required' => $requiredMessage]),
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'textarea'),
 
                 Select::make('value_select')
                     ->label($label)
@@ -247,8 +223,7 @@ class ProfileFormPresenter
                     ->native(false)
                     ->searchable()
                     ->options(fn(Get $get): array => ProfileDetailCatalog::definition($get('key'))['options'] ?? [])
-                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'select')
-                    ->validationMessages(['required' => $requiredMessage]),
+                    ->visible(fn(Get $get): bool => self::getDetailType($get('key')) === 'select'),
 
                 PersianDateFieldService::make(
                     prefix: 'value_date',
@@ -293,10 +268,7 @@ class ProfileFormPresenter
             ->options(EmploymentStatus::class)
             ->required()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.employment_status'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.employment_status.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.employment_status'));
     }
 
     public static function employmentType(): Select
@@ -306,10 +278,7 @@ class ProfileFormPresenter
             ->options(EmploymentType::class)
             ->required()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.employment_type'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.employment_type.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.employment_type'));
     }
 
     public static function endDate(): FusedGroup
@@ -329,9 +298,6 @@ class ProfileFormPresenter
             ->schema([
                 ColorPicker::make('color')
                     ->label(__('resources/profile/strings.form.favorite_color_item'))
-                    ->validationMessages([
-                        'required' => __('resources/profile/strings.validation.favorite_color.required'),
-                    ])
             ])
             ->grid(4)
             ->columns(1)
@@ -379,10 +345,7 @@ class ProfileFormPresenter
             ->options(Gender::class)
             ->required()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.gender'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.gender.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.gender'));
     }
 
     public static function idBookletNumber(): TextInput
@@ -391,10 +354,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.id_booklet_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
-            ->helperText(__('resources/profile/strings.hints.id_booklet_number'))
-            ->validationMessages([
-                'unique' => __('resources/profile/strings.validation.id_booklet_number.unique'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.id_booklet_number'));
     }
 
     public static function idCardNumber(): TextInput
@@ -403,10 +363,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.id_card_number'))
             ->unique(ignoreRecord: true)
             ->maxLength(20)
-            ->helperText(__('resources/profile/strings.hints.id_card_number'))
-            ->validationMessages([
-                'unique' => __('resources/profile/strings.validation.id_card_number.unique'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.id_card_number'));
     }
 
     public static function image(): FileUpload
@@ -466,10 +423,7 @@ class ProfileFormPresenter
             ->options(MaritalStatus::class)
             ->required()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.marital_status'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.marital_status.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.marital_status'));
     }
 
     public static function numberOfChildren(): Select
@@ -488,10 +442,7 @@ class ProfileFormPresenter
             ->label(__('resources/profile/strings.form.personnel_id'))
             ->unique(ignoreRecord: true)
             ->maxLength(50)
-            ->helperText(__('resources/profile/strings.hints.personnel_id'))
-            ->validationMessages([
-                'unique' => __('resources/profile/strings.validation.personnel_id.unique'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.personnel_id'));
     }
 
     public static function position(): Select
@@ -502,10 +453,7 @@ class ProfileFormPresenter
             ->options(Position::class)
             ->default(Position::Employee->value)
             ->preload()
-            ->helperText(__('resources/profile/strings.hints.position'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.position.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.position'));
     }
 
     public static function startDate(): FusedGroup
@@ -527,10 +475,7 @@ class ProfileFormPresenter
             ->required()
             ->columnSpanFull()
             ->native(false)
-            ->helperText(__('resources/profile/strings.hints.user_id'))
-            ->validationMessages([
-                'required' => __('resources/profile/strings.validation.user_id.required'),
-            ]);
+            ->helperText(__('resources/profile/strings.hints.user_id'));
     }
 
     public static function workExperience(): Select

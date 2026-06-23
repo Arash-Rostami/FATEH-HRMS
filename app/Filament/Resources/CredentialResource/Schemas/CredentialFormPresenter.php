@@ -19,11 +19,7 @@ class CredentialFormPresenter
             ->required()
             ->maxLength(255)
             ->columnSpan($isAdmin ? 1 : 'full')
-            ->helperText(__('resources/credential/strings.hints.app_name'))
-            ->validationMessages([
-                'required' => __('resources/credential/strings.validation.app_name_required'),
-                'max' => __('resources/credential/strings.validation.app_name_max'),
-            ]);
+            ->helperText(__('resources/credential/strings.hints.app_name'));
     }
 
     public static function link(): TextInput
@@ -36,11 +32,7 @@ class CredentialFormPresenter
             ->columnSpanFull()
             ->extraAttributes(['dir' => 'ltr'])
             ->placeholder('https://www.example.com/')
-            ->helperText(__('resources/credential/strings.form.link_helper'))
-            ->validationMessages([
-                'url' => __('resources/credential/strings.validation.link_url'),
-                'max' => __('resources/credential/strings.validation.link_max'),
-            ]);
+            ->helperText(__('resources/credential/strings.form.link_helper'));
     }
 
     public static function note(): Textarea
@@ -63,10 +55,7 @@ class CredentialFormPresenter
             ->revealable()
             ->required()
             ->placeholder(__('resources/credential/strings.fields.note_password'),)
-            ->helperText(__('resources/credential/strings.hints.password'))
-            ->validationMessages([
-                'required' => __('resources/credential/strings.validation.password_required'),
-            ]);
+            ->helperText(__('resources/credential/strings.hints.password'));
     }
 
     public static function userId(): Select
@@ -81,10 +70,7 @@ class CredentialFormPresenter
             ->required()
             ->columnSpan($isAdmin ? 1 : 'full')
             ->visible(fn() => $isAdmin)
-            ->helperText(__('resources/credential/strings.hints.user_id'))
-            ->validationMessages([
-                'required' => __('resources/credential/strings.validation.user_required'),
-            ]);
+            ->helperText(__('resources/credential/strings.hints.user_id'));
     }
 
     public static function username(): TextInput
@@ -93,10 +79,6 @@ class CredentialFormPresenter
             ->label(__('resources/credential/strings.fields.username'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/credential/strings.hints.username'))
-            ->validationMessages([
-                'required' => __('resources/credential/strings.validation.username_required'),
-                'max' => __('resources/credential/strings.validation.username_max'),
-            ]);
+            ->helperText(__('resources/credential/strings.hints.username'));
     }
 }

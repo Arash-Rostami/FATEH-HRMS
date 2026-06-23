@@ -124,13 +124,9 @@
                         <div class="p-5 md:p-6 pt-0 mt-auto flex items-center gap-3">
                             <input type="text"
                                    class="h-11 flex-1 bg-[var(--md-sys-color-surface-variant)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] rounded-xl px-4 font-mono text-sm dir-ltr text-[var(--md-sys-color-on-surface)] truncate focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all cursor-text"
-                                   readonly value="{!! strip_tags($ad->link) !!}"
+                                   readonly value="{{ strip_tags($ad->link) }}"
                                    onclick="event.stopPropagation(); this.select()">
-                            <button onclick="event.stopPropagation(); navigator.clipboard.writeText('{!! strip_tags($ad->link) !!}'); window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'لینک کپی شد', type: 'success' } }))"
-                                    class="shrink-0 w-11 h-11 flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-surface)] rounded-xl hover:brightness-95 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all"
-                                    title="کپی لینک">
-                                <span class="material-symbols-rounded text-[20px]">content_copy</span>
-                            </button>
+                            <x-ui.buttons.copy :text="strip_tags($ad->link)" message="لینک کپی شد"/>
                         </div>
                     </div>
 

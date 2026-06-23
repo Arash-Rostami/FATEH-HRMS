@@ -10,7 +10,7 @@ class UndoTaskAssignmentAction
     {
         $task = Task::find($taskId);
 
-        if (!$task?->is_delegator) {
+        if (!$task?->is_delegator || $task->status === 'done') {
             return false;
         }
 

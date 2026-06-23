@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Dashboard\Contact\Presentation;
 
+use App\Enums\PresenceStatus;
 use App\Models\Traits\HasAvatar;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ContactPresenter
@@ -24,13 +26,14 @@ class ContactPresenter
             'id'       => $c['id'],
             'name'     => $c['name'],
             'initials' => mb_substr($c['name'], 0, 1),
-            'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null) ?? $this->generateInitialsAvatar($c['name']),
+            'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null),
             'position' => $c['profile']['position'] ?? 'عضو سازمان',
             'is_online' => (bool) ($c['is_online'] ?? false),
+            'presence'  => ($c['presence'] ?? null) instanceof PresenceStatus ? $c['presence'] : null,
             'unread'    => $unread,
             'last_message' => $last ? [
                 'body'       => Str::limit($last['body'], 30),
-                'time'       => Carbon::parse($last['created_at'])->diffForHumans(null, true, true),
+                'time'       => toJalaliRelative($last['created_at'], short: true),
                 'datetime'   => $last['created_at'],
                 'is_mine'    => (int) ($last['sender_id'] ?? 0) === $authId,
                 'is_read'    => !empty($last['read_at']),
@@ -86,6 +89,7 @@ class ContactPresenter
                 'is_deleted' => !empty($msg['deleted_at']),
                 'can_edit'   => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']),
+                'attachments' => $this->attachments($msg['attachments'] ?? []),
                 'gap_class'  => $isFirst ? 'mt-4' : 'mt-1',
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),
                 'reply_to'   => $this->replyPreview($msg['reply_to'] ?? null),
@@ -135,6 +139,16 @@ class ContactPresenter
             $isLast             => 'rounded-2xl rounded-tr-md',
             default             => 'rounded-2xl rounded-r-md',
         };
+    }
+
+    private function attachments(array $attachments): array
+    {
+        return collect($attachments)->map(fn(array $file) => [
+            ...$file,
+            'url' => Storage::disk('public')->url($file['path']),
+            'size_label' => number_format(($file['size'] ?? 0) / 1024, 1) . ' KB',
+            'is_image' => str_starts_with($file['mime'] ?? '', 'image/'),
+        ])->all();
     }
 
     private function linkify(string $text): string

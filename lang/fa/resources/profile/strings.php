@@ -62,64 +62,6 @@ return [
         'about_me_value' => 'توضیح',
         'user_id' => 'کاربر',
     ],
-
-    'validation' => [
-        'detail_key' => [
-            'required' => 'انتخاب عنوان اطلاعات الزامی است.',
-            'distinct' => 'هر عنوان تنها یک‌بار قابل ثبت است.',
-        ],
-        'detail_value' => [
-            'required' => 'وارد کردن مقدار الزامی است.',
-        ],
-        'personnel_id' => [
-            'unique' => 'این کد پرسنلی قبلاً ثبت شده است.',
-        ],
-        'id_card_number' => [
-            'unique' => 'این شماره ملی قبلاً ثبت شده است.',
-        ],
-        'id_booklet_number' => [
-            'unique' => 'این شماره شناسنامه قبلاً ثبت شده است.',
-        ],
-        'gender' => [
-            'required' => 'جنسیت الزامی است.',
-        ],
-        'employment_type' => [
-            'required' => 'نوع استخدام الزامی است.',
-        ],
-        'employment_status' => [
-            'required' => 'وضعیت استخدام الزامی است.',
-        ],
-        'marital_status' => [
-            'required' => 'وضعیت تأهل الزامی است.',
-        ],
-        'degree' => [
-            'required' => 'مقطع تحصیلی الزامی است.',
-        ],
-        'position' => [
-            'required' => 'سمت الزامی است.',
-        ],
-        'user_id' => [
-            'required' => 'کاربر الزامی است.',
-        ],
-        'about_me_key' => [
-            'required' => 'کلید الزامی است.',
-        ],
-        'attachment_key' => [
-            'required' => 'نام پیوست الزامی است.',
-            'max' => 'نام پیوست نباید بیش از ۲۵۵ کاراکتر باشد.',
-        ],
-        'attachment_category' => [
-            'required' => 'نوع پیوست الزامی است.',
-        ],
-        'attachment_path' => [
-            'required' => 'فایل پیوست الزامی است.',
-            'max' => 'حجم فایل پیوست نباید بیش از ۵۱۲۰ کیلوبایت باشد.',
-        ],
-        'favorite_color' => [
-            'required' => 'رنگ الزامی است.',
-        ],
-    ],
-
     'table' => [
         'details_count' => 'تعداد اطلاعات تکمیلی',
         'filter_has_details' => 'دارای اطلاعات تکمیلی',

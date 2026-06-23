@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Forms;
 
+use App\Filament\Resources\TaskResource\Enums\TaskState;
+use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -43,18 +45,19 @@ class TaskForm extends Form
     #[Validate('nullable|string|max:2000')]
     public ?string $actionSource = null;
 
-    #[Validate('array')]
+    #[Validate(['collaborators' => 'array', 'collaborators.*' => 'exists:users,id'])]
     public array $collaborators = [];
 
     #[Validate('nullable|integer|exists:users,id')]
     public ?int $responsibleUserId = null;
 
-    #[Validate('nullable|in:extension,suspension,completion')]
+    #[Validate(['nullable', new Enum(TaskState::class)])]
     public ?string $state = null;
 
     public array $attachments = [];
     public array $existingAttachments = [];
 
+    #[Validate('nullable|integer|exists:users,id')]
     public $selectedAssignee = null;
     protected array $validationAttributes = [
         'newTitle' => 'عنوان',
@@ -70,8 +73,10 @@ class TaskForm extends Form
         'actionSourceDomain' => 'حوزه منشاء اقدام',
         'actionSource' => 'منشاء اقدام',
         'collaborators' => 'همکاران',
+        'collaborators.*' => 'همکاران',
         'responsibleUserId' => 'جوابگو',
         'state' => 'تعیین تکلیف',
+        'selectedAssignee' => 'مسئول انجام',
     ];
 
     public function detailAttributes(): array
@@ -102,7 +107,9 @@ class TaskForm extends Form
             'actionSourceDomain.max' => 'حوزه منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
             'actionSource.max' => 'منشاء اقدام نباید بیش از ۲۰۰۰ کاراکتر باشد.',
             'responsibleUserId.exists' => 'کاربر جوابگوی انتخاب‌شده معتبر نیست.',
-            'state.in' => 'تعیین تکلیف انتخاب‌شده معتبر نیست.',
+            'state.enum' => 'تعیین تکلیف انتخاب‌شده معتبر نیست.',
+            'collaborators.*.exists' => 'یکی از همکاران انتخاب‌شده معتبر نیست.',
+            'selectedAssignee.exists' => 'مسئول انجام انتخاب‌شده معتبر نیست.',
         ];
     }
 }

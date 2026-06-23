@@ -84,10 +84,6 @@ class AuthorityFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
-            ->validationMessages([
-                'required' => __('resources/authority/strings.validation.authority_required'),
-                'max' => __('resources/authority/strings.validation.authority_max_length', ['length' => 2000]),
-            ])
             ->mutateDehydratedStateUsing(fn(?string $state): ?string => ContentSanitizerService::clean($state));
     }
 

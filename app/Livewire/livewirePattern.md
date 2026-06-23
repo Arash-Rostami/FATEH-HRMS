@@ -63,6 +63,8 @@ class SomethingForm extends Form
 - Livewire auto-instantiates — no `new` or `mount` initialization needed
 - `wire:model="form.field"` dot notation works identically in Blade — **no Blade changes** except the prefix
 
+> **`#[Validate]` array-rule gotcha:** to set a wildcard rule on an array property's elements (e.g. `collaborators.*`), `#[Validate([...])]`'s array form is only parsed as a key-value rules map (`Livewire\Features\SupportValidation\BaseValidate::boot()`) when its **first key is non-numeric**. Writing `#[Validate(['array', 'collaborators.*' => 'exists:users,id'])]` puts `'array'` at numeric key `0`, so the whole array silently collapses into one malformed rule value instead of being parsed — the wildcard rule never registers, no error, no warning. Key every entry explicitly: `#[Validate(['collaborators' => 'array', 'collaborators.*' => 'exists:users,id'])]`.
+
 ---
 
 ## Step 3 — Create Actions
@@ -279,6 +281,7 @@ Everything else — `$activeTab`, computed properties, `$this->items`, event lis
 - [ ] Post-action side effects (toast, redirect, tab) stay in `Main`, not in Action
 - [ ] Public properties holding an Eloquent model or record id are `#[Locked]` unless the client is meant to change them — prevents the client swapping the id to act on another user's record (IDOR)
 - [ ] Bulk-action Actions (operating on a client-supplied array of ids, e.g. `selectedTasks`) filter the loaded models through the same `can_*` accessor the single-record method already uses, *inside* the Action — e.g. `Task::whereIn('id', $taskIds)->get()->filter(fn($t) => $t->can_change_status)` — rather than trusting the array as-is. The accessor is computed server-side from `auth()->id()`, so any id the user doesn't own is silently dropped instead of acted on
+- [ ] When Blade hides a button under an *extra* condition beyond the `can_*` accessor (e.g. `@if($task['is_delegator'] && $column !== 'done')`), that extra condition must be re-checked inside the Action too, not just the accessor — a UI-only restriction is not a server-side guard. Found via `UndoTaskAssignmentAction`, which checked `is_delegator` but not `status !== 'done'`, even though the card already hid the button for done tasks
 
 ---
 

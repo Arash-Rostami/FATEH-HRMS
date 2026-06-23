@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Presentation;
 
+use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use Illuminate\Support\ViewErrorBag;
 
 class TaskBoardPresenter
@@ -9,10 +10,10 @@ class TaskBoardPresenter
     public function columnConfig(): array
     {
         return [
-            'todo'        => ['title' => 'انجام نشده',   'icon' => '🧾', 'color' => 'primary',  'lightGradient' => 'from-rose-500 to-pink-600',    'darkGradient' => 'from-rose-700 to-pink-800'],
-            'in-progress' => ['title' => 'در حال انجام', 'icon' => '⏳', 'color' => 'secondary', 'lightGradient' => 'from-amber-500 to-orange-600',  'darkGradient' => 'from-amber-700 to-orange-800'],
-            'pending'     => ['title' => 'متوقف / در انتظار', 'icon' => '🛑', 'color' => 'error', 'lightGradient' => 'from-red-600 to-red-700', 'darkGradient' => 'from-red-800 to-red-900'],
-            'done'        => ['title' => 'انجام شده',    'icon' => '🎯', 'color' => 'tertiary',  'lightGradient' => 'from-emerald-500 to-green-600', 'darkGradient' => 'from-emerald-700 to-green-800'],
+            'todo'        => ['title' => TaskStatus::Todo->getLabel(),       'icon' => '🧾', 'color' => 'primary',  'lightGradient' => 'from-rose-500 to-pink-600',    'darkGradient' => 'from-rose-700 to-pink-800'],
+            'in-progress' => ['title' => TaskStatus::InProgress->getLabel(), 'icon' => '⏳', 'color' => 'secondary', 'lightGradient' => 'from-amber-500 to-orange-600',  'darkGradient' => 'from-amber-700 to-orange-800'],
+            'pending'     => ['title' => TaskStatus::Pending->getLabel(),    'icon' => '🛑', 'color' => 'error', 'lightGradient' => 'from-red-600 to-red-700', 'darkGradient' => 'from-red-800 to-red-900'],
+            'done'        => ['title' => TaskStatus::Done->getLabel(),       'icon' => '🎯', 'color' => 'tertiary',  'lightGradient' => 'from-emerald-500 to-green-600', 'darkGradient' => 'from-emerald-700 to-green-800'],
         ];
     }
 

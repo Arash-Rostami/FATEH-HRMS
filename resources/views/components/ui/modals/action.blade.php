@@ -1,8 +1,9 @@
 @props([
     'title',
-    'action',
+    'action' => null,
     'confirmText' => 'ذخیره',
-    'cancelText' => 'انصراف'
+    'cancelText' => 'انصراف',
+    'readonly' => false,
 ])
 
 <x-ui.modals.base
@@ -21,19 +22,21 @@
             class="modal-btn modal-btn-cancel"
             @click="show = false"
         >
-            {{ $cancelText }}
+            {{ $readonly ? 'بستن' : $cancelText }}
         </button>
 
-        <button
-            type="button"
-            class="modal-btn modal-btn-confirm"
-            wire:click="{{ $action }}"
-            wire:loading.attr="disabled"
-        >
-            <span wire:loading.remove wire:target="{{ $action }}">{{ $confirmText }}</span>
-            <span wire:loading wire:target="{{ $action }}">
-                <i class="fas fa-spinner fa-spin"></i> در حال پردازش...
-            </span>
-        </button>
+        @unless($readonly)
+            <button
+                type="button"
+                class="modal-btn modal-btn-confirm"
+                wire:click="{{ $action }}"
+                wire:loading.attr="disabled"
+            >
+                <span wire:loading.remove wire:target="{{ $action }}">{{ $confirmText }}</span>
+                <span wire:loading wire:target="{{ $action }}">
+                    <i class="fas fa-spinner fa-spin"></i> در حال پردازش...
+                </span>
+            </button>
+        @endunless
     </x-slot:actions>
 </x-ui.modals.base>

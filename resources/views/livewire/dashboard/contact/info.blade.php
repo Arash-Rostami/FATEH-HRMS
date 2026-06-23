@@ -22,7 +22,8 @@
                 class="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
                 <x-ui.avatar
                     :image="null"
-                    :existingImage="$activeContact->getProfileImageUrl() ?? $activeContact->getInitialsAvatarUrl()"
+                    :existingImage="$activeContact->getProfileImageUrl()"
+                    :alt="$activeContact->name"
                     class="rounded-lg" />
             </div>
             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $activeContact->name }}</p>

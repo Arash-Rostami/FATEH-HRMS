@@ -764,12 +764,6 @@
         animation-delay: 0.24s;
     }
 
-    .online-pulse {
-        position: relative;
-        top: 0;
-        right: 0;
-    }
-
     .online-pulse::before {
         content: '';
         position: absolute;

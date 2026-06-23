@@ -54,10 +54,6 @@ class FAQFormPresenter
                     'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
-            ])
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.answer_required'),
-                'max' => __('resources/faq/strings.validation.answer_max_length', ['length' => 5000]),
             ]);
     }
 
@@ -76,10 +72,7 @@ class FAQFormPresenter
             ->createOptionUsing(fn(array $data): string => $data['category'])
             ->extraFieldWrapperAttributes(['class' => 'no-shell'])
             ->required()
-            ->helperText(__('resources/faq/strings.hints.category'))
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.category_required'),
-            ]);
+            ->helperText(__('resources/faq/strings.hints.category'));
     }
 
     public static function departmentId(): Select
@@ -115,10 +108,6 @@ class FAQFormPresenter
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
             ->helperText(__('resources/faq/strings.hints.question'))
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.question_required'),
-                'max' => __('resources/faq/strings.validation.question_max_length', ['length' => 500]),
-            ])
             ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 120px;']);
     }
 
@@ -133,7 +122,6 @@ class FAQFormPresenter
             ->disabled()
             ->dehydrated(true)
             ->hint(__('resources/faq/strings.hint.user_locked'))
-            ->required()
-            ->validationMessages(['required' => __('resources/faq/strings.validation.user_required')]);
+            ->required();
     }
 }

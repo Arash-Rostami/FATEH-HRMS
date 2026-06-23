@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Set;
 class ReservationFormPresenter
 {
     use FilamentFormDivider;
+
     public static function cancelReason(): Select
     {
         return Select::make('cancel_reason')
@@ -36,10 +37,7 @@ class ReservationFormPresenter
                     ['cancelled_user', 'cancelled_admin']
                 );
             })
-            ->helperText(__('resources/reservation/strings.hints.cancel_reason'))
-            ->validationMessages([
-                'in' => __('resources/reservation/strings.validation.cancel_reason_in'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.cancel_reason'));
     }
 
     public static function endTime(): DateTimePicker
@@ -52,22 +50,7 @@ class ReservationFormPresenter
             ->locale('fa')
             ->after('start_time')
             ->visible(fn(Get $get) => !$get('is_full_day'))
-            ->helperText(__('resources/reservation/strings.hints.end_time'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.end_time_required'),
-                'after' => __('resources/reservation/strings.validation.end_after_start'),
-                'date' => __('resources/reservation/strings.validation.end_time_date'),
-            ]);
-    }
-
-    public static function isFullDay(): Toggle
-    {
-        return Toggle::make('is_full_day')
-            ->label(__('resources/reservation/strings.fields.is_full_day'))
-            ->onColor('success')
-            ->columnSpanFull()
-            ->helperText(__('resources/reservation/strings.hints.is_full_day'))
-            ->live();
+            ->helperText(__('resources/reservation/strings.hints.end_time'));
     }
 
     public static function fullDayDate(): DatePicker
@@ -78,6 +61,16 @@ class ReservationFormPresenter
             ->native(false)
             ->locale('fa')
             ->visible(fn(Get $get) => (bool)$get('is_full_day'));
+    }
+
+    public static function isFullDay(): Toggle
+    {
+        return Toggle::make('is_full_day')
+            ->label(__('resources/reservation/strings.fields.is_full_day'))
+            ->onColor('success')
+            ->columnSpanFull()
+            ->helperText(__('resources/reservation/strings.hints.is_full_day'))
+            ->live();
     }
 
     public static function isRecurring(): Toggle
@@ -102,10 +95,7 @@ class ReservationFormPresenter
             ->searchable()
             ->nullable()
             ->columnSpanFull()
-            ->placeholder('—')
-            ->validationMessages([
-                'in' => __('resources/reservation/strings.validation.parent_id_in'),
-            ]);
+            ->placeholder('—');
     }
 
     public static function recurCount(): TextInput
@@ -119,13 +109,7 @@ class ReservationFormPresenter
             ->dehydrated(false)
             ->visible(fn(Get $get) => (bool)$get('is_recurring'))
             ->required(fn(Get $get) => (bool)$get('is_recurring'))
-            ->helperText(__('resources/reservation/strings.hints.recur_count'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.recur_count_required'),
-                'numeric' => __('resources/reservation/strings.validation.recur_count_numeric'),
-                'min' => __('resources/reservation/strings.validation.recur_count_min'),
-                'max' => __('resources/reservation/strings.validation.recur_count_max'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.recur_count'));
     }
 
     public static function recurPattern(): Select
@@ -138,11 +122,7 @@ class ReservationFormPresenter
             ->dehydrated(false)
             ->visible(fn(Get $get) => (bool)$get('is_recurring'))
             ->required(fn(Get $get) => (bool)$get('is_recurring'))
-            ->helperText(__('resources/reservation/strings.hints.recur_pattern'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.recur_pattern_required'),
-                'in' => __('resources/reservation/strings.validation.recur_pattern_in'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.recur_pattern'));
     }
 
     public static function resourceId(): Select
@@ -153,11 +133,7 @@ class ReservationFormPresenter
             ->searchable()
             ->preload()
             ->required()
-            ->helperText(__('resources/reservation/strings.hints.resource_id'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.resource_required'),
-                'in' => __('resources/reservation/strings.validation.resource_in'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.resource_id'));
     }
 
     public static function startTime(): DateTimePicker
@@ -169,11 +145,7 @@ class ReservationFormPresenter
             ->native(false)
             ->locale('fa')
             ->visible(fn(Get $get) => !$get('is_full_day'))
-            ->helperText(__('resources/reservation/strings.hints.start_time'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.start_time_required'),
-                'date' => __('resources/reservation/strings.validation.start_time_date'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.start_time'));
     }
 
     public static function status(): Select
@@ -184,11 +156,7 @@ class ReservationFormPresenter
             ->default('active')
             ->required()
             ->live()
-            ->helperText(__('resources/reservation/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.status_required'),
-                'in' => __('resources/reservation/strings.validation.status_in'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.status'));
     }
 
     public static function userId(): Select
@@ -199,10 +167,6 @@ class ReservationFormPresenter
             ->searchable()
             ->preload()
             ->required()
-            ->helperText(__('resources/reservation/strings.hints.user_id'))
-            ->validationMessages([
-                'required' => __('resources/reservation/strings.validation.user_required'),
-                'in' => __('resources/reservation/strings.validation.user_in'),
-            ]);
+            ->helperText(__('resources/reservation/strings.hints.user_id'));
     }
 }

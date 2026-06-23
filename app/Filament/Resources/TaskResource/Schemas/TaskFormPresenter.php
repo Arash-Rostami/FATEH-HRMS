@@ -30,8 +30,7 @@ class TaskFormPresenter
             ->rows(2)
             ->maxLength(2000)
             ->nullable()
-            ->helperText(__('resources/task/strings.hints.action_source'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.action_source.max_length')]);
+            ->helperText(__('resources/task/strings.hints.action_source'));
     }
 
     public static function actionSourceDomain(): Textarea
@@ -41,8 +40,7 @@ class TaskFormPresenter
             ->rows(2)
             ->maxLength(2000)
             ->nullable()
-            ->helperText(__('resources/task/strings.hints.action_source_domain'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.action_source_domain.max_length')]);
+            ->helperText(__('resources/task/strings.hints.action_source_domain'));
     }
 
     public static function assignedTo(): Select
@@ -68,16 +66,11 @@ class TaskFormPresenter
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
-                    ->validationMessages([
-                        'max' => __('resources/task/strings.validation.attachments.max_size'),
-                        'mimetypes' => __('resources/task/strings.validation.attachments.mime_types'),
-                    ])
                     ->openable()
                     ->downloadable(),
             ])
             ->maxItems(5)
             ->helperText(__('resources/task/strings.hints.attachments'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.attachments.max_items')])
             ->columnSpanFull();
     }
 
@@ -90,20 +83,6 @@ class TaskFormPresenter
             ->searchable()
             ->preload()
             ->helperText(__('resources/task/strings.hints.collaborators'));
-    }
-
-    public static function departmentId(): Select
-    {
-        return Select::make('department_id')
-            ->label(__('resources/task/strings.fields.department'))
-            ->options(fn() => Department::getCachedOptions()->toArray())
-            ->searchable()
-            ->live()
-            ->afterStateUpdated(function (callable $set) {
-                $set('unit', null);
-                $set('section', null);
-            })
-            ->helperText(__('resources/task/strings.hints.department'));
     }
 
     public static function deadlineDate(): FusedGroup
@@ -130,8 +109,21 @@ class TaskFormPresenter
             })
             ->nullable()
             ->helperText(__('resources/task/strings.hints.deadline_time'))
-            ->validationMessages(['date_format' => __('resources/task/strings.validation.deadline_time.invalid')])
             ->columnSpanFull();
+    }
+
+    public static function departmentId(): Select
+    {
+        return Select::make('department_id')
+            ->label(__('resources/task/strings.fields.department'))
+            ->options(fn() => Department::getCachedOptions()->toArray())
+            ->searchable()
+            ->live()
+            ->afterStateUpdated(function (callable $set) {
+                $set('unit', null);
+                $set('section', null);
+            })
+            ->helperText(__('resources/task/strings.hints.department'));
     }
 
     public static function description(): Textarea
@@ -142,7 +134,6 @@ class TaskFormPresenter
             ->maxLength(5000)
             ->nullable()
             ->helperText(__('resources/task/strings.hints.description'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.description.max_length')])
             ->columnSpanFull();
     }
 
@@ -201,10 +192,7 @@ class TaskFormPresenter
             ->options(TaskStatus::class)
             ->required()
             ->default(TaskStatus::Todo->value)
-            ->helperText(__('resources/task/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.status.required'),
-            ]);
+            ->helperText(__('resources/task/strings.hints.status'));
     }
 
     public static function title(): TextInput
@@ -213,11 +201,7 @@ class TaskFormPresenter
             ->label(__('resources/task/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/task/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.title.required'),
-                'max' => __('resources/task/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/task/strings.hints.title'));
     }
 
     public static function unit(): Select
@@ -238,10 +222,7 @@ class TaskFormPresenter
             ->searchable()
             ->preload()
             ->helperText(__('resources/task/strings.hints.user_id'))
-            ->required()
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.user_id.required'),
-            ]);
+            ->required();
     }
 
     private static function acceptedMimeTypes(): array

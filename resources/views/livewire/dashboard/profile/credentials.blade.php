@@ -63,7 +63,7 @@
                             <div class="flex items-center justify-between bg-[var(--md-sys-color-surface-variant)]/40 rounded-xl px-3 py-2 border border-[var(--md-sys-color-outline-variant)]/60 hover:border-[var(--md-sys-color-primary)]/40 transition-colors">
                                 <span class="font-mono text-sm truncate select-all text-[var(--md-sys-color-on-surface)] flex-1"
                                       dir="ltr">{{ $cred->username }}</span>
-                                <x-ui.buttons.copy text="{{ $cred->username }}"/>
+                                <x-ui.buttons.copy text="{{ $cred->username }}" message="نام کاربری کپی شد"/>
                             </div>
                         </div>
 
@@ -85,7 +85,7 @@
                                           class="font-mono text-sm truncate select-all text-[var(--md-sys-color-on-surface)]"
                                           dir="ltr">{{ $cred->password }}</span>
                                 </div>
-                                <x-ui.buttons.copy text="{{ $cred->password }}" class="flex-shrink-0"/>
+                                <x-ui.buttons.copy text="{{ $cred->password }}" class="flex-shrink-0" message="رمز عبور کپی شد"/>
                             </div>
                         </div>
 

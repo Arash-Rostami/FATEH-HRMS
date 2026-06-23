@@ -42,6 +42,20 @@ components/
 <x-dashboard.employee.status-badge :employee="$user" />
 ```
 
+#### 1.2.1.1 Opt-in Behavior Composition (`maximizable`)
+**Purpose:** Share a stateful Alpine/Livewire behavior (not just markup) across multiple `ui.forms.*` primitives without duplicating it per-component.
+
+**Pattern:**
+- The behavior's markup lives in two small partials — `ui.forms.maximize-trigger` (the expand button) and `ui.forms.maximize-overlay` (the teleported fullscreen editor) — included by any host component that declares the shared `x-data` scope.
+- The host component (`input`, `textarea`, `search`) takes a `maximizable` prop (default `false`, opt-in) and, only when true, wraps its root element with `x-data="{ value: @entangle($attributes->wire('model')->value() ?? '').live, fullscreen: false }"` plus `wire:ignore.self` — deriving the entangled property straight from the `wire:model` attribute already on the tag (same technique `select.blade.php` uses for its searchable dropdown), so no separate `model` string prop is needed.
+- The host's own field keeps its normal `wire:model` binding; the entangled `value` is purely the bridge that lets the fullscreen overlay's `x-model="value"` stay in sync with the same Livewire property.
+- Apply `maximizable` only where the field is genuinely long-form free text (bio, descriptions, decision notes) — not on short structured fields (codes, phone numbers, single selects).
+
+**Example:**
+```blade
+<x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" wire:model="form.descriptionSelf" :rows="5" :maximizable="true"/>
+```
+
 #### 1.2.2 Domain Components (`components.{admin,auth,dashboard}.*`)
 **Purpose:** Controller-less Blade compositions representing specific business contexts.
 

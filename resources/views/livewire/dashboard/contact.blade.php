@@ -1,6 +1,7 @@
 <div
     dir="rtl"
     x-data="contact()"
+    wire:poll.10s
     x-on:chat-ready.window="scrollToBottom(true)"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays()"
@@ -13,7 +14,7 @@
         <x-ui.title
             icon="perm_contact_calendar"
             :count="count($this->filteredContacts)"
-            title="مخاطبین"
+            title="مخاطبین (پیام‌رسان)"
             countLabel="نفر"/>
 
         @include('components.dashboard.header.focus-chip')

@@ -10,6 +10,22 @@ use Filament\Forms\Components\TextInput;
 class ContactFormPresenter
 {
     use FilamentFormDivider;
+
+    public static function attachmentsPreview(): Textarea
+    {
+        return Textarea::make('attachments_preview')
+            ->label(__('resources/contact/strings.fields.attachments'))
+            ->formatStateUsing(fn($state, $record) => collect($record?->attachmentUrls() ?? [])
+                ->map(fn($file) => ($file['name'] ?? '?') . ' (' . number_format(($file['size'] ?? 0) / 1024, 1) . ' KB)')
+                ->implode("\n") ?: __('resources/contact/strings.fields.no_attachments')
+            )
+            ->rows(3)
+            ->disabled()
+            ->dehydrated(false)
+            ->columnSpanFull()
+            ->hidden(fn($record) => empty($record?->attachments));
+    }
+
     public static function body(): Textarea
     {
         return Textarea::make('body')
@@ -18,8 +34,7 @@ class ContactFormPresenter
             ->rows(5)
             ->maxLength(10000)
             ->columnSpanFull()
-            ->helperText(__('resources/contact/strings.hints.body'))
-            ->validationMessages(['required' => __('resources/contact/strings.validation.body_required')]);
+            ->helperText(__('resources/contact/strings.hints.body'));
     }
 
     public static function recipient(): Select

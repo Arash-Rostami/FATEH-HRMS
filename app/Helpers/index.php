@@ -1,67 +1,95 @@
 <?php
 
-
 use App\Enums\PresenceStatus;
 use App\Models\Permission;
 use App\Services\GreetingService;
 use App\Services\QuoteService;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Morilog\Jalali\Jalalian;
 
-if (!function_exists('superClean')) {
+if (!function_exists('convertToPersian')) {
+    function convertToPersian(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
 
+        return strtr((string)$value, [
+            '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
+            '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹'
+        ]);
+    }
+}
+
+if (!function_exists('superClean')) {
     function superClean(?string $text, int $limit = 100, bool $nl2br = false): string
     {
-        if (empty($text)) return '';
+        if (blank($text)) {
+            return '';
+        }
 
         $text = strip_tags($text);
-        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-        $text = ($nl2br)
-            ? preg_replace('/[ \t]+/u', ' ', $text)
-            : preg_replace('/\s+/u', ' ', $text);
-        $text = Str::limit(trim($text), $limit);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace($nl2br ? '/[ \t]+/u' : '/\s+/u', ' ', $text);
+        $text = Str::limit(trim((string)$text), $limit);
 
         return $nl2br ? nl2br(e($text), false) : $text;
     }
 }
 
-
 if (!function_exists('jdate')) {
-    function jdate($date = null)
+    function jdate(mixed $date = null): Jalalian
     {
-        if (!$date) return Jalalian::now();
+        if (blank($date)) {
+            return Jalalian::now();
+        }
 
-        $instance = $date instanceof Carbon ? $date : Carbon::parse($date);
-        return Jalalian::fromCarbon($instance);
+        try {
+            $instance = $date instanceof CarbonInterface
+                ? $date
+                : Carbon::parse($date);
+
+            return Jalalian::fromCarbon($instance);
+        } catch (\Throwable $e) {
+            return Jalalian::now();
+        }
     }
 }
 
 if (!function_exists('jdateOnly')) {
-    function jdateOnly($date = null)
+    function jdateOnly(mixed $date = null): string
     {
-        return jdate($date)->format('%d/%m/%Y');
+        return convertToPersian(jdate($date)->format('%d/%m/%Y')) ?? '';
     }
 }
 
 if (!function_exists('isPast')) {
-    function isPast(string $time = null): bool
+    function isPast(?string $time = null): bool
     {
-        if (!$time) return false;
+        if (blank($time)) {
+            return false;
+        }
 
-        return Carbon::parse($time)->isPast();
+        try {
+            return Carbon::parse($time)->isPast();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }
-
 
 if (!function_exists('presence')) {
     function presence(mixed $p): PresenceStatus
     {
-        if ($p instanceof PresenceStatus) return $p;
+        if ($p instanceof PresenceStatus) {
+            return $p;
+        }
+
         return PresenceStatus::tryFrom((string)$p) ?? PresenceStatus::Onsite;
     }
 }
-
 
 if (!function_exists('presenceCases')) {
     function presenceCases(): array
@@ -78,13 +106,6 @@ if (!function_exists('greeting')) {
     }
 }
 
-if (!function_exists('quotes')) {
-    function quotes(): array
-    {
-        return app(QuoteService::class)->all();
-    }
-}
-
 if (!function_exists('shortGreeting')) {
     function shortGreeting(?string $name = null): string
     {
@@ -93,31 +114,42 @@ if (!function_exists('shortGreeting')) {
     }
 }
 
+if (!function_exists('quotes')) {
+    function quotes(): array
+    {
+        return app(QuoteService::class)->all();
+    }
+}
 
 if (!function_exists('isSpecialDay')) {
-    function isSpecialDay($type)
+    function isSpecialDay(string $type): bool
     {
-        $user = Auth::user();
-        if (!$user) return false;
+        $user = auth()->user();
 
-        $cacheKey = $type . $user->id;
-        if (cache()->has($cacheKey)) return false;
-
-        $date = null;
-        if ($type === 'birthdate' && $user->profile && $user->profile->birthdate) {
-            $date = $user->profile->birthdate;
-        } elseif ($type === 'start_date' && $user->profile && $user->profile->start_date) {
-            $date = $user->profile->start_date;
+        if (!$user) {
+            return false;
         }
 
-        if (!$date) return false;
+        if (cache()->has($type . $user->id)) {
+            return false;
+        }
 
-        return $date->format('m-d') === now()->format('m-d');
+        $date = match ($type) {
+            'birthdate' => $user->profile?->birthdate,
+            'start_date' => $user->profile?->start_date,
+            default => null,
+        };
+
+        if (!$date instanceof CarbonInterface) {
+            return false;
+        }
+
+        return $date->format('m-d') === Carbon::now()->format('m-d');
     }
 }
 
 if (!function_exists('getEventStyles')) {
-    function getEventStyles($type): string
+    function getEventStyles(string $type): string
     {
         return match ($type) {
             'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
@@ -128,78 +160,149 @@ if (!function_exists('getEventStyles')) {
 }
 
 if (!function_exists('formatJalaliDate')) {
-    function formatJalaliDate($date, $format = 'l, d F', $fromFormat = 'Y-m-d')
+    function formatJalaliDate(mixed $date, string $format = 'l, d F', string $fromFormat = 'Y-m-d'): string
     {
+        if (blank($date)) {
+            return '';
+        }
+
         try {
-            return Jalalian::fromFormat($fromFormat, $date)->format($format);
+            $formatted = Jalalian::fromFormat($fromFormat, (string)$date)->format($format);
+            return convertToPersian($formatted) ?? (string)$date;
         } catch (\Throwable $e) {
-            return $date;
+            return convertToPersian((string)$date) ?? (string)$date;
         }
     }
 }
 
 if (!function_exists('isVideo')) {
-    function isVideo($path): bool
+    function isVideo(?string $path): bool
     {
-        $extension = strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
-        return in_array($extension, ['mp4', 'webm', 'ogg']);
+        if (blank($path)) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($extension, ['mp4', 'webm', 'ogg'], true);
     }
 }
 
 if (!function_exists('getFileExtension')) {
-    function getFileExtension($path): string
+    function getFileExtension(?string $path): string
     {
-        return strtolower(pathinfo($path ?? '', PATHINFO_EXTENSION));
-    }
-}
+        if (blank($path)) {
+            return '';
+        }
 
-if (!function_exists('convertToPersian')) {
-    function convertToPersian(?string $string): ?string
-    {
-        return $string === null ? null : str_replace(
-            range(0, 9),
-            ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'],
-            $string
-        );
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION));
     }
 }
 
 if (!function_exists('toJalali')) {
     function toJalali(mixed $date, string $format = 'Y/m/d H:i'): string
     {
-        if (empty($date)) return '';
-        if ($date instanceof Carbon) return Jalalian::fromCarbon($date)->format($format);
+        if (blank($date)) {
+            return '';
+        }
 
-        $dateString = (string)$date;
-        $dateString = str_replace('/', '-', $dateString);
-        $year = (int)explode('-', $dateString)[0];
+        try {
+            if ($date instanceof CarbonInterface) {
+                return convertToPersian(Jalalian::fromCarbon($date)->format($format)) ?? '';
+            }
 
-        if ($year >= 1300 && $year <= 1500) return $dateString;
+            $dateString = str_replace('/', '-', (string)$date);
+            $year = (int)explode('-', $dateString)[0];
 
-        return Jalalian::fromCarbon(Carbon::parse($dateString))->format($format);
+            if ($year >= 1300 && $year <= 1500) {
+                return convertToPersian($dateString) ?? $dateString;
+            }
+
+            return convertToPersian(Jalalian::fromCarbon(Carbon::parse($dateString))->format($format)) ?? '';
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 }
 
 if (!function_exists('toJalaliSmart')) {
     function toJalaliSmart(mixed $date): string
     {
-        if (blank($date)) return '—';
+        if (blank($date)) {
+            return '—';
+        }
 
-        $carbon = $date instanceof Carbon ? $date : Carbon::parse($date);
+        try {
+            $carbon = $date instanceof CarbonInterface
+                ? $date
+                : Carbon::parse($date);
 
-        return $carbon->format('H:i') === '00:00'
-            ? toJalali($carbon, 'Y/m/d')
-            : toJalali($carbon, 'Y/m/d H:i');
+            $format = $carbon->format('H:i') === '00:00' ? 'Y/m/d' : 'Y/m/d H:i';
+
+            return toJalali($carbon, $format);
+        } catch (\Throwable $e) {
+            return '—';
+        }
+    }
+}
+
+if (!function_exists('toJalaliRelative')) {
+    function toJalaliRelative(mixed $date, bool $short = false): string
+    {
+        if (blank($date)) {
+            return '';
+        }
+
+        try {
+            $carbon = $date instanceof CarbonInterface
+                ? $date
+                : Carbon::parse($date);
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        $seconds = $carbon->diffInSeconds(Carbon::now());
+
+        if ($seconds < 60) {
+            return $short ? 'الان' : 'همین الان';
+        }
+
+        $minutes = intdiv($seconds, 60);
+        if ($minutes < 60) {
+            $pMinutes = convertToPersian($minutes);
+            return $short ? $pMinutes . 'د' : $pMinutes . ' دقیقه پیش';
+        }
+
+        $hours = intdiv($minutes, 60);
+        if ($hours < 24) {
+            $pHours = convertToPersian($hours);
+            return $short ? $pHours . 'س' : $pHours . ' ساعت پیش';
+        }
+
+        $days = intdiv($hours, 24);
+        if ($days < 7) {
+            $pDays = convertToPersian($days);
+            return $short ? $pDays . 'ر' : $pDays . ' روز پیش';
+        }
+
+        if ($days < 30) {
+            $weeks = intdiv($days, 7);
+            $pWeeks = convertToPersian($weeks);
+            return $short ? $pWeeks . 'ه' : $pWeeks . ' هفته پیش';
+        }
+
+        return toJalali($carbon, 'Y/m/d');
     }
 }
 
 if (!function_exists('jNow')) {
     function jNow(string $part = 'year'): int
     {
-        return match($part) {
-            'month' => jdate()->getMonth(),
-            'day'   => jdate()->getDay(),
-            default => jdate()->getYear(),
+        $jalalian = jdate();
+
+        return match ($part) {
+            'month' => $jalalian->getMonth(),
+            'day' => $jalalian->getDay(),
+            default => $jalalian->getYear(),
         };
     }
 }
@@ -207,9 +310,13 @@ if (!function_exists('jNow')) {
 if (!function_exists('canAdmin')) {
     function canAdmin(): bool
     {
-        if (!auth()->check()) return false;
+        $userId = auth()->id();
 
-        $adminPerm = Permission::forUser(auth()->id());
+        if (!$userId) {
+            return false;
+        }
+
+        $adminPerm = Permission::forUser($userId);
 
         return $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));
     }

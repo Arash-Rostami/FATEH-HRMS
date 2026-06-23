@@ -10,7 +10,6 @@ use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -28,32 +27,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
-            ->helperText(__('resources/dms/strings.hints.code'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.code.required'),
-                'max' => __('resources/dms/strings.validation.code.max_length'),
-            ]);
-    }
-
-    public static function type(): Toggle
-    {
-        return Toggle::make('type')
-            ->label(__('resources/dms/strings.fields.type_label'))
-            ->default(true)
-            ->columnSpanFull()
-            ->live()
-            ->helperText(fn ($state) => $state
-                ? __('resources/dms/strings.hints.type.systematic')
-                : __('resources/dms/strings.hints.type.non_systematic')
-            );
-    }
-
-    public static function tags(): KeyValue
-    {
-        return KeyValue::make('tags')
-            ->label(__('resources/dms/strings.fields.tags'))
-            ->columnSpanFull()
-            ->helperText(__('resources/dms/strings.fields.tags_hint'));
+            ->helperText(__('resources/dms/strings.hints.code'));
     }
 
     public static function extra(): KeyValue
@@ -79,10 +53,6 @@ class DmsFormPresenter
                 fn(TemporaryUploadedFile $file): string => self::forgeFileName($file)
             )
             ->required()
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.file.required'),
-                'max' => __('resources/dms/strings.validation.file.max_size'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.hints.file'));
     }
@@ -103,8 +73,7 @@ class DmsFormPresenter
                 $set('owners_preview_display', $preview);
             })
             ->required()
-            ->helperText(__('resources/dms/strings.hints.owners'))
-            ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required')]);
+            ->helperText(__('resources/dms/strings.hints.owners'));
     }
 
     public static function ownersPreview(): Textarea
@@ -131,9 +100,6 @@ class DmsFormPresenter
             ->maxLength(3000)
             ->nullable()
             ->placeholder(__('resources/dms/strings.fields.revision_placeholder'))
-            ->validationMessages([
-                'max' => __('resources/dms/strings.validation.revision.max_length'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.hints.revision'));
     }
@@ -145,10 +111,15 @@ class DmsFormPresenter
             ->options(DocumentStatus::class)
             ->required()
             ->default(DocumentStatus::Live->value)
-            ->helperText(__('resources/dms/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.status.required'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.status'));
+    }
+
+    public static function tags(): KeyValue
+    {
+        return KeyValue::make('tags')
+            ->label(__('resources/dms/strings.fields.tags'))
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.fields.tags_hint'));
     }
 
     public static function title(): TextInput
@@ -157,11 +128,20 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/dms/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.title.required'),
-                'max' => __('resources/dms/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.title'));
+    }
+
+    public static function type(): Toggle
+    {
+        return Toggle::make('type')
+            ->label(__('resources/dms/strings.fields.type_label'))
+            ->default(true)
+            ->columnSpanFull()
+            ->live()
+            ->helperText(fn($state) => $state
+                ? __('resources/dms/strings.hints.type.systematic')
+                : __('resources/dms/strings.hints.type.non_systematic')
+            );
     }
 
     public static function users(): Select
@@ -182,11 +162,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
-            ->helperText(__('resources/dms/strings.hints.version'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.version.required'),
-                'max' => __('resources/dms/strings.validation.version.max_length'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.version'));
     }
 
     private static function forgeFileName(TemporaryUploadedFile $file): string

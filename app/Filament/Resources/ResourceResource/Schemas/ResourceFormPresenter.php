@@ -22,10 +22,7 @@ class ResourceFormPresenter
             ->numeric()
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.capacity'))
-            ->visible(fn(Get $get) => in_array($get('type'), ['meeting', 'car']))
-            ->validationMessages([
-                'numeric' => __('resources/resource/strings.validation.capacity_numeric'),
-            ]);
+            ->visible(fn(Get $get) => in_array($get('type'), ['meeting', 'car']));
     }
 
     public static function extension(): TextInput
@@ -35,10 +32,7 @@ class ResourceFormPresenter
             ->maxLength(255)
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.extension'))
-            ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'meeting']))
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.extension_max'),
-            ]);
+            ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'meeting']));
     }
 
     public static function floor(): TextInput
@@ -48,10 +42,7 @@ class ResourceFormPresenter
             ->maxLength(255)
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.floor'))
-            ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'spot']))
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.floor_max'),
-            ]);
+            ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'spot']));
     }
 
     public static function image(): FileUpload
@@ -66,10 +57,7 @@ class ResourceFormPresenter
             ->directory('resources')
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.image'))
-            ->columnSpanFull()
-            ->validationMessages([
-                'image' => __('resources/resource/strings.validation.image_image'),
-            ]);
+            ->columnSpanFull();
     }
 
     public static function name(): TextInput
@@ -78,11 +66,7 @@ class ResourceFormPresenter
             ->label(__('resources/resource/strings.fields.name'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/resource/strings.hints.name'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.name_required'),
-                'max' => __('resources/resource/strings.validation.name_max'),
-            ]);
+            ->helperText(__('resources/resource/strings.hints.name'));
     }
 
     public static function notes(): Textarea
@@ -93,10 +77,7 @@ class ResourceFormPresenter
             ->nullable()
             ->rows(2)
             ->helperText(__('resources/resource/strings.hints.notes'))
-            ->columnSpanFull()
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.notes_max'),
-            ]);
+            ->columnSpanFull();
     }
 
     public static function status(): Select
@@ -106,11 +87,7 @@ class ResourceFormPresenter
             ->options(ResourceStatus::class)
             ->default('active')
             ->required()
-            ->helperText(__('resources/resource/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.status_required'),
-                'in' => __('resources/resource/strings.validation.status_in'),
-            ]);
+            ->helperText(__('resources/resource/strings.hints.status'));
     }
 
     public static function type(): Select
@@ -120,10 +97,6 @@ class ResourceFormPresenter
             ->options(ResourceType::class)
             ->required()
             ->live()
-            ->helperText(__('resources/resource/strings.hints.type'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.type_required'),
-                'in' => __('resources/resource/strings.validation.type_in'),
-            ]);
+            ->helperText(__('resources/resource/strings.hints.type'));
     }
 }

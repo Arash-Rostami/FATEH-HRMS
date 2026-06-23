@@ -5,6 +5,7 @@
     'startYear' => 1300,
     'endYear' => 1410,
     'bgClass' => 'bg-[var(--md-sys-color-surface-variant)]/20',
+    'disabled' => false,
 ])
 
 @php
@@ -20,21 +21,21 @@
         <span class="text-sm font-bold">{{ $label }}</span>
     </div>
     <div class="grid grid-cols-3 gap-3">
-        <x-ui.forms.select label="سال" name="{{ $prefix }}Year" wire:model="{{ $prefix }}Year">
+        <x-ui.forms.select label="سال" name="{{ $prefix }}Year" wire:model="{{ $prefix }}Year" :disabled="$disabled">
             <option value="">سال</option>
             @foreach($yearRange as $year)
                 <option value="{{ $year }}">{{ convertToPersian($year) }}</option>
             @endforeach
         </x-ui.forms.select>
 
-        <x-ui.forms.select label="ماه" name="{{ $prefix }}Month" wire:model="{{ $prefix }}Month">
+        <x-ui.forms.select label="ماه" name="{{ $prefix }}Month" wire:model="{{ $prefix }}Month" :disabled="$disabled">
             <option value="">ماه</option>
             @foreach($persianMonths as $i => $monthName)
                 <option value="{{ $i + 1 }}">{{ $monthName }}</option>
             @endforeach
         </x-ui.forms.select>
 
-        <x-ui.forms.select label="روز" name="{{ $prefix }}Day" wire:model="{{ $prefix }}Day">
+        <x-ui.forms.select label="روز" name="{{ $prefix }}Day" wire:model="{{ $prefix }}Day" :disabled="$disabled">
             <option value="">روز</option>
             @foreach(range(1, 31) as $day)
                 <option value="{{ $day }}">{{ convertToPersian($day) }}</option>

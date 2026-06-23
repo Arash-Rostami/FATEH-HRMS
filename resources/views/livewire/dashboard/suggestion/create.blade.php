@@ -44,7 +44,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="md:col-span-2 space-y-4">
                     <x-ui.forms.input label="عنوان پیشنهاد" name="form.title" icon="label" wire:model="form.title"/>
-                    <x-ui.forms.textarea label="شرح پیشنهاد، استدلال‌ها و محاسبات" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf"/>
+                    <x-ui.forms.textarea label="شرح پیشنهاد، استدلال‌ها و محاسبات" name="form.descriptionSelf" icon="edit" :rows="5" wire:model="form.descriptionSelf" :maximizable="true"/>
                 </div>
 
                 <div>
@@ -200,7 +200,7 @@
                                     </label>
                                 @endforeach
                             </div>
-                            <x-ui.forms.textarea label="توضیحات تیم" name="descriptionTeam" :rows="4" wire:model="form.descriptionTeam"/>
+                            <x-ui.forms.textarea label="توضیحات تیم" name="descriptionTeam" :rows="4" wire:model="form.descriptionTeam" :maximizable="true"/>
                         </div>
                     </div>
 
@@ -224,7 +224,7 @@
                                     <p class="text-xs text-[var(--md-sys-color-error)]">{{ $message }}</p>
                                     @enderror
                                 </div>
-                                <x-ui.forms.textarea label="توضیحات" name="descriptionDepts.{{ $dept }}" :rows="4" wire:model="form.descriptionDepts.{{ $dept }}"/>
+                                <x-ui.forms.textarea label="توضیحات" name="descriptionDepts.{{ $dept }}" :rows="4" wire:model="form.descriptionDepts.{{ $dept }}" :maximizable="true"/>
                             </div>
                         </div>
                     @endforeach

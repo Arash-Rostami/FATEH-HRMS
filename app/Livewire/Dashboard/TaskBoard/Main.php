@@ -25,6 +25,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Morilog\Jalali\Jalalian;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Main extends Component
 {
@@ -50,6 +51,7 @@ class Main extends Component
 
     public bool $isModalOpen = false;
     public bool $isEditMode = false;
+    public bool $isReadOnly = false;
 
     public array $selectedTasks = [];
     public string $density = 'comfortable';
@@ -111,7 +113,7 @@ class Main extends Component
     {
         try {
             $action->execute($this->form);
-        } catch (ValidationException $e) {
+        } catch (ValidationException|HttpException $e) {
             throw $e;
         } catch (Exception) {
             $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
@@ -139,9 +141,49 @@ class Main extends Component
     {
         $task = Task::find($taskId);
 
-        if (!$task || (!$task->can_change_status && $task->user_id !== auth()->id())) return;
+        if (!$task || !$task->can_change_status) return;
 
         $this->editingTaskId = $taskId;
+        $this->populateFormFromTask($task);
+
+        $this->isEditMode = true;
+        $this->isReadOnly = false;
+        $this->isModalOpen = true;
+    }
+
+    public function viewTask(int $taskId): void
+    {
+        $task = Task::find($taskId);
+
+        if (!$task || !$task->is_delegator) return;
+
+        $this->editingTaskId = $taskId;
+        $this->populateFormFromTask($task);
+
+        $this->isEditMode = false;
+        $this->isReadOnly = true;
+        $this->isModalOpen = true;
+    }
+
+    public function focusRecord(int $id): void
+    {
+        $userId = auth()->id();
+
+        $owned = Task::whereKey($id)
+            ->where(fn(Builder $query) => $query->where('user_id', $userId)->orWhere('assigned_to', $userId)
+            )->exists();
+
+        if (!$owned) return;
+
+        $this->editTask($id);
+
+        if (!$this->isModalOpen) {
+            $this->viewTask($id);
+        }
+    }
+
+    private function populateFormFromTask(Task $task): void
+    {
         $this->form->newTitle = $task->title;
         $this->form->newDescription = $task->description;
         $this->form->selectedAssignee = $task->assigned_to;
@@ -168,22 +210,6 @@ class Main extends Component
         $this->form->state = $detail?->state;
         $this->form->attachments = [];
         $this->form->existingAttachments = $detail?->attachments ?? [];
-
-        $this->isEditMode = true;
-        $this->isModalOpen = true;
-    }
-
-    public function focusRecord(int $id): void
-    {
-        $userId = auth()->id();
-
-        $owned = Task::whereKey($id)
-            ->where(fn(Builder $query) => $query->where('user_id', $userId)->orWhere('assigned_to', $userId)
-            )->exists();
-
-        if ($owned) {
-            $this->editTask($id);
-        }
     }
 
     public function loadTasks(): void
@@ -253,6 +279,7 @@ class Main extends Component
     {
         $this->form->reset();
         $this->isEditMode = false;
+        $this->isReadOnly = false;
         $this->isModalOpen = true;
     }
 
@@ -326,6 +353,12 @@ class Main extends Component
         }
     }
 
+    public function updatedFormDepartmentId(): void
+    {
+        $this->form->unit = null;
+        $this->form->section = null;
+    }
+
     public function updatedSearch(): void
     {
         $this->page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
@@ -339,7 +372,7 @@ class Main extends Component
 
         try {
             $action->execute($task, $this->form);
-        } catch (ValidationException $e) {
+        } catch (ValidationException|HttpException $e) {
             throw $e;
         } catch (Exception) {
             $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');

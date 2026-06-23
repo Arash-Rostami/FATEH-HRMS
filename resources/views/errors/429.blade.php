@@ -1,8 +1,6 @@
 @extends('errors.layout')
 
-@section('minimal_layout', true)
-
-@section('title', 'دسترسی غیرمجاز')
+@section('title', 'درخواست‌های بیش از حد')
 
 @section('icon')
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-rose-500">
@@ -10,6 +8,6 @@
 </svg>
 @endsection
 
-@section('heading', 'دسترسی محدود شده')
+@section('heading', 'ترافیک بالا')
 
-@section('message', 'متاسفانه شما سطح دسترسی لازم برای مشاهده این صفحه را ندارید. در صورت نیاز با پشتیبانی تماس بگیرید.')
+@section('message', 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید و سپس دوباره امتحان نمایید.')

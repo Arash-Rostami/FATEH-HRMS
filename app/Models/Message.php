@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Message extends Model
 {
@@ -20,10 +21,18 @@ class Message extends Model
         'sender_id',
         'recipient_id',
         'body',
+        'attachments',
         'reply_to_id',
         'is_edited',
         'read_at',
     ];
+
+    public function attachmentUrls(): array
+    {
+        return collect($this->attachments ?? [])
+            ->map(fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])])
+            ->all();
+    }
 
     public function getPruneDays(): int
     {
@@ -82,6 +91,7 @@ class Message extends Model
     protected function casts(): array
     {
         return [
+            'attachments' => 'array',
             'is_edited' => 'boolean',
             'read_at' => 'datetime',
         ];

@@ -24,7 +24,8 @@ class FetchContactsAction
             ->whereNull('read_at');
 
         $query = User::with(['profile.department'])
-            ->when(method_exists(User::class, 'active'), fn($q) => $q->active())
+            ->active()
+            ->whereKeyNot($viewerId)
             ->select('users.*')
             ->addSelect(['last_message_id' => $lastMsgIdSub])
             ->addSelect(['unread_count' => $unreadSub]);

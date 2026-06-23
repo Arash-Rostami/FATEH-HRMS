@@ -1,4 +1,4 @@
-@props(['text'])
+@props(['text', 'message' => null])
 
 <button
     x-data="{ copied: false }"
@@ -6,6 +6,7 @@
         navigator.clipboard.writeText($el.dataset.text);
         copied = true;
         setTimeout(() => copied = false, 2000);
+        @if($message) window.dispatchEvent(new CustomEvent('toast', { detail: { message: @js($message), type: 'success' } })); @endif
     "
     data-text="{{ $text }}"
     {{ $attributes->merge(['class' => 'inline-flex items-center justify-center rounded-lg p-2 text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-primary)] transition-colors']) }}

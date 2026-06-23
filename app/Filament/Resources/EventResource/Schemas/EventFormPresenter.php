@@ -10,6 +10,7 @@ use Filament\Schemas\Components\FusedGroup;
 class EventFormPresenter
 {
     use FilamentFormDivider;
+
     public static function dateJalali(): FusedGroup
     {
         return PersianDateFieldService::make(
@@ -29,10 +30,7 @@ class EventFormPresenter
             ->columnSpan(2)
             ->required()
             ->default('08:00')
-            ->helperText(__('resources/event/strings.hints.date_time_part'))
-            ->validationMessages([
-                'required' => __('resources/event/strings.validation.date_time_part.required'),
-            ]);
+            ->helperText(__('resources/event/strings.hints.date_time_part'));
     }
 
     public static function description(): Textarea
@@ -42,9 +40,6 @@ class EventFormPresenter
             ->rows(5)
             ->maxLength(3000)
             ->helperText(__('resources/event/strings.hints.description'))
-            ->validationMessages([
-                'max' => __('resources/event/strings.validation.description.max_length'),
-            ])
             ->columnSpanFull();
     }
 
@@ -64,11 +59,7 @@ class EventFormPresenter
             ->label(__('resources/event/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/event/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/event/strings.validation.title.required'),
-                'max'      => __('resources/event/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/event/strings.hints.title'));
     }
 
     public static function userId(): Select
@@ -81,9 +72,6 @@ class EventFormPresenter
             ->preload()
             ->nullable()
             ->required(fn($get) => (bool)$get('private'))
-            ->visible(fn($get) => (bool)$get('private'))
-            ->validationMessages([
-                'required' => __('resources/event/strings.validation.user_id.required'),
-            ]);
+            ->visible(fn($get) => (bool)$get('private'));
     }
 }

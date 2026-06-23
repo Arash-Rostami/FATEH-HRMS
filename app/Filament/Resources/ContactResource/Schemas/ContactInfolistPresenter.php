@@ -3,11 +3,50 @@
 namespace App\Filament\Resources\ContactResource\Schemas;
 
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 
 class ContactInfolistPresenter
 {
+    public static function attachments(): RepeatableEntry
+    {
+        return RepeatableEntry::make('attachments')
+            ->label(__('resources/contact/strings.fields.attachments'))
+            ->schema([
+                TextEntry::make('name')
+                    ->hiddenLabel()
+                    ->weight('medium')
+                    ->icon('heroicon-o-paper-clip')
+                    ->placeholder('—'),
+
+                TextEntry::make('size')
+                    ->hiddenLabel()
+                    ->formatStateUsing(fn($state) => $state ? number_format($state / 1024, 1) . ' KB' : '—')
+                    ->badge()
+                    ->color('gray'),
+
+                TextEntry::make('mime')
+                    ->hiddenLabel()
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—'),
+
+                TextEntry::make('url')
+                    ->hiddenLabel()
+                    ->formatStateUsing(fn() => __('resources/contact/strings.fields.download_file'))
+                    ->url(fn($state) => $state)
+                    ->openUrlInNewTab()
+                    ->color('primary')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->iconPosition(IconPosition::After),
+            ])
+            ->getStateUsing(fn($record): array => $record->attachmentUrls())
+            ->columns(4)
+            ->columnSpanFull()
+            ->hidden(fn($record) => empty($record->attachments));
+    }
+
     public static function body(): TextEntry
     {
         return TextEntry::make('body')

@@ -92,12 +92,16 @@
                         <x-ui.avatar
                             :image="null"
                             :existingImage="$contact['avatar']"
+                            :alt="$contact['name']"
+                            icon-size="text-2xl"
                             class="rounded-lg" />
                     </div>
 
-                    @if($contact['is_online'])
+                    @if($contact['presence'])
                         <span
-                            class="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-xl border-[2.5px] online-pulse bg-[var(--online)] border-[var(--md-sys-color-surface)]"
+                            @class(['absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-xl border-[2.5px] border-[var(--md-sys-color-surface)]', 'online-pulse' => $contact['is_online']])
+                            style="background-color: {{ $contact['presence']->hex() }}"
+                            title="{{ $contact['presence']->label() }}"
                             aria-hidden="true"></span>
                     @endif
                 </div>

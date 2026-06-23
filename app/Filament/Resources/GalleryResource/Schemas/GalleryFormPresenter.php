@@ -36,10 +36,7 @@ class GalleryFormPresenter
             ->rows(2)
             ->maxLength(2000)
             ->columnSpan(2)
-            ->helperText(__('resources/gallery/strings.hints.description'))
-            ->validationMessages([
-                'max' => __('resources/gallery/strings.validation.description_max_length', ['length' => 2000]),
-            ]);
+            ->helperText(__('resources/gallery/strings.hints.description'));
     }
 
     public static function eventDate(): FusedGroup
@@ -75,13 +72,7 @@ class GalleryFormPresenter
             ->openable()
             ->required()
             ->columnSpan(3)
-            ->helperText(__('resources/gallery/strings.hints.path'))
-            ->validationMessages([
-                'required' => __('resources/gallery/strings.validation.photos_required'),
-                'max' => __('resources/gallery/strings.validation.photos_max_files', ['max' => 50]),
-                'max_size' => __('resources/gallery/strings.validation.photos_max_size'),
-                'mimetypes' => __('resources/gallery/strings.validation.photos_mimetypes'),
-            ]);
+            ->helperText(__('resources/gallery/strings.hints.path'));
     }
 
     public static function title(): TextInput
@@ -91,10 +82,6 @@ class GalleryFormPresenter
             ->required()
             ->columnSpan(2)
             ->maxLength(255)
-            ->helperText(__('resources/gallery/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/gallery/strings.validation.title_required'),
-                'max' => __('resources/gallery/strings.validation.title_max_length', ['length' => 255]),
-            ]);
+            ->helperText(__('resources/gallery/strings.hints.title'));
     }
 }

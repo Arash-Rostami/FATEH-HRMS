@@ -12,6 +12,32 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ContactTablePresenter
 {
+    public static function attachmentsCount(): TextColumn
+    {
+        return TextColumn::make('attachments_count')
+            ->label(__('resources/contact/strings.fields.attachments'))
+            ->getStateUsing(fn($record) => count($record->attachments ?? []))
+            ->badge()
+            ->color('info')
+            ->icon('heroicon-o-paper-clip')
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function hasAttachmentsFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('has_attachments')
+            ->label(__('resources/contact/strings.filters.has_attachments'))
+            ->trueLabel(__('resources/contact/strings.filters.with_attachments'))
+            ->falseLabel(__('resources/contact/strings.filters.without_attachments'))
+            ->queries(
+                true: fn(Builder $q) => $q->whereNotNull('attachments')->whereJsonLength('attachments', '>', 0),
+                false: fn(Builder $q) => $q->where(fn(Builder $q) => $q
+                    ->whereNull('attachments')
+                    ->orWhereJsonLength('attachments', 0)),
+            );
+    }
+
     public static function body(): TextColumn
     {
         return TextColumn::make('body')

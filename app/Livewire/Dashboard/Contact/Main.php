@@ -15,12 +15,14 @@ use App\Models\Message;
 use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Main extends Component
 {
-    use FocusOnRecord;
+    use FocusOnRecord, WithFileUploads;
 
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
@@ -96,6 +98,7 @@ class Main extends Component
             'last_message' => $lastMessages->get($user->last_message_id)?->toArray(),
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
+            'presence' => $user->presence,
             'last_seen_at' => $user->last_seen?->toISOString(),
         ])->when($this->filter === 'online', fn($c) => $c->filter(fn($u) => $u['is_online'] ?? false))
             ->values()->all();
@@ -115,6 +118,23 @@ class Main extends Component
         $this->invalidateMessageCache();
         unset($this->contacts);
         $this->dispatch('show-undo-toast', message: 'پیام حذف شد', type: 'warning');
+    }
+
+    public function downloadAttachment(int $messageId, int $index)
+    {
+        $message = Message::withoutTrashed()->find($messageId);
+        if (!$message) return;
+
+        $me = auth()->id();
+        if (!in_array($me, [$message->sender_id, $message->recipient_id], true)) return;
+
+        $attachment = ($message->attachments ?? [])[$index] ?? null;
+        if (!$attachment) return;
+
+        $filePath = Storage::disk('public')->path($attachment['path']);
+        if (!file_exists($filePath) || !is_file($filePath)) return;
+
+        return response()->download($filePath, $attachment['name']);
     }
 
     #[Computed]
@@ -173,6 +193,7 @@ class Main extends Component
                 'sender_id' => (int)$m->sender_id,
                 'recipient_id' => (int)$m->recipient_id,
                 'body' => $m->body,
+                'attachments' => $m->attachments,
                 'reply_to_id' => $m->reply_to_id,
                 'is_edited' => (bool)$m->is_edited,
                 'read_at' => $m->read_at?->toISOString(),
@@ -189,6 +210,13 @@ class Main extends Component
     }
 
     public function mount(): void { }
+
+    public function removeAttachment(int $index): void
+    {
+        $attachments = $this->composer->attachments;
+        unset($attachments[$index]);
+        $this->composer->attachments = array_values($attachments);
+    }
 
     public function render()
     {
@@ -289,6 +317,12 @@ class Main extends Component
         $this->_cachedMessageTotal = $count;
 
         return $count;
+    }
+
+    #[Computed]
+    public function totalStaff(): int
+    {
+        return User::active()->count();
     }
 
     public function undoDelete(UndoDeleteAction $action): void

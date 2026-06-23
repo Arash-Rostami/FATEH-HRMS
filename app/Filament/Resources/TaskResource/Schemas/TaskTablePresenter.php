@@ -40,7 +40,7 @@ class TaskTablePresenter
                 fn($record): string => $record?->assignee?->name ?: '—'
             )
             ->getKeyFromRecordUsing(
-                fn($record): string => (string)($record?->assignee_id ?? 'unassigned')
+                fn($record): string => (string)($record?->assigned_to ?? 'unassigned')
             )
             ->titlePrefixedWithLabel(false)
             ->collapsible();
@@ -83,7 +83,7 @@ class TaskTablePresenter
                 fn($record): string => $record?->creator?->name ?: '—'
             )
             ->getKeyFromRecordUsing(
-                fn($record): string => (string)($record?->creator_id ?? 'unknown')
+                fn($record): string => (string)($record?->user_id ?? 'unknown')
             )
             ->titlePrefixedWithLabel(false)
             ->collapsible();
