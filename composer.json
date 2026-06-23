@@ -94,6 +94,11 @@
     "prefer-stable": true,
     "repositories": [
         {
+            "name": "packagist",
+            "type": "composer",
+            "url": "https://packagist.org"
+        },
+        {
             "type": "composer",
             "url": "https://mirror2.chabokan.net/composer/"
         }

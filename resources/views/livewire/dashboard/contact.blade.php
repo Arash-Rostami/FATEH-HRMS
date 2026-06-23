@@ -20,7 +20,7 @@
         @include('components.dashboard.header.focus-chip')
 
         <div x-data="{ isHighlighted: false , backgroundPattern: null }"
-             class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl"
+             class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl backdrop-blur-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"
         >
 
             @include('livewire.dashboard.contact.sidebar')

@@ -1,4 +1,4 @@
-<header class="border-runner flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b  z-10 bg-[color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent)] border-[var(--md-sys-color-primary-container)]">
+<header class="border-runner flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b z-10 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_85%,transparent)] backdrop-blur-md border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]">
     @php($isOnline = method_exists($activeContact, 'isOnline') && $activeContact->isOnline())
     @php($presence = \App\Enums\PresenceStatus::tryFrom($activeContact->presence->value ?? ''))
 
