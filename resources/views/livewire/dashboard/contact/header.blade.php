@@ -49,6 +49,14 @@
         </button>
     </div>
 
+
+    <button @click="max = !max"
+            :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+            class="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]"
+            aria-label="تغییر اندازه">
+        <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
+    </button>
+
     <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-[0.92] bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
             aria-label="اطلاعات بیشتر"
             x-on:click="showInfo = !showInfo">
