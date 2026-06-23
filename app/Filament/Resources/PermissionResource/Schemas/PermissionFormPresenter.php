@@ -27,9 +27,7 @@ class PermissionFormPresenter
                     ->searchable()
                     ->distinct()
                     ->live()
-                    ->validationMessages([
-                        'required' => __('resources/permission/strings.validation.module_required'),
-                    ]),
+                    ,
 
                 CheckboxList::make('actions')
                     ->label(__('resources/permission/strings.fields.actions'))
@@ -80,10 +78,7 @@ class PermissionFormPresenter
             ->preload()
             ->unique(ignoreRecord: true)
             ->helperText(__('resources/permission/strings.hints.user'))
-            ->validationMessages([
-                'required' => __('resources/permission/strings.validation.user_required'),
-                'unique' => __('resources/permission/strings.validation.user_unique'),
-            ]);
+            ;
     }
 
     protected static function actionOptions(): array

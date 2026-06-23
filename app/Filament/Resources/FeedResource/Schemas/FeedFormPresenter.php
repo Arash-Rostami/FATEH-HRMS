@@ -28,9 +28,7 @@ class FeedFormPresenter
             ->required()
             ->live()
             ->helperText(__('resources/feed/strings.hints.category'))
-            ->validationMessages([
-                'required' => __('resources/feed/strings.validation.category.required'),
-            ]);
+            ;
     }
 
     public static function content(): RichEditor
@@ -65,10 +63,7 @@ class FeedFormPresenter
                 'paragraph' => ['textColor', 'bold', 'italic', 'underline', 'strike', 'link', 'highlight'],
                 'heading' => ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
             ])
-            ->validationMessages([
-                'required' => __('resources/feed/strings.validation.content.required'),
-                'max' => __('resources/feed/strings.validation.content.max_length'),
-            ]);
+            ;
     }
 
     public static function mediaImages(): FileUpload
@@ -197,8 +192,6 @@ class FeedFormPresenter
             ->preload()
             ->required()
             ->helperText(__('resources/feed/strings.hints.user_id'))
-            ->validationMessages([
-                'required' => __('resources/feed/strings.validation.user_id.required'),
-            ]);
+            ;
     }
 }

@@ -222,9 +222,7 @@ class OnboardingFormPresenter
         return RichEditor::make('value')
             ->label(__('resources/onboarding/strings.repeater.extra_value'))
             ->maxLength(20000)
-            ->validationMessages([
-                'max' => __('resources/onboarding/strings.validation.extra_value.max_length'),
-            ])
+
             ->columnSpanFull()
             ->textColors([
                 'primary' => TextColor::make('Primary', '#3b82f6', darkColor: '#60a5fa'),

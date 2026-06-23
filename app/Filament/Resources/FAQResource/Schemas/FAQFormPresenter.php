@@ -55,9 +55,7 @@ class FAQFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.answer_required'),
-                'max' => __('resources/faq/strings.validation.answer_max_length', ['length' => 5000]),
+            ,
             ]);
     }
 
@@ -77,9 +75,7 @@ class FAQFormPresenter
             ->extraFieldWrapperAttributes(['class' => 'no-shell'])
             ->required()
             ->helperText(__('resources/faq/strings.hints.category'))
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.category_required'),
-            ]);
+            ;
     }
 
     public static function departmentId(): Select
@@ -91,7 +87,6 @@ class FAQFormPresenter
             ->nullable()
             ->helperText(__('resources/faq/strings.hints.department_id'));
     }
-
 
     public static function question(): RichEditor
     {
@@ -115,13 +110,10 @@ class FAQFormPresenter
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
             ->helperText(__('resources/faq/strings.hints.question'))
-            ->validationMessages([
-                'required' => __('resources/faq/strings.validation.question_required'),
-                'max' => __('resources/faq/strings.validation.question_max_length', ['length' => 500]),
+            ,
             ])
             ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 120px;']);
     }
-
 
     public static function userId(): Select
     {
@@ -134,6 +126,6 @@ class FAQFormPresenter
             ->dehydrated(true)
             ->hint(__('resources/faq/strings.hint.user_locked'))
             ->required()
-            ->validationMessages(['required' => __('resources/faq/strings.validation.user_required')]);
+            ;
     }
 }

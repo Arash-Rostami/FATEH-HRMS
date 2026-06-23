@@ -29,7 +29,6 @@ class ProfileTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
-
     public static function cellphone(): TextColumn
     {
         return TextColumn::make('cellphone')

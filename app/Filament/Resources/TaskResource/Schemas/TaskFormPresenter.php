@@ -130,7 +130,7 @@ class TaskFormPresenter
             })
             ->nullable()
             ->helperText(__('resources/task/strings.hints.deadline_time'))
-            ->validationMessages(['date_format' => __('resources/task/strings.validation.deadline_time.invalid')])
+
             ->columnSpanFull();
     }
 
@@ -142,7 +142,7 @@ class TaskFormPresenter
             ->maxLength(5000)
             ->nullable()
             ->helperText(__('resources/task/strings.hints.description'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.description.max_length')])
+
             ->columnSpanFull();
     }
 
@@ -202,9 +202,7 @@ class TaskFormPresenter
             ->required()
             ->default(TaskStatus::Todo->value)
             ->helperText(__('resources/task/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.status.required'),
-            ]);
+            ;
     }
 
     public static function title(): TextInput
@@ -214,10 +212,7 @@ class TaskFormPresenter
             ->required()
             ->maxLength(255)
             ->helperText(__('resources/task/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.title.required'),
-                'max' => __('resources/task/strings.validation.title.max_length'),
-            ]);
+            ;
     }
 
     public static function unit(): Select
@@ -239,9 +234,7 @@ class TaskFormPresenter
             ->preload()
             ->helperText(__('resources/task/strings.hints.user_id'))
             ->required()
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.user_id.required'),
-            ]);
+            ;
     }
 
     private static function acceptedMimeTypes(): array

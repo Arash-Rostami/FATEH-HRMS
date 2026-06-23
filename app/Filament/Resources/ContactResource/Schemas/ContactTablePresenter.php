@@ -33,7 +33,6 @@ class ContactTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
-
     public static function deletedAt(): TextColumn
     {
         return TextColumn::make('deleted_at')
@@ -107,7 +106,6 @@ class ContactTablePresenter
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
     }
-
 
     public static function pruningSoonFilter(): Filter
     {

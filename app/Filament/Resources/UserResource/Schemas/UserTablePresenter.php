@@ -25,7 +25,6 @@ class UserTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
-
     public static function createdAt(): TextColumn
     {
         return TextColumn::make('created_at')

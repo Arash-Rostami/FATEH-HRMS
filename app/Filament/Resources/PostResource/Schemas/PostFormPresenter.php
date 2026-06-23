@@ -53,10 +53,7 @@ class PostFormPresenter
                 ],
             ])
             ->helperText(__('resources/post/strings.hints.body'))
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.body.required'),
-                'max' => __('resources/post/strings.validation.body.max_length'),
-            ]);
+            ;
     }
 
     public static function image(): FileUpload
@@ -106,10 +103,7 @@ class PostFormPresenter
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
             ->helperText(__('resources/post/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.title.required'),
-                'max' => __('resources/post/strings.validation.title.max_length'),
-            ])
+
             ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 120px;']);
     }
 
@@ -126,8 +120,6 @@ class PostFormPresenter
             ->helperText(__('resources/post/strings.hint.user_locked'))
             ->preload()
             ->required()
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.user_id.required'),
-            ]);
+            ;
     }
 }

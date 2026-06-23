@@ -33,7 +33,6 @@ class PostTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
-
     public static function hasImageFilter(): Filter
     {
         return Filter::make('has_image')

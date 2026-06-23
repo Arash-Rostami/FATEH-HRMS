@@ -151,7 +151,6 @@ class DmsTablePresenter
             ->label(__('resources/dms/strings.fields.type'));
     }
 
-
     public static function title(): TextColumn
     {
         return TextColumn::make('title')
