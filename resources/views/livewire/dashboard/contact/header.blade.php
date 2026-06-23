@@ -37,6 +37,34 @@
             @endif
         </div>
     </div>
+
+    <div class="relative" x-data="{ bgMenuOpen: false }" x-on:click.outside="bgMenuOpen = false">
+        <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-[0.92] bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
+                aria-label="تغییر پس‌زمینه"
+                title="تغییر پس‌زمینه"
+                x-on:click="bgMenuOpen = !bgMenuOpen">
+            <span class="material-symbols-rounded text-[16px]" aria-hidden="true">wallpaper</span>
+        </button>
+
+        <div x-show="bgMenuOpen" x-transition class="absolute left-0 top-full mt-2 w-56 max-h-[300px] overflow-y-auto rounded-xl shadow-lg border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] z-50 p-2 flex flex-col gap-1 msg-scrollbar" style="display: none;">
+            <div class="flex items-center justify-between px-2 py-1.5 mb-1 border-b border-[var(--md-sys-color-outline-variant)]">
+                <span class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">پس‌زمینه چت</span>
+                <button x-on:click="$store.background.togglePattern(!$store.background.patternEnabled)" class="text-[20px] transition-colors" :class="$store.background.patternEnabled ? 'text-[var(--md-sys-color-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50'">
+                    <span class="material-symbols-rounded" x-text="$store.background.patternEnabled ? 'toggle_on' : 'toggle_off'"></span>
+                </button>
+            </div>
+
+            <template x-for="pattern in $store.background.patterns" :key="pattern.id">
+                <button x-on:click="$store.background.setPattern(pattern.id)"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-right w-full"
+                        :class="$store.background.activePattern === pattern.id ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'">
+                    <span class="material-symbols-rounded text-[14px]" :class="$store.background.activePattern === pattern.id ? 'opacity-100' : 'opacity-0'">check</span>
+                    <span x-text="pattern.name"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
     <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-[0.92] bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
             aria-label="اطلاعات بیشتر"
             x-on:click="showInfo = !showInfo">

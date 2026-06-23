@@ -1,22 +1,25 @@
 <div id="msg-viewport"
      x-ref="msgViewport"
-     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-md py-6 space-y-1 msg-scrollbar relative bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]"
+     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-md py-6 space-y-1 msg-scrollbar relative transition-colors duration-500"
+     x-bind:class="$store.background.patternEnabled || $store.background.enabled ? 'bg-transparent' : 'bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]'"
      role="log" aria-label="پیام‌ها" aria-live="polite">
 
-    <div x-show="bgOption === 'a'" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="absolute top-0 -right-24 h-56 w-56 opacity-[0.18] bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
-        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-[0.05] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px)]"></div>
+    <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden mix-blend-overlay opacity-50" aria-hidden="true" x-show="!$store.background.patternEnabled && !$store.background.enabled">
+        <div x-show="bgOption === 'a'" class="absolute inset-0">
+            <div class="absolute top-0 -right-24 h-56 w-56 opacity-[0.18] bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
+            <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-[0.05] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px)]"></div>
+        </div>
+        <div x-show="bgOption === 'b'" style="display:none" class="absolute inset-0">
+            <div class="absolute inset-0 opacity-[0.16] bg-[linear-gradient(135deg,var(--md-sys-color-primary)_0%,var(--md-sys-color-tertiary)_100%)]"></div>
+            <div class="absolute top-0 -right-24 h-56 w-56 opacity-20 bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
+            <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-10 bg-[image:repeating-linear-gradient(45deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_14px)]"></div>
+        </div>
+        <button type="button" x-on:click="bgOption = bgOption === 'a' ? 'b' : 'a'"
+                class="absolute top-2 left-2 z-20 px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-md bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)] pointer-events-auto"
+                title="تغییر پس‌زمینه" aria-label="تغییر گزینه پس‌زمینه">
+            <span x-text="bgOption === 'a' ? 'پس‌زمینه: A (ساده)' : 'پس‌زمینه: B (پررنگ)'"></span>
+        </button>
     </div>
-    <div x-show="bgOption === 'b'" style="display:none" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="absolute inset-0 opacity-[0.16] bg-[linear-gradient(135deg,var(--md-sys-color-primary)_0%,var(--md-sys-color-tertiary)_100%)]"></div>
-        <div class="absolute top-0 -right-24 h-56 w-56 opacity-20 bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
-        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-10 bg-[image:repeating-linear-gradient(45deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_14px)]"></div>
-    </div>
-    <button type="button" x-on:click="bgOption = bgOption === 'a' ? 'b' : 'a'"
-            class="absolute top-2 left-2 z-20 px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-md bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]"
-            title="تغییر پس‌زمینه" aria-label="تغییر گزینه پس‌زمینه">
-        <span x-text="bgOption === 'a' ? 'پس‌زمینه: A (ساده)' : 'پس‌زمینه: B (پررنگ)'"></span>
-    </button>
 
     @if($this->totalMessages > count($this->messages))
         <div class="flex justify-center py-2">
