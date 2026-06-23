@@ -241,7 +241,7 @@
                                 @endif
                             </div>
                         @endif
-                    @endif
+                    </template>
                 </div>
             </div>
         @endforeach
