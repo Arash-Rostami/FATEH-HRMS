@@ -1,4 +1,4 @@
-<header class="border-runner flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b  z-10 bg-[color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent)] border-[var(--md-sys-color-primary-container)]">
+<header class="border-runner flex-shrink-0 flex items-center gap-4 px-5 md:px-6 py-3 border-b z-10 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_85%,transparent)] backdrop-blur-md border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]">
     @php($isOnline = method_exists($activeContact, 'isOnline') && $activeContact->isOnline())
     @php($presence = \App\Enums\PresenceStatus::tryFrom($activeContact->presence->value ?? ''))
 
@@ -48,6 +48,14 @@
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">palette</span>
         </button>
     </div>
+
+
+    <button @click="max = !max"
+            :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+            class="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]"
+            aria-label="تغییر اندازه">
+        <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
+    </button>
 
     <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-[0.92] bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
             aria-label="اطلاعات بیشتر"

@@ -28,7 +28,7 @@
             </div>
             @if($totalUnread)
                 <span
-                    class="flex items-center justify-center min-w-[24px] h-[24px] px-2 rounded-xl text-[11px] font-bold bg-[linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary))] text-[var(--md-sys-color-on-primary)]"
+                    class="flex items-center justify-center min-w-[24px] h-[24px] px-2 rounded-xl text-[11px] font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-1 ring-[var(--md-sys-color-tertiary)]"
                     aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
                     {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
                 </span>
@@ -73,7 +73,7 @@
                     aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                 @class([
                     'ripple-effect relative w-full flex items-center gap-3 px-4 py-3 text-right transition-all duration-200 cursor-pointer',
-                    'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' => $activeUserId === $contact['id'],
+                    'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],
                     'hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_4%,transparent)]' => $activeUserId !== $contact['id']
                 ])>
 
@@ -86,7 +86,7 @@
                 <div class="relative flex-shrink-0">
                     <div @class([
                         'w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold select-none overflow-hidden shadow-sm',
-                        'bg-[linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary))] text-[var(--md-sys-color-on-primary)]' => $activeUserId === $contact['id'],
+                        'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-1 ring-[var(--md-sys-color-tertiary)]' => $activeUserId === $contact['id'],
                         'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $activeUserId !== $contact['id']
                     ])>
                         <x-ui.avatar
@@ -151,7 +151,7 @@
 
                         @if($contact['unread'])
                             <span
-                                class="flex-shrink-0 flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-xl text-[10px] font-bold bg-[linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary))] text-[var(--md-sys-color-on-primary)]"
+                                class="flex-shrink-0 flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-xl text-[10px] font-bold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-1 ring-[var(--md-sys-color-tertiary)]"
                                 aria-hidden="true">
                                 {{ $contact['unread'] > 99 ? '⁹⁹⁺' : $contact['unread'] }}
                             </span>

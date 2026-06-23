@@ -19,8 +19,9 @@
 
         @include('components.dashboard.header.focus-chip')
 
-        <div x-data="{ isHighlighted: false , backgroundPattern: null }"
-             class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl"
+        <div x-data="{ isHighlighted: false , backgroundPattern: null, max: false }"
+             :class="max ? 'fixed inset-0 z-[999999] m-0 !h-screen !w-screen !rounded-none future-card' : 'h-[calc(100vh-4rem)] rounded-2xl future-card'"
+             class="flex overflow-hidden transition-all duration-300"
         >
 
             @include('livewire.dashboard.contact.sidebar')

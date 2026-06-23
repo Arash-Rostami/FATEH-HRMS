@@ -1171,3 +1171,20 @@
         transition: background-color 2s ease-out;
     }
 }
+
+.future-card {
+    /* 1. Translucent Background */
+    background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
+
+    /* 2. Frosted Border */
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
+
+    /* 3. Radiant Shadow (Tinted with Primary) */
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
+}
+
+.dark .future-card {
+    /* Dark mode drops translucency for stark contrast and deep space */
+    background: var(--md-sys-color-surface);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
