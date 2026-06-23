@@ -30,11 +30,7 @@ class Main extends Component
     public string $search = '';
     public string $filter = 'all';
     public bool $mobileShowChat = false;
-    public ?int $replyingToId = null;
-    public ?array $replyingTo = null;
-    public ?int $editingId = null;
     public int $editTimeLimit = 300;
-    public ?int $deletingId = null;
     public ?array $lastDeleted = null;
     public int $messagesLimit = 10;
     private ?int $_cachedMessageTotal = null;
@@ -52,32 +48,6 @@ class Main extends Component
         $this->mobileShowChat = false;
         $this->activeUserId = null;
         $this->resetAllStates();
-    }
-
-    public function cancelDelete(): void { $this->deletingId = null; }
-
-    public function cancelEdit(): void
-    {
-        $this->editingId = null;
-        $this->edit->reset();
-    }
-
-    public function cancelReply(): void
-    {
-        $this->replyingToId = null;
-        $this->replyingTo = null;
-    }
-
-    public function confirmDelete(int $messageId): void
-    {
-        $message = Message::withoutTrashed()->find($messageId);
-        if (!$message || $message->sender_id !== auth()->id()) return;
-
-        $this->deletingId = $messageId;
-        $this->editingId = null;
-        $this->edit->reset();
-        $this->replyingToId = null;
-        $this->replyingTo = null;
     }
 
     #[Computed]
@@ -104,17 +74,15 @@ class Main extends Component
             ->values()->all();
     }
 
-    public function deleteMessage(DeleteMessageAction $action): void
+    public function deleteMessage(DeleteMessageAction $action, int $deletingId): void
     {
-        if (!$this->deletingId) return;
-        $snapshot = $action->execute($this->deletingId);
+        $snapshot = $action->execute($deletingId);
         if (!$snapshot) {
-            $this->cancelDelete();
+            $this->dispatch('show-toast', message: 'این پیام دیگر قابل حذف نیست.', type: 'error');
             return;
         }
 
         $this->lastDeleted = $snapshot;
-        $this->deletingId = null;
         $this->invalidateMessageCache();
         unset($this->contacts);
         $this->dispatch('show-undo-toast', message: 'پیام حذف شد', type: 'warning');
@@ -226,14 +194,13 @@ class Main extends Component
         ])->layout('layouts.app');
     }
 
-    public function saveEdit(SaveEditAction $action): void
+    public function saveEdit(SaveEditAction $action, int $editingId): void
     {
-        if (!$this->editingId) return;
-        if (!$action->execute($this->edit, $this->editingId, $this->editTimeLimit)) {
-            $this->cancelEdit();
+        if (!$action->execute($this->edit, $editingId, $this->editTimeLimit)) {
+            $this->dispatch('show-toast', message: 'مهلت ویرایش این پیام به پایان رسیده است.', type: 'error');
             return;
         }
-        $this->cancelEdit();
+        $this->edit->reset();
         $this->invalidateMessageCache();
         $this->dispatch('show-toast', message: 'پیام ویرایش شد', type: 'success');
     }
@@ -254,52 +221,24 @@ class Main extends Component
         $this->dispatch('chat-ready');
     }
 
-    public function send(SendMessageAction $action): void
+    public function send(SendMessageAction $action, ?int $replyToId = null): void
     {
-        $action->execute($this->composer, $this->activeUserId, $this->replyingToId);
-        $this->composer->reset();
-        $this->replyingToId = null;
-        $this->replyingTo = null;
-        $this->invalidateMessageCache();
-        unset($this->contacts);
-        $this->dispatch('message-sent');
+        try {
+            $action->execute($this->composer, $this->activeUserId, $replyToId);
+            $this->composer->reset();
+            $this->invalidateMessageCache();
+            unset($this->contacts);
+            $this->dispatch('message-sent');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('message-error');
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
+        } catch (\Exception $e) {
+            $this->dispatch('message-error');
+            $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
+        }
     }
 
     public function setFilter(string $filter): void { $this->filter = $filter; }
-
-    public function startEdit(int $messageId): void
-    {
-        $message = Message::withoutTrashed()->find($messageId);
-        if (!$message || $message->sender_id !== auth()->id()) return;
-        if ($message->created_at->diffInSeconds(now()) > $this->editTimeLimit) return;
-
-        $this->editingId = $messageId;
-        $this->edit->editingBody = $message->body;
-        $this->deletingId = null;
-        $this->replyingToId = null;
-        $this->replyingTo = null;
-        $this->dispatch('edit-mode-entered');
-    }
-
-    public function startReply(int $messageId): void
-    {
-        $message = Message::withoutTrashed()->find($messageId);
-        if (!$message) return;
-
-        $me = auth()->id();
-        $isValidContext = ($message->sender_id == $me && $message->recipient_id == $this->activeUserId) ||
-            ($message->sender_id == $this->activeUserId && $message->recipient_id == $me);
-        if (!$isValidContext) return;
-
-        $this->replyingToId = $messageId;
-        $this->replyingTo = [
-            'id' => $message->id, 'body' => $message->body,
-            'sender' => ['name' => $message->sender?->name ?? 'ناشناس'],
-        ];
-        $this->editingId = null;
-        $this->edit->reset();
-        $this->deletingId = null;
-    }
 
     #[Computed]
     public function totalMessages(): int
@@ -347,10 +286,6 @@ class Main extends Component
     {
         $this->composer->reset();
         $this->edit->reset();
-        $this->editingId = null;
-        $this->deletingId = null;
         $this->lastDeleted = null;
-        $this->replyingToId = null;
-        $this->replyingTo = null;
     }
 }

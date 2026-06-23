@@ -9,21 +9,21 @@
 
     <div class="relative">
 
-        @if($replyingToId && $replyingTo)
+        <template x-if="replyingTo">
             <div
                 class="mx-4 mt-3 reply-bar-enter flex items-center gap-3 px-4 py-2.5 rounded-t-2xl rounded-b-xl bg-[var(--md-sys-color-surface-variant)] border-r-[3px] border-[var(--md-sys-color-primary)]">
                 <span class="material-symbols-rounded text-sm flex-shrink-0 text-[var(--md-sys-color-primary)]"
                       aria-hidden="true">reply</span>
                 <div class="flex-1 min-w-0">
-                    <p class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">{{ $replyingTo['sender']['name'] ?? 'ناشناس' }}</p>
-                    <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]">{{ Str::limit($replyingTo['body'], 60) }}</p>
+                    <p class="text-[10px] font-bold text-[var(--md-sys-color-primary)]" x-text="replyingTo.sender.name"></p>
+                    <p class="text-[11px] truncate text-[var(--md-sys-color-on-surface-variant)]" x-text="replyingTo.body"></p>
                 </div>
-                <button wire:click="cancelReply" aria-label="لغو پاسخ"
+                <button x-on:click.prevent="cancelReply" aria-label="لغو پاسخ"
                         class="w-6 h-6 rounded-lg flex items-center justify-center transition-all hover:brightness-90 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="material-symbols-rounded text-base" aria-hidden="true">close</span>
                 </button>
             </div>
-        @endif
+        </template>
 
         @if(count($composer->attachments))
             <div class="flex flex-wrap items-center gap-2 mx-4 mt-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-surface-variant)]/50 border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
@@ -88,13 +88,16 @@
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
 
             <div
-                class="flex-1 relative rounded-2xl overflow-hidden transition-all duration-200 bg-[var(--md-sys-color-surface-variant)] border-[1.5px] {{ $replyingToId ? 'rounded-t-none' : '' }}"
-                :class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0 ? 'border-[var(--md-sys-color-primary)]' : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]'">
+                class="flex-1 relative rounded-2xl overflow-hidden transition-all duration-200 bg-[var(--md-sys-color-surface-variant)] border-[1.5px]"
+                :class="[
+                    replyingTo ? 'rounded-t-none' : '',
+                    (($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0) ? 'border-[var(--md-sys-color-primary)]' : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]'
+                ]">
                     <textarea x-ref="msgTa" id="msg-ta" wire:model.defer="composer.body"
                               wire:loading.attr="disabled"
                               wire:target="send"
-                              x-on:keydown.ctrl.enter="$wire.send()"
-                              x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();$wire.send();}"
+                              x-on:keydown.ctrl.enter.prevent="sendMessage()"
+                              x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();sendMessage();}"
                               x-on:input="$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
                               rows="1"
                               placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
@@ -106,7 +109,7 @@
                       aria-live="polite"></span>
             </div>
 
-            <button wire:click="send"
+            <button x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled"
                     wire:target="send"
                     class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:brightness-[1.1] hover:-translate-y-0.5 active:scale-[0.92] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"

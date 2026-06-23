@@ -101,7 +101,6 @@ final class PersianDateFieldService
             ->live()
             ->optionsLimit(200)
             ->dehydrated(false)
-            ->validationMessages(['required' => "{$placeholder} الزامی است"])
             ->afterStateUpdated(fn(callable $set, callable $get) => $this->syncDate($set, $get, $prefix));
     }
 

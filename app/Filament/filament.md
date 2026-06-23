@@ -286,10 +286,7 @@ class UserFormPresenter
         return TextInput::make('name')
             ->label(__('resources/user/strings.form.name'))
             ->required()
-            ->maxLength(255)
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.name_required'),
-            ]);
+            ->maxLength(255);
     }
 }
 ```
@@ -310,6 +307,7 @@ Table configuration options to always consider:
 - `->emptyStateIcon('heroicon-o-bookmark')` — always set
 - `->defaultSort(...)` — always set a sensible default
 - `->striped()` — use on dense tables for readability
+- all validationMessages are from GLOBAL STRINGS within lan.fa folders
 
 ```php
 class UserTablePresenter

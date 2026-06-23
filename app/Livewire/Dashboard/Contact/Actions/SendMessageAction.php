@@ -19,8 +19,22 @@ class SendMessageAction
             'recipient_id' => $recipientId,
             'body'         => trim($form->body),
             'attachments'  => $this->storeAttachments($form->attachments, $senderId) ?: null,
-            'reply_to_id'  => $replyToId,
+            'reply_to_id'  => $this->resolveReplyToId($replyToId, $senderId, $recipientId),
         ]);
+    }
+
+    private function resolveReplyToId(?int $replyToId, int $senderId, int $recipientId): ?int
+    {
+        if (!$replyToId) return null;
+
+        $isValidContext = Message::withoutTrashed()
+            ->where('id', $replyToId)
+            ->where(fn($q) => $q
+                ->where(fn($q) => $q->where('sender_id', $senderId)->where('recipient_id', $recipientId))
+                ->orWhere(fn($q) => $q->where('sender_id', $recipientId)->where('recipient_id', $senderId))
+            )->exists();
+
+        return $isValidContext ? $replyToId : null;
     }
 
     private function storeAttachments(array $attachments, int $senderId): array

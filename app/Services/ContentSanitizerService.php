@@ -85,10 +85,12 @@ class ContentSanitizerService
 
     private static function toUtf8(string $v): string
     {
-        $encoding = mb_detect_encoding($v, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'UTF-16'], true);
+        if (!mb_check_encoding($v, 'UTF-8')) {
+            $encoding = mb_detect_encoding($v, ['ISO-8859-1', 'Windows-1252', 'UTF-16'], true);
 
-        if ($encoding && $encoding !== 'UTF-8') {
-            $v = mb_convert_encoding($v, 'UTF-8', $encoding);
+            if ($encoding) {
+                $v = mb_convert_encoding($v, 'UTF-8', $encoding);
+            }
         }
 
         $clean = @iconv('UTF-8', 'UTF-8//IGNORE', $v);

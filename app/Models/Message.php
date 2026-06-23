@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Traits\HasPrunableStatus;
+use App\Services\ContentSanitizerService;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -26,6 +28,13 @@ class Message extends Model
         'is_edited',
         'read_at',
     ];
+
+    protected function body(): Attribute
+    {
+        return Attribute::make(
+            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
+        );
+    }
 
     public function attachmentUrls(): array
     {

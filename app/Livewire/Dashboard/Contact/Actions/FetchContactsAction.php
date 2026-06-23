@@ -23,23 +23,24 @@ class FetchContactsAction
             ->whereColumn('sender_id', 'users.id')
             ->whereNull('read_at');
 
-        $query = User::with(['profile.department'])
+        return User::with(['profile.department'])
             ->active()
-            ->whereKeyNot($viewerId)
+//            ->whereKeyNot($viewerId)
             ->select('users.*')
             ->addSelect(['last_message_id' => $lastMsgIdSub])
-            ->addSelect(['unread_count' => $unreadSub]);
-
-        if (filled($search)) {
-            $term = "%{$search}%";
-            $query->where(fn($q) => $q->where('users.name', 'LIKE', $term)
-                ->orWhereHas('profile', fn($p) => $p->where('position', 'LIKE', $term)));
-        }
-
-        if ($filter === 'unread') {
-            $query->havingRaw('unread_count > 0');
-        }
-
-        return $query->orderByDesc('last_message_id')->orderBy('users.name')->get();
+            ->addSelect(['unread_count' => $unreadSub])
+            ->when(filled($search), fn($q) => $q
+                ->where(fn($q) => $q
+                    ->where('users.name', 'LIKE', "%{$search}%")
+                    ->orWhereHas('profile', fn($p) => $p->where('position', 'LIKE', "%{$search}%"))
+                )
+            )
+            ->when($filter === 'unread', fn($q) => $q->having('unread_count', '>', 0))
+            ->orderByDesc('last_message_id')
+            ->orderBy('users.name')
+            ->get();
     }
 }
+
+
+
