@@ -72,7 +72,7 @@
 
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
 
-                    @if(isset($editingId) && (int) $editingId === $msg['id'])
+                    <template x-if="editingMsg?.id === {{ $msg['id'] }}">
                         <div class="rounded-xl overflow-hidden bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                                     <textarea wire:model.live="edit.editingBody"
                                               wire:keydown.enter.prevent="saveEdit"
@@ -90,11 +90,11 @@
                             <div class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
                                 <span class="text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
                                 <div class="flex items-center gap-1.5">
-                                    <button wire:click="cancelEdit"
+                                    <button x-on:click.prevent="cancelEdit"
                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                         انصراف
                                     </button>
-                                    <button wire:click="saveEdit"
+                                    <button x-on:click.prevent="saveEdit"
                                             wire:loading.attr="disabled"
                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                                         <span wire:loading.remove wire:target="saveEdit">ذخیره</span>
@@ -103,27 +103,27 @@
                                 </div>
                             </div>
                         </div>
-
-                    @elseif(isset($deletingId) && (int) $deletingId === $msg['id'])
+                    </template>
+                    <template x-if="deletingId === {{ $msg['id'] }}">
                         <div class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
                             <div class="flex items-center gap-2">
                                 <span class="material-symbols-rounded text-[15px] opacity-80">delete_forever</span>
                                 <span class="text-xs font-semibold">حذف این پیام؟</span>
                             </div>
                             <div class="flex items-center gap-2 justify-end">
-                                <button wire:click="cancelDelete"
+                                <button x-on:click.prevent="cancelDelete"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_10%,transparent)]">
                                     انصراف
                                 </button>
-                                <button wire:click="deleteMessage" wire:loading.attr="disabled"
+                                <button x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
                                     <span wire:loading.remove wire:target="deleteMessage">حذف</span>
                                     <span wire:loading wire:target="deleteMessage" class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
                                 </button>
                             </div>
                         </div>
-
-                    @else
+                    </template>
+                    <template x-if="editingMsg?.id !== {{ $msg['id'] }} && deletingId !== {{ $msg['id'] }}">
                         <div @class([
                                     'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
                                     'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
@@ -187,6 +187,7 @@
                                 </div>
                             @endif
                         </div>
+                    </template>
 
                         @if($msg['is_last'])
                             <div @class([
@@ -199,13 +200,13 @@
                                         title="کپی" aria-label="کپی">
                                     <span class="material-symbols-rounded text-[15px]">content_copy</span>
                                 </button>
-                                <button wire:click="startReply({{ $msg['id'] }})"
+                                <button x-on:click.prevent="startReply({{ $msg['id'] }}, '{{ addslashes($msg['sender']['name']) }}', '{{ addslashes(Str::limit($msg['body'], 60)) }}')"
                                         class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
                                         title="پاسخ" aria-label="پاسخ">
                                     <span class="material-symbols-rounded text-[15px]">reply</span>
                                 </button>
                                 @if($msg['can_edit'])
-                                    <button wire:click="startEdit({{ $msg['id'] }})" wire:loading.attr="disabled"
+                                    <button x-on:click.prevent="startEdit({{ $msg['id'] }}, '{{ addslashes($msg['body']) }}')" wire:loading.attr="disabled"
                                             class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 disabled:opacity-40 text-[var(--md-sys-color-on-surface-variant)]"
                                             title="ویرایش" aria-label="ویرایش">
                                         <span wire:loading.remove wire:target="startEdit" class="material-symbols-rounded text-[15px]">edit</span>
@@ -213,7 +214,7 @@
                                     </button>
                                 @endif
                                 @if($msg['can_delete'])
-                                    <button wire:click="confirmDelete({{ $msg['id'] }})" wire:loading.attr="disabled"
+                                    <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})" wire:loading.attr="disabled"
                                             class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 disabled:opacity-40 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
                                             title="حذف" aria-label="حذف">
                                         <span wire:loading.remove wire:target="confirmDelete" class="material-symbols-rounded text-[15px]">delete</span>

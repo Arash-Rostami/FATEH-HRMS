@@ -10,6 +10,11 @@ export default function contact() {
         undoTimeout: null,
         sending: false,
 
+        // UI States for Message Contexts
+        replyingTo: null,
+        editingMsg: null,
+        deletingId: null,
+
         emojiOpen: false,
         activeCat: 0,
         emojis: [
@@ -55,17 +60,11 @@ export default function contact() {
                 clearTimeout(this.typingTimeout);
                 this.typingTimeout = setTimeout(() => { this.isTyping = false; }, 2500);
             });
-            this.$wire.on('chat-ready',        () => this.$nextTick(() => this.scrollToBottom(false)));
+            this.$wire.on('chat-ready',        () => this.$nextTick(() => { this.scrollToBottom(false); this.resetUI(); }));
             this.$wire.on('message-sent',      () => this.$nextTick(() => { this.scrollToBottom(true); this.sending = false; }));
             this.$wire.on('message-error',     () => this.$nextTick(() => { this.sending = false; }));
             this.$wire.on('show-toast',        (e) => this.toast(e.message, e.type ?? 'info'));
             this.$wire.on('show-undo-toast',   (e) => this.toast(e.message, 'warning'));
-            this.$wire.on('edit-mode-entered', () => {
-                this.$nextTick(() => {
-                    const ta = document.querySelector('textarea[wire\\:model\\.live="editingBody"]');
-                    if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
-                });
-            });
             this.$watch('$wire.lastDeleted', (val) => {
                 clearTimeout(this.undoTimeout);
                 if (val) {
@@ -97,8 +96,14 @@ export default function contact() {
 
         closeOverlays() {
             this.showInfo = false;
-            this.$wire.cancelEdit();
-            this.$wire.cancelDelete();
+            this.cancelEdit();
+            this.cancelDelete();
+        },
+
+        resetUI() {
+            this.replyingTo = null;
+            this.editingMsg = null;
+            this.deletingId = null;
         },
 
         copyMessage(text) {
@@ -111,6 +116,52 @@ export default function contact() {
                     document.execCommand('copy'); ta.remove();
                     this.toast('پیام کپی شد', 'info');
                 });
+        },
+
+        // --- Reply Flow ---
+        startReply(id, senderName, body) {
+            this.editingMsg = null;
+            this.deletingId = null;
+            this.replyingTo = { id, sender: { name: senderName }, body };
+            this.$nextTick(() => document.getElementById('msg-ta')?.focus());
+        },
+        cancelReply() {
+            this.replyingTo = null;
+        },
+
+        // --- Edit Flow ---
+        startEdit(id, body) {
+            this.replyingTo = null;
+            this.deletingId = null;
+            this.editingMsg = { id, body };
+            this.$wire.set('edit.editingBody', body);
+            this.$nextTick(() => {
+                const ta = document.querySelector('textarea[wire\\:model\\.live="edit.editingBody"]');
+                if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
+            });
+        },
+        cancelEdit() {
+            this.editingMsg = null;
+        },
+        saveEdit() {
+            if (!this.editingMsg) return;
+            this.$wire.saveEdit(this.editingMsg.id);
+            this.editingMsg = null;
+        },
+
+        // --- Delete Flow ---
+        confirmDelete(id) {
+            this.replyingTo = null;
+            this.editingMsg = null;
+            this.deletingId = id;
+        },
+        cancelDelete() {
+            this.deletingId = null;
+        },
+        deleteMessage() {
+            if (!this.deletingId) return;
+            this.$wire.deleteMessage(this.deletingId);
+            this.deletingId = null;
         },
 
         async sendMessage() {
@@ -132,9 +183,8 @@ export default function contact() {
 
             this.sending = true;
             try {
-                await this.$wire.send();
-                // We rely on 'message-sent' or 'message-error' events to unset this.sending,
-                // but just in case of an unhandled exception in Livewire, we can timeout
+                await this.$wire.send(this.replyingTo ? this.replyingTo.id : null);
+                this.replyingTo = null;
                 setTimeout(() => { this.sending = false; }, 5000);
             } catch(e) {
                 this.sending = false;
