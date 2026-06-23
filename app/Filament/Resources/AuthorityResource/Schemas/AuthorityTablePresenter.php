@@ -31,10 +31,7 @@ class AuthorityTablePresenter
             ->query(fn(Builder $query, array $data) => $data['value']
                 ? $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(details, '$.approved_delegation')) = ?", [$data['value']])
                 : $query
-            )
-            ->validationMessages([
-                'in' => __('resources/authority/strings.validation.approved_delegation.in')
-            ]);
+            );
     }
 
     public static function createdAt(): TextColumn
@@ -71,10 +68,7 @@ class AuthorityTablePresenter
             ->label(__('resources/authority/strings.fields.department'))
             ->searchable()
             ->preload()
-            ->options(fn() => Department::getCachedOptions()->toArray())
-            ->validationMessages([
-                'in' => __('resources/authority/strings.validation.department_id.in')
-            ]);
+            ->options(fn() => Department::getCachedOptions()->toArray());
     }
 
     public static function departmentGroup(): Group
@@ -106,10 +100,7 @@ class AuthorityTablePresenter
             ->query(fn(Builder $query, array $data) => $data['value']
                 ? $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(details, '$.execution_procedure')) = ?", [$data['value']])
                 : $query
-            )
-            ->validationMessages([
-                'in' => __('resources/authority/strings.validation.execution_procedure.in')
-            ]);
+            );
     }
 
     public static function executionProcedureGroup(): Group
@@ -147,10 +138,7 @@ class AuthorityTablePresenter
             ->query(fn(Builder $query, array $data) => $data['value']
                 ? $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(details, '$.impact_score')) = ?", [$data['value']])
                 : $query
-            )
-            ->validationMessages([
-                'in' => __('resources/authority/strings.validation.impact_score.in')
-            ]);
+            );
     }
 
     public static function impactScoreGroup(): Group
@@ -170,10 +158,7 @@ class AuthorityTablePresenter
             ->query(fn(Builder $query, array $data) => $data['value']
                 ? $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(details, '$.repeat_frequency')) = ?", [$data['value']])
                 : $query
-            )
-            ->validationMessages([
-                'in' => __('resources/authority/strings.validation.repeat_frequency.in')
-            ]);
+            );
     }
 
     public static function repeatFrequencyGroup(): Group

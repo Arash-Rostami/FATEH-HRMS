@@ -28,11 +28,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
-            ->helperText(__('resources/dms/strings.hints.code'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.code.required'),
-                'max' => __('resources/dms/strings.validation.code.max_length'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.code'));
     }
 
     public static function type(): Toggle
@@ -79,10 +75,6 @@ class DmsFormPresenter
                 fn(TemporaryUploadedFile $file): string => self::forgeFileName($file)
             )
             ->required()
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.file.required'),
-                'max' => __('resources/dms/strings.validation.file.max_size'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.hints.file'));
     }
@@ -103,10 +95,7 @@ class DmsFormPresenter
                 $set('owners_preview_display', $preview);
             })
             ->required()
-            ->helperText(__('resources/dms/strings.hints.owners'))
-            ->validationMessages(['required' => __('resources/dms/strings.validation.owners.required'),
-                'in' => __('resources/dms/strings.validation.owners.in')
-            ]);
+            ->helperText(__('resources/dms/strings.hints.owners'));
     }
 
     public static function ownersPreview(): Textarea
@@ -133,9 +122,6 @@ class DmsFormPresenter
             ->maxLength(3000)
             ->nullable()
             ->placeholder(__('resources/dms/strings.fields.revision_placeholder'))
-            ->validationMessages([
-                'max' => __('resources/dms/strings.validation.revision.max_length'),
-            ])
             ->columnSpanFull()
             ->helperText(__('resources/dms/strings.hints.revision'));
     }
@@ -147,11 +133,7 @@ class DmsFormPresenter
             ->options(DocumentStatus::class)
             ->required()
             ->default(DocumentStatus::Live->value)
-            ->helperText(__('resources/dms/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.status.required'),
-                'in' => __('resources/dms/strings.validation.status.in')
-            ]);
+            ->helperText(__('resources/dms/strings.hints.status'));
     }
 
     public static function title(): TextInput
@@ -160,11 +142,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/dms/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.title.required'),
-                'max' => __('resources/dms/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.title'));
     }
 
     public static function users(): Select
@@ -176,10 +154,7 @@ class DmsFormPresenter
             ->multiple()
             ->searchable()
             ->preload()
-            ->nullable()
-            ->validationMessages([
-                'in' => __('resources/dms/strings.validation.users.in')
-            ]);
+            ->nullable();
     }
 
     public static function version(): TextInput
@@ -188,11 +163,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
-            ->helperText(__('resources/dms/strings.hints.version'))
-            ->validationMessages([
-                'required' => __('resources/dms/strings.validation.version.required'),
-                'max' => __('resources/dms/strings.validation.version.max_length'),
-            ]);
+            ->helperText(__('resources/dms/strings.hints.version'));
     }
 
     private static function forgeFileName(TemporaryUploadedFile $file): string

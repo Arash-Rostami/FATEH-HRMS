@@ -22,11 +22,7 @@ class TaskFormPresenter
             ->relationship('assignee', 'name')
             ->searchable()
             ->preload()
-            ->nullable()
-            ->validationMessages([
-                'exists' => __('resources/task/strings.validation.assigned_to.exists'),
-                'in' => __('resources/task/strings.validation.assigned_to.in')
-            ]);
+            ->nullable();
     }
 
     public static function deadlineDate(): FusedGroup
@@ -53,7 +49,6 @@ class TaskFormPresenter
             })
             ->nullable()
             ->helperText(__('resources/task/strings.hints.deadline_time'))
-            ->validationMessages(['date_format' => __('resources/task/strings.validation.deadline_time.invalid')])
             ->columnSpanFull();
     }
 
@@ -65,7 +60,6 @@ class TaskFormPresenter
             ->maxLength(5000)
             ->nullable()
             ->helperText(__('resources/task/strings.hints.description'))
-            ->validationMessages(['max' => __('resources/task/strings.validation.description.max_length')])
             ->columnSpanFull();
     }
 
@@ -76,11 +70,7 @@ class TaskFormPresenter
             ->options(TaskStatus::class)
             ->required()
             ->default(TaskStatus::Todo->value)
-            ->helperText(__('resources/task/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.status.required'),
-                'in' => __('resources/task/strings.validation.status.in')
-            ]);
+            ->helperText(__('resources/task/strings.hints.status'));
     }
 
     public static function title(): TextInput
@@ -89,11 +79,7 @@ class TaskFormPresenter
             ->label(__('resources/task/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/task/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.title.required'),
-                'max' => __('resources/task/strings.validation.title.max_length'),
-            ]);
+            ->helperText(__('resources/task/strings.hints.title'));
     }
 
     public static function userId(): Select
@@ -104,11 +90,6 @@ class TaskFormPresenter
             ->searchable()
             ->preload()
             ->helperText(__('resources/task/strings.hints.user_id'))
-            ->required()
-            ->validationMessages([
-                'required' => __('resources/task/strings.validation.user_id.required'),
-                'exists' => __('resources/task/strings.validation.user_id.invalid'),
-                'in' => __('resources/task/strings.validation.user_id.invalid')
-            ]);
+            ->required();
     }
 }

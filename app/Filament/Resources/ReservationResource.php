@@ -79,10 +79,7 @@ class ReservationResource extends Resource
             Action::make('edit')
                 ->icon('heroicon-m-pencil')
                 ->url(static::getUrl('edit', ['record' => $record])),
-        ]
-            ->validationMessages([
-                'url' => __('resources/reservation/strings.validation.edit.url')
-            ]);
+        ];
     }
 
     public static function getGlobalSearchResultTitle(Model $record): string

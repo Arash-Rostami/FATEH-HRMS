@@ -52,11 +52,7 @@ class PostFormPresenter
                     'tableMergeCells', 'tableSplitCell', 'tableToggleHeaderRow', 'tableDelete',
                 ],
             ])
-            ->helperText(__('resources/post/strings.hints.body'))
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.body.required'),
-                'max' => __('resources/post/strings.validation.body.max_length'),
-            ]);
+            ->helperText(__('resources/post/strings.hints.body'));
     }
 
     public static function image(): FileUpload
@@ -73,11 +69,7 @@ class PostFormPresenter
             ->image()
             ->imagePreviewHeight('160')
             ->columnSpanFull()
-            ->helperText(__('resources/post/strings.hints.image'))
-            ->validationMessages([
-                'max' => __('resources/post/strings.validation.image.max'),
-                'mimes' => __('resources/post/strings.validation.image.mimes')
-            ]);
+            ->helperText(__('resources/post/strings.hints.image'));
     }
 
     public static function pinned(): Toggle
@@ -110,10 +102,6 @@ class PostFormPresenter
                 'paragraph' => ['bold', 'italic', 'link'],
             ])
             ->helperText(__('resources/post/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.title.required'),
-                'max' => __('resources/post/strings.validation.title.max_length'),
-            ])
             ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 120px;']);
     }
 
@@ -129,11 +117,6 @@ class PostFormPresenter
             ->dehydrated(true)
             ->helperText(__('resources/post/strings.hint.user_locked'))
             ->preload()
-            ->required()
-            ->validationMessages([
-                'required' => __('resources/post/strings.validation.user_id.required'),
-                'exists' => __('resources/post/strings.validation.user_id.invalid'),
-                'in' => __('resources/post/strings.validation.user_id.invalid')
-            ]);
+            ->required();
     }
 }

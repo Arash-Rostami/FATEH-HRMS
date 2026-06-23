@@ -93,10 +93,7 @@ class ReportTablePresenter
         return SelectFilter::make('department_id')
             ->label(__('resources/report/strings.filters.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
-            ->searchable()
-            ->validationMessages([
-                'in' => __('resources/report/strings.validation.department_id.in')
-            ]);
+            ->searchable();
     }
 
     public static function departmentGroup(): Group

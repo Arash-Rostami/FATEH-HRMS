@@ -43,10 +43,7 @@ class GalleryTablePresenter
             ->label(__('resources/gallery/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
-            ->preload()
-            ->validationMessages([
-                'in' => __('resources/gallery/strings.validation.department_id.in')
-            ]);
+            ->preload();
     }
 
     public static function departmentGroup(): Group

@@ -305,10 +305,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('number_of_children')
             ->label(__('resources/profile/strings.infolist.number_of_children'))
             ->numeric()
-            ->placeholder('۰')
-            ->validationMessages([
-                'numeric' => __('resources/profile/strings.validation.number_of_children.numeric')
-            ]);
+            ->placeholder('۰');
     }
 
     public static function personnelId(): TextEntry

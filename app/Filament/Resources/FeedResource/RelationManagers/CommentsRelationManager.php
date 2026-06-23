@@ -44,11 +44,7 @@ class CommentsRelationManager extends RelationManager
                     ])
                     ->extraInputAttributes(['class' => 'fi-prose', 'style' => 'min-height: 160px;']),
             ])->columnSpanFull(),
-        ])
-            ->validationMessages([
-                'required' => __('resources/feed/strings.validation.content.required'),
-                'max' => __('resources/feed/strings.validation.content.max')
-            ]);
+        ]);
     }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string

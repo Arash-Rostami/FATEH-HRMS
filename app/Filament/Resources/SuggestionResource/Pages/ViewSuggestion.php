@@ -63,10 +63,7 @@ class ViewSuggestion extends ViewRecord
                     ->options(__('resources/suggestion/strings.decision.options'))
                     ->required()
                     ->inline()
-                    ->inlineLabel(false)
-                    ->validationMessages([
-                        'required' => __('resources/suggestion/strings.validation.decision.required'),
-                    ]),
+                    ->inlineLabel(false),
 
                 Textarea::make('decisionComment')
                     ->label(__('resources/suggestion/strings.decision.comment'))
@@ -122,10 +119,7 @@ class ViewSuggestion extends ViewRecord
                     ])
                     ->required()
                     ->inline()
-                    ->inlineLabel(false)
-                    ->validationMessages([
-                        'required' => __('resources/suggestion/strings.validation.feedback.required'),
-                    ]),
+                    ->inlineLabel(false),
 
                 Textarea::make('comment')
                     ->label(__('resources/suggestion/strings.feedback.comment'))

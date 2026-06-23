@@ -22,13 +22,7 @@ class DepartmentFormPresenter
             ->maxLength(10)
             ->unique(ignoreRecord: true)
             ->alphaDash()
-            ->helperText(__('resources/department/strings.hints.code'))
-            ->validationMessages([
-                'required'   => __('resources/department/strings.validation.code_required'),
-                'max'        => __('resources/department/strings.validation.code_max'),
-                'unique'     => __('resources/department/strings.validation.code_unique'),
-                'alpha_dash' => __('resources/department/strings.validation.code_alpha_dash'),
-            ]);
+            ->helperText(__('resources/department/strings.hints.code'));
     }
 
     public static function description(): Textarea
@@ -47,11 +41,7 @@ class DepartmentFormPresenter
             ->label(__('resources/department/strings.fields.name'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/department/strings.hints.name'))
-            ->validationMessages([
-                'required' => __('resources/department/strings.validation.name_required'),
-                'max'      => __('resources/department/strings.validation.name_max'),
-            ]);
+            ->helperText(__('resources/department/strings.hints.name'));
     }
 
     public static function ticketOptions(): Repeater
@@ -62,28 +52,17 @@ class DepartmentFormPresenter
                 TextInput::make('request_type')
                     ->label(__('resources/department/strings.fields.request_type'))
                     ->datalist(array_keys(Ticket::$requestTypeOptions))
-                    ->required()
-                    ->validationMessages([
-                        'required' => __('resources/department/strings.validation.request_type_required'),
-                'in' => __('resources/department/strings.validation.ticket_options.in')
-            ]),
+                    ->required(),
 
                 TextInput::make('area_key')
                     ->label(__('resources/department/strings.fields.area_key'))
                     ->placeholder(__('resources/department/strings.fields.area_key_placeholder'))
                     ->required()
-                    ->regex('/^[a-zA-Z0-9_-]+$/')
-                    ->validationMessages([
-                        'required' => __('resources/department/strings.validation.area_key_required'),
-                        'regex'    => __('resources/department/strings.validation.area_key_regex'),
-                    ]),
+                    ->regex('/^[a-zA-Z0-9_-]+$/'),
 
                 TextInput::make('area_label')
                     ->label(__('resources/department/strings.fields.area_label'))
-                    ->required()
-                    ->validationMessages([
-                        'required' => __('resources/department/strings.validation.area_label_required'),
-                    ]),
+                    ->required(),
 
                 Select::make('icon')
                     ->label(__('resources/department/strings.fields.icon'))

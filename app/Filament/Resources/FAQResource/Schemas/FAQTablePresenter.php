@@ -47,10 +47,7 @@ class FAQTablePresenter
                 'faq_categories_filter_options', now()->addDay(),
                 fn() => FAQ::distinct()->orderBy('category')->pluck('category', 'category')->toArray()
             ))
-            ->searchable()
-            ->validationMessages([
-                'in' => __('resources/faq/strings.validation.category.in')
-            ]);
+            ->searchable();
     }
 
     public static function categoryGroup(): Group
@@ -86,10 +83,7 @@ class FAQTablePresenter
         return SelectFilter::make('department_id')
             ->label(__('resources/faq/strings.fields.department'))
             ->searchable()
-            ->options(fn() => Department::getCachedOptions()->toArray())
-            ->validationMessages([
-                'in' => __('resources/faq/strings.validation.department_id.in')
-            ]);
+            ->options(fn() => Department::getCachedOptions()->toArray());
     }
 
     public static function departmentGroup(): Group
@@ -137,10 +131,7 @@ class FAQTablePresenter
                 'user_filter_options', now()->addDay(),
                 fn() => User::orderBy('name')->pluck('name', 'id')->toArray()
             ))
-            ->searchable()
-            ->validationMessages([
-                'in' => __('resources/faq/strings.validation.user_id.in')
-            ]);
+            ->searchable();
     }
 
     public static function userGroup(): Group

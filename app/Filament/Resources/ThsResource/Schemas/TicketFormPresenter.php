@@ -31,7 +31,6 @@ class TicketFormPresenter
             ->maxLength(5000)
             ->nullable()
             ->helperText(__('resources/ths/strings.hints.action_result'))
-            ->validationMessages(['max' => __('resources/ths/strings.validation.action_result.max_length')])
             ->columnSpanFull();
     }
 
@@ -43,7 +42,6 @@ class TicketFormPresenter
             ->maxLength(2000)
             ->nullable()
             ->helperText(__('resources/ths/strings.hints.additional_notes'))
-            ->validationMessages(['max' => __('resources/ths/strings.validation.additional_notes.max_length')])
             ->columnSpanFull();
     }
 
@@ -67,11 +65,7 @@ class TicketFormPresenter
                 }
             })
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.assigned_to'))
-            ->validationMessages([
-                'exists' => __('resources/ths/strings.validation.assigned_to.exists'),
-                'in' => __('resources/ths/strings.validation.assigned_to.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.assigned_to'));
     }
 
     public static function assigneeFiles(): Repeater
@@ -86,17 +80,11 @@ class TicketFormPresenter
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
-                    ->validationMessages([
-                        'max' => __('resources/ths/strings.validation.assignee_files.max_size'),
-                        'mimetypes' => __('resources/ths/strings.validation.assignee_files.mime_types'),
-                'mimes' => __('resources/ths/strings.validation.assignee_files.mimes')
-            ])
                     ->openable()
                     ->downloadable(),
             ])
             ->maxItems(3)
             ->helperText(__('resources/ths/strings.hints.assignee_files'))
-            ->validationMessages(['max' => __('resources/ths/strings.validation.assignee_files.max_items')])
             ->columnSpanFull();
     }
 
@@ -125,8 +113,7 @@ class TicketFormPresenter
             ->type('time')
             ->default('09:00')
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.completion_deadline_time'))
-            ->validationMessages(['date_format' => __('resources/ths/strings.validation.completion_deadline_time.invalid')]);
+            ->helperText(__('resources/ths/strings.hints.completion_deadline_time'));
     }
 
     public static function departmentDisplay(): TextInput
@@ -145,10 +132,6 @@ class TicketFormPresenter
             ->rows(4)
             ->helperText(__('resources/ths/strings.hints.description'))
             ->maxLength(5000)
-            ->validationMessages([
-                'required' => __('resources/ths/strings.validation.description.required'),
-                'max' => __('resources/ths/strings.validation.description.max_length'),
-            ])
             ->columnSpanFull();
     }
 
@@ -164,10 +147,7 @@ class TicketFormPresenter
                 '1' => '★☆☆☆☆ — بی‌اثر',
             ])
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.effectiveness'))
-            ->validationMessages([
-                'in' => __('resources/ths/strings.validation.effectiveness.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.effectiveness'));
     }
 
     public static function priority(): Select
@@ -178,10 +158,7 @@ class TicketFormPresenter
             ->required()
             ->default(TicketPriority::Low->value)
             ->disabledOn('edit')
-            ->helperText(__('resources/ths/strings.hints.priority'))
-            ->validationMessages(['required' => __('resources/ths/strings.validation.priority.required'),
-                'in' => __('resources/ths/strings.validation.priority.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.priority'));
     }
 
     public static function requestArea(): Select
@@ -203,11 +180,7 @@ class TicketFormPresenter
             ->allowHtml()
             ->required()
             ->live()
-            ->helperText(__('resources/ths/strings.hints.request_area'))
-            ->validationMessages([
-                'required' => __('resources/ths/strings.validation.request_area.required'),
-                'in' => __('resources/ths/strings.validation.request_area.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.request_area'));
     }
 
     public static function requestSubject(): TextInput
@@ -217,10 +190,6 @@ class TicketFormPresenter
             ->required()
             ->maxLength(255)
             ->helperText(__('resources/ths/strings.hints.request_subject'))
-            ->validationMessages([
-                'required' => __('resources/ths/strings.validation.request_subject.required'),
-                'max' => __('resources/ths/strings.validation.request_subject.max_length'),
-            ])
             ->columnSpanFull();
     }
 
@@ -233,10 +202,7 @@ class TicketFormPresenter
             ->live()
             ->native(false)
             ->afterStateUpdated(fn(callable $set) => $set('request_area', null))
-            ->helperText(__('resources/ths/strings.hints.request_type'))
-            ->validationMessages(['required' => __('resources/ths/strings.validation.request_type.required'),
-                'in' => __('resources/ths/strings.validation.request_type.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.request_type'));
     }
 
     public static function requesterFiles(): Repeater
@@ -251,17 +217,11 @@ class TicketFormPresenter
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
-                    ->validationMessages([
-                        'max' => __('resources/ths/strings.validation.requester_files.max_size'),
-                        'mimetypes' => __('resources/ths/strings.validation.requester_files.mime_types'),
-                'mimes' => __('resources/ths/strings.validation.requester_files.mimes')
-            ])
                     ->openable()
                     ->downloadable(),
             ])
             ->maxItems(3)
             ->helperText(__('resources/ths/strings.hints.requester_files'))
-            ->validationMessages(['max' => __('resources/ths/strings.validation.requester_files.max_items')])
             ->disabledOn('edit')
             ->columnSpanFull();
     }
@@ -280,11 +240,7 @@ class TicketFormPresenter
             ->afterStateUpdated(function (?int $state, callable $set) {
                 $deptId = $state ? User::with('profile')->find($state)?->profile?->department_id : null;
                 $set('extra.department', $deptId ?? '');
-            })
-            ->validationMessages(['required' => __('resources/ths/strings.validation.requester_id.required'),
-                'exists' => __('resources/ths/strings.validation.requester_id.invalid'),
-                'in' => __('resources/ths/strings.validation.requester_id.invalid')
-            ]);
+            });
     }
 
     public static function satisfactionScore(): Select
@@ -294,10 +250,7 @@ class TicketFormPresenter
             ->disabledOn('edit')
             ->options(['5' => '★★★★★', '4' => '★★★★', '3' => '★★★', '2' => '★★', '1' => '★'])
             ->nullable()
-            ->helperText(__('resources/ths/strings.hints.satisfaction_score'))
-            ->validationMessages([
-                'in' => __('resources/ths/strings.validation.satisfaction_score.in')
-            ]);
+            ->helperText(__('resources/ths/strings.hints.satisfaction_score'));
     }
 
     public static function status(): Select
@@ -314,10 +267,7 @@ class TicketFormPresenter
             ->live()
             ->afterStateUpdated(function (mixed $state, callable $set) {
                 $set('completion_date', $state?->value === 'closed' ? now()->format('Y-m-d H:i:s') : null);
-            })
-            ->validationMessages(['required' => __('resources/ths/strings.validation.status.required'),
-                'in' => __('resources/ths/strings.validation.status.in')
-            ]);
+            });
     }
 
     public static function targetDepartment(): Select

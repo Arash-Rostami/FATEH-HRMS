@@ -97,10 +97,7 @@ class SuggestionResource extends Resource
             Action::make('view')
                 ->icon('heroicon-m-eye')
                 ->url(static::getUrl('view', ['record' => $record])),
-        ]
-            ->validationMessages([
-                'url' => __('resources/suggestion/strings.validation.view.url')
-            ]);
+        ];
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

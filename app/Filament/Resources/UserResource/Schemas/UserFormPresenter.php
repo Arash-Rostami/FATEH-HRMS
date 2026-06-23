@@ -77,10 +77,7 @@ class UserFormPresenter
                     $items->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all()
                 );
             })
-            ->helperText(__('resources/user/strings.hints.booking'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.validation.booking.required')
-            ]);
+            ->helperText(__('resources/user/strings.hints.booking'));
     }
 
     public static function email(): TextInput
@@ -91,13 +88,7 @@ class UserFormPresenter
             ->required()
             ->unique(ignoreRecord: true)
             ->maxLength(255)
-            ->helperText(__('resources/user/strings.hints.email'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.email_required'),
-                'unique' => __('resources/user/strings.form.email_unique'),
-                'email' => __('resources/user/strings.form.email_invalid'),
-                'max' => __('resources/user/strings.validation.email.max')
-            ]);
+            ->helperText(__('resources/user/strings.hints.email'));
     }
 
     public static function extra(): KeyValue
@@ -122,12 +113,7 @@ class UserFormPresenter
             ->minValue(1)
             ->required()
             ->hintColor('warning')
-            ->helperText(__('resources/user/strings.hints.maximum'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.maximum_required'),
-                'min' => __('resources/user/strings.form.maximum_min'),
-                'numeric' => __('resources/user/strings.validation.maximum.numeric')
-            ]);
+            ->helperText(__('resources/user/strings.hints.maximum'));
     }
 
     public static function name(): TextInput
@@ -136,11 +122,7 @@ class UserFormPresenter
             ->label(__('resources/user/strings.form.name'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/user/strings.hints.name'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.name_required'),
-                'max' => __('resources/user/strings.form.name_max'),
-            ]);
+            ->helperText(__('resources/user/strings.hints.name'));
     }
 
     public static function password(): TextInput
@@ -154,12 +136,7 @@ class UserFormPresenter
             ->confirmed()
             ->visible(fn(string $operation): bool => $operation === 'create')
             ->dehydrated(fn(string $operation): bool => $operation === 'create')
-            ->helperText(__('resources/user/strings.hints.password'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.password_required'),
-                'min' => __('resources/user/strings.form.password_min'),
-                'confirmed' => __('resources/user/strings.form.password_confirmed'),
-            ]);
+            ->helperText(__('resources/user/strings.hints.password'));
     }
 
     public static function passwordConfirmation(): TextInput
@@ -171,10 +148,7 @@ class UserFormPresenter
             ->required()
             ->visible(fn(string $operation): bool => $operation === 'create')
             ->dehydrated(false)
-            ->helperText(__('resources/user/strings.hints.password_confirmation'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.validation.password_confirmation.required')
-            ]);
+            ->helperText(__('resources/user/strings.hints.password_confirmation'));
     }
 
     public static function presence(): Select
@@ -194,11 +168,7 @@ class UserFormPresenter
             ->default(PresenceStatus::Onsite->value)
             ->required()
             ->native(false)
-            ->helperText(__('resources/user/strings.hints.presence'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.presence_required'),
-                'in' => __('resources/user/strings.validation.presence.in')
-            ]);
+            ->helperText(__('resources/user/strings.hints.presence'));
     }
 
     public static function role(): Select
@@ -209,11 +179,7 @@ class UserFormPresenter
             ->default(UserRole::User->value)
             ->required()
             ->native(false)
-            ->helperText(__('resources/user/strings.hints.role'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.role_required'),
-                'in' => __('resources/user/strings.validation.role.in')
-            ]);
+            ->helperText(__('resources/user/strings.hints.role'));
     }
 
     public static function status(): Select
@@ -224,11 +190,7 @@ class UserFormPresenter
             ->default(UserStatus::Active->value)
             ->required()
             ->native(false)
-            ->helperText(__('resources/user/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.status_required'),
-                'in' => __('resources/user/strings.validation.status.in')
-            ]);
+            ->helperText(__('resources/user/strings.hints.status'));
     }
 
     public static function type(): Select
@@ -239,10 +201,6 @@ class UserFormPresenter
             ->default(UserType::Employee->value)
             ->required()
             ->native(false)
-            ->helperText(__('resources/user/strings.hints.type'))
-            ->validationMessages([
-                'required' => __('resources/user/strings.form.type_required'),
-                'in' => __('resources/user/strings.validation.type.in')
-            ]);
+            ->helperText(__('resources/user/strings.hints.type'));
     }
 }

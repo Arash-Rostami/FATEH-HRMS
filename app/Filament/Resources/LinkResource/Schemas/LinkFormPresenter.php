@@ -42,15 +42,7 @@ class LinkFormPresenter
             ->image()
             ->imagePreviewHeight('80')
             ->required()
-            ->helperText(__('resources/link/strings.hints.icon'))
-            ->validationMessages([
-                'required' => __('resources/link/strings.validation.required'),
-                'max' => __('resources/link/strings.validation.max_file', ['max' => 512,
-                'mimes' => __('resources/link/strings.validation.icon.mimes')
-            ]),
-                'mimetypes' => __('resources/link/strings.validation.mimetypes'),
-                'image' => __('resources/link/strings.validation.image'),
-            ]);
+            ->helperText(__('resources/link/strings.hints.icon'));
     }
 
     public static function iconDescription(): Textarea
@@ -59,10 +51,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.icon_description'))
             ->rows(2)
             ->maxLength(500)
-            ->helperText(__('resources/link/strings.hints.icon_description'))
-            ->validationMessages([
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 500]),
-            ]);
+            ->helperText(__('resources/link/strings.hints.icon_description'));
     }
 
     public static function image(): FileUpload
@@ -82,15 +71,7 @@ class LinkFormPresenter
             ->image()
             ->imagePreviewHeight('120')
             ->required()
-            ->helperText(__('resources/link/strings.hints.image'))
-            ->validationMessages([
-                'required' => __('resources/link/strings.validation.required'),
-                'max' => __('resources/link/strings.validation.max_file', ['max' => 1024,
-                'mimes' => __('resources/link/strings.validation.image.mimes')
-            ]),
-                'mimetypes' => __('resources/link/strings.validation.mimetypes'),
-                'image' => __('resources/link/strings.validation.image'),
-            ]);
+            ->helperText(__('resources/link/strings.hints.image'));
     }
 
     public static function imageDescription(): Textarea
@@ -99,10 +80,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.image_description'))
             ->rows(2)
             ->maxLength(500)
-            ->helperText(__('resources/link/strings.hints.image_description'))
-            ->validationMessages([
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 500]),
-            ]);
+            ->helperText(__('resources/link/strings.hints.image_description'));
     }
 
     public static function internalUrl(): TextInput
@@ -113,11 +91,7 @@ class LinkFormPresenter
             ->maxLength(2048)
             ->live()
             ->helperText(__('resources/link/strings.fields.internal_url_hint'))
-            ->nullable()
-            ->validationMessages([
-                'url' => __('resources/link/strings.validation.url'),
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 2048]),
-            ]);
+            ->nullable();
     }
 
     public static function linkType(): Radio
@@ -128,11 +102,7 @@ class LinkFormPresenter
             ->required()
             ->live()
             ->inline()
-            ->helperText(__('resources/link/strings.hints.link_type'))
-            ->validationMessages([
-                'required' => __('resources/link/strings.validation.required'),
-                'in' => __('resources/link/strings.validation.link.in')
-            ]);
+            ->helperText(__('resources/link/strings.hints.link_type'));
     }
 
     public static function sequence(): Select
@@ -143,10 +113,7 @@ class LinkFormPresenter
             ->default(0)
             ->searchable()
             ->native(false)
-            ->helperText(__('resources/link/strings.fields.sequence_hint'))
-            ->validationMessages([
-                'in' => __('resources/link/strings.validation.sequence.in')
-            ]);
+            ->helperText(__('resources/link/strings.fields.sequence_hint'));
     }
 
     public static function url(): TextInput
@@ -157,12 +124,7 @@ class LinkFormPresenter
             ->url()
             ->maxLength(2048)
             ->placeholder('//:https')
-            ->helperText(__('resources/link/strings.fields.url_hint'))
-            ->validationMessages([
-                'required' => __('resources/link/strings.validation.required'),
-                'url' => __('resources/link/strings.validation.url'),
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 2048]),
-            ]);
+            ->helperText(__('resources/link/strings.fields.url_hint'));
     }
 
     public static function urlDescription(): Textarea
@@ -171,10 +133,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.url_description'))
             ->rows(2)
             ->maxLength(1000)
-            ->helperText(__('resources/link/strings.hints.url_description'))
-            ->validationMessages([
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 1000]),
-            ]);
+            ->helperText(__('resources/link/strings.hints.url_description'));
     }
 
     public static function urlTitle(): TextInput
@@ -183,10 +142,6 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.url_title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/link/strings.hints.url_title'))
-            ->validationMessages([
-                'required' => __('resources/link/strings.validation.required'),
-                'max' => __('resources/link/strings.validation.max_string', ['max' => 255]),
-            ]);
+            ->helperText(__('resources/link/strings.hints.url_title'));
     }
 }
