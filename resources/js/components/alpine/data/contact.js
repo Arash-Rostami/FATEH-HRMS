@@ -8,6 +8,7 @@ export default function contact() {
         showInfo: false,
         showUndo: false,
         undoTimeout: null,
+        sending: false,
 
         emojiOpen: false,
         activeCat: 0,
@@ -34,6 +35,8 @@ export default function contact() {
         },
 
         init() {
+            this.initPattern();
+
             const vp = this.$refs.msgViewport;
             if (vp) {
                 let t = false;
@@ -53,7 +56,8 @@ export default function contact() {
                 this.typingTimeout = setTimeout(() => { this.isTyping = false; }, 2500);
             });
             this.$wire.on('chat-ready',        () => this.$nextTick(() => this.scrollToBottom(false)));
-            this.$wire.on('message-sent',      () => this.$nextTick(() => this.scrollToBottom(true)));
+            this.$wire.on('message-sent',      () => this.$nextTick(() => { this.scrollToBottom(true); this.sending = false; }));
+            this.$wire.on('message-error',     () => this.$nextTick(() => { this.sending = false; }));
             this.$wire.on('show-toast',        (e) => this.toast(e.message, e.type ?? 'info'));
             this.$wire.on('show-undo-toast',   (e) => this.toast(e.message, 'warning'));
             this.$wire.on('edit-mode-entered', () => {
@@ -107,6 +111,34 @@ export default function contact() {
                     document.execCommand('copy'); ta.remove();
                     this.toast('پیام کپی شد', 'info');
                 });
+        },
+
+        async sendMessage() {
+            if (this.sending) return;
+
+            const ta = document.getElementById('msg-ta');
+            const body = ta ? ta.value.trim() : '';
+            const attachments = this.$wire.composer?.attachments || [];
+
+            if (body.length === 0 && attachments.length === 0) {
+                this.toast('پیام نمی‌تواند خالی باشد.', 'warning');
+                return;
+            }
+
+            if (body.length > 2000) {
+                this.toast('متن پیام نباید بیشتر از ۲۰۰۰ کاراکتر باشد.', 'warning');
+                return;
+            }
+
+            this.sending = true;
+            try {
+                await this.$wire.send();
+                // We rely on 'message-sent' or 'message-error' events to unset this.sending,
+                // but just in case of an unhandled exception in Livewire, we can timeout
+                setTimeout(() => { this.sending = false; }, 5000);
+            } catch(e) {
+                this.sending = false;
+            }
         },
     };
 }

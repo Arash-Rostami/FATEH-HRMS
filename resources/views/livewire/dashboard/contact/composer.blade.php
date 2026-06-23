@@ -93,8 +93,8 @@
                     <textarea x-ref="msgTa" id="msg-ta" wire:model.defer="composer.body"
                               wire:loading.attr="disabled"
                               wire:target="send"
-                              x-on:keydown.ctrl.enter="$wire.send()"
-                              x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();$wire.send();}"
+                              x-on:keydown.ctrl.enter.prevent="sendMessage()"
+                              x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();sendMessage();}"
                               x-on:input="$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
                               rows="1"
                               placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
@@ -106,7 +106,7 @@
                       aria-live="polite"></span>
             </div>
 
-            <button wire:click="send"
+            <button x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled"
                     wire:target="send"
                     class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:brightness-[1.1] hover:-translate-y-0.5 active:scale-[0.92] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
