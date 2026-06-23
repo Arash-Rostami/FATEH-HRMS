@@ -23,9 +23,7 @@ class ResourceFormPresenter
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.capacity'))
             ->visible(fn(Get $get) => in_array($get('type'), ['meeting', 'car']))
-            ->validationMessages([
-                'numeric' => __('resources/resource/strings.validation.capacity_numeric'),
-            ]);
+            ;
     }
 
     public static function extension(): TextInput
@@ -36,9 +34,7 @@ class ResourceFormPresenter
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.extension'))
             ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'meeting']))
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.extension_max'),
-            ]);
+            ;
     }
 
     public static function floor(): TextInput
@@ -49,9 +45,7 @@ class ResourceFormPresenter
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.floor'))
             ->visible(fn(Get $get) => in_array($get('type'), ['seat', 'spot']))
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.floor_max'),
-            ]);
+            ;
     }
 
     public static function image(): FileUpload
@@ -67,9 +61,7 @@ class ResourceFormPresenter
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.image'))
             ->columnSpanFull()
-            ->validationMessages([
-                'image' => __('resources/resource/strings.validation.image_image'),
-            ]);
+            ;
     }
 
     public static function name(): TextInput
@@ -79,10 +71,7 @@ class ResourceFormPresenter
             ->required()
             ->maxLength(255)
             ->helperText(__('resources/resource/strings.hints.name'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.name_required'),
-                'max' => __('resources/resource/strings.validation.name_max'),
-            ]);
+            ;
     }
 
     public static function notes(): Textarea
@@ -94,9 +83,7 @@ class ResourceFormPresenter
             ->rows(2)
             ->helperText(__('resources/resource/strings.hints.notes'))
             ->columnSpanFull()
-            ->validationMessages([
-                'max' => __('resources/resource/strings.validation.notes_max'),
-            ]);
+            ;
     }
 
     public static function status(): Select
@@ -107,10 +94,7 @@ class ResourceFormPresenter
             ->default('active')
             ->required()
             ->helperText(__('resources/resource/strings.hints.status'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.status_required'),
-                'in' => __('resources/resource/strings.validation.status_in'),
-            ]);
+            ;
     }
 
     public static function type(): Select
@@ -121,9 +105,6 @@ class ResourceFormPresenter
             ->required()
             ->live()
             ->helperText(__('resources/resource/strings.hints.type'))
-            ->validationMessages([
-                'required' => __('resources/resource/strings.validation.type_required'),
-                'in' => __('resources/resource/strings.validation.type_in'),
-            ]);
+            ;
     }
 }

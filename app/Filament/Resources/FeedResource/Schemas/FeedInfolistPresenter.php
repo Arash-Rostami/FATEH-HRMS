@@ -47,7 +47,6 @@ class FeedInfolistPresenter
             ->icon('heroicon-o-clock');
     }
 
-
     public static function mediaImages(): ImageEntry
     {
         return ImageEntry::make('media_images')

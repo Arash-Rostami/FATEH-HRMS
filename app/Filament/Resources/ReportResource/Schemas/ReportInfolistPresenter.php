@@ -51,7 +51,6 @@ class ReportInfolistPresenter
             ->columnSpanFull();
     }
 
-
     public static function fileType(): TextEntry
     {
         return TextEntry::make('file_type')

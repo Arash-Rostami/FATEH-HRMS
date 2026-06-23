@@ -61,7 +61,6 @@ class AdTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
-
     public static function experience(): TextColumn
     {
         return TextColumn::make('experience')

@@ -54,9 +54,7 @@ class PolicyFormPresenter
             ->options(__('resources/policy/strings.days'))
             ->columns(4)
             ->columnSpanFull()
-            ->validationMessages([
-                'array' => __('resources/policy/strings.validation.invalid_array'),
-            ]);
+            ;
     }
 
     public static function allowedHoursEnd(): TimePicker
@@ -69,10 +67,7 @@ class PolicyFormPresenter
             ->displayFormat('H:i')
             ->format('H:i')
             ->after('allowed_hours_start')
-            ->validationMessages([
-                'after' => __('resources/policy/strings.validation.time_after'),
-                'date_format' => __('resources/policy/strings.validation.time_format'),
-            ]);
+            ;
     }
 
     public static function allowedHoursStart(): TimePicker
@@ -85,10 +80,7 @@ class PolicyFormPresenter
             ->displayFormat('H:i')
             ->format('H:i')
             ->before('allowed_hours_end')
-            ->validationMessages([
-                'before' => __('resources/policy/strings.validation.time_before'),
-                'date_format' => __('resources/policy/strings.validation.time_format'),
-            ]);
+            ;
     }
 
     public static function errorLegend(): ViewEntry
@@ -109,10 +101,7 @@ class PolicyFormPresenter
             ->numeric()
             ->minValue(0)
             ->placeholder('۳')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_count'),
-            ]);
+            ;
     }
 
     public static function maxDurationMinutes(): TextInput
@@ -124,10 +113,7 @@ class PolicyFormPresenter
             ->numeric()
             ->minValue(1)
             ->placeholder('۴۸۰')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_minutes'),
-            ]);
+            ;
     }
 
     public static function maxPerUser(): TextInput
@@ -139,10 +125,7 @@ class PolicyFormPresenter
             ->numeric()
             ->minValue(1)
             ->placeholder('۱')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_days'),
-            ]);
+            ;
     }
 
     public static function minDurationMinutes(): TextInput
@@ -154,10 +137,7 @@ class PolicyFormPresenter
             ->numeric()
             ->minValue(1)
             ->placeholder('۳۰')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_minutes'),
-            ]);
+            ;
     }
 
     public static function requiresApproval(): Toggle
@@ -179,11 +159,7 @@ class PolicyFormPresenter
             ->minValue(1)
             ->maxValue(365)
             ->placeholder('۲۱')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_days'),
-                'max' => __('resources/policy/strings.validation.max_days'),
-            ]);
+            ;
     }
 
     public static function windowHours(): TextInput
@@ -196,10 +172,6 @@ class PolicyFormPresenter
             ->minValue(0)
             ->maxValue(72)
             ->placeholder('۰')
-            ->validationMessages([
-                'numeric' => __('resources/policy/strings.validation.numeric'),
-                'min' => __('resources/policy/strings.validation.min_hours'),
-                'max' => __('resources/policy/strings.validation.max_hours'),
-            ]);
+            ;
     }
 }

@@ -19,7 +19,7 @@ class ContactFormPresenter
             ->maxLength(10000)
             ->columnSpanFull()
             ->helperText(__('resources/contact/strings.hints.body'))
-            ->validationMessages(['required' => __('resources/contact/strings.validation.body_required')]);
+            ;
     }
 
     public static function recipient(): Select

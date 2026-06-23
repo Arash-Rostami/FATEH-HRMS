@@ -41,7 +41,6 @@ class CredentialTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
-
     public static function hasLinkFilter(): TernaryFilter
     {
         return TernaryFilter::make('has_link')

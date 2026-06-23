@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\GalleryResource\Schemas;
 
-
 use App\Models\Department;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
@@ -37,8 +36,7 @@ class GalleryFormPresenter
             ->maxLength(2000)
             ->columnSpan(2)
             ->helperText(__('resources/gallery/strings.hints.description'))
-            ->validationMessages([
-                'max' => __('resources/gallery/strings.validation.description_max_length', ['length' => 2000]),
+            ,
             ]);
     }
 
@@ -76,9 +74,7 @@ class GalleryFormPresenter
             ->required()
             ->columnSpan(3)
             ->helperText(__('resources/gallery/strings.hints.path'))
-            ->validationMessages([
-                'required' => __('resources/gallery/strings.validation.photos_required'),
-                'max' => __('resources/gallery/strings.validation.photos_max_files', ['max' => 50]),
+            ,
                 'max_size' => __('resources/gallery/strings.validation.photos_max_size'),
                 'mimetypes' => __('resources/gallery/strings.validation.photos_mimetypes'),
             ]);
@@ -92,9 +88,7 @@ class GalleryFormPresenter
             ->columnSpan(2)
             ->maxLength(255)
             ->helperText(__('resources/gallery/strings.hints.title'))
-            ->validationMessages([
-                'required' => __('resources/gallery/strings.validation.title_required'),
-                'max' => __('resources/gallery/strings.validation.title_max_length', ['length' => 255]),
+            ,
             ]);
     }
 }

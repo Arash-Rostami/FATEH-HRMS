@@ -70,7 +70,6 @@ class FeedTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
-
     public static function hasMediaFilter(): Filter
     {
         return Filter::make('has_media')

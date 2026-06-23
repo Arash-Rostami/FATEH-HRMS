@@ -105,7 +105,6 @@ class EnergyTestInfolistPresenter
             ->weight(FontWeight::Medium);
     }
 
-
     private static function scoreEntry(string $field, string $emoji = ''): TextEntry
     {
         return TextEntry::make($field)
