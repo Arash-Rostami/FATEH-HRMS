@@ -1,22 +1,30 @@
 <div id="msg-viewport"
      x-ref="msgViewport"
-     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-md py-6 space-y-1 msg-scrollbar relative bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]"
-     role="log" aria-label="پیام‌ها" aria-live="polite">
+     class="relative flex-1 space-y-1 overflow-y-auto px-4 py-6 shadow-md transition-colors duration-500 md:px-8 msg-scrollbar text-[var(--md-sys-color-on-surface)]"
+     x-bind:class="{
+         'bg-[var(--md-sys-color-primary-container)]': isHighlighted,
+         'bg-[var(--md-sys-color-surface)]': !isHighlighted
+     }"
+     role="log"
+     aria-label="پیام‌ها"
+     aria-live="polite">
 
-    <div x-show="bgOption === 'a'" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="absolute top-0 -right-24 h-56 w-56 opacity-[0.18] bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
-        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-[0.05] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px)]"></div>
+
+    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+         aria-hidden="true">
+        <div x-show="backgroundPattern === 'a'"
+             x-transition:enter="transition ease-out duration-700"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-105"
+             class="absolute inset-0">
+            <div class="absolute inset-0 opacity-[0.15] bg-[image:linear-gradient(to_right,var(--md-sys-color-outline-variant)_1px,transparent_1px),linear-gradient(to_bottom,var(--md-sys-color-outline-variant)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+            <div class="absolute inset-0 opacity-[0.25] bg-[image:radial-gradient(circle_at_center,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:8px_8px]"></div>
+        </div>
     </div>
-    <div x-show="bgOption === 'b'" style="display:none" class="absolute inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="absolute inset-0 opacity-[0.16] bg-[linear-gradient(135deg,var(--md-sys-color-primary)_0%,var(--md-sys-color-tertiary)_100%)]"></div>
-        <div class="absolute top-0 -right-24 h-56 w-56 opacity-20 bg-[image:radial-gradient(circle,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:28px_28px]"></div>
-        <div class="absolute -bottom-24 -left-24 h-56 w-56 overflow-hidden rounded-full opacity-10 bg-[image:repeating-linear-gradient(45deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_14px)]"></div>
-    </div>
-    <button type="button" x-on:click="bgOption = bgOption === 'a' ? 'b' : 'a'"
-            class="absolute top-2 left-2 z-20 px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-md bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]"
-            title="تغییر پس‌زمینه" aria-label="تغییر گزینه پس‌زمینه">
-        <span x-text="bgOption === 'a' ? 'پس‌زمینه: A (ساده)' : 'پس‌زمینه: B (پررنگ)'"></span>
-    </button>
+
 
     @if($this->totalMessages > count($this->messages))
         <div class="flex justify-center py-2">
@@ -63,7 +71,7 @@
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
 
                     <template x-if="editingMsg?.id === {{ $msg['id'] }}">
-                        <div class="rounded-xl overflow-hidden bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                        <div class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                             <textarea wire:model.live="edit.editingBody"
                                       x-on:keydown.enter.prevent="saveEdit"
                                       x-on:keydown.escape="cancelEdit"

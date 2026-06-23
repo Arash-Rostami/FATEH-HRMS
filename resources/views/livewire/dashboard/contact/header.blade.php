@@ -22,7 +22,7 @@
             <h2 class="text-sm font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ $activeContact->name }}</h2>
             @if($presence)
                 <span @class(['inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold cursor-help', $presence->iconBgClass()])
-                title="{{ $presence->label() }}">
+                      title="{{ $presence->label() }}">
                     <span class="material-symbols-rounded text-[10px]" aria-hidden="true">{{ $presence->icon() }}</span>
                 </span>
             @endif
@@ -37,6 +37,18 @@
             @endif
         </div>
     </div>
+
+    <div class="relative">
+        <button type="button"
+                @click="isHighlighted = !isHighlighted; backgroundPattern = backgroundPattern === 'a' ? 'b' : 'a'"
+                class="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]"
+                :class="activeMenu === 'theme' ? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-primary)]' : ''"
+                aria-label="تغییر تم"
+                title="تغییر تم">
+            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">palette</span>
+        </button>
+    </div>
+
     <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-[0.92] bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
             aria-label="اطلاعات بیشتر"
             x-on:click="showInfo = !showInfo">

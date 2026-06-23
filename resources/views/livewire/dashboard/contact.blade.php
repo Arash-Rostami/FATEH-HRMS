@@ -19,7 +19,9 @@
 
         @include('components.dashboard.header.focus-chip')
 
-        <div class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl">
+        <div x-data="{ isHighlighted: false , backgroundPattern: null }"
+             class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl"
+        >
 
             @include('livewire.dashboard.contact.sidebar')
 
