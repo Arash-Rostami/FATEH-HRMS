@@ -1,6 +1,6 @@
 <div id="msg-viewport"
      x-ref="msgViewport"
-     class="relative flex-1 space-y-1 overflow-y-auto px-4 py-6 shadow-md transition-colors duration-500 md:px-8 msg-scrollbar text-[var(--md-sys-color-on-surface)]"
+     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]"
      x-bind:class="{
          'bg-[var(--md-sys-color-primary-container)]': isHighlighted,
          'bg-[var(--md-sys-color-surface)]': !isHighlighted
