@@ -20,8 +20,8 @@
         @include('components.dashboard.header.focus-chip')
 
         <div x-data="{ isHighlighted: false , backgroundPattern: null, max: false }"
-             :class="max ? 'fixed inset-0 z-[100] m-0 !h-screen !rounded-none' : 'h-[calc(100vh-4rem)] rounded-2xl'"
-             class="flex overflow-hidden backdrop-blur-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] transition-all duration-300"
+             :class="max ? 'fixed inset-0 z-[999999] m-0 !h-screen !w-screen !rounded-none future-card' : 'h-[calc(100vh-4rem)] rounded-2xl future-card'"
+             class="flex overflow-hidden transition-all duration-300"
         >
 
             @include('livewire.dashboard.contact.sidebar')
