@@ -63,7 +63,7 @@
                                 @click="open = false"
                                 class="w-full text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors"
                             >
-                                بدون مسئول (خودم)
+                                {{ auth()->user()?->name }}
                             </button>
                         </li>
                         @foreach($staffMembers as $staff)

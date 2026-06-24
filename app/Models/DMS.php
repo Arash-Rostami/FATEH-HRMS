@@ -53,6 +53,12 @@ class DMS extends Model
         return once(fn() => Department::whereIn('code', $this->owners)->get());
     }
 
+
+    public function getExtraValue(string $key, mixed $default = null): mixed
+    {
+        return \Illuminate\Support\Arr::get($this->extra ?? [], $key, $default);
+    }
+
     public function getStatusIcon()
     {
         return self::$statusIconMapping[$this->status] ?? $this->status;

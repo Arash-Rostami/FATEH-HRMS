@@ -31,7 +31,7 @@
                             </span>
                     </div>
                     <div
-                        class="flex flex-col sm:flex-row sm:items-center gap-4 bg-[var(--md-sys-color-on-primary-container)]/[0.03] border border-[var(--md-sys-color-on-primary-container)]/[0.05] p-4 rounded-2xl backdrop-blur-sm max-w-xl">
+                        class="flex flex-col sm:flex-row sm:items-center gap-4 bg-[var(--md-sys-color-on-primary-container)]/[0.03] border border-[var(--md-sys-color-on-primary-container)]/[0.05] p-4 rounded-2xl backdrop-blur-sm max-w-none break-words">
                         <div class="relative shrink-0">
                             <x-filament-panels::avatar.user size="lg" :user="$user" loading="lazy"
                                                             class="ring-2 ring-[var(--md-sys-color-primary)]/30 ring-offset-2 ring-offset-[var(--md-sys-color-primary-container)] shadow-md"/>
@@ -71,7 +71,7 @@
                                 <span
                                     class="material-symbols-rounded text-xl text-[var(--md-sys-color-primary)]">{{ $chip['icon'] }}</span>
                                 <span
-                                    class="text-xs font-extrabold text-[var(--md-sys-color-on-primary-container)] truncate max-w-[110px]"
+                                    class="text-xs font-extrabold text-[var(--md-sys-color-on-primary-container)] max-w-none break-words text-center"
                                     title="{{ $chip['value'] }}">{{ $chip['value'] }}</span>
                                 <span
                                     class="text-[10px] font-medium text-[var(--md-sys-color-on-primary-container)]/50 tracking-wide">{{ $chip['label'] }}</span>

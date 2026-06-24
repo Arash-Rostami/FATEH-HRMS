@@ -125,6 +125,51 @@ class DmsTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
+
+
+
+    public static function tagsGroup(): Group
+    {
+        return Group::make('tags')
+            ->label(__('resources/dms/strings.fields.tags') ?? 'برچسب‌ها')
+            ->getTitleFromRecordUsing(function ($record) {
+                if (!empty($record->tags)) {
+                    return implode(', ', $record->tags);
+                }
+                return 'بدون برچسب';
+            })
+            ->getKeyFromRecordUsing(function ($record) {
+                if (!empty($record->tags)) {
+                    return implode(',', $record->tags);
+                }
+                return 'none';
+            })
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
+    public static function extraGroup(): Group
+    {
+        return Group::make('extra')
+            ->label(__('resources/dms/strings.fields.extra') ?? 'ویژگی‌های اضافی')
+            ->getTitleFromRecordUsing(function ($record) {
+                if (!empty($record->extra)) {
+                    return collect($record->extra)->map(fn($val, $key) => "$key: $val")->implode(', ');
+                }
+                return 'بدون ویژگی';
+            })
+            ->getKeyFromRecordUsing(function ($record) {
+                if (!empty($record->extra)) {
+                    return md5(json_encode($record->extra));
+                }
+                return 'none';
+            })
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
+
+
     public static function statusGroup(): Group
     {
         return Group::make('status')
