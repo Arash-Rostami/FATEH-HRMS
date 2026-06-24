@@ -12,8 +12,10 @@
 @endphp
 
 
+<x-ui.modals.max-backdrop/>
 <div
-    class="overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm relative">
+    :class="{ 'max-widget': max }"
+    class="overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm relative transition-all duration-300">
     <div class="overflow-x-auto w-full">
         <table
             class="min-w-full text-sm text-right whitespace-nowrap lg:whitespace-normal text-[var(--md-sys-color-on-surface)]">
@@ -45,7 +47,12 @@
                 <th scope="col" class="px-6 py-4 hidden md:table-cell">حوزه درخواست</th>
                 <th scope="col" class="px-6 py-4 hidden sm:table-cell w-1/3">موضوع</th>
                 <th scope="col" class="px-6 py-4 hidden lg:table-cell">مسئول</th>
-                <th scope="col" class="px-6 py-4 text-center rounded-tl-lg">
+                <th scope="col" class="px-6 py-4 text-center rounded-tl-lg flex items-center justify-center gap-1">
+                    <button @click="toggleMaximize()" title="تغییر اندازه"
+                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] ml-1">
+                        <span class="material-symbols-rounded text-[18px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+                    </button>
+
                     <button @click="toggleSearch" title="جستجو"
                             class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case"
                             :class="openSearch

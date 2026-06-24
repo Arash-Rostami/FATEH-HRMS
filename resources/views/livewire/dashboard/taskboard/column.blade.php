@@ -5,14 +5,15 @@
 @endphp
 
 <div
-    x-data="{ collapsed: localStorage.getItem('taskboard-collapsed-{{ $column }}') === '1' }"
+    x-data="{ collapsed: localStorage.getItem('taskboard-collapsed-{{ $column }}') === '1', max: false }"
     class="flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-[350px] h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] md:h-[calc(100vh-220px)] flex flex-col gap-3 md:gap-4 rounded-3xl bg-[var(--md-sys-color-on-primary)]  p-3 md:p-4 shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 transition-all duration-300"
-    :class="dragTask && $el.closest('[data-column=\" {{ $column }}\"]') ? 'bg-[var(--md-sys-color-primary-container)]/20 border-dashed border-2 border-[var(--md-sys-color-primary)] scale-[1.02]' : ''"
+    :class="[dragTask && $el.closest('[data-column=\" {{ $column }}\"]') ? 'bg-[var(--md-sys-color-primary-container)]/20 border-dashed border-2 border-[var(--md-sys-color-primary)] scale-[1.02]' : '', max ? 'max-widget' : '']"
 @dragover.prevent="handleDragOver($event)"
 @drop="handleDrop($event, '{{ $column }}')"
 data-column="{{ $column }}"
 >
 
+<x-ui.modals.max-backdrop/>
 <!-- Column Header -->
 <div class="flex items-center justify-between gap-3 px-2">
     <div class="flex items-center gap-3">
@@ -34,6 +35,15 @@ data-column="{{ $column }}"
     </div>
 
     <div class="flex items-center gap-1">
+
+        <button
+            class="ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+            @click="max = !max; ['footer', 'header', 'navbar'].forEach(id => document.getElementById(id)?.classList.toggle('layout-hidden', max));"
+            :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+        >
+            <span class="material-symbols-rounded text-lg transition-transform duration-300" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+        </button>
+
         <!-- Collapse Toggle -->
         <button
             class="ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95 flex items-center justify-center"

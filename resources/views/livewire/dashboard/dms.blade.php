@@ -36,7 +36,11 @@
         <div class="space-y-6 relative z-10">
 
             @include('livewire.dashboard.dms.legend')
-            @include('livewire.dashboard.dms.table')
+
+            <x-ui.modals.max-backdrop/>
+            <div :class="{ 'max-widget': max }" class="transition-all duration-500 rounded-3xl bg-[var(--md-sys-color-surface)] custom-scrollbar overflow-auto">
+                @include('livewire.dashboard.dms.table')
+            </div>
 
         </div>
     </div>

@@ -1,7 +1,9 @@
+import maximizeMixin from "../mixins/maximize.js";
 import settings from "./settings.js";
 
 export default function dms() {
     return {
+        ...maximizeMixin(),
         baseUrl: window.location.origin + '/',
 
         initPattern() {
