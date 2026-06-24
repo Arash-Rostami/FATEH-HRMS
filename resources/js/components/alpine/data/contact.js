@@ -1,8 +1,10 @@
+import maximizeMixin from "../mixins/maximize.js";
 import settings from "./settings.js";
 import {emojis} from "../stores/emoji.js";
 
 export default function contact() {
     return {
+        ...maximizeMixin(),
         bgOption: 'a',
         isTyping: false,
         typingTimeout: null,
@@ -15,7 +17,6 @@ export default function contact() {
         editingMsg: null,
         deletingId: null,
         emojiOpen: false,
-        max: false,
         activeCat: 0,
         isHighlighted: false,
         backgroundPattern: 'off',

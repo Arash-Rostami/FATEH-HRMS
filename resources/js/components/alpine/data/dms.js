@@ -1,20 +1,10 @@
+import maximizeMixin from "../mixins/maximize.js";
 import settings from "./settings.js";
 
 export default function dms() {
     return {
+        ...maximizeMixin(),
         baseUrl: window.location.origin + '/',
-
-        max: false,
-
-        toggleMaximize() {
-            this.max = !this.max;
-
-            ['footer', 'header', 'navbar'].forEach(id => {
-                document.getElementById(id)
-                    ?.classList.toggle('layout-hidden', this.max);
-            });
-        },
-
 
         initPattern() {
             const settingInstance = settings();
