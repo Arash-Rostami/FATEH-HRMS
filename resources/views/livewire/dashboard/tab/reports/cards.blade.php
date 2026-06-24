@@ -24,6 +24,7 @@
                     class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
 
                 <div class="w-full h-full relative">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-scrim)]/80 via-[var(--md-sys-color-scrim)]/20 to-transparent z-10 pointer-events-none"></div>
                     <img src="{{ $report->thumbnail }}"
                          alt="{{ $report->title }}"
                          class="absolute inset-0 w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
@@ -37,23 +38,23 @@
                 </div>
 
                 <div class="absolute inset-0 flex flex-col justify-end p-6 text-right z-10">
-                    <h3 class="text-[var(--md-sys-color-on-surface)] text-2xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight mb-2">
+                    <h3 class="text-white text-2xl font-bold translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-tight mb-2">
                         {{ $report->title }}
                     </h3>
 
                     <div
                         class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-500 ease-in-out">
                         <div class="overflow-hidden">
-                            <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm line-clamp-3 mb-4 text-justify leading-relaxed font-light drop-shadow-sm">
+                            <p class="text-white/90 text-sm line-clamp-3 mb-4 text-justify leading-relaxed font-light drop-shadow-md">
                                 {{ Str::limit(strip_tags($report->description), 150) }}
                             </p>
 
                             <div
-                                class="flex justify-between items-center mt-2 pt-4 border-t border-[var(--md-sys-color-outline-variant)]">
-                                <span dit="rtl"
-                                    class="text-xs text-[var(--md-sys-color-on-surface-variant)] font-mono opacity-80">{{ toJalali($report->created_at, 'j F Y') }}</span>
+                                class="flex justify-between items-center mt-2 pt-4 border-t border-white/20">
+                                <span dir="rtl"
+                                    class="text-xs text-white/80 font-mono drop-shadow-sm">{{ toJalali($report->created_at, 'j F Y') }}</span>
                                 <button wire:click.stop="download({{ $report->id }})"
-                                        class="flex items-center gap-2 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm">
+                                        class="flex items-center gap-2 text-[var(--md-sys-color-on-primary)] hover:text-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg">
                                     <span>دانلود</span>
                                     <span class="material-symbols-rounded text-sm">download</span>
                                 </button>

@@ -12,11 +12,11 @@
 <div class="flex flex-row-reverse items-center justify-between mb-4">
     <div class="flex items-center space-x-3" dir="ltr">
         <img class="h-10 w-10 rounded-full object-cover"
-             src="{{ $feed->user?->getProfileImageUrl() ?? $feed->user?->getInitialsAvatarUrl() }}"
+             src="{{ $feed->user?->getFilamentAvatarUrl() ?? asset('images/default-avatar.png') }}"
              alt="{{ $feed->user?->name ?? 'Guest' }}">
         <div>
             <h4 class="text-sm mr-2 text-[var(--md-sys-color-on-surface)]">
-                {{ $feed->user?->full_name ?? 'کاربر ناشناس' }}
+                {{ $feed->user ? ($feed->user->name ?? 'کاربر ناشناس') : 'کاربر ناشناس' }}
             </h4>
 
             <p dir="rtl" class="text-xs mr-2 text-[var(--md-sys-color-on-surface-variant)]">

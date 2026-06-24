@@ -83,7 +83,7 @@
                                     title="{{ 'ایجاده شده در: ' . jdateOnly($doc->created_at) . ' 📆 بروزرسانی شده در: ' . jdateOnly($doc->updated_at) }}"
                                     class="block cursor-help text-base font-bold leading-relaxed text-[var(--md-sys-color-on-surface)] transition-colors hover:text-[var(--md-sys-color-primary)]"
                                 >
-                                    {{ $doc->title ?? 'بدون عنوان' }}
+                                    {{ superClean($doc->title ?? 'بدون عنوان') }}
                                 </span>
 
                             <div class="flex flex-wrap gap-1.5">

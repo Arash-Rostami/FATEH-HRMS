@@ -13,7 +13,7 @@
             </div>
 
             <div class="flex-grow min-w-0 text-center md:text-right w-full px-4">
-                <h4 class="text-[var(--md-sys-color-on-surface)] font-bold text-lg truncate group-hover:text-[var(--md-sys-color-primary)] transition-colors mb-1">{{ $report->title }}</h4>
+                <h4 class="text-[var(--md-sys-color-on-surface)] font-bold text-lg group-hover:text-[var(--md-sys-color-primary)] transition-colors mb-1 line-clamp-2">{{ $report->title }}</h4>
                 <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm line-clamp-2 mb-2 text-justify">{{ Str::limit(strip_tags($report->description), 200) }}</p>
                 <div
                     class="flex items-center justify-center md:justify-start gap-3 text-xs text-[var(--md-sys-color-outline)]">
@@ -25,7 +25,7 @@
 
             <div class="flex-shrink-0 md:mr-6 mt-4 md:mt-0">
                 <button wire:click.stop="download({{ $report->id }})"
-                        class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] hover:bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-primary)] transition-all shadow-sm hover:shadow-lg">
+                        class="p-3 rounded-xl bg-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all shadow-md hover:shadow-lg">
                     <span class="material-symbols-rounded text-xl">download</span>
                 </button>
             </div>
