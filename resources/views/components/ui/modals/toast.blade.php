@@ -27,10 +27,10 @@
     x-transition:leave-end="opacity-0 translate-y-4 scale-95"
     class="fixed bottom-6 left-6 z-[100] max-w-sm w-full flex items-center gap-4 px-6 py-4 rounded-xl shadow-xl border"
     :class="{
-        'bg-[var(--md-sys-color-secondary-container)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)]': type === 'info',
-        'bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error-container)]': type === 'error',
-        'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]': type === 'success',
-        'bg-[var(--md-sys-color-tertiary-container)] border-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary-container)]': type === 'warning'
+        'bg-[var(--md-sys-color-secondary-container)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface)]': type == 'info',
+        '!bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error-container)]': type == 'error',
+        'bg-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary-container)]': type == 'success',
+        'bg-[var(--md-sys-color-tertiary-container)] border-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary-container)]': type == 'warning'
     }"
     style="display: none;"
     dir="rtl"

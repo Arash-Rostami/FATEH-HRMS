@@ -6,14 +6,16 @@ use App\Models\Message;
 
 class DeleteMessageAction
 {
-    public function execute(int $messageId): ?array
+    public function execute(int $messageId, int $editTimeLimit): array|Bool|null
     {
         $message = Message::withoutTrashed()
             ->where('id', $messageId)
             ->where('sender_id', auth()->id())
             ->first();
 
-        if (!$message) return null;
+        if (!$message || $message->created_at->diffInSeconds(now()) > $editTimeLimit) {
+            return false;
+        }
 
         $snapshot = [
             'sender_id'    => $message->sender_id,

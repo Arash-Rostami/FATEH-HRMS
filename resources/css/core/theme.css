@@ -64,6 +64,8 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --md-sys-color-on-tertiary-container: #251431;
 
         --md-sys-color-error: #ba1a1a;
+        --md-sys-color-error-container: #ffdad6;
+        --md-sys-color-on-error-container: #410002;
         --md-sys-color-on-error: #ffffff;
         --md-sys-color-background: #fdfcff;
         --md-sys-color-on-background: #1a1c1e;

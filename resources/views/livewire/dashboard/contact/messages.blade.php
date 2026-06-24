@@ -1,29 +1,14 @@
 <div id="msg-viewport"
      x-ref="msgViewport"
-     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative bg-[radial-gradient(ellipse_at_70%_0%,color-mix(in_srgb,var(--md-sys-color-primary-container)_20%,transparent)_0%,transparent_50%),radial-gradient(ellipse_at_30%_100%,color-mix(in_srgb,var(--md-sys-color-tertiary-container)_12%,transparent)_0%,transparent_50%),var(--md-sys-color-background)]"
+     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
-         'bg-[var(--md-sys-color-primary-container)]': isHighlighted,
+         'bg-[var(--md-sys-color-primary-container)]/20': isHighlighted,
          'bg-[var(--md-sys-color-surface)]': !isHighlighted
      }"
      role="log"
      aria-label="پیام‌ها"
      aria-live="polite">
 
-
-    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden"
-         aria-hidden="true">
-        <div x-show="backgroundPattern === 'a'"
-             x-transition:enter="transition ease-out duration-700"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-300"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-105"
-             class="absolute inset-0">
-            <div class="absolute inset-0 opacity-[0.15] bg-[image:linear-gradient(to_right,var(--md-sys-color-outline-variant)_1px,transparent_1px),linear-gradient(to_bottom,var(--md-sys-color-outline-variant)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-            <div class="absolute inset-0 opacity-[0.25] bg-[image:radial-gradient(circle_at_center,var(--md-sys-color-primary)_1px,transparent_1px)] bg-[size:8px_8px]"></div>
-        </div>
-    </div>
 
 
     @if($this->totalMessages > count($this->messages))
@@ -42,11 +27,14 @@
         @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit))
 
         <div class="flex items-center gap-3 py-4 sticky top-0 z-10" aria-hidden="true">
-            <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
-            <span class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
+            <div
+                class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
+            <span
+                class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                 {{ $group['label'] }}
             </span>
-            <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
+            <div
+                class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
         </div>
 
         @foreach($group['messages'] as $msg)
@@ -60,8 +48,10 @@
 
                 @if(!$msg['is_mine'])
                     @if($msg['is_last'])
-                        <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            <x-ui.avatar :existingImage="$activeContact->getProfileImageUrl()" :alt="$activeContact->name" icon-size="text-base" class="rounded-lg" />
+                        <div
+                            class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                            <x-ui.avatar :existingImage="$activeContact->getProfileImageUrl()"
+                                         :alt="$activeContact->name" icon-size="text-base" class="rounded-lg"/>
                         </div>
                     @else
                         <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -71,7 +61,8 @@
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
 
                     <template x-if="editingMsg?.id === {{ $msg['id'] }}">
-                        <div class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                        <div
+                            class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                             <textarea wire:model.live="edit.editingBody"
                                       x-on:keydown.enter.prevent="saveEdit"
                                       x-on:keydown.escape="cancelEdit"
@@ -85,8 +76,10 @@
                                 <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
                             </p>
                             @enderror
-                            <div class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
-                                <span class="text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
+                            <div
+                                class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
+                                <span
+                                    class="text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
                                 <div class="flex items-center gap-1.5">
                                     <button x-on:click.prevent="cancelEdit"
                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
@@ -96,7 +89,8 @@
                                             wire:loading.attr="disabled"
                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                                         <span wire:loading.remove wire:target="saveEdit">ذخیره</span>
-                                        <span wire:loading wire:target="saveEdit" class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
+                                        <span wire:loading wire:target="saveEdit"
+                                              class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
                                     </button>
                                 </div>
                             </div>
@@ -104,7 +98,8 @@
                     </template>
 
                     <template x-if="deletingId === {{ $msg['id'] }}">
-                        <div class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
+                        <div
+                            class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
                             <div class="flex items-center gap-2">
                                 <span class="material-symbols-rounded text-[15px] opacity-80">delete_forever</span>
                                 <span class="text-xs font-semibold">حذف این پیام؟</span>
@@ -117,7 +112,8 @@
                                 <button x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
                                     <span wire:loading.remove wire:target="deleteMessage">حذف</span>
-                                    <span wire:loading wire:target="deleteMessage" class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
+                                    <span wire:loading wire:target="deleteMessage"
+                                          class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
                                 </button>
                             </div>
                         </div>
@@ -125,11 +121,14 @@
 
                     <template x-if="editingMsg?.id !== {{ $msg['id'] }} && deletingId !== {{ $msg['id'] }}">
                         <div class="relative">
-                            <div @class([
-                                        'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
-                                        'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
-                                        'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine']
-                                    ])>
+                            <div
+                                :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;box-shadow:none;padding:0'"                                @class([
+                                      'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
+                                      'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
+                                      'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine']
+                                  ])
+                            >
+
                                 @if($msg['reply_to'])
                                     <div @class([
                                                 'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg',
@@ -164,10 +163,12 @@
                                             @if($att['is_image'])
                                                 <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer"
                                                    class="block w-32 h-32 rounded-lg overflow-hidden border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
-                                                    <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy" class="w-full h-full object-cover">
+                                                    <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"
+                                                         class="w-full h-full object-cover">
                                                 </a>
                                             @else
-                                                <button type="button" wire:click="downloadAttachment({{ $msg['id'] }}, {{ $i }})"
+                                                <button type="button"
+                                                        wire:click="downloadAttachment({{ $msg['id'] }}, {{ $i }})"
                                                     @class([
                                                         'flex items-center gap-2 px-2.5 py-2 rounded-lg max-w-[220px] transition-colors text-right',
                                                         'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_12%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_18%,transparent)]' => $msg['is_mine'],
@@ -175,10 +176,13 @@
                                                     ])>
                                                     <span class="material-symbols-rounded text-[18px] flex-shrink-0">description</span>
                                                     <span class="min-w-0">
-                                                        <span class="block text-[11px] font-medium truncate">{{ $att['name'] }}</span>
-                                                        <span class="block text-[9px] opacity-70">{{ $att['size_label'] }}</span>
+                                                        <span
+                                                            class="block text-[11px] font-medium truncate">{{ $att['name'] }}</span>
+                                                        <span
+                                                            class="block text-[9px] opacity-70">{{ $att['size_label'] }}</span>
                                                     </span>
-                                                    <span class="material-symbols-rounded text-[15px] flex-shrink-0 opacity-70">download</span>
+                                                    <span
+                                                        class="material-symbols-rounded text-[15px] flex-shrink-0 opacity-70">download</span>
                                                 </button>
                                             @endif
                                         @endforeach
@@ -198,11 +202,12 @@
                                             title="کپی" aria-label="کپی">
                                         <span class="material-symbols-rounded text-[15px]">content_copy</span>
                                     </button>
-                                    <button x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
-                                            data-sender="{{ $msg['sender']['name'] ?? 'ناشناس' }}"
-                                            data-body="{{ strip_tags($msg['body']) }}"
-                                            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                                            title="پاسخ" aria-label="پاسخ">
+                                    <button
+                                        x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
+                                        data-sender="{{ $msg['sender']['name'] ?? 'ناشناس' }}"
+                                        data-body="{{ strip_tags($msg['body']) }}"
+                                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                                        title="پاسخ" aria-label="پاسخ">
                                         <span class="material-symbols-rounded text-[15px]">reply</span>
                                     </button>
                                     @if($msg['can_edit'])
@@ -222,14 +227,18 @@
                                     @endif
                                 </div>
 
-                                <div class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                <div
+                                    class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
                                     @if($msg['is_edited'])
-                                        <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
-                                        <span class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
+                                        <span
+                                            class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
+                                        <span
+                                            class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
                                     @endif
-                                    <time class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60"
-                                          datetime="{{ $msg['datetime'] }}"
-                                          dir="ltr">{{ $msg['time'] }}</time>
+                                    <time
+                                        class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60"
+                                        datetime="{{ $msg['datetime'] }}"
+                                        dir="ltr">{{ $msg['time'] }}</time>
                                     @if($msg['is_mine'])
                                         <span @class([
                                                     'material-symbols-rounded text-[13px] transition-colors duration-300',
@@ -248,22 +257,30 @@
 
     @empty
         <div class="flex flex-col items-center justify-center min-h-[60vh] gap-5 text-center">
-            <div class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]" aria-hidden="true">
+            <div
+                class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]"
+                aria-hidden="true">
                 <span class="material-symbols-rounded text-4xl">chat</span>
             </div>
             <div>
-                <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">شروع گفتگو با {{ $activeContact->name }}</p>
-                <p class="text-[11px] mt-2 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اولین پیام خود را بنویسید و ارتباط کاری را آغاز کنید</p>
+                <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">شروع گفتگو
+                    با {{ $activeContact->name }}</p>
+                <p class="text-[11px] mt-2 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اولین پیام خود
+                    را بنویسید و ارتباط کاری را آغاز کنید</p>
             </div>
         </div>
     @endforelse
 
     <div x-show="isTyping" x-transition.opacity class="flex justify-end items-end gap-2 mt-2" aria-label="در حال نوشتن">
-        <div class="px-4 py-3 rounded-lg rounded-tr-md bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)]">
+        <div
+            class="px-4 py-3 rounded-lg rounded-tr-md bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)]">
             <div class="flex items-center gap-1" aria-hidden="true">
-                <div class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
-                <div class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
-                <div class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
+                <div
+                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
+                <div
+                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
+                <div
+                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
             </div>
         </div>
     </div>

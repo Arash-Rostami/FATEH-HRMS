@@ -1,4 +1,5 @@
 <div class="sticky !top-0 z-50 will-change-transform"
+     id="header"
      style="transition: transform 280ms cubic-bezier(0.4,0,0.2,1)"
      :class="isVisible ? 'translate-y-0' : '-translate-y-full'">
 

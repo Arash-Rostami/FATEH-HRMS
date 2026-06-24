@@ -1,17 +1,5 @@
 import settings from "./settings.js";
-
-const EMOJI_DICTIONARY = [
-    {cat:'😊',items:['😀','😂','🥰','😎','🤔','👍','👏','🙏','❤️','🔥','✅','⭐','💯','🎉','😊','😅','🤝','💪','👋','🫡']},
-    {cat:'👋',items:['👋','👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','👌','🤌','👈','👉','👆','👇','✋','🤚','🖐','🖖','👏','🙌','👐','🤲','🤝','🙏']},
-    {cat:'❤️',items:['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️']},
-    {cat:'🎭',items:['😭','😡','😱','🥳','🤯','🤮','🤢','🥶','🥵','😤','😴','🤤','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩','👻','💀','☠️','👽','👾','🤖']},
-    {cat:'🐾',items:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋']},
-    {cat:'🍔',items:['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🍍','🥝','🥥','🥑','🍆','🥕','🌽','🌶️','🫑','🥒','🥬','🥦','🧄','🧅','🍄','🥜','🌰','🍞']},
-    {cat:'⚽',items:['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🥅','⛳','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌']},
-    {cat:'💻',items:['💻','📱','⌨️','🖥️','🖨️','🖱️','🖲️','🕹️','🗜️','💽','💾','💿','📀','📼','📷','📸','📹','🎥','📽️','🎞️','📞','☎️','📟','📠','📺','📻','🎙️','🎚️','🎛️','🧭']},
-    {cat:'🚗',items:['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🦯','🦽','🦼','🛴','🚲','🛵','🏍️','🛺','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟']},
-    {cat:'🌟',items:['🌟','✨','💫','⚡','🔥','💥','☄️','☀️','🌤️','⛅','🌥️','☁️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','🌬️','💨','🌪️','🌫️','🌈','☔','💧','💦','🌊','🌍','🌎','🌏']}
-];
+import {emojis} from "../stores/emoji.js";
 
 export default function contact() {
     return {
@@ -27,8 +15,25 @@ export default function contact() {
         editingMsg: null,
         deletingId: null,
         emojiOpen: false,
+        max: false,
         activeCat: 0,
-        emojis: EMOJI_DICTIONARY,
+        isHighlighted: false,
+        backgroundPattern: 'off',
+        emojis: emojis,
+
+        toggleMaximize() {
+            this.max = !this.max;
+
+            ['footer', 'header', 'navbar'].forEach(id => {
+                document.getElementById(id)
+                    ?.classList.toggle('layout-hidden', this.max);
+            });
+
+            this.$nextTick(() => {
+                this.scrollToBottom(false);
+                this.focusSearch();
+            });
+        },
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');
@@ -48,6 +53,15 @@ export default function contact() {
 
         init() {
             this.initPattern();
+            const saved = localStorage.getItem('chat-settings');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    this.isHighlighted = data.isHighlighted;
+                    this.backgroundPattern = data.backgroundPattern;
+                } catch (e) {
+                }
+            }
 
             const vp = document.getElementById('msg-viewport');
             if (vp) {
@@ -60,13 +74,15 @@ export default function contact() {
                         });
                         ticking = true;
                     }
-                }, { passive: true });
+                }, {passive: true});
             }
 
             window.addEventListener('typing-indicator', () => {
                 this.isTyping = true;
                 clearTimeout(this.typingTimeout);
-                this.typingTimeout = setTimeout(() => { this.isTyping = false; }, 2500);
+                this.typingTimeout = setTimeout(() => {
+                    this.isTyping = false;
+                }, 2500);
             });
 
             this.$wire.on('chat-ready', () => this.$nextTick(() => {
@@ -91,7 +107,9 @@ export default function contact() {
                 clearTimeout(this.undoTimeout);
                 if (val) {
                     this.showUndo = true;
-                    this.undoTimeout = setTimeout(() => { this.showUndo = false; }, 4000);
+                    this.undoTimeout = setTimeout(() => {
+                        this.showUndo = false;
+                    }, 4000);
                 } else {
                     this.showUndo = false;
                 }
@@ -107,9 +125,26 @@ export default function contact() {
             }
         },
 
+        isEmojiOnly(text) {
+            const stripped = text?.replace(/<[^>]*>/g, '').trim() ?? '';
+            if (!stripped) return false;
+            const emojiSet = new Set(emojis.flatMap(c => c.items));
+            return [...new Intl.Segmenter().segment(stripped)]
+                .every(({segment}) => emojiSet.has(segment) || /^\s+$/.test(segment));
+        },
+
+        toggleHighlight() {
+            this.isHighlighted = !this.isHighlighted;
+            this.backgroundPattern = this.backgroundPattern === 'on' ? 'off' : 'on';
+            localStorage.setItem('chat-settings', JSON.stringify({
+                isHighlighted: this.isHighlighted,
+                backgroundPattern: this.backgroundPattern
+            }));
+        },
+
         toast(message, type = 'info') {
             if (!message) return;
-            window.dispatchEvent(new CustomEvent('toast', { detail: { message, type } }));
+            window.dispatchEvent(new CustomEvent('toast', {detail: {message, type}}));
         },
 
         scrollToBottom(smooth = false) {
@@ -176,7 +211,7 @@ export default function contact() {
             if (!id) return;
             this.editingMsg = null;
             this.deletingId = null;
-            this.replyingTo = { id, sender: { name: senderName || 'Unknown' }, body: body || '' };
+            this.replyingTo = {id, sender: {name: senderName || 'Unknown'}, body: body || ''};
             this.$nextTick(() => document.getElementById('msg-ta')?.focus());
         },
 
@@ -188,7 +223,7 @@ export default function contact() {
             if (!id) return;
             this.replyingTo = null;
             this.deletingId = null;
-            this.editingMsg = { id, body: body || '' };
+            this.editingMsg = {id, body: body || ''};
             this.$wire.set('edit.editingBody', body);
             this.$nextTick(() => {
                 const ta = document.querySelector('textarea[wire\\:model\\.live="edit.editingBody"]');
@@ -225,7 +260,7 @@ export default function contact() {
             this.deletingId = null;
         },
 
-       async deleteMessage() {
+        async deleteMessage() {
             if (!this.deletingId) return;
 
             try {
@@ -260,7 +295,9 @@ export default function contact() {
             } catch (error) {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {
-                setTimeout(() => { this.sending = false; }, 500);
+                setTimeout(() => {
+                    this.sending = false;
+                }, 500);
             }
         },
     };

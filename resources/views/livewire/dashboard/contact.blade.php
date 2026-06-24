@@ -19,9 +19,8 @@
 
         @include('components.dashboard.header.focus-chip')
 
-        <div x-data="{ isHighlighted: false , backgroundPattern: null }"
-             class="flex h-[calc(100vh-4rem)] overflow-hidden rounded-2xl"
-        >
+        <x-ui.modals.max-backdrop/>
+        <div class="chat-widget" :class="{ 'max-widget': max }">
 
             @include('livewire.dashboard.contact.sidebar')
 
@@ -31,14 +30,21 @@
                         'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex relative',
                     ])>
                 @if($activeContact)
+
                     @include('livewire.dashboard.contact.header')
+
+                    <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
+
                     @include('livewire.dashboard.contact.messages')
+
                     @include('livewire.dashboard.contact.composer')
+
                     @include('livewire.dashboard.contact.info')
                 @else
                     @include('livewire.dashboard.contact.empty')
                 @endif
             </main>
         </div>
+
     </div>
 </div>

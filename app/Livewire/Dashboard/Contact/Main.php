@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -76,7 +77,7 @@ class Main extends Component
 
     public function deleteMessage(DeleteMessageAction $action, int $deletingId): void
     {
-        $snapshot = $action->execute($deletingId);
+        $snapshot = $action->execute($deletingId, $this->editTimeLimit);
         if (!$snapshot) {
             $this->dispatch('show-toast', message: 'این پیام دیگر قابل حذف نیست.', type: 'error');
             return;
@@ -229,7 +230,7 @@ class Main extends Component
             $this->invalidateMessageCache();
             unset($this->contacts);
             $this->dispatch('message-sent');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $this->dispatch('message-error');
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
         } catch (\Exception $e) {

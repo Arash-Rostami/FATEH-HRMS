@@ -1,6 +1,22 @@
 /* ============================================
    1. FADE ANIMATIONS
    ============================================ */
+@keyframes fadeFocus {
+    0% {
+        opacity: 0;
+        transform: scale(0.98);
+        filter: blur(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0px);
+    }
+}
+
+.animate-fade-focus {
+    animation: fadeFocus 1.2s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
 
 @keyframes fadeIn {
     from {
@@ -662,8 +678,12 @@
 }
 
 @keyframes wip-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-error) 20%, transparent); }
-    50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--md-sys-color-error) 0%, transparent); }
+    0%, 100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-error) 20%, transparent);
+    }
+    50% {
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--md-sys-color-error) 0%, transparent);
+    }
 }
 
 
@@ -1257,14 +1277,26 @@
 }
 
 @keyframes focus-banner-in {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes focus-banner-pulse {
-    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent); }
-    70%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent); }
-    100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent); }
+    0% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+    }
+    70% {
+        box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent);
+    }
+    100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent);
+    }
 }
 
 /* ============================================
