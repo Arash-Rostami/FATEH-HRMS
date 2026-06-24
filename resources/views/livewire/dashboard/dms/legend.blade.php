@@ -59,5 +59,13 @@
             </div>
             <span class="whitespace-nowrap">مطالعه شده</span>
         </div>
+        <div class="h-6 w-px bg-[var(--md-sys-color-outline-variant)]/70"></div>
+
+        <button @click="toggleMaximize()"
+                :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+                class="flex size-9 items-center justify-center rounded-xl hover:bg-[var(--md-sys-color-surface-variant)] transition-colors text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+        </button>
+
     </div>
 </div>

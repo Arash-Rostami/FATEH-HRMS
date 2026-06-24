@@ -14,6 +14,18 @@ export default function energyChart(history, companyAverages, sections, latestTe
             });
         },
 
+        toggleMaximize(context) {
+            context.max = !context.max;
+
+            ['footer', 'header', 'navbar'].forEach(id => {
+                document.getElementById(id)
+                    ?.classList.toggle('layout-hidden', context.max);
+            });
+
+            // Force resize for charts to recalculate
+            this.$nextTick(() => window.dispatchEvent(new Event('resize')));
+        },
+
         initPattern() {
             const settingInstance = settings();
             return settingInstance.initPattern();
