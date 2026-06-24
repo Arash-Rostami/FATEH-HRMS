@@ -24,7 +24,7 @@
 
     <div class="flex items-start justify-between gap-3 mt-1">
         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-snug line-clamp-2 flex-1">
-            {{ $task['title'] }}
+            {{ superClean($task['title']) }}
         </h3>
 
         @if($task['can_delete'])
