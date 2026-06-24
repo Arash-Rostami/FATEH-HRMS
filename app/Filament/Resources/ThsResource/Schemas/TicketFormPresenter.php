@@ -49,7 +49,14 @@ class TicketFormPresenter
     {
         return Select::make('assigned_to')
             ->label(__('resources/ths/strings.fields.assignee'))
-            ->relationship('assignee', 'name')
+            ->relationship('assignee', 'name', function ($query, \Filament\Forms\Get $get) {
+                $targetDepartment = $get('extra.target_department');
+                if ($targetDepartment) {
+                    $query->whereHas('profile', function ($q) use ($targetDepartment) {
+                        $q->where('department_id', $targetDepartment);
+                    });
+                }
+            })
             ->searchable()
             ->preload()
             ->live()
@@ -64,7 +71,7 @@ class TicketFormPresenter
                     $set('status', TicketStatus::InProgress->value);
                 }
             })
-            ->nullable()
+            ->required()
             ->helperText(__('resources/ths/strings.hints.assigned_to'));
     }
 
@@ -99,7 +106,7 @@ class TicketFormPresenter
         return PersianDateFieldService::make(
             prefix: 'completion_deadline_date',
             label: __('resources/ths/strings.fields.deadline_date'),
-            required: false,
+            required: true,
             yearFrom: 1400,
             fullWidth: false,
         )->columnSpan(2)
@@ -277,7 +284,10 @@ class TicketFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->live()
-            ->afterStateUpdated(fn(callable $set) => $set('request_area', null));
+            ->afterStateUpdated(function (callable $set) {
+                $set('request_area', null);
+                $set('assigned_to', null);
+            });
     }
 
     private static function acceptedMimeTypes(): array

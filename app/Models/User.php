@@ -69,7 +69,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     {
         return match ($this->role) {
             'developer' => true,
-            'admin' => ($p = Permission::forUser($this->id)) && ($p->is_super_admin || !empty($p->abilities)),
+            'admin' => ($p = Permission::forUser($this->id)) && ($p->is_super_admin || !empty($p->allowedModules())),
             default => false,
         };
     }

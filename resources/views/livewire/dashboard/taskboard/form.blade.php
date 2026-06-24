@@ -59,7 +59,7 @@
             </div>
 
             <x-ui.forms.select label="مسئول انجام" name="form.selectedAssignee" wire:model="form.selectedAssignee" :disabled="$isReadOnly">
-                <option value="">خودم (شخصی)</option>
+                <option value="">{{ auth()->user()?->name }}</option>
                 @foreach($staffMembers as $staff)
                     <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
                 @endforeach

@@ -24,6 +24,25 @@ class DmsFormPresenter
     public static function code(): TextInput
     {
         return TextInput::make('code')
+            ->rules([
+                function (\Filament\Forms\Get $get, ?\Illuminate\Database\Eloquent\Model $record) {
+                    return function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                        $version = $get('version');
+
+                        if ($value && $version) {
+                            $exists = \App\Models\DMS::where('code', $value)
+                                ->where('version', $version)
+                                ->where('status', 'live')
+                                ->when($record, fn($q) => $q->where('id', '!=', $record->getKey()))
+                                ->exists();
+
+                            if ($exists) {
+                                $fail(__('resources/dms/strings.validation.duplicate_live_document') ?? 'یک سند فعال با این کد و نسخه از قبل در سیستم وجود دارد.');
+                            }
+                        }
+                    };
+                },
+            ])
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
@@ -159,6 +178,25 @@ class DmsFormPresenter
     public static function version(): TextInput
     {
         return TextInput::make('version')
+            ->rules([
+                function (\Filament\Forms\Get $get, ?\Illuminate\Database\Eloquent\Model $record) {
+                    return function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                        $code = $get('code');
+
+                        if ($value && $code) {
+                            $exists = \App\Models\DMS::where('code', $code)
+                                ->where('version', $value)
+                                ->where('status', 'live')
+                                ->when($record, fn($q) => $q->where('id', '!=', $record->getKey()))
+                                ->exists();
+
+                            if ($exists) {
+                                $fail(__('resources/dms/strings.validation.duplicate_live_document') ?? 'یک سند فعال با این کد و نسخه از قبل در سیستم وجود دارد.');
+                            }
+                        }
+                    };
+                },
+            ])
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
