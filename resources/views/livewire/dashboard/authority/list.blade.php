@@ -25,7 +25,7 @@
 
                 <div class="flex-1 min-w-0 text-start">
                     <p class="text-sm font-semibold text-[var(--md-sys-color-on-surface)] leading-snug truncate">
-                        {{ $details['duty'] ?? '—' }}
+                        {{ superClean($details['duty'] ?? '—') }}
                     </p>
                     <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5 flex items-center gap-1">
                         <span

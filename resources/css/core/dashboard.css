@@ -1192,11 +1192,14 @@
 .max-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 999998;
+    z-index: 999998 !important;
     background: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
     animation: fadeIn 0.1s ease-out both;
 }
 
+.max-backdrop.max-backdrop--sync {
+    animation-duration: 0.4s !important;
+}
 
 .max-widget {
     position: fixed !important;
@@ -1208,7 +1211,27 @@
     border: none !important;
     border-radius: 1.25rem !important;
     z-index: 999999 !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
     animation: slideScaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+.max-widget-column {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: clamp(60vw, 70vw, 75vw) !important;
+    max-width: clamp(60vw, 70vw, 75vw) !important;
+    height: 85vh !important;
+    max-height: 90vh !important;
+    border-radius: 1.25rem !important;
+    z-index: 999999 !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+    animation: slideScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both !important;
 }
 
 #header, #navbar, #footer {
@@ -1229,6 +1252,114 @@
     transform: translateY(10px);
 }
 
+.post-body {
+    color: var(--md-sys-color-on-surface);
+}
+
+.post-body :where(code, pre, blockquote, kbd, samp, mark, table, thead, tbody, tfoot, tr, th, td, a, span, strong, em, b, i, u, img, figure, figcaption, hr, div, ul, ol, li) {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+.collage-item {
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0s 0.9s;
+    will-change: transform;
+}
+
+.collage-item:hover {
+    transform: scale(1.12) translateY(-1rem) rotate(0deg) !important;
+    filter: brightness(1.02);
+    z-index: 30;
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0s;
+}
+
+.collage-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.collage-item:hover::after {
+    opacity: 1;
+}
+
+.collage-item img {
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s ease;
+}
+
+.collage-item:hover img {
+    transform: scale(1.08);
+    filter: saturate(1.1);
+}
+
+
+.snap-center {
+    scroll-snap-align: center;
+}
+
+.timeline-nav-btn {
+    position: absolute;
+    top: 50%;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-sys-color-on-surface-variant);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    z-index: 40;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent);
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.timeline-nav-btn.right-btn {
+    right: 1.5rem;
+    transform: translateY(-50%);
+}
+
+.timeline-nav-btn.left-btn {
+    left: 1.5rem;
+    transform: translateY(-50%);
+}
+
+.timeline-nav-btn:hover {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.timeline-nav-btn.right-btn:hover {
+    transform: translateY(-50%) scale(1.05);
+}
+
+.timeline-nav-btn.left-btn:hover {
+    transform: translateY(-50%) scale(1.05);
+}
+
+.timeline-nav-btn:active {
+    transform: translateY(-50%) scale(0.95) !important;
+}
+
+
+@media (max-width: 640px) {
+    .timeline-nav-btn {
+        display: none;
+    }
+}
 
 @media (prefers-reduced-motion: reduce) {
     .focus-chip,
@@ -1236,6 +1367,7 @@
         animation: none !important;
     }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
     .focus-banner,
@@ -1251,21 +1383,3 @@
         transition: background-color 2s ease-out;
     }
 }
-
-/*.future-card {*/
-/*    !* 1. Translucent Background *!*/
-/*    background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);*/
-
-/*    !* 2. Frosted Border *!*/
-/*    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);*/
-
-/*    !* 3. Radiant Shadow (Tinted with Primary) *!*/
-/*    box-shadow: 0 8px 32px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);*/
-/*}*/
-
-/*.dark .future-card {*/
-/*    !* Dark mode drops translucency for stark contrast and deep space *!*/
-/*    background: var(--md-sys-color-surface);*/
-/*    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);*/
-/*}*/
-

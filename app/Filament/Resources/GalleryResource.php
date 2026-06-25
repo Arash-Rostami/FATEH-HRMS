@@ -35,7 +35,10 @@ class GalleryResource extends Resource
                 ->schema([
                     GalleryFormPresenter::title(),
                     GalleryFormPresenter::eventDate(),
+                    GalleryFormPresenter::divider(),
                     GalleryFormPresenter::departmentId(),
+                    GalleryFormPresenter::departments(),
+                    GalleryFormPresenter::divider(),
                     GalleryFormPresenter::description(),
                     GalleryFormPresenter::divider(),
                     GalleryFormPresenter::path(),
@@ -103,7 +106,6 @@ class GalleryResource extends Resource
         return $schema->components([
             Section::make()
                 ->hiddenLabel()
-                ->icon('heroicon-o-information-circle')
                 ->schema([
                     GalleryInfolistPresenter::title(),
                     GalleryInfolistPresenter::description(),
@@ -136,6 +138,7 @@ class GalleryResource extends Resource
             ])
             ->filters([
                 GalleryTablePresenter::visibilityFilter(),
+                GalleryTablePresenter::sharedFilter(),
                 GalleryTablePresenter::departmentFilter(),
                 GalleryTablePresenter::eventDateRangeFilter(),
             ])

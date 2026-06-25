@@ -46,13 +46,21 @@
                 <th scope="col" class="px-6 py-4 hidden sm:table-cell w-1/3">موضوع</th>
                 <th scope="col" class="px-6 py-4 hidden lg:table-cell">مسئول</th>
                 <th scope="col" class="px-6 py-4 text-center rounded-tl-lg">
-                    <button @click="toggleSearch" title="جستجو"
-                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case"
-                            :class="openSearch
-                                    ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]'
-                                    : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'">
-                        <span class="material-symbols-rounded text-[18px]">search</span>
-                    </button>
+                    <div class="inline-flex items-center justify-center gap-1">
+                        <button @click="toggleMaximize()"
+                                :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+                                :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': max }"
+                                class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
+                            <span class="material-symbols-rounded text-[18px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+                        </button>
+                        <button @click="toggleSearch" title="جستجو"
+                                class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case"
+                                :class="openSearch
+                                        ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]'
+                                        : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'">
+                            <span class="material-symbols-rounded text-[18px]">search</span>
+                        </button>
+                    </div>
                 </th>
             </tr>
             </thead>

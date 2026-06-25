@@ -1,3 +1,13 @@
-<template x-if="max">
-    <div class="max-backdrop" @click="toggleMaximize"></div>
+@props([
+    'state' => 'max',
+    'close' => 'toggleMaximize()',
+    'class' => '',
+])
+
+<template x-if="{!! $state !!}">
+    <div
+        class="max-backdrop {{ $class }}"
+        @click="{!! $close !!}">
+
+    </div>
 </template>

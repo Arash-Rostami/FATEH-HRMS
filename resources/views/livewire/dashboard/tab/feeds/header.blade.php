@@ -1,31 +1,42 @@
-@php
-    $emoji = match ($feed->category ?? null) {
-        'General' => '📢',
-        'Event' => '📅',
-        'Birthday' => '🎂',
-        'Work Anniversary' => '🏆',
-        'Poll' => '📊',
-        default => '💬',
-    };
-@endphp
+<div class="flex items-center justify-between gap-3 mb-4 p-5" dir="rtl">
+    <div class="flex items-center gap-3">
+        <div class="relative shrink-0">
+            <img
+                class="h-10 w-10 rounded-xl object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]"
+                src="{{ $presenter->avatarUrl($feed->user) }}"
+                alt="{{ $feed->user?->name ?? 'Guest' }}"
+            >
+        </div>
 
-<div class="flex flex-row-reverse items-center justify-between mb-4">
-    <div class="flex items-center space-x-3" dir="ltr">
-        <img class="h-10 w-10 rounded-full object-cover"
-             src="{{ $feed->user?->getProfileImageUrl() ?? $feed->user?->getInitialsAvatarUrl() }}"
-             alt="{{ $feed->user?->name ?? 'Guest' }}">
         <div>
-            <h4 class="text-sm mr-2 text-[var(--md-sys-color-on-surface)]">
-                {{ $feed->user?->full_name ?? 'کاربر ناشناس' }}
-            </h4>
+            <div class="flex items-center gap-2">
+                <h4 class="text-sm font-semibold leading-tight text-[var(--md-sys-color-on-surface)]">
+                    {{ $feed->user?->name ?? 'کاربر ناشناس' }}
+                </h4>
 
-            <p dir="rtl" class="text-xs mr-2 text-[var(--md-sys-color-on-surface-variant)]">
+                <span
+                    title="{{ $feed->category ?? 'عمومی' }}"
+                    class="flex cursor-pointer items-center justify-center rounded-full bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-surface)] text-[10px] shadow-sm"
+                >
+                    {{ $presenter->categoryEmoji($feed) }}
+                </span>
+            </div>
+
+            <p class="mt-0.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
                 {{ $feed->created_at ? jdate($feed->created_at)->ago() : '' }}
             </p>
         </div>
     </div>
 
-    <span class="inline-flex items-center space-x-2 px-3 py-1 text-sm font-semibold text-white rounded direction-rtl bg-main-mode">
-        <span>{{ $emoji }}</span>
-    </span>
+    <button
+        @click="toggleMaximize(feed($el))"
+        :title="maximizedFeed === feed($el) ? 'کوچک کردن' : 'بزرگ کردن'"
+        :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedFeed === feed($el) }"
+        class="ripple-effect shrink-0 flex h-9 w-9 items-center justify-center rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95"
+    >
+        <span
+            class="material-symbols-rounded text-[18px]"
+            x-text="maximizedFeed === feed($el) ? 'close_fullscreen' : 'open_in_full'"
+        ></span>
+    </button>
 </div>

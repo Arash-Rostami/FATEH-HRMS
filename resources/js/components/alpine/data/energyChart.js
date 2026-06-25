@@ -1,9 +1,11 @@
+import maximizeMixin from "../mixins/maximize.js";
 import settings from "./settings.js";
 
 export default function energyChart(history, companyAverages, sections, latestTest) {
     return {
+        ...maximizeMixin(),
         charts: {},
-
+        maximizedWidget: null,
 
         async init() {
             if (!history?.length) return;
@@ -12,6 +14,11 @@ export default function energyChart(history, companyAverages, sections, latestTe
                 this.renderHistoryChart(Chart);
                 this.renderRadarChart(Chart);
             });
+        },
+
+        toggleMaximize(name) {
+            this.maximizedWidget = this.maximizedWidget === name ? null : name;
+            this.applyMaximize(!!this.maximizedWidget);
         },
 
         initPattern() {

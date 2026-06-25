@@ -84,10 +84,62 @@ class FeedInfolistPresenter
     {
         return RepeatableEntry::make('poll_options')
             ->label(__('resources/feed/strings.fields.poll_options'))
-            ->getStateUsing(fn($record) => collect($record->poll_options ?? [])->map(fn($v) => ['option' => $v])->all())
-            ->schema([TextEntry::make('option')->hiddenLabel()])
+            ->getStateUsing(function ($record) {
+                $results = $record->pollResults();
+                $total = $results['total'];
+                $counts = $results['counts'];
+
+                return collect($record->pollChoices())->map(fn($v, $i) => [
+                    'option' => sprintf(
+                        '%s<span style="font-size:11px;font-weight:600;opacity:.6;margin-inline-start:.5rem">%d %s · %d%%</span>',
+                        e($v),
+                        $counts[$i] ?? 0,
+                        __('resources/feed/strings.poll.vote_unit'),
+                        $total > 0 ? (int) round(($counts[$i] ?? 0) / $total * 100) : 0
+                    ),
+                ])->values()->all();
+            })
+            ->schema([TextEntry::make('option')->hiddenLabel()->html()->columnSpanFull()])
             ->visible(fn($record) => ($record->category?->value ?? $record->category) === FeedCategory::Poll->value)
             ->columnSpanFull();
+    }
+
+    public static function pollSettings(): TextEntry
+    {
+        return TextEntry::make('poll_settings')
+            ->label(__('resources/feed/strings.fields.poll_settings'))
+            ->badge()
+            ->getStateUsing(function ($record) {
+                $s = $record->pollSettings();
+
+                return collect([
+                    $s['mode'] === 'multiple'
+                        ? __('resources/feed/strings.poll.mode_multiple')
+                        : __('resources/feed/strings.poll.mode_single'),
+                    $s['comments']
+                        ? __('resources/feed/strings.poll.comments_on')
+                        : __('resources/feed/strings.poll.comments_off'),
+                    $s['reactions']
+                        ? __('resources/feed/strings.poll.reactions_on')
+                        : __('resources/feed/strings.poll.reactions_off'),
+                ])->join(' · ');
+            })
+            ->icon('heroicon-o-adjustments-horizontal')
+            ->color('info')
+            ->columnSpanFull()
+            ->visible(fn($record) => ($record->category?->value ?? $record->category) === FeedCategory::Poll->value);
+    }
+
+    public static function pollsTotal(): TextEntry
+    {
+        return TextEntry::make('polls_total')
+            ->label(__('resources/feed/strings.poll.total_votes'))
+            ->getStateUsing(fn($record) => $record->pollResults()['total'])
+            ->badge()
+            ->color('success')
+            ->icon('heroicon-o-chart-bar')
+            ->columnSpanFull()
+            ->visible(fn($record) => ($record->category?->value ?? $record->category) === FeedCategory::Poll->value);
     }
 
     public static function reactionsCount(): TextEntry

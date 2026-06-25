@@ -12,6 +12,8 @@ use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -128,6 +130,74 @@ class FeedFormPresenter
         return $data;
     }
 
+    public static function packPollSettings(array $data): array
+    {
+        $category = $data['category'] ?? null;
+        $categoryValue = $category instanceof FeedCategory ? $category->value : $category;
+
+        if ($categoryValue !== FeedCategory::Poll->value) {
+            $data['poll_options'] = null;
+
+            unset($data['poll_mode'], $data['poll_comments_enabled'], $data['poll_reactions_enabled']);
+
+            return $data;
+        }
+
+        $mode = ($data['poll_mode'] ?? 'single') === 'multiple' ? 'multiple' : 'single';
+        $comments = !empty($data['poll_comments_enabled']) ? '1' : '0';
+        $reactions = !empty($data['poll_reactions_enabled']) ? '1' : '0';
+        $choices = array_values(Arr::wrap($data['poll_options'] ?? []));
+
+        $data['poll_options'] = array_merge([$mode, $comments, $reactions], $choices);
+
+        unset($data['poll_mode'], $data['poll_comments_enabled'], $data['poll_reactions_enabled']);
+
+        return $data;
+    }
+
+    public static function unpackPollSettings(array $data): array
+    {
+        $options = $data['poll_options'] ?? [];
+
+        $extracted = Feed::extractPollSettings(is_array($options) ? $options : []);
+
+        $data['poll_mode'] = $extracted['mode'];
+        $data['poll_comments_enabled'] = $extracted['comments'];
+        $data['poll_reactions_enabled'] = $extracted['reactions'];
+        $data['poll_options'] = $extracted['choices'];
+
+        return $data;
+    }
+
+    public static function pollSettings(): Grid
+    {
+        return Grid::make(3)
+            ->schema([
+                Select::make('poll_mode')
+                    ->label(__('resources/feed/strings.fields.poll_mode'))
+                    ->options([
+                        'single'   => __('resources/feed/strings.poll.mode_single'),
+                        'multiple' => __('resources/feed/strings.poll.mode_multiple'),
+                    ])
+                    ->default('single')
+                    ->required()
+                    ->selectablePlaceholder(false)
+                    ->helperText(__('resources/feed/strings.hints.poll_mode')),
+
+                Toggle::make('poll_comments_enabled')
+                    ->label(__('resources/feed/strings.fields.poll_comments_enabled'))
+                    ->default(true)
+                    ->helperText(__('resources/feed/strings.hints.poll_comments_enabled')),
+
+                Toggle::make('poll_reactions_enabled')
+                    ->label(__('resources/feed/strings.fields.poll_reactions_enabled'))
+                    ->default(true)
+                    ->helperText(__('resources/feed/strings.hints.poll_reactions_enabled')),
+            ])
+            ->visible(fn($get) => ($get('category')?->value ?? $get('category')) === FeedCategory::Poll->value)
+            ->columnSpanFull();
+    }
+
     public static function pollOptions(): Repeater
     {
         return Repeater::make('poll_options')
@@ -190,6 +260,5 @@ class FeedFormPresenter
             ->preload()
             ->required()
             ->helperText(__('resources/feed/strings.hints.user_id'));
-
     }
 }

@@ -24,8 +24,13 @@ class GalleryInfolistPresenter
             ->label(__('resources/gallery/strings.fields.department'))
             ->placeholder(__('resources/gallery/strings.fields.public_gallery'))
             ->badge()
+            ->getStateUsing(function ($record) {
+                $models = $record->all_department_models;
+                if ($models->isEmpty()) return null;
+                return $models->pluck('description')->join(', ');
+            })
             ->color(fn($state) => $state ? 'warning' : 'success')
-            ->icon(fn($record) => $record->department_id ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt');
+            ->icon(fn($record) => count($record->all_departments) > 1 ? 'heroicon-o-users' : (count($record->all_departments) === 1 ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt'));
     }
 
     public static function description(): TextEntry

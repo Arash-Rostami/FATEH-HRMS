@@ -3,8 +3,8 @@
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;"
     dir="rtl"
     x-data="ths()"
+    @keydown.escape.window="if(max) toggleMaximize(null)"
 >
-
     <div
         class="transition-all duration-300 max-w-[88rem] mx-auto page-wrapper">
         <x-ui.title
@@ -32,7 +32,6 @@
 
         <div x-show="$wire.activeTab !== 'log'"
              class='py-4 px-6 min-h-[400px] relative index-10 overflow-x-auto rounded-2xl  bg-[var(--md-sys-color-surface)] shadow-sm'>
-
             <div x-show="$wire.activeTab === 'new' && !@js($ticketToRate)"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4"
@@ -51,7 +50,10 @@
         <div x-show="$wire.activeTab === 'log'"
              x-transition:enter="animate-fade"
              class="w-full">
-            @include('livewire.dashboard.ths.list')
+            <x-ui.modals.max-backdrop/>
+            <div :class="{ 'max-widget': max }">
+                @include('livewire.dashboard.ths.list')
+            </div>
         </div>
     </div>
     @include('livewire.dashboard.ths.modal')

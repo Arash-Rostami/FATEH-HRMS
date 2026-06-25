@@ -1,5 +1,6 @@
 <div dir="rtl"
      x-data="dms()"
+     @keydown.escape.window="if(max) toggleMaximize(null)"
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
      style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
@@ -36,7 +37,12 @@
         <div class="space-y-6 relative z-10">
 
             @include('livewire.dashboard.dms.legend')
-            @include('livewire.dashboard.dms.table')
+
+            <x-ui.modals.max-backdrop/>
+
+            <div :class="{ 'max-widget': max }">
+                @include('livewire.dashboard.dms.table')
+            </div>
 
         </div>
     </div>

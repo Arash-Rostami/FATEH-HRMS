@@ -16,7 +16,7 @@
                 >
                     <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]" wire:click="selectPost({{ $post->id }})">
                         <img
-                            src="{{ $post->image ? (Storage::disk('public')->exists($post->image) ? Storage::disk('public')->url($post->image) : asset($post->image)) : '' }}"
+                            src="{{ $post->image_url }}"
                             alt="{{ superClean($post->title, 200) }}"
                             loading="lazy"
                             class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"

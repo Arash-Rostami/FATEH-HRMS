@@ -6,7 +6,7 @@ use App\Filament\Resources\FeedResource\Exports\FeedExporter;
 use App\Traits\AuthorizesByPermission;
 use BackedEnum;
 use App\Filament\Resources\FeedResource\Pages\{CreateFeed, EditFeed, ListFeeds};
-use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManager, ReactionsRelationManager};
+use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManager, PollsRelationManager, ReactionsRelationManager};
 use App\Filament\Resources\FeedResource\Schemas\{FeedFormPresenter, FeedInfolistPresenter, FeedTablePresenter};
 use App\Models\Feed;
 use App\Traits\FilamentActions;
@@ -43,6 +43,7 @@ class FeedResource extends Resource
                     FeedFormPresenter::userId(),
                     FeedFormPresenter::category(),
                     FeedFormPresenter::divider(),
+                    FeedFormPresenter::pollSettings(),
                     FeedFormPresenter::pollOptions(),
                     FeedFormPresenter::mediaImages(),
                     FeedFormPresenter::mediaVideos(),
@@ -55,7 +56,7 @@ class FeedResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with('user')
-            ->withCount(['comments', 'reactions']);
+            ->withCount(['comments', 'reactions', 'polls']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -109,6 +110,7 @@ class FeedResource extends Resource
     {
         return [
             CommentsRelationManager::class,
+            PollsRelationManager::class,
             ReactionsRelationManager::class,
         ];
     }
@@ -118,7 +120,6 @@ class FeedResource extends Resource
         return $schema->components([
             Section::make()
                 ->hiddenLabel()
-                ->icon('heroicon-o-user')
                 ->schema([
                     FeedInfolistPresenter::user(),
                     FeedInfolistPresenter::category(),
@@ -127,6 +128,8 @@ class FeedResource extends Resource
 
                     FeedInfolistPresenter::content(),
                     FeedInfolistPresenter::pollOptions(),
+                    FeedInfolistPresenter::pollSettings(),
+                    FeedInfolistPresenter::pollsTotal(),
 
                     FeedInfolistPresenter::mediaImages(),
                     FeedInfolistPresenter::mediaVideosCount(),
@@ -150,6 +153,7 @@ class FeedResource extends Resource
                 FeedTablePresenter::content(),
                 FeedTablePresenter::commentsCount(),
                 FeedTablePresenter::reactionsCount(),
+                FeedTablePresenter::pollsCount(),
                 FeedTablePresenter::mediaCount(),
                 FeedTablePresenter::createdAt(),
             ])

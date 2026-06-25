@@ -12,10 +12,14 @@ class PhotoFactory extends Factory
 
     public function definition(): array
     {
+        $departmentCodes = Department::inRandomOrder()->limit(3)->pluck('code')->toArray();
+        $isMulti = fake()->boolean(30);
+
         return [
             'path' => [fake()->imageUrl()],
             'title' => fake()->sentence(),
-            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code,
+            'department_id' => !empty($departmentCodes) ? $departmentCodes[0] : null,
+            'departments' => $isMulti && count($departmentCodes) > 1 ? array_slice($departmentCodes, 1) : null,
             'description' => fake()->paragraph(),
             'event_date' => fake()->date(),
         ];

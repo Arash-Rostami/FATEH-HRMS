@@ -14,6 +14,8 @@
 
         @include('livewire.dashboard.tab.posts.grid')
 
-        @include('livewire.dashboard.tab.posts.details')
+        @if($this->selectedPost)
+            @include('livewire.dashboard.tab.posts.details')
+        @endif
     </div>
 </div>

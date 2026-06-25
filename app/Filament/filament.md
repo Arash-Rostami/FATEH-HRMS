@@ -291,6 +291,31 @@ class UserFormPresenter
 }
 ```
 
+##### Reactive / mutually-exclusive fields
+
+When two fields are mutually exclusive (only one should hold a value at a time — e.g. `GalleryFormPresenter` `department_id` single vs `departments` multi), wire both as `->live()` and cross-clear with `->afterStateUpdated(fn (Set $set) => $set('otherField', null))`. Disable the subordinate field with `->disabled(fn (Get $get) => filled($get('otherField')))`.
+
+**Import gotcha:** in Filament v5 the closure `Get`/`Set` come from `Filament\Schemas\Components\Utilities\Get` / `Filament\Schemas\Components\Utilities\Set` — **not** `Filament\Forms\Get` (that class no longer matches what Filament injects, and the wrong import throws `Argument #1 ($get) must be of type Filament\Forms\Get, Filament\Schemas\Components\Utilities\Get given`). This is the import every `*FormPresenter` in this repo uses.
+
+In Filament v5 a **disabled field is not dehydrated by default** (see `ContactFormPresenter` `->disabled()->dehydrated(false)`). To persist the cleared (`null`) value of a disabled field instead of silently keeping the old DB value, add `->dehydrated(true)` (see `FAQFormPresenter`). This is mandatory whenever the disabled state must produce a saved `null`.
+
+```php
+Select::make('department_id')
+    ->live()
+    ->disabled(fn (Get $get) => filled($get('departments')))
+    ->dehydrated(true)
+    ->afterStateUpdated(fn (Set $set) => $set('departments', null));
+```
+
+##### Packing virtual form fields into one JSON column
+
+When several form controls do not map 1:1 to model columns but must be persisted together inside one JSON/array column, expose them as **virtual** Filament fields (no matching model attribute) and pack/unpack them through the resource page mutators — the same mechanism already used for `FeedResource` media (`splitMediaPaths`/`mergeMediaPaths`) and poll settings (`unpackPollSettings`/`packPollSettings`):
+
+- `mutateFormDataBeforeFill` → `unpackX($data)` (split the stored column into the virtual fields for editing).
+- `mutateFormDataBeforeCreate` and `mutateFormDataBeforeSave` → `packX($data)` (recombine the virtual fields back into the column and `unset()` the virtual keys so they never reach mass assignment).
+
+Example: `FeedFormPresenter` stores poll mode + 2 toggles in the first 3 slots of `poll_options`, with real choices after; `Feed::extractPollSettings()` is the single source of truth for that split so the form, action, view and relation manager all agree. Always keep the split logic in one model method and reuse it — do not re-derive the format at each call site.
+
 #### 2.2 Table schema
 
 Contains: column definitions, filter definitions, group definitions, row actions and bulk actions when shared at module level, and table-level presentation logic.
@@ -792,6 +817,36 @@ class ProfileRelationManager extends RelationManager
     }
 }
 ```
+
+#### Aggregated relation managers (one row per parent-side entity)
+
+When a relation manager must show **one row per a grouping of the child records** (e.g. `PollsRelationManager` shows one row per *voter* with their concatenated choices, not one row per vote), the table query needs `GROUP BY` + aggregates (`GROUP_CONCAT`, `COUNT(*)`, `MIN(created_at)`). Two gotchas that break this under MySQL `ONLY_FULL_GROUP_BY`:
+
+- Filament appends a stable-pagination tiebreaker `order by <table>.<pk> asc`. With `GROUP BY user_id` the raw `polls.id` is neither grouped nor aggregated → `SQLSTATE 1055`.
+- A `HAVING`-based filter (`HAVING COUNT(*) = 1`) only works on the *aggregating* query; once you move aggregation into a subquery the outer query has no `GROUP BY`, so the filter must become `WHERE` on the derived column.
+
+The robust shape is to aggregate inside a **subquery** via `fromSub`, so the outer query Filament sorts/filters/paginates only ever sees derived columns (no `ONLY_FULL_GROUP_BY` violation), and to filter with `whereRaw` on the derived aggregate alias:
+
+```php
+->query(
+    Poll::query()
+        ->fromSub(function ($query) use ($ownerId) {
+            $query->from('polls')
+                ->where('feed_id', $ownerId)
+                ->selectRaw('user_id, MIN(id) as id, GROUP_CONCAT(option_index ORDER BY option_index SEPARATOR ",") as option_indexes, COUNT(*) as votes_count, MIN(created_at) as created_at')
+                ->groupBy('user_id');
+        }, 'polls')
+        ->with('user')
+)
+->defaultSort('created_at', 'desc')   // orders by the derived created_at, valid
+```
+
+Conventions for this kind of manager:
+
+- `MIN(id) as id` keeps Filament record keys unique per grouped row, so selection/view still work.
+- Per-row value columns (e.g. concatenated choices) use `getStateUsing(fn (Poll $record) => $this->resolveChoices($record))` backed by a single helper that parses the `GROUP_CONCAT` CSV through the owner record's choice list — keep the parse in one protected method reused by both the table column and the infolist.
+- `->sortable()` is dropped on every column (per-column sorting is meaningless over an aggregate set); order only via `defaultSort` on a derived column.
+- Delete semantics change: the row no longer maps to one child record, so the default delete action (which deletes by model key) is wrong. Provide a custom `DeleteAction`/`BulkAction` that removes *all* of the grouped entity's rows (`where('feed_id', $ownerId)->where('user_id', $record->user_id)`) with confirmation.
 
 ---
 

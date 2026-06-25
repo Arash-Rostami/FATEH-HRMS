@@ -5,6 +5,7 @@
     x-on:chat-ready.window="scrollToBottom(true)"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays()"
+    @keydown.escape.window="if(max) toggleMaximize(null)"
     role="application"
     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">

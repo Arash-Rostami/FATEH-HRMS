@@ -9,8 +9,8 @@
                 class="relative w-full shrink-0 overflow-hidden group cursor-zoom-in h-[42vh]"
             >
                 <img
-                    src="{{ $selectedPost->image }}"
-                    alt="{{ $selectedPost->title }}"
+                    src="{{ $selectedPost->image_url }}"
+                    alt="{{ strip_tags($selectedPost->title) }}"
                     class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                 >
 
@@ -25,24 +25,24 @@
 
                 <button
                     @click.stop="imageViewer = true"
-                    class="absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg backdrop-blur-sm transition-all hover:bg-black/50 hover:text-white"
+                    class="absolute right-6 top-6 z-20 flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/90 shadow-lg transition-all hover:bg-black/50 hover:text-white"
                 >
                     <span class="material-symbols-rounded text-[20px]">open_in_full</span>
                 </button>
 
                 <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8">
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-[var(--md-sys-color-secondary-container)]/80 px-3 py-1 text-xs font-bold text-[var(--md-sys-color-on-secondary-container)] shadow-sm backdrop-blur-sm">
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-[var(--md-sys-color-secondary-container)]/80 px-3 py-1 text-xs font-bold text-[var(--md-sys-color-on-secondary-container)] shadow-sm">
                             <span class="material-symbols-rounded text-[14px]">new_releases</span>
                             <span>خبر</span>
                         </span>
 
-                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm backdrop-blur-sm">
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm">
                             <span class="material-symbols-rounded text-[14px] text-white/90">calendar_month</span>
                             <span class="font-medium" dir="rtl">{{ toJalali($selectedPost->created_at, 'j F Y') }}</span>
                         </span>
 
-                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm backdrop-blur-sm">
+                        <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm">
                             <span class="material-symbols-rounded text-[14px] text-white/90">person</span>
                             <span>ادمین سیستم</span>
                         </span>
@@ -55,7 +55,7 @@
             </div>
 
             <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-transparent px-5 py-6 sm:px-8 sm:py-8">
-                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] [&_*]:!bg-transparent [&_*]:!text-inherit">
+                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] post-body">
                     {!! $selectedPost->body !!}
                 </div>
             </div>
@@ -81,6 +81,7 @@
                                 <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">content_copy</span>
                                 <span>کپی متن</span>
                             </button>
+
                             <button
                                 @click="sendEmail();"
                                 class="flex w-full items-center gap-3 px-4 py-3 text-right text-sm text-[var(--md-sys-color-on-surface)] transition-colors hover:bg-[var(--md-sys-color-primary)]/10"
@@ -105,21 +106,21 @@
                     x-cloak
                     x-show="imageViewer"
                     x-transition.opacity.duration.200ms
-                    class="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-sm"
+                    class="fixed inset-0 z-[99999] bg-[var(--md-sys-color-primary)] animate-lightbox-in"
                     @keydown.escape.window="imageViewer = false"
                     @click.self="imageViewer = false"
                 >
                     <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
-                        <div class="relative w-full max-w-[min(96vw,1600px)] animate-backdrop-in">
+                        <div class="relative w-full max-w-[min(96vw,1600px)]">
                             <img
-                                src="{{ $selectedPost->image }}"
-                                alt="{{ $selectedPost->title }}"
-                                class="max-h-[92vh] w-full select-none object-contain shadow-[0_30px_120px_rgba(0,0,0,0.6)]"
+                                src="{{ $selectedPost->image_url }}"
+                                alt="{{ strip_tags($selectedPost->title) }}"
+                                class="max-h-[92vh] w-full select-none object-contain rounded-xl"
                             >
 
                             <button
                                 @click="imageViewer = false"
-                                class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-black/75"
+                                class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
                             >
                                 <span class="material-symbols-rounded">close</span>
                             </button>

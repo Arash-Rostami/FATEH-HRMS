@@ -31,6 +31,7 @@ class Feed extends Model
         static::deleting(function ($feed) {
             $feed->comments()->delete();
             $feed->reactions()->delete();
+            $feed->polls()->delete();
         });
     }
 
@@ -52,6 +53,62 @@ class Feed extends Model
     public function reactions(): HasMany
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function polls(): HasMany
+    {
+        return $this->hasMany(Poll::class);
+    }
+
+    public function pollResults(): array
+    {
+        $this->loadMissing('polls');
+
+        $votes = $this->polls;
+        $counts = [];
+
+        foreach ($votes as $vote) {
+            $idx = (int) $vote->option_index;
+            $counts[$idx] = ($counts[$idx] ?? 0) + 1;
+        }
+
+        return [
+            'total'  => $votes->count(),
+            'counts' => $counts,
+        ];
+    }
+
+    public static function extractPollSettings(array $options): array
+    {
+        if (count($options) >= 3 && in_array($options[0], ['single', 'multiple'], true)) {
+            return [
+                'mode'      => $options[0] === 'multiple' ? 'multiple' : 'single',
+                'comments'  => in_array($options[1], ['1', 'true', true, 1], true),
+                'reactions' => in_array($options[2], ['1', 'true', true, 1], true),
+                'choices'   => array_values(array_slice($options, 3)),
+            ];
+        }
+
+        return [
+            'mode'      => 'single',
+            'comments'  => true,
+            'reactions' => true,
+            'choices'   => array_values($options),
+        ];
+    }
+
+    public function pollChoices(): array
+    {
+        return self::extractPollSettings($this->poll_options ?? [])['choices'];
+    }
+
+    public function pollSettings(): array
+    {
+        $settings = self::extractPollSettings($this->poll_options ?? []);
+
+        unset($settings['choices']);
+
+        return $settings;
     }
 
     public function scopeByCategory($query, string $category)

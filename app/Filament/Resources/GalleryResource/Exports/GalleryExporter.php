@@ -17,7 +17,13 @@ class GalleryExporter extends Exporter
             ExportColumn::make('id')->label('ID'),
             ExportColumn::make('title')->label(__('resources/gallery/strings.fields.title')),
             ExportColumn::make('description')->label(__('resources/gallery/strings.fields.description')),
-            ExportColumn::make('department.name')->label(__('resources/gallery/strings.fields.department')),
+            ExportColumn::make('department_string')
+                ->label(__('resources/gallery/strings.fields.department'))
+                ->state(function ($record) {
+                    $models = $record->all_department_models;
+                    if ($models->isEmpty()) return __('resources/gallery/strings.fields.public_gallery');
+                    return $models->pluck('description')->join(' | ');
+                }),
             ExportColumn::make('event_date')
                 ->label(__('resources/gallery/strings.fields.event_date'))
                 ->state(fn($record) => $record->event_date?->format('Y-m-d')),

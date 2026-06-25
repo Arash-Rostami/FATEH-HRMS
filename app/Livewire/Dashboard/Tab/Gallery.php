@@ -69,7 +69,7 @@ class Gallery extends Component
             return;
         }
 
-        $this->open = null; // stale/invalid id — fall back to the normal gallery
+        $this->open = null;
         $this->loadInitialPhotos();
         $this->assetsLoaded = true;
     }
@@ -83,7 +83,8 @@ class Gallery extends Component
 
         $idsString = implode(',', array_map('intval', $this->photoIds));
 
-        return Photo::whereIn('id', $this->photoIds)
+        return Photo::with('department')
+            ->whereIn('id', $this->photoIds)
             ->orderByRaw("FIELD(id, {$idsString})")
             ->get();
     }
@@ -112,9 +113,19 @@ class Gallery extends Component
 
         return Photo::query()
             ->orderByDesc('event_date')
-            ->where(fn($q) => $q->whereNull('department_id')
-                ->orWhere('department_id', '')
-                ->orWhere('department_id', $dept)
-            );
+            ->where(function($q) use ($dept) {
+                if ($dept) {
+                    $q->where('department_id', $dept)
+                        ->orWhereJsonContains('departments', $dept);
+                }
+
+                $q->orWhere(function ($p) {
+                    $p->where(function ($x) {
+                        $x->whereNull('department_id')->orWhere('department_id', '');
+                    })->where(function ($y) {
+                        $y->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0');
+                    });
+                });
+            });
     }
 }

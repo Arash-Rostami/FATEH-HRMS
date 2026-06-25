@@ -27,13 +27,18 @@ class GalleryTablePresenter
 
     public static function department(): TextColumn
     {
-        return TextColumn::make('department.description')
+        return TextColumn::make('all_departments_string')
             ->label(__('resources/gallery/strings.fields.department'))
             ->placeholder(__('resources/gallery/strings.fields.public_gallery'))
             ->badge()
-            ->color(fn($state) => $state ? 'warning' : 'success')
-            ->icon(fn($record) => $record->department_id ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt')
-            ->sortable()
+            ->color(fn($record) => count($record->all_departments) > 1 ? 'info' : (count($record->all_departments) === 1 ? 'warning' : 'success'))
+            ->icon(fn($record) => count($record->all_departments) > 1 ? 'heroicon-o-users' : (count($record->all_departments) === 1 ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt'))
+            ->getStateUsing(function ($record) {
+                $models = $record->all_department_models;
+                if ($models->isEmpty()) return null;
+                return $models->pluck('description')->join(', ');
+            })
+            ->sortable(false)
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -43,14 +48,25 @@ class GalleryTablePresenter
             ->label(__('resources/gallery/strings.fields.department'))
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
-            ->preload();
+            ->preload()
+            ->query(function (Builder $query, array $data) {
+                if (!empty($data['value'])) {
+                    $query->where(function ($q) use ($data) {
+                        $q->where('department_id', $data['value'])
+                            ->orWhereJsonContains('departments', $data['value']);
+                    });
+                }
+            });
     }
 
     public static function departmentGroup(): Group
     {
         return Group::make('department.description')
             ->label(__('resources/gallery/strings.fields.department'))
-            ->getTitleFromRecordUsing(fn(Model $record): string => $record->department?->description ?? __('resources/gallery/strings.fields.public_gallery'))
+            ->getTitleFromRecordUsing(function (Model $record): string {
+                $models = $record->all_department_models;
+                return $models->isEmpty() ? __('resources/gallery/strings.fields.public_gallery') : $models->pluck('description')->join(', ');
+            })
             ->collapsible();
     }
 
@@ -129,8 +145,20 @@ class GalleryTablePresenter
             ->trueLabel(__('resources/gallery/strings.filters.private'))
             ->falseLabel(__('resources/gallery/strings.filters.public'))
             ->queries(
-                true: fn(Builder $q) => $q->whereNotNull('department_id'),
-                false: fn(Builder $q) => $q->whereNull('department_id'),
+                true: fn(Builder $q) => $q->where(fn($sq) => $sq->whereNotNull('department_id')->orWhereNotNull('departments')),
+                false: fn(Builder $q) => $q->whereNull('department_id')->whereNull('departments'),
+            );
+    }
+
+    public static function sharedFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('shared_type')
+            ->label(__('resources/gallery/strings.filters.shared_type') ?? 'Sharing')
+            ->trueLabel(__('resources/gallery/strings.filters.multiple_departments') ?? 'Multiple Departments')
+            ->falseLabel(__('resources/gallery/strings.filters.single_department') ?? 'Single Department')
+            ->queries(
+                true: fn(Builder $query) => $query->whereNotNull('departments')->whereRaw('JSON_LENGTH(departments) > 0'),
+                false: fn(Builder $query) => $query->whereNotNull('department_id')->where(fn($q) => $q->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0')),
             );
     }
 }

@@ -119,6 +119,17 @@ class FeedTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function pollsCount(): TextColumn
+    {
+        return TextColumn::make('polls_count')
+            ->label(__('resources/feed/strings.fields.polls_count'))
+            ->counts('polls')
+            ->badge()
+            ->color('success')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
     public static function user(): TextColumn
     {
         return TextColumn::make('user.name')

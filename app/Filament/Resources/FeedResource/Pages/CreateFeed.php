@@ -16,6 +16,6 @@ class CreateFeed extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        return FeedFormPresenter::mergeMediaPaths($data);
+        return FeedFormPresenter::packPollSettings(FeedFormPresenter::mergeMediaPaths($data));
     }
 }

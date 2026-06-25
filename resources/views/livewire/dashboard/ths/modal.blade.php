@@ -1,10 +1,9 @@
 @if($selectedTicket)
     <template x-teleport="body">
 
-        <div x-data="{ isClosing: false }" x-cloak>
+        <div x-data="{ isClosing: false, max: false, toggleMax() { this.max = !this.max } }" x-cloak>
             <div class="fixed inset-0 !z-[100000] flex items-center justify-center p-4 sm:p-6 animate-slide-down"
                  x-show="!isClosing"
-                 class="bg-[var(--md-sys-color-primary)]/60"
                  dir="rtl">
 
                 {{-- Modal Backdrop Click --}}
@@ -13,7 +12,8 @@
 
                 {{-- Modal Content --}}
                 <div
-                    class="relative w-full max-w-4xl bg-[var(--md-sys-color-on-primary)] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                    class="relative w-full bg-[var(--md-sys-color-on-primary)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300"
+                    :class="max ? 'h-full max-w-none max-h-none rounded-none' : 'max-w-4xl max-h-[90vh] rounded-3xl'"
                     x-show="!isClosing">
 
                     {{-- Header --}}
@@ -32,10 +32,18 @@
                             </div>
                         </div>
 
-                        <button @click="isClosing = true; setTimeout(() => $wire.set('selectedTicket', null), 300)"
-                                class="p-2 pb-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
-                            <span class="material-symbols-rounded">close</span>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button @click="toggleMax()"
+                                    :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+                                    :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': max }"
+                                    class="p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
+                                <span class="material-symbols-rounded" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+                            </button>
+                            <button @click="isClosing = true; setTimeout(() => $wire.set('selectedTicket', null), 300)"
+                                    class="p-2 pb-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="px-4 w-3/4 md:w-1/2">

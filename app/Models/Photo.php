@@ -14,6 +14,7 @@ class Photo extends Model
         'path',
         'title',
         'department_id',
+        'departments',
         'description',
         'event_date',
     ];
@@ -28,11 +29,37 @@ class Photo extends Model
         return $query->where('department_id', $departmentCode);
     }
 
+    public function getPrimaryDepartmentAttribute()
+    {
+        return $this->department;
+    }
+
+    public function getAllDepartmentsAttribute(): array
+    {
+        $deps = $this->departments ?? [];
+        if ($this->department_id) {
+            array_unshift($deps, $this->department_id);
+        }
+
+        return array_unique($deps);
+    }
+
+    public function getAllDepartmentModelsAttribute()
+    {
+        $codes = $this->all_departments;
+        if (empty($codes)) {
+            return collect();
+        }
+
+        return Department::getCachedModels()->filter(fn($model, $code) => in_array($code, $codes, true))->values();
+    }
+
     protected function casts(): array
     {
         return [
             'event_date' => 'date',
             'path' => 'array',
+            'departments' => 'array',
         ];
     }
 }

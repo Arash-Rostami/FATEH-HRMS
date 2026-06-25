@@ -47,6 +47,14 @@ class Department extends Model
         );
     }
 
+    public static function getCachedModels(): Collection
+    {
+        return once(fn() => Cache::remember('department_models',
+            now()->addYear(),
+            fn() => self::all()->keyBy('code'))
+        );
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class, 'department_id', 'code');
@@ -112,6 +120,7 @@ class Department extends Model
         $forgetCache = function () {
             Cache::forget('department_options');
             Cache::forget('department_options_with_tickets');
+            Cache::forget('department_models');
         };
 
         static::saved($forgetCache);

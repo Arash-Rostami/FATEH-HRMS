@@ -1,13 +1,42 @@
+import maximizeMixin from "../mixins/maximize.js";
 import settings from "./settings.js";
 
 export default function taskboard() {
     return {
+        ...maximizeMixin(),
         dragTask: null,
         isDragging: false,
+        maximizedColumn: null,
+        collapsed: {},
+
+        toggleMaximize(name) {
+            this.maximizedColumn = this.maximizedColumn === name ? null : name;
+            this.applyMaximize(!!this.maximizedColumn);
+        },
+
+        col(el) {
+            return el?.closest('[data-column]')?.dataset.column;
+        },
+
+        isCollapsed(name) {
+            return this.collapsed[name] === true;
+        },
+
+        toggleCollapsed(name) {
+            this.collapsed[name] = !this.isCollapsed(name);
+            localStorage.setItem('taskboard-collapsed-' + name, this.collapsed[name] ? '1' : '0');
+        },
 
         init() {
             this.$watch('dragTask', value => {
                 this.isDragging = !!value;
+            });
+
+            document.querySelectorAll('[data-column]').forEach(el => {
+                const name = el.dataset.column;
+                if (name && this.collapsed[name] === undefined) {
+                    this.collapsed[name] = localStorage.getItem('taskboard-collapsed-' + name) === '1';
+                }
             });
         },
 

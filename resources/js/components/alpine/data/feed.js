@@ -1,8 +1,21 @@
+import maximizeMixin from "../mixins/maximize.js";
+
 export default () => ({
+    ...maximizeMixin(),
     activeId: null,
     loading: false,
     observer: null,
     showTimeline: false,
+    maximizedFeed: null,
+
+    feed(el) {
+        return el?.closest('[data-feed]')?.dataset.feed;
+    },
+
+    toggleMaximize(name) {
+        this.maximizedFeed = this.maximizedFeed === name ? null : name;
+        this.applyMaximize(!!this.maximizedFeed);
+    },
 
     init() {
         this.$nextTick(() => {

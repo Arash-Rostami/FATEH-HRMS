@@ -53,14 +53,15 @@
             @endphp
             <a href="{{ $url }}"
                data-fancybox="gallery-{{ $photo->id }}"
-               class="absolute w-40 h-40 md:w-56 md:h-56 rounded-xl shadow-md overflow-hidden border-4 border-[var(--md-sys-color-surface)] transition-all duration-500 ease-out cursor-zoom-in hover:z-30 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:brightness-105 {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
+               class="collage-item absolute w-40 h-40 md:w-56 md:h-56 rounded-xl overflow-hidden border-4 border-[var(--md-sys-color-surface)] cursor-pointer {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
             >
-                <img src="{{ $url }}" alt="{{ $photo->title }}" class="w-full h-full object-cover cursor-pointer" loading="lazy">
+                <img src="{{ $url }}" alt="{{ $photo->title }}" class="w-full h-full object-cover" loading="lazy">
             </a>
         @endforeach
 
         @if($hiddenImageCount > 0)
-            <div class="absolute bottom-4 right-4 z-30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-full px-3 py-1 text-xs font-bold shadow-lg">
+            <div
+                class="absolute bottom-4 right-4 z-30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-full px-3 py-1 text-xs font-bold shadow-lg">
                 +{{ $hiddenImageCount }}
             </div>
         @endif
@@ -69,7 +70,8 @@
     {{-- Hidden Images for Fancybox --}}
     <div class="hidden">
         @foreach($hiddenImages as $imagePath)
-            <a href="{{ Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath) }}" data-fancybox="gallery-{{ $photo->id }}"></a>
+            <a href="{{ Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath) }}"
+               data-fancybox="gallery-{{ $photo->id }}"></a>
         @endforeach
     </div>
 

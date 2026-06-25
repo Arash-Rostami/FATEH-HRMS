@@ -17,11 +17,11 @@ class EditFeed extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        return FeedFormPresenter::splitMediaPaths($data);
+        return FeedFormPresenter::unpackPollSettings(FeedFormPresenter::splitMediaPaths($data));
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        return FeedFormPresenter::mergeMediaPaths($data);
+        return FeedFormPresenter::packPollSettings(FeedFormPresenter::mergeMediaPaths($data));
     }
 }

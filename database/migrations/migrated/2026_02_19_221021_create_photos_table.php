@@ -17,6 +17,7 @@ return new class extends Migration
             $table->json('path');
             $table->string('title', 255)->nullable();
             $table->string('department_id')->nullable();
+            $table->json('departments')->nullable();
             $table->text('description')->nullable();
             $table->date('event_date')->nullable();
 

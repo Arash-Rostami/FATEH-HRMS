@@ -297,6 +297,22 @@ Everything else — `$activeTab`, computed properties, `$this->items`, event lis
 
 ---
 
+## Data-bag Presenter + lazy render (Feeds)
+
+`Feeds` is the concrete example of Step 4's Presenter, extended to a **data-bag** shape: instead of one-off `formatX($value)` methods, `FeedPresenter` returns small arrays that bundle everything a Blade region needs in one call, so the view does one `@php $flags = $presenter->feedFlags($feed) @endphp` instead of re-deriving fields inline.
+
+- `feedFlags($feed)` → `['isPoll','showComments','showReactions','settings']` (one call gates the whole card).
+- `pollData($feed)` → `['isMultiple','options','total','counts','userVotes']` (computed once, before the option loop), and `optionState($index, $pollData)` → `['count','pct','isMine']` per option reusing the bag.
+- `commentMeta($comment, $editingCommentId)` → `['user','avatarUrl','hasPhoto','isOnline','isOwner','isEditing']` per comment row.
+- `mediaGrid($media)` → `['items','images','cols','rows']`.
+- `categoryValue($category)` normalizes the raw-DB-string `category` (not cast to the `FeedCategory` enum) using the codebase idiom `($category?->value ?? $category)` — note `?->value` on a non-null string returns `null` in PHP 8 (no throw), so the `?? $category` fallback recovers the string. Used by `categoryEmoji`/`feedFlags` instead of repeating the idiom in Blade.
+
+Wiring: `render()` passes `['presenter' => new FeedPresenter()]`. Because `timeline` → `item` → `header`/`comments`/`media` are all `@include`s, `$presenter` is inherited by every partial (Laravel `@include` forwards all current vars); no per-include plumbing needed. The Presenter is pure (no DB, no state): `pollResults/pollChoices/pollSettings` operate on eager-loaded `polls`/`poll_options`, avatar/online read eager-loaded `profile`/`last_seen`.
+
+**Lazy comment render-gate:** comments were previously `@include`d for *every* feed inside an `x-show` (CSS-hidden but still server-rendered), so a feed with many comments rendered every card on initial load. Now `item.blade.php` gates the `@include` behind a Livewire flag: the toggle button does `@click="open = !open; if (open && !loaded) { $wire.openComments(feedId); loaded = true; }"` (Alpine tracks `open`/`loaded` locally; survives Livewire morph), and `@if($openedCommentFeeds[$feedId] ?? false)` wraps the `@include`. `openComments($feedId)` only flips the flag — comments stay eager-loaded in `feeds()`, so the badge count and all write-method refreshes (`addComment`/`deleteComment`/`updateComment` still call `unset($this->feeds)` → re-eager-load) are unchanged. Initial load now renders zero comment cards; only the opened feed's cards render, on the round-trip.
+
+---
+
 ## Persian (Jalali) date convention
 
 Dates are **stored as Gregorian `Y-m-d`** and converted to Jalali only at the edges. This matches the Filament side (`PersianDateFieldService`), so a date saved in one panel round-trips correctly in the other.

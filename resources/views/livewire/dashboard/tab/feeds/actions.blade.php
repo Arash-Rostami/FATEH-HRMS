@@ -1,11 +1,7 @@
 <div class="flex items-center gap-2 justify-between">
     @php
-        $emojis = ['👍', '❤️', '😂', '😮', '😢', '💔', '👏', '🔥', '🎉', '😍', '🤔', '💯', '🙌', '😤', '🥺', '😎', '🫶', '💪', '🤩', '😇', '🙏'];
         $userReaction = $feed->reactions->firstWhere('user_id', auth()->id());
         $selectedEmoji = $userReaction?->emoji;
-        if ($selectedEmoji && in_array($selectedEmoji, $emojis)) {
-            $emojis = array_merge([$selectedEmoji], array_values(array_filter($emojis, fn($e) => $e !== $selectedEmoji)));
-        }
     @endphp
 
     <div class="flex-shrink-0 flex items-center gap-1 h-9 px-2.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)]">
@@ -15,7 +11,7 @@
 
     <div class="flex items-center gap-0.5 py-1 overflow-visible"
          wire:key="reaction-strip-{{ $feed->id }}-{{ $selectedEmoji }}"
-         x-data="{ page: 0, per: 7, emojis: {{ json_encode(array_values($emojis)) }}, selected: '{{ $selectedEmoji }}' }">
+         x-data="feedReactions({{ $feed->id }}, '{{ $selectedEmoji }}')">
 
         <template x-for="emoji in emojis.slice(page * per, page * per + per)" :key="emoji">
             <button
@@ -29,7 +25,7 @@
             </button>
         </template>
 
-        <button @click="page = (page + 1) % Math.ceil(emojis.length / per)"
+        <button @click="next()"
                 class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-secondary-container)] active:scale-95 transition-all duration-150">
             <span class="material-symbols-rounded text-[18px] leading-none">chevron_left</span>
         </button>

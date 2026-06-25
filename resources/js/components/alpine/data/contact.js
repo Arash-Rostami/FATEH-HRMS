@@ -1,8 +1,11 @@
 import settings from "./settings.js";
 import {emojis} from "../stores/emoji.js";
 
+import maximizeMixin from "../mixins/maximize.js";
+
 export default function contact() {
     return {
+        ...maximizeMixin(),
         bgOption: 'a',
         isTyping: false,
         typingTimeout: null,
@@ -15,25 +18,10 @@ export default function contact() {
         editingMsg: null,
         deletingId: null,
         emojiOpen: false,
-        max: false,
         activeCat: 0,
         isHighlighted: false,
         backgroundPattern: 'off',
         emojis: emojis,
-
-        toggleMaximize() {
-            this.max = !this.max;
-
-            ['footer', 'header', 'navbar'].forEach(id => {
-                document.getElementById(id)
-                    ?.classList.toggle('layout-hidden', this.max);
-            });
-
-            this.$nextTick(() => {
-                this.scrollToBottom(false);
-                this.focusSearch();
-            });
-        },
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');

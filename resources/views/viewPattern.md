@@ -56,6 +56,17 @@ components/
 <x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" wire:model="form.descriptionSelf" :rows="5" :maximizable="true"/>
 ```
 
+#### 1.2.1.2 Image gallery maximize (teleported fullscreen viewer)
+**Purpose:** Click any image in a media grid (1, 2, 3, … images — count does not matter) to open it fullscreen, with prev/next navigation across the set. Reuse the same shape wherever a media grid appears (`posts/details.blade.php` single image; `feeds/media.blade.php` multi-image).
+
+**Pattern:**
+- Self-contained Alpine scope on the grid root: `x-data="{ open: false, index: 0 }"`. Each image cell's `@click="index = N; open = true"` opens the viewer at that image's position; `cursor-zoom-in` + an `open_in_full` badge signal it is clickable. Videos stay inline (`<video controls>`) and are **excluded** from the viewer.
+- The viewer is `<template x-teleport="body">` → a `fixed inset-0 z-[99999] bg-black/90` overlay, so it is never clipped by ancestor `overflow-hidden` (unlike an in-card absolute tooltip). Close via `@click.self` on the backdrop, a close button, or `@keydown.escape.window`.
+- Build two lists from the raw paths: `$items` (all, for the grid) and `$images` (non-videos only, for the viewer). Walk `$items` with an image-only counter so each image's click target equals its position in `$images`; render one `<img x-show="index === N">` per image in the viewer and `x-show` toggles the active one. Use `!isVideo($p)` (the closure param), never `$path` (undefined in that scope → keeps videos too → broken `<img>` in the viewer).
+- Grid sizing: `grid-cols-2` alone leaves rows auto-sized to each image's intrinsic height, so a 4-image set's second row overflows the card's `overflow-hidden` and is clipped. Fix with explicit `grid-rows-{{ ceil($count/$cols) }}` plus a definite height (`h-[400px]` for multi-row, `h-[320px]` single) so rows share the space equally (`minmax(0,1fr)`) and every cell stays visible without scrolling.
+- Multi-image prev/next use modular wraparound: `index = (index - 1 + total) % total` / `index = (index + 1) % total`; only render the arrows when `count($images) > 1`.
+- Because the `x-data` is per-include, each card/post has its own independent viewer; only the clicked one opens. Reuse `animate-backdrop-in` for the entrance.
+
 #### 1.2.2 Domain Components (`components.{admin,auth,dashboard}.*`)
 **Purpose:** Controller-less Blade compositions representing specific business contexts.
 

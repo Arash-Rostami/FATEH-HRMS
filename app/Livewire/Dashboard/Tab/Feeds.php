@@ -6,7 +6,9 @@ use App\Livewire\Dashboard\Tab\Actions\AddCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\DeleteCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\ToggleReactionAction;
 use App\Livewire\Dashboard\Tab\Actions\UpdateCommentAction;
+use App\Livewire\Dashboard\Tab\Actions\VotePollAction;
 use App\Livewire\Dashboard\Tab\Forms\CommentForm;
+use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
 use App\Models\Feed;
 use App\Traits\FocusOnRecord;
@@ -24,13 +26,13 @@ class Feeds extends Component
     public array $feedIds = [];
 
     public ?int $selectedFeedId = null;
-    public bool $assetsLoaded = false;
-
     public array $newComments = [];
     public array $replyComments = [];
 
     public ?int $editingCommentId = null;
     public CommentForm $commentForm;
+
+    public array $openedCommentFeeds = [];
 
     public string $search = '';
     public ?string $selectedCategory = null;
@@ -96,12 +98,13 @@ class Feeds extends Component
 
         $idsString = implode(',', $this->feedIds);
         return Feed::with([
-            'user',
+            'user.profile',
             'comments' => fn($q) => $q->whereNull('parent_id')->latest(),
-            'comments.user',
-            'comments.children.user',
+            'comments.user.profile',
+            'comments.children.user.profile',
             'reactions',
-            'reactions.user'
+            'reactions.user',
+            'polls',
         ])
             ->whereIn('id', $this->feedIds)
             ->orderByRaw("FIELD(id, {$idsString})")
@@ -166,9 +169,14 @@ class Feeds extends Component
         $this->loadInitialFeeds();
     }
 
+    public function openComments(int $feedId): void
+    {
+        $this->openedCommentFeeds[$feedId] = true;
+    }
+
     public function render()
     {
-        return view('livewire.dashboard.tab.feeds');
+        return view('livewire.dashboard.tab.feeds', ['presenter' => new FeedPresenter()]);
     }
 
     public function startEditing($commentId): void
@@ -185,6 +193,14 @@ class Feeds extends Component
         if (!Auth::check()) return;
 
         $action->execute($feedId, $emoji);
+        unset($this->feeds);
+    }
+
+    public function vote($feedId, $optionIndex, VotePollAction $action): void
+    {
+        if (!Auth::check()) return;
+
+        $action->execute($feedId, (int) $optionIndex);
         unset($this->feeds);
     }
 

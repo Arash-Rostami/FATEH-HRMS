@@ -18,7 +18,7 @@
                     <div class="absolute top-0 inset-x-0 h-[5px] bg-gradient-to-r from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-tertiary)] to-[var(--md-sys-color-primary)] z-30 transform origin-left scale-x-100 transition-transform duration-500"></div>
 
                     <div class="relative h-52 lg:h-60 xl:h-64 w-full overflow-hidden shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/30">
-                        <img src="{{ $pin->image }}"
+                        <img src="{{ $pin->image_url }}"
                              alt="{{ superClean($pin->title, 200) }}"
                              class="w-full h-full object-cover transition-transform duration-700 ease-[var(--theme-transition-easing)] group-hover:scale-105">
 

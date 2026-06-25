@@ -8,27 +8,38 @@
 
 <template x-teleport="body">
     <div x-show="{{ $stateKey }}" x-cloak
+         x-data="{ max: false, toggleMax() { this.max = !this.max } }"
          class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[var(--md-sys-color-primary)]/60 p-4 animate-slide-down"
          @click.self="handleVideoClose()"
          @keydown.escape.window="handleVideoClose()"
          style="display:none" dir="rtl">
 
         {{-- Top bar --}}
-        <div class="w-full {{ $maxWidth }} mx-auto flex items-center justify-between mb-3 px-1">
+        <div class="w-full {{ $maxWidth }} mx-auto flex items-center justify-between mb-3 px-1"
+             :class="{ '!max-w-none': max }">
             <p x-text="{{ $titleKey }}"
                class="text-white/80 text-sm font-semibold truncate max-w-[75%] leading-none"></p>
 
-            <button @click="handleVideoClose()"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all group text-sm font-medium">
-                <span
-                    class="material-symbols-rounded text-[18px] group-hover:rotate-90 transition-transform duration-200">close</span>
-                بستن
-            </button>
+            <div class="flex items-center gap-1.5">
+                <button @click="toggleMax()"
+                        :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
+                        :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': max }"
+                        class="flex items-center justify-center size-9 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all text-sm font-medium">
+                    <span class="material-symbols-rounded text-[18px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
+                </button>
+                <button @click="handleVideoClose()"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all group text-sm font-medium">
+                    <span
+                        class="material-symbols-rounded text-[18px] group-hover:rotate-90 transition-transform duration-200">close</span>
+                    بستن
+                </button>
+            </div>
         </div>
 
         {{-- Player container --}}
         <div
-            class="relative w-full {{ $maxWidth }} mx-auto rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10">
+            class="relative w-full {{ $maxWidth }} mx-auto rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10"
+            :class="{ '!max-w-none !rounded-none': max }">
             <video x-ref="videoPlayer"
                    :src="{{ $srcKey }}"
                    controls
