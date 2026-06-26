@@ -92,7 +92,7 @@ class ThsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['requester', 'assignee']);
+            ->with(['requester', 'assignee', 'department', 'targetDepartment']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

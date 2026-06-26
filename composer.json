@@ -95,7 +95,7 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://mirror2.chabokan.net/composer/"
+            "url": "https://packagist.org"
         }
     ]
 }

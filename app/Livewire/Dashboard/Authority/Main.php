@@ -23,7 +23,7 @@ class Main extends Component
     #[Computed]
     public function authorities()
     {
-        return Authority::with('user.profile')
+        return Authority::with(['user.profile', 'department'])
             ->when(
                 $this->open,
                 // FOCUS MODE: pin the listing to the single record chosen in the command palette.
