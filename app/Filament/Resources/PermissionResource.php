@@ -72,7 +72,7 @@ class PermissionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('user:id,name,email');
+        return parent::getEloquentQuery()->with('user');
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

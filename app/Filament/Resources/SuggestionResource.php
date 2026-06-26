@@ -78,7 +78,7 @@ class SuggestionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with([
+            ->with(['department',
                 'user:id,name,email',
                 'user.profile.department',
                 'reviews.department',

@@ -62,7 +62,7 @@ class DmsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['reads.user']);
+            ->with(['reads.user', 'user']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
