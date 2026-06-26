@@ -27,7 +27,23 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
-            ->helperText(__('resources/dms/strings.hints.code'));
+            ->helperText(__('resources/dms/strings.hints.code'))
+            ->rules([
+                fn (\Filament\Forms\Get $get, ?\Illuminate\Database\Eloquent\Model $record) => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                    $version = $get('version');
+                    $query = \App\Models\DMS::where('code', $value)
+                        ->where('version', $version)
+                        ->where('status', 'live');
+
+                    if ($record) {
+                        $query->where('id', '!=', $record->id);
+                    }
+
+                    if ($query->exists()) {
+                        $fail('یک سند فعال با همین کد و نسخه از قبل در سیستم وجود دارد.');
+                    }
+                },
+            ]);
     }
 
     public static function extra(): KeyValue
@@ -162,7 +178,23 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
-            ->helperText(__('resources/dms/strings.hints.version'));
+            ->helperText(__('resources/dms/strings.hints.version'))
+            ->rules([
+                fn (\Filament\Forms\Get $get, ?\Illuminate\Database\Eloquent\Model $record) => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                    $code = $get('code');
+                    $query = \App\Models\DMS::where('code', $code)
+                        ->where('version', $value)
+                        ->where('status', 'live');
+
+                    if ($record) {
+                        $query->where('id', '!=', $record->id);
+                    }
+
+                    if ($query->exists()) {
+                        $fail('یک سند فعال با همین کد و نسخه از قبل در سیستم وجود دارد.');
+                    }
+                },
+            ]);
     }
 
     private static function forgeFileName(TemporaryUploadedFile $file): string

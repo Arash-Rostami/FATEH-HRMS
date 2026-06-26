@@ -49,7 +49,14 @@ class TicketFormPresenter
     {
         return Select::make('assigned_to')
             ->label(__('resources/ths/strings.fields.assignee'))
-            ->relationship('assignee', 'name')
+            ->relationship('assignee', 'name', function (\Illuminate\Database\Eloquent\Builder $query, \Filament\Forms\Get $get) {
+                $targetDepartment = $get('extra.target_department');
+                if ($targetDepartment) {
+                    $query->whereHas('profile', function ($q) use ($targetDepartment) {
+                        $q->where('department_id', $targetDepartment);
+                    });
+                }
+            })
             ->searchable()
             ->preload()
             ->live()

@@ -127,6 +127,11 @@ class Suggestion extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id', 'code');
+    }
+
     protected function casts(): array
     {
         return [

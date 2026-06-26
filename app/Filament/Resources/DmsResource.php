@@ -176,6 +176,8 @@ class DmsResource extends Resource
             ->groups([
                 DmsTablePresenter::statusGroup(),
                 DmsTablePresenter::ownersGroup(),
+                DmsTablePresenter::tagsGroup(),
+                DmsTablePresenter::extraGroup(),
             ])
             ->filters([
                 DmsTablePresenter::typeFilter(),
