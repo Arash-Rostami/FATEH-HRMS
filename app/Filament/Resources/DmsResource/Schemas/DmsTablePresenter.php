@@ -94,7 +94,8 @@ class DmsTablePresenter
     {
         return Group::make('tags')
             ->label(__('resources/dms/strings.fields.tags'))
-            ->getTitleFromRecordUsing(fn($record): string => is_array($record->tags) ? implode(', ', $record->tags) : '—')
+
+            ->getRecordTitleUsing(fn($record): string => is_array($record->tags) ? implode(', ', $record->tags) : '—')
             ->getKeyFromRecordUsing(fn($record): string => is_array($record->tags) ? implode(',', $record->tags) : '')
             ->titlePrefixedWithLabel(false)
             ->collapsible();
@@ -104,7 +105,8 @@ class DmsTablePresenter
     {
         return Group::make('extra')
             ->label(__('resources/dms/strings.fields.extra'))
-            ->getTitleFromRecordUsing(fn($record): string => is_array($record->extra) ? collect($record->extra)->map(fn($v, $k) => "$k: $v")->implode(' | ') : '—')
+
+            ->getRecordTitleUsing(fn($record): string => is_array($record->extra) ? collect($record->extra)->map(fn($v, $k) => "$k: $v")->implode(' | ') : '—')
             ->getKeyFromRecordUsing(fn($record): string => is_array($record->extra) ? collect($record->extra)->map(fn($v, $k) => "$k=$v")->implode('&') : '')
             ->titlePrefixedWithLabel(false)
             ->collapsible();
@@ -114,7 +116,7 @@ class DmsTablePresenter
     {
         return Group::make('owners')
             ->label(__('resources/dms/strings.fields.owners'))
-            ->getTitleFromRecordUsing(
+            ->getRecordTitleUsing(
                 fn($record): string => in_array('ALL', $record->owners ?? [])
                     ? __('resources/dms/strings.fields.all_departments') : ($record->getDepartmentDescriptions() ?: '—')
             )
@@ -149,7 +151,7 @@ class DmsTablePresenter
     {
         return Group::make('status')
             ->label(__('resources/dms/strings.fields.status'))
-            ->getTitleFromRecordUsing(
+            ->getRecordTitleUsing(
                 fn($record): string => DocumentStatus::tryFrom($record?->status)?->getLabel()
                     ?? (string)$record?->status
             )
