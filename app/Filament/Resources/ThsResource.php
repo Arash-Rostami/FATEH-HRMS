@@ -50,6 +50,9 @@ class ThsResource extends Resource
                                     TicketFormPresenter::requestType(),
                                     TicketFormPresenter::requestArea(),
                                     TicketFormPresenter::priority(),
+                                    TicketFormPresenter::assignedTo(),
+                                    TicketFormPresenter::completionDeadlineDate(),
+                                    TicketFormPresenter::completionDeadlineTime(),
                                     TicketFormPresenter::divider(),
                                     TicketFormPresenter::requestSubject(),
                                     TicketFormPresenter::description(),
@@ -64,11 +67,8 @@ class ThsResource extends Resource
                             Section::make(__('resources/ths/strings.form.section_assignment'))
                                 ->icon('heroicon-o-user-circle')
                                 ->schema([
-                                    TicketFormPresenter::assignedTo(),
                                     TicketFormPresenter::status(),
                                     TicketFormPresenter::completionDate(),
-                                    TicketFormPresenter::completionDeadlineDate(),
-                                    TicketFormPresenter::completionDeadlineTime(),
                                 ])
                                 ->columns(3),
 

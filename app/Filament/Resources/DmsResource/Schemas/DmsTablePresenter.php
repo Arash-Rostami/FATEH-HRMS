@@ -90,6 +90,26 @@ class DmsTablePresenter
             });
     }
 
+        public static function tagsGroup(): Group
+    {
+        return Group::make('tags')
+            ->label(__('resources/dms/strings.fields.tags'))
+            ->getTitleFromRecordUsing(fn($record): string => is_array($record->tags) ? implode(', ', $record->tags) : '—')
+            ->getKeyFromRecordUsing(fn($record): string => is_array($record->tags) ? implode(',', $record->tags) : '')
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
+    public static function extraGroup(): Group
+    {
+        return Group::make('extra')
+            ->label(__('resources/dms/strings.fields.extra'))
+            ->getTitleFromRecordUsing(fn($record): string => is_array($record->extra) ? collect($record->extra)->map(fn($v, $k) => "$k: $v")->implode(' | ') : '—')
+            ->getKeyFromRecordUsing(fn($record): string => is_array($record->extra) ? collect($record->extra)->map(fn($v, $k) => "$k=$v")->implode('&') : '')
+            ->titlePrefixedWithLabel(false)
+            ->collapsible();
+    }
+
     public static function ownersGroup(): Group
     {
         return Group::make('owners')

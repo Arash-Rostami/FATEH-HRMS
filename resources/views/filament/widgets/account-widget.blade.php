@@ -71,7 +71,7 @@
                                 <span
                                     class="material-symbols-rounded text-xl text-[var(--md-sys-color-primary)]">{{ $chip['icon'] }}</span>
                                 <span
-                                    class="text-xs font-extrabold text-[var(--md-sys-color-on-primary-container)] truncate max-w-[110px]"
+                                    class="text-xs font-extrabold text-[var(--md-sys-color-on-primary-container)] max-w-none break-words text-center"
                                     title="{{ $chip['value'] }}">{{ $chip['value'] }}</span>
                                 <span
                                     class="text-[10px] font-medium text-[var(--md-sys-color-on-primary-container)]/50 tracking-wide">{{ $chip['label'] }}</span>

@@ -22,7 +22,7 @@ class EnsureHasPermission
             abort(403, __('resources/permission/strings.denied') ?? 'Forbidden');
         }
 
-        if (!$perm->is_super_admin && empty($perm->abilities)) {
+        if (!$perm->is_super_admin && empty($perm->allowedModules())) {
             abort(403, __('resources/permission/strings.denied') ?? 'Forbidden');
         }
 
