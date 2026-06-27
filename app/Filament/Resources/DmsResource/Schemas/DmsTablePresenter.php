@@ -138,6 +138,17 @@ class DmsTablePresenter
             ->collapsible();
     }
 
+    public static function title(): TextColumn
+    {
+        return TextColumn::make('title')
+            ->label(__('resources/dms/strings.fields.title'))
+            ->searchable()
+            ->sortable()
+            ->limit(50)
+            ->tooltip(fn($state) => strlen($state ?? '') > 50 ? $state : null)
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
     public static function type(): IconColumn
     {
         return IconColumn::make('type')
@@ -149,18 +160,6 @@ class DmsTablePresenter
     {
         return TernaryFilter::make('type')
             ->label(__('resources/dms/strings.fields.type'));
-    }
-
-
-    public static function title(): TextColumn
-    {
-        return TextColumn::make('title')
-            ->label(__('resources/dms/strings.fields.title'))
-            ->searchable()
-            ->sortable()
-            ->limit(50)
-            ->tooltip(fn($state) => strlen($state ?? '') > 50 ? $state : null)
-            ->toggleable(isToggledHiddenByDefault: false);
     }
 
     public static function usersCount(): TextColumn

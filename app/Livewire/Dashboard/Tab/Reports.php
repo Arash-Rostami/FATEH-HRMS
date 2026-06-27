@@ -25,8 +25,10 @@ class Reports extends Component
             abort(403);
         }
 
-        if (Storage::exists($report->file_path)) {
-            return Storage::download($report->file_path);
+        $disk = Storage::disk('public');
+
+        if ($disk->exists($report->file_path)) {
+            return $disk->download($report->file_path);
         }
 
         $localPath = storage_path('app/' . $report->file_path);

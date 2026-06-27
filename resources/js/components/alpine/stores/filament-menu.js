@@ -1,5 +1,6 @@
 export default class FilamentMenuManager {
     constructor() {
+        this.pipWindow = null;
         this.registerAlpineStore();
         this.registerKeyboardShortcuts();
     }
@@ -8,7 +9,6 @@ export default class FilamentMenuManager {
         const setupStore = () => {
             window.Alpine.store('filamentMenu', {
                 fullscreen: false,
-                zen: false,
                 wakeLock: null,
 
                 init() {
@@ -21,14 +21,6 @@ export default class FilamentMenuManager {
                     document.fullscreenElement
                         ? await document.exitFullscreen()
                         : await document.documentElement.requestFullscreen();
-                },
-
-                toggleZen() {
-                    const t = () => {
-                        this.zen = !this.zen;
-                        document.documentElement.classList.toggle('zen', this.zen);
-                    };
-                    document.startViewTransition?.(t) ?? t();
                 },
 
                 async toggleWakeLock() {
@@ -97,13 +89,6 @@ export default class FilamentMenuManager {
                 }
             }
 
-            if (e.key === 'Escape') {
-                if (window.Alpine && window.Alpine.store('filamentMenu').zen) {
-                    e.preventDefault();
-                    window.Alpine.store('filamentMenu').toggleZen();
-                }
-            }
-
             if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 window.history.forward();
@@ -153,11 +138,66 @@ export default class FilamentMenuManager {
     requestPiP() {
         if (!('documentPictureInPicture' in window)) {
             new window.FilamentNotification().title('مرورگر پشتیبانی نمی‌کند').warning().send();
-        } else {
-            window.documentPictureInPicture.requestWindow({ width: 520, height: 640 })
-                .then(w => w.document.body.append(document.querySelector('main').cloneNode(true)))
-                .catch(() => {});
+            return;
         }
+
+        if (this.pipWindow && !this.pipWindow.closed) {
+            this.pipWindow.focus();
+            return;
+        }
+
+        window.documentPictureInPicture.requestWindow({ width: 520, height: 640 })
+            .then((pip) => {
+                this.pipWindow = pip;
+
+                const target = document.querySelector('main');
+                if (!target) {
+                    pip.close();
+                    return;
+                }
+
+                const placeholder = document.createElement('div');
+                placeholder.dataset.pipPlaceholder = '';
+                target.replaceWith(placeholder);
+
+                const srcRoot = document.documentElement;
+                const dstRoot = pip.document.documentElement;
+                dstRoot.setAttribute('dir', srcRoot.dir || 'rtl');
+                if (srcRoot.lang) dstRoot.setAttribute('lang', srcRoot.lang);
+                dstRoot.className = srcRoot.className;
+                const theme = srcRoot.getAttribute('data-theme');
+                if (theme) dstRoot.setAttribute('data-theme', theme);
+
+                pip.document.body.className = document.body.className;
+                this.copyStylesInto(pip);
+                pip.document.body.append(target);
+
+                pip.addEventListener('pagehide', () => {
+                    if (placeholder.isConnected) {
+                        placeholder.replaceWith(target);
+                    }
+                    this.pipWindow = null;
+                });
+            })
+            .catch(() => {});
+    }
+
+    copyStylesInto(pip) {
+        [...document.styleSheets].forEach((sheet) => {
+            try {
+                const css = [...sheet.cssRules].map((r) => r.cssText).join('\n');
+                const style = pip.document.createElement('style');
+                style.textContent = css;
+                pip.document.head.appendChild(style);
+            } catch {
+                if (sheet.href) {
+                    const link = pip.document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = sheet.href;
+                    pip.document.head.appendChild(link);
+                }
+            }
+        });
     }
 
     printPage() {
@@ -180,7 +220,6 @@ export default class FilamentMenuManager {
                     <li>/ جستجو</li>
                     <li>⌘S ذخیره فرم</li>
                     <li>F11 تمام‌صفحه</li>
-                    <li>Esc خروج از تمرکز</li>
                     <li>⇦/⇨ صفحات قبل و بعد</li>
                     <li>⇧/⇩ صفحه‌بندی</li>
                 </ul>

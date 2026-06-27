@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasPublicAssetUrl;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Photo extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicAssetUrl;
 
     protected $fillable = [
         'path',
@@ -52,6 +54,16 @@ class Photo extends Model
         }
 
         return Department::getCachedModels()->filter(fn($model, $code) => in_array($code, $codes, true))->values();
+    }
+
+    protected function imageUrls(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => array_map(
+                fn ($p) => static::resolvePublicAssetUrl($p),
+                array_values(array_filter($this->path ?? [], fn ($p) => !empty($p))),
+            ),
+        )->shouldCache();
     }
 
     protected function casts(): array

@@ -11,7 +11,7 @@
             isDeleting: false,
             typeSpeed: 60,
             deleteSpeed: 15,
-            delayAfterType: 4000,
+            delayAfterType: 20000,
             delayAfterDelete: 500,
             shuffle(arr) {
                 const a = [...arr];
@@ -20,6 +20,9 @@
                     [a[i], a[j]] = [a[j], a[i]];
                 }
                 return a;
+            },
+            longestQuote() {
+                return this.quotes.reduce((m, q) => q.length > m.length ? q : m, '');
             },
             type() {
                 const currentQuote = this.quotes[this.quoteIndex] || '';
@@ -43,16 +46,20 @@
             }
         }"
         x-init="quotes = shuffle(quotes); type()"
-        class="hidden md:relative md:flex items-center gap-0 flex-[1_1_160px] min-w-0 px-2.5 overflow-hidden" dir="rtl"
+        class="hidden md:relative md:flex items-center gap-0 px-2.5" dir="rtl"
     >
         <h1 class="relative z-10 text-[var(--md-sys-color-primary)] animate-pulse flex-shrink-0">✦</h1>
         <div class="relative z-10 w-px h-[18px] bg-[var(--md-sys-color-primary)]/20 mx-2 flex-shrink-0"></div>
 
         <div
-            class="text-sm md:text-base font-semibold text-[var(--md-sys-color-on-surface-variant)] tracking-wide flex items-center"
+            class="relative z-10 text-sm md:text-base font-semibold text-[var(--md-sys-color-on-surface-variant)] tracking-wide w-fit max-w-full"
             dir="rtl">
-            <span x-text="text"></span>
-            <span class="w-[3px] h-4 mx-1 bg-[var(--md-sys-color-primary)] animate-pulse"></span>
+            {{-- invisible ghost: reserves the box width/height to the longest quote so every quote fits without clipping and the box never reflows while typing --}}
+            <span class="invisible select-none" x-text="longestQuote()" aria-hidden="true"></span>
+            <div class="absolute inset-0" dir="rtl">
+                <span x-text="text"></span>
+                <span class="inline-block w-[3px] h-4 mx-1 align-middle bg-[var(--md-sys-color-primary)] animate-pulse"></span>
+            </div>
         </div>
     </div>
 
@@ -79,7 +86,7 @@
             this.minutes = this.toPersian(String(now.getMinutes()).padStart(2, '0'));
         }
     }"
-            class="fixed left-2 flex items-stretch select-none overflow-hidden rounded-xl w-auto sm:w-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0 sm:flex-shrink-0"
+            class="relative flex items-stretch select-none overflow-hidden rounded-xl w-auto sm:w-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0 sm:flex-shrink-0"
             dir="ltr">
 
             <div class="absolute inset-0 pointer-events-none opacity-[0.06] z-0"

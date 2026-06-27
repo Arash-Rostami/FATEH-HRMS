@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_401')
+
 @section('title', 'نیاز به ورود')
 
 @section('icon')

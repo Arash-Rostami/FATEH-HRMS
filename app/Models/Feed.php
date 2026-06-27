@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feed extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicAssetUrl;
 
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     public const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'avi', 'mkv'];
@@ -154,5 +155,15 @@ class Feed extends Model
                 fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS)
             ))
         );
+    }
+
+    protected function mediaUrls(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => array_map(
+                fn ($p) => static::resolvePublicAssetUrl($p),
+                array_values(array_filter($this->media_paths ?? [], fn ($p) => !empty($p))),
+            ),
+        )->shouldCache();
     }
 }

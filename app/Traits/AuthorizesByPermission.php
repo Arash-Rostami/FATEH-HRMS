@@ -62,7 +62,8 @@ trait AuthorizesByPermission
     public static function moduleKey(): string
     {
         $base = class_basename(static::class);
-        $english = Str::endsWith($base, 'Resource') ? Str::before($base, 'Resource') : $base;
+        // Strip the trailing "Resource" suffix so ResourceResource -> "resource", not "".
+        $english = Str::endsWith($base, 'Resource') ? substr($base, 0, -strlen('Resource')) : $base;
 
         return Str::snake($english);
     }
@@ -71,6 +72,9 @@ trait AuthorizesByPermission
     {
         $user = Auth::user();
         if (!$user) return false;
+
+        // Developers are super-admin by role — every module/action, no row.
+        if ($user->isDeveloper()) return true;
 
         return (bool)Permission::forUser($user->id)?->can(static::moduleKey(), $action);
     }

@@ -9,6 +9,7 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
+use Illuminate\Database\Eloquent\Model;
 
 class TaskInfolistPresenter
 {
@@ -32,7 +33,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('assignee.name')
             ->label(__('resources/task/strings.fields.assignee'))
-            ->placeholder(__('resources/task/strings.fields.self_assigned'))
+            ->placeholder(fn (?Model $record): ?string => $record?->creator?->name)
             ->icon('heroicon-o-user-plus');
     }
 
@@ -126,6 +127,7 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.department.name')
             ->label(__('resources/task/strings.fields.department'))
             ->placeholder('—')
+            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->description ?? $record?->detail?->department?->name ?? '-')
             ->icon('heroicon-o-building-office-2');
     }
 

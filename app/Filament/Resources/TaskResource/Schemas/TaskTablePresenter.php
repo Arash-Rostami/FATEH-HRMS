@@ -10,6 +10,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class TaskTablePresenter
@@ -19,7 +20,7 @@ class TaskTablePresenter
         return TextColumn::make('assignee.name')
             ->label(__('resources/task/strings.fields.assignee'))
             ->searchable()
-            ->placeholder(__('resources/task/strings.fields.self_assigned'))
+            ->placeholder(fn (?Model $record): ?string => $record?->creator?->name)
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -141,6 +142,7 @@ class TaskTablePresenter
         return TextColumn::make('detail.department.name')
             ->label(__('resources/task/strings.fields.department'))
             ->placeholder('—')
+            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->description ?? $record?->detail?->department?->name ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

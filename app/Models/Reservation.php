@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReservationError;
+use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Services\Reservation\EventSyncService;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,7 +55,7 @@ class Reservation extends Model
 
     public function scopeCancelled(Builder $q): Builder
     {
-        return $q->whereIn('status', ['cancelled_user', 'cancelled_admin']);
+        return $q->whereIn('status', [ReservationStatus::CancelledUser->value, ReservationStatus::CancelledAdmin->value]);
     }
 
     public function scopeForUser(Builder $q, int $userId): Builder
@@ -77,6 +78,11 @@ class Reservation extends Model
     {
         return $q->where('status', 'active')
             ->where('end_time', '>=', now());
+    }
+
+    public function scopeReleased(Builder $q): Builder
+    {
+        return $q->where('status', ReservationStatus::Released->value);
     }
 
     public function user(): BelongsTo

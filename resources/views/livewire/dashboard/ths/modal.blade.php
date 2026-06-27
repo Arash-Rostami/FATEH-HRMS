@@ -92,7 +92,7 @@
                                         @php
                                             $p = $selectedTicket['priority'];
                                             $pCol = $p==='low'?'text-[var(--md-sys-color-primary)]':($p==='medium'?'text-[var(--md-sys-color-secondary)]':'text-[var(--md-sys-color-error)]');
-                                            $pLbl = $p==='low'?'کم':($p==='medium'?'متوسط':'زیاد');
+                                            $pLbl = \App\Filament\Resources\ThsResource\Enums\TicketPriority::tryFrom($p)?->getLabel() ?? '—';
                                         @endphp
                                         <span class="text-xs font-bold {{ $pCol }}">{{ $pLbl }}</span>
                                     </div>
@@ -102,8 +102,8 @@
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">تاریخ ایجاد</span>
                                         <span
                                             dir="ltr"
-                                            class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] font-mono flex-row-reverse flex">
-                                        {{ jdate($selectedTicket['created_at']) }}
+                                            class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] flex-row-reverse flex">
+                                        {{ toJalali($selectedTicket['created_at'], 'j F Y') }}
                                     </span>
                                     </div>
                                 </div>
@@ -133,10 +133,10 @@
                                         </h5>
                                         <div class="flex flex-wrap gap-3">
                                             @foreach($selectedTicket['requester_files'] as $file)
-                                                <a href="{{ Storage::url($file['file']) }}" target="_blank"
+                                                <a href="{{ $file['file_url'] }}" target="_blank"
                                                    class="group flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] transition-colors overflow-hidden relative shadow-sm hover:shadow-md">
                                                     @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                                        <img src="{{ Storage::url($file['file']) }}" alt="Attachment"
+                                                        <img src="{{ $file['file_url'] }}" alt="Attachment"
                                                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                                     @else
                                                         <span
@@ -180,7 +180,7 @@
                                                dir="ltr">
                                             <span
                                                 class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">event_available</span>
-                                                {{$presenter->formatTimestamp($selectedTicket, 'completion_date') }}
+                                                {{ toJalali($selectedTicket['completion_date'], 'j F Y') }}
                                             </p>
                                         </div>
                                     @endif
@@ -215,10 +215,10 @@
                                         </h5>
                                         <div class="flex flex-wrap gap-3">
                                             @foreach($selectedTicket['assignee_files'] as $file)
-                                                <a href="{{ Storage::url($file['file']) }}" target="_blank"
+                                                <a href="{{ $file['file_url'] }}" target="_blank"
                                                    class="group flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)] hover:border-[var(--md-sys-color-primary)] transition-colors overflow-hidden relative shadow-sm hover:shadow-md">
                                                     @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                                        <img src="{{ Storage::url($file['file']) }}" alt="Attachment"
+                                                        <img src="{{ $file['file_url'] }}" alt="Attachment"
                                                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                                     @else
                                                         <span

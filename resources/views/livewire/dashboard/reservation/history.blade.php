@@ -29,8 +29,8 @@
 
         @forelse($this->historyReservations as $reservation)
             <div wire:key="history-{{ $reservation->id }}"
-                 class='group relative flex items-center justify-between p-4 rounded-xl transition-all shadow-[var(--md-sys-elevation-1)] hover:shadow-md border border-transparent hover:border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container-high)]'
-                 style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 20%, transparent);">
+                 class='group relative flex items-center justify-between p-4 rounded-xl transition-all shadow-[var(--md-sys-elevation-1)] hover:shadow-md border border-transparent hover:border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] animate-slide-up-fade'
+                 style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 20%, transparent); animation-delay: {{ ($loop->index ?? 0) * 0.05 }}s;">
 
                 @if($activeHistoryTab === 'upcoming')
                     <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-[4px] rounded-xl bg-[var(--md-sys-color-primary)] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)]"></div>
@@ -59,9 +59,15 @@
                             title="{{ $reservation->resource->name }}">
                             {{ $reservation->resource->name }}
                         </span>
-                        <span class="text-[10.5px] sm:text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5 truncate opacity-90" title="{{ $reservation->display_time }}">
+                        <span class="text-[10.5px] sm:text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5 opacity-90">
                             <span class="material-symbols-rounded text-[14px] shrink-0">calendar_today</span>
-                            <span class="truncate tracking-wide">{{ $reservation->display_time }}</span>
+                            <span class="truncate tracking-wide" title="{{ $reservation->display_time }}">{{ $reservation->display_time }}</span>
+                            @if(($reservation->series_count ?? 1) > 1)
+                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[9px] font-bold shrink-0" title="سری تکرارشونده — {{ convertToPersian((string) $reservation->series_count) }} رزرو">
+                                    <span class="material-symbols-rounded text-[12px]">repeat</span>
+                                    {{ convertToPersian((string) $reservation->series_count) }}
+                                </span>
+                            @endif
                         </span>
                     </div>
                 </div>
@@ -69,8 +75,8 @@
                 @if($activeHistoryTab === 'upcoming')
                     <button x-data
                             @click="$dispatch('open-confirmation', {
-                                        title: 'لغو رزرو',
-                                        message: 'آیا از لغو این رزرو اطمینان دارید؟',
+                                        title: @json($reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو'),
+                                        message: @json($reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟'),
                                         method: 'cancel',
                                         params: {{ $reservation->id }},
                                         type: 'dispatch'
@@ -94,13 +100,17 @@
                         </span>
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px] text-[var(--md-sys-color-error)] mt-1">block</span>
                     </div>
+                @elseif($activeHistoryTab === 'released')
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] shrink-0 ml-1" title="آزادشده">
+                        <span class="material-symbols-rounded text-[18px] sm:text-[20px]">autorenew</span>
+                    </div>
                 @endif
             </div>
         @empty
             <div class="p-8 sm:p-10 text-center flex flex-col items-center">
                 <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] flex items-center justify-center mb-3 opacity-50">
                     <span class="material-symbols-rounded text-3xl">
-                        {{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', default => 'done_all' } }}
+                        {{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}
                     </span>
                 </div>
                 <h4 class="font-bold text-sm text-[var(--md-sys-color-on-surface)] mb-1">صندوق خالی است</h4>

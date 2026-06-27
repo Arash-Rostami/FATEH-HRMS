@@ -67,7 +67,7 @@
                     </div>
 
                     <span
-                        class="text-[10px] font-mono text-[var(--md-sys-color-on-surface-variant)] opacity-55 whitespace-nowrap"
+                        class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-55 whitespace-nowrap"
                         x-text="`${now.month} ${now.year}`"></span>
 
                     <x-ui.modals.tooltip text="Developer" position="top"/>

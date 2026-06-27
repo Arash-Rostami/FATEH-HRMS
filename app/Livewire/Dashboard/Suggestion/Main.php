@@ -130,7 +130,7 @@ class Main extends Component
     public function suggestions()
     {
         return Suggestion::query()
-            ->with(['user', 'reviews'])
+            ->with(['user.profile.department', 'reviews'])
             ->selectRaw('*, JSON_LENGTH(departments) as departments_count')
             ->withCount([
                 'reviews as agree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['agree']),

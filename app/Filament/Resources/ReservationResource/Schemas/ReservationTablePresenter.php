@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReservationResource\Schemas;
 
 use App\Enums\CancelReason;
 use App\Enums\ReservationStatus;
+use App\Enums\ResourceType;
 use App\Livewire\Dashboard\Reservation\Actions\CancelAction;
 use App\Models\Reservation;
 use Filament\Actions\Action;
@@ -167,7 +168,7 @@ class ReservationTablePresenter
     {
         return SelectFilter::make('resource_type')
             ->label(__('resources/reservation/strings.filters.resource_type'))
-            ->options(['seat' => 'میز کار', 'spot' => 'پارکینگ', 'car' => 'خودرو', 'meeting' => 'ملاقات'])
+            ->options(collect(ResourceType::cases())->mapWithKeys(fn(ResourceType $t) => [$t->value => $t->getLabel()])->all())
             ->query(fn(Builder $query, array $data) => $query->when(
                 $data['value'] ?? null,
                 fn($q, $v) => $q->whereHas('resource', fn($q) => $q->where('type', $v))

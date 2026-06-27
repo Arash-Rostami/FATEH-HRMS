@@ -54,8 +54,7 @@
                         <div
                             class="absolute inset-0 flex items-center justify-center bg-[var(--md-sys-color-surface-variant)]/30">
                             @if($link->image)
-                                @php $linkImageUrl = Storage::disk('public')->exists($link->image) ? Storage::disk('public')->url($link->image) : asset($link->image); @endphp
-                                <img src="{{ $linkImageUrl }}"
+                                <img src="{{ $link->image_url }}"
                                      alt="{{ $link->url_title }}"
                                      class="w-full h-full object-contain transition-transform duration-700 group-hover/card:scale-110"
                                      onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');"

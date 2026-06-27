@@ -64,13 +64,6 @@ export default () => ({
         }
     },
 
-    scrollNext() {
-        this.$refs.feedContainer.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
-    },
-
-    scrollPrev() {
-        this.$refs.feedContainer.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
-    },
 
     handleScroll() {
         const el = this.$refs.feedContainer;
@@ -78,8 +71,17 @@ export default () => ({
         const maxScroll = el.scrollWidth - el.clientWidth;
     },
 
+
+    scrollNext() {
+        this.$refs.timeline.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+    },
+
+    scrollPrev() {
+        this.$refs.timeline.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+    },
+
     setupScrollListener() {
-        const container = this.$refs.feedContainer;
+        const container = this.$refs.timeline;
         if (!container) return;
 
         let timeout;
@@ -93,26 +95,25 @@ export default () => ({
     },
 
     updateActiveItem() {
-        const container = this.$refs.feedContainer;
-        if (!container) return;
+        const timeline = this.$refs.timeline;
+        const feedContainer = this.$refs.feedContainer;
+        if (!timeline || !feedContainer) return;
 
-        const containerRect = container.getBoundingClientRect();
+        const containerRect = timeline.getBoundingClientRect();
         const isDesktop = window.innerWidth >= 768;
-
         let closestId = null;
         let minDistance = Infinity;
 
-        const items = container.querySelectorAll('[data-feed-id]');
-
-        items.forEach(item => {
+        feedContainer.querySelectorAll('[data-feed-id]').forEach(item => {
             const rect = item.getBoundingClientRect();
             let distance;
 
             if (isDesktop) {
-                distance = Math.abs(containerRect.right - rect.right);
+                const referencePoint = containerRect.right - containerRect.width * 0.1;
+                distance = Math.abs(referencePoint - rect.right);
             } else {
-                const containerCenter = containerRect.top + (containerRect.height / 2);
-                const itemCenter = rect.top + (rect.height / 2);
+                const containerCenter = containerRect.top + containerRect.height / 2;
+                const itemCenter = rect.top + rect.height / 2;
                 distance = Math.abs(containerCenter - itemCenter);
             }
 
@@ -122,8 +123,6 @@ export default () => ({
             }
         });
 
-        if (closestId) {
-            this.activeId = closestId;
-        }
-    }
+        if (closestId) this.activeId = closestId;
+    },
 })

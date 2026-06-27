@@ -1,8 +1,9 @@
 @php
+    use App\Filament\Resources\ThsResource\Enums\TicketPriority;
     $priorityMap = [
-        'low'    => ['color'=>'text-green-500', 'icon' => 'low_priority', 'title'=>'اولویت پایین'],
-        'medium' => ['color'=>'text-[var(--md-sys-color-primary)]', 'icon' => 'drag_handle', 'title'=>'اولویت متوسط'],
-        'high'   => ['color'=>'text-[var(--md-sys-color-error)]', 'icon' => 'priority_high', 'title'=>'اولویت بالا'],
+        'low'    => ['color'=>'text-green-500', 'icon' => 'low_priority', 'title'=>TicketPriority::Low->getLabel()],
+        'medium' => ['color'=>'text-[var(--md-sys-color-primary)]', 'icon' => 'drag_handle', 'title'=>TicketPriority::Medium->getLabel()],
+        'high'   => ['color'=>'text-[var(--md-sys-color-error)]', 'icon' => 'priority_high', 'title'=>TicketPriority::High->getLabel()],
     ];
         $statusMap = [
             'open'        => ['icon'=>'pending', 'color'=>'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]', 'title'=>'باز', 'pulse' => true],
@@ -92,7 +93,7 @@
                             <span
                                 class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 mt-0.5">
                                     <span class="material-symbols-rounded text-[12px]">schedule</span>
-                                 {{ $ticket->created_at->diffForHumans() }}
+                                 {{ toJalali($ticket->created_at, 'j F Y') }}
                                 </span>
                         </div>
                     </td>

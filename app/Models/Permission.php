@@ -111,6 +111,15 @@ class Permission extends Model
     {
         $flush = fn(self $m) => Cache::forget(self::cacheKey($m->user_id));
 
+        // Null the inactive side: super ignores abilities, non-super ignores excluded_modules.
+        static::saving(function (self $m) {
+            if ($m->is_super_admin) {
+                $m->abilities = null;
+            } else {
+                $m->excluded_modules = null;
+            }
+        });
+
         static::saved($flush);
         static::deleted($flush);
     }

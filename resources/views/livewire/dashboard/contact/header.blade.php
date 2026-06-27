@@ -37,10 +37,10 @@
             @if($activeContact->profile?->position)
                 <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $activeContact->profile->position_label }}</span>
             @endif
-            @if($activeContact->profile?->department?->name)
+            @if($activeContact->profile?->department?->description ?? $activeContact->profile?->department?->name)
                 <span class="text-[10px] font-medium px-1.5 py-px rounded-md
                              bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
-                    {{ $activeContact->profile->department->description }}
+                    {{ $activeContact->profile->department->description ?? $activeContact->profile->department->name }}
                 </span>
             @endif
             <span class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">

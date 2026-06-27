@@ -98,7 +98,7 @@ class TaskResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScope(SoftDeletingScope::class)
-            ->with(['creator', 'assignee', 'detail.department', 'detail.responsibleUser']);
+            ->with(['creator', 'assignee', 'detail', 'detail.department', 'detail.responsibleUser']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -181,8 +181,8 @@ class TaskResource extends Resource
                     Tab::make(__('resources/task/strings.infolist.tab_bi'))
                         ->icon('heroicon-o-chart-bar-square')
                         ->schema([
-                            Section::make(__('resources/task/strings.infolist.section_bi'))
-                                ->icon('heroicon-o-chart-bar-square')
+                            Section::make()
+                                ->hiddenLabel()
                                 ->schema([
                                     TaskInfolistPresenter::department(),
                                     TaskInfolistPresenter::unit(),

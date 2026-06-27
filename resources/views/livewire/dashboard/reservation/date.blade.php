@@ -4,6 +4,35 @@
         <span class="material-symbols-rounded text-[16px] font-fill">calendar_month</span>
         تاریخ رزرو
     </label>
+
+    <div class="flex items-center gap-2">
+        @php($isToday = $this->date === now()->toDateString())
+        <button type="button" wire:click="goToday" {{ $isToday ? 'disabled' : '' }}
+            @class([
+                'flex items-center gap-1 px-2.5 h-7 rounded-lg text-[11px] font-bold border transition-all active:scale-90',
+                'text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]' => !$isToday,
+                'text-[var(--md-sys-color-on-surface-variant)] border-transparent opacity-40 cursor-not-allowed' => $isToday,
+            ])
+            title="{{ $isToday ? 'هم‌اکنون روی تاریخ امروز هستید' : 'بازگشت به امروز' }}"
+        >
+            <span class="material-symbols-rounded text-[14px]">today</span>
+            امروز
+        </button>
+
+        @if($this->dateWindow !== null)
+            <div class="flex items-center gap-1">
+                <button type="button" wire:click="prevMonth" {{ $this->canPrevMonth ? '' : 'hidden disabled' }}
+                    class="flex w-7 h-7 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-all hover:bg-[var(--md-sys-color-surface-variant)] active:scale-90">
+                    <span class="material-symbols-rounded text-[18px]">chevron_right</span>
+                </button>
+                <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] min-w-[84px] text-center">{{ convertToPersian($this->currentMonthName) }}</span>
+                <button type="button" wire:click="nextMonth" {{ $this->canNextMonth ? '' : 'hidden disabled' }}
+                    class="flex w-7 h-7 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-all hover:bg-[var(--md-sys-color-surface-variant)] active:scale-90">
+                    <span class="material-symbols-rounded text-[18px]">chevron_left</span>
+                </button>
+            </div>
+        @endif
+    </div>
 </div>
 
 <div class="relative group w-full">
@@ -13,12 +42,14 @@
     </button>
 
     <div
+        @scroll-to-selected.window="$el.querySelector('[data-selected]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })"
         class="flex gap-3 overflow-x-auto pb-4 pt-1 px-1 -mx-1 snap-x scrollbar-hide no-scrollbar w-full"
         dir="rtl">
         @foreach($this->availableDates as $dt)
             <button
                 wire:key="date-{{ $dt['value'] }}"
                 wire:click="setDate('{{ $dt['value'] }}')"
+                {{ $date === $dt['value'] ? 'data-selected' : '' }}
                 @class([
                         'relative shrink-0 w-[85px] h-[105px] flex flex-col items-center justify-center gap-1 rounded-2xl border transition-all duration-300 snap-center outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--md-sys-color-primary)]',
                         'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] scale-102 relative top-2 z-10' => $date === $dt['value'],

@@ -33,7 +33,8 @@ class Posts extends Component
     #[Computed(seconds: 3600, cache: true, key: 'dashboard.posts.pins')]
     public function pins()
     {
-        return Post::where('pinned', 1)
+        return Post::with('user')
+            ->where('pinned', 1)
             ->latest()
             ->take(1)
             ->get();
@@ -43,6 +44,7 @@ class Posts extends Component
     public function posts()
     {
         return Post::query()
+            ->with('user')
             ->where(function ($query) {
                 $query->where('pinned', '<>', 1)
                     ->orWhereNull('pinned');
@@ -60,7 +62,7 @@ class Posts extends Component
     #[On('select-post')]
     public function selectPost($id)
     {
-        $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, fn() => Post::find($id));
+        $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, fn() => Post::with('user')->find($id));
         $this->dispatch('open-post-panel');
     }
 

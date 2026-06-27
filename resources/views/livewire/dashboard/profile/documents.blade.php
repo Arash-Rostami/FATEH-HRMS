@@ -111,7 +111,7 @@
                                         @endif
                                     </div>
                                 @elseif($status === 'approved')
-                                    <a href="{{ Storage::url($uploadedDoc['path']) }}" target="_blank"
+                                    <a href="{{ $uploadedDoc['url'] }}" target="_blank"
                                        class="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-xl font-bold text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-sm">
                                         <span class="material-symbols-rounded text-[16px]">visibility</span>
                                         مشاهده مدرک

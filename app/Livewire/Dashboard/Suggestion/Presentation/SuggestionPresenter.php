@@ -4,11 +4,13 @@ namespace App\Livewire\Dashboard\Suggestion\Presentation;
 
 use App\Models\Review;
 use App\Models\Suggestion;
+use App\Models\Traits\HasPublicAssetUrl;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 class SuggestionPresenter
 {
+    use HasPublicAssetUrl;
+
     private const CEO_DEPT_ID = 'MA';
     private const REVIEW_DEADLINE_DAYS = 5;
 
@@ -57,7 +59,7 @@ class SuggestionPresenter
 
     public function attachmentUrl(): ?string
     {
-        return $this->suggestion->attachment ? Storage::url($this->suggestion->attachment) : null;
+        return $this->suggestion->attachment ? self::resolvePublicAssetUrl($this->suggestion->attachment) : null;
     }
 
     public function currentStep(): int

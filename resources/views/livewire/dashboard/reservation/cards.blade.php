@@ -28,7 +28,7 @@
          class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6 w-full">
 
         @foreach($this->resources as $resource)
-            @include('livewire.dashboard.reservation.image')
+            @include('livewire.dashboard.reservation.image', ['cardIndex' => $loop->index])
         @endforeach
 
         <x-ui.modals.base

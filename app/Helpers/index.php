@@ -316,6 +316,11 @@ if (!function_exists('canAdmin')) {
             return false;
         }
 
+        // Developers are super-admin by role — no permission row needed.
+        if (auth()->user()?->isDeveloper()) {
+            return true;
+        }
+
         $adminPerm = Permission::forUser($userId);
 
         return $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));

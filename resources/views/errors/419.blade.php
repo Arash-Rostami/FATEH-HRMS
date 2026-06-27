@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_419')
+
 @section('title', 'نشست منقضی شده')
 
 @section('icon')

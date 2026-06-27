@@ -10,6 +10,7 @@ use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\Profile;
 use Filament\Infolists\Components\ColorEntry;
 use Filament\Infolists\Components\ImageEntry;
@@ -151,7 +152,8 @@ class ProfileInfolistPresenter
     {
         return TextEntry::make('department.name')
             ->label(__('resources/profile/strings.infolist.department'))
-            ->placeholder('-');
+            ->placeholder('-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-');
     }
 
     public static function emergencyPhone(): TextEntry

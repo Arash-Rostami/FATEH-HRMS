@@ -13,7 +13,6 @@ final class FilamentMenuService
 //            self::group('ابزار'),
 //            self::share(),
 //            self::printPage(),
-//            ...self::focusMode(),
 //            ...self::fullscreen(),
 //            self::pictureInPicture(),
 //            ...self::wakeLock(),
@@ -104,28 +103,6 @@ final class FilamentMenuService
             ->label('پشتیبانی')
             ->icon('heroicon-o-lifebuoy')
             ->url(fn () => 'mailto:' . config('mail.from.address'));
-    }
-
-    public static function focusMode(): array
-    {
-        return [
-            Action::make('focus_on')
-                ->label('حالت تمرکز')
-                ->icon('heroicon-o-eye')
-                ->extraAttributes([
-                    'type' => 'button',
-                    'x-show' => '!$store.filamentMenu.zen',
-                    'x-on:click.prevent' => '$store.filamentMenu.toggleZen()',
-                ]),
-            Action::make('focus_off')
-                ->label('خروج از حالت تمرکز')
-                ->icon('heroicon-o-eye-slash')
-                ->extraAttributes([
-                    'type' => 'button',
-                    'x-show' => '$store.filamentMenu.zen',
-                    'x-on:click.prevent' => '$store.filamentMenu.toggleZen()',
-                ]),
-        ];
     }
 
     public static function fullscreen(): array

@@ -92,7 +92,7 @@ class ThsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['requester', 'assignee']);
+            ->with(['requester', 'assignee', 'department', 'targetDepartment']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -150,7 +150,7 @@ class ThsResource extends Resource
                     Tab::make(__('resources/ths/strings.infolist.section_request'))
                         ->icon('heroicon-o-inbox-arrow-down')
                         ->schema([
-                            Section::make(__('resources/ths/strings.infolist.section_request'))
+                            Section::make()
                                 ->hiddenLabel()
                                 ->schema([
                                     TicketInfolistPresenter::ticketId(),
@@ -164,6 +164,8 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::subject(),
                                     TicketInfolistPresenter::description(),
                                     TicketInfolistPresenter::requesterFiles(),
+                                    TicketInfolistPresenter::createdAt(),
+                                    TicketInfolistPresenter::updatedAt(),
                                 ])
                                 ->columns(4),
                         ]),
@@ -171,7 +173,7 @@ class ThsResource extends Resource
                     Tab::make(__('resources/ths/strings.infolist.section_response'))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->schema([
-                            Section::make(__('resources/ths/strings.infolist.section_response'))
+                            Section::make()
                                 ->hiddenLabel()
                                 ->schema([
                                     TicketInfolistPresenter::assignee(),
@@ -184,18 +186,6 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::assigneeFiles(),
                                 ])
                                 ->columns(4),
-                        ]),
-
-                    Tab::make(__('resources/ths/strings.infolist.section_meta'))
-                        ->icon('heroicon-o-information-circle')
-                        ->schema([
-                            Section::make(__('resources/ths/strings.infolist.section_meta'))
-                                ->hiddenLabel()
-                                ->schema([
-                                    TicketInfolistPresenter::createdAt(),
-                                    TicketInfolistPresenter::updatedAt(),
-                                ])
-                                ->columns(2),
                         ]),
                 ])
                 ->columnSpanFull(),

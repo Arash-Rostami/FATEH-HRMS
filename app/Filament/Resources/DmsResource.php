@@ -8,6 +8,7 @@ use App\Filament\Resources\DmsResource\Pages\{CreateDms, EditDms, ListDms};
 use App\Filament\Resources\DmsResource\RelationManagers\ReadsRelationManager;
 use App\Filament\Resources\DmsResource\Schemas\{DmsFormPresenter, DmsInfolistPresenter, DmsTablePresenter};
 use App\Models\DMS;
+use App\Services\Dms\DmsKeyGrouper;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
@@ -176,6 +177,7 @@ class DmsResource extends Resource
             ->groups([
                 DmsTablePresenter::statusGroup(),
                 DmsTablePresenter::ownersGroup(),
+                ...DmsKeyGrouper::groups(),
             ])
             ->filters([
                 DmsTablePresenter::typeFilter(),

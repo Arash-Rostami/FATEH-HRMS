@@ -36,7 +36,7 @@ return [
     ],
 
     'form' => [
-        'tab_request' => 'درخواست',
+        'tab_request' => 'تیکت',
         'tab_response' => 'پاسخ',
         'section_requester' => 'اطلاعات درخواست‌دهنده',
         'section_request' => 'جزئیات درخواست',

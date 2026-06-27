@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_500')
+
 @section('title', 'خطای سرور')
 
 @section('icon')

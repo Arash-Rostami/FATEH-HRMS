@@ -16,6 +16,11 @@ class EnsureHasPermission
             abort(403);
         }
 
+        // Developers are super-admin by role — no permission row, no exclusions.
+        if ($user->isDeveloper()) {
+            return $next($request);
+        }
+
         $perm = Permission::forUser($user->id);
 
         if (!$perm) {

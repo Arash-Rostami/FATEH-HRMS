@@ -25,6 +25,17 @@ class PermissionsRelationManager extends RelationManager
 
     public function canViewAny(): bool
     {
+        // Developers are super-admin by role and may administer permissions.
+        if (Auth::user()?->isDeveloper()) {
+            return true;
+        }
+
+        // Permission rows are admin-only — hide when the owner is a developer or plain user.
+        $owner = $this->getOwnerRecord();
+        if (($owner->role ?? null) !== 'admin') {
+            return false;
+        }
+
         return (bool)Permission::forUser(Auth::id())?->is_super_admin;
     }
 

@@ -22,13 +22,6 @@
                 <x-ui.modals.tooltip text="چاپ صفحه" position="bottom"/>
             </button>
 
-            <button type="button" @click="$store.filamentMenu.toggleZen()"
-                    class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
-                <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100"
-                      x-text="$store.filamentMenu.zen ? 'visibility_off' : 'visibility'"></span>
-                <x-ui.modals.tooltip text="حالت تمرکز" position="bottom"/>
-            </button>
-
             <button type="button" @click="$store.filamentMenu.toggleFullscreen()"
                     class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
                 <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100"

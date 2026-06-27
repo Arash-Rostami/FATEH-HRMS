@@ -1,6 +1,8 @@
+@php($blocked = $this->bookingBlockReason !== null)
+@php($delay = ($cardIndex ?? 0) * 0.04)
 <div wire:key="resource-{{ $resource->id }}" data-rf="resource-{{ $resource->id }}"
-     class="group bg-[var(--md-sys-color-surface)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] shadow-[var(--md-sys-elevation-1)] hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col overflow-hidden relative h-full"
-     style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent);">
+     class="group bg-[var(--md-sys-color-surface)] rounded-2xl border border-[var(--md-sys-color-outline-variant)] shadow-[var(--md-sys-elevation-1)] hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col overflow-hidden relative h-full animate-slide-up-fade"
+     style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent); animation-delay: {{ $delay }}s;">
 
     <div x-data="{ imageError: false }"
          class="w-full h-56 relative bg-[var(--md-sys-color-surface-container-highest)] overflow-hidden shrink-0">
@@ -67,8 +69,16 @@
         </div>
 
         <div class="mt-auto w-full">
+            @if($blocked)
+                <div class="flex items-center gap-1.5 mb-2 px-1">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
+                    <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason }}</span>
+                </div>
+            @endif
+
             <x-ui.buttons.submit
                 wire:click="book({{ $resource->id }})"
+                {{ $blocked ? 'disabled' : '' }}
                 :target="'book('.$resource->id.')'"
                 :text="$activeTab === 'meeting' ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
                 loadingText="در حال ثبت..."

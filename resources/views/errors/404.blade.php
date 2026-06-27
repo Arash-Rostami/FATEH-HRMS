@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_404')
+
 @section('title', 'صفحه پیدا نشد')
 
 @section('icon')

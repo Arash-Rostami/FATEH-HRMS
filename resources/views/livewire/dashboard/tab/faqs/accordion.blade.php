@@ -27,7 +27,7 @@
                         <span class="text-[var(--md-sys-color-outline)]">•</span>
                         <span class="flex items-center gap-1">
                             <span class="material-symbols-rounded text-[14px] leading-none">call</span>
-                            {{ $faq->department->name }}
+                            {{ $faq->department->description ?? $faq->department->name }}
                         </span>
                     @endif
                 </div>

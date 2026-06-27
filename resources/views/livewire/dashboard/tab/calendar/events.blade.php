@@ -63,7 +63,7 @@
                             <h4 class="font-bold text-[var(--md-sys-color-on-surface)] truncate text-sm md:text-base">
                                 {{ $event['title'] }}
                             </h4>
-                            <span class="text-[10px] font-bold font-mono text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0 ml-2">
+                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0 ml-2">
                                 {{ $event['time'] }}
                             </span>
                         </div>

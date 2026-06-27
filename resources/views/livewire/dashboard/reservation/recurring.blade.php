@@ -1,5 +1,6 @@
 <div wire:key="recurring-panel" class="flex flex-col gap-4">
 
+    @if($this->allowsRepeat)
     <div class="flex items-center gap-3">
         <button
             wire:click="$toggle('isRecurring')"
@@ -60,6 +61,33 @@
             </div>
 
         </div>
+
+        @if(!empty($this->recurPreview))
+            <div class="flex flex-col gap-2 animate-slide-up-fade">
+                <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">event_repeat</span>
+                    <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">تاریخ‌های برنامه‌ریزی‌شده</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach($this->recurPreview as $i => $occ)
+                        <span
+                            @class([
+                                'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all',
+                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-transparent' => $occ['ok'],
+                                'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/40 line-through opacity-60' => !$occ['ok'],
+                            ])
+                            title="{{ $occ['ok'] ? 'ایجاد می‌شود' : 'در این تاریخ ایجاد نمی‌شود (روز/بازه مجاز نیست)' }}"
+                        >
+                            @if(!$occ['ok'])
+                                <span class="material-symbols-rounded text-[12px]">block</span>
+                            @endif
+                            {{ $occ['date'] }}
+                        </span>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    @endif
     @endif
 
 </div>

@@ -4,13 +4,13 @@ namespace App\Livewire\Dashboard\Contact\Presentation;
 
 use App\Enums\PresenceStatus;
 use App\Models\Traits\HasAvatar;
+use App\Models\Traits\HasPublicAssetUrl;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ContactPresenter
 {
-    use HasAvatar;
+    use HasAvatar, HasPublicAssetUrl;
 
     public function sidebar(array $contacts, int $authId): array
     {
@@ -145,7 +145,7 @@ class ContactPresenter
     {
         return collect($attachments)->map(fn(array $file) => [
             ...$file,
-            'url' => Storage::disk('public')->url($file['path']),
+            'url' => self::resolvePublicAssetUrl($file['path']),
             'size_label' => number_format(($file['size'] ?? 0) / 1024, 1) . ' KB',
             'is_image' => str_starts_with($file['mime'] ?? '', 'image/'),
         ])->all();

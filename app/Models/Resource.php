@@ -34,12 +34,7 @@ class Resource extends Model
 
     public static function getTabs(): array
     {
-        return [
-            ['id' => 'seat', 'icon' => 'desk', 'label' => 'میز کار'],
-            ['id' => 'spot', 'icon' => 'local_parking', 'label' => 'پارکینگ'],
-            ['id' => 'car', 'icon' => 'directions_car', 'label' => 'خودرو'],
-            ['id' => 'meeting', 'icon' => 'person', 'label' => 'ملاقات']
-        ];
+        return ResourceType::tabs();
     }
 
     public function isType(string $type): bool
@@ -93,7 +88,7 @@ class Resource extends Model
     {
         return Attribute::make(
             get: fn() => $this->image ?: (
-            $this->type === 'meeting'
+            ResourceType::tryFrom($this->type) === ResourceType::Meeting
                 ? $this->relatedUser?->profile?->image
                 : null
             )
@@ -151,7 +146,7 @@ class Resource extends Model
     protected function icon(): Attribute
     {
         return Attribute::make(
-            get: fn() => collect(self::getTabs())->firstWhere('id', $this->type)['icon'] ?? 'chair'
+            get: fn() => ResourceType::tryFrom($this->type)?->getMaterialIcon() ?? 'chair'
         );
     }
 

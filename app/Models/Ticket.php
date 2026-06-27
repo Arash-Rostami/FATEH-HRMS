@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasPublicAssetUrl;
 use App\Models\Traits\HasTicketCountHelpers;
 use App\Models\Traits\HasTicketOptions;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,9 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Ticket extends Model
 {
-    use HasFactory;
-    use HasTicketCountHelpers;
-    use HasTicketOptions;
+    use HasFactory, HasPublicAssetUrl, HasTicketCountHelpers, HasTicketOptions;
 
     protected $fillable = [
         'requester_id',
@@ -36,35 +36,13 @@ class Ticket extends Model
         'extra',
     ];
 
-    public function assignee()
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
+    public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
 
-    public function requester()
-    {
-        return $this->belongsTo(User::class, 'requester_id');
-    }
+    public function department(): BelongsTo { return $this->belongsTo(Department::class, 'department_id'); }
 
-    protected function departmentId(): Attribute
-    {
-        return Attribute::make(get: fn() => $this->extra['department'] ?? null);
-    }
+    public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requester_id'); }
 
-    protected function targetDepartmentId(): Attribute
-    {
-        return Attribute::make(get: fn() => $this->extra['target_department'] ?? null);
-    }
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'department_id');
-    }
-
-    public function targetDepartment(): BelongsTo
-    {
-        return $this->belongsTo(Department::class, 'target_department_id');
-    }
+    public function targetDepartment(): BelongsTo { return $this->belongsTo(Department::class, 'target_department_id'); }
 
     protected function casts(): array
     {
@@ -78,14 +56,17 @@ class Ticket extends Model
         ];
     }
 
+    protected function departmentId(): Attribute
+    {
+        return Attribute::make(get: fn(): ?string => $this->extra['department'] ?? null);
+    }
+
     protected function priority(): Attribute
     {
         return Attribute::make(
-            set: function ($value) {
-                $scalar = $value instanceof \BackedEnum ? $value->value : (string)$value;
-                return in_array(strtolower($scalar), ['low', 'medium', 'high'])
-                    ? strtolower($scalar)
-                    : 'low';
+            set: function (mixed $value): string {
+                $v = strtolower($value instanceof BackedEnum ? $value->value : (is_scalar($value) ? (string)$value : ''));
+                return in_array($v, ['low', 'medium', 'high'], true) ? $v : 'low';
             }
         );
     }
@@ -93,28 +74,29 @@ class Ticket extends Model
     protected function requestType(): Attribute
     {
         return Attribute::make(
-            set: function ($value) {
-                return $value instanceof \BackedEnum ? $value->value : (string)$value;
-            }
+            set: fn(mixed $value): string => $value instanceof BackedEnum ? (string)$value->value : (is_scalar($value) ? (string)$value : '')
         );
     }
 
     protected function satisfactionScore(): Attribute
     {
         return Attribute::make(
-            set: fn($value) => ($value >= 0 && $value <= 5) ? (float)$value : null
+            set: fn(mixed $value): ?float => is_numeric($value) && $value >= 0 && $value <= 5 ? (float)$value : null
         );
     }
 
     protected function status(): Attribute
     {
         return Attribute::make(
-            set: function ($value) {
-                $scalar = $value instanceof \BackedEnum ? $value->value : (string)$value;
-                return in_array(strtolower($scalar), ['open', 'closed', 'in-progress'])
-                    ? strtolower($scalar)
-                    : 'open';
+            set: function (mixed $value): string {
+                $v = strtolower($value instanceof BackedEnum ? $value->value : (is_scalar($value) ? (string)$value : ''));
+                return in_array($v, ['open', 'closed', 'in-progress'], true) ? $v : 'open';
             }
         );
+    }
+
+    protected function targetDepartmentId(): Attribute
+    {
+        return Attribute::make(get: fn(): ?string => $this->extra['target_department'] ?? null);
     }
 }

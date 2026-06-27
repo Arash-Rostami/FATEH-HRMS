@@ -88,7 +88,7 @@
                         @foreach($presenter->getDimensions() as $dim)
                             @php
                                 $score = $latestTest[$dim.'_score'] ?? 0;
-                                $colorVar = $presenter->getScoreColorVar($score);
+                                $colorVar = $presenter->getScoreColorVar($score, 4);
                                 $sectionTitle = $presenter->formatSectionTitle($sections[$dim] ?? $dim);
                             @endphp
                             <div

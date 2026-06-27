@@ -49,9 +49,14 @@ class TicketFormPresenter
     {
         return Select::make('assigned_to')
             ->label(__('resources/ths/strings.fields.assignee'))
-            ->relationship('assignee', 'name')
+            ->options(function (Get $get): array {
+                $dept = $get('extra.target_department');
+                return $dept
+                    ? User::whereHas('profile', fn($q) => $q->where('department_id', $dept))
+                        ->orderBy('name')->pluck('name', 'id')->toArray()
+                    : User::getCachedAllOptions()->toArray();
+            })
             ->searchable()
-            ->preload()
             ->live()
             ->afterStateUpdated(function (?int $state, callable $set, callable $get) {
                 $currentValue = $get('status')?->value;
@@ -130,6 +135,7 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.description'))
             ->required()
             ->rows(4)
+            ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.description'))
             ->maxLength(5000)
             ->columnSpanFull();
@@ -156,6 +162,7 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.priority'))
             ->options(TicketPriority::class)
             ->required()
+            ->disabledOn('edit')
             ->default(TicketPriority::Low->value)
             ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.priority'));
@@ -179,6 +186,7 @@ class TicketFormPresenter
             ->native(false)
             ->allowHtml()
             ->required()
+            ->disabledOn('edit')
             ->live()
             ->helperText(__('resources/ths/strings.hints.request_area'));
     }
@@ -188,6 +196,7 @@ class TicketFormPresenter
         return TextInput::make('request_subject')
             ->label(__('resources/ths/strings.fields.subject'))
             ->required()
+            ->disabledOn('edit')
             ->maxLength(255)
             ->helperText(__('resources/ths/strings.hints.request_subject'))
             ->columnSpanFull();
@@ -200,6 +209,7 @@ class TicketFormPresenter
             ->options(fn(Get $get) => Ticket::getCustomRequestTypeOptions($get('extra.target_department')))
             ->required()
             ->live()
+            ->disabledOn('edit')
             ->native(false)
             ->afterStateUpdated(fn(callable $set) => $set('request_area', null))
             ->helperText(__('resources/ths/strings.hints.request_type'));
@@ -221,6 +231,7 @@ class TicketFormPresenter
                     ->downloadable(),
             ])
             ->maxItems(3)
+            ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.requester_files'))
             ->disabledOn('edit')
             ->columnSpanFull();
@@ -277,7 +288,11 @@ class TicketFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->live()
-            ->afterStateUpdated(fn(callable $set) => $set('request_area', null));
+            ->disabledOn('edit')
+            ->afterStateUpdated(function (callable $set) {
+                $set('request_area', null);
+                $set('assigned_to', null);
+            });
     }
 
     private static function acceptedMimeTypes(): array

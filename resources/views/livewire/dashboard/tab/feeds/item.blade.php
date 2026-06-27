@@ -72,7 +72,7 @@
 
         @if(!empty($feed?->media_paths))
             <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-variant)] shadow-sm">
-                @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_paths])
+                @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_urls])
             </div>
         @endif
 
@@ -84,7 +84,7 @@
             >
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-rounded text-xl">forum</span>
-                    <span>نظرات ({{ $feed?->comments?->count() ?? 0 }})</span>
+                    <span>نظرات ({{ $feed->comments_count ?? 0 }})</span>
                 </div>
                 <span
                     class="material-symbols-rounded transition-transform duration-200"

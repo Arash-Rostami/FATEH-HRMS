@@ -30,8 +30,8 @@
                     data-photo-id="{{ $photo->id }}"
                     class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
-                        'z-30 scale-100 md:scale-105': activeId == {{ $photo->id }},
-                        'z-10 scale-95 opacity-100 md:opacity-80  md:grayscale-[30%]': activeId != {{ $photo->id }}
+                        'z-30 scale-100 md:scale-[1.15]': activeId == {{ $photo->id }},
+                        'z-10 scale-95 opacity-100 md:opacity-80 md:grayscale-[30%]': activeId != {{ $photo->id }}
                     }"
                 >
                     <div
@@ -47,28 +47,30 @@
                             class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
                             :class="activeId == {{ $photo->id }} ? '!opacity-100 !translate-y-0' : ''"
                         >
-                        <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] font-mono">
-                            {{ toJalali($photo->event_date, 'j F Y') }}
-                        </span>
+                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
+                                {{ toJalali($photo->event_date, 'j F Y') }}
+                            </span>
                             <div
                                 class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-variant)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"></div>
                         </div>
 
                         <div
                             class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
-                            :class="activeId == {{$photo->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
+                            :class="activeId == {{ $photo->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
                         >
                             <div class="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]"></div>
                         </div>
 
-                        <div
-                            class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-                            :class="activeId == {{ $photo->id }} ? '!opacity-100' : ''"
-                        >
-                        <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                            {{ $photo->event_location ?? 'مکان نامشخص' }}
-                        </span>
-                        </div>
+                        @if($photo->description)
+                            <div
+                                class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                                :class="activeId == {{ $photo->id }} ? '!opacity-100' : ''"
+                            >
+                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
+                                    {{ Str::limit(strip_tags($photo->description), 28) }}
+                                </span>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="relative z-20 h-full w-full md:scale-[0.9]">
@@ -111,13 +113,11 @@
     <div class="w-full h-full flex flex-col items-center justify-center gap-5 text-center px-8">
         <div
             class="w-24 h-24 rounded-3xl flex items-center justify-center shadow-inner bg-[var(--md-sys-color-surface-container-high)]">
-            <span
-                class="material-symbols-rounded text-5xl text-[var(--md-sys-color-outline)] opacity-60">photo_library</span>
+            <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-outline)] opacity-60">photo_library</span>
         </div>
         <div>
             <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">گالری هنوز خالی است</p>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-70">هیچ تصویری بارگذاری نشده
-                است.</p>
+            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-70">هیچ تصویری بارگذاری نشده است.</p>
         </div>
     </div>
 @endif

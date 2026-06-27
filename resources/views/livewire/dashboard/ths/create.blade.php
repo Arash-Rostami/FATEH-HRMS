@@ -43,9 +43,9 @@
                     </label>
                     <div class="grid grid-cols-3 gap-1.5 h-11">
                         @foreach([
-                            'low'    => ['کم',    'low_priority', '--md-sys-color-secondary', '--md-sys-color-secondary-container', '--md-sys-color-on-secondary-container', '100%'],
-                            'medium' => ['متوسط', 'drag_handle',  '--md-sys-color-tertiary',  '--md-sys-color-tertiary-container',  '--md-sys-color-on-tertiary-container',  '100%'],
-                            'high'   => ['زیاد',  'priority_high','--md-sys-color-error',     '--md-sys-color-error',              '--md-sys-color-on-error',               '15%'],
+                            'low'    => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::Low->getLabel(),    'low_priority', '--md-sys-color-secondary', '--md-sys-color-secondary-container', '--md-sys-color-on-secondary-container', '100%'],
+                            'medium' => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::Medium->getLabel(), 'drag_handle',  '--md-sys-color-tertiary',  '--md-sys-color-tertiary-container',  '--md-sys-color-on-tertiary-container',  '100%'],
+                            'high'   => [\App\Filament\Resources\ThsResource\Enums\TicketPriority::High->getLabel(),   'priority_high','--md-sys-color-error',     '--md-sys-color-error',              '--md-sys-color-on-error',               '15%'],
                         ] as $val => [$label, $icon, $border, $bg, $text, $bgOpacity])
                             <label class="cursor-pointer" x-data>
                                 <input type="radio" wire:model.live="ticket.priority" value="{{ $val }}"

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\Menu\StateService as MenuStateService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -12,6 +13,10 @@ class ViewServiceProvider extends ServiceProvider
     {
         View::composer('components.dashboard.modal.menu', function ($view) {
             $view->with('menuState', app(MenuStateService::class)->get());
+        });
+
+        View::composer('errors.layout', function ($view) {
+            $view->with('trace_id', 'TRC-' . strtoupper(Str::random(8)));
         });
     }
 }

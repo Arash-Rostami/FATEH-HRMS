@@ -136,7 +136,7 @@ class UserInfolistPresenter
             ])
             ->columns(2)
             ->getStateUsing(fn ($record): array =>
-            collect($record->extra ?? [])
+            collect($record->extra['admin'] ?? [])
                 ->map(fn ($v, $k) => ['key' => $k, 'value' => (string) $v])
                 ->values()
                 ->toArray()

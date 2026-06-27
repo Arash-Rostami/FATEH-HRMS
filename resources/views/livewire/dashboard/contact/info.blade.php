@@ -32,12 +32,12 @@
             @endif
         </div>
         <div class="space-y-3">
-            @if($activeContact->profile?->department?->name)
+            @if($activeContact->profile?->department?->description ?? $activeContact->profile?->department?->name)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">apartment</span>
                     <div>
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">واحد سازمانی</p>
-                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ $activeContact->profile->department->name }}</p>
+                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ $activeContact->profile->department->description ?? $activeContact->profile->department->name }}</p>
                     </div>
                 </div>
             @endif

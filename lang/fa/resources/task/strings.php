@@ -14,7 +14,6 @@ return [
         'creator'       => 'ایجادکننده',
         'assignee'      => 'مسئول انجام',
         'assignee_hint' => 'در صورت خالی ماندن، وظیفه به ایجادکننده تعلق دارد.',
-        'self_assigned' => 'خود ایجادکننده',
         'delegated'     => 'تفویض‌شده',
         'deadline'      => 'سررسید',
         'deadline_date' => 'تاریخ سررسید',
@@ -52,7 +51,6 @@ return [
         'section_content'  => 'محتوا',
         'section_deadline' => 'سررسید',
         'section_meta2'    => 'تاریخچه سیستمی',
-        'section_bi'       => 'طبقه‌بندی و گزارش‌گیری',
         'tab_main'         => 'اطلاعات وظیفه',
         'tab_bi'           => 'اطلاعات تکمیلی (BI)',
     ],
@@ -60,6 +58,7 @@ return [
     'tabs' => [
         'all'         => 'همه',
         'todo'        => 'انجام نشده',
+        'pending'      => 'در انتظار',
         'in_progress' => 'در حال انجام',
         'done'        => 'انجام شده',
         'overdue'     => 'سررسید گذشته',
@@ -69,6 +68,7 @@ return [
 
     'filters' => [
         'delegated'      => 'تفویض‌شده به دیگری',
+        'pending'      => 'در انتظار',
         'not_delegated'  => 'تفویض‌نشده',
         'overdue'        => 'سررسید گذشته',
         'deadline_range' => 'بازه سررسید',

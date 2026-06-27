@@ -106,6 +106,7 @@ class Feeds extends Component
             'reactions.user',
             'polls',
         ])
+            ->withCount('comments')
             ->whereIn('id', $this->feedIds)
             ->orderByRaw("FIELD(id, {$idsString})")
             ->get();

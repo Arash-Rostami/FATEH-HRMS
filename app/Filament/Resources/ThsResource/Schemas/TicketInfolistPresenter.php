@@ -9,6 +9,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
+use Illuminate\Database\Eloquent\Model;
 
 class TicketInfolistPresenter
 {
@@ -90,6 +91,7 @@ class TicketInfolistPresenter
         return TextEntry::make('department.description')
             ->label(__('resources/ths/strings.fields.department'))
             ->placeholder('—')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
             ->icon('heroicon-o-user');
     }
 

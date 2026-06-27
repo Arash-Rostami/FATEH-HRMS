@@ -1,6 +1,6 @@
 <div
     {{ $attributes->merge(['class' => 'fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden']) }}
-    style="background-color: color-mix(in srgb, var(--md-sys-color-surface), transparent 15%); backdrop-filter: blur(12px);"
+    style="background-color: color-mix(in srgb, var(--md-sys-color-surface), transparent 40%);"
     dir="rtl">
 
     <div class="relative flex flex-col items-center w-full max-w-[280px] p-6 md:p-8 rounded-3xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_85%,transparent)]">

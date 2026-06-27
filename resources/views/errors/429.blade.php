@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_429')
+
 @section('title', 'درخواست‌های بیش از حد')
 
 @section('icon')

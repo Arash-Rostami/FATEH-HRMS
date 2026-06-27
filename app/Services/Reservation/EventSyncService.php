@@ -3,6 +3,7 @@
 namespace App\Services\Reservation;
 
 use App\Enums\ReservationStatus;
+use App\Enums\ResourceType;
 use App\Models\Event;
 use App\Models\Reservation;
 
@@ -28,7 +29,7 @@ class EventSyncService
         $related = $reservation->resource?->relatedUser;
 
         if (
-            $reservation->resource?->type !== 'meeting' ||
+            $reservation->resource?->type !== ResourceType::Meeting->value ||
             $reservation->status !== ReservationStatus::Active->value ||
             !$reservation->start_time ||
             !$booker ||

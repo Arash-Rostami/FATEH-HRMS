@@ -20,12 +20,17 @@ class ChartPresenter extends BaseEnergyPresenter
         };
     }
 
-    public function getScoreColorVar(int $score): string
+    public function getScoreColorVar(int $score, int $max = 16): string
     {
+        // Score is a raw yes-count (dimension max = 4, overall max = 16).
+        // Normalize to a 0-100 percentage, then apply the burnout thresholds:
+        // >=70 danger (error) / >=45 warning (tertiary) / else success (secondary).
+        $pct = $max > 0 ? (int) round($score / $max * 100) : 0;
+
         return match (true) {
-            $score <= 1 => '--md-sys-color-secondary',
-            $score <= 2 => '--md-sys-color-tertiary',
-            default    => '--md-sys-color-error',
+            $pct >= 70 => '--md-sys-color-error',
+            $pct >= 45 => '--md-sys-color-tertiary',
+            default   => '--md-sys-color-secondary',
         };
     }
 

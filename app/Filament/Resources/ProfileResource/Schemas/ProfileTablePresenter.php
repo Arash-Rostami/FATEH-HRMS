@@ -9,6 +9,7 @@ use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Department;
 use App\Models\Profile;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -81,6 +82,7 @@ class ProfileTablePresenter
             ->label(__('resources/profile/strings.table.department'))
             ->sortable()
             ->searchable()
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

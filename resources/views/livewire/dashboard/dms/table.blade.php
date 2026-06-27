@@ -90,7 +90,7 @@
 
                             <div class="relative z-10 flex flex-col items-start gap-1.5">
                                 <span
-                                    title="{{ 'ایجاده شده در: ' . jdateOnly($doc->created_at) . ' 📆 بروزرسانی شده در: ' . jdateOnly($doc->updated_at) }}"
+                                    title="{{ 'ایجاده شده در: ' . toJalali($doc->created_at, 'j F Y') . ' 📆 بروزرسانی شده در: ' . toJalali($doc->updated_at, 'j F Y') }}"
                                     class="block cursor-help text-base font-bold leading-relaxed text-[var(--md-sys-color-on-surface)] transition-colors hover:text-[var(--md-sys-color-primary)]"
                                 >
                                     {{ superClean($doc->title ?? 'بدون عنوان') }}

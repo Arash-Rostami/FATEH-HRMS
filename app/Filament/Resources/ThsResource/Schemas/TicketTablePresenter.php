@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -111,6 +112,7 @@ class TicketTablePresenter
         return TextColumn::make('department.description')
             ->label(__('resources/ths/strings.fields.department'))
             ->placeholder('—')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

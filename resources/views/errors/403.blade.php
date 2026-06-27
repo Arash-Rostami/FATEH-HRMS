@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_403')
+
 @section('minimal_layout', true)
 
 @section('title', 'دسترسی غیرمجاز')

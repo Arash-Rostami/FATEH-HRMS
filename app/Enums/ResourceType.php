@@ -52,4 +52,31 @@ enum ResourceType: string implements HasColor, HasIcon, HasLabel
             self::Meeting => 'ملاقات',
         };
     }
+
+    public function getMaterialIcon(): string
+    {
+        return match ($this) {
+            self::Seat => 'desk',
+            self::Spot => 'local_parking',
+            self::Car => 'directions_car',
+            self::Meeting => 'person',
+        };
+    }
+
+    public function isFullDay(): bool
+    {
+        return $this !== self::Meeting;
+    }
+
+    public static function tabs(): array
+    {
+        return array_map(
+            fn(self $type) => [
+                'id' => $type->value,
+                'icon' => $type->getMaterialIcon(),
+                'label' => $type->getLabel(),
+            ],
+            self::cases(),
+        );
+    }
 }

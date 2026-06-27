@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasPublicAssetUrl;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class Link extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicAssetUrl;
 
     protected $fillable = [
         'url',
@@ -60,6 +62,13 @@ class Link extends Model
     public function scopeSorted($query)
     {
         return $query->orderBy('sequence');
+    }
+
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
+        )->shouldCache();
     }
 
     protected function casts(): array

@@ -4,10 +4,11 @@
         ['z' => 'z-10', 'rotate' => '-rotate-2', 'hover' => 'group-hover:translate-x-0 group-hover:rotate-3'],
         ['z' => 'z-0', 'rotate' => 'rotate-3', 'hover' => 'group-hover:translate-x-12 group-hover:rotate-12'],
     ];
-    $paths = $photo->path ?? [];
+    $paths = $photo->image_urls;
     $visibleImages = array_slice($paths, 0, 3);
     $hiddenImages = array_slice($paths, 3);
     $hiddenImageCount = count($paths) - count($visibleImages);
+    $scope = $presenter?->scopeMeta($photo) ?? ['icon' => 'photo_library', 'label' => ''];
 @endphp
 
 <div
@@ -29,7 +30,7 @@
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-2 px-4 pt-4 shrink-0">
-        <div class="flex flex-col items-start gap-1">
+        <div class="flex flex-col items-start gap-1 min-w-0">
             <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-tight truncate max-w-[200px]">
                 {{ $photo->title }}
             </h3>
@@ -38,18 +39,18 @@
             </span>
         </div>
         <div
-            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm">
-            <span class="material-symbols-rounded text-base">photo_library</span>
+            title="{{ $scope['label'] }}"
+            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shadow-sm cursor-help">
+            <span class="material-symbols-rounded text-base">{{ $scope['icon'] }}</span>
         </div>
     </div>
 
     {{-- Collage (Original Logic Restored) --}}
     <div
         class="flex-1 relative flex items-center justify-center min-h-[140px] w-full perspective-1000 py-2">
-        @foreach($visibleImages as $index => $imagePath)
+        @foreach($visibleImages as $index => $url)
             @php
                 $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => ''];
-                $url = Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath);
             @endphp
             <a href="{{ $url }}"
                data-fancybox="gallery-{{ $photo->id }}"
@@ -69,18 +70,16 @@
 
     {{-- Hidden Images for Fancybox --}}
     <div class="hidden">
-        @foreach($hiddenImages as $imagePath)
-            <a href="{{ Storage::disk('public')->exists($imagePath) ? Storage::disk('public')->url($imagePath) : asset($imagePath) }}"
+        @foreach($hiddenImages as $url)
+            <a href="{{ $url }}"
                data-fancybox="gallery-{{ $photo->id }}"></a>
         @endforeach
     </div>
 
-    {{-- Description --}}
     @if(!empty($photo->description))
-        <div
-            class="mt-auto shrink-0 relative z-20 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/10 p-4 mx-4 mb-4 rounded-xl">
-            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 text-justify">
-                {{ strip_tags($photo->description) }}
+        <div class="mt-auto shrink-0 relative z-20 px-4 pb-4 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/20">
+            <p class="text-[var(--md-sys-color-on-surface-variant)] text-xs line-clamp-2 leading-relaxed font-light opacity-80">
+                {{ Str::limit(strip_tags($photo->description), 100) }}
             </p>
         </div>
     @endif

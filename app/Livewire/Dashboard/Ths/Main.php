@@ -147,6 +147,7 @@ class Main extends Component
     public function tickets()
     {
         return Ticket::query()
+            ->with('assignee')
             ->where('requester_id', auth()->id())
             ->when($this->ticketSearch, fn($q) => $q->where(function ($sub) {
                 $term = "%{$this->ticketSearch}%";
@@ -201,7 +202,17 @@ class Main extends Component
         }
 
         $this->selectedTicket = $ticket->toArray();
+        $this->selectedTicket['requester_files'] = $this->resolveTicketFileUrls($this->selectedTicket['requester_files'] ?? []);
+        $this->selectedTicket['assignee_files'] = $this->resolveTicketFileUrls($this->selectedTicket['assignee_files'] ?? []);
         $this->modalTab = 'request';
+    }
+
+    private function resolveTicketFileUrls(array $files): array
+    {
+        return array_map(
+            fn ($file) => [...(array) $file, 'file_url' => Ticket::resolvePublicAssetUrl($file['file'] ?? null)],
+            $files,
+        );
     }
 
     protected function recordFocusType(): string

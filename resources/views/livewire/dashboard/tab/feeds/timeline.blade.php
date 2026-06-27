@@ -32,7 +32,7 @@
                     data-feed="{{ $feed->id }}"
                     class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
-                        'scale-100 md:scale-105': activeId == {{ $feed->id }},
+                        'scale-100 md:scale-[1.15]': activeId == {{ $feed->id }},
                         'scale-95 opacity-100 md:opacity-80 md:grayscale-[30%]': activeId != {{ $feed->id }},
                         'max-widget-column !grayscale-0 !opacity-100': maximizedFeed === feed($el)
                     }"
@@ -51,7 +51,7 @@
                             class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
                             :class="activeId == {{ $feed->id }} ? '!opacity-100 !translate-y-0' : ''"
                         >
-                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] font-mono">
+                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
                                 {{ $feed->created_at->format('H:i') }}
                             </span>
                             <div

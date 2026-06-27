@@ -132,7 +132,7 @@ class Detail extends Component
     #[Computed]
     public function suggestion(): ?Suggestion
     {
-        return Suggestion::with(['user.profile', 'reviews.department', 'reviews.user'])
+        return Suggestion::with(['user.profile.department', 'reviews.department', 'reviews.user'])
             ->withCount([
                 'reviews as agree_count' => fn($q) => $q->where('feedback', 'agree'),
                 'reviews as disagree_count' => fn($q) => $q->where('feedback', 'disagree'),

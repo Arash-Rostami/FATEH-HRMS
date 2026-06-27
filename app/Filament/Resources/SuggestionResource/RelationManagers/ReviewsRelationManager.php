@@ -41,7 +41,7 @@ class ReviewsRelationManager extends RelationManager
             Section::make('بررسی')
                 ->schema([
                     TextEntry::make('user.name')->label('بررسی‌کننده'),
-                    TextEntry::make('department.name')->label('واحد سازمانی'),
+                    TextEntry::make('department.name')->label('واحد سازمانی')->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-'),
                     TextEntry::make('feedback')
                         ->label('نظر')
                         ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),
@@ -66,7 +66,8 @@ class ReviewsRelationManager extends RelationManager
                     ->label('بررسی‌کننده')
                     ->searchable(),
                 TextColumn::make('department.name')
-                    ->label('واحد سازمانی'),
+                    ->label('واحد سازمانی')
+                    ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-'),
                 TextColumn::make('feedback')
                     ->label('نظر')
                     ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),

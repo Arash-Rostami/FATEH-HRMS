@@ -18,7 +18,7 @@
                 <div
                     class="flex items-center justify-center md:justify-start gap-3 text-xs text-[var(--md-sys-color-outline)]">
                             <span
-                                class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department->name ?? 'General' }}</span>
+                                class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->description ?? $report->department?->name ?? 'General' }}</span>
                     <span dir="rtl">{{  toJalali($report->created_at, 'j F Y') }}</span>
                 </div>
             </div>

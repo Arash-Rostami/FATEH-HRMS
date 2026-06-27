@@ -77,7 +77,7 @@
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">β.5</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">جدیدترین</span>
                             </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">{{ date('F j, Y') }}</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider" dir="ltr">{{ date('F j, Y') }}</span>
                         </div>
 
                         <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
@@ -136,7 +136,7 @@
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.4</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">هسته منابع انسانی</span>
                             </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Mar 30, 2026</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider" dir="ltr">Mar 30, 2026</span>
                         </div>
 
                         <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
@@ -184,7 +184,7 @@
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.3</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">عملیات و گردش‌کار</span>
                             </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Mar 12, 2026</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider" dir="ltr">Mar 12, 2026</span>
                         </div>
 
                         <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
@@ -232,7 +232,7 @@
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.2</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">ارتباطات و دانش</span>
                             </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Feb 20, 2026</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider" dir="ltr">Feb 20, 2026</span>
                         </div>
 
                         <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">
@@ -280,7 +280,7 @@
                                 <span class="text-sm font-mono font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">β.1</span>
                                 <span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">پایه</span>
                             </div>
-                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] font-mono tracking-wider" dir="ltr">Feb 10, 2026</span>
+                            <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] tracking-wider" dir="ltr">Feb 10, 2026</span>
                         </div>
 
                         <div class="rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]/70 transition-colors">

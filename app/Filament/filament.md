@@ -307,6 +307,24 @@ Select::make('department_id')
     ->afterStateUpdated(fn (Set $set) => $set('departments', null));
 ```
 
+##### Toggle-driven mutual exclusion (Permission `is_super_admin`)
+
+When one **boolean toggle** decides which of two *sections* is authoritative (not a field disabled by another field), the form-side cross-clear goes on the toggle itself, branching on the new state: `PermissionFormPresenter::isSuperAdmin()` uses `->afterStateUpdated(function (Set $set, ?bool $state) { $set($state ? 'abilities' : 'excluded_modules', null); })`, and each section is `->visible(fn (Get $get) => (bool)$get('is_super_admin'))` / `!$get(...)`. The same presenter is reused by both `PermissionResource::form()` and the `UserResource` `PermissionsRelationManager::form()`, so the one edit covers both.
+
+Because `Permission::can()` ignores `abilities` while `is_super_admin` is true and ignores `excluded_modules` while it is false, a row carrying a value on the dead side is **misleading** (reads as "granted" but is never consulted). The form clear only fires on toggle interaction, so the invariant is **also enforced at the data layer** in `Permission::booted()` via a `static::saving` hook that nulls the inactive side — this guarantees a clean row regardless of which form path wrote it and cleans up any stale row on its next save. Prefer this two-layer (UX + model) approach whenever the dead-side value would otherwise be misread as a grant.
+
+> **Full permission workflow** (role-first model, developer bypass sites, the two admin tiers, module vs action granularity, validation, caching) is documented in `app/Providers/Filament/adminPanelPermissionLogic.md` — read it before changing anything in the permission chain.
+
+##### Cross-field validation rule that re-runs when any sibling changes
+
+When a uniqueness/consistency rule depends on **several fields together** (not just the field it's on), make the `Illuminate\Contracts\Validation\ValidationRule` **field-agnostic**: pass the whole triple (all values read from siblings via `Get` in the form) through the constructor, and have `validate()` ignore `$value` (the field's own submitted value) — the constructor is the single source of truth. Then attach the **same** `->rule(fn (Get $get, $record) => new TheRule(...$get siblings..., exceptId: $record?->id))` closure to **every** field in the triple.
+
+Why: Filament validates the **whole form on submit**, so any one attachment already re-runs the check with the current sibling values regardless of which field the user edited. Attaching to all three is not for coverage — it is so the **failure message surfaces on the field the user actually changed**. Extract the closure into a private `static` helper (`uniqueLiveRule()` below) so each attachment is one line and the triple wiring lives in one place.
+
+Note `->live()` only re-renders + fires `afterStateUpdated` hooks (`InteractsWithSchemas::updatedInteractsWithSchemas` → `callAfterStateUpdated`); it does **not** call `validate()`. So `->live()` alone gives no live validation — rules still run at submit. Don't add `->live()` just for validation; it only buys server round-trips.
+
+Reference: `App\Rules\UniqueLiveDocument` — `(code, version)` must be unique among LIVE DMS docs only (non-live duplicates are allowed, so a plain DB unique index would wrongly block them; this stays form-layer). It is attached to `code`, `version`, **and** `status` in `DmsFormPresenter` via `uniqueLiveRule()`, so flipping `status` to `live`, or editing `version`, re-validates the same triple and the warning appears under the changed field.
+
 ##### Packing virtual form fields into one JSON column
 
 When several form controls do not map 1:1 to model columns but must be persisted together inside one JSON/array column, expose them as **virtual** Filament fields (no matching model attribute) and pack/unpack them through the resource page mutators — the same mechanism already used for `FeedResource` media (`splitMediaPaths`/`mergeMediaPaths`) and poll settings (`unpackPollSettings`/`packPollSettings`):
@@ -326,6 +344,59 @@ Table configuration options to always consider:
 
 - `->groups([...])` — row grouping via `Group::make()` or dedicated grouping class
 - `->filters([...])` — comprehensive filters (not just a few — every filter with real UX value)
+
+> **Group objects go in `->groups([...])`, never `->filters([...])`.** A `Group::make()` is not a
+> filter — Filament treats every item in `->filters([...])` as a `Filter` and calls `getName()`
+> on it; `Group` has no `getName()`, so dropping a group there fatals the table page with
+> `BadMethodCallException: Method Filament\Tables\Grouping\Group::getName does not exist` (HTTP 500).
+
+**Dynamic, per-key grouping for JSON-object columns** — when a column holds a variable set of
+keys (`extra`, `tags` — both stored as JSON *objects*, e.g. `tags = {"type":"test1","روش":"test1"}`),
+don't write one static `Group` per column. Instead a Service extracts the union of distinct keys
+across all rows and emits **one `Group` per merged key** — the group list auto-grows with the data,
+0 or N keys, no code change. Reference implementation: `app/Services/Dms/DmsKeyGrouper.php` (DMS).
+**Same-key merging**: keys equal after `trim()` + `mb_strtolower()` (e.g. `Category`, `Category `,
+`category`) collapse into ONE group; the label is the most frequent original variant. Genuine
+typos (`Catergory`) stay separate — only whitespace/case variants merge, never edit-distance. Pattern:
+
+- `map()` (cached, the core) — **raw SQL**, single query, MySQL 5.7+/8.x compatible. Unnests each
+  row's keys positionally via a numbers derived table (`0..N`, the 5.7 substitute for 8.x
+  `JSON_TABLE`): `JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(col), CONCAT('$[', n, ']')))`, `UNION ALL`
+  across `extra` and `tags`, grouped with `GROUP BY CAST(k AS BINARY)` and `COUNT(*)` per variant.
+  **The BINARY cast is essential** — MySQL's default collation uses PAD SPACE, so a plain group key
+  collapses `Category` and `Category ` (trailing space) into one row before PHP ever sees them, and
+  then the trailing-space record's value could be lost. BINARY keeps every byte-distinct variant
+  separate at extraction time; the trim+case-fold merge happens in PHP afterward. Returns
+  `list<{norm, label, variants}>` sorted by label. TTL-cached (`Cache::remember`, no model flush
+  hook — same convention as `DMS::getDocumentCounts()`; `php artisan cache:clear` for instant
+  refresh). `MAX_KEYS_PER_OBJECT` bounds the numbers table; bump it if an object can hold more keys.
+- `valueFor($record, $variants)` — tries every original variant byte-exactly (`array_key_exists`)
+  across `extra` then `tags` (both objects); first hit wins; `null`/missing → `—`. Byte-exact so a
+  variant like `Category ` resolves only on the record that actually carries it.
+- `groups()` — `array_map` over `map()` → `Group::make(self::idFor($norm))->label($label)` with
+  `getKeyFromRecordUsing` + `getTitleFromRecordUsing` both returning `valueFor($record, $variants)`,
+  plus `->orderQueryUsing(fn($q) => $q)` **and** `->scopeQueryByKeyUsing(fn($q,$k) => …)`. **Both
+  are essential** — the group id is an opaque hash, not a real column. `orderQueryUsing` stops
+  Filament appending `ORDER BY <hash-id>` (throws `Unknown column 'dyn_…'` when the group is
+  selected). `scopeQueryByKeyUsing` is the second crash site: "select all in group" (grouped bulk
+  actions, `HasBulkActions`) calls `scopeQueryByKey($query, $value)` → `WHERE <hash-id> = <value>`
+  → same `Unknown column`. Rebuild the scope as a raw `COALESCE(JSON_UNQUOTE(JSON_EXTRACT(col,
+  '$."k"')) …) = ?` over the variants (mirrors `valueFor`); for the `—` bucket use `IS NULL`
+  (matches valueFor's "no variant / null" case). With both, the query keeps its default sort and
+  buckets are computed PHP-side via `getKeyFromRecordUsing`; "select all in group" scopes in SQL.
+- `idFor($norm)` = `'dyn_' . substr(sha1($norm), 0, 16)` — a **stable, unique, ASCII-safe** id per
+  *merged* key (hash the normalized form, not the label, so case variants share one id). The id is
+  an internal identifier; the **label** shown to the user is the original key.
+  - `valueExpression($variants)` / `jsonPath($key)` build the COALESCE + escaped JSON path used by
+  `scopeQueryByKeyUsing`. Escape `"` and `\` (JSON path) **and** `'` (the wrapping single-quoted SQL
+  string — the path is interpolated into `whereRaw`, and the key is user-controlled via the KeyValue
+  field, so an unescaped `'` would close the literal and allow SQL injection/crash):
+  `addcslashes($key, '"\'\\')`.
+- Register with a spread: `->groups([..., ...DmsKeyGrouper::groups()])`.
+- **Known Filament limitation**: with `getKeyFromRecordUsing`, Filament groups the **paginated
+  page** (it loads the page, then buckets those rows) — it does not SQL `GROUP BY` the full result
+  set (`groupQuery`/`groupBy` is only used for table summaries). So a selected group reflects only
+  the current page's records. Accept this, or load all rows when grouped, if full grouping is needed.
 - `->filtersFormColumns(2)` — use 2-column filter layout when there are multiple filters
 - `->recordActions([...], RecordActionsPosition::AfterCells)` — always position after cells
 - `->groupedBulkActions([...])` — use `self::bulkActions(ExporterClass::class)` from `FilamentActions` trait
@@ -1413,6 +1484,17 @@ private function getPreference(string $key, mixed $default = false): mixed
     return $preferences[$key] ?? $default;
 }
 ```
+
+### `extra` two-bucket protection (User model)
+
+`users.extra` is a JSON bag holding **two distinct top-level buckets**, enforced at the model level by a custom `extra()` Attribute (no `array` cast — mirrors the `booking()` / Feed `content()` set-mutator pattern):
+
+- `extra['preferences']` — purely admin-panel **app** settings (the toggles above, written by `ManagePreferences` and `setExtraValue('preferences.x', …)`). This bucket is never wiped or polluted by any write.
+- `extra['admin']` — a distinct bucket for **flat key/value pairs an admin adds via the User edit form's `KeyValue` field**. Its single-word key records the origin (admin panel). Loose flat keys never sit at the top of `extra` and never enter `preferences`.
+
+The setter discriminates by intent: a write that carries an **array** `preferences` key is "preferences-aware" (deep-merge `preferences`, preserve/replace `admin`, route any stray top-level keys into `admin`); a write **without** an array `preferences` is a KeyValue save (replace `admin` wholesale so add/delete/clear work, preserve `preferences`). The reserved names `preferences` and `admin` are dropped from KeyValue input, so an admin cannot pollute `preferences` by typing one of those names as a key.
+
+Because the form's `KeyValue` only edits the `admin` bucket, `EditUser::mutateFormDataBeforeFill` extracts `$data['extra']['admin']` (and self-heals legacy rows that pre-date the split by gathering their loose top-level scalar keys into the KeyValue state, so they survive the next save rather than being dropped). `UserInfolistPresenter::extra()` displays `$record->extra['admin']` only — never the nested `preferences`.
 
 ### Other panel config
 

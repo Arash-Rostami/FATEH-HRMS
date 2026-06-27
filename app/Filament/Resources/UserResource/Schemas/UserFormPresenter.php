@@ -67,17 +67,32 @@ class UserFormPresenter
                 ['key' => 'meeting', 'value' => true],
             ])
             ->afterStateHydrated(function (Repeater $component, $state): void {
-                if (blank($state)) return;
+                $set = static::normalizeBookingState($state);
 
-                $items = array_is_list($state) || isset(array_values($state)[0]['key'])
-                    ? collect($component->getState())
-                    : collect($state)->map(fn($v, $k) => ['key' => $k, 'value' => (bool)$v]);
-
-                $component->state(
-                    $items->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all()
-                );
+                if ($set !== []) {
+                    $component->state($set);
+                }
             })
             ->helperText(__('resources/user/strings.hints.booking'));
+    }
+
+    public static function normalizeBookingState(mixed $state): array
+    {
+        if (blank($state)) {
+            return [];
+        }
+
+        return collect($state)->map(function ($v, $k) {
+            if (is_array($v)) {
+                $key = $v['key'] ?? $k;
+                $value = $v['value'] ?? false;
+            } else {
+                $key = $k;
+                $value = $v;
+            }
+
+            return ['key' => $key, 'value' => (bool) $value];
+        })->sortBy(fn($i) => $i['key'] === 'all' ? 0 : 1)->values()->all();
     }
 
     public static function email(): TextInput
@@ -179,6 +194,7 @@ class UserFormPresenter
             ->default(UserRole::User->value)
             ->required()
             ->native(false)
+            ->disableOptionWhen(fn(string $value): bool => $value === UserRole::Developer->value)
             ->helperText(__('resources/user/strings.hints.role'));
     }
 

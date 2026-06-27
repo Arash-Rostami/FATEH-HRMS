@@ -57,7 +57,7 @@ return [
         'pending'           => 'ارسال شده',
         'team_remarks'      => 'منتظر هم‌تیمی‌ها',
         'dept_remarks'      => 'منتظر ذینفعان',
-        'awaiting_decision' => 'منتظر تصمیم',
+        'awaiting_decision' => 'منتظر تصمیم نهایی',
         'accepted'          => 'پذیرفته شده',
         'rejected'          => 'پذیرفته نشده',
         'under_review'      => 'نیازمند تکمیل',

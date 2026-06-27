@@ -22,7 +22,7 @@ class EventInfolistPresenter
     {
         return TextEntry::make('date')
             ->label(__('resources/event/strings.fields.date'))
-            ->formatStateUsing(fn ($state) => toJalaliSmart($state))
+            ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->iconPosition(IconPosition::After)
             ->alignEnd()

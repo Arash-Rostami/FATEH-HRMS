@@ -43,7 +43,7 @@ class ProfilePresenter
 
     public function memberSince(User $user): string
     {
-        $date = $user->profile?->start_date ?? $this->user->created_at;
+        $date = $user->profile?->start_date ?? $user->created_at;
         if (!$date) return 'تازه';
 
 

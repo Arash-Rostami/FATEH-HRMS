@@ -3,13 +3,13 @@
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
 use App\Models\Traits\HasExtraCatalog;
+use App\Models\Traits\HasPublicAssetUrl;
 use ArrayObject;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 class OnboardingPresenter
 {
-    use HasExtraCatalog;
+    use HasExtraCatalog, HasPublicAssetUrl;
 
     public function formatExtras(ArrayObject|array|null $extras): array
     {
@@ -123,10 +123,10 @@ class OnboardingPresenter
         if ($videos->isEmpty()) return [];
 
         return $videos->map(fn($video, $index) => [
-            'url' => $video['url'] ? Storage::disk('public')->url($video['url']) : '#',
+            'url' => $video['url'] ? self::resolvePublicAssetUrl($video['url']) : '#',
             'title' => $video['title'] ?? 'ویدیوی آموزشی ' . ($index + 1),
             'duration' => $video['duration'] ?? null,
-            'thumbnail' => $video['thumbnail'] ? Storage::disk('public')->url($video['thumbnail']) : null,
+            'thumbnail' => $video['thumbnail'] ? self::resolvePublicAssetUrl($video['thumbnail']) : null,
         ])->toArray();
     }
 
@@ -166,7 +166,7 @@ class OnboardingPresenter
 
     private function normalizeGuide(array $guide): array
     {
-        $url = isset($guide['url']) && $guide['url'] !== '#' ? Storage::disk('public')->url($guide['url']) : '#';
+        $url = isset($guide['url']) && $guide['url'] !== '#' ? self::resolvePublicAssetUrl($guide['url']) : '#';
         $title = $guide['title'] ?? $guide['name'] ?? $guide['filename'] ?? 'سند بدون نام';
         $ext = strtolower($guide['ext'] ?? $guide['type'] ?? $guide['extension'] ?? pathinfo($url, PATHINFO_EXTENSION) ?: 'file');
 

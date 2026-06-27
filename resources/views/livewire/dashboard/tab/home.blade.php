@@ -15,14 +15,14 @@
         <div class="absolute -left-6 top-1/2 -translate-y-1/2 opacity-[0.07] pointer-events-none select-none">
             <span class="material-symbols-rounded font-fill" style="font-size: 220px; line-height:1;">menu_book</span>
         </div>
-        <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-30 pointer-events-none"
+        <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-30 pointer-events-none"
              style="background: var(--md-sys-color-primary); transform: translate(30%, -30%);"></div>
-        <div class="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none"
+        <div class="absolute bottom-0 left-1/3 w-48 h-48 rounded-full  opacity-20 pointer-events-none"
              style="background: var(--md-sys-color-tertiary); transform: translateY(40%);"></div>
 
         <div class="relative z-10 px-8 py-10 md:py-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            <div class="space-y-4">
-                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-[var(--md-sys-color-on-primary-container)] leading-snug"
+            <div class="space-y-4 min-w-0">
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-[var(--md-sys-color-on-primary-container)] leading-snug break-words"
                     x-text="displayed"></h1>
                 <p class="text-sm md:text-base text-[var(--md-sys-color-on-primary-container)]/70 leading-relaxed max-w-md">
                     ✨ ابزارهای کلیدی، ماژول‌ها و راهنمای سیستم همه در یک‌جا

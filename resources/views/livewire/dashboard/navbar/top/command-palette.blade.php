@@ -73,7 +73,7 @@
                             @php $flatIndex = 0; @endphp
                             @foreach(collect($results)->groupBy('group') as $groupName => $groupItems)
 
-                                <div class="sticky top-0 z-10 flex items-center justify-between px-3 py-2 mt-4 first:mt-0 mb-2 bg-[var(--md-sys-color-surface)]/95 backdrop-blur-md border-b border-[var(--md-sys-color-outline-variant)]/10 rounded-t-lg">
+                                <div class="sticky top-0 z-10 flex items-center justify-between px-3 py-2 mt-4 first:mt-0 mb-2 bg-[var(--md-sys-color-surface)]/95 border-b border-[var(--md-sys-color-outline-variant)]/10 rounded-t-lg">
                                     <div class="flex items-center gap-2">
                                         <span class="material-symbols-rounded text-[18px] opacity-50">{{ $groupItems->first()['icon'] }}</span>
                                         <span class="text-xs font-bold opacity-60 uppercase tracking-widest">{{ $groupName }}</span>

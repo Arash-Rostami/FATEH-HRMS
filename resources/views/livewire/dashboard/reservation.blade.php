@@ -35,6 +35,26 @@
             @include('livewire.dashboard.reservation.date')
         </div>
 
+        @if($this->activeLimitUsage !== null)
+            @php($usage = $this->activeLimitUsage)
+            @php($pct = $usage['max'] > 0 ? min(100, (int) round($usage['count'] * 100 / $usage['max'])) : 100)
+            <div class="mb-6 animate-slide-up-fade">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span
+                        class="material-symbols-rounded text-[16px] {{ $usage['near'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">stacks</span>
+                    <span
+                        class="text-[11px] font-semibold {{ $usage['near'] ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">
+                        رزروهای فعال این ماه: {{ convertToPersian((string) $usage['count']) }} / {{ convertToPersian((string) $usage['max']) }}
+                    </span>
+                </div>
+                <div class="h-1.5 w-full rounded-full bg-[var(--md-sys-color-surface-variant)] overflow-hidden">
+                    <div
+                        class="h-full rounded-full transition-all duration-500 {{ $usage['near'] ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-primary)]' }}"
+                        style="width: {{ $pct }}%"></div>
+                </div>
+            </div>
+        @endif
+
         <div class="mb-8 animate-slide-up-fade flex flex-col gap-6">
             <x-ui.placeholder/>
 

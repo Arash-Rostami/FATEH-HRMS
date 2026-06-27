@@ -5,6 +5,8 @@ export default function report() {
         view: null,
         loading: false,
         observer: null,
+        activeId: null,
+        showTimeline: false,
 
         init() {
             this.view = this.$wire.get('view');
@@ -19,11 +21,18 @@ export default function report() {
             enforce();
             window.addEventListener('resize', enforce);
 
-            this.$nextTick(() => this.setupInfiniteScroll());
+            this.$nextTick(() => {
+                this.setupInfiniteScroll();
+                this.setupScrollListener();
+                setTimeout(() => this.updateActiveItem(), 100);
+            });
 
-            Livewire.hook('morph', ({el}) => {
+            Livewire.hook('morph', ({ el }) => {
                 if (this.$root.contains(el)) {
-                    this.$nextTick(() => this.observeTriggers());
+                    this.$nextTick(() => {
+                        this.observeTriggers();
+                        this.updateActiveItem();
+                    });
                 }
             });
         },
@@ -49,8 +58,46 @@ export default function report() {
                 .forEach((el) => this.observer.observe(el));
         },
 
-        async loadMore() {
+        setupScrollListener() {
+            const container = this.$refs.timeline;
+            if (!container) return;
 
+            let timeout;
+            container.addEventListener('scroll', () => {
+                if (timeout) window.cancelAnimationFrame(timeout);
+                timeout = window.requestAnimationFrame(() => {
+                    this.updateActiveItem();
+                });
+            }, { passive: true });
+        },
+
+        updateActiveItem() {
+            const container = this.$refs.reportContainer;
+            const viewport = this.$refs.timeline;
+            if (!container || !viewport) return;
+
+            const viewportRect = viewport.getBoundingClientRect();
+            const referencePoint = viewportRect.right - viewportRect.width * 0.1;
+
+            let closestId = null;
+            let minDistance = Infinity;
+
+            container.querySelectorAll('[data-report-id]').forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const distance = Math.abs(referencePoint - rect.right);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestId = item.dataset.reportId;
+                }
+            });
+
+            if (closestId && this.activeId !== closestId) {
+                this.activeId = closestId;
+            }
+        },
+
+        async loadMore() {
             if (this.loading) return;
             this.loading = true;
             try {
@@ -63,11 +110,11 @@ export default function report() {
         },
 
         scrollNext() {
-            this.$refs.reportContainer.scrollBy({left: -350, behavior: 'smooth'});
+            this.$refs.timeline.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
         },
 
         scrollPrev() {
-            this.$refs.reportContainer.scrollBy({left: 350, behavior: 'smooth'});
+            this.$refs.timeline.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
         },
     };
 }

@@ -35,6 +35,11 @@ class PermissionResource extends Resource
 
     public static function canViewAny(): bool
     {
+        // Developers are super-admin by role and may administer permissions.
+        if (Auth::user()?->isDeveloper()) {
+            return true;
+        }
+
         return (bool)Permission::forUser(Auth::id())?->is_super_admin;
     }
 
@@ -72,7 +77,7 @@ class PermissionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('user:id,name,email');
+        return parent::getEloquentQuery()->with('user');
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

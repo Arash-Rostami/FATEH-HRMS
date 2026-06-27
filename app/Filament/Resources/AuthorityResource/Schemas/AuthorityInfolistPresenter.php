@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AuthorityResource\Schemas;
 
 use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
 use Filament\Infolists\Components\{IconEntry, TextEntry};
+use Illuminate\Database\Eloquent\Model;
 
 class AuthorityInfolistPresenter
 {
@@ -21,6 +22,7 @@ class AuthorityInfolistPresenter
         return TextEntry::make('department.description')
             ->label(__('resources/authority/strings.fields.department'))
             ->placeholder('—')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
             ->icon('heroicon-o-building-office-2');
     }
 

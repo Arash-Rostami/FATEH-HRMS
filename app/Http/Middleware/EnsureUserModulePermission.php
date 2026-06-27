@@ -13,6 +13,11 @@ class EnsureUserModulePermission
         $user = $request->user();
         if (!$user) return redirect()->route('login');
 
+        // Developers are super-admin by role — every module, no permission row.
+        if ($user->isDeveloper()) {
+            return $next($request);
+        }
+
         $perm = Permission::forUser($user->id);
         if (!$perm || !$perm->can($module, 'view')) abort(403);
 

@@ -4,11 +4,14 @@ namespace App\Filament\Resources\PermissionResource\Schemas;
 
 use App\Models\Permission;
 use App\Models\User;
+use App\Rules\SuperAdminExclusion;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 
 class PermissionFormPresenter
 {
@@ -42,6 +45,11 @@ class PermissionFormPresenter
             ->collapsible()
             ->reorderable(false)
             ->defaultItems(0)
+            // Lockout guard: a non-super admin needs >=1 module or they're 403-locked out.
+            ->required(fn(Get $get) => !$get('is_super_admin'))
+            ->validationMessages([
+                'required' => __('resources/permission/strings.validation.abilities_required'),
+            ])
             ->helperText(__('resources/permission/strings.hints.abilities'));
     }
 
@@ -53,6 +61,8 @@ class PermissionFormPresenter
             ->columns(3)
             ->searchable()
             ->bulkToggleable()
+            // Super admin may exclude 0..~20% of modules; beyond that, use abilities instead.
+            ->rules(fn(Get $get) => $get('is_super_admin') ? [new SuperAdminExclusion()] : [])
             ->helperText(__('resources/permission/strings.hints.excluded_modules'));
     }
 
@@ -64,6 +74,9 @@ class PermissionFormPresenter
             ->offIcon('heroicon-m-shield-exclamation')
             ->live()
             ->default(false)
+            ->afterStateUpdated(function (Set $set, ?bool $state) {
+                $set($state ? 'abilities' : 'excluded_modules', null);
+            })
             ->helperText(__('resources/permission/strings.hints.is_super_admin'));
     }
 
@@ -71,7 +84,7 @@ class PermissionFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/permission/strings.fields.user'))
-            ->options(fn() => User::getCachedAllOptions())
+            ->options(fn() => User::getCachedAdminOptions())
             ->required()
             ->searchable()
             ->preload()

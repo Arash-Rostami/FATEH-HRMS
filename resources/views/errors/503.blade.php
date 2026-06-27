@@ -1,5 +1,7 @@
 @extends('errors.layout')
 
+@section('error_code', 'ERR_503')
+
 @section('title', 'در حال بروزرسانی')
 
 @section('icon')

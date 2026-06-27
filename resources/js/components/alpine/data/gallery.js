@@ -1,4 +1,4 @@
-import {Fancybox} from "@fancyapps/ui";
+import { Fancybox } from "@fancyapps/ui";
 
 export default function gallery() {
     return {
@@ -12,13 +12,13 @@ export default function gallery() {
                 this.setupScrollListener();
                 this.setupIntersectionObserver();
                 this.initFancybox();
-z
+
                 setTimeout(() => {
                     this.updateActiveItem();
                 }, 100);
             });
 
-            Livewire.hook('morph', ({component, el}) => {
+            Livewire.hook('morph', ({ component, el }) => {
                 if (component.id === this.$wire.__instance.id) {
                     this.$nextTick(() => {
                         this.updateActiveItem();
@@ -36,54 +36,34 @@ z
                 Toolbar: {
                     display: {
                         left: ["infobar"],
-                        middle: [
-                            "zoomIn",
-                            "zoomOut",
-                            "toggle1to1",
-                            "rotateCCW",
-                            "rotateCW",
-                            "flipX",
-                            "flipY",
-                        ],
+                        middle: ["zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY"],
                         right: ["slideshow", "fullscreen", "download", "thumbs", "close"],
                     },
                 },
                 animated: true,
                 showClass: "f-fadeIn",
                 hideClass: "f-fadeOut",
-                Image: {
-                    zoom: true,
-                },
+                Image: { zoom: true },
                 backdrop: true,
                 keyboard: true,
                 dragToClose: true,
                 infinite: true,
-                Carousel: {
-                    transition: "slide",
-                },
+                Carousel: { transition: "slide" },
             });
         },
 
         scrollNext() {
-            const container = this.$refs.galleryContainer;
-            const scrollAmount = window.innerWidth >= 768 ? 450 : container.offsetWidth;
-            container.scrollBy({left: -scrollAmount, behavior: 'smooth'});
+            this.$refs.timeline.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
         },
 
         scrollPrev() {
-            const container = this.$refs.galleryContainer;
-            const scrollAmount = window.innerWidth >= 768 ? 450 : container.offsetWidth;
-            container.scrollBy({left: scrollAmount, behavior: 'smooth'});
+            this.$refs.timeline.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
         },
 
-        handleScroll() {
-            const el = this.$refs.galleryContainer;
-            const scrollLeft = Math.abs(el.scrollLeft);
-            const maxScroll = el.scrollWidth - el.clientWidth;
-        },
+        handleScroll() {},
 
         setupScrollListener() {
-            const container = this.$refs.galleryContainer;
+            const container = this.$refs.timeline;
             if (!container) return;
 
             let timeout;
@@ -92,7 +72,7 @@ z
                 timeout = window.requestAnimationFrame(() => {
                     this.updateActiveItem();
                 });
-            }, {passive: true});
+            }, { passive: true });
         },
 
         setupIntersectionObserver() {
@@ -119,18 +99,14 @@ z
             if (!container || !viewport) return;
 
             const viewportRect = viewport.getBoundingClientRect();
-            const viewportCenter = viewportRect.left + (viewportRect.width / 2);
+            const referencePoint = viewportRect.right - viewportRect.width * 0.1;
 
             let closestId = null;
             let minDistance = Infinity;
 
-            const items = container.querySelectorAll('[data-photo-id]');
-
-            items.forEach(item => {
+            container.querySelectorAll('[data-photo-id]').forEach(item => {
                 const rect = item.getBoundingClientRect();
-
-                const itemCenter = rect.left + (rect.width / 2);
-                const distance = Math.abs(viewportCenter - itemCenter);
+                const distance = Math.abs(referencePoint - rect.right);
 
                 if (distance < minDistance) {
                     minDistance = distance;

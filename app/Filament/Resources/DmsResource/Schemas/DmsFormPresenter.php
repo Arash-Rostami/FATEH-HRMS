@@ -6,13 +6,16 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use App\Models\Department;
 use App\Models\User;
+use App\Rules\UniqueLiveDocument;
 use App\Traits\FilamentFormDivider;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -27,6 +30,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.code'))
             ->required()
             ->maxLength(100)
+            ->rule(self::uniqueLiveRule())
             ->helperText(__('resources/dms/strings.hints.code'));
     }
 
@@ -111,6 +115,7 @@ class DmsFormPresenter
             ->options(DocumentStatus::class)
             ->required()
             ->default(DocumentStatus::Live->value)
+            ->rule(self::uniqueLiveRule())
             ->helperText(__('resources/dms/strings.hints.status'));
     }
 
@@ -162,6 +167,7 @@ class DmsFormPresenter
             ->label(__('resources/dms/strings.fields.version'))
             ->required()
             ->maxLength(50)
+            ->rule(self::uniqueLiveRule())
             ->helperText(__('resources/dms/strings.hints.version'));
     }
 
@@ -180,5 +186,18 @@ class DmsFormPresenter
             ->limit(30);
 
         return "{$prefix}-{$date}-{$unique}-{$name}.{$ext}";
+    }
+
+    /** (code, version) unique among LIVE docs only — attached to code/version/status alike so the warning surfaces on whichever field changed; Filament validates the whole form on submit, so the triple re-checks regardless of which of the three was edited. */
+    private static function uniqueLiveRule(): Closure
+    {
+        return function (Get $get, $record): UniqueLiveDocument {
+            return new UniqueLiveDocument(
+                code: (string)($get('code') ?? ''),
+                version: (string)($get('version') ?? ''),
+                status: (string)($get('status') ?? ''),
+                exceptId: $record?->id,
+            );
+        };
     }
 }

@@ -125,6 +125,15 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         ));
     }
 
+    /** Admin-role users only — permission rows are an admin-only concept (developers are super by role, users can't reach the panel). */
+    public static function getCachedAdminOptions(): Collection
+    {
+        return once(fn() => Cache::remember('user_admin_options',
+            now()->addHours(6),
+            fn() => self::where('role', 'admin')->orderBy('name')->pluck('name', 'id')
+        ));
+    }
+
     public static function getCachedNames(): Collection
     {
         return once(fn() => Cache::remember('user_names_map',
@@ -205,6 +214,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function permits(string $module, string $action): bool
     {
+        // Developers are super-admin by role — every module, every action, no exclusions.
+        if ($this->isDeveloper()) {
+            return true;
+        }
+
         return (bool)Permission::forUser($this->id)?->can($module, $action);
     }
 
@@ -336,12 +350,69 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         );
     }
 
+    protected function extra(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
+                return is_array($raw) ? $raw : [];
+            },
+            set: function ($value) {
+                $incoming = is_array($value) ? $value : json_decode($value ?? '[]', true);
+                if (!is_array($incoming)) {
+                    $incoming = [];
+                }
+
+                $existing = [];
+                if (isset($this->attributes['extra'])) {
+                    $decoded = json_decode($this->attributes['extra'], true);
+                    $existing = is_array($decoded) ? $decoded : [];
+                }
+
+                $result = [];
+                foreach ($existing as $k => $v) {
+                    if (is_array($v)) {
+                        $result[$k] = $v;
+                    }
+                }
+
+                $reserved = ['preferences', 'admin'];
+
+                if (array_key_exists('preferences', $incoming) && is_array($incoming['preferences'] ?? null)) {
+                    $result['preferences'] = array_merge(
+                        $result['preferences'] ?? [],
+                        $incoming['preferences'],
+                    );
+
+                    if (array_key_exists('admin', $incoming)) {
+                        $result['admin'] = is_array($incoming['admin']) ? $incoming['admin'] : [];
+                    }
+
+                    foreach ($incoming as $k => $v) {
+                        if (in_array($k, $reserved, true)) {
+                            continue;
+                        }
+                        $result['admin'][$k] = $v;
+                    }
+                } else {
+                    foreach ($reserved as $k) {
+                        unset($incoming[$k]);
+                    }
+                    $result['admin'] = $incoming;
+                }
+
+                return json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            },
+        );
+    }
+
     protected static function booted(): void
     {
         $flushCache = fn() => collect([
             'user_active_options',
             'user_all_options',
             'user_names_map',
+            'user_admin_options',
         ])->each(Cache::forget(...));
 
         static::saved($flushCache);
@@ -356,7 +427,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
             'updated_at' => 'datetime',
             'last_seen' => 'datetime',
             'password' => 'hashed',
-            'extra' => 'array',
             'maximum' => 'integer',
             'presence' => PresenceStatus::class,
         ];

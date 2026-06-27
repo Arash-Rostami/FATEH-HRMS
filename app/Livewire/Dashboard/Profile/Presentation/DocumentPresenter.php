@@ -2,12 +2,13 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
+use App\Models\Traits\HasPublicAssetUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 class DocumentPresenter
 {
+    use HasPublicAssetUrl;
 
     public function parseAttachments(?array $attachments): Collection
     {
@@ -17,7 +18,7 @@ class DocumentPresenter
                 'category'     => $item['category'],
                 'key'          => $item['key'],
                 'path'         => $item['path'],
-                'url'          => Storage::disk('public')->url($item['path']),
+                'url'          => self::resolvePublicAssetUrl($item['path']),
                 'fileName'     => basename($item['path']),
                 'uploadedTime' => isset($item['uploaded_at'])
                     ? Carbon::parse($item['uploaded_at'])->timezone('Asia/Tehran')->format('Y/m/d H:i')
