@@ -152,14 +152,15 @@ class ModuleAnalyticsChartsRight extends ChartWidget
 
         $labels = [];
         $data = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
+        for ($i = 0; $i <= 29; $i++) {
+            $currentDate = (clone $startDate)->addDays($i);
+            $dateStr = $currentDate->format('Y-m-d');
             try {
-                $labels[] = Jalalian::fromCarbon(Carbon::parse($date))->format('%m/%d');
+                $labels[] = Jalalian::fromCarbon($currentDate)->format('%m/%d');
             } catch (\Exception $e) {
-                $labels[] = $date;
+                $labels[] = $dateStr;
             }
-            $data[] = $results->get($date)?->count ?? 0;
+            $data[] = $results->get($dateStr)?->count ?? 0;
         }
 
         return [
