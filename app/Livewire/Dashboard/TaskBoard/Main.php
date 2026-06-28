@@ -76,13 +76,13 @@ class Main extends Component
     #[Computed]
     public function availableSections(): array
     {
-        return Department::find($this->form->departmentId)?->sectionsOptions() ?? [];
+        return Department::getCachedModels()->get($this->form->departmentId)?->sectionsOptions() ?? [];
     }
 
     #[Computed]
     public function availableUnits(): array
     {
-        return Department::find($this->form->departmentId)?->unitsOptions() ?? [];
+        return Department::getCachedModels()->get($this->form->departmentId)?->unitsOptions() ?? [];
     }
 
     public function bulkAssign(BulkAssignTasksAction $action, ?int $userId): void
