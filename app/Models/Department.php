@@ -117,10 +117,13 @@ class Department extends Model
 
     protected static function booted(): void
     {
-        $forgetCache = function () {
+        $forgetCache = function ($model) {
             Cache::forget('department_options');
             Cache::forget('department_options_with_tickets');
             Cache::forget('department_models');
+            if ($model && $model->code) {
+                Cache::forget("department_ticket_options_{$model->code}");
+            }
         };
 
         static::saved($forgetCache);

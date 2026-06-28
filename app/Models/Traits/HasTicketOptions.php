@@ -241,14 +241,15 @@ trait HasTicketOptions
     {
         if (!$departmentCode) return null;
 
-        static $cache = [];
-
-        if (array_key_exists($departmentCode, $cache)) return $cache[$departmentCode];
-
-        $department = Department::find($departmentCode);
-        $options = $department && !empty($department->ticket_options) ? $department->ticket_options : null;
-        $cache[$departmentCode] = $options;
-
-        return $options;
+        return once(function () use ($departmentCode) {
+            return \Illuminate\Support\Facades\Cache::remember(
+                "department_ticket_options_{$departmentCode}",
+                now()->addYear(),
+                function () use ($departmentCode) {
+                    $department = Department::find($departmentCode);
+                    return $department && !empty($department->ticket_options) ? $department->ticket_options : null;
+                }
+            );
+        });
     }
 }
