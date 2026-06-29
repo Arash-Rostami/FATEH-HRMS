@@ -12,6 +12,7 @@ use App\Services\Menu\Indicators\TodayFeeds;
 use App\Services\Menu\Indicators\TodayPosts;
 
 use App\Services\Menu\Indicators\UnreadMessages;
+use App\Services\Menu\Indicators\EnergyTestBadge;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -28,6 +29,7 @@ class StateService
         SpecialDays::class,
         TasksTodo::class,
         UnreadMessages::class,
+        EnergyTestBadge::class,
     ];
 
     public function __construct(
