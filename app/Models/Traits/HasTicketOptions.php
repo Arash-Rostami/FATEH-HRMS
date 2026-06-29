@@ -241,15 +241,13 @@ trait HasTicketOptions
     {
         if (!$departmentCode) return null;
 
-        return once(function () use ($departmentCode) {
-            return \Illuminate\Support\Facades\Cache::remember(
-                "department_ticket_options_{$departmentCode}",
-                now()->addYear(),
-                function () use ($departmentCode) {
-                    $department = Department::find($departmentCode);
-                    return $department && !empty($department->ticket_options) ? $department->ticket_options : null;
-                }
-            );
-        });
+        static $cache = [];
+
+        if (array_key_exists($departmentCode, $cache)) return $cache[$departmentCode];
+
+        $department = Department::getCachedModels()->get($departmentCode);
+        return $cache[$departmentCode] = ($department && !empty($department->ticket_options))
+            ? $department->ticket_options
+            : null;
     }
 }
