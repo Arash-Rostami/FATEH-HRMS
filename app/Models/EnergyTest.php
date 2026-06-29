@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\Traits\HasMenuState;
 
 class EnergyTest extends Model
 {
-    use HasFactory;
+    use HasFactory, HasMenuState;
 
     protected $fillable = [
         'user_id',
@@ -95,6 +96,8 @@ class EnergyTest extends Model
 
     protected static function booted(): void
     {
+        static::bootHasMenuState();
+
         $forgetCache = fn(self $test) => Cache::forget(
             "energy_tests.user_averages.{$test->user_id}"
         );

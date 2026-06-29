@@ -13,6 +13,9 @@ use App\Services\Menu\Notifications\SuggestionNudge;
 use App\Services\Menu\Notifications\TaskNudge;
 use App\Services\Menu\NudgeService;
 use Illuminate\Support\ServiceProvider;
+use App\Services\Menu\Notifications\EnergyTestNudge;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Login;
 
 
 class NudgeServiceProvider extends ServiceProvider
@@ -28,6 +31,11 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new FeedNudge());
         NudgeService::register(new TaskNudge());
         NudgeService::register(new ContactNudge());
+        NudgeService::register(new EnergyTestNudge());
+
+        Event::listen(Login::class, function (Login $event) {
+            dispatch(new \App\Jobs\ReconcileNudge('energy-controller:nudge', \App\Models\User::class, $event->user->id))->afterCommit();
+        });
 
 
     }
