@@ -4,14 +4,16 @@ namespace App\Models;
 
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
+
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasMenuState, HasFactory, HasPublicAssetUrl;
 
     protected $fillable = [
         'title',
@@ -20,6 +22,9 @@ class Post extends Model
         'pinned',
         'user_id'
     ];
+
+
+
 
     public function scopePinned($query)
     {
