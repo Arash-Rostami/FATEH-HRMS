@@ -6,4 +6,5 @@ return [
     App\Providers\FortifyServiceProvider::class,
     App\Providers\ViewServiceProvider::class,
     App\Providers\FilamentServiceProvider::class,
+    App\Providers\NudgeServiceProvider::class,
 ];

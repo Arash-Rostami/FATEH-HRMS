@@ -90,7 +90,8 @@ class Tabs extends Component
                 'component' => Calendar::class,
                 'label' => 'تقویم',
                 'icon' => 'calendar_month',
-                'bg' => 'bg-tertiary-container'
+                'bg' => 'bg-tertiary-container',
+                'badge' => 'shared-events',
             ],
             'status' => [
                 'component' => Status::class,

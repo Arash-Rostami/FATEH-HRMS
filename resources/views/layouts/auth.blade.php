@@ -7,14 +7,8 @@
           useVideo: localStorage.getItem('use-video') !== 'false',
           videoIndex: 0,
           videos: [
-              '{{ asset('build/assets/video/1.mp4') }}',
-    '{{ asset('build/assets/video/2.mp4') }}',
-    '{{ asset('build/assets/video/3.mp4') }}',
-    '{{ asset('build/assets/video/4.mp4') }}',
-    '{{ asset('build/assets/video/5.mp4') }}',
-    '{{ asset('build/assets/video/6.mp4') }}',
-
-
+                '{{ asset('build/assets/video/mining-01.mp4') }}',
+                '{{ asset('build/assets/video/mining-02.mp4') }}',
           ],
           playNext() {
             const nextIndex = (this.videoIndex + 1) % this.videos.length;
@@ -43,8 +37,6 @@
     {{--    '{{ asset('build/assets/video/6.mp4') }}',--}}
 
 
-    {{--    '{{ asset('build/assets/video/mining-01.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/mining-02.mp4') }}',--}}
     <x-dashboard.meta-tags/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -84,7 +76,7 @@
 <div class="flex min-h-screen w-full flex-col lg:flex-row relative z-10">
 
     <div
-        class="relative hidden lg:flex lg:w-[40%] h-full min-h-screen flex-col justify-end px-12 pb-24 order-1 group cursor-default">
+        class="relative hidden lg:flex lg:w-[40%] h-full min-h-screen flex-col justify-end px-12 pb-24 order-1 group cursor-default animate-slide-in-right animate-delay-1750">
         <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
             <h1 class="text-6xl font-black text-white mb-4 drop-shadow-2xl tracking-tight opacity-90 group-hover:opacity-100 transition-opacity duration-500">
                 اینترا</h1>
@@ -96,7 +88,7 @@
 
     <div
         class="w-full  lg:flex-1 flex flex-col justify-center items-right p-4 sm:p-8 lg:p-16 xl:p-24 z-20 order-2 transition-all duration-500 relative min-h-screen">
-        <div class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2" x-cloak>
+        <div class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2 md:animate-slide-in-right md:animate-delay-1500" x-cloak>
             <div
                 class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 bg-white/80 dark:bg-black/50 opacity-[0.6] border border-gray-200 dark:border-white/10 shadow-2xl transition-all hover:bg-white hover:dark:bg-black/70">
                 <button @click="useVideo = !useVideo"
@@ -141,6 +133,11 @@
             <div class="group w-full">{{ $slot }}</div>
         </div>
     </div>
+</div>
+
+<div class="hidden md:flex md:fixed md:top-8 md:left-8 z-30 items-center gap-2.5 px-3.5 py-2 rounded-2xl shadow-xl ring-1 ring-inset ring-white/10 bg-black/55 dark:bg-black/70 animate-slide-in-left animate-delay-1500 hover:-translate-y-0.5 transition-all duration-300"
+     style="backdrop-filter:blur(12px);">
+    <img src="{{ asset('build/assets/img/logo.png') }}" alt="{{ config('app.name', 'INTERRA') }}" class="h-12 w-auto rounded-lg" fetchpriority="low" decoding="async">
 </div>
 
 @livewireScripts

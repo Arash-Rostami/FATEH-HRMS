@@ -31,7 +31,10 @@
         </div>
 
         <x-ui.modals.base wire:model="showWorkflowModal" title="فلوچارت روند بررسی پیشنهاد" contentClass="max-w-[95vw] w-full">
-            <div class="w-full">
+            <div class="w-full"
+                 x-data="{ ready: false }"
+                 x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
+                 x-show="ready">
                 <img src="{{ asset('build/assets/img/suggestion.png') }}" alt="Flowchart" class="w-full h-auto rounded-xl shadow-sm">
             </div>
         </x-ui.modals.base>

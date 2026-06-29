@@ -11,7 +11,11 @@ class ViewServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        View::composer('components.dashboard.modal.menu', function ($view) {
+        View::composer([
+            'components.dashboard.modal.menu',
+            'components.dashboard.navbars.right',
+            'components.dashboard.navbars.bottom',
+        ], function ($view) {
             $view->with('menuState', app(MenuStateService::class)->get());
         });
 

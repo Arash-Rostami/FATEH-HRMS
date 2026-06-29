@@ -313,7 +313,7 @@ When one **boolean toggle** decides which of two *sections* is authoritative (no
 
 Because `Permission::can()` ignores `abilities` while `is_super_admin` is true and ignores `excluded_modules` while it is false, a row carrying a value on the dead side is **misleading** (reads as "granted" but is never consulted). The form clear only fires on toggle interaction, so the invariant is **also enforced at the data layer** in `Permission::booted()` via a `static::saving` hook that nulls the inactive side — this guarantees a clean row regardless of which form path wrote it and cleans up any stale row on its next save. Prefer this two-layer (UX + model) approach whenever the dead-side value would otherwise be misread as a grant.
 
-> **Full permission workflow** (role-first model, developer bypass sites, the two admin tiers, module vs action granularity, validation, caching) is documented in `app/Providers/Filament/adminPanelPermissionLogic.md` — read it before changing anything in the permission chain.
+> **Full permission workflow** (role-first model, developer bypass sites, the two admin tiers, module vs action granularity, validation, caching) is documented in `app/Providers/Filament/adminPanelPermissionLogicPattern.md` — read it before changing anything in the permission chain.
 
 ##### Cross-field validation rule that re-runs when any sibling changes
 

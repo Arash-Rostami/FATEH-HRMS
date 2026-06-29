@@ -4,9 +4,11 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Actions\DeleteEventAction;
 use App\Livewire\Dashboard\Tab\Actions\SaveEventAction;
+use App\Livewire\Dashboard\Tab\Actions\ShareEventAction;
 use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Models\Event;
 use App\Models\Profile;
+use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +28,10 @@ class Calendar extends Component
     public string $selectedDate;
     public bool $isCreateModalOpen = false;
     public ?int $deletingEventId = null;
+
+    public bool $isShareModalOpen = false;
+    public ?int $sharingEventId = null;
+    public array $shareRecipientIds = [];
 
     #[Computed]
     public function activeDate(): array
@@ -61,9 +67,13 @@ class Calendar extends Component
         }
 
         $monthEvents = Event::query()
+            ->with('shares:user_id,event_id')
             ->whereBetween('date', [$startDate, $endDate])
             ->where(function ($q) {
-                $q->where('user_id', Auth::id())->orWhere('private', false);
+                $authId = Auth::id();
+                $q->where('user_id', $authId)
+                    ->orWhere('private', false)
+                    ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $authId));
             })
             ->get()
             ->groupBy(fn($e) => Jalalian::fromCarbon($e->date)->format('Y-m-d'));
@@ -83,16 +93,29 @@ class Calendar extends Component
         $todayStr = Jalalian::now()->format('Y-m-d');
         $currentDate = clone $startDate;
 
+        $authId = Auth::id();
+        $now = now();
+        $imminentEnd = (clone $now)->addDay();
+        $isShared = fn(Event $e) => $e->user_id === $authId
+            ? $e->shares->isNotEmpty()
+            : $e->shares->contains('user_id', $authId);
+
         for ($day = 1; $day <= $daysInMonth; $day++) {
             try {
                 $dateString = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
                 $mdKey = $currentDate->format('m-d');
 
-                $hasEvent = $monthEvents->has($dateString);
+                $dayEvents = $monthEvents->get($dateString);
+                $hasEvent = $dayEvents !== null;
                 $hasBirthday = $birthdays->has($mdKey);
                 $hasAnniversary = $anniversaries->has($mdKey);
 
-                $eventCount = ($hasEvent ? $monthEvents->get($dateString)->count() : 0) +
+                $hasShared = $hasEvent && $dayEvents->contains($isShared);
+                $hasImminentShared = $hasShared && $dayEvents->contains(
+                    fn(Event $e) => $isShared($e) && $e->date >= $now && $e->date <= $imminentEnd
+                );
+
+                $eventCount = ($hasEvent ? $dayEvents->count() : 0) +
                     ($hasBirthday ? 1 : 0) +
                     ($hasAnniversary ? 1 : 0);
 
@@ -105,6 +128,8 @@ class Calendar extends Component
                     'hasBirthday' => $hasBirthday,
                     'hasAnniversary' => $hasAnniversary,
                     'eventCount' => $eventCount,
+                    'hasShared' => $hasShared,
+                    'hasImminentShared' => $hasImminentShared,
                 ];
 
                 $currentDate->addDay();
@@ -156,7 +181,10 @@ class Calendar extends Component
         $this->form->editingId = $eventId;
         $this->form->title = $event->title;
         $this->form->description = $event->description ?? '';
-        $this->form->date = Jalalian::fromCarbon($event->date)->format('Y-m-d');
+        $j = Jalalian::fromCarbon($event->date);
+        $this->form->dateYear = $j->getYear();
+        $this->form->dateMonth = $j->getMonth();
+        $this->form->dateDay = $j->getDay();
         $this->form->time = $event->date->format('H:i');
         $this->form->private = (bool)$event->private;
 
@@ -237,6 +265,88 @@ class Calendar extends Component
         $this->form->resetForm($this->selectedDate);
     }
 
+    #[Computed]
+    public function availableUsers(): array
+    {
+        $authId = Auth::id();
+
+        return User::getCachedActiveOptions()
+            ->except($authId)
+            ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name])
+            ->values()
+            ->toArray();
+    }
+
+    #[Computed]
+    public function sharingEvent(): ?Event
+    {
+        if ($this->sharingEventId === null) {
+            return null;
+        }
+
+        return Event::query()
+            ->where('user_id', Auth::id())
+            ->find($this->sharingEventId);
+    }
+
+    public function openShareModal(int $eventId): void
+    {
+        $event = Event::query()
+            ->where('user_id', Auth::id())
+            ->find($eventId);
+
+        if (!$event) {
+            return;
+        }
+
+        $this->sharingEventId = $eventId;
+        $this->shareRecipientIds = $event->shares()
+            ->pluck('user_id')
+            ->map(fn($id) => (string)$id)
+            ->all();
+
+        $this->isShareModalOpen = true;
+    }
+
+    public function shareEvent(ShareEventAction $action): void
+    {
+        if ($this->sharingEventId === null) {
+            return;
+        }
+
+        try {
+            $summary = $action->execute($this->sharingEventId, Auth::id(), $this->shareRecipientIds);
+        } catch (InvalidArgumentException $e) {
+            $this->addError('share', $e->getMessage());
+            return;
+        } catch (Throwable $e) {
+            report($e);
+            $this->addError('share', 'اشتراک‌گذاری با خطا مواجه شد؛ دوباره تلاش کنید.');
+            $this->dispatch('toast', message: 'اشتراک‌گذاری با خطا مواجه شد.', type: 'error');
+            return;
+        }
+
+        if ($summary['added'] > 0) {
+            $this->dispatch(
+                'toast',
+                message: sprintf('رویداد «%s» با %d نفر به اشتراک گذاشته شد.', $summary['event_title'], $summary['added']),
+                type: 'success',
+            );
+        } elseif ($summary['removed'] > 0) {
+            $this->dispatch(
+                'toast',
+                message: sprintf('اشتراک رویداد برای %d نفر لغو شد.', $summary['removed']),
+                type: 'success',
+            );
+        } else {
+            $this->dispatch('toast', message: 'تغییری در اشتراک‌گذاری اعمال نشد.', type: 'info');
+        }
+
+        $this->isShareModalOpen = false;
+        $this->sharingEventId = null;
+        $this->shareRecipientIds = [];
+    }
+
     public function selectDate(string $date): void
     {
         $this->selectedDate = $date;
@@ -258,9 +368,13 @@ class Calendar extends Component
         }
 
         $events = Event::query()
+            ->with('shares:user_id,event_id')
             ->whereDate('date', $gregorianDate)
             ->where(function ($q) {
-                $q->where('user_id', Auth::id())->orWhere('private', false);
+                $authId = Auth::id();
+                $q->where('user_id', $authId)
+                    ->orWhere('private', false)
+                    ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $authId));
             })
             ->latest('date')
             ->get()
@@ -272,6 +386,8 @@ class Calendar extends Component
                 'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
                 'is_owner' => $event->user_id === Auth::id(),
                 'private' => $event->private,
+                'is_shared' => $event->user_id !== Auth::id()
+                    && $event->shares->contains('user_id', Auth::id()),
             ]);
 
         $profiles = Profile::query()

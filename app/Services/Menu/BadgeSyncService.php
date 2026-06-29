@@ -10,9 +10,11 @@ use Illuminate\Support\Str;
 
 class BadgeSyncService
 {
-    public function sync($user, MenuBadge $indicator, bool $isActive, ?int $version = null): void
+    public function sync($user, MenuBadge $indicator, bool $isActive): void
     {
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
 
         $query = $user->notifications()
             ->where('type', FilamentDatabaseNotification::class)
@@ -23,39 +25,29 @@ class BadgeSyncService
             return;
         }
 
-        $notification = (clone $query)->latest()->first();
-
-        (clone $query)->when($notification, fn($q) => $q->whereKeyNot($notification->getKey()))->delete();
-
-        if ($notification && ($notification->data['version'] ?? null) === $version) {
+        if ($query->exists()) {
             return;
         }
 
-        $payload = [
-            ...Notification::make()
-                ->title($indicator->getTitle())
-                ->body($indicator->getBody())
-                ->warning()
-                ->persistent()
-                ->actions([
-                    Action::make('read')
-                        ->label('حذف اعلان')
-                        ->color('primary')
-                        ->markAsRead()
-                        ->button(),
-                ])
-                ->getDatabaseMessage(),
-            'menu_key' => $indicator->getKey(),
-            'version' => $version,
-            'cleared' => false,
-        ];
-
-        $notification
-            ? $notification->update(['data' => $payload, 'read_at' => null])
-            : $user->notifications()->create([
-            'id' => (string)Str::uuid(),
+        $user->notifications()->create([
+            'id' => (string) Str::uuid(),
             'type' => FilamentDatabaseNotification::class,
-            'data' => $payload,
+            'data' => [
+                ...Notification::make()
+                    ->title($indicator->getTitle())
+                    ->body($indicator->getBody())
+                    ->warning()
+                    ->persistent()
+                    ->actions([
+                        Action::make('read')
+                            ->label('حذف اعلان')
+                            ->color('primary')
+                            ->markAsRead()
+                            ->button(),
+                    ])
+                    ->getDatabaseMessage(),
+                'menu_key' => $indicator->getKey(),
+            ],
         ]);
     }
 }

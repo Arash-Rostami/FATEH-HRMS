@@ -27,7 +27,7 @@
                 {{ $tab['icon'] }}
             </span>
 
-            @if($tab['badge'] ?? false)
+            @if(isset($tab['badge']) && ($menuState[$tab['badge']] ?? false))
                 <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                     <span
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>

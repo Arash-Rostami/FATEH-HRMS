@@ -168,3 +168,24 @@ In `vite.config.js`, the Workbox configuration is highly specific:
 
 ❌ **Do not use `window.Theme = 'dark'` for global state.**
 *Why?* Alpine cannot react to plain Window object mutations. Always use `Alpine.store('appTheme').set('dark')` so the UI re-renders automatically.
+
+## 7. Modal Open Animation & Heavy Slot Content
+
+The shared modal shell (`.custom-modal`) opens by animating **`width`/`height`** (geometry), not `transform` — see `resources/css/core/dashboard.css`. Geometry animation cannot run on the compositor, so the browser re-runs layout on the modal subtree **every animation frame** for ~1s.
+
+⚠️ **The slot content stays laid-out while invisible.** `.custom-modal-content` is `visibility: hidden` + `opacity: 0` until the geometry finishes, but `visibility: hidden` still performs layout (unlike `display: none`). So a heavy form in the slot is reflowed ~60× during the open animation even though it isn't painted. The dominant cost is **text re-wrapping** of the slot's fields at each intermediate width. A wider final layout (e.g. `!w-full` on `modal-inner-card` instead of the default 66.666%) raises per-frame reflow cost and can push a previously-smooth modal into jank.
+
+✅ **Defer the slot's layout until the geometry animation completes** — scope it to the one form that needs it, leave the shared modal untouched:
+
+```blade
+<div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl"
+     x-data="{ tab: '{{ $defaultTab }}', ready: false }"
+     x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
+     x-show="ready">
+```
+
+* `x-effect` reads the parent modal's entangled `show` (scope chain is preserved through `x-teleport="body"`, so a teleported slot still reaches the modal's `show`/`active`). On open it arms a 1000ms timer (matching the `.custom-modal-content` opacity delay of `ease 1s`); on close it resets `ready` so the next open starts deferred.
+* `x-show="ready"` keeps the form `display: none` during the geometry window → nothing to lay out → zero per-frame reflow. At 1s the form is laid out **once**, exactly when it was already scheduled to fade in. `wire:model` bindings stay intact — `x-show` keeps the elements in the DOM.
+* The timer callback re-checks `if (show)` so a close-during-pending or quick reopen can't leak a stale `ready = true`.
+* **Adopters:** `livewire/dashboard/taskboard/form.blade.php` and `livewire/dashboard/tab/calendar/create.blade.php` (form modals — expanded `!w-full !max-w-none !p-5 md:!p-6` sizing + defer on the `modal-inner-card`); `livewire/dashboard/tab/status/about-me.blade.php` (defer on the main content container only — its `max-w-2xl` profile frame and decorative absolute layers stay untouched, since they reflow trivially); `livewire/dashboard/suggestion/create.blade.php` (defer on the flowchart modal's `w-full` image wrapper). For non-form modals only the defer applies — their purpose-specific widths are left as designed.
+* **Do not** reach for `max-widget` (the page-level `position: fixed` fullscreen overlay) inside this modal — `.custom-modal` has `transform` + `contain: strict` + `overflow: hidden`, which re-contains a `fixed` descendant unpredictably (the z-10/transform trap). That pattern is for page-root widgets only. Expanding the card *within* the modal is the correct adaptation here.

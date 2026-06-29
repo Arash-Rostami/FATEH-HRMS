@@ -17,7 +17,10 @@
     :readonly="$isReadOnly"
     class="!max-w-3xl !w-full md:!w-7xl"
 >
-    <div class="modal-inner-card" dir="rtl" x-data="{ tab: '{{ $defaultTab }}' }">
+    <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl"
+         x-data="{ tab: '{{ $defaultTab }}', ready: false }"
+         x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
+         x-show="ready">
 
         <nav class="flex flex-wrap p-1 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm">
             @foreach($tabs as $t)

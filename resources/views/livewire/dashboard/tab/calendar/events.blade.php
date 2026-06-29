@@ -8,7 +8,7 @@
             <div class="flex flex-col justify-center min-w-0 gap-0.5">
                 <div class="flex items-baseline gap-2">
                     <h3 class="text-xl md:text-2xl font-black text-[var(--md-sys-color-on-surface)] tracking-tight truncate">
-                        {{ $d['jalali'] }}
+                        {{ convertToPersian($d['jalali']) }}
                     </h3>
                 </div>
                 <div class="flex items-center gap-1.5">
@@ -64,7 +64,7 @@
                                 {{ $event['title'] }}
                             </h4>
                             <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0 ml-2">
-                                {{ $event['time'] }}
+                                {{ convertToPersian($event['time']) }}
                             </span>
                         </div>
 
@@ -82,6 +82,13 @@
                                     <span>عمومی</span>
                                 @endif
                             </div>
+
+                            @if(!empty($event['is_shared']))
+                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-secondary)] bg-[var(--md-sys-color-secondary-container)]/50 px-2 py-0.5 rounded-md">
+                                    <span class="material-symbols-rounded text-[12px]">group</span>
+                                    <span>مشترک</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -89,14 +96,21 @@
                 @if($event['is_owner'])
                     <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
                         <button
+                            wire:click="openShareModal({{ $event['id'] }})"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-secondary)] shadow-sm hover:bg-[var(--md-sys-color-secondary)] hover:text-[var(--md-sys-color-on-secondary)] transition-colors"
+                            title="اشتراک‌گذاری"
+                        >
+                            <span class="material-symbols-rounded text-[16px]">share</span>
+                        </button>
+                        <button
                             wire:click="editEvent({{ $event['id'] }})"
-                            class="px-2 py-1 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors"
                         >
                             <span class="material-symbols-rounded text-[16px]">edit</span>
                         </button>
                         <button
                             wire:click="confirmDelete({{ $event['id'] }})"
-                            class="px-2 py-1 bg-[var(--md-sys-color-error-container)] rounded-xl text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-error-container)] rounded-xl text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors"
                         >
                             <span class="material-symbols-rounded text-[16px]">delete</span>
                         </button>

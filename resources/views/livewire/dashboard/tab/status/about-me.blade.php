@@ -11,14 +11,17 @@
 
     <x-ui.modals.base
         wire:model="showAboutModal"
-        contentClass="w-full max-w-2xl bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl overflow-x-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
+        contentClass="!w-full md:!w-7xl bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl overflow-x-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
 
         <div class="absolute inset-0 pointer-events-none z-0 opacity-[0.03] dark:opacity-[0.05]"
              style="background-image: radial-gradient(circle, var(--md-sys-color-on-surface) 1px, transparent 1px); background-size: 28px 28px;">
         </div>
         <div class="absolute -top-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-[var(--md-sys-color-primary)] opacity-[0.06] pointer-events-none z-0"></div>
 
-        <div dir="rtl" class="flex flex-col flex-1 overflow-hidden relative z-10">
+        <div dir="rtl" class="flex flex-col flex-1 overflow-hidden relative z-10"
+             x-data="{ ready: false }"
+             x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
+             x-show="ready">
 
             <div class="px-6 py-6 flex items-center justify-between border-b border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]/80 sticky top-0 z-20">
                 <div class="flex items-center gap-5">
@@ -46,7 +49,7 @@
             </div>
 
             <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1">
-                <div class="max-w-xl mx-auto space-y-8">
+                <div class="max-w-5xl mx-auto w-full space-y-8">
 
                     <div x-show="aboutMe.bio"
                          x-transition:enter="transition ease-out duration-300"

@@ -27,3 +27,6 @@ resources/assets/video/*.mp4
 /public/img/*
 /tests/
 .claude/
+claude-launcher.bat
+claude-agent.ps1
+/temp

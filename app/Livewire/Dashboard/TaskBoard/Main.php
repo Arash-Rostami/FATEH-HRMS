@@ -74,15 +74,21 @@ class Main extends Component
     }
 
     #[Computed]
+    public function selectedDepartment(): ?Department
+    {
+        return Department::getCachedModels()->get($this->form->departmentId);
+    }
+
+    #[Computed]
     public function availableSections(): array
     {
-        return Department::find($this->form->departmentId)?->sectionsOptions() ?? [];
+        return $this->selectedDepartment?->sectionsOptions() ?? [];
     }
 
     #[Computed]
     public function availableUnits(): array
     {
-        return Department::find($this->form->departmentId)?->unitsOptions() ?? [];
+        return $this->selectedDepartment?->unitsOptions() ?? [];
     }
 
     public function bulkAssign(BulkAssignTasksAction $action, ?int $userId): void

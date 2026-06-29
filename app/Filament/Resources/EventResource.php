@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EventResource\Exports\EventExporter;
+use App\Filament\Resources\EventResource\RelationManagers\EventSharesRelationManager;
 use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\EventResource\Pages\{CreateEvent, EditEvent, ListEvents};
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
@@ -122,7 +123,9 @@ class EventResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            EventSharesRelationManager::class,
+        ];
     }
 
     public static function infolist(Schema $schema): Schema

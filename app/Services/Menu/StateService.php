@@ -2,9 +2,10 @@
 
 namespace App\Services\Menu;
 
+use App\Models\User;
 use App\Services\Menu\Indicators\ActiveAds;
 use App\Services\Menu\Indicators\PendingSuggestions;
-use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
+use App\Services\Menu\Indicators\SharedEvents;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -15,6 +16,7 @@ class StateService
     private array $indicators = [
         ActiveAds::class,
         PendingSuggestions::class,
+        SharedEvents::class,
     ];
 
     public function __construct(
@@ -26,7 +28,6 @@ class StateService
     public static function flush(): void
     {
         Cache::forever(self::VERSION_KEY, now()->getPreciseTimestamp());
-        app(self::class)->purgeMenuNotifications();
     }
 
     public function get(): array
@@ -35,36 +36,31 @@ class StateService
         $version = self::version();
         $cacheKey = "menu_state:v{$version}:" . ($user ? "u{$user->id}" : 'guest');
 
-        $state = Cache::remember($cacheKey, now()->addHours(self::TTL_HOURS), function () {
+        return Cache::remember($cacheKey, now()->addHours(self::TTL_HOURS), function () use ($user, $version) {
             $resolved = [];
             foreach ($this->indicators as $indicatorClass) {
                 $indicator = app($indicatorClass);
                 $resolved[$indicator->getKey()] = $indicator->isActive();
             }
+
+            if ($user) {
+                $this->syncIndicators($user, $resolved);
+            }
+
             return $resolved;
         });
-
-        if ($user) {
-            foreach ($this->indicators as $indicatorClass) {
-                $indicator = app($indicatorClass);
-                $this->syncService->sync($user, $indicator, $state[$indicator->getKey()] ?? false, $version);
-            }
-        }
-
-        return $state;
     }
 
-    private function purgeMenuNotifications(): void
+    private function syncIndicators(User $user, array $state): void
     {
-        $keys = array_map(fn($class) => app($class)->getKey(), $this->indicators);
+        foreach ($this->indicators as $indicatorClass) {
+            $indicator = app($indicatorClass);
 
-        FilamentDatabaseNotification::where('type', FilamentDatabaseNotification::class)
-            ->where(function ($q) use ($keys) {
-                foreach ($keys as $key) {
-                    $q->orWhere('data->menu_key', $key);
-                }
-            })
-            ->delete();
+            try {
+                $this->syncService->sync($user, $indicator, $state[$indicator->getKey()] ?? false);
+            } catch (\Throwable) {
+            }
+        }
     }
 
     private static function version(): int

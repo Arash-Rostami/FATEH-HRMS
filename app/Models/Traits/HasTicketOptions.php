@@ -245,10 +245,9 @@ trait HasTicketOptions
 
         if (array_key_exists($departmentCode, $cache)) return $cache[$departmentCode];
 
-        $department = Department::find($departmentCode);
-        $options = $department && !empty($department->ticket_options) ? $department->ticket_options : null;
-        $cache[$departmentCode] = $options;
-
-        return $options;
+        $department = Department::getCachedModels()->get($departmentCode);
+        return $cache[$departmentCode] = ($department && !empty($department->ticket_options))
+            ? $department->ticket_options
+            : null;
     }
 }

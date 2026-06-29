@@ -13,8 +13,14 @@ class EventForm extends Form
     #[Validate('nullable|string|max:1000')]
     public string $description = '';
 
-    #[Validate('required|date_format:Y-m-d')]
-    public string $date = '';
+    #[Validate('required|numeric')]
+    public string $dateYear = '';
+
+    #[Validate('required|numeric|min:1|max:12')]
+    public string $dateMonth = '';
+
+    #[Validate('required|numeric|min:1|max:31')]
+    public string $dateDay = '';
 
     #[Validate('required')]
     public string $time = '12:00';
@@ -27,7 +33,10 @@ class EventForm extends Form
     public function resetForm(string $defaultDate): void
     {
         $this->reset();
-        $this->date = $defaultDate;
+        $parts = explode('-', $defaultDate) + ['', '', ''];
+        $this->dateYear  = $parts[0] !== '' ? (string)(int)$parts[0] : '';
+        $this->dateMonth = $parts[1] !== '' ? (string)(int)$parts[1] : '';
+        $this->dateDay   = $parts[2] !== '' ? (string)(int)$parts[2] : '';
         $this->time = '12:00';
     }
 
@@ -40,8 +49,13 @@ class EventForm extends Form
     {
         return [
             'title.required' => 'عنوان رویداد الزامی است',
-            'date.required' => 'تاریخ الزامی است',
-            'date.date_format' => 'فرمت تاریخ صحیح نیست',
+            'dateYear.required' => 'تاریخ الزامی است',
+            'dateMonth.required' => 'تاریخ الزامی است',
+            'dateDay.required' => 'تاریخ الزامی است',
+            'dateMonth.min' => 'ماه نامعتبر است',
+            'dateMonth.max' => 'ماه نامعتبر است',
+            'dateDay.min' => 'روز نامعتبر است',
+            'dateDay.max' => 'روز نامعتبر است',
             'time.required' => 'زمان الزامی است',
             'description.string' => 'توضیحات باید متن باشد',
             'description.max' => 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',

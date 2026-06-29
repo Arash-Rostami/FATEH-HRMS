@@ -15,9 +15,10 @@ class SaveEventAction
         $validated = $form->validated();
 
         try {
+            $date = sprintf('%04d-%02d-%02d', $validated['dateYear'], $validated['dateMonth'], $validated['dateDay']);
             $gregorianDate = Jalalian::fromFormat(
                 'Y-m-d H:i',
-                "{$validated['date']} {$validated['time']}"
+                "{$date} {$validated['time']}"
             )->toCarbon();
         } catch (Throwable $e) {
             throw new \InvalidArgumentException('Invalid Date');

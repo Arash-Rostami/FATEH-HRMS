@@ -5,12 +5,15 @@
     :confirm-text="$this->form->editingId ? 'بروزرسانی تغییرات' : 'ثبت نهایی رویداد'"
     cancel-text="انصراف"
 >
-    <div class="modal-inner-card" dir="rtl">
+    <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl"
+         x-data="{ ready: false }"
+         x-effect="if (show && !ready) { setTimeout(() => { if (show) ready = true }, 1000) } else if (!show) { ready = false }"
+         x-show="ready">
         <x-ui.forms.input label="عنوان رویداد" name="form.title" wire:model="form.title"/>
 
         <!-- Date & Time -->
         <div class="grid grid-cols-2 gap-4">
-            <x-ui.forms.input label="تاریخ" name="form.date" wire:model="form.date" class="text-center ltr"/>
+            <x-ui.forms.date label="تاریخ" prefix="form.date" :startYear="jNow() - 50" :endYear="jNow() + 50" />
             <x-ui.forms.input label="زمان" name="form.time" type="time" wire:model="form.time" class="text-center"/>
         </div>
 

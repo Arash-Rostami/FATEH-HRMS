@@ -34,4 +34,5 @@
     </div>
 
     @include('livewire.dashboard.tab.calendar.create')
+    @include('livewire.dashboard.tab.calendar.share')
 </div>

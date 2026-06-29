@@ -5,7 +5,7 @@
             <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex flex-row items-center gap-3.5 min-w-0">
                     <h2 class="text-xl md:text-2xl font-black text-[var(--md-sys-color-on-surface)] tracking-tight shrink-0 flex items-baseline gap-1.5 bg-[var(--md-sys-color-surface-container-high)] px-3 py-1 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 mt-0.5">
-                        <span>{{ $this->currentMonthName }}</span>
+                        <span>{{ convertToPersian($this->currentMonthName) }}</span>
                     </h2>
                 </div>
 
@@ -66,10 +66,11 @@
                                             : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] shadow-[0_4px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:bg-[var(--md-sys-color-surface-container-highest)]'))
                                 }}
                                 {{ $day['isToday'] && !$day['isSelected'] ? 'ring-1 ring-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-highest)]/60' : '' }}
+                                {{ (!empty($day['hasImminentShared']) && !$day['isSelected'] && !$day['isToday']) ? 'ring-1 ring-[var(--md-sys-color-error)]/70' : '' }}
                             "
                         >
                             <span class="text-xs font-bold z-10 transition-colors {{ $day['isToday'] && !$day['isSelected'] ? 'text-[var(--md-sys-color-primary)]' : '' }}">
-                                {{ $day['day'] }}
+                                {{ convertToPersian($day['day']) }}
                             </span>
 
                             <div class="flex items-center justify-center mt-0.5 min-h-[16px]">
@@ -86,6 +87,14 @@
 
                                 @if($day['eventCount'] > 1)
                                     <span class="text-[7px] font-bold leading-none ml-0.5 {{ $day['isSelected'] ? 'text-white' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ $day['eventCount'] - 1 }}</span>
+                                @endif
+
+                                @if(!empty($day['hasShared']))
+                                    @php $imminent = !empty($day['hasImminentShared']); @endphp
+                                    <span class="material-symbols-rounded text-[10px] leading-none ml-0.5 {{ $day['isSelected']
+                                            ? 'text-white'
+                                            : ($imminent ? 'text-[var(--md-sys-color-error)] animate-pulse-slow' : 'text-[var(--md-sys-color-secondary)]') }}"
+                                          style="font-variation-settings: 'FILL' {{ $imminent ? 1 : 0 }};">group</span>
                                 @endif
                             </div>
 
@@ -114,7 +123,7 @@
                     <div class="flex flex-col justify-center min-w-0">
                         <h3 class="text-sm md:text-base cursor-help tracking-tight truncate text-[var(--md-sys-color-primary)]"
                             title="{{ $d['gregorian'] }}">
-                            {{ $d['jalali'] }}
+                            {{ convertToPersian($d['jalali']) }}
                         </h3>
                     </div>
                 </div>
@@ -134,6 +143,16 @@
                         <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-primary)]"
                               style="font-variation-settings: 'FILL' 1;">event</span>
                             <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">رویداد</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                        <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-secondary)]"
+                              style="font-variation-settings: 'FILL' 0;">group</span>
+                            <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">مشترک</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                        <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-error)] animate-pulse-slow"
+                              style="font-variation-settings: 'FILL' 1;">group</span>
+                            <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">نزدیک</span>
                         </div>
                     </div>
                 </div>
