@@ -79,6 +79,7 @@ class Tabs extends Component
                 'label' => 'اعلانات',
                 'icon' => 'campaign',
                 'bg' => 'bg-secondary-container',
+                'badge' => 'posts-controller',
             ],
             'feed' => [
                 'component' => Feeds::class,

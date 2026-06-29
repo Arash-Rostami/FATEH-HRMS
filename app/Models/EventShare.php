@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use App\Services\Menu\StateService;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB;
 
 class EventShare extends Model
 {
+    use HasMenuState;
+    public const MENU_STATE_EVENTS = ['created', 'deleted'];
+
     protected $fillable = [
         'event_id',
         'user_id',
@@ -38,10 +40,5 @@ class EventShare extends Model
         return $this->belongsTo(User::class, 'shared_by');
     }
 
-    protected static function booted(): void
-    {
-        $flush = fn() => DB::afterCommit(fn() => StateService::flush());
-        static::created($flush);
-        static::deleted($flush);
-    }
+
 }

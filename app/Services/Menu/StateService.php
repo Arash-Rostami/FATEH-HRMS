@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Services\Menu\Indicators\ActiveAds;
 use App\Services\Menu\Indicators\PendingSuggestions;
 use App\Services\Menu\Indicators\SharedEvents;
+use App\Services\Menu\Indicators\TodayPosts;
+
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -17,6 +19,8 @@ class StateService
         ActiveAds::class,
         PendingSuggestions::class,
         SharedEvents::class,
+        TodayPosts::class,
+
     ];
 
     public function __construct(

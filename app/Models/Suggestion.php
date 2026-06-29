@@ -9,13 +9,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
+
 class Suggestion extends Model
 {
-    use HasFactory;
+    use HasMenuState, HasFactory;
     use HasStageHelpers;
     use HasSuggestionAlert;
 
@@ -74,6 +76,9 @@ class Suggestion extends Model
         'comments',
         'user_id'
     ];
+
+
+
 
     public static function countAborted(): int
     {

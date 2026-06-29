@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use App\Services\Menu\StateService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
 class Event extends Model
 {
-    use HasFactory;
+    use HasMenuState, HasFactory;
+    public const MENU_STATE_EVENTS = ['updated', 'deleted'];
+
 
     protected $fillable = [
         'user_id',
@@ -30,12 +31,7 @@ class Event extends Model
         'date_time_part',
     ];
 
-    protected static function booted(): void
-    {
-        $flush = fn() => DB::afterCommit(fn() => StateService::flush());
-        static::updated($flush);
-        static::deleted($flush);
-    }
+
 
     public function scopePrivate($query)
     {
