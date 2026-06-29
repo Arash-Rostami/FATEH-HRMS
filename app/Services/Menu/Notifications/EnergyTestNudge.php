@@ -30,8 +30,10 @@ class EnergyTestNudge implements MenuNudge
             return false;
         }
 
+        $startOfMonth = (new Jalalian($now->getYear(), $now->getMonth(), 1))->toCarbon();
+
         return !EnergyTest::where('user_id', $user->id)
-            ->where('month_index', $now->getMonth())
+            ->where('completed_at', '>=', $startOfMonth)
             ->exists();
     }
 
