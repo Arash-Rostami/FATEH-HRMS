@@ -6,6 +6,12 @@ use App\Models\User;
 use App\Services\Menu\Indicators\ActiveAds;
 use App\Services\Menu\Indicators\PendingSuggestions;
 use App\Services\Menu\Indicators\SharedEvents;
+use App\Services\Menu\Indicators\SpecialDays;
+use App\Services\Menu\Indicators\TasksTodo;
+use App\Services\Menu\Indicators\TodayFeeds;
+use App\Services\Menu\Indicators\TodayPosts;
+
+use App\Services\Menu\Indicators\UnreadMessages;
 use Illuminate\Support\Facades\Cache;
 
 class StateService
@@ -17,6 +23,11 @@ class StateService
         ActiveAds::class,
         PendingSuggestions::class,
         SharedEvents::class,
+        TodayPosts::class,
+        TodayFeeds::class,
+        SpecialDays::class,
+        TasksTodo::class,
+        UnreadMessages::class,
     ];
 
     public function __construct(

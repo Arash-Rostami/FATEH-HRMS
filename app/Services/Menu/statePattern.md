@@ -26,17 +26,26 @@ App\Services\Menu\
 ├── Indicators\
 │   ├── ActiveAds.php               key=ads-controller        isActive = Ad::active()->exists()
 │   ├── PendingSuggestions.php      key=suggestion-controller isActive = Suggestion::attentionRequired()->exists()
-│   └── SharedEvents.php            key=shared-events         isActive = EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u)
+│   ├── SharedEvents.php            key=shared-events         isActive = EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u)
+│   ├── TodayPosts.php              key=posts-controller      isActive = Post::whereDate('created_at', today())->exists()
+│   ├── TodayFeeds.php               key=feeds                 isActive = Feed::whereDate('created_at', today())->exists()
+│   ├── SpecialDays.php             key=special-days          isActive = Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
+│   └── TasksTodo.php                key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
 ├── Notifications\
 │   ├── ActiveAdsNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
-│   └── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion updated/deleted + Review created/updated
+│   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion updated/deleted + Review created/updated
+│   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted  show=true  for=User::active()
+│   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
+│   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
+│   └── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
+│   └── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=assignee only (User::active()->where('id',$subject->assigned_to), empty→collect())
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 └── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
 
 App\Jobs\ReconcileNudge.php            queued unit of work for a per-record reconcile (nudge side)
-App\Providers\NudgeServiceProvider.php registers the 3 nudge classes in boot(): NudgeService::register(new ...Nudge())
+App\Providers\NudgeServiceProvider.php registers the nudge classes in boot(): NudgeService::register(new ...Nudge())
 bootstrap/providers.php                        one line appended to register the provider above
 ```
 
@@ -68,8 +77,9 @@ identical (no per-user method, no sub-interface):
 | `ActiveAds` | `ads-controller` | `Ad::active()->exists()` |
 | `PendingSuggestions` | `suggestion-controller` | `Suggestion::attentionRequired()->exists()` |
 | `SharedEvents` | `shared-events` | `auth()->user() !== null && (EventShare::hasImminentFor($user) \|\| Event::hasImminentSharedFor($user))` |
+| `TasksTodo` | `tasks-controller` | `auth()->user() !== null && Task::getTodoCount($user->id) > 0` |
 
-`SharedEvents` is the per-user one — it reads the logged-in user inside `isActive()` and lights for
+`SharedEvents` and `TasksTodo` are the per-user ones — they read the logged-in user inside `isActive()` and lights for
 **both** parties of a share: the recipient (`EventShare::hasImminentFor`) and the owner
 (`Event::hasImminentSharedFor`). The other two indicators are global existence checks. The attention
 logic lives on the model (`Suggestion::attentionRequired` scope, `EventShare::hasImminentFor`,
@@ -195,8 +205,8 @@ cached `MenuStateService::get()`, so within a request the first call may hit the
 cache hits (one cache read, zero extra queries for the sidebar).
 
 - **Menu modal** — dot per item via `@js($menuState)[item.id]`; item ids come from the static
-  `resources/js/components/alpine/data/menu.js` array (`*-controller` style). Only
-  `ads-controller` and `suggestion-controller` have matching item ids, so they can render there.
+  `resources/js/components/alpine/data/menu.js` array (`*-controller` style). `ads-controller`,
+  `suggestion-controller`, and `tasks-controller` have matching item ids, so they render there.
   `shared-events` has **no** item id in `menu.js` → it is menu-invisible by design; the sidebar tab
   is its only surface.
 - **Sidebar tabs** — `Tabs::tabs()` entries may carry a nullable `'badge' => '<indicator key>'`
@@ -206,9 +216,9 @@ cache hits (one cache read, zero extra queries for the sidebar).
   sidebar tab = one `'badge' => '<key>'` line on that tab entry; **both navbars are already wired**,
   so no blade change is needed. The left rail (`navbars/left.blade.php`, hard-coded `/tasks`
   `/dms` `/ths`) has no indicators mapped and is untouched.
-- **Indicators with no sidebar tab** — `ads-controller` and `suggestion-controller` are full-page
-  routes reached via the menu (`/ads`, `/suggestion`), not sidebar tabs, so they stay menu-modal-only
-  by design. Forcing a dot onto an unrelated tab would mislabel the signal.
+- **Indicators with no sidebar tab** — `ads-controller`, `suggestion-controller`, and `tasks-controller`
+  are full-page routes reached via the menu (`/ads`, `/suggestion`, `/tasks`), not sidebar tabs, so they
+  stay menu-modal-only by design. Forcing a dot onto an unrelated tab would mislabel the signal.
 
 ---
 
@@ -479,3 +489,148 @@ limitation the badge's `flush()` hooks already live with:
 **Nudge** — one class implementing `MenuNudge` in `Notifications\` + one
 `NudgeService::register(new ...Nudge())` line in `NudgeServiceProvider::boot()`. No engine edit, no
 migration, no observer class. That is the future-proof contract for both layers.
+
+---
+
+## `HasMenuState` trait — the single flush primitive (replaces per-model `booted()`)
+
+Every model whose writes can change a badge's truth now uses `App\Models\Traits\HasMenuState` instead
+of a hand-written `booted()` closure. The trait ships one method:
+
+```php
+public static function bootHasMenuState(): void
+{
+    $events = defined('static::MENU_STATE_EVENTS') ? static::MENU_STATE_EVENTS : ['created', 'updated', 'deleted'];
+    $flush = fn() => DB::afterCommit(fn() => StateService::flush());
+    foreach ($events as $event) { static::{$event}($flush); }
+}
+```
+
+- Default `['created','updated','deleted']` — used by `Ad`, `Post`, `Suggestion`, `Feed`, `Profile`.
+- **Opt-out const** `MENU_STATE_EVENTS` narrows the set when flushing on a given event is pointless or
+  noisy:
+  - `Event` → `['updated','deleted']` — a brand-new event has no shares, so `created` would fire a
+    global version bump on every personal/private unshared event creation (thundering-herd). `updated`
+    (owner date/title edit) and `deleted` are the events that actually change the shared-events badge.
+  - `EventShare` → `['created','deleted']` — a *created* share is the meaningful event; shares are never
+    `updated`. (The user-panel `ShareEventAction` writes shares with bulk `insertOrIgnore` which bypasses
+    model events and calls `flush()` explicitly, so this hook is the defensive cover for any Eloquent
+    `EventShare::create()` plus the admin `EventSharesRelationManager` revoke `$record->delete()`.)
+- `DB::afterCommit()` is preserved (mid-transaction cache-poisoning race stays closed; runs inline when
+  no transaction is active). `bootHasMenuState()` coexists with a model's own `boot()` (e.g. `Feed::boot()`
+  registers the `deleting` comment/reaction/poll cascade) — Laravel calls both.
+- **Nudge side is unaffected**: `NudgeService::register()` binds a nudge's Eloquent triggers independently
+  of `MENU_STATE_EVENTS`; the const only controls the **badge** version bump, not the bell reconcile.
+
+## Created-today badges (`TodayPosts`, `TodayFeeds`) + per-record nudges (`PostNudge`, `FeedNudge`)
+
+A pair mirroring `ActiveAds`/`ActiveAdsNudge`, but the "today" gate is the date, not a status flag:
+
+- **Badge** — `TodayPosts` (key `posts-controller`) / `TodayFeeds` (key `feeds`): `isActive()` =
+  `Post|Feed::whereDate('created_at', now()->toDateString())->exists()` (global, stateless, no auth user —
+  same shape as `ActiveAds`). Pull-based with the 2h TTL: at midnight no event fires, so the dot lags
+  ≤~2h past the day boundary (the same accepted drift as `SharedEvents`).
+- **Nudge** — `PostNudge` (key `posts-controller:nudge`) / `FeedNudge` (key `feeds:nudge`): triggers
+  `created/updated/deleted`; `show = true` (ungated — mirrors `PostNudge`, no author exclusion; a feed
+  has no "active" flag, so once created it qualifies until deleted); `for = User::active()->get()`;
+  `refresh = true`. `FeedNudge::title()` falls back through `FeedCategory::tryFrom($subject->category)?->getLabel()`
+  (Feed has no title column, unlike Post).
+- **Surfaces** — `TodayFeeds` has no `feeds-controller` menu item (menu-modal-invisible by design, like
+  `shared-events`); its only surface is the `feed` sidebar tab via `'badge' => 'feeds'` in `Tabs.php`.
+  `TodayPosts` likewise has no `posts-controller` menu item — surface it by adding `'badge' => 'posts-controller'`
+  to the `post` tab when desired (currently orphaned: registered but no tab badge line).
+
+## Department-scoped + broadcast nudges (`PhotoNudge`, `ReportNudge`) — nudge-only, no badge
+
+Both are **Signal-2 only** (no `MenuBadge` indicator, no menu dot) — the bell row is the whole signal.
+
+- **`PhotoNudge`** (key `gallery-controller:nudge`) — `for()` reuses the Suggestion department idiom:
+  `User::active()->whereHas('profile', department_id ∈ ['MA', …Photo::all_departments])`; empty
+  `all_departments` → falls back to all active users (a public gallery photo broadcasts). `show = true`,
+  `refresh = true`. Mirrors `SuggestionNudge` scoping.
+- **`ReportNudge`** (key `reports-controller:nudge`) — broadcast: `for = User::active()->get()` (all active
+  users), `show = $subject->active` (only published reports nudge — the `Report.active` boolean gate,
+  same shape as `ActiveAdsNudge::show = $ad->active`), `refresh = true`. The title carries the publishing
+  department's full name: `'گزارش جدید از ' . (($subject->department?->description ?: $subject->department?->name) ?? 'سازمان') . ': ' . $subject->title`
+  — `Department` exposes `description` (the complete display name, preferred) and `name` (short fallback);
+  `?:` falls through an empty `description` to `name`, and `?? 'سازمان'` covers a department-less
+  (organization-wide) report. Note `Department` has **no** `title` field.
+- **Keys** — `gallery-controller` / `reports-controller` bare keys do **not** exist as menu items or tab
+  badges; that is fine for nudge-only rules (the `:nudge` suffix is the only thing that matters for
+  isolation, and there is no badge counterpart to collide with).
+
+## `SpecialDays` — birthday/anniversary badge (per-day, like the shared-event proximity badge)
+
+A **badge-only** (Signal 1, no nudge) indicator that lights **only on the exact day** someone has a
+birthday (`Profile.birthdate`) or work anniversary (`Profile.start_date`), analogous to `SharedEvents`'
+24h proximity window but scoped to the day:
+
+- `isActive()` = `Profile::where('employment_type','!=','terminated')->where(birthdate month/day = today OR
+  start_date month/day = today)->exists()` — global, stateless (same shape as `ActiveAds`/`TodayPosts`).
+  The two date groups are wrapped in one outer `where(function …)` so the `employment_type` filter ANDs
+  the whole OR group (a top-level `orWhere` would let the `start_date` branch escape the terminated filter).
+  Uses Gregorian `now()->month/day` (dates are stored Gregorian; Jalali is display-only).
+- Excludes terminated employees (a fired ex-coworker's birthday shouldn't light a "celebrate coworkers"
+  dot); includes the auth user's own day (redundant with the `occasion` modal but harmless — the modal is
+  a separate per-user confetti popup driven by `isSpecialDay()` + its own 8h cache key, no shared state).
+- **Leap-year Feb 29** — `whereMonth/whereDay(2,29)` matches only leap years; the calendar grid
+  (`Calendar::calendarDays()` `m-d` flip) behaves identically, so dot and grid stay in sync. No remap.
+- **Invalidation** — `Profile` now uses `HasMenuState` (default all three), so an HR birthdate/start_date
+  edit or profile delete bumps the version promptly. The day boundary fires no event, so the dot lags
+  ≤~2h into the special day and ≤~2h after (accepted drift, same as `SharedEvents`); no scheduled flush.
+- Title/body are occasion-agnostic («مناسبت امروز» / «امروز تولد یا سالگرد یکی از همکاران است؛ برای
+  مشاهده به تقویم مراجعه کنید.») — an aggregate badge is one row and cannot list per-person names.
+
+## Array `badge` slot — multiple indicators lighting one sidebar tab
+
+A sidebar tab previously carried a single `'badge' => '<key>'` string and the navbars rendered
+`$menuState[$tab['badge']]`. To let the `calendar` tab show **both** `shared-events` and `special-days`
+through one dot, `'badge'` now accepts a string **or** an array of keys:
+
+- `Tabs.php`: `'badge' => ['shared-events', 'special-days']` on the `calendar` tab; `'badge' => 'feeds'`
+  on the `feed` tab.
+- `navbars/right.blade.php` + `navbars/bottom.blade.php` (both page chunks): the dot condition is now
+  `isset($tab['badge']) && collect((array) $tab['badge'])->contains(fn($k) => $menuState[$k] ?? false)` —
+  `(array)` normalizes a string key to `['key']`, so the same line serves both shapes. The dot is a pointer
+  to the tab; the tab content disambiguates (the single-dot design already had this property).
+
+## `TasksTodo` + `TaskNudge` — per-user todo badge (menu-modal) + assignee nudge
+
+The task board is a **full-page Livewire route** (`/tasks`, `TaskBoard\Main`), not a sidebar tab, so
+the badge dot renders on the **menu modal** item `tasks-controller` (already declared in `menu.js`,
+already rendered by `modal/menu.blade.php` via `@js($menuState)[item.id]`) — same surface as
+`ads-controller`/`suggestion-controller`. No `Tabs.php`/navbar/blade change.
+
+- **`TasksTodo` indicator** (key `tasks-controller`) — **per-user**, the second per-user indicator
+  alongside `SharedEvents`: `isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0`.
+  This reuses the model's own canonical predicate `Task::getTodoCount()` = `forUser($userId)->status('todo')->count()`,
+  i.e. "the logged-in user has ≥1 task in the `todo` column" (`scopeForUser` = `assigned_to = me` OR
+  `user_id = me AND assigned_to null`). The dot means *my* board has a todo task — a global
+  `Task::where('status','todo')->exists()` would light everyone's dot regardless of their own tasks
+  and is wrong here. Feasible because `StateService::get()` caches per user (`menu_state:v{ver}:u{id}`)
+  and runs `isActive()` inside that per-user closure, so `auth()->user()` is available. The "new col"
+  = `TaskStatus::Todo` ('todo', label «انجام نشده»), the default on create.
+- **`TaskNudge`** (key `tasks-controller:nudge`) — **assignee-only**: `for = $subject->assigned_to ?
+  User::active()->where('id', $subject->assigned_to)->get() : collect()`. A task is personal; broadcasting
+  to all active (PostNudge/ReportNudge style) would spam. The creator is excluded (they made it; if
+  self-assigned they are already the assignee). `show = true` (fire-once, like PostNudge) — the bell
+  persists until dismissed; the badge carries the "still in todo" state, so the nudge need not track
+  status (a state-driven `show = status==='todo'` would auto-clear on todo→in-progress, but the reconcile
+  engine deletes the row when `show` flips false, so a todo→in-progress→back-to-todo cycle would
+  **resurface** a previously-dismissed nudge — a no-resurface violation; `show=true` avoids it).
+  `refresh = true` (title embeds `$subject->title`).
+- **Triggers** — `['created','updated','deleted','forceDeleted']`. `Task` uses `SoftDeletes`, so
+  `forceDeleted` is a distinct Eloquent event that `deleted` does **not** cover; without it a
+  force-deleted task's nudge row would orphan. `restored` is intentionally **not** in the nudge `on`
+  (restore does not re-nudge) but **is** in `MENU_STATE_EVENTS` so the badge still updates. Soft-delete
+  fires `deleted` and `Task::find()` then returns null (SoftDeletingScope) → reconcile blanket-deletes
+  the rows. Reassignment works via `reconcile()` line `whereNotIn('notifiable_id', $ids)->delete()`
+  (prunes the old assignee) + empty `for()` → blanket delete (unassign clears everyone).
+- **`HasMenuState` on `Task`** — `const MENU_STATE_EVENTS = ['created','updated','deleted','restored','forceDeleted']`
+  (the two extra events beyond the default are needed because of SoftDeletes: a restored todo task must
+  re-bump the badge version, and a force-delete must too). Task had no `boot()`, so `bootHasMenuState()`
+  coexists cleanly with `bootSoftDeletes()`.
+
+## Open items (flagged, not auto-fixed)
+
+(none — the `post` tab now carries `'badge' => 'posts-controller'`, surfacing `TodayPosts`.)

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +16,11 @@ use Illuminate\Support\Facades\Storage;
 
 class Message extends Model
 {
-    use HasFactory, SoftDeletes, Prunable, HasPrunableStatus;
+    use HasFactory,
+        HasMenuState,
+        SoftDeletes,
+        Prunable,
+        HasPrunableStatus;
 
     public const PRUNE_DAYS = 30;
 
@@ -28,13 +33,6 @@ class Message extends Model
         'is_edited',
         'read_at',
     ];
-
-    protected function body(): Attribute
-    {
-        return Attribute::make(
-            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
-        );
-    }
 
     public function attachmentUrls(): array
     {
@@ -95,6 +93,13 @@ class Message extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    protected function body(): Attribute
+    {
+        return Attribute::make(
+            set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
+        );
     }
 
     protected function casts(): array

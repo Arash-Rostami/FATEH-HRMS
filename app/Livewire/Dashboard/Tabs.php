@@ -79,19 +79,21 @@ class Tabs extends Component
                 'label' => 'اعلانات',
                 'icon' => 'campaign',
                 'bg' => 'bg-secondary-container',
+                'badge' => 'posts-controller',
             ],
             'feed' => [
                 'component' => Feeds::class,
                 'label' => 'اخبار',
                 'icon' => 'rss_feed',
-                'bg' => 'bg-tertiary-container'
+                'bg' => 'bg-tertiary-container',
+                'badge' => 'feeds',
             ],
             'calendar' => [
                 'component' => Calendar::class,
                 'label' => 'تقویم',
                 'icon' => 'calendar_month',
                 'bg' => 'bg-tertiary-container',
-                'badge' => 'shared-events',
+                'badge' => ['shared-events', 'special-days'],
             ],
             'status' => [
                 'component' => Status::class,

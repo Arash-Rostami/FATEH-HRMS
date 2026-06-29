@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feed extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory, HasMenuState, HasPublicAssetUrl;
 
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     public const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'avi', 'mkv'];

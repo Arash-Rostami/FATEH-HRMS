@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasStageHelpers;
 use App\Models\Traits\HasSuggestionAlert;
 use App\Services\ContentSanitizerService;
@@ -15,9 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Suggestion extends Model
 {
-    use HasFactory;
-    use HasStageHelpers;
-    use HasSuggestionAlert;
+    use HasMenuState,
+        HasFactory,
+        HasStageHelpers,
+        HasSuggestionAlert;
 
 
     public const PURPOSES = [

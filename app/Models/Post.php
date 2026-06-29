@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -11,7 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasMenuState,
+        HasFactory,
+        HasPublicAssetUrl;
 
     protected $fillable = [
         'title',
@@ -41,7 +44,7 @@ class Post extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn (?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
+            get: fn(?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
         )->shouldCache();
     }
 }

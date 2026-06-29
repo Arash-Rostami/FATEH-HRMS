@@ -32,7 +32,7 @@
                 @foreach($pageOne as $key => $tab)
                     <button wire:click="setTab('{{ $key }}')" class="relative flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
-                        @if(isset($tab['badge']) && ($menuState[$tab['badge']] ?? false))
+                        @if(isset($tab['badge']) && collect((array) $tab['badge'])->contains(fn($k) => $menuState[$k] ?? false))
                             <span class="absolute -top-0.5 -right-0.5 flex h-3 w-3">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-3 w-3 bg-red-700 border-2 border-[var(--md-sys-color-surface)]"></span>
@@ -49,7 +49,7 @@
                 @foreach($pageTwo as $key => $tab)
                     <button wire:click="setTab('{{ $key }}')" class="relative flex-1 h-full max-h-[48px] rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 {{ $activeTab === $key ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary)]/10' : 'text-[var(--md-sys-color-on-surface-variant)] opacity-50' }}">
                         <span class="material-symbols-rounded text-[26px] {{ $activeTab === $key ? 'font-fill' : '' }}">{{ $tab['icon'] }}</span>
-                        @if(isset($tab['badge']) && ($menuState[$tab['badge']] ?? false))
+                        @if(isset($tab['badge']) && collect((array) $tab['badge'])->contains(fn($k) => $menuState[$k] ?? false))
                             <span class="absolute -top-0.5 -right-0.5 flex h-3 w-3">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-700 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-3 w-3 bg-red-700 border-2 border-[var(--md-sys-color-surface)]"></span>

@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
-use App\Services\Menu\StateService;
+use App\Models\Traits\HasMenuState;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
 class Event extends Model
 {
-    use HasFactory;
+    use HasMenuState,
+        HasFactory;
+
+    public const MENU_STATE_EVENTS = ['updated', 'deleted'];
 
     protected $fillable = [
         'user_id',
@@ -30,11 +32,20 @@ class Event extends Model
         'date_time_part',
     ];
 
-    protected static function booted(): void
+    public static function hasImminentSharedFor(User $user): bool
     {
-        $flush = fn() => DB::afterCommit(fn() => StateService::flush());
-        static::updated($flush);
-        static::deleted($flush);
+        return static::query()
+            ->where('user_id', $user->id)
+            ->whereHas('shares')
+            ->whereBetween('date', [now(), now()->addDay()])
+            ->exists();
+    }
+
+    public function isSharedWith(int $userId): bool
+    {
+        return $this->shares()
+            ->where('user_id', $userId)
+            ->exists();
     }
 
     public function scopePrivate($query)
@@ -52,30 +63,14 @@ class Event extends Model
         return $query->where('date', '>=', now());
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function shares(): HasMany
     {
         return $this->hasMany(EventShare::class);
     }
 
-    public function isSharedWith(int $userId): bool
+    public function user(): BelongsTo
     {
-        return $this->shares()
-            ->where('user_id', $userId)
-            ->exists();
-    }
-
-    public static function hasImminentSharedFor(User $user): bool
-    {
-        return static::query()
-            ->where('user_id', $user->id)
-            ->whereHas('shares')
-            ->whereBetween('date', [now(), now()->addDay()])
-            ->exists();
+        return $this->belongsTo(User::class);
     }
 
     protected function casts(): array
