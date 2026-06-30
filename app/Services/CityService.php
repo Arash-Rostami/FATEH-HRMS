@@ -362,10 +362,5 @@ final class CityService
     {
         return self::CITIES;
     }
-
-    public static function exists(string $city): bool
-    {
-        return in_array($city, self::CITIES, true);
-    }
 }
 

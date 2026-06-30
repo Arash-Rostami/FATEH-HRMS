@@ -38,6 +38,7 @@
                 @foreach($this->departments as $code => $label)
                     <button
                         wire:click="filterByDepartment('{{ $code }}')"
+                        title="{{ $this->departmentTooltips[$code] ?? '' }}"
                         class="flex shrink-0 items-center gap-2 h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200"
                         :class="$wire.selectedDepartment === '{{ $code }}' ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm' : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
                     >{{ $label }}</button>

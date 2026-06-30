@@ -11,7 +11,7 @@ class SuggestionResource extends SearchResource
     protected string $group = 'پیشنهادات';
     protected string $icon = 'lightbulb';
     protected string $model = Suggestion::class;
-    protected array $columns = ['title', 'description', 'purpose'];
+    protected array $columns = ['title', 'description'];
     protected ?string $titleField = 'title';
     protected ?string $subtitleField = 'description';
 

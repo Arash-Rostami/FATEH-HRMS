@@ -37,11 +37,6 @@ class Resource extends Model
         return ResourceType::tabs();
     }
 
-    public function isType(string $type): bool
-    {
-        return $this->type === $type;
-    }
-
     public function relatedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'name', 'name');

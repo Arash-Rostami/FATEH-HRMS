@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Traits\HasMenuState;
 
 class Task extends Model
 {
@@ -55,17 +55,31 @@ class Task extends Model
 
     public static function getInProgressCount(int $userId): int
     {
-        return self::query()->forUser($userId)->status('in-progress')->count();
-    }
-
-    public static function getTodoCount(int $userId): int
-    {
-        return self::query()->forUser($userId)->status('todo')->count();
+        return self::getStatusCounts($userId)['in-progress'];
     }
 
     public static function getPendingCount(int $userId): int
     {
-        return self::query()->forUser($userId)->status('pending')->count();
+        return self::getStatusCounts($userId)['pending'];
+    }
+
+    public static function getStatusCounts(int $userId): array
+    {
+        $counts = self::query()->forUser($userId)
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        return [
+            'in-progress' => (int)($counts['in-progress'] ?? 0),
+            'todo' => (int)($counts['todo'] ?? 0),
+            'pending' => (int)($counts['pending'] ?? 0),
+        ];
+    }
+
+    public static function getTodoCount(int $userId): int
+    {
+        return self::getStatusCounts($userId)['todo'];
     }
 
     public function scopeForUser(Builder $query, int $userId): void
@@ -84,7 +98,7 @@ class Task extends Model
     {
         return Attribute::make(
             get: fn() => $this->assignee?->name
-        );
+        )->shouldCache();
     }
 
     protected function canChangeStatus(): Attribute
@@ -115,21 +129,21 @@ class Task extends Model
     {
         return Attribute::make(
             get: fn() => toJalali($this->created_at, 'j F Y')
-        );
+        )->shouldCache();
     }
 
     protected function deadlineFormatted(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->deadline ? toJalali($this->deadline, 'j F Y') : null
-        );
+        )->shouldCache();
     }
 
     protected function delegatorName(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->creator?->name
-        );
+        )->shouldCache();
     }
 
     protected function isDelegator(): Attribute

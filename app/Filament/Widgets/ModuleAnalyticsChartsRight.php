@@ -88,7 +88,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     {
         $query = DB::table('departments')
             ->select(
-                'departments.name as department_name',
+                DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
                 DB::raw('(SELECT COUNT(*) FROM tasks INNER JOIN users ON tasks.assigned_to = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code AND tasks.status IN ("todo", "in-progress")) as task_count'),
                 DB::raw('(SELECT COUNT(*) FROM tickets INNER JOIN users ON tickets.assigned_to = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code AND tickets.status IN ("open", "in-progress")) as ticket_count')
             );
@@ -122,7 +122,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
         $results = $query->get();
 
         $genderMap = ['male' => 'آقا', 'female' => 'خانم'];
-        $statusMap = ['active' => 'فعال', 'inactive' => 'غیرفعال', 'probation' => 'آزمایشی'];
+        $statusMap = ['probational' => 'آزمایشی', 'working' => 'فعال', 'terminated' => 'خاتمه‌یافته'];
 
         $labels = [];
         $data = [];
@@ -176,7 +176,7 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     {
         $query = DB::table('departments')
             ->select(
-                'departments.name as department_name',
+                DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
                 DB::raw('(SELECT COUNT(*) FROM profiles WHERE profiles.department_id = departments.code) as users_count'),
                 DB::raw('(SELECT COUNT(*) FROM reports INNER JOIN users ON reports.user_id = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code) as reports_count')
             )

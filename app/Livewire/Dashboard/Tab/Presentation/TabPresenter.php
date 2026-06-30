@@ -40,7 +40,7 @@ class TabPresenter
                 'key' => 'events',
                 'icon' => 'event_upcoming',
                 'label' => 'رویدادهای هفته پیش‌رو',
-                'value' => Event::whereBetween('date', [now(), now()->addWeek()])->count(),
+                'value' => Event::whereBetween('date', [now(), now()->addWeek()])->where(fn($q) => $q->where('user_id', $uid)->orWhere('private', false)->orWhereHas('shares', fn($sq) => $sq->where('user_id', $uid)))->count(),
                 'nav' => ['type' => 'tab', 'tab' => 'calendar'],
             ],
         ]);

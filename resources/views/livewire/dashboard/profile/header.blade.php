@@ -51,7 +51,8 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3 mt-1">
-                    <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]"
+                          title="{{ $user?->profile?->department?->tooltipLabel() }}">
                         <span class="material-symbols-rounded text-[16px] opacity-70">domain</span>
                         {{ $departmentName ?? '—' }}
                     </span>

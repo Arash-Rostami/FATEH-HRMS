@@ -77,7 +77,7 @@ class FAQResource extends Resource
         return [
             __('resources/faq/strings.fields.category') => $record->category,
             __('resources/faq/strings.fields.user') => $record->user?->name ?? '-',
-            __('resources/faq/strings.fields.department') => $record->department?->name ?? '-',
+            __('resources/faq/strings.fields.department') => $record->department?->displayLabel() ?? '-',
         ];
     }
 

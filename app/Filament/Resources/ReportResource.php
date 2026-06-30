@@ -91,7 +91,7 @@ class ReportResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            __('resources/report/strings.fields.department') => $record->department?->description ?? '-',
+            __('resources/report/strings.fields.department') => $record->department?->displayLabel() ?? '-',
             __('resources/report/strings.fields.user') => $record->user?->name ?? '-',
         ];
     }

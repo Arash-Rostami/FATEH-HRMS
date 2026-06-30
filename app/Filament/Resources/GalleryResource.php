@@ -56,7 +56,7 @@ class GalleryResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            __('resources/gallery/strings.fields.department') => $record->department?->description
+            __('resources/gallery/strings.fields.department') => $record->department?->displayLabel()
                 ?? __('resources/gallery/strings.fields.public_gallery'),
             __('resources/gallery/strings.fields.count') => count($record->path ?? []),
         ];

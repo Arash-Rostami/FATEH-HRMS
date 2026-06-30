@@ -63,7 +63,8 @@ class DmsInfolistPresenter
     {
         return TextEntry::make('owners_names')
             ->label(__('resources/dms/strings.fields.owners'))
-            ->getStateUsing(fn($record) => $record->getDepartmentDescriptions() ?? $record->getDepartmentNames() ?: '—')
+            ->getStateUsing(fn($record) => $record->getDepartmentDisplayLabels() ?: '—')
+            ->tooltip(fn($record) => $record->getDepartmentTooltipLabels() ?: '—')
             ->markdown()
             ->icon('heroicon-o-building-office')
             ->columnSpanFull();

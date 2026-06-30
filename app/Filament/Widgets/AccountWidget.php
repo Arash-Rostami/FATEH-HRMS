@@ -24,7 +24,7 @@ class AccountWidget extends Widget
             'user' => $user,
             'greeting' => shortGreeting(),
             'roleLabel' => $role?->getLabel(),
-            'department' => $user?->profile?->department?->description ?? $user?->profile?->department?->name,
+            'department' => $user?->profile?->department?->displayLabel(),
             'jalaliDate' => convertToPersian(Jalalian::now()->format('l | d F')),
         ];
     }

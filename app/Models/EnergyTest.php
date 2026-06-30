@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Traits\HasMenuState;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,10 +36,10 @@ class EnergyTest extends Model
             ->leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
             ->leftJoin('departments', 'profiles.department_id', '=', 'departments.code')
             ->select(
-                DB::raw('COALESCE(departments.name, "Unknown") as department'),
+                DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code, "Unknown") as department'),
                 DB::raw('ROUND(AVG(energy_tests.overall_score), 2) as average_score')
             )
-            ->groupBy('departments.name', 'profiles.department_id')
+            ->groupBy('departments.description', 'departments.name', 'departments.code', 'profiles.department_id')
             ->orderBy('department')
             ->pluck('average_score', 'department');
     }
@@ -75,18 +74,6 @@ class EnergyTest extends Model
                 ];
             }
         );
-    }
-
-    public static function getDistribution(array $ranges, bool $lastMonth = false): Builder
-    {
-        $selects = [];
-        foreach ($ranges as $key => $range) {
-            $selects[] = "SUM(CASE WHEN overall_score BETWEEN {$range['min']} AND {$range['max']} THEN 1 ELSE 0 END) as $key";
-        }
-
-        return static::query()
-            ->when($lastMonth, fn($q) => $q->where('completed_at', '>=', now()->subDays(30)))
-            ->selectRaw(implode(', ', $selects));
     }
 
     public static function hasForCurrentJalaliMonth(int $userId): bool

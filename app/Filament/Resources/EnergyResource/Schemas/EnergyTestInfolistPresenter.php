@@ -61,7 +61,7 @@ class EnergyTestInfolistPresenter
         return TextEntry::make('overall_score')
             ->label(__('resources/energy/strings.fields.overall_score'))
             ->placeholder('—')
-            ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) . ' / 100' : '—')
+            ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) . ' / 16' : '—')
             ->weight(FontWeight::Bold)
             ->size(TextSize::Large)
             ->badge()
@@ -114,8 +114,8 @@ class EnergyTestInfolistPresenter
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
             ->color(fn($state) => match (true) {
                 $state === null => 'gray',
-                $state >= 70 => 'danger',
-                $state >= 45 => 'warning',
+                $state >= 3 => 'danger',
+                $state >= 2 => 'warning',
                 default => 'success',
             })
             ->badge()

@@ -22,19 +22,9 @@ trait HasProfileHierarchy
         return $this->profile?->department?->code === $code;
     }
 
-    public function hasPosition(string $position): bool
-    {
-        return $this->profile?->position === $position;
-    }
-
     public function rank(): int
     {
         return static::RANKS[$this->profile?->position] ?? PHP_INT_MAX;
-    }
-
-    public function hasRankOrHigher(string $position): bool
-    {
-        return $this->rank() <= (static::RANKS[$position] ?? PHP_INT_MAX);
     }
 
     public function isCeo(): bool

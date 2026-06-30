@@ -164,8 +164,7 @@ class PostResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(PostExporter::class))
             ->emptyStateIcon('heroicon-o-document-text')
-            ->defaultSort('pinned', 'desc')
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort(fn(Builder $query): Builder => $query->orderBy('pinned', 'desc')->orderBy('created_at', 'desc'))
             ->striped();
     }
 }

@@ -31,39 +31,32 @@ class Photo extends Model
         return $query->where('department_id', $departmentCode);
     }
 
-    public function getPrimaryDepartmentAttribute()
-    {
-        return $this->department;
-    }
-
-    public function getAllDepartmentsAttribute(): array
-    {
-        $deps = $this->departments ?? [];
-        if ($this->department_id) {
-            array_unshift($deps, $this->department_id);
-        }
-
-        return array_unique($deps);
-    }
-
-    public function getAllDepartmentModelsAttribute()
-    {
-        $codes = $this->all_departments;
-        if (empty($codes)) {
-            return collect();
-        }
-
-        return Department::getCachedModels()->filter(fn($model, $code) => in_array($code, $codes, true))->values();
-    }
-
-    protected function imageUrls(): Attribute
+    protected function allDepartmentModels(): Attribute
     {
         return Attribute::make(
-            get: fn () => array_map(
-                fn ($p) => static::resolvePublicAssetUrl($p),
-                array_values(array_filter($this->path ?? [], fn ($p) => !empty($p))),
-            ),
-        )->shouldCache();
+            get: function () {
+                $codes = $this->all_departments;
+                if (empty($codes)) {
+                    return collect();
+                }
+
+                return Department::getCachedModels()->filter(fn($model, $code) => in_array($code, $codes, true))->values();
+            }
+        );
+    }
+
+    protected function allDepartments(): Attribute
+    {
+        return Attribute::make(
+            get: function (): array {
+                $deps = $this->departments ?? [];
+                if ($this->department_id) {
+                    array_unshift($deps, $this->department_id);
+                }
+
+                return array_unique($deps);
+            }
+        );
     }
 
     protected function casts(): array
@@ -73,5 +66,15 @@ class Photo extends Model
             'path' => 'array',
             'departments' => 'array',
         ];
+    }
+
+    protected function imageUrls(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => array_map(
+                fn($p) => static::resolvePublicAssetUrl($p),
+                array_values(array_filter($this->path ?? [], fn($p) => !empty($p))),
+            ),
+        )->shouldCache();
     }
 }

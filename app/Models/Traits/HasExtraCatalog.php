@@ -269,21 +269,6 @@ trait HasExtraCatalog
         return static::$extraLabels[$key] ?? static::fallbackLabel($key);
     }
 
-    public static function getAllKeys(): array
-    {
-        return collect(static::$extraCategories)
-            ->flatten()
-            ->unique()
-            ->sort()
-            ->values()
-            ->all();
-    }
-
-    public static function isValidKey(string $key): bool
-    {
-        return isset(static::$extraIcons[$key]) && $key !== 'default';
-    }
-
     private static function fallbackLabel(string $key): string
     {
         return "آیتم بدون عنوان ({$key})";

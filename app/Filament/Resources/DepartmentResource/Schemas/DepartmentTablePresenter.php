@@ -70,8 +70,6 @@ class DepartmentTablePresenter
         return TextColumn::make('name')
             ->label(__('resources/department/strings.fields.name'))
             ->sortable()
-            ->formatStateUsing(fn(?Model $record): string => $record?->description ?? $record?->name ?? '-')
-            ->tooltip(fn(?Model $record): string => $record?->name ?? $record?->description ?? '-')
             ->searchable(['description', 'name'])
             ->weight(FontWeight::Bold)
             ->toggleable(isToggledHiddenByDefault: true);

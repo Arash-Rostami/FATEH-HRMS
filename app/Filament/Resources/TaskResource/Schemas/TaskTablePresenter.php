@@ -142,7 +142,8 @@ class TaskTablePresenter
         return TextColumn::make('detail.department.name')
             ->label(__('resources/task/strings.fields.department'))
             ->placeholder('—')
-            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->description ?? $record?->detail?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->detail?->department?->tooltipLabel() ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

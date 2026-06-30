@@ -2,7 +2,6 @@
 
 namespace App\Models\Traits;
 
-use App\Models\Read;
 use App\Models\User;
 
 trait HasUserHelpers
@@ -41,49 +40,5 @@ trait HasUserHelpers
     public function getUsersCountAttribute(): int
     {
         return count($this->users ?? []);
-    }
-
-    /* ─────────────────────────────────────────────
-       For Read (single user_id lookup)
-       ───────────────────────────────────────────── */
-
-    public function getUserNameTooltipAttribute(): ?string
-    {
-        $userId = $this->user_id ?? null;
-
-        if (empty($userId)) {
-            return null;
-        }
-
-        return static::userNames()[$userId] ?? null;
-    }
-
-
-    public static function getReaderNamesTooltipForDocument(int $documentId): ?string
-    {
-        static $documentReaders = [];
-
-        if (!array_key_exists($documentId, $documentReaders)) {
-            $documentReaders[$documentId] = Read::where('document_id', $documentId)
-                ->pluck('user_id')
-                ->unique()
-                ->values()
-                ->toArray();
-        }
-
-        $readerIds = $documentReaders[$documentId];
-
-        if (empty($readerIds)) {
-            return null;
-        }
-
-        $names = array_filter(
-            array_map(
-                fn ($id) => static::userNames()[$id] ?? null,
-                $readerIds
-            )
-        );
-
-        return implode(' ┆ ', $names) ?: null;
     }
 }

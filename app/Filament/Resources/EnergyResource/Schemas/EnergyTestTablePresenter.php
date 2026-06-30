@@ -57,7 +57,7 @@ class EnergyTestTablePresenter
         return TextColumn::make('emotion_score')
             ->label(__('resources/energy/strings.fields.emotion_score'))
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
-            ->color(fn($state) => self::scoreColor($state))
+            ->color(fn($state) => self::scoreColor($state, 3, 2))
             ->badge()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
@@ -92,7 +92,7 @@ class EnergyTestTablePresenter
         return TextColumn::make('mind_score')
             ->label(__('resources/energy/strings.fields.mind_score'))
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
-            ->color(fn($state) => self::scoreColor($state))
+            ->color(fn($state) => self::scoreColor($state, 3, 2))
             ->badge()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
@@ -122,7 +122,7 @@ class EnergyTestTablePresenter
         return TextColumn::make('physique_score')
             ->label(__('resources/energy/strings.fields.physique_score'))
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
-            ->color(fn($state) => self::scoreColor($state))
+            ->color(fn($state) => self::scoreColor($state, 3, 2))
             ->badge()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
@@ -153,7 +153,7 @@ class EnergyTestTablePresenter
         return TextColumn::make('soul_score')
             ->label(__('resources/energy/strings.fields.soul_score'))
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
-            ->color(fn($state) => self::scoreColor($state))
+            ->color(fn($state) => self::scoreColor($state, 3, 2))
             ->badge()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
@@ -186,12 +186,12 @@ class EnergyTestTablePresenter
             ->collapsible();
     }
 
-    private static function scoreColor(?float $score): string
+    private static function scoreColor(?float $score, float $danger = 12, float $warning = 9): string
     {
         return match (true) {
             $score === null => 'gray',
-            $score >= 70 => 'danger',
-            $score >= 45 => 'warning',
+            $score >= $danger => 'danger',
+            $score >= $warning => 'warning',
             default => 'success',
         };
     }

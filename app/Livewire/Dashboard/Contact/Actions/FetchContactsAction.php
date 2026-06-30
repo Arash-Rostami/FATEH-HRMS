@@ -2,45 +2,52 @@
 
 namespace App\Livewire\Dashboard\Contact\Actions;
 
-use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class FetchContactsAction
 {
     public function execute(int $viewerId, string $search = '', string $filter = 'all'): Collection
     {
-        $lastMsgIdSub = Message::selectRaw('MAX(id)')
-            ->withoutTrashed()
-            ->where(fn($q) => $q
-                ->where('sender_id', $viewerId)->whereColumn('recipient_id', 'users.id')
-                ->orWhere('sender_id', 'users.id')->where('recipient_id', $viewerId)
-            );
+        $sent = DB::table('messages')
+            ->selectRaw('recipient_id as contact_id, MAX(id) as max_id')
+            ->where('sender_id', $viewerId)
+            ->whereNull('deleted_at')
+            ->groupBy('contact_id');
 
-        $unreadSub = Message::selectRaw('COUNT(*)')
-            ->withoutTrashed()
+        $received = DB::table('messages')
+            ->selectRaw('sender_id as contact_id, MAX(id) as max_id')
             ->where('recipient_id', $viewerId)
-            ->whereColumn('sender_id', 'users.id')
-            ->whereNull('read_at');
+            ->whereNull('deleted_at')
+            ->groupBy('contact_id');
+
+        $lastMsgSub = DB::query()
+            ->fromSub($sent->unionAll($received), 't')
+            ->selectRaw('contact_id, MAX(max_id) as last_message_id')
+            ->groupBy('contact_id');
+
+        $unreadSub = DB::table('messages')
+            ->selectRaw('sender_id as contact_id, COUNT(id) as unread_count')
+            ->where('recipient_id', $viewerId)
+            ->whereNull('deleted_at')
+            ->whereNull('read_at')
+            ->groupBy('contact_id');
 
         return User::with(['profile.department'])
             ->active()
-//            ->whereKeyNot($viewerId)
-            ->select('users.*')
-            ->addSelect(['last_message_id' => $lastMsgIdSub])
-            ->addSelect(['unread_count' => $unreadSub])
+            ->select('users.*', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'))
+            ->leftJoinSub($lastMsgSub, 'lm', 'users.id', '=', 'lm.contact_id')
+            ->leftJoinSub($unreadSub, 'uc', 'users.id', '=', 'uc.contact_id')
             ->when(filled($search), fn($q) => $q
                 ->where(fn($q) => $q
                     ->where('users.name', 'LIKE', "%{$search}%")
                     ->orWhereHas('profile', fn($p) => $p->where('position', 'LIKE', "%{$search}%"))
                 )
             )
-            ->when($filter === 'unread', fn($q) => $q->having('unread_count', '>', 0))
-            ->orderByDesc('last_message_id')
+            ->when($filter === 'unread', fn($q) => $q->where('uc.unread_count', '>', 0))
+            ->orderByDesc('lm.last_message_id')
             ->orderBy('users.name')
             ->get();
     }
 }
-
-
-

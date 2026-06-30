@@ -77,10 +77,13 @@ class PersolTeamService
 
     private function applyCPRules(Builder $query, User $viewer): bool
     {
-        if ($viewer->surname == 'Rashidbeygi') {
-            $query->where('surname', 'Adami');
-        } elseif ($viewer->surname == 'Shirzadeh') {
-            $query->where('surname', 'Nafar');
+        $name = (string) $viewer->name;
+        $lower = mb_strtolower($name);
+
+        if (str_contains($lower, 'rashidbeygi') || str_contains($name, 'رشیدبیگی')) {
+            $query->where(fn(Builder $q) => $q->where('name', 'like', '%adami%')->orWhere('name', 'like', '%آدمی%'));
+        } elseif (str_contains($lower, 'shirzadeh') || str_contains($name, 'شیرزاده')) {
+            $query->where(fn(Builder $q) => $q->where('name', 'like', '%nafar%')->orWhere('name', 'like', '%نفر%'));
         } else {
             $query->whereRaw('1 = 0');
         }

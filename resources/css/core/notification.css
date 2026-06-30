@@ -136,20 +136,19 @@
         transition: opacity 0.22s ease, transform 0.22s var(--sys-anim-standard);
     }
 
-    @keyframes slideInLeft {
-        from {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    #database-notifications .fi-modal-window.fi-transition-enter-start,
+    #database-notifications .fi-modal-window.fi-transition-leave-end {
+        transform: translateX(-100%) !important;
+        opacity: 0 !important;
+    }
+
+    #database-notifications .fi-modal-window.fi-transition-enter-end,
+    #database-notifications .fi-modal-window.fi-transition-leave-start {
+        transform: translateX(0) !important;
+        opacity: 1 !important;
     }
 
     #database-notifications .fi-modal-window {
-        animation: slideInLeft 0.25s var(--sys-anim-standard) both !important;
-
         border-radius: 1.5rem !important;
         box-shadow: 4px 0 40px color-mix(in srgb, var(--md-sys-color-primary), transparent 18%) !important;
     }

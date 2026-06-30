@@ -13,6 +13,7 @@
                 @php( $isActive = $activeDept === $dept->code)
                 <button
                     wire:click="setDept('{{ $dept->code }}')"
+                    title="{{ $dept->tooltipLabel() }}"
                     @class([
                         'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200 whitespace-nowrap active:scale-[0.97]',
                         'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent shadow-sm' => $isActive,
@@ -21,7 +22,7 @@
                 >
                     <span
                         class="material-symbols-rounded text-[18px]">{{ $isActive ? 'corporate_fare' : 'domain' }}</span>
-                    {{ $dept->name }}
+                    {{ $dept->displayLabel() }}
                     <span @class([
                         'text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md',
                         'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' => $isActive,

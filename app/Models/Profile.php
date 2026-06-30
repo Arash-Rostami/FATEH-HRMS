@@ -105,11 +105,6 @@ class Profile extends Model
         return $this->generateInitialsAvatar($this->user?->name);
     }
 
-    public function isMarried(): bool
-    {
-        return $this->marital_status === 'married';
-    }
-
     public function isProbational(): bool
     {
         return $this->employment_status === 'probational';

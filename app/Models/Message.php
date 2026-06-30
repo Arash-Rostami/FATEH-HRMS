@@ -36,28 +36,18 @@ class Message extends Model
         'read_at',
     ];
 
+
     public function attachmentUrls(): array
     {
-        return collect($this->attachments ?? [])
-            ->map(fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])])
-            ->all();
+        return array_map(
+            fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])],
+            $this->attachments ?? []
+        );
     }
 
     public function getPruneDays(): int
     {
         return self::PRUNE_DAYS;
-    }
-
-    public function isEditable(int $userId, int $seconds = 300): bool
-    {
-        if (!$this->isOwnedBy($userId)) return false;
-        if ($this->trashed()) return false;
-        return $this->created_at->diffInSeconds(now()) <= $seconds;
-    }
-
-    public function isOwnedBy(int $userId): bool
-    {
-        return $this->sender_id === $userId;
     }
 
     public function isRead(): bool

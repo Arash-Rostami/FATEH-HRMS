@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class TasksRelationManager extends RelationManager
@@ -92,6 +93,7 @@ class TasksRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator']))
             ->columns([
                 TaskTablePresenter::id(),
                 TaskTablePresenter::title(),

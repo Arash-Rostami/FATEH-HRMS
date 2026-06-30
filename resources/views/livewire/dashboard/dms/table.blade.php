@@ -133,8 +133,8 @@
                         </td>
 
                         <td class="max-w-[150px] align-middle border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right">
-                            <div class="truncate text-xs font-medium leading-relaxed text-[var(--md-sys-color-on-surface-variant)]" title="{!! $doc->getDepartmentNames() ?: 'بدون مالک' !!}">
-                                {!! $doc->getDepartmentNames() ?: ' فردی (جدا از واحد)' !!}
+                            <div class="truncate text-xs font-medium leading-relaxed text-[var(--md-sys-color-on-surface-variant)]" title="{!! $doc->getDepartmentTooltipLabels() ?: 'بدون مالک' !!}">
+                                {!! $doc->getDepartmentDisplayLabels() ?: ' فردی (جدا از واحد)' !!}
                             </div>
                         </td>
 

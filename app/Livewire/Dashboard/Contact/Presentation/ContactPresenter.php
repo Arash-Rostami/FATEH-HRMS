@@ -98,18 +98,6 @@ class ContactPresenter
         }, array_values($messages), array_keys($messages));
     }
 
-    public function replyBar(?array $replyTo): ?array
-    {
-        if (!$replyTo) {
-            return null;
-        }
-
-        return [
-            'sender_name' => $replyTo['sender']['name'] ?? 'ناشناس',
-            'body'        => Str::limit($replyTo['body'] ?? '', 60),
-        ];
-    }
-
     private function replyPreview(?array $replyTo): ?array
     {
         if (!$replyTo) {

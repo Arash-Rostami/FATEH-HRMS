@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasDepartmentLabel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Cache;
 
 class Department extends Model
 {
-    use HasFactory;
+    use HasFactory, HasDepartmentLabel;
 
     protected $fillable = [
         'code',
@@ -39,20 +40,29 @@ class Department extends Model
         return $this->hasMany(FAQ::class, 'department_id', 'code');
     }
 
-    public static function getCachedOptions(): Collection
-    {
-        return once(fn() => Cache::remember('department_options',
-            now()->addYear(),
-            fn() => self::orderBy('name')->pluck('description', 'code'))
-        );
-    }
-
     public static function getCachedModels(): Collection
     {
         return once(fn() => Cache::remember('department_models',
             now()->addYear(),
             fn() => self::all()->keyBy('code'))
         );
+    }
+
+    public static function getCachedOptions(): Collection
+    {
+        return once(fn() => Cache::remember('department_options_v2',
+            now()->addYear(),
+            fn() => self::orderBy('name')->get()->mapWithKeys(fn($d) => [$d->code => $d->displayLabel()]))
+        );
+    }
+
+    public static function getCachedOptionsExcludingEmptyTickets(): Collection
+    {
+        return once(fn() => Cache::remember(
+            'department_options_with_tickets_v2',
+            now()->addYear(),
+            fn() => self::excludingEmptyTicketOptions()->orderBy('name')->get()->mapWithKeys(fn($d) => [$d->code => $d->displayLabel()])
+        ));
     }
 
     public function photos(): HasMany
@@ -86,23 +96,23 @@ class Department extends Model
             ->whereJsonLength('ticket_options', '>', 0);
     }
 
-    public static function getCachedOptionsExcludingEmptyTickets(): Collection
+    public function scopeIncludingEmptyTicketOptions(Builder $query): Builder
     {
-        return once(fn() => Cache::remember(
-            'department_options_with_tickets',
-            now()->addYear(),
-            fn() => self::excludingEmptyTicketOptions()->orderBy('name')->pluck('description', 'code')
-        ));
+        return $query->where(fn(Builder $q) => $q
+            ->whereNull('ticket_options')
+            ->orWhereJsonLength('ticket_options', 0));
     }
 
     public function sectionsOptions(): array
     {
-        return array_combine($this->sections ?? [], $this->sections ?? []);
+        $sections = $this->sections ?? [];
+        return array_combine($sections, $sections);
     }
 
     public function unitsOptions(): array
     {
-        return array_combine($this->units ?? [], $this->units ?? []);
+        $units = $this->units ?? [];
+        return array_combine($units, $units);
     }
 
     public function user(): HasOneThrough
@@ -118,8 +128,8 @@ class Department extends Model
     protected static function booted(): void
     {
         $forgetCache = function () {
-            Cache::forget('department_options');
-            Cache::forget('department_options_with_tickets');
+            Cache::forget('department_options_v2');
+            Cache::forget('department_options_with_tickets_v2');
             Cache::forget('department_models');
         };
 

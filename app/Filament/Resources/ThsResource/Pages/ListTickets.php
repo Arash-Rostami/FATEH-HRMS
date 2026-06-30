@@ -51,7 +51,7 @@ class ListTickets extends ListRecords
                 ->badge(fn() => $this->getStats()->unassigned_count ?: null)
                 ->badgeColor('danger')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query->whereNull('assigned_to')
+                    fn(Builder $query) => $query->whereNull('assigned_to')->whereIn('status', ['open', 'in-progress'])
                 ),
 
             'overdue' => Tab::make(__('resources/ths/strings.tabs.overdue'))

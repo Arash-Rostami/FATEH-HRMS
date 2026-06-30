@@ -64,34 +64,6 @@ class OnboardingPresenter
         return $out;
     }
 
-    public function getAdminOptions(): array
-    {
-        $options = [];
-
-        foreach (self::$extraCategories as $category => $keys) {
-            $items = [];
-            foreach ($keys as $key) {
-                if (!isset(self::$extraIcons[$key])) continue;
-
-                $items[] = [
-                    'key' => $key,
-                    'icon' => self::$extraIcons[$key],
-                    'label' => self::$extraLabels[$key] ?? self::autoTitle($key),
-                    'description' => self::$extraDescriptions[$key] ?? null,
-                ];
-            }
-
-            if (!empty($items)) {
-                $options[$category] = [
-                    'title' => self::categoryTitle($category),
-                    'items' => $items,
-                ];
-            }
-        }
-
-        return $options;
-    }
-
     public function guides(Collection|array|null $guides): array
     {
         $guides = collect($guides);

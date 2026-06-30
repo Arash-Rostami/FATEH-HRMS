@@ -29,6 +29,12 @@ class Detail extends Component
     }
 
     #[Computed]
+    public function allDepartmentTooltips(): array
+    {
+        return Department::getCachedModels()->mapWithKeys(fn($d) => [$d->code => $d->tooltipLabel()])->toArray();
+    }
+
+    #[Computed]
     public function canDecide(): bool
     {
         return $this->isCeo() && $this->suggestion?->stage === 'awaiting_decision';

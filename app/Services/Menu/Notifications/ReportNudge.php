@@ -35,7 +35,7 @@ class ReportNudge implements MenuNudge
 
     public function title($subject, User $user): string
     {
-        return 'گزارش جدید از ' . (($subject->department?->description ?: $subject->department?->name) ?? 'سازمان') . ': ' . $subject->title;
+        return 'گزارش جدید از ' . ($subject->department?->displayLabel() ?? 'سازمان') . ': ' . $subject->title;
     }
 
     public function triggers(): array

@@ -10,6 +10,7 @@ use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Support\Enums\IconPosition;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Support\Facades\Storage;
 
@@ -237,6 +238,8 @@ class SuggestionInfolistPresenter
     {
         return TextEntry::make('user.profile.department.description')
             ->label(__('resources/suggestion/strings.fields.submitter_dept'))
+            ->formatStateUsing(fn(?Model $record): string => $record?->user?->profile?->department?->displayLabel() ?? '—')
+            ->tooltip(fn(?Model $record): string => $record?->user?->profile?->department?->tooltipLabel() ?? '—')
             ->placeholder('—')
             ->icon('heroicon-o-building-office-2');
     }

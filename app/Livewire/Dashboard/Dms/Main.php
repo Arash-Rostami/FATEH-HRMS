@@ -56,7 +56,7 @@ class Main extends Component
         $safeIds = array_map('intval', $this->docIds);
         $idsString = implode(',', $safeIds);
 
-        return DMS::with('reads')
+        return DMS::query()
             ->whereIn('id', $safeIds)
             ->orderByRaw("FIELD(id, {$idsString})")
             ->get();

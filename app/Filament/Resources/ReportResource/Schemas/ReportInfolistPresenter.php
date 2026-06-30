@@ -35,8 +35,8 @@ class ReportInfolistPresenter
     {
         return TextEntry::make('department.name')
             ->label(__('resources/report/strings.fields.department'))
-            ->formatStateUsing(fn(?Model $record): string => $record?->department->description ?? $record?->department->name ?? '-')
-            ->tooltip(fn(?Model $record): string => $record?->department->name ?? $record?->department->description ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->badge()
             ->color('info')
             ->placeholder('-');

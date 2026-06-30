@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class ProfileRelationManager extends RelationManager
@@ -191,6 +192,7 @@ class ProfileRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['department', 'user']))
             ->columns([
                 ProfileTablePresenter::id(),
                 ProfileTablePresenter::avatar(),

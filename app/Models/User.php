@@ -120,20 +120,20 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         ));
     }
 
-    public static function getCachedAllOptions(): Collection
-    {
-        return once(fn() => Cache::remember('user_all_options',
-            now()->addHours(6),
-            fn() => self::orderBy('name')->pluck('name', 'id')
-        ));
-    }
-
     /** Admin-role users only — permission rows are an admin-only concept (developers are super by role, users can't reach the panel). */
     public static function getCachedAdminOptions(): Collection
     {
         return once(fn() => Cache::remember('user_admin_options',
             now()->addHours(6),
             fn() => self::where('role', 'admin')->orderBy('name')->pluck('name', 'id')
+        ));
+    }
+
+    public static function getCachedAllOptions(): Collection
+    {
+        return once(fn() => Cache::remember('user_all_options',
+            now()->addHours(6),
+            fn() => self::orderBy('name')->pluck('name', 'id')
         ));
     }
 
@@ -326,7 +326,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     public function touchLastSeen(): void
     {
         $this->timestamps = false;
-        $this->update(['last_seen' => now()]);
+        $this->forceFill(['last_seen' => now()])->saveQuietly();
     }
 
     protected function booking(): Attribute
@@ -351,6 +351,28 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
             },
             set: fn($value) => is_array($value) ? json_encode($value) : $value
         );
+    }
+
+    protected static function booted(): void
+    {
+        $keys = ['user_active_options', 'user_all_options', 'user_names_map', 'user_admin_options'];
+        $forget = fn() => collect($keys)->each(Cache::forget(...));
+
+        static::saved(fn(self $u) => $u->wasChanged(['name', 'role', 'status']) && $forget());
+        static::deleted($forget);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'last_seen' => 'datetime',
+            'password' => 'hashed',
+            'maximum' => 'integer',
+            'presence' => PresenceStatus::class,
+        ];
     }
 
     protected function extra(): Attribute
@@ -408,33 +430,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
             },
         );
     }
-
-    protected static function booted(): void
-    {
-        $flushCache = fn() => collect([
-            'user_active_options',
-            'user_all_options',
-            'user_names_map',
-            'user_admin_options',
-        ])->each(Cache::forget(...));
-
-        static::saved($flushCache);
-        static::deleted($flushCache);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'last_seen' => 'datetime',
-            'password' => 'hashed',
-            'maximum' => 'integer',
-            'presence' => PresenceStatus::class,
-        ];
-    }
-
 
     protected function smsNumber(): Attribute
     {

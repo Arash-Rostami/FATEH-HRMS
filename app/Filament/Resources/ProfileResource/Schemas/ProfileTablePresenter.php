@@ -82,7 +82,8 @@ class ProfileTablePresenter
             ->label(__('resources/profile/strings.table.department'))
             ->sortable()
             ->searchable()
-            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -97,7 +98,7 @@ class ProfileTablePresenter
     {
         return Group::make('department.name')
             ->label(__('resources/profile/strings.form.department_id'))
-            ->getTitleFromRecordUsing(fn($record): string => $record->department?->description ?? $record->department?->code ?? '-')
+            ->getTitleFromRecordUsing(fn($record): string => $record->department?->displayLabel() ?? '-')
             ->collapsible();
     }
 

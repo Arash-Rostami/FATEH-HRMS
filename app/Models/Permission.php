@@ -30,11 +30,7 @@ class Permission extends Model
             ));
         }
 
-        return collect($this->abilities ?? [])
-            ->pluck('module')
-            ->filter()
-            ->values()
-            ->toArray();
+        return array_values(array_filter(array_column($this->abilities ?? [], 'module')));
     }
 
     public static function availableModules(): array
@@ -82,10 +78,13 @@ class Permission extends Model
             return !$this->isModuleExcluded($module);
         }
 
-        return collect($this->abilities ?? [])
-            ->where('module', $module)
-            ->flatMap(fn($row) => $row['actions'] ?? [])
-            ->contains($action);
+        foreach ($this->abilities ?? [] as $row) {
+            if (($row['module'] ?? null) === $module && in_array($action, $row['actions'] ?? [], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function forUser(int $userId): ?self

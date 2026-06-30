@@ -127,7 +127,8 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.department.name')
             ->label(__('resources/task/strings.fields.department'))
             ->placeholder('—')
-            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->description ?? $record?->detail?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->detail?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->detail?->department?->tooltipLabel() ?? '-')
             ->icon('heroicon-o-building-office-2');
     }
 

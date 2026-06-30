@@ -36,7 +36,7 @@ class ProfileExporter extends Exporter
 
             ExportColumn::make('department.name')
                 ->label(__('resources/profile/strings.export.department'))
-                ->formatStateUsing(fn(?string $state): string => $state ?? '-'),
+                ->state(fn($record) => $record->department?->displayLabel() ?? '-'),
 
             ExportColumn::make('gender')
                 ->label(__('resources/profile/strings.export.gender'))

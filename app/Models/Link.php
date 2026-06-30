@@ -26,26 +26,11 @@ class Link extends Model
         'extra'
     ];
 
-    public static function countDoubleLinks()
-    {
-        return self::whereNotNull('internal_url')->count();
-    }
-
-    public static function countExternals()
-    {
-        return self::where('link', 'external')->count();
-    }
-
-    public static function countInternals()
-    {
-        return self::where('link', 'internal')->count();
-    }
-
     public function isExtraEmptyInDatabase(): bool
     {
         return (bool)DB::scalar(
-            "SELECT 1 FROM links WHERE id = ? AND (extra IS NULL OR JSON_LENGTH(extra) = 0) LIMIT 1",
-            [$this->id]
+            "SELECT 1 FROM {$this->getTable()} WHERE {$this->getKeyName()} = ? AND (extra IS NULL OR JSON_LENGTH(extra) = 0) LIMIT 1",
+            [$this->getKey()]
         );
     }
 
@@ -64,18 +49,18 @@ class Link extends Model
         return $query->orderBy('sequence');
     }
 
-    protected function imageUrl(): Attribute
-    {
-        return Attribute::make(
-            get: fn (?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
-        )->shouldCache();
-    }
-
     protected function casts(): array
     {
         return [
             'extra' => 'array',
         ];
+    }
+
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn(?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
+        )->shouldCache();
     }
 }
 

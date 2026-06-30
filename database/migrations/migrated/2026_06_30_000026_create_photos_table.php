@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        if (!Schema::hasTable('photos')) {
+            Schema::create('photos', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->longText('path')->charset('utf8mb4')->collation('utf8mb4_bin');
+                $table->string('title', 191);
+                $table->string('department_id', 10)->nullable();
+                $table->json('departments')->nullable();
+                $table->text('description')->nullable();
+                $table->date('event_date');
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
+                $table->index('department_id', 'idx_department');
+                $table->index('event_date', 'idx_event_date');
+                $table->index(['department_id', 'event_date'], 'idx_dept_date');
+                $table->index('department_id', 'idx_department_id');
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('photos');
+    }
+};

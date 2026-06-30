@@ -35,6 +35,12 @@ class Faqs extends Component
         return Department::getCachedOptions()->toArray();
     }
 
+    #[Computed(seconds: 3600, cache: true, key: 'faq-department-tooltips')]
+    public function departmentTooltips()
+    {
+        return Department::getCachedModels()->mapWithKeys(fn($d) => [$d->code => $d->tooltipLabel()])->toArray();
+    }
+
     #[Computed]
     public function faqs()
     {

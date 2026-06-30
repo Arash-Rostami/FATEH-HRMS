@@ -56,8 +56,8 @@ class AuthorityTablePresenter
     {
         return TextColumn::make('department.name')
             ->label(__('resources/authority/strings.fields.department'))
-            ->formatStateUsing(fn(?Model $record): string => $record?->department->description ?? $record?->department->name ?? '-')
-            ->tooltip(fn(?Model $record): string => $record?->department->name ?? $record?->department->description ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
     }
@@ -75,6 +75,7 @@ class AuthorityTablePresenter
     {
         return Group::make('department.description')
             ->label(__('resources/authority/strings.fields.department'))
+            ->getTitleFromRecordUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
             ->collapsible();
     }
 

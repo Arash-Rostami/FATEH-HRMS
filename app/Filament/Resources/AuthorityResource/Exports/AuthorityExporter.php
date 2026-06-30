@@ -17,7 +17,8 @@ class AuthorityExporter extends Exporter
         return [
             ExportColumn::make('id')->label('ID'),
             ExportColumn::make('department.name')
-                ->label(__('resources/authority/strings.fields.department')),
+                ->label(__('resources/authority/strings.fields.department'))
+                ->state(fn($record) => $record->department?->displayLabel() ?? '-'),
             ExportColumn::make('user.name')
                 ->label(__('resources/authority/strings.fields.user')),
             ExportColumn::make('sub_duty')

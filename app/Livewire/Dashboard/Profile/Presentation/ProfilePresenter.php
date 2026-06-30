@@ -31,7 +31,7 @@ class ProfilePresenter
 
     public function departmentName(User $user): string
     {
-        return $user->profile?->department?->description ?? $user->profile?->department?->name ?? 'واحد عمومی';
+        return $user->profile?->department?->displayLabel() ?? 'واحد عمومی';
     }
 
     public function lastSeen(User $user): string

@@ -27,7 +27,12 @@ class GalleryInfolistPresenter
             ->getStateUsing(function ($record) {
                 $models = $record->all_department_models;
                 if ($models->isEmpty()) return null;
-                return $models->pluck('description')->join(', ');
+                return $models->map(fn($d) => $d->displayLabel())->join(', ');
+            })
+            ->tooltip(function ($record) {
+                $models = $record->all_department_models;
+                if ($models->isEmpty()) return null;
+                return $models->map(fn($d) => $d->tooltipLabel())->join(', ');
             })
             ->color(fn($state) => $state ? 'warning' : 'success')
             ->icon(fn($record) => count($record->all_departments) > 1 ? 'heroicon-o-users' : (count($record->all_departments) === 1 ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt'));

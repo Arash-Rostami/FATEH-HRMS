@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SuggestionResource\Exports;
 
 use App\Filament\Resources\SuggestionResource\Enums\SuggestionStage;
+use App\Models\Department;
 use App\Models\Suggestion;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
@@ -30,7 +31,9 @@ class SuggestionExporter extends Exporter
                 ->state(fn($record) => SuggestionStage::tryFrom($record->stage)?->getLabel() ?? $record->stage),
             ExportColumn::make('departments')
                 ->label(__('resources/suggestion/strings.fields.departments'))
-                ->state(fn($record): string => implode('، ', (array) ($record->departments ?? []))),
+                ->state(fn($record): string => collect(($record->departments ?? []))
+                    ->map(fn($code) => Department::getCachedOptions()->get($code) ?? $code)
+                    ->implode('، ')),
             ExportColumn::make('purpose')
                 ->label(__('resources/suggestion/strings.fields.purpose'))
                 ->state(fn($record): string => collect((array) ($record->purpose ?? []))

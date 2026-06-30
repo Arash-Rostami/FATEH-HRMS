@@ -37,7 +37,7 @@ class DmsExporter extends Exporter
 
             ExportColumn::make('owners_display')
                 ->label(__('resources/dms/strings.fields.owners'))
-                ->state(fn($record) => $record->getDepartmentNames()),
+                ->state(fn($record) => $record->getDepartmentDisplayLabels()),
 
             ExportColumn::make('users_count')
                 ->label(__('resources/dms/strings.fields.users_count'))

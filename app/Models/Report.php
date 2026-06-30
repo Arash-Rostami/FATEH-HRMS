@@ -83,9 +83,7 @@ class Report extends Model
                     return Storage::url($this->cover_image);
                 }
 
-                $extension = $this->file_path ? strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION)) : null;
-
-                return match ($extension) {
+                return match ($this->file_type) {
                     'pdf' => asset('build/assets/img/pdf.png'),
                     'docx', 'doc' => asset('build/assets/img/doc.png'),
                     default => asset('build/assets/img/report.png'),

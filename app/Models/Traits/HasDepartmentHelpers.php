@@ -6,30 +6,26 @@ use App\Models\Department;
 
 trait HasDepartmentHelpers
 {
-    protected static array $departmentsCache = [];
-
-    public function getDepartmentDescriptions()
+    public function getDepartmentDisplayLabels(): string
     {
-        return $this->getDepartmentsData('description', 'توضیحات برای همه واحد ها');
+        return $this->getDepartmentsData(fn($d) => $d->displayLabel(), 'توضیحات برای همه واحد ها');
     }
 
-    public function getDepartmentNames()
+    public function getDepartmentTooltipLabels(): string
     {
-        return $this->getDepartmentsData('name', 'همه واحد ها');
+        return $this->getDepartmentsData(fn($d) => $d->tooltipLabel(), 'همه واحد ها');
     }
 
-    private function getDepartmentsData(string $attribute, string $message)
+    private function getDepartmentsData(callable $label, string $allMessage): string
     {
         if (collect($this->owners)->contains('ALL')) {
-            return $message;
-        }
-
-        if (empty(static::$departmentsCache)) {
-            static::$departmentsCache = Department::all()->keyBy('code')->toArray();
+            return $allMessage;
         }
 
         return collect($this->owners)
-            ->map(fn($ownerCode) => static::$departmentsCache[$ownerCode][$attribute] ?? '')
+            ->map(fn($code) => Department::getCachedModels()->get($code))
+            ->filter()
+            ->map($label)
             ->implode(' ┆ ');
     }
 }

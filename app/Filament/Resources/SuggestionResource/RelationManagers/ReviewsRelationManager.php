@@ -12,6 +12,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class ReviewsRelationManager extends RelationManager
@@ -41,7 +42,7 @@ class ReviewsRelationManager extends RelationManager
             Section::make('بررسی')
                 ->schema([
                     TextEntry::make('user.name')->label('بررسی‌کننده'),
-                    TextEntry::make('department.name')->label('واحد سازمانی')->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-'),
+                    TextEntry::make('department.name')->label('واحد سازمانی')->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-'),
                     TextEntry::make('feedback')
                         ->label('نظر')
                         ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),
@@ -60,6 +61,7 @@ class ReviewsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user', 'department']))
             ->recordTitleAttribute('id')
             ->columns([
                 TextColumn::make('user.name')
@@ -67,7 +69,8 @@ class ReviewsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('department.name')
                     ->label('واحد سازمانی')
-                    ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-'),
+                    ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+                    ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-'),
                 TextColumn::make('feedback')
                     ->label('نظر')
                     ->formatStateUsing(fn ($state) => \App\Models\Review::FEEDBACKS[$state] ?? $state),

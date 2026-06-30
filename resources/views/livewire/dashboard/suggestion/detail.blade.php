@@ -289,7 +289,8 @@
                     <span class="material-symbols-rounded text-base font-fill {{ $dept['text_class'] }}">
                         {{ $dept['style'][2] }}
                     </span>
-                        <span class="text-sm font-bold flex-1 text-[var(--md-sys-color-on-surface)]">
+                        <span class="text-sm font-bold flex-1 text-[var(--md-sys-color-on-surface)]"
+                              title="{{ $dept['tooltip'] ?? '' }}">
                         {{ $dept['name'] }}
                     </span>
                         @if($dept['is_action'])
@@ -332,7 +333,8 @@
                                     {{ $item['style'][2] }}
                                 </span>
                                 </div>
-                                <span class="text-sm font-bold truncate text-[var(--md-sys-color-on-surface)]">
+                                <span class="text-sm font-bold truncate text-[var(--md-sys-color-on-surface)]"
+                                      title="{{ $item['tooltip'] ?? '' }}">
                                 {{ $item['label'] }}
                             </span>
                                 @if($item['is_action'])
@@ -359,11 +361,12 @@
                                     <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">دستورالعمل اجرا:</span>
                                     @if($item['review']->referral)
                                         <div class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای موظف">
-                                            @foreach($item['review']->referral as $name)
+                                            @foreach($item['referral_labels'] as $rl)
                                                 <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-sm leading-none
                                                          bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
-                                                         ring-1 ring-[var(--md-sys-color-primary)]/30">
-                                                {{ $name }}
+                                                         ring-1 ring-[var(--md-sys-color-primary)]/30"
+                                                      title="{{ $rl['tooltip'] }}">
+                                                {{ $rl['label'] }}
                                             </span>
                                             @endforeach
                                         </div>
@@ -557,7 +560,8 @@
                                            value="{{ $code }}"
                                            class="w-4 h-4 accent-[var(--md-sys-color-primary)]">
 
-                                    <span class="text-sm text-[var(--md-sys-color-on-surface)]">
+                                    <span class="text-sm text-[var(--md-sys-color-on-surface)]"
+                                          title="{{ $this->allDepartmentTooltips[$code] ?? '' }}">
                                         {{ $name }}
                                     </span>
 

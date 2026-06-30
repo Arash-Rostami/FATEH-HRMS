@@ -81,7 +81,7 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
     {
         $query = DB::table('departments')
             ->select(
-                'departments.name as department_name',
+                DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
                 DB::raw('COALESCE(AVG(energy_tests.overall_score), 0) as avg_energy'),
                 DB::raw('COUNT(tasks.id) as pending_tasks')
             )
@@ -95,7 +95,7 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
                 $join->on('users.id', '=', 'tasks.assigned_to')
                     ->whereIn('tasks.status', ['todo', 'in-progress']);
             })
-            ->groupBy('departments.code', 'departments.name');
+            ->groupBy('departments.code', 'departments.name', 'departments.description');
 
         if ($departmentCode) {
             $query->where('departments.code', $departmentCode);
@@ -117,14 +117,14 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
     {
         $query = DB::table('tickets')
             ->select(
-                'creator_dept.name as origin',
+                DB::raw('COALESCE(NULLIF(creator_dept.description, ""), creator_dept.name, creator_dept.code) as origin'),
                 DB::raw('ROUND(AVG(DATEDIFF(tickets.completion_date, DATE(tickets.created_at))), 1) as avg_resolution_days')
             )
             ->join('users as requester', 'tickets.requester_id', '=', 'requester.id')
             ->join('profiles as requester_profile', 'requester.id', '=', 'requester_profile.user_id')
             ->join('departments as creator_dept', 'requester_profile.department_id', '=', 'creator_dept.code')
             ->whereNotNull('tickets.completion_date')
-            ->groupBy('creator_dept.code', 'creator_dept.name');
+            ->groupBy('creator_dept.code', 'creator_dept.name', 'creator_dept.description');
 
         if ($departmentCode) {
             $query->where('creator_dept.code', $departmentCode);

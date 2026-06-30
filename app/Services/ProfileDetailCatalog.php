@@ -125,11 +125,6 @@ class ProfileDetailCatalog
         });
     }
 
-    public static function isSystem(string $key): bool
-    {
-        return array_key_exists($key, self::definitions());
-    }
-
     public static function keys(): array
     {
         return array_keys(self::definitions());

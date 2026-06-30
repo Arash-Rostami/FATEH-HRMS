@@ -124,7 +124,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
 
         $total = $departments->count();
         $withUsers = $departments->filter(fn($d) => $d->users_count > 0)->count();
-        $mostDense = $departments->sortByDesc('users_count')->first()?->description ?? 'نامشخص';
+        $mostDense = $departments->sortByDesc('users_count')->first()?->displayLabel() ?? 'نامشخص';
 
         return [
             Stat::make('کل واحدها', $total)
@@ -473,7 +473,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
             ->first();
 
-        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->description ?? 'نامشخص';
+        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->displayLabel() ?? 'نامشخص';
 
         return [
             Stat::make('واحدها با بیشترین گزارش', $mostDense)

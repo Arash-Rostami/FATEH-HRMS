@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Suggestion\Presentation;
 
+use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\Traits\HasPublicAssetUrl;
@@ -103,7 +104,7 @@ class SuggestionPresenter
     {
         $s = $this->suggestion;
         $deadline = $this->deadlineConfig();
-        $userDep = $s->user?->profile?->department?->description ?? $s->user?->profile?->department_id ?? '-';
+        $userDep = $s->user?->profile?->department?->displayLabel() ?? '-';
         $totalDeps = count((array) ($s->departments ?? []));
         $respondedDeps = $this->getValidFeedbackCount();
 
@@ -131,7 +132,7 @@ class SuggestionPresenter
 
     public function referralDepts(): array
     {
-        return $this->referrals ??= $this->ceoReview()?->referralDepartments()?->pluck('description')->all()
+        return $this->referrals ??= $this->ceoReview()?->referralDepartments()?->pluck('code')->all()
             ?? $this->ceoReview()?->referral
             ?? [];
     }
@@ -155,12 +156,19 @@ class SuggestionPresenter
     {
         $deps = $suggestion->departments ?? [];
         $count = $suggestion->departments_count ?? count($deps);
-        $fallback = $suggestion->user?->profile?->department ?? '—';
+        $models = Department::getCachedModels();
+        $fallbackModel = $suggestion->user?->profile?->department;
         $glue = ' ⭑ ';
 
+        $labelize = fn(array $codes, callable $pick) => collect($codes)
+            ->map(fn($code) => $models->get($code))
+            ->filter()
+            ->map($pick)
+            ->implode($glue);
+
         return match ($item) {
-            'truncated_deps' => $count ? implode($glue, array_slice($deps, 0, 2)) : $fallback,
-            'all_deps' => $count ? implode($glue, $deps) : $fallback,
+            'truncated_deps' => $count ? $labelize(array_slice($deps, 0, 2), fn($d) => $d->displayLabel()) : ($fallbackModel?->displayLabel() ?? '—'),
+            'all_deps' => $count ? $labelize($deps, fn($d) => $d->tooltipLabel()) : ($fallbackModel?->tooltipLabel() ?? '—'),
             'deps_count' => $count,
             default => null,
         };
@@ -275,10 +283,12 @@ class SuggestionPresenter
         $review = $reviewsMap[$dept] ?? null;
         $feedback = $review?->feedback ?? self::DEFAULT_FEEDBACK;
         $style = $this->feedbackStyle($feedback);
+        $deptModel = $review?->department ?? Department::getCachedModels()->get($dept);
 
         return [
             'dept'        => $dept,
-            'name'        => $review?->department?->description ?? $dept,
+            'name'        => $deptModel?->displayLabel() ?? $dept,
+            'tooltip'     => $deptModel?->tooltipLabel(),
             'feedback'    => $feedback,
             'style'       => $style,
             'bg_class'    => 'bg-[var(--md-sys-color-' . $style[0] . ')]',
@@ -310,7 +320,14 @@ class SuggestionPresenter
             'badge_text_class' => 'text-[var(--md-sys-color-' . $style[1] . ')]',
             'is_ma'            => $isCeo,
             'is_action'        => in_array($review->department_id, $referrals, true),
-            'label'            => $isCeo ? 'مدیریت ارشد' : ($review->department?->description ?? $review->department_id),
+            'label'            => $isCeo ? 'مدیریت ارشد' : ($review->department?->displayLabel() ?? Department::getCachedModels()->get($review->department_id)?->displayLabel() ?? $review->department_id),
+            'tooltip'          => $isCeo ? null : ($review->department?->tooltipLabel() ?? Department::getCachedModels()->get($review->department_id)?->tooltipLabel()),
+            'referral_labels'  => collect(($review->referral ?? []))
+                ->map(fn($code) => Department::getCachedModels()->get($code))
+                ->filter()
+                ->map(fn($d) => ['label' => $d->displayLabel(), 'tooltip' => $d->tooltipLabel()])
+                ->values()
+                ->all(),
             'feedback_label'   => Review::FEEDBACKS[$review->feedback] ?? $review->feedback,
         ];
     }
@@ -333,7 +350,13 @@ class SuggestionPresenter
 
     private function formatReferralText(): string
     {
-        return $this->hasReferral() ? implode('، ', $this->referralDepts()) : 'خیر';
+        if (!$this->hasReferral()) return 'خیر';
+
+        $models = Department::getCachedModels();
+
+        return collect($this->referralDepts())
+            ->map(fn($code) => $models->get($code)?->displayLabel() ?? $code)
+            ->implode('، ');
     }
 
     private function formatResponseCount(int $total, int $responded): string

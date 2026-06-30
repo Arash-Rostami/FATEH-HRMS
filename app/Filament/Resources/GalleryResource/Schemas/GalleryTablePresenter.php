@@ -36,7 +36,12 @@ class GalleryTablePresenter
             ->getStateUsing(function ($record) {
                 $models = $record->all_department_models;
                 if ($models->isEmpty()) return null;
-                return $models->pluck('description')->join(', ');
+                return $models->map(fn($d) => $d->displayLabel())->join(', ');
+            })
+            ->tooltip(function ($record) {
+                $models = $record->all_department_models;
+                if ($models->isEmpty()) return null;
+                return $models->map(fn($d) => $d->tooltipLabel())->join(', ');
             })
             ->sortable(false)
             ->toggleable(isToggledHiddenByDefault: false);
@@ -65,7 +70,7 @@ class GalleryTablePresenter
             ->label(__('resources/gallery/strings.fields.department'))
             ->getTitleFromRecordUsing(function (Model $record): string {
                 $models = $record->all_department_models;
-                return $models->isEmpty() ? __('resources/gallery/strings.fields.public_gallery') : $models->pluck('description')->join(', ');
+                return $models->isEmpty() ? __('resources/gallery/strings.fields.public_gallery') : $models->map(fn($d) => $d->displayLabel())->join(', ');
             })
             ->collapsible();
     }

@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class TicketsRelationManager extends RelationManager
@@ -131,6 +132,7 @@ class TicketsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'department']))
             ->recordTitleAttribute('request_subject')
             ->columns([
                 TicketTablePresenter::ticketId(),

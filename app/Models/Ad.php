@@ -28,27 +28,43 @@ class Ad extends Model
 
     public static function countActiveJobs(): int
     {
-        return self::active()->count();
-    }
-
-    public static function countBothGender(): int
-    {
-        return self::gender('Any')->count();
+        return self::getActiveCounts()['active'];
     }
 
     public static function countFemales(): int
     {
-        return self::gender('Female')->count();
+        return self::getGenderCounts()['Female'];
     }
 
     public static function countInactiveJobs(): int
     {
-        return self::inactive()->count();
+        return self::getActiveCounts()['inactive'];
     }
 
     public static function countMales(): int
     {
-        return self::gender('Male')->count();
+        return self::getGenderCounts()['Male'];
+    }
+
+    public static function getActiveCounts(): array
+    {
+        $counts = self::query()->selectRaw('active, count(*) as aggregate')->groupBy('active')->pluck('aggregate', 'active');
+
+        return [
+            'active' => (int)($counts[1] ?? 0),
+            'inactive' => (int)($counts[0] ?? 0),
+        ];
+    }
+
+    public static function getGenderCounts(): array
+    {
+        $counts = self::query()->selectRaw('gender, count(*) as aggregate')->groupBy('gender')->pluck('aggregate', 'gender');
+
+        return [
+            'Male' => (int)($counts['Male'] ?? 0),
+            'Female' => (int)($counts['Female'] ?? 0),
+            'Any' => (int)($counts['Any'] ?? 0),
+        ];
     }
 
     public function scopeActive(Builder $query): Builder

@@ -7,6 +7,7 @@ use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -73,11 +74,6 @@ class DMS extends Model
         return static::needsSignCount($userId, $dept) > 0 || static::needsReadCount($userId, $dept) > 0;
     }
 
-    public function isPendingFor(int $userId): bool
-    {
-        return $this->requiresSignFor($userId) || $this->requiresReadFor($userId);
-    }
-
     public static function needsReadCount(int $userId, ?string $dept = null): int
     {
         return static::visibleTo($userId, $dept)
@@ -119,17 +115,32 @@ class DMS extends Model
             }
         }
 
-        $reads = $this->reads()->where('read', true)->get(['user_id', 'read_count']);
+        $readsByUser = $this->reads()->where('read', true)->get(['user_id', 'read_count'])->groupBy('user_id');
 
-        return $users->unique('id')->filter(fn(User $u) =>
-            $reads->where('user_id', $u->id)->isEmpty()
-            || $reads->where('user_id', $u->id)->contains(fn($r) => (int)$r->read_count === 0)
-        )->values();
+        return $users->unique('id')->filter(function (User $u) use ($readsByUser) {
+            $userReads = $readsByUser->get($u->id);
+            return !$userReads || $userReads->contains(fn($r) => (int)$r->read_count === 0);
+        })->values();
     }
 
     public function reads(): HasMany
     {
         return $this->hasMany(Read::class, 'document_id');
+    }
+
+    protected function readerNamesTooltip(): Attribute
+    {
+        return Attribute::make(get: function (): ?string {
+            $readerIds = $this->reads->pluck('user_id')->unique()->values();
+
+            if ($readerIds->isEmpty()) {
+                return null;
+            }
+
+            $names = array_filter(array_map(fn($id) => static::userNames()[$id] ?? null, $readerIds->all()));
+
+            return implode(' ┆ ', $names) ?: null;
+        });
     }
 
     public function requiresReadFor(int $userId): bool
@@ -194,7 +205,7 @@ class DMS extends Model
             }
         });
 
-        static::deleted(fn (DMS $document) => $document->reads()->delete());
+        static::deleted(fn(DMS $document) => $document->reads()->delete());
     }
 
     protected function casts(): array

@@ -71,8 +71,8 @@ class FAQTablePresenter
     {
         return TextColumn::make('department.name')
             ->label(__('resources/faq/strings.fields.department'))
-            ->formatStateUsing(fn(?Model $record): string => $record?->department->description ?? $record?->department->name ?? '-')
-            ->tooltip(fn(?Model $record): string => $record?->department->name ?? $record?->department->description ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->sortable()
             ->placeholder('-')
             ->toggleable(isToggledHiddenByDefault: false);
@@ -90,7 +90,7 @@ class FAQTablePresenter
     {
         return Group::make('department.description')
             ->label(__('resources/faq/strings.fields.department'))
-            ->getTitleFromRecordUsing(fn($record): string => $record->department?->description ?? __('resources/faq/strings.no_department'))
+            ->getTitleFromRecordUsing(fn($record): string => $record->department?->displayLabel() ?? __('resources/faq/strings.no_department'))
             ->collapsible();
     }
 

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\DmsResource\Schemas;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Department;
-use App\Models\Read;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -52,7 +51,7 @@ class DmsTablePresenter
             )
             ->badge()
             ->color(fn($record) => in_array('ALL', $record->owners ?? []) ? 'success' : 'primary')
-            ->tooltip(fn($record) => $record->getDepartmentDescriptions() ?? $record->getDepartmentDescriptions())
+            ->tooltip(fn($record) => $record->getDepartmentTooltipLabels() ?: '—')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -96,7 +95,7 @@ class DmsTablePresenter
             ->label(__('resources/dms/strings.fields.owners'))
             ->getTitleFromRecordUsing(
                 fn($record): string => in_array('ALL', $record->owners ?? [])
-                    ? __('resources/dms/strings.fields.all_departments') : ($record->getDepartmentDescriptions() ?: '—')
+                    ? __('resources/dms/strings.fields.all_departments') : ($record->getDepartmentDisplayLabels() ?: '—')
             )
             ->getKeyFromRecordUsing(fn($record): string => implode(',', $record->owners ?? []))
             ->titlePrefixedWithLabel(false)
@@ -109,7 +108,7 @@ class DmsTablePresenter
             ->label(__('resources/dms/strings.fields.read_count'))
             ->badge()
             ->color('success')
-            ->tooltip(fn($record) => Read::getReaderNamesTooltipForDocument($record->id))
+            ->tooltip(fn($record) => $record->reader_names_tooltip)
             ->default(0)
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);

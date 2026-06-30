@@ -73,7 +73,7 @@ class AuthorityResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return [
-            __('resources/authority/strings.fields.department') => $record->department?->description ?? '—',
+            __('resources/authority/strings.fields.department') => $record->department?->displayLabel() ?? '—',
             __('resources/authority/strings.fields.user') => $record->user?->name ?? '—',
         ];
     }

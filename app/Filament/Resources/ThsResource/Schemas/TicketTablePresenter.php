@@ -112,7 +112,8 @@ class TicketTablePresenter
         return TextColumn::make('department.description')
             ->label(__('resources/ths/strings.fields.department'))
             ->placeholder('—')
-            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -121,6 +122,8 @@ class TicketTablePresenter
         return TextColumn::make('targetDepartment.description')
             ->label(__('resources/ths/strings.fields.target_department'))
             ->icon('heroicon-o-building-office')
+            ->formatStateUsing(fn(?Model $record): string => $record?->targetDepartment?->displayLabel() ?? __('resources/ths/strings.fields.target_department_default'))
+            ->tooltip(fn(?Model $record): string => $record?->targetDepartment?->tooltipLabel() ?? '-')
             ->placeholder(__('resources/ths/strings.fields.target_department_default'))
             ->toggleable(isToggledHiddenByDefault: false);
     }

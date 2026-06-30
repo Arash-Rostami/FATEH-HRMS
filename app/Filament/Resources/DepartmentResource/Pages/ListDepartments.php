@@ -29,13 +29,13 @@ class ListDepartments extends ListRecords
                 ->icon('heroicon-o-adjustments-horizontal')
                 ->badge(fn() => $this->getStats()->with_ticket_options_count ?: null)
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('ticket_options')->whereJsonLength('ticket_options', '>', 0)),
+                ->modifyQueryUsing(fn(Builder $query) => $query->excludingEmptyTicketOptions()),
 
             'no_ticket_options' => Tab::make('بدون گزینه تیکت')
                 ->icon('heroicon-o-document-minus')
                 ->badge(fn() => $this->getStats()->no_ticket_options_count ?: null)
                 ->badgeColor('gray')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where(fn(Builder $q) => $q->whereNull('ticket_options')->orWhereJsonLength('ticket_options', 0))),
+                ->modifyQueryUsing(fn(Builder $query) => $query->includingEmptyTicketOptions()),
         ];
     }
 

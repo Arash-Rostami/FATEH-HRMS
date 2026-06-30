@@ -26,6 +26,8 @@ class Feed extends Model
         'poll_options',
     ];
 
+    private ?array $pollSettingsCache = null;
+
     public static function boot()
     {
         parent::boot();
@@ -47,24 +49,37 @@ class Feed extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public static function extractPollSettings(array $options): array
+    {
+        if (count($options) >= 3 && in_array($options[0], ['single', 'multiple'], true)) {
+            return [
+                'mode' => $options[0] === 'multiple' ? 'multiple' : 'single',
+                'comments' => in_array($options[1], ['1', 'true', true, 1], true),
+                'reactions' => in_array($options[2], ['1', 'true', true, 1], true),
+                'choices' => array_values(array_slice($options, 3)),
+            ];
+        }
+
+        return [
+            'mode' => 'single',
+            'comments' => true,
+            'reactions' => true,
+            'choices' => array_values($options),
+        ];
+    }
+
     public static function getTodayCount(): int
     {
-        return self::whereDate('created_at', today())->count();
+        $now = now();
+
+        return self::where('created_at', '>=', $now->copy()->startOfDay())
+            ->where('created_at', '<', $now->copy()->addDay()->startOfDay())
+            ->count();
     }
 
-    public static function postedToday(): bool
+    public function pollChoices(): array
     {
-        return self::getTodayCount() > 0;
-    }
-
-    public function reactions(): HasMany
-    {
-        return $this->hasMany(Reaction::class);
-    }
-
-    public function polls(): HasMany
-    {
-        return $this->hasMany(Poll::class);
+        return $this->resolvedPollSettings()['choices'];
     }
 
     public function pollResults(): array
@@ -75,47 +90,36 @@ class Feed extends Model
         $counts = [];
 
         foreach ($votes as $vote) {
-            $idx = (int) $vote->option_index;
+            $idx = (int)$vote->option_index;
             $counts[$idx] = ($counts[$idx] ?? 0) + 1;
         }
 
         return [
-            'total'  => $votes->count(),
+            'total' => $votes->count(),
             'counts' => $counts,
         ];
     }
 
-    public static function extractPollSettings(array $options): array
-    {
-        if (count($options) >= 3 && in_array($options[0], ['single', 'multiple'], true)) {
-            return [
-                'mode'      => $options[0] === 'multiple' ? 'multiple' : 'single',
-                'comments'  => in_array($options[1], ['1', 'true', true, 1], true),
-                'reactions' => in_array($options[2], ['1', 'true', true, 1], true),
-                'choices'   => array_values(array_slice($options, 3)),
-            ];
-        }
-
-        return [
-            'mode'      => 'single',
-            'comments'  => true,
-            'reactions' => true,
-            'choices'   => array_values($options),
-        ];
-    }
-
-    public function pollChoices(): array
-    {
-        return self::extractPollSettings($this->poll_options ?? [])['choices'];
-    }
-
     public function pollSettings(): array
     {
-        $settings = self::extractPollSettings($this->poll_options ?? []);
-
+        $settings = $this->resolvedPollSettings();
         unset($settings['choices']);
-
         return $settings;
+    }
+
+    public function polls(): HasMany
+    {
+        return $this->hasMany(Poll::class);
+    }
+
+    public static function postedToday(): bool
+    {
+        return self::getTodayCount() > 0;
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(Reaction::class);
     }
 
     public function scopeByCategory($query, string $category)
@@ -153,6 +157,21 @@ class Feed extends Model
         );
     }
 
+    protected function mediaUrls(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => array_map(
+                fn($p) => static::resolvePublicAssetUrl($p),
+                array_values(array_filter($this->media_paths ?? [], fn($p) => !empty($p))),
+            ),
+        )->shouldCache();
+    }
+
+    protected function resolvedPollSettings(): array
+    {
+        return $this->pollSettingsCache ??= self::extractPollSettings($this->poll_options ?? []);
+    }
+
     protected function videos(): Attribute
     {
         return Attribute::make(
@@ -161,15 +180,5 @@ class Feed extends Model
                 fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS)
             ))
         );
-    }
-
-    protected function mediaUrls(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => array_map(
-                fn ($p) => static::resolvePublicAssetUrl($p),
-                array_values(array_filter($this->media_paths ?? [], fn ($p) => !empty($p))),
-            ),
-        )->shouldCache();
     }
 }

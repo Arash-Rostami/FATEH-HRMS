@@ -22,7 +22,7 @@ class GalleryExporter extends Exporter
                 ->state(function ($record) {
                     $models = $record->all_department_models;
                     if ($models->isEmpty()) return __('resources/gallery/strings.fields.public_gallery');
-                    return $models->pluck('description')->join(' | ');
+                    return $models->map(fn($d) => $d->displayLabel())->join(' | ');
                 }),
             ExportColumn::make('event_date')
                 ->label(__('resources/gallery/strings.fields.event_date'))

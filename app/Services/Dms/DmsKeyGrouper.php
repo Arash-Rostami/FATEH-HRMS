@@ -78,12 +78,6 @@ class DmsKeyGrouper
         return $groups;
     }
 
-    /** @return list<string> */
-    public static function keys(): array
-    {
-        return array_map(fn (array $g): string => $g['label'], self::map());
-    }
-
     /** Record's value for a merged key (group bucket/title). Tries each variant byte-exactly across extra then tags; null/missing → '—'. */
     public static function valueFor(DMS $record, array $variants): string
     {

@@ -24,7 +24,8 @@ class ReportExporter extends Exporter
                 ->label(__('resources/report/strings.export.description')),
 
             ExportColumn::make('department.name')
-                ->label(__('resources/report/strings.export.department')),
+                ->label(__('resources/report/strings.export.department'))
+                ->state(fn($record) => $record->department?->displayLabel() ?? '-'),
 
             ExportColumn::make('user.name')
                 ->label(__('resources/report/strings.export.user')),

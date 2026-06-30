@@ -91,7 +91,8 @@ class TicketInfolistPresenter
         return TextEntry::make('department.description')
             ->label(__('resources/ths/strings.fields.department'))
             ->placeholder('—')
-            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->icon('heroicon-o-user');
     }
 
@@ -205,6 +206,8 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('targetDepartment.description')
             ->label(__('resources/ths/strings.fields.target_department'))
+            ->formatStateUsing(fn(?Model $record): string => $record?->targetDepartment?->displayLabel() ?? __('resources/ths/strings.fields.target_department_default'))
+            ->tooltip(fn(?Model $record): string => $record?->targetDepartment?->tooltipLabel() ?? '-')
             ->placeholder(__('resources/ths/strings.fields.target_department_default'))
             ->icon('heroicon-o-building-office-2');
     }

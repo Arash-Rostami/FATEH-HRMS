@@ -22,7 +22,8 @@ class AuthorityInfolistPresenter
         return TextEntry::make('department.description')
             ->label(__('resources/authority/strings.fields.department'))
             ->placeholder('—')
-            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-')
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->icon('heroicon-o-building-office-2');
     }
 

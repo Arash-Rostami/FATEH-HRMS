@@ -31,7 +31,11 @@ class Post extends Model
 
     public static function postedToday(): bool
     {
-        return static::whereDate('created_at', now()->toDateString())->exists();
+        $now = now();
+
+        return static::where('created_at', '>=', $now->copy()->startOfDay())
+            ->where('created_at', '<', $now->copy()->addDay()->startOfDay())
+            ->exists();
     }
 
     public function user(): BelongsTo

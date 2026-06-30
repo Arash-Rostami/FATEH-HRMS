@@ -153,7 +153,8 @@ class ProfileInfolistPresenter
         return TextEntry::make('department.name')
             ->label(__('resources/profile/strings.infolist.department'))
             ->placeholder('-')
-            ->formatStateUsing(fn(?Model $record): string => $record?->department?->description ?? $record?->department?->name ?? '-');
+            ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
+            ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-');
     }
 
     public static function emergencyPhone(): TextEntry
