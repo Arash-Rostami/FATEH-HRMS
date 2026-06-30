@@ -17,7 +17,7 @@ class SuggestionNudge implements MenuNudge
     public function triggers(): array
     {
         return [
-            ['class' => Suggestion::class, 'on' => ['updated', 'deleted'], 'subject' => null],
+            ['class' => Suggestion::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
             ['class' => Review::class, 'on' => ['created', 'updated'], 'subject' => fn(Review $review) => $review->suggestion],
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Models\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 trait HasProfileHierarchy
 {
@@ -73,15 +74,24 @@ trait HasProfileHierarchy
         return !$hasSuperior;
     }
 
-    public static function highestRankingInDepartment(string $departmentCode): ?self
+    public static function highestRankingInDepartments(array $departmentCodes): Collection
     {
-        return static::active()
+        if (empty($departmentCodes)) {
+            return new Collection();
+        }
+
+        return static::active()->with('profile')
             ->whereHas('profile', fn(Builder $q) => $q
-                ->where('department_id', $departmentCode)
+                ->whereIn('department_id', $departmentCodes)
                 ->whereIn('position', array_keys(static::RANKS))
             )
             ->get()
-            ->sortBy(fn($user) => $user->rank())
-            ->first();
+            ->groupBy(fn(self $u) => $u->profile->department_id)
+            ->map(fn($users) => $users->sortBy(fn(self $u) => $u->rank())->first());
+    }
+
+    public static function highestRankingInDepartment(string $departmentCode): ?self
+    {
+        return static::highestRankingInDepartments([$departmentCode])->get($departmentCode);
     }
 }

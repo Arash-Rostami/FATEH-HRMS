@@ -55,7 +55,7 @@ class PersolTeamService
     {
         if ($isManager) {
             $query->where(function (Builder $q) use ($viewerDepartment) {
-                $q->whereHas('profile', fn(Builder $pq) => $pq->where('department', $viewerDepartment))
+                $q->whereHas('profile', fn(Builder $pq) => $pq->where('department_id', $viewerDepartment))
                     ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'manager')->whereIn('department_id', ['CP', 'WP', 'CH']))
                     ->orWhereHas('profile', fn(Builder $pq) => $pq->where('position', 'expert')->whereIn('department_id', ['CH', 'SO']));
             });

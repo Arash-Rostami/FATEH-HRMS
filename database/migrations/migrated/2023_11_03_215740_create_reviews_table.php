@@ -22,7 +22,7 @@ class CreateReviewsTable extends Migration
             $table->timestamps();
 
             $table->index('feedback');
-            $table->index('department');
+            $table->index('department_id');
             $table->index('complete');
             $table->index('user_id');
             $table->index('suggestion_id');

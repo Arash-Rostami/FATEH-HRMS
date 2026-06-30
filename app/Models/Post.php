@@ -29,6 +29,11 @@ class Post extends Model
         return $query->where('pinned', true);
     }
 
+    public static function postedToday(): bool
+    {
+        return static::whereDate('created_at', now()->toDateString())->exists();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

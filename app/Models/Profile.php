@@ -71,7 +71,7 @@ class Profile extends Model
     {
         return $this->details->pluck('value', 'key');
     }
-    
+
 
     public function syncDetails(array $values): void
     {
@@ -112,17 +112,17 @@ class Profile extends Model
 
     public function isProbational(): bool
     {
-        return $this->employment_type === 'probational';
+        return $this->employment_status === 'probational';
     }
 
     public function isTerminated(): bool
     {
-        return $this->employment_type === 'terminated';
+        return $this->employment_status === 'terminated';
     }
 
     public function isWorking(): bool
     {
-        return $this->employment_type === 'working';
+        return $this->employment_status === 'working';
     }
 
     public function user(): BelongsTo

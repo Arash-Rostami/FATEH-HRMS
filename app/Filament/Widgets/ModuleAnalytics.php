@@ -448,7 +448,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
     {
         $stats = DB::table('profiles')->selectRaw("
             COUNT(*) as total,
-            SUM(CASE WHEN employment_status = 'active' THEN 1 ELSE 0 END) as active_employees,
+            SUM(CASE WHEN employment_status = 'working' THEN 1 ELSE 0 END) as active_employees,
             SUM(CASE WHEN gender = 'female' THEN 1 ELSE 0 END) as females,
             SUM(CASE WHEN gender = 'male' THEN 1 ELSE 0 END) as males
         ")->first();

@@ -24,6 +24,8 @@ class Message extends Model
 
     public const PRUNE_DAYS = 30;
 
+    public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
+
     protected $fillable = [
         'sender_id',
         'recipient_id',
@@ -68,6 +70,19 @@ class Message extends Model
         if (!$this->isRead()) {
             $this->update(['read_at' => now()]);
         }
+    }
+
+    public static function hasUnreadFor(int $userId): bool
+    {
+        return static::where('recipient_id', $userId)->whereNull('read_at')->exists();
+    }
+
+    public static function hasUnreadFrom(int $userId, int $senderId): bool
+    {
+        return static::where('recipient_id', $userId)
+            ->where('sender_id', $senderId)
+            ->whereNull('read_at')
+            ->exists();
     }
 
     public function prunable()

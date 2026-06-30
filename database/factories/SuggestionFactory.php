@@ -20,7 +20,7 @@ class SuggestionFactory extends Factory
             'purpose' => [],
             'rule' => [],
             'attachment' => fake()->paragraph(),
-            'stage' => fake()->randomElement(['pending', 'approved', 'rejected']),
+            'stage' => fake()->randomElement(['pending', 'accepted', 'rejected']),
             'self_fill' => fake()->boolean(),
             'abort' => fake()->boolean(),
             'priority' => fake()->randomElement(['low', 'medium', 'high']),

@@ -4,7 +4,6 @@ namespace App\Services\Search;
 
 use App\Services\Search\Contracts\SearchContext;
 use App\Services\Search\Resources\AdResource;
-use App\Services\Search\Resources\AuthorityResource;
 use App\Services\Search\Resources\CredentialResource;
 use App\Services\Search\Resources\DmsResource;
 use App\Services\Search\Resources\EventResource;
@@ -45,7 +44,6 @@ class ContentService
         TaskResource::class,
         SuggestionResource::class,
         AdResource::class,
-        AuthorityResource::class,
         ReservationResource::class,
 
         // ===== Users & profile-area modules =====

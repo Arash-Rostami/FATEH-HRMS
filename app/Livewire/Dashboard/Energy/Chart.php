@@ -91,7 +91,7 @@ class Chart extends Component
 
         return $query->get()
             ->map(fn(User $member) => [
-                'name' => $member->full_name,
+                'name' => $member->name,
                 'scores' => [
                     'physique' => $member->latestEnergyTest->physique_score,
                     'emotion' => $member->latestEnergyTest->emotion_score,

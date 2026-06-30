@@ -20,7 +20,6 @@ trait HasDmsCountHelpers
 
     public static function getUnsignedDocumentsCount()
     {
-        return self::visibleToUser()
-            ->whereDoesntHave('reads', fn ($query) => $query->where('user_id', auth()->id())->where('read', true))->count();
+        return self::needsSignCount(auth()->id());
     }
 }

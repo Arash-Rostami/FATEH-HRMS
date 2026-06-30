@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ class Read extends Model
 {
     use HasFactory;
     use HasUserHelpers;
+    use HasMenuState;
 
     protected $table = 'reads';
     protected $fillable = [

@@ -20,6 +20,8 @@ class NudgeService
 
     private static array $registered = [];
 
+    private static array $wired = [];
+
     public static function register(MenuNudge $nudge): void
     {
         $key = $nudge->getKey();
@@ -36,6 +38,7 @@ class NudgeService
             'for' => fn($subject) => $nudge->for($subject),
             'title' => fn($subject, $user) => $nudge->title($subject, $user),
             'body' => fn($subject, $user) => $nudge->body($subject, $user),
+            'badge_suppress' => method_exists($nudge, 'badgeSuppressesCreate') ? $nudge->badgeSuppressesCreate() : true,
         ];
 
         foreach ($nudge->triggers() as $trigger) {
@@ -43,6 +46,14 @@ class NudgeService
             $subjectResolver = $trigger['subject'] ?? fn(Model $m) => $m;
 
             foreach ($trigger['on'] as $event) {
+                $wireKey = "{$triggerClass}@{$event}:{$key}";
+
+                if (isset(self::$wired[$wireKey])) {
+                    continue;
+                }
+
+                self::$wired[$wireKey] = true;
+
                 $triggerClass::{$event}(function (Model $model) use ($key, $subjectResolver) {
                     $subject = $subjectResolver($model);
 
@@ -143,8 +154,23 @@ class NudgeService
 
                     if ($existing !== null) {
                         if (($rule['refresh'] ?? false) && $existing->read_at === null) {
-                            $existing->update(['data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId)]);
+                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId);
+
+                            if ($existing->data != $data) {
+                                $existing->update(['data' => $data]);
+                            }
                         }
+                        continue;
+                    }
+
+                    if ($rule['badge_suppress']
+                        && DatabaseNotification::query()
+                            ->where('type', FilamentDatabaseNotification::class)
+                            ->where('notifiable_type', User::class)
+                            ->where('notifiable_id', $user->id)
+                            ->where('data->menu_key', Str::beforeLast($ruleKey, ':nudge'))
+                            ->whereNull('read_at')
+                            ->exists()) {
                         continue;
                     }
 

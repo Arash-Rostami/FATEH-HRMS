@@ -21,7 +21,10 @@ use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable implements HasAvatar, FilamentUser
 {
-    use HasFactory, Notifiable, HasProfileHierarchy, HasImage;
+    use HasFactory,
+        Notifiable,
+        HasProfileHierarchy,
+        HasImage;
 
     protected $fillable = [
         'name',

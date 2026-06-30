@@ -26,9 +26,6 @@ class UnreadMessages implements MenuBadge
     {
         $user = auth()->user();
 
-        return $user !== null
-            && Message::where('recipient_id', $user->id)
-                ->whereNull('read_at')
-                ->exists();
+        return $user !== null && Message::hasUnreadFor($user->id);
     }
 }

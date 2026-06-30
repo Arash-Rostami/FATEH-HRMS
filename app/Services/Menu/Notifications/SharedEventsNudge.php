@@ -14,6 +14,11 @@ class SharedEventsNudge implements MenuNudge
         return 'shared-events:nudge';
     }
 
+    public function badgeSuppressesCreate(): bool
+    {
+        return false;
+    }
+
     public function triggers(): array
     {
         return [

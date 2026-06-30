@@ -15,11 +15,13 @@ class TaskNudge implements MenuNudge
 
     public function for($subject)
     {
-        if (!$subject->assigned_to) {
+        $ownerId = $subject->assigned_to ?? $subject->user_id;
+
+        if (!$ownerId) {
             return collect();
         }
 
-        return User::active()->where('id', $subject->assigned_to)->get();
+        return User::active()->where('id', $ownerId)->get();
     }
 
     public function getKey(): string
@@ -45,7 +47,7 @@ class TaskNudge implements MenuNudge
     public function triggers(): array
     {
         return [
-            ['class' => Task::class, 'on' => ['created', 'updated', 'deleted', 'forceDeleted'], 'subject' => null],
+            ['class' => Task::class, 'on' => ['created', 'updated', 'deleted', 'restored', 'forceDeleted'], 'subject' => null],
         ];
     }
 }

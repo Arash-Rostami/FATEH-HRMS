@@ -4,13 +4,16 @@ namespace App\Services\Menu;
 
 use App\Models\User;
 use App\Services\Menu\Indicators\ActiveAds;
+use App\Services\Menu\Indicators\EnergyTestBadge;
 use App\Services\Menu\Indicators\PendingSuggestions;
 use App\Services\Menu\Indicators\SharedEvents;
 use App\Services\Menu\Indicators\SpecialDays;
 use App\Services\Menu\Indicators\TasksTodo;
+use App\Services\Menu\Indicators\ThsBadge;
 use App\Services\Menu\Indicators\TodayFeeds;
 use App\Services\Menu\Indicators\TodayPosts;
 
+use App\Services\Menu\Indicators\DmsBadge;
 use App\Services\Menu\Indicators\UnreadMessages;
 use Illuminate\Support\Facades\Cache;
 
@@ -28,6 +31,10 @@ class StateService
         SpecialDays::class,
         TasksTodo::class,
         UnreadMessages::class,
+        EnergyTestBadge::class,
+        ThsBadge::class,
+        DmsBadge::class,
+
     ];
 
     public function __construct(

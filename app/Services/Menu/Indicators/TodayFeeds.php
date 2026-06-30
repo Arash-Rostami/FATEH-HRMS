@@ -24,6 +24,6 @@ class TodayFeeds implements MenuBadge
 
     public function isActive(): bool
     {
-        return Feed::whereDate('created_at', now()->toDateString())->exists();
+        return Feed::postedToday();
     }
 }

@@ -52,6 +52,11 @@ class Feed extends Model
         return self::whereDate('created_at', today())->count();
     }
 
+    public static function postedToday(): bool
+    {
+        return self::getTodayCount() > 0;
+    }
+
     public function reactions(): HasMany
     {
         return $this->hasMany(Reaction::class);

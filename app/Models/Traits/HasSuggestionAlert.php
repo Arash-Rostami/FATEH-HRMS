@@ -28,6 +28,8 @@ trait HasSuggestionAlert
 
         return $query->where(function ($q) use ($user, $deptId) {
 
+            $q->whereRaw('1=0');
+
             if ($user->isCeo()) {
                 $q->orWhere('stage', 'awaiting_decision');
             }

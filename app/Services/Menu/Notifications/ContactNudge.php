@@ -32,6 +32,11 @@ class ContactNudge implements MenuNudge
         return 'contacts-controller:nudge';
     }
 
+    public function badgeSuppressesCreate(): bool
+    {
+        return false;
+    }
+
     public function refresh(): bool
     {
         return true;
@@ -39,10 +44,7 @@ class ContactNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return Message::where('sender_id', $subject->id)
-            ->where('recipient_id', $user->id)
-            ->whereNull('read_at')
-            ->exists();
+        return Message::hasUnreadFrom($user->id, $subject->id);
     }
 
     public function title($subject, User $user): string
@@ -55,7 +57,7 @@ class ContactNudge implements MenuNudge
         return [
             [
                 'class' => Message::class,
-                'on' => ['created', 'updated', 'deleted'],
+                'on' => ['created', 'updated', 'deleted', 'forceDeleted', 'restored'],
                 'subject' => fn(Message $message) => $message->sender
             ],
         ];

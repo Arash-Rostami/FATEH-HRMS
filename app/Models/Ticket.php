@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Models\Traits\HasTicketCountHelpers;
 use App\Models\Traits\HasTicketOptions;
@@ -13,7 +14,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Ticket extends Model
 {
-    use HasFactory, HasPublicAssetUrl, HasTicketCountHelpers, HasTicketOptions;
+    use HasFactory,
+        HasMenuState,
+        HasPublicAssetUrl,
+        HasTicketCountHelpers,
+        HasTicketOptions;
+
+    public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted'];
 
     protected $fillable = [
         'requester_id',
@@ -38,11 +45,61 @@ class Ticket extends Model
 
     public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
 
+    public function currentActionRecipient(): ?User
+    {
+        $target = $this->targetDepartmentId ?: static::defaultTargetDepartment();
+
+        return match ($this->status) {
+            'open' => $target ? User::highestRankingInDepartment($target) : null,
+            'in-progress' => $this->assignee,
+            'closed' => $this->requester,
+            default => null,
+        };
+    }
+
+    public static function defaultTargetDepartment(): ?string
+    {
+        return once(fn() => collect(['PS', 'BS'])
+            ->first(fn($dept) => User::highestRankingInDepartment($dept) !== null));
+    }
+
     public function department(): BelongsTo { return $this->belongsTo(Department::class, 'department_id'); }
+
+    public static function hasUnclosedActionFor(int $userId): bool
+    {
+        $openDepts = static::where('status', 'open')
+            ->selectRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ?) AS dept", [static::defaultTargetDepartment()])
+            ->pluck('dept')
+            ->filter()
+            ->unique();
+
+        if ($openDepts->isNotEmpty()) {
+            $heads = User::highestRankingInDepartments($openDepts->all());
+
+            foreach ($openDepts as $deptCode) {
+                if (($heads[$deptCode] ?? null)?->id === $userId) {
+                    return true;
+                }
+            }
+        }
+
+        return static::where('status', 'in-progress')->where('assigned_to', $userId)->exists();
+    }
 
     public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requester_id'); }
 
     public function targetDepartment(): BelongsTo { return $this->belongsTo(Department::class, 'target_department_id'); }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Ticket $ticket) {
+            if (empty($ticket->targetDepartmentId)) {
+                $extra = $ticket->extra ?? [];
+                $extra['target_department'] = static::defaultTargetDepartment();
+                $ticket->extra = $extra;
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -58,7 +115,7 @@ class Ticket extends Model
 
     protected function departmentId(): Attribute
     {
-        return Attribute::make(get: fn(): ?string => $this->extra['department'] ?? null);
+        return Attribute::make(get: fn(): ?string => $this->extra['department'] ?? null)->shouldCache();
     }
 
     protected function priority(): Attribute

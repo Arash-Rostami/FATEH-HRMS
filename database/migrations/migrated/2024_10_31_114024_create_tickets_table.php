@@ -26,8 +26,8 @@ class CreateTicketsTable extends Migration
             // Completion and Responsibility Details
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
             $table->text('additional_notes')->nullable();
-            $table->date('completion_deadline')->nullable();
-            $table->date('completion_date')->nullable();
+            $table->dateTime('completion_deadline')->nullable();
+            $table->dateTime('completion_date')->nullable();
             $table->text('action_result')->nullable();
             // Status and Effectiveness
             $table->string('status')->default('open');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +10,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Morilog\Jalali\Jalalian;
 
 class EnergyTest extends Model
 {
-    use HasFactory;
+    use HasFactory,
+        HasMenuState;
 
     protected $fillable = [
         'user_id',
@@ -84,6 +87,21 @@ class EnergyTest extends Model
         return static::query()
             ->when($lastMonth, fn($q) => $q->where('completed_at', '>=', now()->subDays(30)))
             ->selectRaw(implode(', ', $selects));
+    }
+
+    public static function hasForCurrentJalaliMonth(int $userId): bool
+    {
+        $now = Jalalian::now();
+        $year = $now->getYear();
+        $month = $now->getMonth();
+        $start = (new Jalalian($year, $month, 1))->toCarbon()->startOfDay();
+        [$ny, $nm] = $month === 12 ? [$year + 1, 1] : [$year, $month + 1];
+        $end = (new Jalalian($ny, $nm, 1))->toCarbon()->startOfDay();
+
+        return static::where('user_id', $userId)
+            ->where('completed_at', '>=', $start)
+            ->where('completed_at', '<', $end)
+            ->exists();
     }
 
 

@@ -39,7 +39,9 @@ App\Services\Menu\
 │   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
 │   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
 │   └── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
-│   └── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=assignee only (User::active()->where('id',$subject->assigned_to), empty→collect())
+│   └── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=owner (User::active()->where('id', $subject->assigned_to ?? $subject->user_id), empty→collect())
+│   └── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted show=true  for=staged recipient (Ticket::currentActionRecipient(), empty→collect())
+│   └── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=isPendingFor($u)  for=DMS::pendingRecipients() (visible live + pending users)
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 └── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
@@ -307,6 +309,9 @@ try { Cache::lock("nudge:k{key}:i{itemId}", 10)->block(3, function () {
             if rule.refresh && existing.read_at === null:        // opt-in: rewrite data on UNREAD rows
                 existing.update(['data' => buildData(…)])        // so a live label (e.g. event title) stays current
             continue                                    // read_at never touched → no re-notification
+        if rule.badge_suppress
+            && a bare-key badge row exists for user (menu_key = beforeLast(key, ':nudge')):
+            continue                                    // badge already reminds this user → skip the nudge CREATE
         user->notifications()->create([ …unread row: title, body, menu_key, item_id ])
 }); } catch (LockTimeoutException) { /* contested lock → skip; next event re-reconciles */ }
 ```
@@ -342,7 +347,27 @@ Each design choice, why:
 - **`LockTimeoutException` swallowed** — a contested lock degrades gracefully (the next event
   re-reconciles) instead of breaking the triggering save.
 - **`:nudge` suffix** — isolation from the badge system (the badge's `sync()` queries strictly by
-  the bare key, this queries strictly by the suffixed key).
+  the bare key, this queries strictly by the suffixed key). It is also what makes badge-overlap
+  suppression work: the nudge's bare key is recovered as `Str::beforeLast($key, ':nudge')`, so the
+  guard can look up the matching badge row by convention with no key mapping.
+- **Badge-overlap suppression (`badge_suppress`, default ON)** — before creating a recipient's
+  nudge row, `reconcile()` checks whether that user already has a **bare-key badge row** for the
+  same menu key (the row `BadgeSyncService::sync()` writes when the indicator is active). If yes,
+  the nudge CREATE is skipped (the badge already reminds them); the existing-row refresh path above
+  is unaffected, so unread nudges already in flight still get refreshed. The check sits **after**
+  the existing-row branch, so it only gates new creates — never deletes, never touches the badge.
+  This is what prevents the duplicate "two cards for one event" the badge+nudge pair would otherwise
+  produce on fully-overlapping modules (Tasks, Ads, Posts, Feeds, Suggestions). The lazy timing of
+  the badge row (written at a prior `get()`, before the new subject existed) gives the
+  "excluding the current item" semantics for free: the first occurrence finds no badge row → nudge
+  fires; later duplicates, with the badge already lit → suppressed. `register()` captures the flag
+  via `method_exists($nudge, 'badgeSuppressesCreate')` (default `true` when absent), so the
+  `MenuNudge` contract is unchanged and non-participating nudges are untouched. A nudge opts OUT by
+  implementing `badgeSuppressesCreate(): bool { return false; }` — required only where the badge
+  condition is **not** a superset of the nudge condition: `SharedEventsNudge` (badge = imminent
+  ≤24h, nudge = any future event) and `ContactNudge` (badge = any unread, nudge = per-chat; a new
+  chat must still alert even when another chat already lit the badge). Gallery/Reports have no
+  matching badge row, so the guard is a no-op there.
 - **`subject` resolver** — lets a *foreign* trigger reconcile a *different* record's nudge. Review
   writes flip a Suggestion's attention but fire no `Suggestion` event; binding Review with
   `subject = $review->suggestion` and the **same key + item_id (suggestion id)** as the Suggestion
@@ -565,11 +590,15 @@ A **badge-only** (Signal 1, no nudge) indicator that lights **only on the exact 
 birthday (`Profile.birthdate`) or work anniversary (`Profile.start_date`), analogous to `SharedEvents`'
 24h proximity window but scoped to the day:
 
-- `isActive()` = `Profile::where('employment_type','!=','terminated')->where(birthdate month/day = today OR
+- `isActive()` = `Profile::whereNotIn('employment_status', ['terminated'])->where(birthdate month/day = today OR
   start_date month/day = today)->exists()` — global, stateless (same shape as `ActiveAds`/`TodayPosts`).
-  The two date groups are wrapped in one outer `where(function …)` so the `employment_type` filter ANDs
+  The two date groups are wrapped in one outer `where(function …)` so the `employment_status` filter ANDs
   the whole OR group (a top-level `orWhere` would let the `start_date` branch escape the terminated filter).
-  Uses Gregorian `now()->month/day` (dates are stored Gregorian; Jalali is display-only).
+  Uses Gregorian `now()->month/day` (dates are stored Gregorian; Jalali is display-only). The filter must
+  read `employment_status` (enum `probational/working/terminated`), NOT `employment_type` (enum
+  `fulltime/parttime/contract`) — `employment_type != 'terminated'` is a tautology (never 'terminated') so
+  it never excludes anyone; the `whereNotIn('employment_status', ['terminated'])` form mirrors the sibling
+  at `ModuleAnalyticsChartsRight.php:205`.
 - Excludes terminated employees (a fired ex-coworker's birthday shouldn't light a "celebrate coworkers"
   dot); includes the auth user's own day (redundant with the `occasion` modal but harmless — the modal is
   a separate per-user confetti popup driven by `isSpecialDay()` + its own 8h cache key, no shared state).
@@ -580,6 +609,61 @@ birthday (`Profile.birthdate`) or work anniversary (`Profile.start_date`), analo
   ≤~2h into the special day and ≤~2h after (accepted drift, same as `SharedEvents`); no scheduled flush.
 - Title/body are occasion-agnostic («مناسبت امروز» / «امروز تولد یا سالگرد یکی از همکاران است؛ برای
   مشاهده به تقویم مراجعه کنید.») — an aggregate badge is one row and cannot list per-person names.
+
+## `EnergyTestBadge` — monthly energy-test reminder (badge-only, Jalali month)
+
+A **badge-only** (Signal 1, no nudge) per-user indicator, like `SpecialDays`. Lights when the auth
+user has **not** completed an `EnergyTest` for the current Jalali month:
+
+- `isActive()` = `$user !== null && !EnergyTest::hasForCurrentJalaliMonth($user->id)` — per-user,
+  stateless dot; lit for the **entire month** while no record for that month exists, and it fades the
+  moment a test for that month is saved. The condition lives on the model (see "Model as source of
+  truth" below), not in the indicator.
+- **Why badge-only (no nudge):** the badge is self-sufficient — it carries its own message, lights all
+  month, and auto-clears on completion. A nudge ("first week of every month") would be **time-based**
+  (no model event for "month started"), so it would need a **scheduled daily command** to dispatch the
+  create during days 1–7; and because the nudge's condition (`no test this month`) is a subset of the
+  badge's, it would have to opt out of badge-overlap suppression (`badgeSuppressesCreate = false`) just
+  to fire at all. That scheduler + suppression machinery buys no marginal signal: the badge already
+  reminds on every dashboard load, and a non-loading user sees neither. So energy-test is Signal-1 only.
+- **Invalidation** — `EnergyTest` uses `HasMenuState`; `booted()` also calls `Cache::forget` on the
+  user-averages cache for `saved`/`deleted`. Completing a test bumps the version → the badge clears on
+  the user's next `get()`. Jalali month rollover fires no event, so the dot lags ≤~2h into the new
+  month (same accepted drift as `SpecialDays`/`SharedEvents`); no scheduled flush.
+- **Year scope (fixed).** `EnergyTest::hasForCurrentJalaliMonth($userId)` scopes by **Jalali year +
+  month** via a half-open `completed_at` range: `>= first-of-current-Jalali-month` and `< first-of-next-
+  Jalali-month` (constructed with `new Jalalian($year,$month,1)->toCarbon()->startOfDay()`, the same
+  idiom as `Reservation/Main.php`). A test from the same Jalali month of a **prior year** no longer
+  satisfies the check, so the badge re-lights that month this year. The query uses `completed_at`
+  (already set on submit) rather than `month_index`, so it is also robust to a stale/zero `month_index`.
+
+## Model as source of truth — conditions live on the model, indicators/nudges delegate
+
+The condition that defines a badge's `isActive()` (and, where it exists, the matching nudge's
+`show()`/`for()`) belongs **on the model** as a static/scope method, and the indicator + nudge are thin
+adapters that call it. One query, one place — reusable, testable, and impossible to drift between the
+badge and nudge. Every module now follows this:
+
+| Module | Model method | Used by |
+|---|---|---|
+| Ads | `Ad::active()` scope | `ActiveAds` badge (`Ad::active()->exists()`) |
+| Suggestions | `Suggestion::attentionRequired()` / `requiresAttentionFor($s,$u)` (in `HasSuggestionAlert`) | `PendingSuggestions` badge + `SuggestionNudge::show()` |
+| Shared events | `EventShare::hasImminentFor($u)` / `Event::hasImminentSharedFor($u)` | `SharedEvents` badge |
+| Tasks | `Task::getTodoCount($u)` / `scopeForUser` / `scopeStatus` | `TasksTodo` badge |
+| Contacts | `Message::hasUnreadFor($u)` / `Message::hasUnreadFrom($u,$sender)` | `UnreadMessages` badge + `ContactNudge::show()` |
+| Posts | `Post::postedToday()` | `TodayPosts` badge |
+| Feeds | `Feed::postedToday()` (delegates to existing `Feed::getTodayCount()`) | `TodayFeeds` badge |
+| Energy test | `EnergyTest::hasForCurrentJalaliMonth($u)` | `EnergyTestBadge` |
+| THS tickets | `Ticket::hasUnclosedActionFor($u)` / `Ticket::currentActionRecipient()` | `ThsBadge` + `ThsNudge::for()` |
+| DMS docs | `DMS::needsSignCount($u)` / `needsReadCount($u)` / `hasPendingFor($u)` / `DMS::isPendingFor($u)` | `DmsBadge` + `DmsNudge::show()/for()` |
+
+Convention: the method takes the **user id** as a parameter (`hasUnreadFor($u)`, `getTodoCount($u)`,
+`hasForCurrentJalaliMonth($u)`) rather than reading `auth()->user()` inside the model, so it is callable
+from the queued nudge reconcile job (no auth context) and from tests — mirroring
+`requiresAttentionFor($subject,$user)`. The indicator reads `auth()->user()` once and passes `$user->id`
+down. `PhotoNudge`/`ReportNudge` are nudge-only (no badge, no shared condition) so they have no model
+method to extract; `SpecialDays` is badge-only and its `Profile` date query is a one-off aggregate with
+no nudge counterpart, left inline.
 
 ## Array `badge` slot — multiple indicators lighting one sidebar tab
 
@@ -610,15 +694,18 @@ already rendered by `modal/menu.blade.php` via `@js($menuState)[item.id]`) — s
   and is wrong here. Feasible because `StateService::get()` caches per user (`menu_state:v{ver}:u{id}`)
   and runs `isActive()` inside that per-user closure, so `auth()->user()` is available. The "new col"
   = `TaskStatus::Todo` ('todo', label «انجام نشده»), the default on create.
-- **`TaskNudge`** (key `tasks-controller:nudge`) — **assignee-only**: `for = $subject->assigned_to ?
-  User::active()->where('id', $subject->assigned_to)->get() : collect()`. A task is personal; broadcasting
-  to all active (PostNudge/ReportNudge style) would spam. The creator is excluded (they made it; if
-  self-assigned they are already the assignee). `show = true` (fire-once, like PostNudge) — the bell
-  persists until dismissed; the badge carries the "still in todo" state, so the nudge need not track
-  status (a state-driven `show = status==='todo'` would auto-clear on todo→in-progress, but the reconcile
-  engine deletes the row when `show` flips false, so a todo→in-progress→back-to-todo cycle would
-  **resurface** a previously-dismissed nudge — a no-resurface violation; `show=true` avoids it).
-  `refresh = true` (title embeds `$subject->title`).
+- **`TaskNudge`** (key `tasks-controller:nudge`) — **owner-based**: `for = User::active()->where('id',
+  $subject->assigned_to ?? $subject->user_id)->get()` (empty → `collect()`). The recipient is the task's
+  **owner** — the assignee if set, else the creator — which matches `scopeForUser`'s ownership (the
+  creator owns an unassigned task; it sits in their `todo` col). This is *not* broadcast: a task is
+  personal, so PostNudge/ReportNudge's all-active scoping would spam; only the owner gets the bell. The
+  earlier assignee-only rule left unassigned tasks with **no** recipient (and thus no nudge row at all),
+  which surprised users who create tasks for themselves unassigned — owner-based fixes that. `show = true`
+  (fire-once, like PostNudge) — the bell persists until dismissed; the badge carries the "still in todo"
+  state, so the nudge need not track status (a state-driven `show = status==='todo'` would auto-clear on
+  todo→in-progress, but the reconcile engine deletes the row when `show` flips false, so a
+  todo→in-progress→back-to-todo cycle would **resurface** a previously-dismissed nudge — a no-resurface
+  violation; `show=true` avoids it). `refresh = true` (title embeds `$subject->title`).
 - **Triggers** — `['created','updated','deleted','forceDeleted']`. `Task` uses `SoftDeletes`, so
   `forceDeleted` is a distinct Eloquent event that `deleted` does **not** cover; without it a
   force-deleted task's nudge row would orphan. `restored` is intentionally **not** in the nudge `on`
@@ -631,6 +718,156 @@ already rendered by `modal/menu.blade.php` via `@js($menuState)[item.id]`) — s
   re-bump the badge version, and a force-delete must too). Task had no `boot()`, so `bootHasMenuState()`
   coexists cleanly with `bootSoftDeletes()`.
 
+## `ThsBadge` + `ThsNudge` — staged ticket routing (one row that migrates with status)
+
+THS (`/ths`, `ths-controller` menu item) is a full-page Livewire route like tasks, so the badge dot
+renders on the menu-modal item — no `Tabs.php`/navbar change. One ticket produces **one nudge row**
+whose recipient changes with the ticket's stage; the row migrates rather than multiplies.
+
+- **`ThsBadge`** (key `ths-controller`) — **per-user**, lit while the user has a not-closed ticket
+  needing their action: `isActive = auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)`.
+  `hasUnclosedActionFor($u)` = an `open` ticket whose `extra.target_department`'s highest-ranking member
+  (via `User::highestRankingInDepartment()`, `HasProfileHierarchy`) is `$u`, **or** an `in-progress`
+  ticket `assigned_to` `$u`. The requester is **not** an action recipient while waiting (no badge for
+  them); they get the closing nudge instead.
+- **`ThsNudge`** (key `ths-controller:nudge`) — **staged**: `for = collect([$subject->currentActionRecipient()])`
+  where `Ticket::currentActionRecipient()` returns the single user responsible at the current status:
+  `open` → highest-ranking of the target department, `in-progress` → `assignee`, `closed` → `requester`.
+  The engine's `reconcile()` line `whereNotIn('notifiable_id', $ids)->delete()` is what makes the row
+  migrate: open→in-progress prunes the dept-head's row and creates the assignee's; in-progress→closed
+  prunes the assignee's and creates the requester's. `show = true` (the recipient set already encodes
+  the stage, so no extra gate; matches `TaskNudge`). `title`/`body` are `match($subject->status)` so the
+  refreshed row reads correctly for whichever stage it is in. `refresh = true`.
+- **Triggers** — `['created','updated','deleted']`. `Ticket` has **no `SoftDeletes`**, so `forceDeleted`
+  is not a valid event (unlike `Task`); a hard `deleted` is the only removal event and `Ticket::find()`
+  returning null blanket-deletes the row. `MENU_STATE_EVENTS` mirrors this (no `restored`/`forceDeleted`).
+- **Auto open→in-progress on assignment** — already wired in `TicketFormPresenter::assignedTo()`
+  (`afterStateUpdated`: filled assignee + status open/null → `InProgress`; blank + InProgress → `Open`),
+  matching the helper text «با انتخاب مسئول، وضعیت تیکت به «در حال بررسی» تغییر خودکار می‌کند». No new
+  code needed for the admin-side shift; the nudge picks up the new stage off the updated ticket.
+- **`HasMenuState` on `Ticket`** — `const MENU_STATE_EVENTS = ['created','updated','deleted']`; flushes
+  the badge version on every ticket change so the dept-head/assignee dot updates promptly.
+- **Default target department — never null (`PS ?? BS`)** — `SubmitTicketAction` stores `null` when no
+  target is chosen, which would leave an `open` ticket unroutable. `Ticket::defaultTargetDepartment()`
+  returns `'PS'` if `User::highestRankingInDepartment('PS')` is non-null, else `'BS'`, else `null`. A
+  `booted()` `creating` hook persists this into `extra.target_department` for any ticket saved without one
+  (covers both the user Livewire submit and the Filament admin create — one model-level chokepoint).
+  `currentActionRecipient()` and `hasUnclosedActionFor()` also fall back to it at read time, so the
+  pre-existing null-target `open` tickets route to the PS head without a backfill migration.
+
+## `DmsBadge` + `DmsNudge` — sign/read pending (the `reads` row encodes both)
+
+DMS (`/dms`, `dms-controller` menu item) is a full-page Livewire route, so the badge dot renders on the
+menu-modal item — no `Tabs.php`/navbar change. The `reads` table already encodes the two distinct pending
+states with **no schema change** and **no extra helpers** — the existing DMS Main computed props map 1:1:
+
+- `reads.read = 1` → the document is **signed/confirmed** (the existing `ConfirmReadAction` flips this).
+- `reads.read_count = 0` → **not read**; `read_count > 0` → read (incremented by `ConfirmReadAction` increment path).
+- So: **needs sign** = visible live doc with no `reads` row having `read=1` (the existing `receivePendingCount`
+  / `getUnsignedDocumentsCount`); **needs read** = visible live doc with `reads.read=1 AND read_count=0`
+  (the existing `readPendingCount`).
+
+Model source-of-truth (userId-parameterized, queue-safe — the auth-bound `scopeVisibleToUser` is not
+callable from the queued reconcile job, so `DMS::visibleTo(int $userId)` mirrors it with an explicit id):
+
+- `DMS::needsSignCount($u)` / `needsReadCount($u)` / `pendingCount($u)` / `hasPendingFor($u)` — the counts.
+  `getUnsignedDocumentsCount()` is now a one-line delegate to `needsSignCount(auth()->id())` (single source).
+- `DMS::requiresSignFor($u)` / `requiresReadFor($u)` / `isPendingFor($u)` — per-doc predicates.
+- `DMS::pendingRecipients()` — visible live + pending users for one doc (the nudge `for()`).
+
+- **`DmsBadge`** (key `dms-controller`) — **per-user**, `isActive = auth()->user() !== null &&
+  DMS::hasPendingFor($user->id)`; lit while the user has any doc needing sign or read, fades once all are
+  signed+read.
+- **`DmsNudge`** (key `dms-controller:nudge`) — **per-document**, `for = $subject->pendingRecipients()`,
+  `show = $subject->isPendingFor($user->id)`. `title`/`body` embed the doc's type label via the Filament lang
+  strings (`__('resources/dms/strings/type.systematic')` / `non_systematic` → «سیستمی»/«غیر سیستمی») and the
+  flavor: `requiresSignFor` → «نیازمند تأیید», else «نیازمند مطالعه». `refresh = true` so signing a doc
+  rewrites the same row from «نیازمند تأیید» to «نیازمند مطالعه» (the row persists across the sign→read
+  transition rather than being recreated). `badgeSuppressesCreate = false` — opted OUT, like
+  `SharedEventsNudge`/`ContactNudge`, because the spec wants a nudge **per new record** even when the
+  aggregate badge is already lit (the per-record bell is not redundant with the persistent dot here).
+- **Triggers** — `DMS {created,updated,deleted}` (subject = the doc) **+ `Read {created,updated,deleted}`**
+  (subject = `$read->dms`). The Read trigger is what makes the row clear when a user signs/reads:
+  `ConfirmReadAction`'s `updateOrCreate` fires `Read created/updated` → reconcile the doc → `show` re-eval →
+  sign flips the row to «نیازمند مطالعه», read (`read_count>0`) flips `show=false` → row deleted. The DMS
+  `updated` trigger covers the revision-reset path (`DMS::booted()` mass-resets reads on file/revision change
+  via a query-builder update that bypasses Read model events — but the DMS `updated` event still fires and
+  re-reconciles, so a new revision re-notifies everyone). DMS `deleted` → `DMS::find()` null → blanket-delete
+  the doc's rows (orphan cleanup).
+- **`HasMenuState` on `DMS` and `Read`** — flushes the badge version on every doc and read change so the dot
+  updates promptly when a user signs/reads (default `['created','updated','deleted']`; neither model uses
+  SoftDeletes).
+
+> **>4 aggregate — open.** The spec wants, when a user's pending docs exceed 4, **two distinct aggregate
+> nudges** (one "total for read", one "total for sign") instead of per-document rows. The engine keys rows
+> per `(menu_key, item_id)` where `item_id = subject->getKey()` and assumes one subject per item_id, so a
+> single per-user aggregate row does not fit cleanly. It needs one additive engine hook — an optional
+> `reconcileOn($subject): array` on `MenuNudge` (default `[[get_class($s), $s->getKey()]]`, preserving all 9
+> existing nudges) letting a nudge dispatch per affected user with `subject = User` → one row per user
+> (`item_id = userId`). Flagged for confirmation before touching the engine contract; per-doc `show` would
+> then gate at `pendingCount ≤ 4` and two `DmsSignNudge`/`DmsReadNudge` classes would show at `> 4`.
+
 ## Open items (flagged, not auto-fixed)
 
 (none — the `post` tab now carries `'badge' => 'posts-controller'`, surfacing `TodayPosts`.)
+## Audit #16–#25 (unanimous A+B+me)
+
+**Code (behavior-preserving):**
+- **#16** `ReconcileNudge` now declares `$tries = 3` / `$backoff = [10, 30]`; the `LockTimeoutException`
+  swallow in `NudgeService::reconcile` is KEPT (it is de-dup, not a leak — two jobs reconcile the same
+  `(ruleKey, itemId)`, the loser's lock-timeout is expected; the winner does the full reconcile). `$tries`
+  closes the real gap: a crashed lock-holder re-runs instead of leaving stale rows, while normal concurrent
+  duplicates stay silent (no `failed_jobs` noise).
+- **#19** `EnergyTest::booted()` no longer manually calls `static::bootHasMenuState()` — Laravel auto-calls
+  `boot{Trait}` on boot, so the manual call double-registered the flush (idempotent no-op, removed). DMS and
+  Ticket already rely on auto-boot; EnergyTest was the outlier.
+- **#21** `DMS::booted()` adds `static::deleted(fn (DMS $d) => $d->reads()->delete())`. The live DB has NO
+  foreign key on `reads.document_id` (project runs FK-less; verified via `information_schema`), so a model
+  hard-delete orphaned reads. The hook cascades on model-event deletes (consistent with the existing
+  `updated` reset hook). `DMS use HasMenuState` → `DMS::deleted` already flushes the global menu cache, so
+  the mass `reads()->delete()` (no Read events) leaves no cache gap. Query/bulk deletes still bypass — see
+  #17.
+
+**Document-only (no code, no behavior change):**
+- **#17** Query/bulk DMS deletes (`DMS::where(...)->delete()` / `DB::table('dms')->delete()`) bypass model
+  events → no reconcile, so nudge rows + reads orphan. Model-event deletes are covered (`DmsNudge` triggers
+  on `DMS::deleted` → reconcile null-subject branch cleans nudge rows; #21's hook cleans reads). A periodic
+  sweeper is the only real closer for query-deletes and is a separate infra task (a DB FK would not help —
+  nudge rows live in `notifications.data->item_id` JSON, not FK-able).
+- **#20** `DMS::pendingRecipients()` (PHP, doc→users) and `DMS::visibleTo($userId)` (SQL, user→docs) encode
+  the same visibility rule (`owners` contains `ALL`/dept OR `users` contains id) in OPPOSITE directions and
+  runtimes. A shared primitive would have to abstract over both a PHP collection-filter and a SQL builder —
+  a mini-DSL, not a minimal helper; forcing it obscures both. Touch both deliberately on any visibility
+  change.
+- **#22** Invariant `read_count > 0 ⇒ read = true` (must sign before reading; `read=true & read_count=0` is
+  the signed-not-read state). Enforced BY CONSTRUCTION, not by a model guard: `ConfirmReadAction::execute`
+  does `updateOrCreate([…],['read'=>true])` BEFORE `increment('read_count')`; `DMS::updated` mass-sets
+  `['read'=>false,'read_count'=>0]` together. A `Read::saving` guard was rejected — `saving` does NOT fire
+  on `Model::increment()` (query-level UPDATE) or mass `Builder::update()`, the only paths setting
+  `read_count>0`, so the guard would be dead code advertising protection it can't deliver. Revisit only if a
+  future writer does `$read->read_count = N; $read->save();`.
+- **#23** `Ticket::currentActionRecipient()` keeps its live fallback `$this->targetDepartmentId ?:
+  static::defaultTargetDepartment()`. `targetDepartmentId` is the FROZEN `extra['target_department']` (set
+  at creation via the `creating` hook); `defaultTargetDepartment()` is the `once()`-cached LIVE default.
+  Empirically the majority of open tickets are legacy null-target (pre-hook) — dropping the fallback would
+  silence their nudge AND break badge↔nudge consistency (`hasUnclosedActionFor` keeps the `COALESCE →
+  defaultTargetDepartment()` fallback so the badge still lights). Both on the live fallback = consistent
+  today, zero behavior change. Legacy-vs-frozen divergence is inherent (the creation-era default is not
+  recoverable); an optional one-time backfill freezing the current default into legacy `extra` would be a
+  behavior change needing explicit sign-off.
+- **#24** A department-head change does not re-fire a THS reconcile, so open-ticket NUDGE rows target the
+  old head until the next `Ticket {created,updated,deleted}` event re-reconciles (`whereNotIn` prunes the
+  old head, creates for the new). The THS BADGE `hasUnclosedActionFor()` is pull/live → reflects the new
+  head immediately (correct authoritative signal); the one-time nudge lags and self-heals. A User/Profile
+  listener re-dispatching `ReconcileNudge` was rejected — it must detect the head-change condition and
+  couples the THS nudge to non-Ticket events, breaking the per-subject trigger model. Badge-covers-it is
+  acceptable.
+
+**No code (already covered):**
+- **#18** re-poke on refresh — closed by #3's write-gate (`if ($existing->data != $data) update(…)`):
+  identical data → no `update()` → no `updated_at` bump → no Filament re-sort/re-poke; legit content changes
+  still update.
+- **#25** "duplicated open-dept logic" between `currentActionRecipient` (PHP) and `hasUnclosedActionFor`
+  (SQL `COALESCE`) — moot under #23's keep-the-fallback: only one PHP caller, the SQL `COALESCE` can't reuse
+  a PHP accessor, and `booted().creating` is the WRITER (different role). Extracting
+  `resolvedTargetDepartment()` would DRY zero call sites.

@@ -29,19 +29,19 @@ class ListProfiles extends ListRecords
                 ->icon('heroicon-o-check-circle')
                 ->badge(fn() => $this->getStats()->working_count ?: null)
                 ->badgeColor('success')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_type', 'working')),
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_status', 'working')),
 
             'probational' => Tab::make('آزمایشی')
                 ->icon('heroicon-o-clock')
                 ->badge(fn() => $this->getStats()->probational_count ?: null)
                 ->badgeColor('warning')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_type', 'probational')),
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_status', 'probational')),
 
             'terminated' => Tab::make('پایان همکاری')
                 ->icon('heroicon-o-x-circle')
                 ->badge(fn() => $this->getStats()->terminated_count ?: null)
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_type', 'terminated')),
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('employment_status', 'terminated')),
         ];
     }
 
@@ -49,9 +49,9 @@ class ListProfiles extends ListRecords
     {
         return once(fn() => Profile::query()
             ->selectRaw("
-                SUM(CASE WHEN employment_type = 'working' THEN 1 ELSE 0 END) AS working_count,
-                SUM(CASE WHEN employment_type = 'probational' THEN 1 ELSE 0 END) AS probational_count,
-                SUM(CASE WHEN employment_type = 'terminated' THEN 1 ELSE 0 END) AS terminated_count
+                SUM(CASE WHEN employment_status = 'working' THEN 1 ELSE 0 END) AS working_count,
+                SUM(CASE WHEN employment_status = 'probational' THEN 1 ELSE 0 END) AS probational_count,
+                SUM(CASE WHEN employment_status = 'terminated' THEN 1 ELSE 0 END) AS terminated_count
             ")
             ->first());
     }

@@ -24,6 +24,6 @@ class TodayPosts implements MenuBadge
 
     public function isActive(): bool
     {
-        return Post::whereDate('created_at', now()->toDateString())->exists();
+        return Post::postedToday();
     }
 }

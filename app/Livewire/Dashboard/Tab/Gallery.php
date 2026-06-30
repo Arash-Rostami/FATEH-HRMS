@@ -110,7 +110,7 @@ class Gallery extends Component
 
     private function getBaseQuery(): Builder
     {
-        $dept = Auth::user()->profile->department ?? null;
+        $dept = Auth::user()->profile->department_id ?? null;
 
         return Photo::query()
             ->orderByDesc('event_date')

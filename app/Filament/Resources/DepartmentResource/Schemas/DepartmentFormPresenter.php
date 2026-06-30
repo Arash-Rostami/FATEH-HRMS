@@ -30,7 +30,7 @@ class DepartmentFormPresenter
     {
         return Textarea::make('description')
             ->label(__('resources/department/strings.fields.description'))
-            ->nullable()
+            ->required()
             ->rows(3)
             ->columnSpanFull()
             ->helperText(__('resources/department/strings.hints.description'));

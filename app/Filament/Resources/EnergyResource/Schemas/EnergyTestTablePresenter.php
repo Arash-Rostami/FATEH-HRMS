@@ -84,7 +84,7 @@ class EnergyTestTablePresenter
         return Filter::make('low_score')
             ->label(__('resources/energy/strings.filters.low_score'))
             ->toggle()
-            ->query(fn(Builder $query) => $query->where('overall_score', '>=', 12));
+            ->query(fn(Builder $query) => $query->where('overall_score', '<=', 8));
     }
 
     public static function mindScore(): TextColumn
