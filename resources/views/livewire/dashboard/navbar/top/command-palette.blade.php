@@ -159,14 +159,7 @@
                         @endif
 
                     @else
-                        {{-- Empty State (No Results) --}}
-                        <div class="flex flex-col items-center justify-center py-24 opacity-50">
-                            <div class="w-20 h-20 bg-[var(--md-sys-color-surface-container-high)] rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                                <span class="material-symbols-rounded text-[40px] text-[var(--md-sys-color-outline)]">search_off</span>
-                            </div>
-                            <p class="text-xl font-bold mb-1">نتیجه‌ای یافت نشد</p>
-                            <p class="text-sm opacity-70">لطفاً عبارت دیگری را امتحان کنید</p>
-                        </div>
+                        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="لطفاً عبارت دیگری را امتحان کنید" variant="search" />
                     @endif
 
                 @else

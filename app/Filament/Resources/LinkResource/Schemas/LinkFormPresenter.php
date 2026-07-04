@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LinkResource\Schemas;
 
+use Closure;
 use App\Filament\Resources\LinkResource\Enums\LinkType;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -24,8 +26,29 @@ class LinkFormPresenter
             ->placeholder(__('resources/link/strings.fields.extra_placeholder'))
             ->helperText(__('resources/link/strings.fields.extra_hint'))
             ->splitKeys(['Enter', ',', ' '])
-            ->visible(fn($get) => filled($get('internal_url')))
-            ->nullable();
+            ->visible(fn (Get $get): bool => filled($get('internal_url')))
+            ->requiredWith('internal_url')
+            ->dehydrateStateUsing(fn (mixed $state): mixed => is_array($state)
+                ? array_values(array_filter(array_map('trim', $state), fn (string $v): bool => $v !== ''))
+                : $state
+            )
+            ->rule(self::extraRequiresInternalUrl());
+    }
+
+    private static function extraRequiresInternalUrl(): Closure
+    {
+        return fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+            $evaluateState = fn (mixed $state): array => is_array($state)
+                ? array_values(array_filter(array_map('trim', $state), fn (string $v): bool => $v !== ''))
+                : [];
+
+            $isExtraBlank = empty($evaluateState($attribute === 'extra' ? $value : $get('extra')));
+            $isUrlBlank = blank($attribute === 'internal_url' ? $value : $get('internal_url'));
+
+            if ($isExtraBlank !== $isUrlBlank) {
+                $fail(__('resources/link/strings.validation.extra_requires_internal_url'));
+            }
+        };
     }
 
     public static function icon(): FileUpload
@@ -37,7 +60,7 @@ class LinkFormPresenter
             ->maxSize(512)
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn (TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
             )
             ->image()
             ->imagePreviewHeight('80')
@@ -66,7 +89,7 @@ class LinkFormPresenter
             ->previewable()
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn (TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
             )
             ->image()
             ->imagePreviewHeight('120')
@@ -91,7 +114,7 @@ class LinkFormPresenter
             ->maxLength(2048)
             ->live()
             ->helperText(__('resources/link/strings.fields.internal_url_hint'))
-            ->nullable();
+            ->rule(self::extraRequiresInternalUrl());
     }
 
     public static function linkType(): Radio
@@ -109,7 +132,7 @@ class LinkFormPresenter
     {
         return Select::make('sequence')
             ->label(__('resources/link/strings.fields.sequence'))
-            ->options(fn() => collect(range(0, 100))->mapWithKeys(fn($i) => [$i => $i])->toArray())
+            ->options(fn (): array => array_combine(range(0, 100), range(0, 100)))
             ->default(0)
             ->searchable()
             ->native(false)

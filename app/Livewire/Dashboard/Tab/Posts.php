@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Livewire\Dashboard\Tab\Actions\MarkPostAsReadAction;
 use App\Models\Post;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
@@ -63,7 +64,20 @@ class Posts extends Component
     public function selectPost($id)
     {
         $this->selectedPost = Cache::remember('dashboard.posts.item.' . $id, 3600, fn() => Post::with('user')->find($id));
+
+        if ($this->selectedPost && auth()->id()) {
+            app(MarkPostAsReadAction::class)->execute((int) $id, (int) auth()->id());
+        }
+
         $this->dispatch('open-post-panel');
+    }
+
+    #[Computed]
+    public function seenIds()
+    {
+        $user = auth()->user();
+
+        return $user !== null ? Post::seenIdsFor($user->id) : collect();
     }
 
     #[Computed]

@@ -15,13 +15,8 @@
 
 
     @if(!$presenter->hasContent($onboarding))
-        <div
-            class="flex flex-col items-center justify-center py-24 text-center bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">
-            <span class="material-symbols-rounded text-[44px] text-[var(--md-sys-color-on-surface-variant)] mb-4">apartment</span>
-            <h3 class="text-base font-bold text-[var(--md-sys-color-on-surface)] mb-2">محتوایی بارگذاری نشده است</h3>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] max-w-xs">
-                اطلاعات آنبوردینگ (آشنایی با شرکت) توسط مدیر سیستم هنوز تنظیم نشده است.
-            </p>
+        <div class="flex flex-col items-center justify-center py-24 text-center bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]">
+            <x-ui.empty icon="apartment" title="محتوایی بارگذاری نشده است" description="اطلاعات آنبوردینگ (آشنایی با شرکت) توسط مدیر سیستم هنوز تنظیم نشده است." variant="welcome" :fill="true" />
         </div>
     @else
 

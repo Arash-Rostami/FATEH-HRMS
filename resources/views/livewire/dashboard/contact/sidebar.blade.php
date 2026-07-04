@@ -130,13 +130,7 @@
                 </div>
             </button>
         @empty
-            <div class="flex flex-col items-center justify-center gap-3 py-16 px-6 text-center">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center opacity-30
-                             bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
-                    <span class="material-symbols-rounded text-3xl">person_search</span>
-                </div>
-                <p class="text-[11px] font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">کاربری یافت نشد</p>
-            </div>
+            <x-ui.empty icon="person_search" title="کاربری یافت نشد" variant="search" />
         @endforelse
     </div>
 </aside>

@@ -1,4 +1,58 @@
+@php($months = $presenter->months($this->photos))
+
 @if($this->photos->isNotEmpty())
+
+    @if($months->isNotEmpty())
+        <div x-data="{ open: false }" @click.outside="open = false" class="absolute left-4 top-10 z-40 hidden md:block">
+            <div
+                class="hidden md:flex bg-[var(--md-sys-color-surface-container-high)] p-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm">
+                <button
+                    title="فیلتر تاریخ"
+                    @click="open = !open"
+                    class="flex items-center gap-2 h-10 px-3 rounded-xl text-xs font-medium transition-all duration-300 border shadow-sm"
+                    :class="open || month
+                    ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
+                    : 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-[var(--md-sys-color-outline-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]'"
+                >
+                    <span class="material-symbols-rounded text-[18px]">calendar_month</span>
+                    <span class="material-symbols-rounded text-[16px] transition-transform duration-200"
+                          :class="open ? 'rotate-180' : ''">expand_more</span>
+                </button>
+            </div>
+
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                x-cloak
+                class="absolute top-full mt-0 left-0 min-w-[10rem] bg-[var(--md-sys-color-surface-container-highest)] rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-lg p-1 flex flex-col gap-0.5"
+            >
+                <button
+                    @click="month = ''; open = false"
+                    :class="!month ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
+                    class="px-3 h-9 rounded-lg text-xs font-medium text-right transition-colors duration-150"
+                >همه ماه‌ها
+                </button>
+                @foreach($months as $m)
+                    <button
+                        @click="month = @js($m['key']); open = false"
+                        :class="month === @js($m['key']) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
+                        class="px-3 h-9 rounded-lg text-xs font-medium text-right transition-colors duration-150"
+                    >{{ $m['key'] }}</button>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    <div x-show="month && visibleCount === 0" x-cloak
+         class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
+        <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
+        <p class="text-sm font-medium opacity-80">تصویری در این ماه یافت نشد</p>
+    </div>
 
     <div
         class="absolute top-1/2 left-0 right-0 h-px bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden md:block"></div>
@@ -28,6 +82,7 @@
                 <div
                     wire:key="photo-{{ $photo->id }}"
                     data-photo-id="{{ $photo->id }}"
+                    x-show="!month || month === @js(toJalali($photo->event_date, 'F Y'))"
                     class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'z-30 scale-100 md:scale-[1.15]': activeId == {{ $photo->id }},
@@ -110,14 +165,8 @@
     </button>
 
 @else
-    <div class="w-full h-full flex flex-col items-center justify-center gap-5 text-center px-8">
-        <div
-            class="w-24 h-24 rounded-3xl flex items-center justify-center shadow-inner bg-[var(--md-sys-color-surface-container-high)]">
-            <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-outline)] opacity-60">photo_library</span>
-        </div>
-        <div>
-            <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">گالری هنوز خالی است</p>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-70">هیچ تصویری بارگذاری نشده است.</p>
-        </div>
+    <div class="w-full h-full">
+        <x-ui.empty icon="photo_library" title="گالری هنوز خالی است" description="هیچ تصویری بارگذاری نشده است."
+                    variant="list" :fill="true"/>
     </div>
 @endif

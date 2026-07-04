@@ -133,11 +133,8 @@
                 </div>
             </div>
         @empty
-            <div class="col-span-full flex flex-col items-center justify-center py-24 gap-5 bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]">
-                <div class="w-16 h-16 bg-[var(--md-sys-color-secondary-container)] rounded-2xl flex items-center justify-center text-[var(--md-sys-color-primary)]">
-                    <span class="material-symbols-rounded text-3xl">search_off</span>
-                </div>
-                <p class="text-base font-bold text-[var(--md-sys-color-on-surface-variant)]">هیچ فرصت شغلی در این بخش یافت نشد</p>
+            <div class="col-span-full">
+                <x-ui.empty icon="search_off" title="هیچ فرصت شغلی در این بخش یافت نشد" variant="search" />
             </div>
         @endforelse
     </div>

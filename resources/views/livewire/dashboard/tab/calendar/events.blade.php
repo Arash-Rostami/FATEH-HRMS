@@ -118,15 +118,7 @@
                 @endif
             </div>
         @empty
-            <div class="h-full flex flex-col items-center justify-center text-center opacity-60 pb-10">
-                <div class="w-20 h-20 bg-[var(--md-sys-color-surface-variant)]/30 rounded-[2rem] flex items-center justify-center mb-4 rotate-3 shadow-inner">
-                    <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-outline)]">calendar_today</span>
-                </div>
-                <p class="text-[var(--md-sys-color-on-surface)] font-bold text-lg">رویدادی یافت نشد</p>
-                <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-1 max-w-[200px]">
-                    برای این روز هنوز هیچ برنامه ای ثبت نکرده‌اید.
-                </p>
-            </div>
+            <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این روز هنوز هیچ برنامه ای ثبت نکرده‌اید." variant="list" :fill="true" />
         @endforelse
     </div>
 </div>

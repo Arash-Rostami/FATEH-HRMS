@@ -49,6 +49,30 @@ class Link extends Model
         return $query->orderBy('sequence');
     }
 
+    public function resolvedIsInternal(?string $ip = null): bool
+    {
+        if (empty($this->internal_url)) {
+            return false;
+        }
+
+        $ips = is_array($this->extra) ? array_values(array_filter(array_map('trim', $this->extra), fn($v) => $v !== '')) : [];
+
+        if (empty($ips)) {
+            return true;
+        }
+
+        return $ip !== null && in_array(trim($ip), $ips, true);
+    }
+
+    public function resolvedUrl(?string $ip = null): string
+    {
+        if ($this->resolvedIsInternal($ip)) {
+            return $this->internal_url;
+        }
+
+        return $this->url ?: '';
+    }
+
     protected function casts(): array
     {
         return [

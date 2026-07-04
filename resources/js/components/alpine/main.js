@@ -20,6 +20,7 @@ import sidebar from "./data/sidebar.js";
 import share from "./data/share.js";
 import background from "./data/background.js";
 import feed from "./data/feed.js";
+import faq from "./data/faq.js";
 import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
@@ -63,6 +64,7 @@ export default function initAlpine() {
         Alpine.data('share', share)
         Alpine.data('background', background)
         Alpine.data('feed', feed)
+        Alpine.data('faq', faq)
         Alpine.data('links', links)
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)

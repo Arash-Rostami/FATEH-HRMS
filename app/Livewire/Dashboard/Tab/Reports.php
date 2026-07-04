@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Models\Department;
 use App\Models\Report;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,8 @@ class Reports extends Component
 
     public int $perPage = 5;
     public string $view = 'card';
+    public string $search = '';
+    public string $activeFilter = 'all';
     public bool $showModal = false;
     public ?int $activeReportId = null;
 
@@ -51,10 +54,10 @@ class Reports extends Component
         }
     }
 
-    #[Computed(seconds: 14400, cache: true)]
+    #[Computed]
     public function hasMorePages()
     {
-        return Report::active()->count() > $this->perPage;
+        return $this->scopedReportsQuery()->count() > $this->perPage;
     }
 
     public function loadMore()
@@ -74,14 +77,27 @@ class Reports extends Component
         return view('livewire.dashboard.tab.reports');
     }
 
-    #[Computed(seconds: 14400, cache: true)]
+    #[Computed]
     public function reports()
     {
-        return Report::active()
+        return $this->scopedReportsQuery()
             ->with(['department', 'user'])
             ->latest()
             ->take($this->perPage)
             ->get();
+    }
+
+    protected function scopedReportsQuery()
+    {
+        return Report::active()
+            ->when($this->search !== '', fn($q) => $q->where(fn($q) => $q->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%")))
+            ->when($this->activeFilter !== 'all', fn($q) => $q->where('department_id', $this->activeFilter));
+    }
+
+    #[Computed(seconds: 14400, cache: true)]
+    public function departments()
+    {
+        return Department::whereIn('code', Report::active()->whereNotNull('department_id')->select('department_id')->toBase())->get();
     }
 
     public function toggleView($view)

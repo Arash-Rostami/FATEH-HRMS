@@ -225,12 +225,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="py-20 text-center text-[var(--md-sys-color-on-surface-variant)]">
-                            <div class="flex flex-col items-center justify-center gap-3 opacity-70">
-                                <span class="material-symbols-rounded text-6xl text-[var(--md-sys-color-outline)]">folder_off</span>
-                                <span class="text-base font-medium">هیچ سندی یافت نشد</span>
-                                <span class="text-xs">لطفاً فیلترها را بررسی کنید</span>
-                            </div>
+                        <td colspan="7">
+                            <x-ui.empty icon="folder_off" title="هیچ سندی یافت نشد" description="لطفاً فیلترها را بررسی کنید" variant="filtered" />
                         </td>
                     </tr>
                 @endforelse

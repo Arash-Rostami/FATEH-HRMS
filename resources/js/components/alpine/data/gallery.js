@@ -6,22 +6,28 @@ export default function gallery() {
         loading: false,
         observer: null,
         showTimeline: false,
+        month: '',
+        visibleCount: 0,
 
         init() {
             this.$nextTick(() => {
                 this.setupScrollListener();
                 this.setupIntersectionObserver();
                 this.initFancybox();
+                this.refreshVisible();
 
                 setTimeout(() => {
                     this.updateActiveItem();
                 }, 100);
             });
 
+            this.$watch('month', () => this.$nextTick(() => this.refreshVisible()));
+
             Livewire.hook('morph', ({ component, el }) => {
                 if (component.id === this.$wire.__instance.id) {
                     this.$nextTick(() => {
                         this.updateActiveItem();
+                        this.refreshVisible();
                         if (this.$refs.loadTrigger && this.observer) {
                             this.observer.disconnect();
                             this.observer.observe(this.$refs.loadTrigger);
@@ -61,6 +67,14 @@ export default function gallery() {
         },
 
         handleScroll() {},
+
+        refreshVisible() {
+            let n = 0;
+            this.$root.querySelectorAll('[data-photo-id]').forEach((el) => {
+                if (el.offsetParent !== null) n++;
+            });
+            this.visibleCount = n;
+        },
 
         setupScrollListener() {
             const container = this.$refs.timeline;

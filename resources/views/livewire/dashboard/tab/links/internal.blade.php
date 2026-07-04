@@ -39,9 +39,19 @@
              style="-webkit-overflow-scrolling: touch;"
              @scroll.debounce.100ms="checkScroll"
         >
+            @php
+                $ip = request()->ip();
+            @endphp
             @foreach($this->internalLinks as $link)
-                <a wire:key="link-{{ $link->id }}" data-rf="links-{{ $link->id }}" href="{{ $link->internal_url ?: $link->url }}"
-                   target="{{ $link->internal_url ? '_self' : '_blank' }}"
+                @php
+                    $resolved = $link->resolvedUrl($ip);
+                    $internal = $link->resolvedIsInternal($ip);
+                @endphp
+                <a wire:key="link-{{ $link->id }}"
+                   data-rf="links-{{ $link->id }}"
+                   href="{{ $resolved }}"
+                   target="{{ $internal ? '_self' : '_blank' }}"
+                   @click="recordClick({ id: @js($link->id), title: @js($link->url_title), url: @js($resolved), icon: @js($link->icon_description), internal: @js($internal) })"
                    class="snap-start shrink-0 w-36 md:w-40 group/card cursor-pointer focus:outline-none"
                 >
                     <div class="relative w-full aspect-[4/3] rounded-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden shadow-sm transition-all duration-300 group-hover/card:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] group-hover/card:-translate-y-1 group-hover/card:border-[var(--md-sys-color-primary)]/30">
@@ -82,13 +92,5 @@
         </div>
     </section>
 @else
-    <div class="flex flex-col items-center justify-center py-16 gap-4 text-[var(--md-sys-color-on-surface-variant)]">
-        <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center opacity-60">
-            <span class="material-symbols-rounded text-4xl">link_off</span>
-        </div>
-        <div class="text-center">
-            <p class="text-sm font-bold">هیچ سامانه داخلی تعریف نشده</p>
-            <p class="text-xs mt-1 opacity-70">سامانه‌های درون‌سازمانی توسط مدیر تعریف می‌شوند.</p>
-        </div>
-    </div>
+    <x-ui.empty icon="link_off" title="هیچ سامانه داخلی تعریف نشده" description="سامانه‌های درون‌سازمانی توسط مدیر تعریف می‌شوند." variant="list" />
 @endif

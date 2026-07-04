@@ -3,22 +3,20 @@
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
 use App\Models\Photo;
+use Illuminate\Support\Collection;
 
 class GalleryPresenter
 {
-    /**
-     * Department-scope metadata for a photo card, mirroring the admin
-     * GalleryTablePresenter::department() three-way classification so the
-     * user panel and admin stay in lock-step:
-     *   count(all_departments) > 1  -> multi-departmental (shared)
-     *   count(all_departments) === 1 -> single department (restricted)
-     *   count(all_departments) === 0 -> public (everyone)
-     *
-     * `all_departments` (Photo accessor) = department_id + departments(JSON)
-     * merged and deduped, so it covers every combination of the two columns
-     * without the gaps a literal "department_id filled / departments > 1" rule
-     * would leave (e.g. department_id null + departments with a single entry).
-     */
+    public function months(Collection $photos): Collection
+    {
+        return $photos
+            ->filter(fn($p) => $p->event_date)
+            ->map(fn($p) => ['key' => toJalali($p->event_date, 'F Y'), 'sort' => $p->event_date])
+            ->unique('key')
+            ->sortByDesc('sort')
+            ->values();
+    }
+
     public function scopeMeta(Photo $photo): array
     {
         $count = count($photo->all_departments);

@@ -107,15 +107,7 @@
                 @endif
             </div>
         @empty
-            <div class="p-8 sm:p-10 text-center flex flex-col items-center">
-                <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] flex items-center justify-center mb-3 opacity-50">
-                    <span class="material-symbols-rounded text-3xl">
-                        {{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}
-                    </span>
-                </div>
-                <h4 class="font-bold text-sm text-[var(--md-sys-color-on-surface)] mb-1">صندوق خالی است</h4>
-                <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">موردی برای نمایش وجود ندارد.</p>
-            </div>
+            <x-ui.empty icon="{{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="صندوق خالی است" description="موردی برای نمایش وجود ندارد." variant="list" />
         @endforelse
 
         @if($this->totalHistoryReservations > count($this->historyReservations))

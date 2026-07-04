@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasMenuState;
+use App\Models\Traits\HasNudgeTracking;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,8 +15,10 @@ class Post extends Model
 {
     use HasMenuState,
         HasFactory,
-        HasPublicAssetUrl;
+        HasPublicAssetUrl,
+        HasNudgeTracking;
 
+    public const NUDGE_KEY = 'posts-controller:nudge';
     protected $fillable = [
         'title',
         'body',
@@ -23,20 +26,6 @@ class Post extends Model
         'pinned',
         'user_id'
     ];
-
-    public function scopePinned($query)
-    {
-        return $query->where('pinned', true);
-    }
-
-    public static function postedToday(): bool
-    {
-        $now = now();
-
-        return static::where('created_at', '>=', $now->copy()->startOfDay())
-            ->where('created_at', '<', $now->copy()->addDay()->startOfDay())
-            ->exists();
-    }
 
     public function user(): BelongsTo
     {

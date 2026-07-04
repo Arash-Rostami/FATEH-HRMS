@@ -74,16 +74,7 @@
             @forelse($columnTasks as $task)
                 @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column])
             @empty
-                <div
-                    class="flex flex-col items-center justify-center gap-3 min-h-[200px] py-8 px-4 text-center rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/40 bg-gradient-to-b from-[var(--md-sys-color-surface-variant)]/20 to-transparent">
-                    <div class="flex size-14 items-center justify-center rounded-2xl bg-[var(--md-sys-color-surface)]/60 text-[var(--md-sys-color-on-surface-variant)]/50">
-                        <span class="material-symbols-rounded text-3xl">inbox</span>
-                    </div>
-                    <div class="space-y-1">
-                        <p class="text-sm font-semibold text-[var(--md-sys-color-on-surface-variant)]/80">هیچ موردی وجود ندارد</p>
-                        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]/50">با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند</p>
-                    </div>
-                </div>
+                <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" description="با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند" variant="list" />
             @endforelse
 
             <!-- Drop Zone Indicator -->

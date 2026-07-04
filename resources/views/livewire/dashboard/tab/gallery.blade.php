@@ -13,9 +13,6 @@
 
     @include('components.dashboard.header.focus-banner')
 
-    @if($assetsLoaded)
-        @include('livewire.dashboard.tab.gallery.styles')
-    @endif
 
     @include('livewire.dashboard.tab.gallery.timeline')
 

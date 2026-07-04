@@ -20,7 +20,6 @@ class Gallery extends Component
 
     public ?int $selectedPhotoId = null;
 
-    public bool $assetsLoaded = false;
     public int $perPage = 5;
     public bool $hasMorePages = true;
 
@@ -66,13 +65,11 @@ class Gallery extends Component
             $this->photoIds = [$this->open];
             $this->selectedPhotoId = $this->open;
             $this->hasMorePages = false;
-            $this->assetsLoaded = true;
             return;
         }
 
         $this->open = null;
         $this->loadInitialPhotos();
-        $this->assetsLoaded = true;
     }
 
     #[Computed]

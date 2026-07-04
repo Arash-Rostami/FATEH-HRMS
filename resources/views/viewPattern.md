@@ -184,4 +184,16 @@ Layout automatically includes cross-cutting concerns:
 
 ---
 
+## 8. Shared component patterns
+
+### 8.1 Shared empty-state component (`<x-ui.empty>`)
+
+A single design-system component for **all** user-panel empty-states. Props: `icon` (required), `title` (required), `description?`, `variant?` (`'list'|'welcome'|'filtered'`), `fill?` (bool — `h-full w-full` instead of the default `h-64`), `watermark?` (decorative background icon), `animate?` (bool — `animate-pulse` on the icon). With no extra props it renders byte-equivalent to the original inline empty-states, so adopting it is a pure substitution. Keep genuinely special cases inline (the gallery filtered-overlay, the contact welcome panel) rather than forcing them through the component. Profile onboarding/credentials wrap it in a dashed-border card div. Rule: reach for `<x-ui.empty>` first; only fall back to inline markup when the empty-state has structure the component cannot express.
+
+### 8.2 Solid-button dropdown for filters
+
+The gallery month filter is a **solid button that opens a dropdown on click** — not chips, not a native `<select>`. Wrapper: `x-data="{ open: false }" @click.outside="open = false"`; button `@click="open = !open"` with `:class="open || month ? 'primary-bg' : 'surface-container-highest'"`; popup `x-show="open" x-transition x-cloak` listing options that set the Alpine `month` var and `open = false`. This matches the reports card/list solid segmented-toggle visual language (surface-container-high container, primary active state). Use this shape for any single-dimension filter that picks one value from a short list — it stays consistent with the rest of the user panel's solid-toggle vocabulary.
+
+---
+
 ```

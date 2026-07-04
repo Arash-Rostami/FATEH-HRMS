@@ -52,6 +52,6 @@ class Links extends Component
     #[Computed]
     public function totalLinks()
     {
-        return Link::internal()->count() + Link::external()->count();
+        return $this->externalLinksSource->count() + $this->internalLinksSource->count();
     }
 }

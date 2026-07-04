@@ -124,9 +124,17 @@
                         </div>
 
                         <div class="flex justify-between items-center pt-3 border-t border-[var(--md-sys-color-outline-variant)]/20 mt-3">
-                            <span dir="rtl" class="text-xs text-[var(--md-sys-color-on-surface-variant)] opacity-70">
-                                {{ toJalali($report->created_at, 'j F Y') }}
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span dir="rtl" class="text-xs text-[var(--md-sys-color-on-surface-variant)] opacity-70">
+                                    {{ toJalali($report->created_at, 'j F Y') }}
+                                </span>
+                                @if($report->updated_at && $report->updated_at->gt($report->created_at))
+                                    <span class="flex items-center gap-1 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] px-2 py-0.5 rounded-md text-[10px] font-medium">
+                                        <span class="material-symbols-rounded text-[12px] leading-none">edit</span>
+                                        به‌روز شده
+                                    </span>
+                                @endif
+                            </div>
                             <button
                                 wire:click.stop="download({{ $report->id }})"
                                 class="flex items-center gap-2 text-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary-container)] bg-[var(--md-sys-color-surface-container-high)] hover:bg-[var(--md-sys-color-primary-container)] px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
@@ -169,7 +177,8 @@
 
             @if($this->hasMorePages)
                 <div x-ref="loadTriggerCard"
-                     class="shrink-0 w-24 h-full flex items-center justify-center snap-center">
+                     wire:key="loader-{{ $this->reports->count() }}"
+                     class="shrink-0 w-full md:w-24 h-full snap-center flex items-center justify-center opacity-60">
                     <x-ui.loaders.spinner/>
                 </div>
             @endif
@@ -188,13 +197,9 @@
     />
 
 @else
-    <div class="w-full h-full flex flex-col items-center justify-center gap-5 text-center px-8">
-        <div class="w-24 h-24 rounded-3xl flex items-center justify-center shadow-inner bg-[var(--md-sys-color-surface-container-high)]">
-            <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-outline)] opacity-60">folder_open</span>
-        </div>
-        <div>
-            <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">هیچ گزارشی یافت نشد</p>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-70">هنوز هیچ گزارشی بارگذاری نشده است.</p>
-        </div>
-    </div>
+    @if($this->search !== '' || $this->activeFilter !== 'all')
+        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="با فیلترهای انتخابی هیچ گزارشی مطابقت ندارد." variant="filtered" :fill="true" />
+    @else
+        <x-ui.empty icon="folder_open" title="هیچ گزارشی یافت نشد" description="هنوز هیچ گزارشی بارگذاری نشده است." variant="list" :fill="true" />
+    @endif
 @endif

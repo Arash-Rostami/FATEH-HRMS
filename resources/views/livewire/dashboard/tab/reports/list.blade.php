@@ -21,6 +21,12 @@
                                 title="{{ $report->department?->tooltipLabel() }}"
                                 class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->displayLabel() ?? 'General' }}</span>
                     <span dir="rtl">{{  toJalali($report->created_at, 'j F Y') }}</span>
+                    @if($report->updated_at && $report->updated_at->gt($report->created_at))
+                        <span class="flex items-center gap-1 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] px-2 py-0.5 rounded-md text-[10px] font-medium">
+                            <span class="material-symbols-rounded text-[12px] leading-none">edit</span>
+                            به‌روز شده
+                        </span>
+                    @endif
                 </div>
             </div>
 
@@ -32,26 +38,23 @@
             </div>
         </div>
     @empty
-        <div
-            class="flex flex-col items-center justify-center py-20 gap-4 text-[var(--md-sys-color-on-surface-variant)]">
-            <div
-                class="w-20 h-20 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center opacity-60">
-                <span class="material-symbols-rounded text-5xl">folder_open</span>
-            </div>
-            <div class="text-center">
-                <p class="font-bold text-[var(--md-sys-color-on-surface)]">هیچ گزارشی یافت نشد</p>
-                <p class="text-sm mt-1 opacity-70">هنوز هیچ گزارشی بارگذاری نشده است.</p>
-            </div>
-        </div>
+        @if($this->search !== '' || $this->activeFilter !== 'all')
+            <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="با فیلترهای انتخابی هیچ گزارشی مطابقت ندارد." variant="filtered" />
+        @else
+            <x-ui.empty icon="folder_open" title="هیچ گزارشی یافت نشد" description="هنوز هیچ گزارشی بارگذاری نشده است." variant="list" />
+        @endif
     @endforelse
 
     @if($this->hasMorePages)
-        <div x-ref="loadTriggerList"
-             class="py-8 flex justify-center w-full">
-            <div
-                class="w-8 h-8 border-4 border-[var(--md-sys-color-primary)] border-t-transparent rounded-xl animate-spin">
-                <x-ui.loaders.spinner/>
-            </div>
+        <div class="py-8 flex justify-center w-full">
+            <x-ui.buttons.load-more
+                    action="loadMore"
+                    text="بارگذاری بیشتر"
+                    loading-text="در حال دریافت..."
+                    icon="expand_more"
+                    wire:island="reports"
+                    class="font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+            />
         </div>
     @endif
 </div>

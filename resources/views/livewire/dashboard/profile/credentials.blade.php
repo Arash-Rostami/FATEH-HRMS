@@ -111,20 +111,11 @@
                 </div>
 
             @empty
-                {{-- Search Empty State --}}
                 <div class="col-span-full">
                     <div class="flex flex-col items-center justify-center py-16 text-center bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)] shadow-sm">
-                        <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center mb-4 text-[var(--md-sys-color-on-surface-variant)]">
-                            <span class="material-symbols-rounded text-[36px] animate-pulse">search_off</span>
-                        </div>
-                        <h3 class="text-base font-bold text-[var(--md-sys-color-on-surface)] mb-2">نتیجه‌ای یافت
-                            نشد</h3>
-                        <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] max-w-xs leading-relaxed">هیچ
-                            سامانه‌ای با عبارت «{{ $search }}» مطابقت ندارد.</p>
-                        <button type="button" wire:click="$set('search', '')"
-                                class="mt-5 px-5 py-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] font-bold text-sm hover:brightness-95 transition-all">
-                            پاک کردن جستجو
-                        </button>
+                        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="هیچ سامانه‌ای با عبارت «{{ $search }}» مطابقت ندارد." variant="search" :animate="true">
+                            <button type="button" wire:click="$set('search', '')" class="mt-5 px-5 py-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] font-bold text-sm hover:brightness-95 transition-all">پاک کردن جستجو</button>
+                        </x-ui.empty>
                     </div>
                 </div>
             @endforelse

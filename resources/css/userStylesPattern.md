@@ -73,6 +73,12 @@ The signature look of the User Panel modals and cards relies on a very specific 
 *   **Focus Rings:** We globally override `*:focus-visible` to provide a thick, offset primary ring. Never disable this.
 *   **Scrollbars:** Custom thin scrollbars are tinted with the primary color at 20% opacity so they blend seamlessly into the active theme.
 
+### 4.3 Shared component styling tokens (`<x-ui.empty>` + solid-button dropdown)
+
+The shared empty-state component (`<x-ui.empty>`) and the solid-button dropdown used for single-dimension filters consume the same MD tokens as the rest of the system — no hardcoded colors:
+*   `<x-ui.empty>`: icon/text on `var(--md-sys-color-on-surface-variant)`, optional watermark on `var(--md-sys-color-surface-variant)`, animated icon via the existing `.animate-pulse` utility.
+*   Solid-button dropdown: active/open button = `var(--md-sys-color-primary)` background, idle = `var(--md-sys-color-surface-container-highest)`, popup container = `var(--md-sys-color-surface-container-high)`, option text = `var(--md-sys-color-on-surface-variant)`, divider = `var(--md-sys-color-outline-variant)`. This matches the reports card/list solid segmented-toggle vocabulary — one visual language across all filter controls.
+
 ---
 
 ## 5. Motion & Micro-Interactions (`animation.css`)

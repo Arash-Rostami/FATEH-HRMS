@@ -167,16 +167,8 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-[var(--md-sys-color-on-surface-variant)]">
-                        <div class="flex flex-col items-center justify-center gap-3">
-                            <div class="w-16 h-16 rounded-3xl bg-[var(--md-sys-color-surface-container-high)]/60 flex items-center justify-center">
-                                <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-on-surface-variant)]/30">inbox</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-1">
-                                <p class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]/70">هیچ تیکتی یافت نشد.</p>
-                                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]/50">درخواست‌های ارسالی شما در اینجا نمایش داده می‌شوند.</p>
-                            </div>
-                        </div>
+                    <td colspan="6" class="px-6 py-12">
+                        <x-ui.empty icon="inbox" title="هیچ تیکتی یافت نشد." description="درخواست‌های ارسالی شما در اینجا نمایش داده می‌شوند." variant="list" />
                     </td>
                 </tr>
             @endforelse

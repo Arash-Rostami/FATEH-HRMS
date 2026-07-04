@@ -1,8 +1,5 @@
 <div
-        x-data="{
-        active: @js($open),
-        toggle(id) { this.active = (this.active === id) ? null : id }
-    }"
+        x-data="faq"
         @record-focus.window="if ($event.detail.type === 'faqs') active = $event.detail.id"
 
         class="animate-fade relative w-full max-w-[88rem] mx-auto mx-auto max-h-[calc(100svh-10rem)] flex flex-col overflow-hidden"

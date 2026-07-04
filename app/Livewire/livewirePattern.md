@@ -419,6 +419,25 @@ The report **grid card** (`tab/reports/cards.blade.php`) is the canonical split:
 
 The gallery card header icon is **not** decorative — `GalleryPresenter::scopeMeta(Photo)` (`app/Livewire/Dashboard/Tab/Presentation`) classifies the photo's department scope and returns `['icon','label']`, mirroring the admin `GalleryTablePresenter::department()` three-way rule so both panels agree: `count($photo->all_departments) > 1` → multi (`groups`, `resources/gallery/strings.filters.multiple_departments`), `=== 1` → single (`lock`, `...filters.single_department`), `=== 0` → public (`public`, `...fields.public_gallery`). It uses the `all_departments` accessor (department_id + departments JSON merged/deduped) rather than the literal "department_id filled / departments > 1" rule, because the latter leaves gaps (e.g. department_id null + a single departments entry). `Gallery::render()` passes `['presenter' => new GalleryPresenter()]`; because gallery → timeline → item are all `@include`s, `$presenter` reaches `item.blade.php` with no per-include plumbing, and the icon box reads `$scope = $presenter?->scopeMeta($photo)` (null-safe with a `photo_library` fallback if ever included without the presenter). The icon box carries `cursor-help` + `title="{{ $scope['label'] }}"` so the scope label is discoverable on hover. General rule: when a user-panel card icon encodes a classification the admin already computes, put the logic in a tab Presenter that mirrors the admin presenter — single source of truth, no classification duplicated in Blade.
 
+## Reports dual load-more pattern (one canonical infinite-scroll idiom)
+
+Reports uses **two load-more shapes in one component**: the **list view** has an explicit `<x-ui.buttons.load-more action="loadMore">` button (FAQ-style, click to load), the **card view** uses a gallery/feed-style sentinel `<div x-ref="loadTriggerCard"><x-ui.loaders.spinner/></div>` with **no button**. The sentinel is observed by an `IntersectionObserver` in the Alpine data (`report.js` `setupIntersectionObserver`: `root=$refs.timeline`, `threshold 0.1`, `rootMargin '0px 200px'`, calls `$wire.loadMore()` when intersecting + `!loading && $wire.hasMorePages`).
+
+Because the sentinel's `wire:key` changes each load (count-based), the observer MUST be re-bound via `Livewire.hook('morph', ({component, el}) => { if (component.id === this.$wire.__instance.id) this.$nextTick(() => { if (this.$refs.loadTriggerCard) this.setupIntersectionObserver(); }); })` — `setupIntersectionObserver` disconnects the prior observer before re-creating. Guard `if (!this.$refs.loadTriggerCard) return` so the list view (no sentinel) does nothing. This matches `gallery.js` verbatim. Pattern: one canonical infinite-scroll idiom (sentinel + IntersectionObserver + morph re-bind), reused per module — do not invent a second one.
+
+## Presenter extraction — additions + do-not-over-split rule
+
+This session added four Presenter methods, all following the Step-4 "Data-bag Presenter" shape (bundling multiple derived values a Blade region needs in one call):
+- `FaqPresenter::badge()` + `questionText()` — badge derivation + question display text.
+- `GalleryPresenter::months(Collection):Collection` — `filter → map → unique('key') → sortByDesc('sort') → values()`. The filter→map→unique pipeline belongs in the Presenter, not the blade.
+- `FeedPresenter::categoryLabels():array` — static map of category → label.
+
+Rule: only extract presentation logic that bundles **multiple derived values** a Blade region needs. Do NOT create a Presenter for raw model attributes or single computed properties — those stay as model accessors or inline `@php`. The Data-bag Presenter replaces several per-row `@php` blocks with one call; if a candidate method only returns one scalar, it does not justify a Presenter.
+
+## Dead state rule — remove unread public Livewire properties
+
+Do not leave public Livewire properties that no view reads. `Gallery::$assetsLoaded` was written in `mount()` but never read in any blade — it only bloated every Livewire snapshot (public properties are serialized into every request). Remove the property AND all its assignment sites. Before removing, grep `resources/views` for readers to confirm it is truly dead. A public property with no Blade reader is dead state, not a hidden feature.
+
 ## Universal aggregate fold (UnreadNotifications)
 
 `UnreadNotifications extends Filament\Notifications\Livewire\DatabaseNotifications` and folds the bell modal so >4 unread rows sharing a `data.menu_key` collapse to one or two **synthetic** `DatabaseNotification` rows rendered natively by Filament's modal — a UI-side anti-flood cap ("security lock to not overwhelm users"), zero engine change, applies to **every** nudge key (DMS, posts, tasks, feeds, …), not only DMS. Admin panel is fully untouched: `isPaginated()` returns true only for the `admin` panel, so both `getNotifications()` and `getUnreadNotificationsCount()` early-return the parent result; the non-admin `getNotificationsQuery()` adds `->unread()`.

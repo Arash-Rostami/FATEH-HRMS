@@ -27,7 +27,7 @@ App\Services\Menu\
 │   ├── ActiveAds.php               key=ads-controller        isActive = Ad::active()->exists()
 │   ├── PendingSuggestions.php      key=suggestion-controller isActive = Suggestion::attentionRequired()->exists()
 │   ├── SharedEvents.php            key=shared-events         isActive = EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u)
-│   ├── TodayPosts.php              key=posts-controller      isActive = Post::whereDate('created_at', today())->exists()
+│   ├── UnreadPosts.php             key=posts-controller      isActive = Post::hasUnreadFor($u)
 │   ├── TodayFeeds.php               key=feeds                 isActive = Feed::whereDate('created_at', today())->exists()
 │   ├── SpecialDays.php             key=special-days          isActive = Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
 │   └── TasksTodo.php                key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
@@ -580,14 +580,14 @@ public static function bootHasMenuState(): void
 - **Nudge side is unaffected**: `NudgeService::register()` binds a nudge's Eloquent triggers independently
   of `MENU_STATE_EVENTS`; the const only controls the **badge** version bump, not the bell reconcile.
 
-## Created-today badges (`TodayPosts`, `TodayFeeds`) + per-record nudges (`PostNudge`, `FeedNudge`)
+## Posts unread badge (`UnreadPosts`) + per-record nudges (`PostNudge`), created-today feeds badge (`TodayFeeds`) + `FeedNudge`
 
 A pair mirroring `ActiveAds`/`ActiveAdsNudge`, but the "today" gate is the date, not a status flag:
 
-- **Badge** — `TodayPosts` (key `posts-controller`) / `TodayFeeds` (key `feeds`): `isActive()` =
-  `Post|Feed::whereDate('created_at', now()->toDateString())->exists()` (global, stateless, no auth user —
-  same shape as `ActiveAds`). Pull-based with the 2h TTL: at midnight no event fires, so the dot lags
-  ≤~2h past the day boundary (the same accepted drift as `SharedEvents`).
+- **Badge** — `UnreadPosts` (key `posts-controller`): `isActive()` =
+  `Post::hasUnreadFor($u)` (per-user, reads `posts-controller:nudge` unread rows within `FRESHNESS_DAYS` via
+  the `HasNudgeTracking` trait). `TodayFeeds` (key `feeds`): `isActive()` =
+  `Feed::whereDate('created_at', now()->toDateString())->exists()` (global, stateless — same shape as `ActiveAds`).
 - **Nudge** — `PostNudge` (key `posts-controller:nudge`) / `FeedNudge` (key `feeds:nudge`): triggers
   `created/updated/deleted`; `show = true` (ungated — mirrors `PostNudge`, no author exclusion; a feed
   has no "active" flag, so once created it qualifies until deleted); `for = User::active()->get()`;
@@ -595,8 +595,27 @@ A pair mirroring `ActiveAds`/`ActiveAdsNudge`, but the "today" gate is the date,
   (Feed has no title column, unlike Post).
 - **Surfaces** — `TodayFeeds` has no `feeds-controller` menu item (menu-modal-invisible by design, like
   `shared-events`); its only surface is the `feed` sidebar tab via `'badge' => 'feeds'` in `Tabs.php`.
-  `TodayPosts` likewise has no `posts-controller` menu item — surface it by adding `'badge' => 'posts-controller'`
+  `UnreadPosts` likewise has no `posts-controller` menu item — surface it by adding `'badge' => 'posts-controller'`
   to the `post` tab when desired (currently orphaned: registered but no tab badge line).
+
+### `HasNudgeTracking` trait — FRESHNESS_DAYS, `seenIdsFor` null-filter, `markReadFor` afterCommit
+
+The `UnreadPosts` rename also landed the `App\Models\Traits\HasNudgeTracking` trait that gates all per-user
+unread-nudge queries:
+
+- **`FRESHNESS_DAYS = 30`** is the single horizon for the trait — `isFresh()`, `hasUnreadFor($u)`, and
+  `seenIdsFor($u)` all scope `notifications` rows to `created_at >= now()->subDays(30)`. The `TodayPosts`
+  global created-today/stateless indicator was renamed to `UnreadPosts` (per-user, reads
+  `posts-controller:nudge` unread rows within `FRESHNESS_DAYS`) — a semantic change, not just a rename.
+- **`seenIdsFor($u)` MUST filter null/empty `data->item_id` before the `(int)` cast.** A null `item_id`
+  casts to `0`, which pollutes the seen-map with a bogus `0 => true` entry that can mask a real post id `0`
+  (or just bloat the map). The correct shape is
+  `->filter(fn($id) => $id !== null && $id !== '')->mapWithKeys(fn($id) => [(int)$id => true])`.
+- **`markReadFor($u)` + `MarkPostAsReadAction` wrap `StateService::flush()` in `DB::afterCommit()`** so the
+  badge clears only after the `notifications.update` commits (fires inline when no transaction is active).
+  Without `afterCommit`, a rolled-back mark-read would still bump the version and the next `get()` would
+  recompute against the stale unread set. `MarkPostAsReadAction` is the user-side write entry point; it
+  delegates to `markReadFor` then flushes post-commit — one primitive, reused.
 
 ## Department-scoped + broadcast nudges (`PhotoNudge`, `ReportNudge`) — nudge-only, no badge
 
@@ -624,7 +643,7 @@ birthday (`Profile.birthdate`) or work anniversary (`Profile.start_date`), analo
 24h proximity window but scoped to the day:
 
 - `isActive()` = `Profile::whereNotIn('employment_status', ['terminated'])->where(birthdate month/day = today OR
-  start_date month/day = today)->exists()` — global, stateless (same shape as `ActiveAds`/`TodayPosts`).
+  start_date month/day = today)->exists()` — global, stateless (same shape as `ActiveAds`/`TodayFeeds`).
   The two date groups are wrapped in one outer `where(function …)` so the `employment_status` filter ANDs
   the whole OR group (a top-level `orWhere` would let the `start_date` branch escape the terminated filter).
   Uses Gregorian `now()->month/day` (dates are stored Gregorian; Jalali is display-only). The filter must
@@ -684,7 +703,7 @@ badge and nudge. Every module now follows this:
 | Shared events | `EventShare::hasImminentFor($u)` / `Event::hasImminentSharedFor($u)` | `SharedEvents` badge |
 | Tasks | `Task::getTodoCount($u)` / `scopeForUser` / `scopeStatus` | `TasksTodo` badge |
 | Contacts | `Message::hasUnreadFor($u)` / `Message::unreadCountsFrom($sender)` | `UnreadMessages` badge; `ContactNudge::for()` batches per-recipient counts via `unreadCountsFrom` (no per-user query in `show()`) |
-| Posts | `Post::postedToday()` | `TodayPosts` badge |
+| Posts | `Post::hasUnreadFor($u)` (via `HasNudgeTracking` trait, reads `posts-controller:nudge` unread rows within `FRESHNESS_DAYS`) | `UnreadPosts` badge |
 | Feeds | `Feed::postedToday()` (delegates to existing `Feed::getTodayCount()`) | `TodayFeeds` badge |
 | Energy test | `EnergyTest::hasForCurrentJalaliMonth($u)` | `EnergyTestBadge` |
 | THS tickets | `Ticket::hasUnclosedActionFor($u)` / `Ticket::currentActionRecipient()` | `ThsBadge` + `ThsNudge::for()` |
@@ -867,7 +886,7 @@ callable from the queued reconcile job, so `DMS::visibleTo(int $userId)` mirrors
 
 ## Open items (flagged, not auto-fixed)
 
-(none — the `post` tab now carries `'badge' => 'posts-controller'`, surfacing `TodayPosts`.)
+(none — the `post` tab now carries `'badge' => 'posts-controller'`, surfacing `UnreadPosts`.)
 ## Audit #16–#25 (unanimous A+B+me)
 
 **Code (behavior-preserving):**

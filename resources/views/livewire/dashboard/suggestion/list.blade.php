@@ -136,14 +136,7 @@
             </button>
 
         @empty
-
-            <div class="py-10 text-center" style="color: var(--md-sys-color-on-surface-variant)">
-                <span class="material-symbols-rounded text-4xl block mb-2 opacity-40">
-                    inbox
-                </span>
-                <p class="text-sm">موردی یافت نشد</p>
-            </div>
-
+            <x-ui.empty icon="inbox" title="موردی یافت نشد" variant="list" />
         @endforelse
 
         <div wire:loading wire:target="search" class="p-4 text-center justify-center">

@@ -93,11 +93,7 @@
         </div>
 
     @empty
-        <div
-            class="flex flex-col items-center justify-center gap-2 py-16 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
-            <span class="material-symbols-rounded text-3xl text-[var(--md-sys-color-on-surface-variant)] opacity-40">policy</span>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] opacity-60">هیچ اختیاری یافت نشد</p>
-        </div>
+        <x-ui.empty icon="policy" title="هیچ اختیاری یافت نشد" variant="list" />
     @endforelse
 
     @if($this->authorities->hasMorePages())

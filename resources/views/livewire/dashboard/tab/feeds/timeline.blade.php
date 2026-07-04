@@ -114,14 +114,7 @@
         <span class="material-symbols-rounded text-2xl">chevron_left</span>
     </button>
 @else
-    <div class="w-full h-full flex flex-col items-center justify-center gap-5 text-center px-8">
-        <div class="w-24 h-24 rounded-3xl flex items-center justify-center shadow-inner bg-[var(--md-sys-color-surface-container-high)]">
-            <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-outline)] opacity-60">feed</span>
-        </div>
-
-        <div>
-            <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">هیچ خبری برای نمایش وجود ندارد</p>
-            <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-70">هنوز هیچ پستی در فید منتشر نشده است.</p>
-        </div>
+    <div class="w-full h-full flex items-center justify-center px-8">
+        <x-ui.empty icon="feed" title="هیچ خبری برای نمایش وجود ندارد" description="هنوز هیچ پستی در فید منتشر نشده است." variant="welcome" />
     </div>
 @endif

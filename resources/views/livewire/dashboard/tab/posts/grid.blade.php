@@ -1,6 +1,7 @@
 <section class="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar pr-1 pl-1 pb-20">
     <div class="flex items-center gap-3 mb-4 px-1">
-        <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
+        <div
+            class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
             <span class="material-symbols-rounded text-base font-fill">feed</span>
         </div>
         <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">تازه ترین‌ها</h2>
@@ -14,22 +15,54 @@
                          class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
                          wire:key="post-{{ $post->id }}"
                 >
-                    <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]" wire:click="selectPost({{ $post->id }})">
+                    <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]"
+                         wire:click="selectPost({{ $post->id }})">
                         <img
                             src="{{ $post->image_url }}"
                             alt="{{ superClean($post->title, 200) }}"
                             loading="lazy"
                             class="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                         >
-                        <div class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-scrim,black)]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-[var(--md-sys-color-scrim,black)]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
 
                     <div class="p-5 flex flex-col flex-grow">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)]/20 shadow-sm">
-                                <span class="text-[10px] font-bold tracking-wide">اخبار</span>
+                        @php
+                            $isFresh = $post->isFresh();
+                            $isSeen = $this->seenIds->has($post->id);
+                        @endphp
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)]/20 shadow-sm transition-all duration-200">
+                                    <span class="text-[11px] font-semibold tracking-wide">اخبار</span>
+                                </div>
+
+                                @if($isFresh)
+                                    <div @class([
+                                            'inline-flex items-center gap-1.5 px-3 py-1 rounded-md border shadow-sm transition-all duration-200 scale-75',
+                                            'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/40' => $isSeen,
+                                            'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]/30' => ! $isSeen,
+                                        ])>
+                                        @if($isSeen)
+                                            <span
+                                                class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)]">check_circle</span>
+                                            <span
+                                                class="text-[11px] font-semibold tracking-wide text-[var(--md-sys-color-tertiary)]">دیده شد</span>
+                                        @else
+                                            <span
+                                                class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)]">new_releases</span>
+                                            <span
+                                                class="text-[11px] font-semibold tracking-wide text-[var(--md-sys-color-tertiary)]">جدید</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
-                            <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] mt-0.5">
+
+                            <span
+                                class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">
                                 {{ $post->created_at->diffForHumans() }}
                             </span>
                         </div>
@@ -45,7 +78,8 @@
                             {{ superClean($post->body, 100) }}
                         </p>
 
-                        <div class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
+                        <div
+                            class="pt-4 mt-auto border-t border-[var(--md-sys-color-outline-variant)]/20 flex items-center justify-between">
                             <button
                                 @click="$dispatch('select-post', { id: {{ $post->id }} })"
                                 class="flex items-center gap-2 text-xs font-bold text-[var(--md-sys-color-primary)] transition-all hover:gap-3 px-3 py-1.5 rounded-full hover:bg-[var(--md-sys-color-primary-container)]/30"
@@ -58,16 +92,13 @@
                 </article>
             @endforeach
         @else
-            <div class="col-span-full flex flex-col items-center justify-center p-12 bg-[var(--md-sys-color-surface)]/50 border border-[var(--md-sys-color-outline-variant)]/20 rounded-2xl">
-                <div class="w-16 h-16 rounded-2xl bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center mb-4">
-                    <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-outline)] opacity-50">feed</span>
-                </div>
-                <span class="text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]">هیچ اعلانی یافت نشد.</span>
+            <div class="col-span-full">
+                <x-ui.empty icon="feed" title="هیچ اعلانی یافت نشد." variant="list" />
             </div>
         @endif
     </div>
 
-    <div class="mt-8 mb-12 flex justify-center">
+    <div class="mt-8 mb-20 flex justify-center">
         <x-ui.buttons.load-more
             action="loadMore"
             text="نمایش بیشتر"

@@ -26,6 +26,17 @@ class FeedPresenter
         };
     }
 
+    public function categoryLabels(): array
+    {
+        return [
+            'General'          => '📢 عمومی',
+            'Event'            => '📅 رویداد',
+            'Birthday'         => '🎂 تولد',
+            'Work Anniversary' => '🏆 سالگرد کاری',
+            'Poll'             => '📊 نظرسنجی',
+        ];
+    }
+
     public function feedFlags(Feed $feed): array
     {
         $isPoll   = $this->categoryValue($feed->category) === FeedCategory::Poll->value;

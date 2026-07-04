@@ -4,7 +4,7 @@
     clearAction="this.$wire.set('activeFilter', 'all'); this.$wire.set('search', '');"
     filterTitle="وضعیت حضور"
     placeholder="جستجو..."
-    open="false"
+    open="{{false}}"
 >
 
     <div class="flex flex-wrap items-center gap-2 w-full justify-start scale-[0.8] md:scale-[1.0]">

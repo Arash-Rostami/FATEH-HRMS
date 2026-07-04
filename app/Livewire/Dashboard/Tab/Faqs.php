@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab;
 
+use App\Livewire\Dashboard\Tab\Presentation\FaqPresenter;
 use App\Models\Department;
 use App\Models\FAQ;
 use App\Traits\FocusOnRecord;
@@ -65,8 +66,8 @@ class Faqs extends Component
 
     public function filterByCategory(?string $category): void
     {
-        $this->open = null; // any deliberate filtering exits focus mode
-        $this->selectedCategory = $category === 'all' ? null : $category;
+        $this->open = null;
+        $this->selectedCategory = $category;
         $this->resetPage();
     }
 
@@ -91,7 +92,9 @@ class Faqs extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.tab.faqs');
+        return view('livewire.dashboard.tab.faqs', [
+            'presenter' => new FaqPresenter(),
+        ]);
     }
 
     public function resetFilters(): void

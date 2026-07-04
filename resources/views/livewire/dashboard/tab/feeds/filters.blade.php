@@ -1,4 +1,4 @@
-@php($categoryLabels = ['General' => '📢 عمومی', 'Event' => '📅 رویداد', 'Birthday' => '🎂 تولد', 'Work Anniversary' => '🏆 سالگرد کاری', 'Poll' => '📊 نظرسنجی'])
+@php($categoryLabels = $presenter->categoryLabels())
 <x-ui.forms.filters
     searchModel="search"
     activeCondition="this.$wire.get('selectedCategory') !== null"

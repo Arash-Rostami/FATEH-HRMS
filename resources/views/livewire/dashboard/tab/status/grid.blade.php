@@ -59,6 +59,10 @@
                     <p class="text-[9px] text-{{ $p->color() }}-400/70 truncate font-medium pt-3">
                         {{ $user->profile?->positionLabel ?? 'کارشناس' }}
                     </p>
+                    @if($user->last_seen)
+                        <p dir="rtl"
+                            class="text-[8px] text-[var(--md-sys-color-on-surface-variant)]/60 truncate">{{ toJalaliRelative($user->last_seen) }}</p>
+                    @endif
                 </div>
 
                 <div class="absolute inset-x-0 bottom-0 h-10 z-20
@@ -105,10 +109,8 @@
             </x-ui.decor.status>
 
         @empty
-            <div class="col-span-full flex flex-col items-center justify-center py-16 gap-3
-                    text-[var(--md-sys-color-on-surface-variant)]/35">
-                <span class="material-symbols-rounded text-5xl">manage_search</span>
-                <p class="text-sm font-medium">کاربری یافت نشد</p>
+            <div class="col-span-full">
+                <x-ui.empty icon="manage_search" title="کاربری یافت نشد" variant="search" />
             </div>
         @endforelse
     </div>

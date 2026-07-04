@@ -10,7 +10,7 @@ use App\Services\Menu\Indicators\SpecialDays;
 use App\Services\Menu\Indicators\TasksTodo;
 use App\Services\Menu\Indicators\ThsBadge;
 use App\Services\Menu\Indicators\TodayFeeds;
-use App\Services\Menu\Indicators\TodayPosts;
+use App\Services\Menu\Indicators\UnreadPosts;
 
 use App\Services\Menu\Indicators\DmsBadge;
 use App\Services\Menu\Indicators\UnreadMessages;
@@ -25,7 +25,7 @@ class StateService
         ActiveAds::class,
         PendingSuggestions::class,
         SharedEvents::class,
-        TodayPosts::class,
+        UnreadPosts::class,
         TodayFeeds::class,
         SpecialDays::class,
         TasksTodo::class,
