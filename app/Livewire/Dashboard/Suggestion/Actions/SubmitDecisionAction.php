@@ -20,25 +20,35 @@ class SubmitDecisionAction
             $suggestion->comments = $form->decisionComment;
             $suggestion->save();
 
-            if ($form->decision === 'accepted' && !empty($form->referralDepts)) {
-                Review::create([
-                    'suggestion_id' => $suggestion->id,
-                    'department_id' => 'MA',
-                    'feedback' => 'agree',
-                    'comments' => $form->decisionComment,
-                    'referral' => $form->referralDepts,
-                    'actions' => $form->referralActions,
-                    'user_id' => Auth::id(),
-                    'complete' => false,
-                ]);
-
-                $this->ensureReferralReviews($suggestion, $form);
+            if ($this->shouldProcessReferrals($form)) {
+                $this->processReferrals($suggestion, $form);
             }
         });
 
         $suggestion->load('reviews')->syncStage();
 
         StateService::flush();
+    }
+
+    private function shouldProcessReferrals(DecisionForm $form): bool
+    {
+        return $form->decision === 'accepted' && !empty($form->referralDepts);
+    }
+
+    private function processReferrals(Suggestion $suggestion, DecisionForm $form): void
+    {
+        Review::create([
+            'suggestion_id' => $suggestion->id,
+            'department_id' => 'MA',
+            'feedback' => 'agree',
+            'comments' => $form->decisionComment,
+            'referral' => $form->referralDepts,
+            'actions' => $form->referralActions,
+            'user_id' => Auth::id(),
+            'complete' => false,
+        ]);
+
+        $this->ensureReferralReviews($suggestion, $form);
     }
 
     private function ensureReferralReviews(Suggestion $suggestion, DecisionForm $form): void
