@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Tabs;
 use App\Services\Search\ContentService;
 use App\Services\Search\NavigationService;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class CommandPalette extends Component
@@ -79,7 +80,8 @@ class CommandPalette extends Component
     {
         try {
             $this->redirectRoute($target, navigate: true);
-        } catch (Exception) {
+        } catch (Exception $e) {
+            Log::error("CommandPalette route redirection failed: {$target}", ['exception' => $e]);
         }
     }
 
