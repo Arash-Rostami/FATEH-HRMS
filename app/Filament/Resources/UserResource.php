@@ -76,8 +76,7 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->with(['profile', 'profile.department']);
+        return parent::getEloquentQuery()->with(['profile']);
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

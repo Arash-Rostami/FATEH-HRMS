@@ -11,6 +11,8 @@ class EventSyncService
 {
     public function purge(Reservation $reservation): void
     {
+        $reservation->loadMissing(['resource.relatedUser']);
+
         $userIds = array_filter([
             $reservation->user_id,
             $reservation->resource?->relatedUser?->id,
@@ -25,6 +27,8 @@ class EventSyncService
 
     public function sync(Reservation $reservation): void
     {
+        $reservation->loadMissing(['user', 'resource.relatedUser']);
+
         $booker = $reservation->user;
         $related = $reservation->resource?->relatedUser;
 

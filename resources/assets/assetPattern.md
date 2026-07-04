@@ -8,7 +8,9 @@ resources/assets/
 ├── audio/              # Audio assets (UI sounds, notifications)
 ├── fonts/              # Custom typefaces (non-Google Fonts)
 ├── img/                # Static images
-│   ├── bg   /          # All bgs of dashboard 
+│   ├── bg   /          # All bgs of dashboard
+├── js/                 # Vendored browser-global JS (NOT Vite-processed)
+│   └── lib/            # Third-party libs referenced by literal asset() path
 └── video/              # Background videos, tutorials
 ```
 
@@ -74,6 +76,8 @@ export default {
 
 <!-- Video -->
 <video src="{{ asset('assets/video/hero-bg.mp4') }}" autoplay muted loop></video>
+
+<script src="{{ asset('assets/js/lib/confetti.browser.min.js') }}"></script>
 ```
 
 **CSS References:**
@@ -91,6 +95,7 @@ export default {
 | UI sound effects | `audio/ui/` | Copied as-is |
 | Notification tones | `audio/alerts/` | Copied as-is |
 | Custom web fonts | `fonts/` | Copied as-is |
+| Vendored browser-global JS | `js/lib/` | Copied as-is (assigned to `window`, loaded via literal `<script src=asset(...)>`) |
 | Brand logos | `img/logos/` | Copied as-is |
 | Hero/background images | `img/` root | Copied as-is |
 | Icon system (SVG) | `img/icons/` | Potential future: sprite generation |

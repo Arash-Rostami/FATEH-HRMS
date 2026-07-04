@@ -12,9 +12,9 @@ class DepartmentExporter extends Exporter
 {
     protected static ?string $model = Department::class;
 
-    public static function getEloquentQuery(): Builder
+    public static function modifyQuery(Builder $query): Builder
     {
-        return parent::getEloquentQuery()->withCount('users');
+        return $query->withCount('users');
     }
 
     public static function getColumns(): array

@@ -37,26 +37,14 @@ import energyChart from "./data/energyChart.js";
 import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
 import feedReactions from "./data/feedReactions.js";
-
-
+import countdown from "./data/countdown.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
-
-        /*
-         |--------------------------------------------------------------------------
-         | Register Stores
-         |--------------------------------------------------------------------------
-         */
         registerAppStore(Alpine)
         registerThemeStore(Alpine)
         registerBackgroundStore(Alpine)
 
-        /*
-         |--------------------------------------------------------------------------
-         | Register Components
-         |--------------------------------------------------------------------------
-         */
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
         Alpine.data('home', home)
@@ -92,6 +80,6 @@ export default function initAlpine() {
         Alpine.data('ambient', ambient)
         Alpine.data('feedComposer', feedComposer)
         Alpine.data('feedReactions', feedReactions)
-
+        Alpine.data('countdown', countdown)
     })
 }

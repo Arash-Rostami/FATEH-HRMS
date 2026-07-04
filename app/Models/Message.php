@@ -67,12 +67,14 @@ class Message extends Model
         return static::where('recipient_id', $userId)->whereNull('read_at')->exists();
     }
 
-    public static function hasUnreadFrom(int $userId, int $senderId): bool
+    public static function unreadCountsFrom(int $senderId): array
     {
-        return static::where('recipient_id', $userId)
-            ->where('sender_id', $senderId)
+        return static::where('sender_id', $senderId)
             ->whereNull('read_at')
-            ->exists();
+            ->selectRaw('recipient_id, COUNT(*) AS c')
+            ->groupBy('recipient_id')
+            ->pluck('c', 'recipient_id')
+            ->toArray();
     }
 
     public function prunable()

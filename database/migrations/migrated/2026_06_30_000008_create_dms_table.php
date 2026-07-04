@@ -27,12 +27,9 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('id', 'dms_id_index');
                 $table->index('status', 'dms_status_index');
+                $table->index(['status', 'type'], 'dms_status_type_index');
             });
-
-            DB::statement('ALTER TABLE `dms` ADD INDEX `dms_owners_index` (`owners`(767))');
-            DB::statement('ALTER TABLE `dms` ADD INDEX `dms_users_index` (`users`(767))');
         }
     }
 

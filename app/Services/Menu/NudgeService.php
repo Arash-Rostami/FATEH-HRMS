@@ -22,6 +22,99 @@ class NudgeService
 
     private static array $wired = [];
 
+    public static function reconcile(string $ruleKey, string $subjectClass, int|string $subjectId): void
+    {
+        $rule = self::$rules[$ruleKey] ?? null;
+
+        if ($rule === null) {
+            return;
+        }
+
+        $itemId = (string)$subjectId;
+
+        try {
+            Cache::lock("nudge:k{$ruleKey}:i{$itemId}", 10)->block(3, function () use ($rule, $ruleKey, $itemId, $subjectClass, $subjectId): void {
+                $query = DatabaseNotification::query()
+                    ->where('type', FilamentDatabaseNotification::class)
+                    ->where('notifiable_type', User::class)
+                    ->where('data->menu_key', $ruleKey)
+                    ->where('data->item_id', $itemId);
+
+                $subject = $subjectClass::find($subjectId);
+
+                if ($subject === null) {
+                    $query->delete();
+                    return;
+                }
+
+                $recipients = ($rule['for'])($subject);
+                $ids = [];
+
+                foreach ($recipients as $user) {
+                    $ids[] = $user->id;
+                }
+
+                if (empty($ids)) {
+                    $query->delete();
+                    return;
+                }
+
+                $existingNotifications = (clone $query)->whereIn('notifiable_id', $ids)->get()->keyBy('notifiable_id');
+
+                $query->whereNotIn('notifiable_id', $ids)->delete();
+
+                $suppressedIds = [];
+                if ($rule['badge_suppress']) {
+                    $suppressedIds = DatabaseNotification::query()
+                        ->where('type', FilamentDatabaseNotification::class)
+                        ->where('notifiable_type', User::class)
+                        ->whereIn('notifiable_id', $ids)
+                        ->where('data->menu_key', Str::beforeLast($ruleKey, ':nudge'))
+                        ->whereNull('read_at')
+                        ->pluck('notifiable_id')
+                        ->flip()
+                        ->toArray();
+                }
+
+                $show = $rule['show'];
+                $title = $rule['title'];
+                $body = $rule['body'];
+
+                foreach ($recipients as $user) {
+                    if (!$show($subject, $user)) {
+                        if ($existingNotifications->has($user->id)) {
+                            $existingNotifications->get($user->id)->delete();
+                        }
+                        continue;
+                    }
+
+                    $existing = $existingNotifications->get($user->id);
+
+                    if ($existing !== null) {
+                        if (($rule['refresh'] ?? false) && $existing->read_at === null) {
+                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId);
+                            if ($existing->data != $data) {
+                                $existing->update(['data' => $data]);
+                            }
+                        }
+                        continue;
+                    }
+
+                    if ($rule['badge_suppress'] && isset($suppressedIds[$user->id])) {
+                        continue;
+                    }
+
+                    $user->notifications()->create([
+                        'id' => (string)Str::uuid(),
+                        'type' => FilamentDatabaseNotification::class,
+                        'data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId),
+                    ]);
+                }
+            });
+        } catch (LockTimeoutException) {
+        }
+    }
+
     public static function register(MenuNudge $nudge): void
     {
         $key = $nudge->getKey();
@@ -75,13 +168,14 @@ class NudgeService
     }
 
     private static function buildData(
-        Model $subject,
-        User $user,
-        callable $title,
+        Model           $subject,
+        User            $user,
+        callable        $title,
         callable|string $body,
-        string $ruleKey,
-        string $itemId,
-    ): array {
+        string          $ruleKey,
+        string          $itemId,
+    ): array
+    {
         return [
             ...Notification::make()
                 ->title($title($subject, $user))
@@ -99,89 +193,5 @@ class NudgeService
             'menu_key' => $ruleKey,
             'item_id' => $itemId,
         ];
-    }
-
-    public static function reconcile(string $ruleKey, string $subjectClass, int|string $subjectId): void
-    {
-        $rule = self::$rules[$ruleKey] ?? null;
-
-        if ($rule === null) {
-            return;
-        }
-
-        $itemId = (string)$subjectId;
-
-        try {
-            Cache::lock("nudge:k{$ruleKey}:i{$itemId}", 10)->block(3, function () use ($rule, $ruleKey, $itemId, $subjectClass, $subjectId) {
-                $fresh = fn() => DatabaseNotification::query()
-                    ->where('type', FilamentDatabaseNotification::class)
-                    ->where('notifiable_type', User::class)
-                    ->where('data->menu_key', $ruleKey)
-                    ->where('data->item_id', $itemId);
-
-                $subject = $subjectClass::find($subjectId);
-
-                if ($subject === null) {
-                    $fresh()->delete();
-                    return;
-                }
-
-                $recipients = ($rule['for'])($subject);
-                $ids = [];
-
-                foreach ($recipients as $user) {
-                    $ids[] = $user->id;
-                }
-
-                if (empty($ids)) {
-                    $fresh()->delete();
-                    return;
-                }
-
-                $fresh()->whereNotIn('notifiable_id', $ids)->delete();
-
-                $show = $rule['show'];
-                $title = $rule['title'];
-                $body = $rule['body'];
-
-                foreach ($recipients as $user) {
-                    if (!$show($subject, $user)) {
-                        $fresh()->where('notifiable_id', $user->id)->delete();
-                        continue;
-                    }
-
-                    $existing = $fresh()->where('notifiable_id', $user->id)->first();
-
-                    if ($existing !== null) {
-                        if (($rule['refresh'] ?? false) && $existing->read_at === null) {
-                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId);
-
-                            if ($existing->data != $data) {
-                                $existing->update(['data' => $data]);
-                            }
-                        }
-                        continue;
-                    }
-
-                    if ($rule['badge_suppress']
-                        && DatabaseNotification::query()
-                            ->where('type', FilamentDatabaseNotification::class)
-                            ->where('notifiable_type', User::class)
-                            ->where('notifiable_id', $user->id)
-                            ->where('data->menu_key', Str::beforeLast($ruleKey, ':nudge'))
-                            ->whereNull('read_at')
-                            ->exists()) {
-                        continue;
-                    }
-
-                    $user->notifications()->create([
-                        'id' => (string) Str::uuid(),
-                        'type' => FilamentDatabaseNotification::class,
-                        'data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId),
-                    ]);
-                }
-            });
-        } catch (LockTimeoutException) {
-        }
     }
 }

@@ -20,7 +20,6 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('user_id', 'credentials_user_id_index');
                 $table->index(['user_id', 'app_name'], 'credentials_user_id_app_name_index');
                 $table->index(['user_id', 'username'], 'credentials_user_id_username_index');
             });

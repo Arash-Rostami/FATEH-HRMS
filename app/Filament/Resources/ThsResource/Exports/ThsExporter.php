@@ -8,10 +8,16 @@ use App\Models\Ticket;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class ThsExporter extends Exporter
 {
     protected static ?string $model = Ticket::class;
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['requester', 'assignee']);
+    }
 
     public static function getColumns(): array
     {

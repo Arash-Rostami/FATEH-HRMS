@@ -18,6 +18,17 @@ class EventInfolistPresenter
             ->icon('heroicon-o-clock');
     }
 
+    public static function countdown(): IconEntry
+    {
+        return IconEntry::make('countdown')
+            ->label(__('resources/event/strings.infolist.countdown'))
+            ->boolean()
+            ->getStateUsing(fn ($record) => ($record->countdown['enabled'] ?? false) === true)
+            ->trueIcon('heroicon-o-clock')
+            ->trueColor('primary')
+            ->falseColor('gray');
+    }
+
     public static function date(): TextEntry
     {
         return TextEntry::make('date')
@@ -53,8 +64,6 @@ class EventInfolistPresenter
     {
         return TextEntry::make('title')
             ->label(__('resources/event/strings.fields.title'))
-            ->size(TextSize::Large)
-            ->weight(FontWeight::Bold)
             ->columnSpanFull();
     }
 

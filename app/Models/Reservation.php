@@ -154,6 +154,6 @@ class Reservation extends Model
                 $resourceName,
                 " رزروکننده: {$reserver} 📆 {$date} ",
             ]));
-        });
+        })->shouldCache();
     }
 }

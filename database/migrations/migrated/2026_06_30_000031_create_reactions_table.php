@@ -19,7 +19,6 @@ return new class extends Migration {
                 $table->collation('utf8mb4_unicode_ci');
                 $table->unique(['user_id', 'feed_id', 'emoji'], 'reactions_user_feed_emoji_unique');
                 $table->index('feed_id', 'reactions_feed_id_index');
-                $table->index(['user_id', 'feed_id'], 'reactions_user_feed_index');
                 $table->index('created_at', 'reactions_created_at_index');
             });
         }

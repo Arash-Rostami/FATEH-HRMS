@@ -376,6 +376,11 @@
         @apply bg-[var(--md-sys-color-surface-variant)]/40;
     }
 
+    .fi-ta-text-item.fi-ta-text-has-badges,
+    .fi-ta-text-has-badges .fi-ta-text-item {
+        -webkit-box-align: start;
+    }
+
     .fi-ta-record:hover {
         @apply bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant),_transparent_40%)];
     }

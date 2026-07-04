@@ -28,6 +28,7 @@ export default defineConfig({
                 {src: 'resources/assets/video', dest: 'assets'},
                 {src: 'resources/assets/img', dest: 'assets'},
                 {src: 'resources/assets/fonts', dest: 'assets'},
+                {src: 'resources/assets/js', dest: 'assets'},
                 {
                     src: 'node_modules/material-symbols/rounded.css',
                     dest: 'assets/material-symbols'

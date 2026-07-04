@@ -13,7 +13,9 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
@@ -31,32 +33,56 @@ class EventResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/event/strings.form.section_info'))
-                ->icon('heroicon-o-document-text')
-                ->schema([
-                    EventFormPresenter::title(),
-                    EventFormPresenter::divider(),
-                    EventFormPresenter::description(),
-                ])
-                ->columns(1),
-
             Group::make()
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
-                    Section::make(__('resources/event/strings.form.section_schedule'))
-                        ->icon('heroicon-o-calendar')
-                        ->schema([
-                            EventFormPresenter::dateJalali(),
-                            EventFormPresenter::dateTimePart(),
-                        ])->columns(3),
 
-                    Section::make(__('resources/event/strings.form.section_access'))
-                        ->icon('heroicon-o-lock-closed')
+                    Group::make()
+                        ->columnSpan(1)
                         ->schema([
-                            EventFormPresenter::private(),
-                            EventFormPresenter::userId(),
-                        ])->columns(2),
-                ])
+                            Section::make(__('resources/event/strings.form.section_info'))
+                                ->icon('heroicon-o-document-text')
+                                ->schema([
+                                    EventFormPresenter::title(),
+                                    EventFormPresenter::divider(),
+                                    EventFormPresenter::description(),
+                                ]),
 
+                            Section::make(__('resources/event/strings.form.section_schedule'))
+                                ->icon('heroicon-o-calendar')
+                                ->schema([
+                                    EventFormPresenter::dateJalali(),
+                                    EventFormPresenter::dateTimePart(),
+                                ])
+                                ->columns(3),
+                        ]),
+
+                    Group::make()
+                        ->columnSpan(1)
+                        ->schema([
+                            Section::make(__('resources/event/strings.form.section_access'))
+                                ->icon('heroicon-o-lock-closed')
+                                ->schema([
+                                    EventFormPresenter::private(),
+                                    EventFormPresenter::userId(),
+                                ])
+                                ->columns(1),
+
+                            Section::make(__('resources/event/strings.form.section_countdown'))
+                                ->icon('heroicon-o-clock')
+                                ->description(__('resources/event/strings.form.section_countdown_description'))
+                                ->visible(fn (Get $get) => ! (bool) $get('private'))
+                                ->schema([
+                                    Grid::make(2)->schema([
+                                        EventFormPresenter::countdownEnabled(),
+                                        EventFormPresenter::countdownConfetti(),
+                                    ]),
+                                    EventFormPresenter::countdownMood(),
+                                    EventFormPresenter::countdownMessages(),
+                                ]),
+                        ]),
+                ]),
         ]);
     }
 
@@ -137,6 +163,7 @@ class EventResource extends Resource
                     EventInfolistPresenter::date(),
                     EventInfolistPresenter::user(),
                     EventInfolistPresenter::private(),
+                    EventInfolistPresenter::countdown(),
                     EventInfolistPresenter::title(),
                     EventInfolistPresenter::description(),
                     EventInfolistPresenter::createdAt(),
@@ -156,6 +183,7 @@ class EventResource extends Resource
                 EventTablePresenter::user(),
                 EventTablePresenter::date(),
                 EventTablePresenter::private(),
+                EventTablePresenter::countdown(),
                 EventTablePresenter::createdAt(),
             ])
             ->groups([

@@ -34,6 +34,7 @@ return new class extends Migration {
                 $table->index('role', 'users_role_index');
                 $table->index('status', 'users_status_index');
                 $table->index('type', 'users_type_index');
+                $table->index('last_seen', 'users_last_seen_index');
             });
         }
     }

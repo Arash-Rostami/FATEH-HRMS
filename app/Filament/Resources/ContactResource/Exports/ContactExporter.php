@@ -6,10 +6,16 @@ use App\Models\Message;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class ContactExporter extends Exporter
 {
     protected static ?string $model = Message::class;
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['sender', 'recipient']);
+    }
 
     public static function getColumns(): array
     {

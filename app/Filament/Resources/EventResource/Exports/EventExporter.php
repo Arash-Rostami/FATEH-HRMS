@@ -6,10 +6,16 @@ use App\Models\Event;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class EventExporter extends Exporter
 {
     protected static ?string $model = Event::class;
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['user']);
+    }
 
     public static function getColumns(): array
     {

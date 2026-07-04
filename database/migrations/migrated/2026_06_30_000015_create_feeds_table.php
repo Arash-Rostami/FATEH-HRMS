@@ -16,10 +16,9 @@ return new class extends Migration {
                 $table->longText('media_paths')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
                 $table->longText('poll_options')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
                 $table->timestamps();
-                $table->index('id', 'feeds_id_index');
                 $table->index('user_id', 'feeds_user_id_index');
-                $table->index('category', 'feeds_category_index');
-                $table->index('created_at', 'feeds_created_at_index');
+                $table->index(['category', 'created_at'], 'feeds_category_created_index');
+                $table->index(['user_id', 'created_at'], 'feeds_user_created_index');
             });
         }
     }

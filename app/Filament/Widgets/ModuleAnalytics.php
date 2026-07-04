@@ -120,11 +120,9 @@ class ModuleAnalytics extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function departmentsData(): array
     {
-        $departments = Department::withCount('users')->get();
-
-        $total = $departments->count();
-        $withUsers = $departments->filter(fn($d) => $d->users_count > 0)->count();
-        $mostDense = $departments->sortByDesc('users_count')->first()?->displayLabel() ?? 'نامشخص';
+        $total = Department::count();
+        $withUsers = Department::has('users')->count();
+        $mostDense = Department::withCount('users')->orderByDesc('users_count')->orderBy('code')->first()?->displayLabel() ?? 'نامشخص';
 
         return [
             Stat::make('کل واحدها', $total)

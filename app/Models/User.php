@@ -435,6 +435,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     {
         return Attribute::make(
             get: fn() => $this->profile?->cellphone
-        );
+        )->shouldCache();
     }
 }

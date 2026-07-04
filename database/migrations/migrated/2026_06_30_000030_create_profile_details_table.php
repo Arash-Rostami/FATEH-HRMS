@@ -19,8 +19,8 @@ return new class extends Migration {
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
                 $table->unique(['profile_id', 'key'], 'profile_details_profile_id_key_unique');
-                $table->index('section', 'profile_details_section_index');
                 $table->index('key', 'profile_details_key_index');
+                $table->index(['profile_id', 'section'], 'profile_details_profile_section_index');
                 $table->foreign('profile_id', 'profile_details_profile_id_foreign')->references('id')->on('profiles')->onDelete('cascade');
             });
         }

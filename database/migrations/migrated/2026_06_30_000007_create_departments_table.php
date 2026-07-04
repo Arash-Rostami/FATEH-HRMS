@@ -16,11 +16,13 @@ return new class extends Migration {
                 $table->json('units')->nullable();
                 $table->json('sections')->nullable();
                 $table->json('ticket_options')->nullable();
+                $table->integer('ticket_options_length')->virtualAs('JSON_LENGTH(ticket_options)')->nullable();
                 $table->timestamp('created_at')->useCurrent()->nullable(false);
                 $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable(false);
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_persian_ci');
                 $table->unique('code', 'code');
+                $table->index('ticket_options_length', 'departments_ticket_options_length_index');
             });
         }
     }

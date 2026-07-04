@@ -3,6 +3,8 @@
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
+use App\Services\Menu\StateService;
+use Illuminate\Support\Facades\DB;
 
 class BulkAssignTasksAction
 {
@@ -10,7 +12,13 @@ class BulkAssignTasksAction
     {
         $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_change_status);
 
-        $tasks->each(fn(Task $task) => $task->update(['assigned_to' => $userId]));
+        if ($tasks->isEmpty()) {
+            return 0;
+        }
+
+        Task::whereIn('id', $tasks->modelKeys())->update(['assigned_to' => $userId]);
+
+        DB::afterCommit(fn() => StateService::flush());
 
         return $tasks->count();
     }

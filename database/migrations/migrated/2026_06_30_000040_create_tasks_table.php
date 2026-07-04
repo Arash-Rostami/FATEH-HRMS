@@ -19,7 +19,6 @@ return new class extends Migration
                 $table->unsignedBigInteger('user_id');
                 $table->timestamps();
                 $table->softDeletes();
-                $table->index('status', 'idx_status');
                 $table->index('user_id', 'idx_user_id');
                 $table->index('assigned_to', 'idx_assigned_to');
                 $table->index(['status', 'assigned_to'], 'idx_status_assigned');

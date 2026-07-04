@@ -52,8 +52,12 @@ class SubmitDecisionAction
         $fallbackUserId = Auth::id();
         $rows = [];
 
+        $rankedByDept = User::highestRankingInDepartments($form->referralDepts);
+
         foreach ($form->referralDepts as $deptId) {
-            if (in_array($deptId, $existingDeptIds, true)) continue;
+            if (in_array($deptId, $existingDeptIds, true)) {
+                continue;
+            }
 
             $rows[] = [
                 'suggestion_id' => $suggestion->id,
@@ -61,7 +65,7 @@ class SubmitDecisionAction
                 'feedback' => 'neutral',
                 'comments' => null,
                 'complete' => false,
-                'user_id' => User::highestRankingInDepartment($deptId)?->id ?? $fallbackUserId,
+                'user_id' => $rankedByDept->get($deptId)?->id ?? $fallbackUserId,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

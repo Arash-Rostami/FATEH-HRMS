@@ -12,9 +12,9 @@ class ResourceExporter extends Exporter
 {
     protected static ?string $model = ResourceModel::class;
 
-    public static function getEloquentQuery(): Builder
+    public static function modifyQuery(Builder $query): Builder
     {
-        return parent::getEloquentQuery()->withCount('reservations');
+        return $query->withCount('reservations');
     }
 
     public static function getColumns(): array

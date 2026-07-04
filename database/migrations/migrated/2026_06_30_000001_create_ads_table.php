@@ -22,9 +22,7 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('position', 'ads_position_index');
-                $table->index('gender', 'ads_gender_index');
-                $table->index('active', 'ads_active_index');
+                $table->index(['active', 'gender', 'position'], 'ads_active_gender_position_index');
             });
         }
     }

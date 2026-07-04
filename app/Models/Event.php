@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasCountdown;
 use App\Models\Traits\HasMenuState;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Event extends Model
 {
     use HasMenuState,
+        HasCountdown,
         HasFactory;
 
     public const MENU_STATE_EVENTS = ['updated', 'deleted'];
@@ -23,6 +25,7 @@ class Event extends Model
         'description',
         'date',
         'private',
+        'countdown',
         'date_jalali',
         'date_time_part',
     ];
@@ -38,13 +41,6 @@ class Event extends Model
             ->where('user_id', $user->id)
             ->whereHas('shares')
             ->whereBetween('date', [now(), now()->addDay()])
-            ->exists();
-    }
-
-    public function isSharedWith(int $userId): bool
-    {
-        return $this->shares()
-            ->where('user_id', $userId)
             ->exists();
     }
 
@@ -78,6 +74,7 @@ class Event extends Model
         return [
             'date' => 'datetime',
             'private' => 'boolean',
+            'countdown' => 'array',
         ];
     }
 

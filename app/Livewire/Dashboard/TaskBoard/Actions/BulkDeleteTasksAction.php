@@ -3,6 +3,8 @@
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
+use App\Services\Menu\StateService;
+use Illuminate\Support\Facades\DB;
 
 class BulkDeleteTasksAction
 {
@@ -10,7 +12,13 @@ class BulkDeleteTasksAction
     {
         $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_delete);
 
-        $tasks->each(fn(Task $task) => $task->delete());
+        if ($tasks->isEmpty()) {
+            return 0;
+        }
+
+        Task::whereIn('id', $tasks->modelKeys())->delete();
+
+        DB::afterCommit(fn() => StateService::flush());
 
         return $tasks->count();
     }

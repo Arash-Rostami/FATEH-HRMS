@@ -18,9 +18,8 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('department_id', 'authorities_department_id_index');
-                $table->index('user_id', 'authorities_user_id_index');
                 $table->index('sub_duty', 'authorities_sub_duty_index');
+                $table->index(['user_id', 'department_id'], 'authorities_user_department_index');
             });
         }
     }

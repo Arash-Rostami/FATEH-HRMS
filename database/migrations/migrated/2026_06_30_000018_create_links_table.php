@@ -23,9 +23,7 @@ return new class extends Migration {
                 $table->unsignedInteger('sequence')->default(0);
                 $table->json('extra')->nullable();
                 $table->timestamps();
-                $table->index('link', 'idx_link_type');
                 $table->index('internal_url', 'idx_internal_url');
-                $table->index('sequence', 'idx_sequence');
                 $table->index(['link', 'sequence'], 'idx_link_sequence');
             });
 

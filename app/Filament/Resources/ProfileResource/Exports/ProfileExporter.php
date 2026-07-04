@@ -172,8 +172,8 @@ class ProfileExporter extends Exporter
         return "خروجی {$count} پروفایل با موفقیت آماده شد.";
     }
 
-    public static function getEloquentQuery(): Builder
+    public static function modifyQuery(Builder $query): Builder
     {
-        return parent::getEloquentQuery()->with(['user', 'department', 'details']);
+        return $query->with(['user', 'department', 'details']);
     }
 }

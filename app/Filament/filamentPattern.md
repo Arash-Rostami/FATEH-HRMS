@@ -334,6 +334,8 @@ When several form controls do not map 1:1 to model columns but must be persisted
 
 Example: `FeedFormPresenter` stores poll mode + 2 toggles in the first 3 slots of `poll_options`, with real choices after; `Feed::extractPollSettings()` is the single source of truth for that split so the form, action, view and relation manager all agree. Always keep the split logic in one model method and reuse it — do not re-derive the format at each call site.
 
+**Virtual sub-field names are bare — they do NOT restate the column name.** When a JSON column is named X, the virtual fields packed into it are `enabled` / `messages` (or whatever the sub-keys are), NOT `X_enabled` / `X_messages`. The column already names the feature; the prefix is redundant. `EventFormPresenter` exposes `Toggle::make('enabled')` + `Repeater::make('messages')` packed into the `events.countdown` JSON column by `Event::packCountdown`/`unpackCountdown` (read `$data['enabled']`/`$data['messages']`, write `$data['countdown'] = ['enabled'=>…,'messages'=>…]`, `unset()` the bare keys). Same rule for any future JSON-column pack/unpack.
+
 #### 2.2 Table schema
 
 Contains: column definitions, filter definitions, group definitions, row actions and bulk actions when shared at module level, and table-level presentation logic.
@@ -788,6 +790,8 @@ class UserExporter extends Exporter
     }
 }
 ```
+
+> Eager-load relationships accessed in per-row `ExportColumn` state closures via `modifyQuery(Builder $query): Builder` (e.g. `return $query->with(['user', 'department'])`). Do NOT override `getEloquentQuery` on an exporter — the `Exporter` base class has no such method (that hook belongs to the `Resource` class); calling `parent::getEloquentQuery()` from an exporter is a fatal `BadMethodCallException`.
 
 ---
 

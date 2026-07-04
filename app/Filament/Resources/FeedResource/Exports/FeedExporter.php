@@ -43,6 +43,6 @@ class FeedExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->withCount(['comments', 'reactions']);
+        return $query->with(['user'])->withCount(['comments', 'reactions']);
     }
 }

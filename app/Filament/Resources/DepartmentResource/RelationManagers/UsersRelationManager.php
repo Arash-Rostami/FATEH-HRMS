@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class UsersRelationManager extends RelationManager
@@ -125,6 +126,7 @@ class UsersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['profile']))
             ->columns([
                 UserTablePresenter::id(),
                 UserTablePresenter::avatar(),

@@ -6,10 +6,16 @@ use App\Models\Report;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReportExporter extends Exporter
 {
     protected static ?string $model = Report::class;
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['user', 'department']);
+    }
 
     public static function getColumns(): array
     {

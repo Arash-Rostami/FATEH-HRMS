@@ -99,28 +99,29 @@ class DMS extends Model
             return new Collection();
         }
 
+        $readsByUser = $this->readsBySignedUser();
+        $signedIds = $readsByUser->filter(fn($r) => !$r->contains(fn($x) => (int)$x->read_count === 0))->keys()->all();
+
         $owners = collect($this->owners ?? []);
 
         if ($owners->contains('ALL')) {
-            $users = User::active()->get();
+            $users = User::active()->whereNotIn('id', $signedIds)->get();
         } else {
             $users = User::active()
+                ->whereNotIn('id', $signedIds)
                 ->whereHas('profile', fn(Builder $q) => $q->whereIn('department_id', $owners->all()))
                 ->get();
 
             $explicit = collect($this->users ?? [])->filter()->map(fn($i) => (int)$i)->all();
 
             if (!empty($explicit)) {
-                $users = $users->merge(User::active()->whereIn('id', $explicit)->get());
+                $users = $users->merge(
+                    User::active()->whereNotIn('id', $signedIds)->whereIn('id', $explicit)->get()
+                );
             }
         }
 
-        $readsByUser = $this->reads()->where('read', true)->get(['user_id', 'read_count'])->groupBy('user_id');
-
-        return $users->unique('id')->filter(function (User $u) use ($readsByUser) {
-            $userReads = $readsByUser->get($u->id);
-            return !$userReads || $userReads->contains(fn($r) => (int)$r->read_count === 0);
-        })->values();
+        return $users->unique('id')->values();
     }
 
     public function reads(): HasMany
@@ -151,6 +152,16 @@ class DMS extends Model
     public function requiresSignFor(int $userId): bool
     {
         return !$this->reads()->where('user_id', $userId)->where('read', true)->exists();
+    }
+
+    public function signedUserIds(): array
+    {
+        return $this->readsBySignedUser()->keys()->all();
+    }
+
+    private function readsBySignedUser(): Collection
+    {
+        return once(fn () => $this->reads()->where('read', true)->get(['user_id', 'read_count'])->groupBy('user_id'));
     }
 
     public function scopeNonSystematic($query)

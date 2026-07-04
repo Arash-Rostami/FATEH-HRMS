@@ -16,7 +16,6 @@ return new class extends Migration {
                 $table->text('question');
                 $table->text('answer');
                 $table->timestamps();
-                $table->index('id', 'faqs_id_index');
                 $table->index('user_id', 'faqs_user_id_foreign');
                 $table->index('department_id', 'idx_department_id');
                 $table->foreign('user_id', 'faqs_user_id_foreign')->references('id')->on('users')->onDelete('set null');

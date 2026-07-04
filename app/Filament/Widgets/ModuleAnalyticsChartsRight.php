@@ -198,33 +198,31 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     }
 
     #[Computed(seconds: 300, cache: true)]
-    public function getModuleIData(string $departmentCode): array
+    private function getModuleIData(string $departmentCode): array
     {
         $query = DB::table('profiles')
             ->whereNotNull('start_date')
-            ->whereNotIn('employment_status', ['terminated']);
+            ->where('employment_status', '!=', 'terminated');
 
         if ($departmentCode) {
             $query->where('department_id', $departmentCode);
         }
 
-        $startDates = $query->pluck('start_date');
-
-        $buckets = ['کمتر از ۱ سال' => 0, '۱ تا ۳ سال' => 0, '۳ تا ۵ سال' => 0, '۵ تا ۱۰ سال' => 0, 'بیش از ۱۰ سال' => 0];
-        foreach ($startDates as $sd) {
-            $years = Carbon::parse($sd)->diffInYears(now());
-            if ($years < 1)       $buckets['کمتر از ۱ سال']++;
-            elseif ($years < 3)   $buckets['۱ تا ۳ سال']++;
-            elseif ($years < 5)   $buckets['۳ تا ۵ سال']++;
-            elseif ($years < 10)  $buckets['۵ تا ۱۰ سال']++;
-            else                  $buckets['بیش از ۱۰ سال']++;
-        }
+        $row = $query->selectRaw("
+            COALESCE(SUM(CASE WHEN TIMESTAMPDIFF(YEAR, start_date, NOW()) < 1 THEN 1 ELSE 0 END), 0) as b1,
+            COALESCE(SUM(CASE WHEN TIMESTAMPDIFF(YEAR, start_date, NOW()) BETWEEN 1 AND 2 THEN 1 ELSE 0 END), 0) as b2,
+            COALESCE(SUM(CASE WHEN TIMESTAMPDIFF(YEAR, start_date, NOW()) BETWEEN 3 AND 4 THEN 1 ELSE 0 END), 0) as b3,
+            COALESCE(SUM(CASE WHEN TIMESTAMPDIFF(YEAR, start_date, NOW()) BETWEEN 5 AND 9 THEN 1 ELSE 0 END), 0) as b4,
+            COALESCE(SUM(CASE WHEN TIMESTAMPDIFF(YEAR, start_date, NOW()) >= 10 THEN 1 ELSE 0 END), 0) as b5
+        ")->first();
 
         return [
-            'datasets' => [
-                ['label' => 'تعداد کارکنان', 'data' => array_values($buckets), 'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']],
-            ],
-            'labels' => array_keys($buckets),
+            'datasets' => [[
+                'label' => 'تعداد کارکنان',
+                'data' => [$row->b1, $row->b2, $row->b3, $row->b4, $row->b5],
+                'backgroundColor' => ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
+            ]],
+            'labels' => ['کمتر از ۱ سال', '۱ تا ۳ سال', '۳ تا ۵ سال', '۵ تا ۱۰ سال', 'بیش از ۱۰ سال'],
         ];
     }
 

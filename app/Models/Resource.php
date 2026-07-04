@@ -87,7 +87,7 @@ class Resource extends Model
                 ? $this->relatedUser?->profile?->image
                 : null
             )
-        );
+        )->shouldCache();
     }
 
     protected function displayImageUrl(): Attribute

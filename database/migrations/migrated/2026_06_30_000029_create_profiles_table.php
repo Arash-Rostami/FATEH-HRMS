@@ -49,11 +49,11 @@ return new class extends Migration {
                 $table->unique('id_card_number', 'profiles_id_card_number_unique');
                 $table->unique('id_booklet_number', 'profiles_id_booklet_number_unique');
                 $table->index('user_id', 'profiles_user_id_foreign');
-                $table->index('department_id', 'profiles_department_index');
                 $table->index('employment_status', 'profiles_employment_status_index');
                 $table->index('employment_type', 'profiles_employment_type_index');
                 $table->index('position', 'profiles_position_index');
                 $table->index('start_date', 'profiles_start_date_index');
+                $table->index(['department_id', 'employment_status'], 'profiles_department_status_index');
                 $table->foreign('department_id', 'fk_profiles_department')->references('code')->on('departments')->onUpdate('cascade');
                 $table->foreign('user_id', 'profiles_user_id_foreign')->references('id')->on('users')->onDelete('cascade');
             });

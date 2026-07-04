@@ -15,8 +15,8 @@
 
 @unless(View::hasSection('minimal_layout'))
     <x-dashboard.header/>
+    @livewire(\App\Livewire\Dashboard\Countdown::class)
 @endunless
-
 
 @isset($slot)
     {{ $slot }}

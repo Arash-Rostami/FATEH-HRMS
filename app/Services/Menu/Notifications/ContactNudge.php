@@ -8,23 +8,26 @@ use App\Services\Menu\Contracts\MenuNudge;
 
 class ContactNudge implements MenuNudge
 {
+    private array $unreadCountCache = [];
+
     public function body($subject, User $user): string
     {
-        $count = Message::where('sender_id', $subject->id)
-            ->where('recipient_id', $user->id)
-            ->whereNull('read_at')
-            ->count();
+        $count = $this->unreadCountCache[$user->id] ?? 0;
 
         return 'شما ' . $count . ' پیام خوانده‌نشده از این فرستنده دارید.';
     }
 
     public function for($subject)
     {
+        $this->unreadCountCache = Message::unreadCountsFrom($subject->id);
+
+        if (empty($this->unreadCountCache)) {
+            return collect();
+        }
+
         return User::active()
-            ->whereHas('receivedMessages', fn($query) => $query
-                ->where('sender_id', $subject->id)
-                ->whereNull('read_at')
-            )->get();
+            ->whereIn('id', array_keys($this->unreadCountCache))
+            ->get();
     }
 
     public function getKey(): string
@@ -44,7 +47,7 @@ class ContactNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
-        return Message::hasUnreadFrom($user->id, $subject->id);
+        return true;
     }
 
     public function title($subject, User $user): string

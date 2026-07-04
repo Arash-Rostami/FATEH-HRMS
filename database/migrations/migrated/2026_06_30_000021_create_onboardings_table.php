@@ -23,7 +23,7 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('user_id', 'onboardings_user_id_foreign');
+                $table->index(['user_id', 'is_active'], 'onboardings_user_active_index');
                 $table->foreign('user_id', 'onboardings_user_id_foreign')->references('id')->on('users')->onUpdate('cascade');
             });
         }

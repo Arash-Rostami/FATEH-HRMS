@@ -31,9 +31,7 @@ return new class extends Migration
                 $table->longText('extra')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
                 $table->timestamps();
                 $table->index('requester_id', 'idx_requester_id');
-                $table->index('assigned_to', 'idx_assigned_to');
-                $table->index('status', 'idx_status');
-                $table->index('priority', 'idx_priority');
+                $table->index(['status', 'assigned_to'], 'idx_status_assigned');
                 $table->index(['completion_deadline', 'status'], 'idx_tickets_completion_deadline_status');
             });
         }

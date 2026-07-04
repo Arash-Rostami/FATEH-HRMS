@@ -23,12 +23,6 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('user_id', 'energy_test_user_id_index');
-                $table->index('mind_score', 'energy_test_mind_score_index');
-                $table->index('emotion_score', 'energy_test_emotion_score_index');
-                $table->index('physique_score', 'energy_test_physique_score_index');
-                $table->index('soul_score', 'energy_test_soul_score_index');
-                $table->index('overall_score', 'energy_test_overall_score_index');
                 $table->index('month_index', 'energy_tests_month_index_index');
                 $table->index(['user_id', 'completed_at'], 'energy_tests_user_id_completed_at_index');
                 $table->index(['overall_score', 'completed_at'], 'energy_tests_overall_score_completed_at_index');

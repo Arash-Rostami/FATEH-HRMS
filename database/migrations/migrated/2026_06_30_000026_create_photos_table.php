@@ -20,10 +20,7 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('department_id', 'idx_department');
-                $table->index('event_date', 'idx_event_date');
                 $table->index(['department_id', 'event_date'], 'idx_dept_date');
-                $table->index('department_id', 'idx_department_id');
             });
         }
     }

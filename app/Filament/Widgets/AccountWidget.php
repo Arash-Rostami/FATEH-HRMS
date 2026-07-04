@@ -17,7 +17,7 @@ class AccountWidget extends Widget
 
     protected function getViewData(): array
     {
-        $user = Auth::user();
+        $user = Auth::user()?->loadMissing(['profile.department']);
         $role = $user?->role ? UserRole::tryFrom($user->role) : null;
 
         return [

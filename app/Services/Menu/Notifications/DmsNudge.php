@@ -10,11 +10,13 @@ use Illuminate\Support\Collection;
 
 class DmsNudge implements MenuNudge
 {
+    private array $signedUserIds = [];
+
     public function body($subject, User $user): string
     {
         $typeLabel = $subject->type ? __('resources/dms/strings.type.systematic') : __('resources/dms/strings.type.non_systematic');
 
-        if ($subject->requiresSignFor($user->id)) {
+        if ($this->requiresSignFor($user)) {
             return 'سند ' . $typeLabel . ' «' . $subject->title . '» نیازمند تأیید/امضای شماست؛ برای مشاهده به مدیریت اسناد مراجعه کنید.';
         }
 
@@ -23,6 +25,8 @@ class DmsNudge implements MenuNudge
 
     public function for($subject): Collection
     {
+        $this->signedUserIds = array_fill_keys($subject->signedUserIds(), true);
+
         return $subject->pendingRecipients();
     }
 
@@ -50,7 +54,7 @@ class DmsNudge implements MenuNudge
     {
         $typeLabel = $subject->type ? __('resources/dms/strings.type.systematic') : __('resources/dms/strings.type.non_systematic');
 
-        return $subject->requiresSignFor($user->id)
+        return $this->requiresSignFor($user)
             ? 'سند ' . $typeLabel . ' نیازمند تأیید'
             : 'سند ' . $typeLabel . ' نیازمند مطالعه';
     }
@@ -61,5 +65,10 @@ class DmsNudge implements MenuNudge
             ['class' => DMS::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
             ['class' => Read::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => fn(Read $r) => $r->dms],
         ];
+    }
+
+    private function requiresSignFor(User $user): bool
+    {
+        return !isset($this->signedUserIds[$user->id]);
     }
 }

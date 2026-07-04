@@ -21,6 +21,7 @@ return new class extends Migration {
                 $table->collation('utf8mb4_unicode_ci');
                 $table->index('user_id', 'idx_user_id');
                 $table->index('created_at', 'idx_posts_created_at');
+                $table->index(['pinned', 'created_at'], 'idx_pinned_created');
             });
         }
     }

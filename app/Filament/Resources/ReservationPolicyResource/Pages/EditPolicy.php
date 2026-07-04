@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReservationPolicyResource\Pages;
 
 use App\Filament\Resources\ReservationPolicyResource;
 use App\Models\ReservationPolicy;
+use App\Services\Reservation\ValidationService;
 use App\Traits\FilamentPageBehavior;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,6 @@ class EditPolicy extends EditRecord
     use FilamentPageBehavior;
 
     protected static string $resource = ReservationPolicyResource::class;
-
-    protected function resolveRecord(int|string $key): Model
-    {
-        return ReservationPolicy::where('resource_type', $key)->firstOrFail();
-    }
 
     protected function fillForm(): void
     {
@@ -32,27 +28,9 @@ class EditPolicy extends EditRecord
         $this->form->fill($flat);
     }
 
-    protected function handleRecordUpdate(Model $record, array $data): Model
+    protected function getRedirectUrl(): string
     {
-        $type = $record->resource_type;
-
-        $allowedHours = [
-            'start' => $data['allowed_hours_start'] ?? null,
-            'end'   => $data['allowed_hours_end'] ?? null,
-        ];
-
-        $keys = collect($data)
-            ->except(['allowed_hours_start', 'allowed_hours_end'])
-            ->put('allowed_hours', $allowedHours);
-
-        $keys->each(function ($value, $key) use ($type) {
-            ReservationPolicy::updateOrCreate(
-                ['resource_type' => $type, 'key' => $key],
-                ['value' => $value]
-            );
-        });
-
-        return $record;
+        return ReservationPolicyResource::getUrl('index');
     }
 
     protected function getSavedNotificationTitle(): ?string
@@ -60,8 +38,42 @@ class EditPolicy extends EditRecord
         return __('resources/policy/strings.saved');
     }
 
-    protected function getRedirectUrl(): string
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return ReservationPolicyResource::getUrl('index');
+        $type = $record->resource_type;
+
+        $allowedHours = [
+            'start' => $data['allowed_hours_start'] ?? null,
+            'end' => $data['allowed_hours_end'] ?? null,
+        ];
+
+        $keys = collect($data)
+            ->except(['allowed_hours_start', 'allowed_hours_end'])
+            ->put('allowed_hours', $allowedHours);
+
+        $now = now();
+
+        $rows = $keys->map(fn($value, $key) => [
+            'resource_type' => $type,
+            'key' => $key,
+            'value' => $value === null ? null : json_encode($value),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->values()->toArray();
+
+        ReservationPolicy::upsert(
+            $rows,
+            ['resource_type', 'key'],
+            ['value', 'updated_at']
+        );
+
+        app(ValidationService::class)->flushPolicyCache($type);
+
+        return $record;
+    }
+
+    protected function resolveRecord(int|string $key): Model
+    {
+        return ReservationPolicy::where('resource_type', $key)->firstOrFail();
     }
 }

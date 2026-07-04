@@ -7,10 +7,16 @@ use App\Models\Task;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class TaskExporter extends Exporter
 {
     protected static ?string $model = Task::class;
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['creator', 'assignee']);
+    }
 
     public static function getColumns(): array
     {

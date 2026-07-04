@@ -116,12 +116,15 @@ public function get(): array {
     $version = self::version();
     $cacheKey = "menu_state:v{$version}:" . ($user ? "u{$user->id}" : 'guest');
     return Cache::remember($cacheKey, now()->addHours(2), function () use ($user) {
+        $instances = array_map(static fn (string $class) => app($class), $this->indicators);
         $resolved = [];
-        foreach ($this->indicators as $indicatorClass) {
-            $indicator = app($indicatorClass);
+        foreach ($instances as $indicator) {
             $resolved[$indicator->getKey()] = $indicator->isActive();
         }
-        if ($user) { $this->syncIndicators($user, $resolved); }
+        if ($user) {
+            try { $this->syncService->syncBatch($user, $instances, $resolved); }
+            catch (\Throwable $e) { report($e); }
+        }
         return $resolved;
     });
 }
@@ -136,37 +139,67 @@ public function get(): array {
   reflects live status, not whether the user has seen it.
 - **Sync runs only on a cache miss**, inside the `Cache::remember` closure — i.e. once per version
   per user, not on every render. A cache hit = one cache read and **zero DB queries** (the previous
-  design fired `sync()` per render, issuing a SELECT + dedup-DELETE per active indicator). Each
-  `sync()` call is wrapped in `try/catch` so a notification-DB failure degrades gracefully (stale
-  badge until the next `flush()`) instead of breaking the menu render or poisoning the cached bool
-  map.
-- **`syncIndicators`** loops the same `$indicators` list and calls
-  `$syncService->sync($user, $indicator, $state[$key] ?? false)`.
+  design fired `sync()` per render, issuing a SELECT + dedup-DELETE per active indicator). The whole
+  `syncBatch()` call is wrapped in `try/catch (\Throwable $e) { report($e); }` so a notification-DB
+  failure degrades gracefully (stale badge until the next `flush()`) instead of breaking the menu
+  render or poisoning the cached bool map.
+- **No more `syncIndicators`.** The per-indicator loop was removed. `get()` builds `$instances`
+  **once** (reused for both `isActive()` resolution and the sync), then hands the whole batch to
+  `$syncService->syncBatch($user, $instances, $resolved)` — indicators are no longer instantiated
+  twice.
 
-### `BadgeSyncService::sync()` — one row per indicator
+### `BadgeSyncService::syncBatch()` — whole batch in 3 queries
 
-Reconciles the **single** notification row for one indicator on one user. Pure state-machine, three
-branches:
+Reconciles **all** indicator rows for one user in one pass. Replaces the old per-indicator
+`sync()` (which issued up to N×(SELECT + dedup-DELETE + INSERT) — ~22 queries for 11 indicators).
+Now **at most 3 queries**: one SELECT (existence check), one bulk DELETE (inactive keys), one bulk
+INSERT (new active rows) — best-case; the DELETE/INSERT are guarded so they're skipped when their
+batch is empty. The state-machine semantics are preserved, just batched:
 
 ```php
-$query = $user->notifications()
-    ->where('type', FilamentDatabaseNotification::class)
-    ->where('data->menu_key', $indicator->getKey());   // bare key, no suffix → never matches nudge rows
+$keys = array_map(fn (MenuBadge $i) => $i->getKey(), $indicators);
 
-if (!$isActive) { $query->delete(); return; }          // inactive → delete the row
-if ($query->exists()) { return; }                      // active + row exists → LEAVE IT (preserve read_at)
-$user->notifications()->create([ …unread row, menu_key => $indicator->getKey() ]);  // active + no row → create
+$existingByKey = $user->notifications()
+    ->where('type', FilamentDatabaseNotification::class)
+    ->whereIn('data->menu_key', $keys)->get(['data'])
+    ->mapWithKeys(fn ($n) => [$n->data['menu_key'] ?? null => true])->toArray();
+
+foreach ($indicators as $indicator) {
+    try {
+        $key = $indicator->getKey();
+        if (!($state[$key] ?? false)) { $inactiveKeys[] = $key; continue; }
+        if (isset($existingByKey[$key])) { continue; }
+        $toInsert[] = [ …unread row, menu_key => $key … ];
+    } catch (\Throwable $e) { report($e); }
+}
+
+if ($inactiveKeys) {
+    $user->notifications()->where('type', FilamentDatabaseNotification::class)
+        ->whereIn('data->menu_key', $inactiveKeys)->delete();
+}
+if ($toInsert) { $user->notifications()->insert($toInsert); }
 ```
 
-- The query is scoped to the **bare** `menu_key`, so it physically cannot see `:nudge` rows.
-- **No-resurface is here.** `exists()` counts **any** `read_at` state (read *or* unread). A dismissed
-  nudge (read) for an indicator that is still active is left untouched — `sync()` never re-unreads
-  an existing row. The row only ever leaves by going inactive (`delete`). If the condition later
-  re-occurs, a fresh unread row is created (a new nudge, not a resurface).
+- All queries are scoped to the **bare** `menu_key` via `whereIn('data->menu_key', …)`, so they
+  physically cannot see `:nudge` rows.
+- **No-resurface is preserved.** `existingByKey` counts **any** `read_at` state (read *or*
+  unread). A dismissed nudge (read) for an indicator still active is left untouched — `syncBatch()`
+  never re-unreads an existing row (it's in `$existingByKey`, so it's skipped in the build loop and
+  never inserted again). The row only ever leaves by going inactive (the bulk `delete`). If the
+  condition later re-occurs, a fresh unread row is inserted (a new nudge, not a resurface).
+- **Per-indicator isolation.** The build loop body is wrapped in `try/catch (\Throwable $e) {
+  report($e); }` so one throwing indicator (`getKey`/`getTitle`/`getBody`/`getDatabaseMessage`) is
+  logged and skipped — the rest of the batch still partitions and the bulk delete/insert still run.
+  The outer `try/catch` in `StateService::get()` covers the 3 queries themselves (select/delete/
+  insert are outside the loop).
+- **Bulk insert bypasses Eloquent.** `$user->notifications()->insert($toInsert)` writes rows
+  directly, so morph columns (`notifiable_type`/`notifiable_id`), `json_encode($data)`, `id`
+  (`Str::uuid()`), and timestamps must be set manually in each row — Eloquent casts/events don't
+  fire on raw `insert()`.
 - The old code did two things that both re-added dismissed nudges to the unread bell: it reset
   `read_at = null` on version change, *and* it globally purged all menu-badge rows on `flush()`.
   Both were removed. `flush()` is now a pure version bump; the dismissed row survives every flush
-  and `sync()` leaves it read.
+  and `syncBatch()` leaves it read.
 - No `version`/`cleared` bookkeeping fields are written. The payload carries only `menu_key` plus
   the static title/body/action. The "حذف اعلان" action calls `markAsRead()`.
 
@@ -331,7 +364,7 @@ Each design choice, why:
   JSON columns and would tax *every* notification write; the lock avoids that cost).
 - **`exists()` counts any `read_at` state** — a dismissed (read) nudge for a record that is still
   qualifying is left untouched and **never recreated**. That is the no-resurface guarantee — the same
-  property the badge system gets from `BadgeSyncService::sync()`'s `exists()` branch, expressed in
+  property the badge system gets from `BadgeSyncService::syncBatch()`'s `existingByKey` lookup, expressed in
   the push model.
 - **`refresh` flag (opt-in)** — when a rule sets `'refresh' => true`, reconcile rewrites `data`
   (title/body) on an existing **unread** row instead of `continue`-ing past it. All three nudge
@@ -346,13 +379,13 @@ Each design choice, why:
   belonging to other notifiable types.
 - **`LockTimeoutException` swallowed** — a contested lock degrades gracefully (the next event
   re-reconciles) instead of breaking the triggering save.
-- **`:nudge` suffix** — isolation from the badge system (the badge's `sync()` queries strictly by
+- **`:nudge` suffix** — isolation from the badge system (the badge's `syncBatch()` queries strictly by
   the bare key, this queries strictly by the suffixed key). It is also what makes badge-overlap
   suppression work: the nudge's bare key is recovered as `Str::beforeLast($key, ':nudge')`, so the
   guard can look up the matching badge row by convention with no key mapping.
 - **Badge-overlap suppression (`badge_suppress`, default ON)** — before creating a recipient's
   nudge row, `reconcile()` checks whether that user already has a **bare-key badge row** for the
-  same menu key (the row `BadgeSyncService::sync()` writes when the indicator is active). If yes,
+  same menu key (the row `BadgeSyncService::syncBatch()` writes when the indicator is active). If yes,
   the nudge CREATE is skipped (the badge already reminds them); the existing-row refresh path above
   is unaffected, so unread nudges already in flight still get refreshed. The check sits **after**
   the existing-row branch, so it only gates new creates — never deletes, never touches the badge.
@@ -383,7 +416,7 @@ Each row is one trigger declared inside a `MenuNudge` class in `Notifications\` 
 | Trigger | `on` | `subject` | `show` | `for` (recipients) |
 |---|---|---|---|---|
 | `Ad` | created, updated, deleted | self | `$ad->active` | `User::active()->get()` |
-| `EventShare` | created, deleted | `$share->event` | per-user: owner → `shares()->exists() && date>=now`; recipient → `isSharedWith($user) && date>=now` | `[owner] + all current share recipients` |
+| `EventShare` | created, deleted | `$share->event` | per-user: owner → `hasShares && date>=now` (`hasShares` primed by `for()`); recipient → `date>=now` (membership guaranteed by `for()`) | `[owner] + all current share recipients` |
 | `Event` | updated, deleted | self | same as EventShare (one `SharedEventsNudge` class) | same as EventShare (one `SharedEventsNudge` class) |
 | `Suggestion` | updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', …$s->departments])` |
 | `Review` | created, updated | `$review->suggestion` | `Suggestion::requiresAttentionFor($s, $user)` | same as Suggestion (one `SuggestionNudge` class) |
@@ -457,7 +490,7 @@ and nudge.
 | trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event |
 | key shape | bare `ads-controller` / `suggestion-controller` / `shared-events` | suffixed `ads-controller:nudge` / `suggestion-controller:nudge` / `shared-events:nudge` |
 | dismissal | not dismissable (lit while true) | dismissable (`markAsRead`); never resurfaces |
-| no-resurface mechanism | `BadgeSyncService::sync()` `exists()` branch leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone |
+| no-resurface mechanism | `BadgeSyncService::syncBatch()` `existingByKey` lookup leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone |
 | invalidation | `StateService::flush()` (global version bump) | n/a (event-driven; re-fetches fresh) |
 | recipient model | one row per user per indicator | `for()` candidate set + per-recipient `show()` gate |
 | auth at write time | `get()` runs in-request with `auth()->user()` | none — `for`/`show` carry the user explicitly |
@@ -468,8 +501,8 @@ separates them.
 
 ## Keys & isolation (the one rule that keeps them from colliding)
 
-- Badge keys are **bare** (`ads-controller`). `BadgeSyncService::sync()` filters
-  `where('data->menu_key', $indicator->getKey())` — bare key only.
+- Badge keys are **bare** (`ads-controller`). `BadgeSyncService::syncBatch()` filters
+  `whereIn('data->menu_key', $keys)` — bare keys only.
 - Nudge keys are **suffixed** (`ads-controller:nudge`). `NudgeService::reconcile()` filters
   `where('data->menu_key', $ruleKey)` — suffixed key only.
 - A bare key can never equal a suffixed key, so the two query sets are disjoint. No const class is
@@ -650,7 +683,7 @@ badge and nudge. Every module now follows this:
 | Suggestions | `Suggestion::attentionRequired()` / `requiresAttentionFor($s,$u)` (in `HasSuggestionAlert`) | `PendingSuggestions` badge + `SuggestionNudge::show()` |
 | Shared events | `EventShare::hasImminentFor($u)` / `Event::hasImminentSharedFor($u)` | `SharedEvents` badge |
 | Tasks | `Task::getTodoCount($u)` / `scopeForUser` / `scopeStatus` | `TasksTodo` badge |
-| Contacts | `Message::hasUnreadFor($u)` / `Message::hasUnreadFrom($u,$sender)` | `UnreadMessages` badge + `ContactNudge::show()` |
+| Contacts | `Message::hasUnreadFor($u)` / `Message::unreadCountsFrom($sender)` | `UnreadMessages` badge; `ContactNudge::for()` batches per-recipient counts via `unreadCountsFrom` (no per-user query in `show()`) |
 | Posts | `Post::postedToday()` | `TodayPosts` badge |
 | Feeds | `Feed::postedToday()` (delegates to existing `Feed::getTodayCount()`) | `TodayFeeds` badge |
 | Energy test | `EnergyTest::hasForCurrentJalaliMonth($u)` | `EnergyTestBadge` |
@@ -664,6 +697,22 @@ from the queued nudge reconcile job (no auth context) and from tests — mirrori
 down. `PhotoNudge`/`ReportNudge` are nudge-only (no badge, no shared condition) so they have no model
 method to extract; `SpecialDays` is badge-only and its `Profile` date query is a one-off aggregate with
 no nudge counterpart, left inline.
+
+`ContactNudge` batches its per-recipient unread count to avoid an N+1 across recipients: `for()` calls
+`Message::unreadCountsFrom($subject->id)` (one grouped `COUNT(*) … GROUP BY recipient_id` query,
+sender-scoped, soft-delete-respecting via `Message`'s `SoftDeletes` scope), stores the
+`[recipient_id => count]` map on the instance, and returns the active users among those ids; `body()`
+then reads `$this->unreadCountCache[$user->id] ?? 0` and `show()` returns `true` (every recipient
+returned by `for()` structurally has unread messages, so a per-user re-check is redundant). This relies
+on `NudgeService::reconcile` always calling `for()` once before the per-recipient loop calls `body()` —
+guaranteed because `body()` is invoked only via `buildData` inside that loop. The cache is a flat array
+overwritten each reconcile (not keyed by subject), so it neither stales nor grows across the
+process-singleton nudge instance's lifetime. The same `for()`-primes-`body()` pattern applies to any
+nudge that needs per-recipient aggregates. `SharedEventsNudge` uses the same idea for `show()`: `for()`
+sets a flat `$hasShares` bool from its existing `shares()->pluck('user_id')` query, and the owner branch
+of `show()` reads it; non-owners pass the `date >= now` guard (the first check in `show()`) and then
+return `true` since `for()` already guaranteed their membership — zero extra queries, no per-subject
+cache key, no staleness/leak.
 
 ## Array `badge` slot — multiple indicators lighting one sidebar tab
 
@@ -772,8 +821,17 @@ callable from the queued reconcile job, so `DMS::visibleTo(int $userId)` mirrors
 
 - `DMS::needsSignCount($u)` / `needsReadCount($u)` / `pendingCount($u)` / `hasPendingFor($u)` — the counts.
   `getUnsignedDocumentsCount()` is now a one-line delegate to `needsSignCount(auth()->id())` (single source).
-- `DMS::requiresSignFor($u)` / `requiresReadFor($u)` / `isPendingFor($u)` — per-doc predicates.
-- `DMS::pendingRecipients()` — visible live + pending users for one doc (the nudge `for()`).
+- `DMS::requiresSignFor($u)` / `requiresReadFor($u)` / `isPendingFor($u)` — per-doc predicates (now unused by
+  the nudge; `requiresSignFor` was replaced by the batched `signedUserIds()` below — keep until removal is
+  confirmed, since it's a public model method).
+- `DMS::signedUserIds()` — batched sign-status for one doc (`reads()->where('read', true)->pluck('user_id')`,
+  one query); the nudge primes a flat set from it in `for()`.
+- `DMS::pendingRecipients()` — visible live + pending users for one doc (the nudge `for()`). Fetches the
+  doc's `reads(read=true)` once, derives `$signedIds` (users whose read rows have none with `read_count=0`,
+  i.e. signed **and** read) from that collection, then excludes them via SQL `whereNotIn('id', $signedIds)`
+  on the `User::active()` query — so signed-and-read users are dropped before hydration instead of pulling
+  every active user and filtering in PHP (was `User::active()->get()` + post-fetch `->filter()`). Empty
+  `$signedIds` compiles `whereNotIn` to `1 = 1` (all rows), preserving the "nobody signed yet" case.
 
 - **`DmsBadge`** (key `dms-controller`) — **per-user**, `isActive = auth()->user() !== null &&
   DMS::hasPendingFor($user->id)`; lit while the user has any doc needing sign or read, fades once all are

@@ -19,6 +19,18 @@ class EventTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function countdown(): IconColumn
+    {
+        return IconColumn::make('countdown')
+            ->label(__('resources/event/strings.table.countdown'))
+            ->boolean()
+            ->getStateUsing(fn ($record) => ($record->countdown['enabled'] ?? false) === true)
+            ->trueIcon('heroicon-o-clock')
+            ->trueColor('primary')
+            ->falseColor('gray')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
     public static function date(): TextColumn
     {
         return TextColumn::make('date')

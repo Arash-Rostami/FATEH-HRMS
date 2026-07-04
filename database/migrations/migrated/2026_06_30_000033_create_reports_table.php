@@ -21,7 +21,6 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
-                $table->index('active', 'idx_active');
                 $table->index(['user_id', 'active'], 'idx_user_active');
                 $table->index(['department_id', 'active'], 'idx_department_active');
                 $table->foreign('user_id', 'reports_user_id_foreign')->references('id')->on('users')->onDelete('cascade');

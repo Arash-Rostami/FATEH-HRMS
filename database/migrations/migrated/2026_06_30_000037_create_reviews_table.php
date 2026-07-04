@@ -25,6 +25,7 @@ return new class extends Migration
                 $table->index('complete', 'reviews_complete_index');
                 $table->index('user_id', 'reviews_user_id_index');
                 $table->index('suggestion_id', 'reviews_suggestion_id_index');
+                $table->index(['suggestion_id', 'complete'], 'reviews_suggestion_complete_index');
             });
             DB::statement('ALTER TABLE `reviews` ADD INDEX `reviews_department_index` (`department_id`(191))');
         }

@@ -158,8 +158,9 @@
 @layer components {
     /* --- Glass Panel --- */
     .glass-panel {
-        background-color: rgba(255, 255, 255, 0.7);
-        -webkit-backdrop-filter: blur(12px);
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6)),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
         border: 1px solid rgba(255, 255, 255, 0.5);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
@@ -1318,8 +1319,7 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent);
-    backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--md-sys-color-surface) 96%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1387,5 +1387,317 @@
         animation: none !important;
         background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
         transition: background-color 2s ease-out;
+    }
+}
+
+
+.countdown-banner-slot {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 50;
+    pointer-events: none;
+    width: min(92vw, 360px);
+}
+
+.countdown-banner {
+    position: relative;
+    pointer-events: auto;
+    width: 100%;
+    padding: 0.85rem 1rem 0;
+    border-radius: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
+    background:
+        linear-gradient(color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent), color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent);
+    isolation: isolate;
+    overflow: hidden;
+    animation: countdown-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dark .countdown-banner {
+    background: color-mix(in srgb, var(--md-sys-color-surface) 78%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 80%, transparent);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.countdown-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent), color-mix(in srgb, var(--md-sys-color-tertiary) 55%, transparent));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.countdown-confetti-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.countdown-close {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-end: 0.5rem;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 0;
+    border-radius: 0.55rem;
+    cursor: pointer;
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.1s ease;
+}
+
+.countdown-close .material-symbols-rounded {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.countdown-close:hover {
+    background: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+    color: var(--md-sys-color-primary);
+}
+
+.countdown-close:active {
+    transform: scale(0.92);
+}
+
+.countdown-close:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+}
+
+.countdown-close:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.countdown-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-inline-end: 1.75rem;
+}
+
+.countdown-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    flex-shrink: 0;
+    border-radius: 0.7rem;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    font-size: 1.25rem;
+    line-height: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+    animation: focus-banner-pulse 1.8s ease-out infinite;
+}
+
+.countdown-icon.material-symbols-rounded {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.countdown-title {
+    min-width: 0;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: linear-gradient(90deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent));
+}
+
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+    .countdown-title {
+        background: none;
+        color: var(--md-sys-color-primary);
+        filter: none;
+    }
+}
+
+.countdown-ticker-window {
+    position: relative;
+    z-index: 2;
+    margin-top: 0.5rem;
+    height: 1.75rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+}
+
+.countdown-ticker-track {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    will-change: transform;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.countdown-ticker-track.no-transition {
+    transition: none;
+}
+
+.countdown-ticker-item {
+    height: 1.75rem;
+    line-height: 1.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-variant);
+    padding-inline-end: 0.25rem;
+}
+
+.countdown-digits {
+    position: relative;
+    z-index: 2;
+    margin-top: 0.75rem;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 0.25rem;
+    padding: 0.65rem 0.5rem;
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--md-sys-color-surface-variant) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 45%, transparent);
+}
+
+.countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.countdown-digit {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1.1;
+    background: linear-gradient(to bottom, var(--md-sys-color-on-surface), color-mix(in srgb, var(--md-sys-color-on-surface), transparent 35%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+    .countdown-digit {
+        background: none;
+        -webkit-text-fill-color: initial;
+        color: var(--md-sys-color-on-surface);
+    }
+}
+
+.countdown-unit-label {
+    margin-top: 0.2rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--md-sys-color-primary);
+}
+
+.countdown-divider {
+    width: 1px;
+    flex-shrink: 0;
+    align-self: stretch;
+    background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--md-sys-color-outline-variant) 85%, transparent), transparent);
+}
+
+.countdown-accent {
+    position: relative;
+    z-index: 2;
+    height: 3px;
+    margin: 0 -1rem;
+    background: linear-gradient(90deg, var(--md-sys-color-primary), var(--md-sys-color-tertiary), var(--md-sys-color-primary));
+    background-size: 200% 100%;
+    animation: countdown-gradient-x 4s ease infinite;
+}
+
+@keyframes countdown-gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.countdown-banner--mourning {
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+}
+
+.countdown-banner--mourning::before {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent),
+        color-mix(in srgb, var(--md-sys-color-on-surface) 22%, transparent));
+}
+
+.countdown-banner--mourning .countdown-icon {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 16%, transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    animation: none;
+}
+
+.countdown-banner--mourning .countdown-title {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: var(--md-sys-color-on-surface);
+    filter: none;
+    opacity: 0.92;
+}
+
+.countdown-banner--mourning .countdown-digit {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: var(--md-sys-color-on-surface);
+}
+
+.countdown-banner--mourning .countdown-unit-label {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.countdown-banner--mourning .countdown-accent {
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent),
+        color-mix(in srgb, var(--md-sys-color-on-surface) 18%, transparent),
+        color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent));
+    background-size: 100% 100%;
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .countdown-banner,
+    .countdown-icon {
+        animation: none !important;
+    }
+
+    .countdown-ticker-track,
+    .countdown-accent {
+        transition: none;
+        animation: none !important;
     }
 }

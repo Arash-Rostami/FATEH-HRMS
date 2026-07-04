@@ -2,7 +2,6 @@
 
 namespace App\Services\Menu;
 
-use App\Models\User;
 use App\Services\Menu\Indicators\ActiveAds;
 use App\Services\Menu\Indicators\EnergyTestBadge;
 use App\Services\Menu\Indicators\PendingSuggestions;
@@ -54,31 +53,24 @@ class StateService
         $version = self::version();
         $cacheKey = "menu_state:v{$version}:" . ($user ? "u{$user->id}" : 'guest');
 
-        return Cache::remember($cacheKey, now()->addHours(self::TTL_HOURS), function () use ($user, $version) {
+        return Cache::remember($cacheKey, now()->addHours(self::TTL_HOURS), function () use ($user) {
+            $instances = array_map(static fn (string $class) => app($class), $this->indicators);
+
             $resolved = [];
-            foreach ($this->indicators as $indicatorClass) {
-                $indicator = app($indicatorClass);
+            foreach ($instances as $indicator) {
                 $resolved[$indicator->getKey()] = $indicator->isActive();
             }
 
             if ($user) {
-                $this->syncIndicators($user, $resolved);
+                try {
+                    $this->syncService->syncBatch($user, $instances, $resolved);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             }
 
             return $resolved;
         });
-    }
-
-    private function syncIndicators(User $user, array $state): void
-    {
-        foreach ($this->indicators as $indicatorClass) {
-            $indicator = app($indicatorClass);
-
-            try {
-                $this->syncService->sync($user, $indicator, $state[$indicator->getKey()] ?? false);
-            } catch (\Throwable) {
-            }
-        }
     }
 
     private static function version(): int

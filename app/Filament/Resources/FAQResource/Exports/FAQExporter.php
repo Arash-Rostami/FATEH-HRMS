@@ -6,6 +6,7 @@ use App\Models\FAQ;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Illuminate\Database\Eloquent\Builder;
 
 class FAQExporter extends Exporter
 {
@@ -31,5 +32,10 @@ class FAQExporter extends Exporter
         $count = number_format($export->successful_rows);
 
         return __('resources/faq/strings.export.completed', ['count' => $count]);
+    }
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query->with(['user', 'department']);
     }
 }
