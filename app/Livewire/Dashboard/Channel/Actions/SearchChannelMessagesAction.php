@@ -15,15 +15,13 @@ class SearchChannelMessagesAction
     public function execute(int $channelId, string $query, int $authId): array
     {
         $q = trim($query);
-        if ($channelId === 0 || $authId === 0 || mb_strlen($q) < self::MIN_LEN) {
+        if ($channelId <= 0 || $authId <= 0 || mb_strlen($q) < self::MIN_LEN) {
             return [];
         }
-        if (mb_strlen($q) > self::MAX_LEN) {
-            $q = mb_substr($q, 0, self::MAX_LEN);
-        }
+        $q = mb_substr($q, 0, self::MAX_LEN);
 
-        $term = preg_replace('/[+\->()~*"@]/u', '', $q);
-        if ($term === '') {
+        $words = array_filter(explode(' ', preg_replace('/[+\->()~*"@]+/u', ' ', $q)));
+        if (!$words) {
             return [];
         }
 
@@ -31,19 +29,20 @@ class SearchChannelMessagesAction
             ->where('user_id', $authId)
             ->where('channel_id', $channelId)
             ->exists();
-
-        if (! $isMember) {
+        if (!$isMember) {
             return [];
         }
 
+        $booleanQuery = implode(' ', array_map(fn($w) => "+{$w}*", $words));
+
         return ChannelMessage::query()
             ->where('channel_id', $channelId)
-            ->whereRaw('MATCH(body) AGAINST(? IN BOOLEAN MODE)', [$term . '*'])
+            ->whereRaw('MATCH(body) AGAINST(? IN BOOLEAN MODE)', [$booleanQuery])
             ->with('sender:id,name')
             ->latest('id')
             ->limit(self::LIMIT)
             ->get()
-            ->map(fn (ChannelMessage $m) => [
+            ->map(fn(ChannelMessage $m) => [
                 'id' => $m->id,
                 'body' => Str::limit(strip_tags($m->body), 80),
                 'time' => toJalaliRelative($m->created_at, short: true),
