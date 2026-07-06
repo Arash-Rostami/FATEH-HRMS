@@ -10,6 +10,9 @@ export default function contact() {
     return {
         ...maximizeMixin(),
         bgOption: 'a',
+        searchMessages: false,
+        messageSearchFullscreen: false,
+        messageSearchValue: '',
         isTyping: false,
         typingTimeout: null,
         showScrollFab: false,
@@ -25,6 +28,8 @@ export default function contact() {
         isHighlighted: false,
         backgroundPattern: 'off',
         emojis: emojis,
+        _loadingOlder: false,
+        _onScroll: null,
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');
@@ -56,16 +61,31 @@ export default function contact() {
 
             const vp = document.getElementById('msg-viewport');
             if (vp) {
+                vp.style.overflowAnchor = 'none';
                 let ticking = false;
-                vp.addEventListener('scroll', () => {
+                this._onScroll = () => {
                     if (!ticking) {
                         requestAnimationFrame(() => {
                             this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > 200;
+                            if (vp.scrollTop < 80 && !this._loadingOlder && this.$wire.hasOlder) {
+                                this._loadingOlder = true;
+                                const prevHeight = vp.scrollHeight;
+                                this.$wire.loadMoreMessages()
+                                    .then(() => {
+                                        this.$nextTick(() => {
+                                            const delta = vp.scrollHeight - prevHeight;
+                                            if (delta > 0) vp.scrollTop += delta;
+                                        });
+                                    })
+                                    .catch(() => {})
+                                    .finally(() => { this._loadingOlder = false; });
+                            }
                             ticking = false;
                         });
                         ticking = true;
                     }
-                }, {passive: true});
+                };
+                vp.addEventListener('scroll', this._onScroll, {passive: true});
             }
 
             window.addEventListener('typing-indicator', () => {
@@ -105,6 +125,11 @@ export default function contact() {
                     this.showUndo = false;
                 }
             });
+        },
+
+        destroy() {
+            const vp = document.getElementById('msg-viewport');
+            if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
         },
 
         initPattern() {
@@ -154,8 +179,23 @@ export default function contact() {
 
         closeOverlays() {
             this.showInfo = false;
+            this.searchMessages = false;
             this.cancelEdit();
             this.cancelDelete();
+            this.replyingTo = null;
+        },
+
+        openMessageSearch() {
+            this.searchMessages = !this.searchMessages;
+            if (this.searchMessages) {
+                this.$nextTick(() => document.getElementById('msg-search-input')?.focus());
+            }
+        },
+
+        focusSearchResult(id) {
+            if (!id) return;
+            this.searchMessages = false;
+            this.$wire.focusMessage(id).catch(() => {});
         },
 
         resetUI() {

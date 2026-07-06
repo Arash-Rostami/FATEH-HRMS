@@ -26,6 +26,7 @@ return new class extends Migration {
                 $table->index('deleted_at', 'messages_deleted_at_index');
                 $table->index(['sender_id', 'deleted_at', 'recipient_id', 'id'], 'idx_sent_covering');
                 $table->index(['recipient_id', 'deleted_at', 'read_at', 'sender_id', 'id'], 'idx_received_covering');
+                $table->fullText('body', 'idx_messages_body_fulltext');
                 $table->foreign('recipient_id', 'messages_recipient_id_foreign')->references('id')->on('users')->onDelete('cascade');
                 $table->foreign('reply_to_id', 'messages_reply_to_id_foreign')->references('id')->on('messages')->onDelete('set null');
                 $table->foreign('sender_id', 'messages_sender_id_foreign')->references('id')->on('users')->onDelete('cascade');

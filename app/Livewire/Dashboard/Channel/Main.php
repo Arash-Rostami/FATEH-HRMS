@@ -14,6 +14,7 @@ use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SaveEditChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\SearchChannelMessagesAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
+use App\Livewire\Dashboard\Channel\Actions\SyncChannelMembersAction;
 use App\Livewire\Dashboard\Channel\Actions\UndoDeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
 use App\Livewire\Dashboard\Channel\Forms\CreateChannelForm;
@@ -22,6 +23,7 @@ use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Models\Channel;
 use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
+use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -61,6 +63,9 @@ class Main extends Component
     public ?int $focusAnchorId = null;
     #[Locked]
     public int $focusOlder = 5;
+
+    public bool $isManageMembersOpen = false;
+    public array $memberRecipientIds = [];
 
     public function mount(): void
     {
@@ -134,6 +139,16 @@ class Main extends Component
     }
 
     #[Computed]
+    public function memberCandidates(): array
+    {
+        return User::getCachedActiveOptions()
+            ->except(auth()->id())
+            ->map(fn($name, $id) => ['id' => (int)$id, 'name' => $name])
+            ->values()
+            ->all();
+    }
+
+    #[Computed]
     public function messages(): array
     {
         if (!$this->activeChannelId) {
@@ -145,14 +160,14 @@ class Main extends Component
             $anchor = (int) $this->focusAnchorId;
             $newer = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender', 'replyTo.sender'])
+                ->with(['sender.profile', 'replyTo.sender'])
                 ->where('id', '>=', $anchor)
                 ->oldest('id')
                 ->take(6)
                 ->get();
             $older = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender', 'replyTo.sender'])
+                ->with(['sender.profile', 'replyTo.sender'])
                 ->where('id', '<', $anchor)
                 ->latest('id')
                 ->take($this->focusOlder + 1)
@@ -162,7 +177,7 @@ class Main extends Component
         } else {
             $rows = ChannelMessage::withoutTrashed()
                 ->where('channel_id', $this->activeChannelId)
-                ->with(['sender', 'replyTo.sender'])
+                ->with(['sender.profile', 'replyTo.sender'])
                 ->latest('id')
                 ->take($this->loadedLimit + 1)
                 ->get();
@@ -184,7 +199,7 @@ class Main extends Component
                 'body' => $m->replyTo->body,
                 'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
             ] : null,
-            'sender' => ['name' => $m->sender?->name ?? 'ناشناس'],
+            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl()],
         ])->values()->all();
     }
 
@@ -325,8 +340,6 @@ class Main extends Component
     public function createChannel(): void
     {
         try {
-            $this->create->type = 'open';
-
             $channel = app(CreateChannelAction::class)->execute($this->create);
 
             $this->createMode = false;
@@ -470,6 +483,46 @@ class Main extends Component
         }
         unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel);
         $this->dispatch('show-toast', message: 'از کانال خارج شدید', type: 'info');
+    }
+
+    public function openManageMembers(int $channelId): void
+    {
+        $channel = Channel::withoutTrashed()->find($channelId);
+        if (!$channel || $channel->owner_id !== auth()->id()) {
+            return;
+        }
+
+        $this->memberRecipientIds = ChannelMember::query()
+            ->where('channel_id', $channelId)
+            ->where('user_id', '!=', auth()->id())
+            ->pluck('user_id')
+            ->all();
+
+        unset($this->memberCandidates);
+        $this->isManageMembersOpen = true;
+    }
+
+    public function saveManageMembers(SyncChannelMembersAction $action): void
+    {
+        $channel = $this->activeChannelId
+            ? Channel::withoutTrashed()->find($this->activeChannelId)
+            : null;
+
+        if (!$channel || $channel->owner_id !== auth()->id()) {
+            $this->isManageMembersOpen = false;
+            $this->memberRecipientIds = [];
+            return;
+        }
+
+        $result = $action->execute((int) $this->activeChannelId, (int) auth()->id(), $this->memberRecipientIds);
+
+        $this->isManageMembersOpen = false;
+        $this->memberRecipientIds = [];
+        unset($this->channels, $this->activeChannel, $this->memberCandidates);
+
+        if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
+            $this->dispatch('show-toast', message: 'اعضای کانال به‌روزرسانی شد', type: 'success');
+        }
     }
 
     public function removeAttachment(int $index): void

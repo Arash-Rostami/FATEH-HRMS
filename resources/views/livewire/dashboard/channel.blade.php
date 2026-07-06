@@ -45,10 +45,35 @@
                     @else
                         @include('livewire.dashboard.channel.empty')
                     @endif
+                    @include('livewire.dashboard.channel.manage-members')
                 </main>
             @endisland
         </div>
 
+    </div>
+
+    <div class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-[320px]" x-show="inviteToasts.length > 0" x-cloak>
+        <template x-for="t in inviteToasts" :key="t.id">
+            <div class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/60 rounded-2xl shadow-xl p-4 animate-fade" x-transition>
+                <div class="flex items-start gap-2.5">
+                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] flex-shrink-0">group_add</span>
+                    <div class="min-w-0">
+                        <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">شما به کانال زیر اضافه شدید</p>
+                        <p class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="t.name"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <button type="button" x-on:click="acceptInvite(t.id)"
+                            class="flex-1 px-3 py-2 rounded-lg text-[11px] font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 active:scale-95 transition-all">
+                        متوجه شدم
+                    </button>
+                    <button type="button" x-on:click="declineInvite(t.id)"
+                            class="flex-1 px-3 py-2 rounded-lg text-[11px] font-semibold bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:brightness-95 active:scale-95 transition-all">
+                        خروج از کانال
+                    </button>
+                </div>
+            </div>
+        </template>
     </div>
 
 </div>

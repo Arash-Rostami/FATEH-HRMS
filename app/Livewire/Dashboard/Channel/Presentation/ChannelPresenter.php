@@ -125,6 +125,7 @@ class ChannelPresenter
                 'is_edited' => (bool)($msg['is_edited'] ?? false),
                 'is_deleted' => !empty($msg['deleted_at']),
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
+                'sender_avatar' => $msg['sender']['avatar'] ?? null,
                 'can_edit' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']),
                 'attachments' => $this->attachments($msg['attachments'] ?? []),
@@ -143,6 +144,7 @@ class ChannelPresenter
         }
 
         return [
+            'id' => (int)($replyTo['id'] ?? 0) ?: null,
             'sender_name' => $replyTo['sender']['name'] ?? 'ناشناس',
             'body' => Str::limit($replyTo['body'] ?? '', 50),
         ];

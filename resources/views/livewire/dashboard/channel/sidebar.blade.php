@@ -81,7 +81,10 @@
     <div class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($channelList as $ch)
             <button wire:key="channel-{{ $ch['id'] }}" x-on:click="selectChannel({{ $ch['id'] }})"
-                    data-rf="channel-{{ $ch['id'] }}" role="option"
+                    data-rf="channel-{{ $ch['id'] }}"
+                    data-channel-id="{{ $ch['id'] }}"
+                    data-channel-name="{{ $ch['name'] }}"
+                    role="option"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"
                 @class([
                     'ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',

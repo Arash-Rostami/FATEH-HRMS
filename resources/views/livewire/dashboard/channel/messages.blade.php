@@ -47,14 +47,12 @@
                      $msg['gap_class']
                  ]) style="animation-delay: {{ $msg['animation_delay'] }}s">
 
-                @if(!$msg['is_mine'])
-                    @if($msg['is_last'])
-                        <div class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            <span class="text-[11px] font-bold">{{ mb_substr($msg['sender_name'], 0, 1) }}</span>
-                        </div>
-                    @else
-                        <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
-                    @endif
+                @if($msg['is_last'])
+                    <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm">
+                        <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                    </div>
+                @else
+                    <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
                 @endif
 
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
@@ -104,10 +102,18 @@
 
                             @if($msg['reply_to'])
                                 <div @class([
-                                            'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg',
+                                            'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 hover:brightness-110',
                                             'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_12%,transparent)] border-l-[2.5px] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_45%,transparent)]' => $msg['is_mine'],
                                             'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)] border-r-[2.5px] border-[var(--md-sys-color-primary)]' => !$msg['is_mine']
-                                        ])>
+                                        ])
+                                     data-id="{{ $msg['reply_to']['id'] ?? 0 }}"
+                                     x-on:click="scrollToMessage(Number($el.dataset.id))"
+                                     x-on:keydown.enter.prevent="scrollToMessage(Number($el.dataset.id))"
+                                     x-on:keydown.space.prevent="scrollToMessage(Number($el.dataset.id))"
+                                     role="button"
+                                     tabindex="0"
+                                     title="رفتن به پیام اصلی"
+                                     aria-label="رفتن به پیام اصلی">
                                     <span @class([
                                             'material-symbols-rounded text-[11px] mt-0.5 flex-shrink-0',
                                             'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_65%,transparent)]' => $msg['is_mine'],
@@ -158,42 +164,42 @@
                             @endif
                         </div>
 
-                        @if($msg['is_last'])
-                            <div @class([
-                                        'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100',
-                                        'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
-                                        'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
-                                    ])>
-                                <button x-on:click="copyMessage($el.dataset.text)"
-                                        data-text="{{ strip_tags($msg['body_html']) }}"
-                                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                                        title="کپی" aria-label="کپی">
-                                    <span class="material-symbols-rounded text-[15px]">content_copy</span>
+                        <div @class([
+                                    'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100',
+                                    'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
+                                    'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
+                                ])>
+                            <button x-on:click="copyMessage($el.dataset.text)"
+                                    data-text="{{ strip_tags($msg['body_html']) }}"
+                                    class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                                    title="کپی" aria-label="کپی">
+                                <span class="material-symbols-rounded text-[15px]">content_copy</span>
+                            </button>
+                            <button x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
+                                    data-sender="{{ $msg['sender_name'] }}"
+                                    data-body="{{ strip_tags($msg['body']) }}"
+                                    class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                                    title="پاسخ" aria-label="پاسخ">
+                                <span class="material-symbols-rounded text-[15px]">reply</span>
+                            </button>
+                            @if($msg['can_edit'] && $msg['is_last'])
+                                <button x-on:click.prevent="startEdit({{ $msg['id'] }}, $el.dataset.body)"
+                                        data-body="{{ $msg['body'] }}"
+                                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                                        title="ویرایش" aria-label="ویرایش">
+                                    <span class="material-symbols-rounded text-[15px]">edit</span>
                                 </button>
-                                <button x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
-                                        data-sender="{{ $msg['sender_name'] }}"
-                                        data-body="{{ strip_tags($msg['body']) }}"
-                                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                                        title="پاسخ" aria-label="پاسخ">
-                                    <span class="material-symbols-rounded text-[15px]">reply</span>
+                            @endif
+                            @if($msg['can_delete'] && $msg['is_last'])
+                                <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})"
+                                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
+                                        title="حذف" aria-label="حذف">
+                                    <span class="material-symbols-rounded text-[15px]">delete</span>
                                 </button>
-                                @if($msg['can_edit'])
-                                    <button x-on:click.prevent="startEdit({{ $msg['id'] }}, $el.dataset.body)"
-                                            data-body="{{ $msg['body'] }}"
-                                            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
-                                            title="ویرایش" aria-label="ویرایش">
-                                        <span class="material-symbols-rounded text-[15px]">edit</span>
-                                    </button>
-                                @endif
-                                @if($msg['can_delete'])
-                                    <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})"
-                                            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
-                                            title="حذف" aria-label="حذف">
-                                        <span class="material-symbols-rounded text-[15px]">delete</span>
-                                    </button>
-                                @endif
-                            </div>
+                            @endif
+                        </div>
 
+                        @if($msg['is_last'])
                             <div class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
                                 @if($msg['is_edited'])
                                     <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>

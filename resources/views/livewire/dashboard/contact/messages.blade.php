@@ -1,3 +1,7 @@
+@php
+    $hasOlder = $this->hasOlder;
+@endphp
+
 <div id="msg-viewport"
      x-ref="msgViewport"
      class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
@@ -9,24 +13,21 @@
      aria-label="پیام‌ها"
      aria-live="polite">
 
-
-
-    @if($this->totalMessages > count($this->messages))
-        <div class="flex justify-center py-2">
-            <x-ui.buttons.load-more
-                action="loadMoreMessages"
-                text="پیام‌های قدیمی‌تر"
-                loadingText="..."
-                icon="expand_less"
-                class="px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] text-xs font-semibold shadow-sm"
-            />
-        </div>
-    @endif
+    <div wire:key="load-older" class="flex justify-center py-2" x-show="$wire.hasOlder" x-transition style="{{ $hasOlder ? '' : 'display:none;' }}">
+        <x-ui.buttons.load-more
+            action="loadMoreMessages"
+            text="پیام‌های قدیمی‌تر"
+            loadingText="..."
+            icon="expand_less"
+            wire:loading.attr="disabled"
+            wire:target="loadMoreMessages"
+            class="px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] text-xs font-semibold shadow-sm transition-all disabled:opacity-50" />
+    </div>
 
     @forelse($this->groupedMessages as $date => $rawMessages)
         @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit))
 
-        <div class="flex items-center gap-3 py-4 sticky top-0 z-10" aria-hidden="true">
+        <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4 sticky top-0 z-10" aria-hidden="true">
             <div
                 class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
             <span
@@ -39,6 +40,7 @@
 
         @foreach($group['messages'] as $msg)
             <div wire:key="msg-{{ $msg['id'] }}"
+                 data-rf="message-{{ $msg['id'] }}"
                  @class([
                      'flex items-end gap-2 group bubble-enter',
                      'justify-start' => $msg['is_mine'],
@@ -50,8 +52,8 @@
                     @if($msg['is_last'])
                         <div
                             class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            <x-ui.avatar :existingImage="$activeContact->getProfileImageUrl()"
-                                         :alt="$activeContact->name" icon-size="text-base" class="rounded-lg"/>
+                            <x-ui.avatar :existingImage="$msg['sender']['avatar'] ?? null"
+                                         :alt="$msg['sender']['name'] ?? 'ناشناس'" icon-size="text-base" class="rounded-lg"/>
                         </div>
                     @else
                         <div class="flex-shrink-0 w-7" aria-hidden="true"></div>

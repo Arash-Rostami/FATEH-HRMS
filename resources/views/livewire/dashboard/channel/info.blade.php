@@ -1,6 +1,10 @@
 @php
     $p = $this->presenter;
     $header = $p->channelHeader($this->activeChannel);
+    $isOwner = $this->activeChannel
+        && $this->activeChannel->owner_id !== null
+        && auth()->check()
+        && (int) $this->activeChannel->owner_id === (int) auth()->id();
 @endphp
 <div x-show="showInfo"
      x-transition:enter="ease-out duration-300"
@@ -49,5 +53,12 @@
                 </div>
             </div>
         </div>
+        @if($isOwner)
+            <button x-on:click="openManageMembers({{ $header['id'] }})" type="button"
+                    class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:brightness-110 active:scale-95 bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
+                <span class="material-symbols-rounded text-[18px]">group_add</span>
+                مدیریت اعضا
+            </button>
+        @endif
     </div>
 </div>

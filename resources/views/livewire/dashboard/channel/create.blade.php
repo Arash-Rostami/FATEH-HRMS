@@ -5,7 +5,8 @@
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)]">add_box</span>
                 <div>
                     <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ساخت کانال جدید</h2>
-                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">کانال عمومی — همه می‌توانند پیوستن</p>
+                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]"
+                       x-text="$wire.create.type === 'private' ? 'کانال خصوصی — فقط با دعوت مدیر' : 'کانال عمومی — همه می‌توانند پیوستن'"></p>
                 </div>
             </div>
             <button x-on:click="closeCreate()" aria-label="بستن"
@@ -27,6 +28,30 @@
                 <textarea id="create-desc" rows="3" wire:model="create.description" maxlength="500" autocomplete="off"
                           placeholder="توضیحی کوتاه درباره موضوع کانال"
                           class="md3-input peer w-full rounded-xl text-sm outline-none focus:ring-2 px-4 py-2.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نوع کانال</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" x-on:click="$wire.set('create.type', 'open')"
+                            @class([
+                                'flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border',
+                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]' => $create->type === 'open',
+                                'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50' => $create->type !== 'open',
+                            ])>
+                        <span class="material-symbols-rounded text-[18px]">campaign</span>
+                        عمومی
+                    </button>
+                    <button type="button" x-on:click="$wire.set('create.type', 'private')"
+                            @class([
+                                'flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border',
+                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]' => $create->type === 'private',
+                                'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50' => $create->type !== 'private',
+                            ])>
+                        <span class="material-symbols-rounded text-[18px]">lock_closed</span>
+                        خصوصی
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center gap-2 pt-1">

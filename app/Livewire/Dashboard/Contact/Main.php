@@ -4,8 +4,10 @@ namespace App\Livewire\Dashboard\Contact;
 
 use App\Livewire\Dashboard\Contact\Actions\DeleteMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\FetchContactsAction;
+use App\Livewire\Dashboard\Contact\Actions\FocusMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
 use App\Livewire\Dashboard\Contact\Actions\SaveEditAction;
+use App\Livewire\Dashboard\Contact\Actions\SearchMessagesAction;
 use App\Livewire\Dashboard\Contact\Actions\SendMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\UndoDeleteAction;
 use App\Livewire\Dashboard\Contact\Forms\EditMessageForm;
@@ -18,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -34,6 +37,12 @@ class Main extends Component
     public int $editTimeLimit = 300;
     public ?array $lastDeleted = null;
     public int $messagesLimit = 10;
+    public string $messageSearch = '';
+    #[Locked]
+    public ?int $focusAnchorId = null;
+    #[Locked]
+    public int $focusOlder = 5;
+    public bool $hasOlder = false;
     private ?int $_cachedMessageTotal = null;
 
     #[Computed]
@@ -48,6 +57,11 @@ class Main extends Component
     {
         $this->mobileShowChat = false;
         $this->activeUserId = null;
+        $this->messageSearch = '';
+        $this->focusAnchorId = null;
+        $this->focusOlder = 5;
+        $this->hasOlder = false;
+        $this->messagesLimit = 10;
         $this->resetAllStates();
     }
 
@@ -112,10 +126,64 @@ class Main extends Component
         return $this->contacts;
     }
 
+    #[Computed]
+    public function messageSearchResults(): array
+    {
+        if (!$this->activeUserId) {
+            return [];
+        }
+
+        return app(SearchMessagesAction::class)->execute(
+            (int) $this->activeUserId,
+            $this->messageSearch,
+            (int) auth()->id(),
+        );
+    }
+
+    public function focusMessage(int $id): void
+    {
+        if (!$this->activeUserId || $id <= 0) {
+            return;
+        }
+
+        $overLimit = app(FocusMessageAction::class)->execute(
+            (int) $this->activeUserId,
+            $id,
+            (int) auth()->id(),
+            $this->messagesLimit
+        );
+
+        if ($overLimit === null) {
+            return;
+        }
+
+        $this->messageSearch = '';
+
+        if (!$overLimit) {
+            if ($this->focusAnchorId !== null) {
+                $this->focusAnchorId = null;
+                $this->focusOlder = 5;
+                $this->invalidateMessageCache();
+            }
+            $this->dispatch('record-focus', type: 'message', id: $id);
+            return;
+        }
+
+        $this->focusAnchorId = $id;
+        $this->focusOlder = 5;
+        $this->invalidateMessageCache();
+        $this->dispatch('record-focus', type: 'message', id: $id);
+    }
+
     public function focusRecord(int $userId): void
     {
         if (User::whereKey($userId)->exists()) {
-            $this->selectContact($userId, app(\App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction::class));
+            $this->selectContact($userId, app(MarkMessagesAsReadAction::class));
+
+            $focusMsg = (int) request()->query('focus_msg', 0);
+            if ($focusMsg > 0) {
+                $this->focusMessage($focusMsg);
+            }
         }
     }
 
@@ -130,7 +198,12 @@ class Main extends Component
 
     public function loadMoreMessages(): void
     {
-        $this->messagesLimit += 10;
+        if ($this->focusAnchorId !== null) {
+            $this->focusOlder += 10;
+        } else {
+            $this->messagesLimit += 10;
+        }
+        $this->invalidateMessageCache();
     }
 
     #[Computed]
@@ -152,12 +225,30 @@ class Main extends Component
             $this->_cachedMessageTotal = (clone $baseQuery)->count();
         }
 
-        return $baseQuery->with(['sender', 'replyTo.sender'])
-            ->latest()
-            ->take($this->messagesLimit)
-            ->get()
-            ->sortBy('created_at')
-            ->map(fn($m) => [
+        if ($this->focusAnchorId !== null) {
+            $anchor = (int) $this->focusAnchorId;
+            $newer = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
+                ->where('id', '>=', $anchor)
+                ->oldest('id')
+                ->take(6)
+                ->get();
+            $older = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
+                ->where('id', '<', $anchor)
+                ->latest('id')
+                ->take($this->focusOlder + 1)
+                ->get();
+            $this->hasOlder = $older->count() > $this->focusOlder;
+            $rows = $older->take($this->focusOlder)->merge($newer)->sortBy('id')->values();
+        } else {
+            $rows = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
+                ->latest('id')
+                ->take($this->messagesLimit + 1)
+                ->get();
+            $this->hasOlder = $rows->count() > $this->messagesLimit;
+            $rows = $rows->take($this->messagesLimit)->sortBy('id')->values();
+        }
+
+        return collect($rows)->map(fn($m) => [
                 'id' => (int)$m->id,
                 'sender_id' => (int)$m->sender_id,
                 'recipient_id' => (int)$m->recipient_id,
@@ -174,7 +265,7 @@ class Main extends Component
                     'body' => $m->replyTo->body,
                     'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
                 ] : null,
-                'sender' => ['name' => $m->sender?->name ?? ''],
+                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl()],
             ])->values()->all();
     }
 
@@ -213,6 +304,10 @@ class Main extends Component
         $this->activeUserId = $userId;
         $this->mobileShowChat = true;
         $this->messagesLimit = 10;
+        $this->messageSearch = '';
+        $this->focusAnchorId = null;
+        $this->focusOlder = 5;
+        $this->hasOlder = false;
         $this->invalidateMessageCache();
         $this->resetAllStates();
 
@@ -227,6 +322,8 @@ class Main extends Component
         try {
             $action->execute($this->composer, $this->activeUserId, $replyToId);
             $this->composer->reset();
+            $this->focusAnchorId = null;
+            $this->focusOlder = 5;
             $this->invalidateMessageCache();
             unset($this->contacts);
             $this->dispatch('message-sent');
