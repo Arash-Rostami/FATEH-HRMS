@@ -263,6 +263,17 @@ class NavigationService
                 ],
             ],
             [
+                'id' => 'channels',
+                'title' => 'کانال‌ها',
+                'subtitle' => 'کانال‌های موضوعی و گروهی',
+                'icon' => 'campaign',
+                'action' => 'route:channels',
+                'keywords' => [
+                    'channel', 'channels', 'room', 'topic', 'broadcast', 'group', 'announce', 'feed',
+                    'کانال', 'کانال‌ها', 'گروه', 'موضوعی', 'گروهی', 'پخش', 'اعلام', 'موضوع', 'کانال اطلاع‌رسانی',
+                ],
+            ],
+            [
                 'id' => 'energy',
                 'title' => 'پرسش‌نامه انرژی',
                 'subtitle' => 'خودارزیابی در چهار بُعد بدن، احساسات، ذهن، روح',

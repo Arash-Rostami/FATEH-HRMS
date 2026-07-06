@@ -31,7 +31,7 @@ app/Services/Search/
 ├── Resources/
 │   ├── PostResource.php      # one tiny class per searchable module …
 │   ├── FeedResource.php
-│   └── … (18 in total)
+│   └── … (19 in total)
 ├── ContentService.php        # orchestrator: registry + ranking of resources
 └── NavigationService.php     # the module-shortcut engine (static list)
 ```
@@ -219,6 +219,25 @@ match ($type) {
   > Note: `tab()` here is named for convenience but still returns a **`url:`** action (a full
   > path with `?open=`), *not* a `tab:` action — content results need to focus a record, which
   > the `url:` handler + `FocusOnRecord` trait do. Plain tab‑switching is a navigation concern.
+
+### Two-param deep-link (channel message → focus a message, not just a channel)
+
+`ChannelMessageResource` extends the standard `?open={id}` pattern with a second
+query param so a content hit can focus a **nested record** (a message inside a channel),
+not just the top-level record (the channel):
+
+```php
+// ChannelMessageResource::action($row)
+return 'url:' . route('channels', [
+    'open'       => (int) $row->channel_id,   // FocusOnRecord opens this channel
+    'focus_msg'  => (int) $row->getKey(),    // Channel::focusRecord() then focuses this message
+], false);
+```
+
+- `?open={channelId}` is consumed by the `FocusOnRecord` trait as usual (`#[Url] $open` → `focusRecord(channelId)` → `selectChannel`).
+- `?focus_msg={messageId}` is read by the channel component's `focusRecord()` via `request()->query('focus_msg')` (mount-only; no-op on later AJAX), which then calls `focusMessage(id)` — the same method the in-chat search uses, reusing the global `record-focus` standard with `type:'channel-message'`.
+- **Scope** — the user's **own sent messages** only: `where('sender_id', $me)` + `whereHas('channel', fn $q => $q->whereHas('members', fn $q2 => $q2->where('user_id', $me)))`. The `sender_id` clause excludes other members' messages; the membership clause excludes any channel the user is no longer a member of (so a hit's deep-link always opens). No org-wide scope, no non-member (public or private) channel content. (The in-chat channel search is deliberately broader — it searches the whole conversation once the channel is open.)
+- The `type` (`'channel-message'`) is shared with the in-chat search's `data-rf="channel-message-{id}"` focus key, so both entry points reuse the same `scrollToRecord` + `.record-focus-flash` UX.
 
 ---
 

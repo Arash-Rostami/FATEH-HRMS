@@ -8,6 +8,7 @@ use App\Livewire\Auth\VerifyNotice;
 use App\Livewire\Dashboard\Ads\Main as Ads;
 use App\Livewire\Dashboard\Authority\Main as Authority;
 use App\Livewire\Dashboard\Contact\Main as Contact;
+use App\Livewire\Dashboard\Channel\Main as Channel;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Profile\Main as Profile;
@@ -43,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/suggestion', Suggestion::class)->name('suggestion');
     Route::get('/authority', Authority::class)->name('authority');
     Route::get('/contacts', Contact::class)->name('contact');
+    Route::get('/channels', Channel::class)->name('channels');
     Route::get('/energy', Energy::class)->name('energy');
 
     Route::get('/reservation', Reservation::class)->name('reservation');

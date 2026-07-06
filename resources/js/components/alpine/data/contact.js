@@ -3,6 +3,9 @@ import {emojis} from "../stores/emoji.js";
 
 import maximizeMixin from "../mixins/maximize.js";
 
+const segmenter = new Intl.Segmenter();
+const emojiSet = new Set(emojis.flatMap(c => c.items));
+
 export default function contact() {
     return {
         ...maximizeMixin(),
@@ -116,8 +119,7 @@ export default function contact() {
         isEmojiOnly(text) {
             const stripped = text?.replace(/<[^>]*>/g, '').trim() ?? '';
             if (!stripped) return false;
-            const emojiSet = new Set(emojis.flatMap(c => c.items));
-            return [...new Intl.Segmenter().segment(stripped)]
+            return [...segmenter.segment(stripped)]
                 .every(({segment}) => emojiSet.has(segment) || /^\s+$/.test(segment));
         },
 

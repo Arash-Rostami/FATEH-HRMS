@@ -34,6 +34,7 @@ import ths from "./data/ths.js";
 import reservation from "./data/reservation.js";
 import radio from "./data/radio.js";
 import contact from "./data/contact.js";
+import channel from "./data/channel.js";
 import energyChart from "./data/energyChart.js";
 import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
@@ -78,6 +79,7 @@ export default function initAlpine() {
         Alpine.data('reservation', reservation)
         Alpine.data('radio', radio)
         Alpine.data('contact', contact)
+        Alpine.data('channel', channel)
         Alpine.data('energyChart', energyChart)
         Alpine.data('ambient', ambient)
         Alpine.data('feedComposer', feedComposer)
