@@ -34,6 +34,8 @@
 
                     @include('livewire.dashboard.contact.header')
 
+                    @include('livewire.dashboard.contact.search')
+
                     <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
 
                     @include('livewire.dashboard.contact.messages')

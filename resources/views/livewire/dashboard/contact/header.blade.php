@@ -52,6 +52,14 @@
 
     {{-- Actions --}}
     <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button type="button" x-on:click="openMessageSearch()" aria-label="جستجوی پیام" title="جستجوی پیام"
+                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                       bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
+                       active:scale-90"
+                :class="searchMessages ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+            <span class="material-symbols-rounded text-[18px]">search</span>
+        </button>
+
         <button type="button" @click="toggleHighlight()" aria-label="پیش زمینه چت" title="پیش زمینه چت"
                 class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
