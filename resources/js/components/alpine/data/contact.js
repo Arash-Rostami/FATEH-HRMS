@@ -10,6 +10,7 @@ export default function contact() {
     return {
         ...maximizeMixin(),
         bgOption: 'a',
+        searchMessages: false,
         isTyping: false,
         typingTimeout: null,
         showScrollFab: false,
@@ -154,8 +155,23 @@ export default function contact() {
 
         closeOverlays() {
             this.showInfo = false;
+            this.searchMessages = false;
             this.cancelEdit();
             this.cancelDelete();
+            this.replyingTo = null;
+        },
+
+        openMessageSearch() {
+            this.searchMessages = !this.searchMessages;
+            if (this.searchMessages) {
+                this.$nextTick(() => document.getElementById('msg-search-input')?.focus());
+            }
+        },
+
+        focusSearchResult(id) {
+            if (!id) return;
+            this.searchMessages = false;
+            this.$wire.focusMessage(id).catch(() => {});
         },
 
         resetUI() {

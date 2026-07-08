@@ -11,7 +11,7 @@
 
 
 
-    @if($this->totalMessages > count($this->messages))
+    @if($this->hasOlder)
         <div class="flex justify-center py-2">
             <x-ui.buttons.load-more
                 action="loadMoreMessages"
