@@ -31,9 +31,11 @@ class TaskExporter extends Exporter
             ExportColumn::make('assignee.name')->label(__('resources/task/strings.fields.assignee')),
             ExportColumn::make('deadline')
                 ->label(__('resources/task/strings.fields.deadline'))
-                ->state(fn($record) => $record->deadline?->format('Y-m-d H:i')),
-            ExportColumn::make('created_at')->label(__('resources/task/strings.fields.created_at')),
-            ExportColumn::make('deleted_at')->label(__('resources/task/strings.fields.deleted_at')),
+                ->state(fn($record) => $record->deadline ? toJalaliSmart($record->deadline) : '-'),
+            ExportColumn::make('created_at')->label(__('resources/task/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
+            ExportColumn::make('deleted_at')->label(__('resources/task/strings.fields.deleted_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
         ];
     }
 

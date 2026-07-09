@@ -49,8 +49,10 @@ class SuggestionExporter extends Exporter
             ExportColumn::make('neutral_count')->label(__('resources/suggestion/strings.fields.neutral_count')),
             ExportColumn::make('disagree_count')->label(__('resources/suggestion/strings.fields.disagree_count')),
             ExportColumn::make('self_fill')->label(__('resources/suggestion/strings.fields.self_fill')),
-            ExportColumn::make('created_at')->label(__('resources/suggestion/strings.fields.created_at')),
-            ExportColumn::make('updated_at')->label(__('resources/suggestion/strings.fields.updated_at')),
+            ExportColumn::make('created_at')->label(__('resources/suggestion/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
+            ExportColumn::make('updated_at')->label(__('resources/suggestion/strings.fields.updated_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

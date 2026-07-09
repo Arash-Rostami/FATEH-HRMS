@@ -237,7 +237,7 @@
                         <div class="h-px opacity-25 bg-[var(--md-sys-color-outline)]"></div>
                         <div class="flex justify-between items-center gap-4">
                             <span class="opacity-60">زمان وقوع</span>
-                            <span class="font-bold ltr text-[var(--md-sys-color-on-surface)]">{{ $timestamp ?? now()->format('Y-m-d H:i:s') }}</span>
+                            <span class="font-bold ltr text-[var(--md-sys-color-on-surface)]">{{ toJalali($timestamp ?? now(), 'Y/m/d H:i:s') }}</span>
                         </div>
                         <div class="flex justify-between items-center gap-4">
                             <span class="opacity-60 shrink-0">آدرس درخواست</span>

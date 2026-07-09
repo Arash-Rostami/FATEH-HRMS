@@ -25,16 +25,10 @@ function scrollToRecord(key, attempt = 0) {
         return;
     }
 
+    document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
+    el.style.animation = 'none';
     el.scrollIntoView({behavior: 'smooth', block: 'center'});
-
-    el.classList.remove('record-focus-flash');
-    void el.offsetWidth;                 // restart the animation if re-focused
     el.classList.add('record-focus-flash');
-    el.addEventListener(
-        'animationend',
-        () => el.classList.remove('record-focus-flash'),
-        {once: true},
-    );
 }
 
 function cssEscape(value) {

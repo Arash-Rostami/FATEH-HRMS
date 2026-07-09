@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
+use App\Jobs\ReconcileNudge;
 use App\Models\Channel;
-use App\Models\ChannelMember;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -11,7 +11,7 @@ class SyncChannelMembersAction
 {
     public function execute(int $channelId, int $ownerId, array $recipientIds): array
     {
-        $channel = Channel::query()
+        $channel = Channel::withoutTrashed()
             ->where('owner_id', $ownerId)
             ->find($channelId);
 
@@ -24,7 +24,7 @@ class SyncChannelMembersAction
 
         DB::transaction(function () use ($channel, $ownerId, $recipientIds, &$inserted, &$deleted): void {
             $recipientIds = $this->normalizeRecipients($recipientIds, $ownerId);
-            $current = $channel->members()->pluck('user_id')->all();
+            $current = $channel->memberUsers()->pluck('users.id')->all();
 
             $toAdd = array_values(array_diff($recipientIds, $current));
 
@@ -34,12 +34,13 @@ class SyncChannelMembersAction
                     'channel_id'           => $channel->id,
                     'user_id'              => $userId,
                     'joined_at'            => $now,
+                    'entered_at'           => null,
                     'last_read_message_id' => null,
                     'created_at'           => $now,
                     'updated_at'           => $now,
                 ], $toAdd);
 
-                $inserted = ChannelMember::insertOrIgnore($rows);
+                $inserted = $channel->memberUsers()->newPivotStatement()->insertOrIgnore($rows);
             }
 
             if (empty($recipientIds)) {
@@ -49,9 +50,15 @@ class SyncChannelMembersAction
             $toRemove = array_values(array_diff($current, $recipientIds, [$ownerId]));
 
             if (!empty($toRemove)) {
-                $deleted = $channel->members()->whereIn('user_id', $toRemove)->delete();
+                $deleted = $channel->memberUsers()->detach($toRemove);
             }
         });
+
+        $changed = (is_numeric($inserted) ? (int) $inserted : 0) > 0 || $deleted > 0;
+
+        if ($changed) {
+            dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+        }
 
         return [
             'added'   => is_numeric($inserted) ? (int) $inserted : 0,

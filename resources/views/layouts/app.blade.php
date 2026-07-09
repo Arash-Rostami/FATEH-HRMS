@@ -3,6 +3,7 @@
       x-data
       class="h-full antialiased">
 <head>
+    <script src="{{ asset('js/mode-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])

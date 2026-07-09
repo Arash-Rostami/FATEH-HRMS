@@ -77,7 +77,8 @@ class OnboardingExporter extends Exporter
                 ),
 
             ExportColumn::make('created_at')
-                ->label(__('resources/onboarding/strings.fields.created_at')),
+                ->label(__('resources/onboarding/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

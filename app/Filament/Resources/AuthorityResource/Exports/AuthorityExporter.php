@@ -52,7 +52,8 @@ class AuthorityExporter extends Exporter
                 ->label(__('resources/authority/strings.fields.co_delegate'))
                 ->state(fn($record) => $record->details['co_delegate'] ?? ''),
             ExportColumn::make('created_at')
-                ->label(__('resources/authority/strings.fields.created_at')),
+                ->label(__('resources/authority/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

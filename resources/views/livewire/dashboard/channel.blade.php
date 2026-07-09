@@ -3,7 +3,8 @@
     x-data="channel()"
     x-init="init()"
     x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
-    role="application"
+    role="region"
+    aria-label="کانال‌ها"
     class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
@@ -18,7 +19,10 @@
 
         @include('components.dashboard.header.focus-chip')
 
+        <livewire:dashboard.messaging.switch-tabs active="channels"/>
         <x-ui.modals.max-backdrop/>
+        @include('livewire.dashboard.channel.manage-members')
+
         <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max }">
 
             @island(name: 'sidebar')
@@ -37,7 +41,6 @@
                         @include('livewire.dashboard.channel.browse')
                     @elseif($activeChannelId && $this->activeChannel)
                         @include('livewire.dashboard.channel.header')
-                        @include('livewire.dashboard.channel.search')
                         <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
                         @include('livewire.dashboard.channel.messages')
                         @include('livewire.dashboard.channel.composer')
@@ -45,7 +48,6 @@
                     @else
                         @include('livewire.dashboard.channel.empty')
                     @endif
-                    @include('livewire.dashboard.channel.manage-members')
                 </main>
             @endisland
         </div>
@@ -74,6 +76,16 @@
                 </div>
             </div>
         </template>
+    </div>
+
+    <div x-show="quoteChip.visible" x-cloak
+         :style="`position: fixed; left: ${quoteChip.x}px; top: ${quoteChip.y}px; z-index: 60;`"
+         x-on:click.prevent="startReply(quoteChip.id, quoteChip.sender, quoteChip.snippet); quoteChip.visible = false"
+         x-on:mousedown.prevent=""
+         class="fixed -translate-y-full -translate-x-1/2 -mt-1 px-2.5 py-1.5 rounded-lg shadow-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-[11px] font-semibold flex items-center gap-1 cursor-pointer hover:brightness-110 active:scale-95 transition-all"
+         role="button" aria-label="پاسخ به متن انتخاب‌شده">
+        <span class="material-symbols-rounded text-[14px]">reply</span>
+        پاسخ
     </div>
 
 </div>

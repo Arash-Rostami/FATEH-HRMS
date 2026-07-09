@@ -4,7 +4,6 @@ namespace App\Livewire\Dashboard\Channel\Actions;
 
 use App\Livewire\Dashboard\Channel\Forms\CreateChannelForm;
 use App\Models\Channel;
-use App\Models\ChannelMember;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -25,15 +24,6 @@ class CreateChannelAction
                 'description' => $form->description,
                 'type'        => $form->type,
                 'owner_id'    => $ownerId,
-            ]);
-
-            ChannelMember::insertOrIgnore([
-                'channel_id'           => $channel->id,
-                'user_id'              => $ownerId,
-                'joined_at'            => now(),
-                'last_read_message_id' => null,
-                'created_at'           => now(),
-                'updated_at'           => now(),
             ]);
 
             return $channel;

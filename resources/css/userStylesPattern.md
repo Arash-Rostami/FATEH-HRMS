@@ -135,3 +135,9 @@ Always use the pre-registered utility classes rather than writing inline `@keyfr
 
 ❌ **Do not set long animation durations (e.g., `1s` or `800ms`) for UI interactions.**
 *Why?* Enterprise users move fast. If they click "Cancel", the modal must disappear in `200ms`. Do not block their workflow with slow, dramatic animations.
+
+---
+
+## 8. Focus-flash bg underlay
+
+`.record-focus-flash` (the class toggled on a message/record row when `scrollToMessage`/focus lands on it) carries the outline ring + `record-focus-flash` keyframe, plus a theme-adaptive **bg underlay**: `background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);`. The underlay sits behind the bubble content (the class is on the row wrapper, the bubble is a nested div with its own bg), so it never clashes with the bubble's gradient/surface bg — it only tints the row's padding/gap area, reinforcing the ring without hardcoding a color. The 10% primary tint adapts to dark/light + theme switch automatically. General rule: any focus/flash highlight composes `color-mix` over `--md-sys-color-primary` (or the matching semantic token) — never a hardcoded hex/rgb.

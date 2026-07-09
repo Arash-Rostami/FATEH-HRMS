@@ -19,6 +19,7 @@ class ChannelMember extends Model
         'user_id',
         'last_read_message_id',
         'joined_at',
+        'entered_at',
     ];
 
     public function channel(): BelongsTo

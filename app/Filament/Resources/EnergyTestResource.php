@@ -38,7 +38,7 @@ class EnergyTestResource extends Resource
     {
         return [
             __('resources/energy/strings.fields.overall_score') => number_format($record->overall_score ?? 0, 1),
-            __('resources/energy/strings.fields.completed_at') => $record->completed_at?->format('Y-m-d') ?? '—',
+            __('resources/energy/strings.fields.completed_at') => toJalaliSmart($record->completed_at),
         ];
     }
 

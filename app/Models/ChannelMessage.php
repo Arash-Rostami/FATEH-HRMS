@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ChannelMessage extends Model
@@ -70,6 +71,18 @@ class ChannelMessage extends Model
         return static::withoutTrashed()
             ->where('channel_id', $channelId)
             ->max('id');
+    }
+
+    public static function totalUnreadFor(int $userId): int
+    {
+        return DB::table('channel_messages')
+            ->join('channel_members', function ($join) use ($userId) {
+                $join->on('channel_members.channel_id', '=', 'channel_messages.channel_id')
+                    ->where('channel_members.user_id', $userId)
+                    ->where('channel_messages.id', '>', DB::raw('COALESCE(channel_members.last_read_message_id, 0)'));
+            })
+            ->whereNull('channel_messages.deleted_at')
+            ->count();
     }
 
     public function prunable()

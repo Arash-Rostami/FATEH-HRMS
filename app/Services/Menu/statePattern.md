@@ -42,6 +42,7 @@ App\Services\Menu\
 │   └── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=owner (User::active()->where('id', $subject->assigned_to ?? $subject->user_id), empty→collect())
 │   └── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted show=true  for=staged recipient (Ticket::currentActionRecipient(), empty→collect())
 │   └── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=isPendingFor($u)  for=DMS::pendingRecipients() (visible live + pending users)
+│   └── ChannelInviteNudge.php      key=channels-controller:nudge  triggers=Channel deleted/forceDeleted (cleanup only; create/prune via manual dispatch from SyncChannelMembersAction/MarkChannelReadAction/LeaveChannelAction)  show=whereNull('entered_at')  for=not-yet-entered members (DB::table pivot pluck + User::whereIn)
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 └── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes

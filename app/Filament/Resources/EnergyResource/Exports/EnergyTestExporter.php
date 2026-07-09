@@ -30,8 +30,9 @@ class EnergyTestExporter extends Exporter
             ExportColumn::make('month_index')->label(__('resources/energy/strings.fields.month_index')),
             ExportColumn::make('completed_at')
                 ->label(__('resources/energy/strings.fields.completed_at'))
-                ->state(fn($record) => $record->completed_at?->format('Y-m-d H:i')),
-            ExportColumn::make('created_at')->label(__('resources/energy/strings.fields.created_at')),
+                ->state(fn($record) => $record->completed_at ? toJalaliSmart($record->completed_at) : '-'),
+            ExportColumn::make('created_at')->label(__('resources/energy/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

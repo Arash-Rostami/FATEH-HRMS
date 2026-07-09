@@ -36,7 +36,7 @@ class PermissionExporter extends Exporter
 
             ExportColumn::make('created_at')
                 ->label(__('resources/permission/strings.export.created_at'))
-                ->formatStateUsing(fn($state): string => $state?->format('Y/m/d H:i') ?? '-'),
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
         ];
     }
 

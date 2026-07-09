@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Models\ChannelMember;
+use App\Models\Channel;
 use App\Models\ChannelMessage;
 
 class FocusChannelMessageAction
@@ -13,11 +13,7 @@ class FocusChannelMessageAction
             return null;
         }
 
-        $isMember = ChannelMember::query()
-            ->where('user_id', $userId)
-            ->where('channel_id', $channelId)
-            ->exists();
-        if (!$isMember) {
+        if (! Channel::withoutTrashed()->whereKey($channelId)->whereHas('memberUsers', fn($q) => $q->where('users.id', $userId))->exists()) {
             return null;
         }
 

@@ -11,6 +11,7 @@ class FetchJoinableChannelsAction
     public function execute(int $viewerId, string $search = ''): Collection
     {
         return Channel::withoutTrashed()
+            ->with('owner:id,name')
             ->where('type', ChannelType::Open->value)
             ->whereNotIn('id', function ($q) use ($viewerId) {
                 $q->select('channel_id')

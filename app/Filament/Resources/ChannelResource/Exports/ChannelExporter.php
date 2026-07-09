@@ -31,9 +31,12 @@ class ChannelExporter extends Exporter
             ExportColumn::make('owner.name')->label(__('resources/channel/strings.fields.owner')),
             ExportColumn::make('members_count')->label(__('resources/channel/strings.fields.members_count')),
             ExportColumn::make('messages_count')->label(__('resources/channel/strings.fields.messages_count')),
-            ExportColumn::make('created_at')->label(__('resources/channel/strings.fields.created_at')),
-            ExportColumn::make('updated_at')->label(__('resources/channel/strings.fields.updated_at')),
-            ExportColumn::make('deleted_at')->label(__('resources/channel/strings.fields.deleted_at')),
+            ExportColumn::make('created_at')->label(__('resources/channel/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
+            ExportColumn::make('updated_at')->label(__('resources/channel/strings.fields.updated_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
+            ExportColumn::make('deleted_at')->label(__('resources/channel/strings.fields.deleted_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
         ];
     }
 

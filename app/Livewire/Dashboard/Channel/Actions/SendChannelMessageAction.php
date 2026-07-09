@@ -3,11 +3,10 @@
 namespace App\Livewire\Dashboard\Channel\Actions;
 
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
-use App\Models\ChannelMember;
+use App\Models\Channel;
 use App\Models\ChannelMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
 
 class SendChannelMessageAction
 {
@@ -17,9 +16,14 @@ class SendChannelMessageAction
 
         $senderId = auth()->id();
 
-        $this->ensureMember($channelId, $senderId);
+        $channel = Channel::withoutTrashed()
+            ->whereKey($channelId)
+            ->whereHas('memberUsers', fn($q) => $q->where('users.id', $senderId))
+            ->first();
 
-        $message = DB::transaction(function () use ($form, $channelId, $senderId) {
+        $this->ensureMember($channel);
+
+        $message = DB::transaction(function () use ($form, $channel, $channelId, $senderId) {
             $message = ChannelMessage::create([
                 'channel_id'  => $channelId,
                 'sender_id'   => $senderId,
@@ -28,9 +32,8 @@ class SendChannelMessageAction
                 'reply_to_id' => $this->resolveReplyToId($form->replyToId, $channelId),
             ]);
 
-            ChannelMember::where('channel_id', $channelId)
-                ->where('user_id', $senderId)
-                ->update(['last_read_message_id' => $message->id]);
+            $channel->memberUsers()->newPivotStatementForId($senderId)
+                ->update(['last_read_message_id' => $message->id, 'updated_at' => now()]);
 
             return $message;
         });
@@ -41,16 +44,12 @@ class SendChannelMessageAction
             $message->update(['attachments' => $attachments]);
         }
 
-        return $message->fresh();
+        return $message;
     }
 
-    private function ensureMember(int $channelId, int $userId): void
+    private function ensureMember(?Channel $channel): void
     {
-        $isMember = ChannelMember::where('channel_id', $channelId)
-            ->where('user_id', $userId)
-            ->exists();
-
-        abort_unless($isMember, 403, 'شما عضو این کانال نیستید.');
+        abort_unless($channel, 403, 'شما عضو این کانال نیستید.');
     }
 
     private function resolveReplyToId(?int $replyToId, int $channelId): ?int

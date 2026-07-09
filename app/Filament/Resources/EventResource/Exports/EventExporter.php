@@ -26,11 +26,12 @@ class EventExporter extends Exporter
             ExportColumn::make('user.name')->label(__('resources/event/strings.fields.user')),
             ExportColumn::make('date')
                 ->label(__('resources/event/strings.fields.date'))
-                ->state(fn($record) => $record->date?->format('Y-m-d H:i')),
+                ->state(fn($record) => $record->date ? toJalaliSmart($record->date) : '-'),
             ExportColumn::make('private')
                 ->label(__('resources/event/strings.fields.private'))
                 ->formatStateUsing(fn($state) => $state ? 'خصوصی' : 'عمومی'),
-            ExportColumn::make('created_at')->label(__('resources/event/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/event/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

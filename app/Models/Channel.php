@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -38,6 +39,11 @@ class Channel extends Model
         return $this->hasMany(ChannelMember::class);
     }
 
+    public function memberUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'channel_members')
+            ->withPivot(['joined_at', 'entered_at', 'last_read_message_id', 'created_at', 'updated_at']);
+    }
     public function messages(): HasMany
     {
         return $this->hasMany(ChannelMessage::class);
@@ -62,10 +68,9 @@ class Channel extends Model
     {
         static::created(function (self $channel) {
             if ($channel->owner_id) {
-                ChannelMember::insertOrIgnore([
-                    'channel_id' => $channel->id,
-                    'user_id' => $channel->owner_id,
+                $channel->memberUsers()->attach($channel->owner_id, [
                     'joined_at' => now(),
+                    'entered_at' => now(),
                     'last_read_message_id' => null,
                     'created_at' => now(),
                     'updated_at' => now(),

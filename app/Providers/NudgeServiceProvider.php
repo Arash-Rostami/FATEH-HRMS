@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Menu\Notifications\ActiveAdsNudge;
+use App\Services\Menu\Notifications\ChannelInviteNudge;
 use App\Services\Menu\Notifications\ContactNudge;
 use App\Services\Menu\Notifications\DmsNudge;
 use App\Services\Menu\Notifications\FeedNudge;
@@ -32,8 +33,6 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new ContactNudge());
         NudgeService::register(new ThsNudge());
         NudgeService::register(new DmsNudge());
-
-
-
+        NudgeService::register(new ChannelInviteNudge());
     }
 }

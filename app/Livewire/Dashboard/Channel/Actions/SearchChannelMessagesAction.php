@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Models\ChannelMember;
+use App\Models\Channel;
 use App\Models\ChannelMessage;
 use Illuminate\Support\Str;
 
@@ -25,17 +25,17 @@ class SearchChannelMessagesAction
             return [];
         }
 
-        $isMember = ChannelMember::query()
-            ->where('user_id', $authId)
-            ->where('channel_id', $channelId)
-            ->exists();
-        if (!$isMember) {
+        if (!Channel::withoutTrashed()
+            ->whereKey($channelId)
+            ->whereHas('memberUsers', fn($memberQ) => $memberQ->where('users.id', $authId))
+            ->exists()) {
             return [];
         }
 
         $booleanQuery = implode(' ', array_map(fn($w) => "+{$w}*", $words));
 
         return ChannelMessage::query()
+            ->select(['id', 'body', 'sender_id', 'created_at'])
             ->where('channel_id', $channelId)
             ->whereRaw('MATCH(body) AGAINST(? IN BOOLEAN MODE)', [$booleanQuery])
             ->with('sender:id,name')

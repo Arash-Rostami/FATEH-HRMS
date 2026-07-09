@@ -4,14 +4,15 @@
 
 <div id="msg-viewport"
      x-ref="msgViewport"
-     class="flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
+     class="flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
          'bg-[var(--md-sys-color-primary-container)]/20': isHighlighted,
          'bg-[var(--md-sys-color-surface)]': !isHighlighted
      }"
      role="log"
      aria-label="پیام‌ها"
-     aria-live="polite">
+     aria-live="polite"
+     aria-relevant="additions">
 
     <div wire:key="load-older" class="flex justify-center py-2" x-show="$wire.hasOlder" x-transition style="{{ $hasOlder ? '' : 'display:none;' }}">
         <x-ui.buttons.load-more
@@ -27,7 +28,7 @@
     @forelse($this->groupedMessages as $date => $rawMessages)
         @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit))
 
-        <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4 sticky top-0 z-10" aria-hidden="true">
+        <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4" role="separator" aria-label="{{ $group['label'] }}">
             <div
                 class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
             <span
@@ -41,6 +42,7 @@
         @foreach($group['messages'] as $msg)
             <div wire:key="msg-{{ $msg['id'] }}"
                  data-rf="message-{{ $msg['id'] }}"
+                 x-on:click="toggleActions({{ $msg['id'] }}, $event)"
                  @class([
                      'flex items-end gap-2 group bubble-enter',
                      'justify-start' => $msg['is_mine'],
@@ -48,16 +50,12 @@
                      $msg['gap_class']
                  ]) style="animation-delay: {{ $msg['animation_delay'] }}s">
 
-                @if(!$msg['is_mine'])
-                    @if($msg['is_last'])
-                        <div
-                            class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
-                            <x-ui.avatar :existingImage="$msg['sender']['avatar'] ?? null"
-                                         :alt="$msg['sender']['name'] ?? 'ناشناس'" icon-size="text-base" class="rounded-lg"/>
-                        </div>
-                    @else
-                        <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
-                    @endif
+                @if($msg['is_last'])
+                    <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm">
+                        <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                    </div>
+                @else
+                    <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
                 @endif
 
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
@@ -66,7 +64,7 @@
                         <div
                             class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
                             <textarea wire:model.live="edit.editingBody"
-                                      x-on:keydown.enter.prevent="saveEdit"
+                                      x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();saveEdit}"
                                       x-on:keydown.escape="cancelEdit"
                                       x-data
                                       x-init="$nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
@@ -133,10 +131,18 @@
 
                                 @if($msg['reply_to'])
                                     <div @class([
-                                                'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg',
+                                                'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 hover:brightness-110',
                                                 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_12%,transparent)] border-l-[2.5px] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_45%,transparent)]' => $msg['is_mine'],
                                                 'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)] border-r-[2.5px] border-[var(--md-sys-color-primary)]' => !$msg['is_mine']
-                                            ])>
+                                            ])
+                                         data-id="{{ $msg['reply_to']['id'] ?? 0 }}"
+                                         x-on:click="scrollToMessage(Number($el.dataset.id))"
+                                         x-on:keydown.enter.prevent="scrollToMessage(Number($el.dataset.id))"
+                                         x-on:keydown.space.prevent="scrollToMessage(Number($el.dataset.id))"
+                                         role="button"
+                                         tabindex="0"
+                                         title="رفتن به پیام اصلی"
+                                         aria-label="رفتن به پیام اصلی">
                                             <span @class([
                                                     'material-symbols-rounded text-[11px] mt-0.5 flex-shrink-0',
                                                     'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_65%,transparent)]' => $msg['is_mine'],
@@ -192,12 +198,12 @@
                                 @endif
                             </div>
 
-                            @if($msg['is_last'])
                                 <div @class([
-                                            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100',
+                                            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1 py-1 rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 z-20 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_12%,transparent)] scale-90 group-hover:scale-100 group-focus-within:scale-100',
                                             'left-0 -translate-x-[calc(100%+6px)]' => $msg['is_mine'],
                                             'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
-                                        ])>
+                                        ])
+                                     :class="openActionsId === {{ $msg['id'] }} ? 'opacity-100 scale-100' : ''">
                                     <button x-on:click="copyMessage($el.dataset.text)"
                                             data-text="{{ strip_tags($msg['body_html']) }}"
                                             class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
@@ -206,13 +212,13 @@
                                     </button>
                                     <button
                                         x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
-                                        data-sender="{{ $msg['sender']['name'] ?? 'ناشناس' }}"
+                                        data-sender="{{ $msg['sender_name'] }}"
                                         data-body="{{ strip_tags($msg['body']) }}"
                                         class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
                                         title="پاسخ" aria-label="پاسخ">
                                         <span class="material-symbols-rounded text-[15px]">reply</span>
                                     </button>
-                                    @if($msg['can_edit'])
+                                    @if($msg['can_edit'] && $msg['id'] === $this->lastMessageId)
                                         <button x-on:click.prevent="startEdit({{ $msg['id'] }}, $el.dataset.body)"
                                                 data-body="{{ $msg['body'] }}"
                                                 class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
@@ -220,7 +226,7 @@
                                             <span class="material-symbols-rounded text-[15px]">edit</span>
                                         </button>
                                     @endif
-                                    @if($msg['can_delete'])
+                                    @if($msg['can_delete'] && $msg['id'] === $this->lastMessageId)
                                         <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})"
                                                 class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
                                                 title="حذف" aria-label="حذف">
@@ -229,6 +235,7 @@
                                     @endif
                                 </div>
 
+                            @if($msg['is_last'])
                                 <div
                                     class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
                                     @if($msg['is_edited'])
@@ -246,7 +253,8 @@
                                                     'material-symbols-rounded text-[13px] transition-colors duration-300',
                                                     'text-[var(--md-sys-color-primary)]' => $msg['is_read'],
                                                     'text-[var(--md-sys-color-on-surface-variant)] opacity-50' => !$msg['is_read']
-                                                ])>{{ $msg['is_read'] ? 'done_all' : 'done' }}
+                                                ])
+                                              title="{{ $msg['is_read'] ? 'خوانده شد: ' . $msg['read_at_label'] : 'ارسال شد' }}">{{ $msg['is_read'] ? 'done_all' : 'done' }}
                                             </span>
                                     @endif
                                 </div>
@@ -258,7 +266,7 @@
         @endforeach
 
     @empty
-        <div class="flex flex-col items-center justify-center min-h-[60vh] gap-5 text-center">
+        <div class="flex flex-col items-center justify-center flex-1 gap-5 text-center">
             <div
                 class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]"
                 aria-hidden="true">
@@ -272,20 +280,6 @@
             </div>
         </div>
     @endforelse
-
-    <div x-show="isTyping" x-transition.opacity class="flex justify-end items-end gap-2 mt-2" aria-label="در حال نوشتن">
-        <div
-            class="px-4 py-3 rounded-lg rounded-tr-md bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)]">
-            <div class="flex items-center gap-1" aria-hidden="true">
-                <div
-                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
-                <div
-                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
-                <div
-                    class="w-2 h-2 rounded-full typing-dot bg-[var(--md-sys-color-on-surface-variant)] opacity-50"></div>
-            </div>
-        </div>
-    </div>
 
     <button x-show="showScrollFab" x-transition x-on:click="scrollToBottom()"
             class="fixed bottom-28 left-8 z-20 w-10 h-10 rounded-lg flex items-center justify-center shadow-xl transition-all hover:scale-110 active:scale-95 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]"

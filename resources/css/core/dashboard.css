@@ -793,7 +793,7 @@
     }
 
     .bubble-enter {
-        animation: bubble-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
+        animation: bubbleIn 0.25s cubic-bezier(0.2, 0, 0, 1) both;
     }
 
     .toast-enter {
@@ -999,23 +999,15 @@
 }
 
 
-@keyframes record-focus-flash {
-    0% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
-    }
-    100% {
-        box-shadow: 0 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 0%, transparent);
-    }
-}
-
 .record-focus-flash {
-    animation: record-focus-flash 1.3s ease-out 2;
-    outline: 2px solid var(--md-sys-color-primary);
-    outline-offset: 3px;
-    border-radius: inherit;
-    scroll-margin: 6rem;
     position: relative;
     z-index: 5;
+    scroll-margin: 6rem;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+    transition: outline-offset 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* =====================================================================
@@ -1379,14 +1371,6 @@
     .focus-banner,
     .focus-banner__pulse {
         animation: none !important;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .record-focus-flash {
-        animation: none !important;
-        background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
-        transition: background-color 2s ease-out;
     }
 }
 

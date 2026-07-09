@@ -6,7 +6,7 @@ use App\Models\ChannelMessage;
 
 class DeleteChannelMessageAction
 {
-    public function execute(int $messageId): array|bool|null
+    public function execute(int $messageId): array|false
     {
         $message = ChannelMessage::withoutTrashed()
             ->where('id', $messageId)

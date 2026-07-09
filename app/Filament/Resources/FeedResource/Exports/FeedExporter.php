@@ -30,7 +30,8 @@ class FeedExporter extends Exporter
             ExportColumn::make('reactions_count')
                 ->label(__('resources/feed/strings.fields.reactions_count'))
                 ->state(fn($record) => isset($record->reactions_count) ? $record->reactions_count : $record->reactions()->count()),
-            ExportColumn::make('created_at')->label(__('resources/feed/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/feed/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

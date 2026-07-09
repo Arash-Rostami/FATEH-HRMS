@@ -52,7 +52,7 @@
                             :class="activeId == {{ $feed->id }} ? '!opacity-100 !translate-y-0' : ''"
                         >
                             <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
-                                {{ $feed->created_at->format('H:i') }}
+                                {{ toJalali($feed->created_at, 'H:i') }}
                             </span>
                             <div
                                 class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-variant)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"
@@ -71,7 +71,7 @@
                             :class="activeId == {{ $feed->id }} ? '!opacity-100' : ''"
                         >
                             <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                                {{ $feed->created_at->diffForHumans() }}
+                                {{ toJalaliRelative($feed->created_at) }}
                             </span>
                         </div>
                     </div>

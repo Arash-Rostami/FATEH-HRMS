@@ -41,7 +41,8 @@ class AdExporter extends Exporter
                     }
                     return implode(', ', $formatted) ?: '-';
                 }),
-            ExportColumn::make('created_at')->label(__('resources/ad/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/ad/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

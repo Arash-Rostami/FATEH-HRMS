@@ -28,7 +28,7 @@ class ResourceExporter extends Exporter
             ExportColumn::make('metadata.extension')->label(__('resources/resource/strings.export.extension'))->formatStateUsing(fn($state) => $state ?? '-'),
             ExportColumn::make('metadata.capacity')->label(__('resources/resource/strings.export.capacity'))->formatStateUsing(fn($state) => $state ?? '-'),
             ExportColumn::make('reservations_count')->label('تعداد رزروها')->state(fn(ResourceModel $record): int => $record->reservations_count ?? 0),
-            ExportColumn::make('created_at')->label(__('resources/resource/strings.export.created_at'))->formatStateUsing(fn($state) => $state?->format('Y/m/d') ?? '-'),
+            ExportColumn::make('created_at')->label(__('resources/resource/strings.export.created_at'))->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
         ];
     }
 

@@ -4,7 +4,6 @@ namespace App\Livewire\Dashboard\Profile\Presentation;
 
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class ProfilePresenter
@@ -38,7 +37,7 @@ class ProfilePresenter
     {
         if (!$user->last_seen) return 'هم‌اکنون';
 
-        return Carbon::parse($user->last_seen)->diffForHumans();
+        return toJalaliRelative($user->last_seen);
     }
 
     public function memberSince(User $user): string

@@ -15,11 +15,13 @@ export default function channel() {
         undoTimeout: null,
         sending: false,
         channelCount: 0,
+        openActionsId: null,
         replyingTo: null,
         editingOriginal: '',
         isEditing: false,
         editingMsgId: null,
         editingBody: '',
+        deletingId: null,
         emojiOpen: false,
         activeCat: 0,
         emojis: emojis,
@@ -36,6 +38,11 @@ export default function channel() {
         inviteToasts: [],
         seenChannelIds: [],
         _firstVisit: false,
+        quoteChip: {visible: false, x: 0, y: 0, id: 0, sender: '', snippet: ''},
+        activeSender: null,
+        senderChips: [],
+        _selRaf: null,
+        _unregisterMorph: null,
 
         init() {
             const saved = localStorage.getItem('chat-settings');
@@ -68,6 +75,8 @@ export default function channel() {
                 this._onScroll = () => {
                     if (!ticking) {
                         requestAnimationFrame(() => {
+                            this.quoteChip.visible = false;
+                            this.openActionsId = null;
                             this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > 200;
                             if (vp.scrollTop < 80 && !this._loadingOlder && this.$wire.hasOlder) {
                                 this._loadingOlder = true;
@@ -89,6 +98,62 @@ export default function channel() {
                 };
                 vp.addEventListener('scroll', this._onScroll, {passive: true});
             }
+
+            this._onSelection = () => {
+                if (this._selRaf) return;
+                this._selRaf = requestAnimationFrame(() => {
+                    this._selRaf = null;
+                    const sel = window.getSelection();
+                    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+                        this.quoteChip.visible = false;
+                        return;
+                    }
+                    const node = sel.anchorNode;
+                    if (!node) { this.quoteChip.visible = false; return; }
+                    const vp = document.getElementById('msg-viewport');
+                    if (!vp || !vp.contains(node)) { this.quoteChip.visible = false; return; }
+                    const el = node.nodeType === 1 ? node : node.parentElement;
+                    if (!el || el.closest('input, textarea, [contenteditable]')) {
+                        this.quoteChip.visible = false;
+                        return;
+                    }
+                    const row = el.closest('[data-rf^="channel-message-"]');
+                    if (!row) { this.quoteChip.visible = false; return; }
+                    const text = sel.toString().trim();
+                    if (!text) { this.quoteChip.visible = false; return; }
+                    const id = parseInt(row.getAttribute('data-rf').split('-').pop(), 10) || 0;
+                    const senderEl = row.querySelector('[data-sender]');
+                    const rect = sel.getRangeAt(0).getBoundingClientRect();
+                    this.quoteChip = {visible: true, x: rect.left, y: rect.top, id, sender: senderEl ? senderEl.getAttribute('data-sender') : '', snippet: text.slice(0, 120)};
+                });
+            };
+            document.addEventListener('selectionchange', this._onSelection);
+
+            this._onSlash = (e) => {
+                if (e.key !== '/' || e.isComposing) return;
+                if (!this.$root.contains(e.target)) return;
+                const ae = document.activeElement;
+                if (ae && ae.closest && ae.closest('input, textarea, select, [contenteditable]')) return;
+                if (this.searchMessages) return;
+                e.preventDefault();
+                this.openMessageSearch();
+            };
+            document.addEventListener('keydown', this._onSlash);
+
+            this._collectSenders = () => {
+                const set = new Set();
+                document.querySelectorAll('[data-rf^="channel-message-"][data-sender-name]').forEach(r => {
+                    const n = r.getAttribute('data-sender-name');
+                    if (n) set.add(n);
+                });
+                this.senderChips = [...set];
+            };
+            this._collectSenders();
+            this._unregisterMorph = Livewire.hook('morph', ({el}) => {
+                if (this.$root.contains(el)) {
+                    this.$nextTick(() => this._collectSenders());
+                }
+            });
 
             this.$wire.on('message-sent', () => {
                 this.scrollToBottom(true);
@@ -139,6 +204,10 @@ export default function channel() {
             document.removeEventListener('visibilitychange', this._onVisibility);
             const vp = document.getElementById('msg-viewport');
             if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
+            document.removeEventListener('selectionchange', this._onSelection);
+            document.removeEventListener('keydown', this._onSlash);
+            if (this._selRaf) cancelAnimationFrame(this._selRaf);
+            if (this._unregisterMorph) this._unregisterMorph();
         },
 
         toast(message, type = 'info') {
@@ -222,15 +291,27 @@ export default function channel() {
                 .catch(() => {});
         },
 
+        toggleActions(id) {
+            this.openActionsId = (this.openActionsId === id ? null : id);
+        },
+
         openManageMembers(id) {
             if (!id) return;
-            this.$wire.$island('messages').openManageMembers(id).catch(() => {});
+            if (this.max) this.toggleMaximize(null);
+            this.$wire.openManageMembers(id).catch(() => {});
         },
 
         closeOverlays() {
             this.showInfo = false;
             this.searchMessages = false;
             this.replyingTo = null;
+            this.deletingId = null;
+            this.openActionsId = null;
+            this.emojiOpen = false;
+            this.quoteChip.visible = false;
+            this.activeSender = null;
+            if (this.$wire.createMode) this.$wire.set('createMode', false);
+            if (this.$wire.browseMode) this.$wire.set('browseMode', false);
             this.$wire.cancelReply();
             this.$wire.cancelEdit();
         },
@@ -252,11 +333,10 @@ export default function channel() {
             if (!id) return;
             const el = document.querySelector(`[data-rf="channel-message-${id}"]`);
             if (el) {
+                document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
+                el.style.animation = 'none';
                 el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                el.classList.remove('record-focus-flash');
-                void el.offsetWidth;
                 el.classList.add('record-focus-flash');
-                el.addEventListener('animationend', () => el.classList.remove('record-focus-flash'), {once: true});
                 return;
             }
             this.$wire.$island('messages').focusMessage(id).catch(() => {});
@@ -314,15 +394,19 @@ export default function channel() {
         selectChannel(id) {
             if (!id) return;
             this.replyingTo = null;
+            this.activeSender = null;
             this.isEditing = false;
             this.editingMsgId = null;
             this.editingBody = '';
             this.editingOriginal = '';
+            this.deletingId = null;
+            this.openActionsId = null;
             this.searchMessages = false;
             this.$wire.cancelReply();
             this.$wire.$island('messages').selectChannel(id)
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
-                .then(() => this.$nextTick(() => this.scrollToBottom(true)));
+                .then(() => this.$nextTick(() => this.scrollToBottom(true)))
+                .then(() => { if (window.innerWidth < 768) this.$nextTick(() => { document.getElementById('msg-ta')?.focus(); }); });
         },
 
         toggleBrowse() {
@@ -342,6 +426,8 @@ export default function channel() {
 
         backToList() {
             this.searchMessages = false;
+            this.activeSender = null;
+            this.openActionsId = null;
             this.$wire.$island('messages').backToList()
                 .then(() => this.$wire.$island('sidebar').refreshUnread());
         },
@@ -382,6 +468,8 @@ export default function channel() {
         startReply(id, senderName, body) {
             if (!id) return;
             this.replyingTo = {id, sender: {name: senderName || 'Unknown'}, body: body || ''};
+            this.deletingId = null;
+            this.openActionsId = null;
             this.$wire.replyTo(id);
             this.$wire.cancelEdit();
             this.$nextTick(() => document.getElementById('msg-ta')?.focus());
@@ -395,6 +483,7 @@ export default function channel() {
         startEdit(id, body) {
             if (!id) return;
             this.replyingTo = null;
+            this.deletingId = null;
             this.editingMsgId = id;
             this.editingOriginal = body || '';
             this.editingBody = body || '';
@@ -428,7 +517,28 @@ export default function channel() {
 
         confirmDelete(id) {
             if (!id) return;
-            this.$wire.$island('messages').deleteMessage(id);
+            this.replyingTo = null;
+            this.isEditing = false;
+            this.editingMsgId = null;
+            this.editingBody = '';
+            this.editingOriginal = '';
+            this.deletingId = id;
+        },
+
+        cancelDelete() {
+            this.deletingId = null;
+        },
+
+        async deleteMessage() {
+            if (!this.deletingId) return;
+
+            try {
+                await this.$wire.$island('messages').deleteMessage(this.deletingId);
+                this.cancelDelete();
+                this.openActionsId = null;
+            } catch (error) {
+                this.toast('خطا در حذف پیام.', 'error');
+            }
         },
 
         async sendMessage() {

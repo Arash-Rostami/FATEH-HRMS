@@ -48,10 +48,46 @@
                                 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]' => $create->type === 'private',
                                 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50' => $create->type !== 'private',
                             ])>
-                        <span class="material-symbols-rounded text-[18px]">lock_closed</span>
+                        <span class="material-symbols-rounded text-[18px]">lock</span>
                         خصوصی
                     </button>
                 </div>
+            </div>
+
+            <div x-data="{ memberQuery: '' }">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)]">
+                        اعضای اولیه
+                        <span class="text-[var(--md-sys-color-primary)] font-bold"
+                              x-text="$wire.createRecipientIds.length ? '(' + $wire.createRecipientIds.length + ' نفر)' : ''"></span>
+                    </label>
+                </div>
+                <p class="text-[10px] mb-2 text-[var(--md-sys-color-on-surface-variant)]"
+                   x-text="$wire.create.type === 'private' ? 'تنها اعضای انتخاب‌شده به کانال خصوصی دسترسی دارند — دیگران نمی‌توانند خودشان پیوستن.' : 'اختیاری — در کانال عمومی دیگران می‌توانند از طریق مرور پیوستن.'"></p>
+
+                @if(count($this->memberCandidates) > 0)
+                    <div class="relative mb-2">
+                        <span class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">search</span>
+                        <input type="text" x-model="memberQuery" placeholder="جستجوی کاربر..."
+                               class="md3-input w-full rounded-xl text-sm outline-none focus:ring-2 pr-9 h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
+                    </div>
+
+                    <div class="max-h-56 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
+                        @foreach($this->memberCandidates as $u)
+                            <label x-show="memberQuery === '' || @js($u['name'] ?? '').toLowerCase().includes(memberQuery.toLowerCase())"
+                                   class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-surface-container)]/60 cursor-pointer transition-colors">
+                                <input type="checkbox" value="{{ $u['id'] }}" wire:model="createRecipientIds"
+                                       class="w-4 h-4 rounded text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)] focus:ring-[var(--md-sys-color-primary)]">
+                                <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)]">{{ $u['name'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8 text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 rounded-2xl">
+                        <span class="material-symbols-rounded text-4xl mb-2 block opacity-40">group</span>
+                        <p class="text-sm">کاربر فعال دیگری برای افزودن وجود ندارد.</p>
+                    </div>
+                @endif
             </div>
 
             <div class="flex items-center gap-2 pt-1">

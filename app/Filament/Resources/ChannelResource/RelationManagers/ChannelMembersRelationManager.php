@@ -2,10 +2,9 @@
 
 namespace App\Filament\Resources\ChannelResource\RelationManagers;
 
-use App\Models\ChannelMember;
-use App\Models\User;
-use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
+use App\Models\ChannelMessage;
+use Filament\Actions\AttachAction;
+use Filament\Actions\DetachAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -13,14 +12,15 @@ use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class ChannelMembersRelationManager extends RelationManager
 {
-    protected static string $relationship = 'members';
+    protected static string $relationship = 'memberUsers';
 
-    public function getEloquentQuery(): Builder
+    public function form(Schema $schema): Schema
     {
-        return parent::getEloquentQuery()->with(['user']);
+        return $schema->components([]);
     }
 
     public static function getModelLabel(): string
@@ -33,9 +33,9 @@ class ChannelMembersRelationManager extends RelationManager
         return __('resources/channel/strings.fields.members_count');
     }
 
-    public function form(Schema $schema): Schema
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return $schema->components([]);
+        return __('resources/channel/strings.fields.member');
     }
 
     public function infolist(Schema $schema): Schema
@@ -45,68 +45,72 @@ class ChannelMembersRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        $ownerId = (int)$this->getOwnerRecord()->owner_id;
+
         return $table
+            ->modifyQueryUsing(fn(Builder $query) => $query->addSelect([
+                'last_read_message_body' => ChannelMessage::select('body')
+                    ->whereColumn('channel_messages.id', 'channel_members.last_read_message_id')
+                    ->limit(1)
+            ]))
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('user.name')
+                TextColumn::make('name')
                     ->label(__('resources/channel/strings.fields.user'))
                     ->searchable()
-                    ->sortable()
                     ->placeholder('—'),
 
                 TextColumn::make('joined_at')
                     ->label(__('resources/channel/strings.fields.joined_at'))
-                    ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
-                    ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
-                    ->sortable(),
+                    ->formatStateUsing(fn(mixed $state): string => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+                    ->alignCenter()
+                    ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;']),
 
-                TextColumn::make('last_read_message_id')
+                TextColumn::make('pivot.entered_at')
+                    ->label(__('resources/channel/strings.fields.entered_at'))
+                    ->formatStateUsing(fn(mixed $state): string => $state ? toJalali($state, 'Y/m/d H:i') : 'هنوز وارد نشده')
+                    ->alignCenter()
+                    ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+                    ->toggleable(),
+
+                TextColumn::make('last_read_message_body')
                     ->label(__('resources/channel/strings.fields.last_read_message'))
+                    ->html()
+                    ->words(25)
+                    ->tooltip(function (?string $state): ?string {
+                        $plain = strip_tags((string)$state);
+                        return Str::words($plain, 25) !== $plain ? $plain : null;
+                    })
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('created_at')
-                    ->label(__('resources/channel/strings.fields.created_at'))
-                    ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+                TextColumn::make('pivot.updated_at')
+                    ->label(__('resources/channel/strings.fields.updated_at'))
+                    ->formatStateUsing(fn(mixed $state): string => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+                    ->alignCenter()
                     ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->headerActions([
-                Action::make('addMember')
+                AttachAction::make()
                     ->label('افزودن عضو')
                     ->icon('heroicon-o-user-plus')
-                    ->form([
-                        Select::make('user_id')
-                            ->label('کاربر')
-                            ->options(fn() => User::getCachedActiveOptions()
-                                ->except($this->getOwnerRecord()->members()->pluck('user_id')->all())
-                                ->all())
-                            ->searchable()
-                            ->required(),
-                    ])
-                    ->action(function (array $data): void {
-                        $channel = $this->getOwnerRecord();
-                        ChannelMember::insertOrIgnore([
-                            'channel_id'           => $channel->id,
-                            'user_id'              => (int) $data['user_id'],
-                            'joined_at'            => now(),
-                            'last_read_message_id' => null,
-                            'created_at'           => now(),
-                            'updated_at'           => now(),
-                        ]);
-                    }),
+                    ->preloadRecordSelect()
+                    ->recordSelectSearchColumns(['name'])
+                    ->mutateDataUsing(fn(array $data): array => array_merge($data, [
+                        'joined_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]))
             ])
             ->recordActions([
-                Action::make('remove')
+                DetachAction::make()
                     ->label('حذف عضو')
                     ->icon('heroicon-o-x-mark')
                     ->iconButton()
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading('حذف عضو از کانال؟')
-                    ->visible(fn(Model $record): bool => (int) $record->user_id !== (int) $this->getOwnerRecord()->owner_id)
-                    ->action(fn(Model $record) => $record->delete()),
-            ], RecordActionsPosition::AfterCells)
+                    ->visible(fn(Model $record): bool => (int)$record->id !== $ownerId)
+            ], position: RecordActionsPosition::AfterCells)
+            ->defaultSort('channel_members.created_at', 'desc')
             ->emptyStateIcon('heroicon-o-bookmark');
     }
 }

@@ -14,6 +14,7 @@ return new class extends Migration {
                 $table->unsignedBigInteger('user_id');
                 $table->unsignedBigInteger('last_read_message_id')->nullable();
                 $table->timestamp('joined_at')->useCurrent();
+                $table->timestamp('entered_at')->nullable();
                 $table->timestamps();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');

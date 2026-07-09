@@ -2,14 +2,23 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Models\ChannelMember;
+use App\Jobs\ReconcileNudge;
+use App\Models\Channel;
 
 class LeaveChannelAction
 {
     public function execute(int $channelId, int $userId): void
     {
-        ChannelMember::where('channel_id', $channelId)
-            ->where('user_id', $userId)
-            ->delete();
+        $channel = Channel::withoutTrashed()->find($channelId);
+
+        if (!$channel) {
+            return;
+        }
+
+        $detached = $channel->memberUsers()->detach($userId);
+
+        if ($detached) {
+            dispatch(new ReconcileNudge('channels-controller:nudge', Channel::class, $channelId))->afterCommit();
+        }
     }
 }

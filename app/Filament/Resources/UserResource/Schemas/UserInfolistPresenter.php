@@ -148,7 +148,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('last_seen')
             ->label(__('resources/user/strings.infolist.last_seen'))
-            ->since()
+            ->formatStateUsing(fn ($state) => $state ? toJalaliRelative($state) : '—')
             ->placeholder('-')
             ->color('sky');
     }

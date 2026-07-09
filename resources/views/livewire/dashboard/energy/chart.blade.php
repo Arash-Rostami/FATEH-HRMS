@@ -65,8 +65,8 @@
                             <h2 class="text-base font-semibold text-[var(--md-sys-color-on-surface)]">آخرین نتیجه
                                 ارزیابی</h2>
                             <time class="text-sm font-medium text-[var(--md-sys-color-on-surface-variant)] mt-1"
-                                  datetime="{{ $latestTest['completed_at'] ?? '' }}" dir="ltr">
-                                {{ \Morilog\Jalali\Jalalian::forge($latestTest['completed_at'] ?? now())->format('Y-m-d H:i:s') }}
+                                  datetime="{{ $latestTest['completed_at'] ?? '' }}" dir="rtl">
+                                {{ toJalali($latestTest['completed_at'] ?? now(), 'j F Y') }}
                             </time>
                         </div>
                         <div class="flex flex-col items-center justify-center mt-2">

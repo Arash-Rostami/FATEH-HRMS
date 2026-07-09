@@ -11,6 +11,7 @@ class FilamentServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->registerThemeBootstrap();
         $this->registerCoreScripts();
         $this->registerComponentHooks();
     }
@@ -47,5 +48,13 @@ class FilamentServiceProvider extends ServiceProvider
                 fn(): string => Blade::render(sprintf("@vite('%s')", $script))
             );
         }
+    }
+
+    private function registerThemeBootstrap(): void
+    {
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_START,
+            fn(): string => '<script src="' . asset('js/mode-manager.js') . '"></script>'
+        );
     }
 }

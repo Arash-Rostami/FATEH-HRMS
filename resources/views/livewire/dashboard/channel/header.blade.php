@@ -7,7 +7,7 @@
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
 
     <button x-on:click="backToList()" aria-label="بازگشت"
-            class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+            class="md:hidden min-w-10 min-h-10 rounded-lg flex items-center justify-center flex-shrink-0
                    bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                    hover:brightness-95 active:scale-90 transition-all">
         <span class="material-symbols-rounded text-[18px]">arrow_forward</span>
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 relative">
         <div class="flex items-center gap-1.5 flex-wrap">
             <h2 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)] truncate">{{ $header['name'] }}</h2>
             <span class="text-[9px] font-bold px-1.5 py-px rounded
@@ -43,11 +43,12 @@
                 {{ $header['owner_name'] }}
             </span>
         </div>
+        @include('livewire.dashboard.channel.search')
     </div>
 
-    <div class="flex items-center gap-1.5 flex-shrink-0">
+    <div class="flex items-center gap-1.5 flex-wrap">
         <button type="button" x-on:click="openMessageSearch()" aria-label="جستجوی پیام" title="جستجوی پیام"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        active:scale-90"
                 :class="searchMessages ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
@@ -55,7 +56,7 @@
         </button>
 
         <button type="button" @click="toggleHighlight()" aria-label="پیش زمینه چت" title="پیش زمینه چت"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        active:scale-90"
                 :class="isHighlighted ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
@@ -64,14 +65,14 @@
 
         <button @click="toggleMaximize()"
                 :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        active:scale-90" aria-label="تغییر اندازه">
             <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
         </button>
 
         <button x-on:click="showInfo = !showInfo" aria-label="اطلاعات بیشتر" title="اطلاعات بیشتر"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        hover:!bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)]
                        active:scale-90">
@@ -80,7 +81,7 @@
 
         <button x-on:click="leaveChannel({{ $header['id'] }})"
                 aria-label="خروج از کانال" title="خروج از کانال"
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all
+                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        hover:!bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)]
                        active:scale-90">

@@ -30,6 +30,7 @@ class ChannelPresenter
             'type' => $c['type'] ?? 'open',
             'initials' => mb_substr($c['name'] ?? '', 0, 1),
             'unread' => $unread,
+            'is_entered' => !empty($c['is_entered']),
             'last_message' => $last ? [
                 'body' => Str::limit($last['body'] ?? '', 30),
                 'time' => toJalaliRelative($last['created_at'] ?? null, short: true),
@@ -84,26 +85,26 @@ class ChannelPresenter
         ], $channels);
     }
 
-    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit): array
+    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit, array $readersMap = []): array
     {
         $label = Carbon::parse($date)->isToday()
             ? 'امروز'
             : (Carbon::parse($date)->isYesterday()
                 ? 'دیروز'
-                : Carbon::parse($date)->translatedFormat('j F Y'));
+                : toJalali($date, 'j F Y'));
 
         return [
             'date' => $date,
             'label' => $label,
-            'messages' => $this->messages($messages, $authId, $editTimeLimit),
+            'messages' => $this->messages($messages, $authId, $editTimeLimit, $readersMap),
         ];
     }
 
-    public function messages(array $messages, int $authId, int $editTimeLimit): array
+    public function messages(array $messages, int $authId, int $editTimeLimit, array $readersMap = []): array
     {
         $total = count($messages);
 
-        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit) {
+        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit, $readersMap) {
             $senderId = (int)($msg['sender_id'] ?? 0);
             $isMine = $senderId === $authId;
             $prev = $i > 0 ? $messages[$i - 1] : null;
@@ -112,12 +113,29 @@ class ChannelPresenter
             $isLast = !$next || (int)($next['sender_id'] ?? 0) !== $senderId;
             $createdAt = Carbon::parse($msg['created_at'] ?? now());
 
+            $readers = [];
+            $readCount = 0;
+            $totalMembers = 0;
+            if ($isMine && $isLast && !empty($readersMap)) {
+                foreach ($readersMap as $uid => $meta) {
+                    if ($uid === $senderId) {
+                        continue;
+                    }
+                    $totalMembers++;
+                    $cursor = (int)($meta['cursor'] ?? 0);
+                    if ($cursor >= (int)($msg['id'] ?? 0)) {
+                        $readCount++;
+                        $readers[] = ['avatar' => $meta['avatar'] ?? null, 'name' => $meta['name'] ?? '—'];
+                    }
+                }
+            }
+
             return [
                 'id' => (int)($msg['id'] ?? 0),
                 'body' => $msg['body'] ?? '',
                 'body_html' => nl2br($this->linkify(e($msg['body'] ?? '')), false),
                 'created_at' => $msg['created_at'] ?? null,
-                'time' => $createdAt->format('H:i'),
+                'time' => $createdAt->isToday() ? toJalali($createdAt->toDateTimeString(), 'H:i') : toJalali($createdAt->toDateTimeString(), 'Y/m/d H:i'),
                 'datetime' => $msg['created_at'] ?? '',
                 'is_mine' => $isMine,
                 'is_first' => $isFirst,
@@ -133,6 +151,10 @@ class ChannelPresenter
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),
                 'reply_to' => $this->replyPreview($msg['reply_to'] ?? null),
                 'animation_delay' => $i * 0.04,
+                'readers' => $readers,
+                'read_count' => $readCount,
+                'is_read' => $readCount > 0,
+                'is_read_by_all' => $totalMembers > 0 && $readCount === $totalMembers,
             ];
         }, array_values($messages), array_keys($messages));
     }

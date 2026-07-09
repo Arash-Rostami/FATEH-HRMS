@@ -56,7 +56,8 @@ class DmsExporter extends Exporter
 
 
             ExportColumn::make('created_at')
-                ->label(__('resources/dms/strings.fields.created_at')),
+                ->label(__('resources/dms/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

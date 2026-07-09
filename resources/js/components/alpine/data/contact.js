@@ -13,8 +13,6 @@ export default function contact() {
         searchMessages: false,
         messageSearchFullscreen: false,
         messageSearchValue: '',
-        isTyping: false,
-        typingTimeout: null,
         showScrollFab: false,
         showInfo: false,
         showUndo: false,
@@ -28,8 +26,13 @@ export default function contact() {
         isHighlighted: false,
         backgroundPattern: 'off',
         emojis: emojis,
+        quoteChip: {visible: false, x: 0, y: 0, id: null, sender: '', snippet: ''},
+        openActionsId: null,
         _loadingOlder: false,
         _onScroll: null,
+        _onSelectionChange: null,
+        _onKeyDown: null,
+        _selRaf: null,
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');
@@ -66,6 +69,8 @@ export default function contact() {
                 this._onScroll = () => {
                     if (!ticking) {
                         requestAnimationFrame(() => {
+                            this.quoteChip.visible = false;
+                            this.openActionsId = null;
                             this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > 200;
                             if (vp.scrollTop < 80 && !this._loadingOlder && this.$wire.hasOlder) {
                                 this._loadingOlder = true;
@@ -88,18 +93,25 @@ export default function contact() {
                 vp.addEventListener('scroll', this._onScroll, {passive: true});
             }
 
-            window.addEventListener('typing-indicator', () => {
-                this.isTyping = true;
-                clearTimeout(this.typingTimeout);
-                this.typingTimeout = setTimeout(() => {
-                    this.isTyping = false;
-                }, 2500);
-            });
+            this._onSelectionChange = () => {
+                if (this._selRaf) return;
+                this._selRaf = requestAnimationFrame(() => {
+                    this._selRaf = null;
+                    this._updateQuoteChip();
+                });
+            };
+            document.addEventListener('selectionchange', this._onSelectionChange);
 
-            this.$wire.on('chat-ready', () => this.$nextTick(() => {
-                this.scrollToBottom(false);
-                this.resetUI();
-            }));
+            this._onKeyDown = (e) => {
+                if (e.key !== '/' || e.isComposing) return;
+                const el = document.activeElement;
+                const tag = el?.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return;
+                if (this.searchMessages) return;
+                e.preventDefault();
+                this.openMessageSearch();
+            };
+            document.addEventListener('keydown', this._onKeyDown);
 
             this.$wire.on('message-sent', () => this.$nextTick(() => {
                 this.scrollToBottom(true);
@@ -130,6 +142,9 @@ export default function contact() {
         destroy() {
             const vp = document.getElementById('msg-viewport');
             if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
+            if (this._selRaf) cancelAnimationFrame(this._selRaf);
+            if (this._onSelectionChange) document.removeEventListener('selectionchange', this._onSelectionChange);
+            if (this._onKeyDown) document.removeEventListener('keydown', this._onKeyDown);
         },
 
         initPattern() {
@@ -180,9 +195,31 @@ export default function contact() {
         closeOverlays() {
             this.showInfo = false;
             this.searchMessages = false;
+            this.emojiOpen = false;
             this.cancelEdit();
             this.cancelDelete();
             this.replyingTo = null;
+            this.quoteChip.visible = false;
+            this.openActionsId = null;
+        },
+
+        toggleActions(id, e) {
+            if (window.getSelection().toString().trim() !== '') return;
+            if (e.target.closest('a,button,[role="button"],[contenteditable],input,textarea')) return;
+            this.openActionsId = (this.openActionsId === id ? null : id);
+        },
+
+        scrollToMessage(id) {
+            if (!id) return;
+            const el = document.querySelector(`[data-rf="message-${id}"]`);
+            if (el) {
+                document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
+                el.style.animation = 'none';
+                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                el.classList.add('record-focus-flash');
+                return;
+            }
+            this.$wire.focusMessage(id).catch(() => {});
         },
 
         openMessageSearch() {
@@ -242,7 +279,47 @@ export default function contact() {
             this.editingMsg = null;
             this.deletingId = null;
             this.replyingTo = {id, sender: {name: senderName || 'Unknown'}, body: body || ''};
+            this.quoteChip.visible = false;
+            this.openActionsId = null;
             this.$nextTick(() => document.getElementById('msg-ta')?.focus());
+        },
+
+        useQuoteChip() {
+            if (!this.quoteChip.visible || !this.quoteChip.id) return;
+            this.startReply(this.quoteChip.id, this.quoteChip.sender, this.quoteChip.snippet);
+        },
+
+        _updateQuoteChip() {
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+                this.quoteChip.visible = false;
+                return;
+            }
+            const anchor = sel.anchorNode;
+            if (!anchor) { this.quoteChip.visible = false; return; }
+            const vp = document.getElementById('msg-viewport');
+            if (!vp || !vp.contains(anchor)) { this.quoteChip.visible = false; return; }
+            let node = anchor.nodeType === 3 ? anchor.parentElement : anchor;
+            if (node?.closest('textarea, input, [contenteditable="true"], [contenteditable=""]')) {
+                this.quoteChip.visible = false;
+                return;
+            }
+            const row = node?.closest('[data-rf^="message-"]');
+            if (!row) { this.quoteChip.visible = false; return; }
+            const text = sel.toString().trim();
+            if (!text) { this.quoteChip.visible = false; return; }
+            const id = parseInt(row.getAttribute('data-rf').split('-').pop(), 10);
+            if (!id) { this.quoteChip.visible = false; return; }
+            const senderEl = row.querySelector('[data-sender]');
+            const rect = sel.getRangeAt(0).getBoundingClientRect();
+            this.quoteChip = {
+                visible: true,
+                x: rect.left + (rect.width / 2),
+                y: rect.top,
+                id,
+                sender: senderEl?.getAttribute('data-sender') || '',
+                snippet: text.slice(0, 120),
+            };
         },
 
         cancelReply() {
@@ -296,6 +373,7 @@ export default function contact() {
             try {
                 await this.$wire.deleteMessage(this.deletingId);
                 this.cancelDelete();
+                this.openActionsId = null;
             } catch (error) {
                 this.toast('خطا در حذف پیام.', 'error');
             }

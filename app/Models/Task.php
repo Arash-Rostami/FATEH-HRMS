@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasJalaliAdminLabels;
 use App\Models\Traits\HasMenuState;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Task extends Model
 {
     use HasFactory,
+        HasJalaliAdminLabels,
         HasMenuState,
         SoftDeletes;
 

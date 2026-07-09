@@ -50,15 +50,18 @@
 
     <div class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
 
-    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5" role="tablist">
-        @foreach([['all','همه'],['unread','خوانده‌نشده']] as $f)
-            <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
-                    aria-selected="{{ $filter === $f[0] ? 'true' : 'false' }}"
-                @class([ 'px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200',
-                    'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $filter === $f[0],
-                    'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]' => $filter !== $f[0],
-                ])>{{ $f[1] }}</button>
-        @endforeach
+    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5">
+        <div role="tablist" aria-label="فیلتر کانال‌ها" class="flex items-center gap-1.5">
+            @foreach([['all','همه'],['unread','خوانده‌نشده']] as $f)
+                <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
+                        aria-selected="{{ $filter === $f[0] ? 'true' : 'false' }}"
+                        aria-controls="channel-list"
+                    @class([ 'px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200',
+                        'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $filter === $f[0],
+                        'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]' => $filter !== $f[0],
+                    ])>{{ $f[1] }}</button>
+            @endforeach
+        </div>
 
         <button x-on:click="openCreate()" type="button" aria-label="ساخت کانال جدید" title="ساخت کانال جدید"
                 class="ms-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90
@@ -78,7 +81,7 @@
         </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
+    <div id="channel-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($channelList as $ch)
             <button wire:key="channel-{{ $ch['id'] }}" x-on:click="selectChannel({{ $ch['id'] }})"
                     data-rf="channel-{{ $ch['id'] }}"
@@ -98,17 +101,22 @@
                         'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-[var(--md-sys-color-tertiary)]' => $activeChannelId === $ch['id'],
                         'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]' => $activeChannelId !== $ch['id'],
                     ])>
-                        <span class="material-symbols-rounded text-[18px]">{{ $ch['type'] === 'private' ? 'lock_closed' : 'campaign' }}</span>
+                        <span class="material-symbols-rounded text-[18px]">{{ $ch['type'] === 'private' ? 'lock' : 'campaign' }}</span>
                     </div>
                 </div>
 
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-1">
                         <p @class([
-                            'text-[13px] truncate',
+                            'text-[13px] truncate flex items-center gap-1.5',
                             'font-semibold text-[var(--md-sys-color-on-surface)]' => $ch['unread'],
                             'font-medium text-[var(--md-sys-color-on-surface-variant)]' => !$ch['unread'],
-                        ])>{{ $ch['name'] }}</p>
+                        ])>
+                            {{ $ch['name'] }}
+                            @if(empty($ch['is_entered']))
+                                <span class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)] flex-shrink-0" title="جدید" aria-hidden="true"></span>
+                            @endif
+                        </p>
                         @if($ch['last_message'])
                             <time @class([
                                 'text-[10px] flex-shrink-0',

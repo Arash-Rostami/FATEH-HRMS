@@ -60,7 +60,7 @@ class UserTablePresenter
     {
         return TextColumn::make('last_seen')
             ->label(__('resources/user/strings.table.last_seen'))
-            ->since()
+            ->formatStateUsing(fn($state) => $state ? toJalaliRelative($state) : '—')
             ->sortable()
             ->placeholder('-')
             ->toggleable(isToggledHiddenByDefault: true)

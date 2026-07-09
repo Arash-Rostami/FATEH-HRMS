@@ -11,12 +11,18 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ChannelMessagesRelationManager extends RelationManager
 {
     use FilamentActions, FilamentFilters;
 
     protected static string $relationship = 'messages';
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('resources/channel/strings.fields.messages');
+    }
 
     public function getEloquentQuery(): Builder
     {
@@ -72,6 +78,7 @@ class ChannelMessagesRelationManager extends RelationManager
 
                 TextColumn::make('created_at')
                     ->label(__('resources/channel/strings.fields.created_at'))
+                    ->alignCenter()
                     ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
                     ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
                     ->sortable(),
@@ -84,6 +91,7 @@ class ChannelMessagesRelationManager extends RelationManager
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
+            ->defaultSort('channel_messages.created_at', 'asc')
             ->emptyStateIcon('heroicon-o-bookmark');
     }
 }

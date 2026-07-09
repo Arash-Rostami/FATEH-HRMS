@@ -26,7 +26,7 @@
         <span class="material-symbols-rounded text-[20px]">search</span>
     </div>
 
-    <button type="button" title="تمام صفحه" x-on:click="{{ $model }}Fullscreen = true; {{ $model }}Value = $wire.{{ $model }}"
+    <button type="button" title="تمام صفحه" aria-label="تمام صفحه" x-on:click="{{ $model }}Fullscreen = true; {{ $model }}Value = $wire.{{ $model }}"
             class="absolute inset-y-0 left-0 pl-3 flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:scale-110 transition-all z-10 cursor-pointer">
         <span class="material-symbols-rounded text-[18px]">fullscreen</span>
     </button>
@@ -38,7 +38,7 @@
            class="{{ $inputClass }}"
            placeholder="{{ $placeholder }}" autocomplete="off" spellcheck="false" />
 
-    <button type="button" title="حذف" wire:click="$set('{{ $model }}', '')" wire:loading.attr="disabled"
+    <button type="button" title="حذف" aria-label="حذف" wire:click="$set('{{ $model }}', '')" wire:loading.attr="disabled"
             x-show="$wire.{{ $model }} && $wire.{{ $model }}.length > 0" x-transition:opacity style="display: none;"
             class="absolute inset-y-0 left-10 pl-3 flex items-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-opacity duration-200">
         <span class="material-symbols-rounded text-[18px]">close</span>
@@ -52,6 +52,8 @@
 <template x-teleport="body" wire:key="search-overlay-{{ $model }}">
     <div x-show="{{ $model }}Fullscreen" dir="rtl" style="display: none;"
          x-on:keydown.escape="{{ $closeExpr }}"
+         x-effect="if ({{ $model }}Fullscreen) $nextTick(() => $el.querySelector('textarea')?.focus())"
+         aria-modal="true"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 !bg-[var(--md-sys-color-primary)]/60 "
          class="fixed inset-0 z-[9999] flex flex-col bg-[var(--md-sys-color-surface)]/95">
@@ -61,7 +63,7 @@
                 <span class="text-[var(--md-sys-color-on-surface)] font-medium">{{ $overlayTitle }}</span>
                 <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-surface-variant)]">fullscreen</span>
             </div>
-            <button type="button" title="بستن" x-on:click="{{ $closeExpr }}"
+            <button type="button" title="بستن" aria-label="بستن" x-on:click="{{ $closeExpr }}"
                     class="p-2 !pb-0 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
                 <span class="material-symbols-rounded text-[20px]">close</span>
             </button>

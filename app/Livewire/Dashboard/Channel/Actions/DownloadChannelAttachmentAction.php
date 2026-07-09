@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard\Channel\Actions;
 
-use App\Models\ChannelMember;
+use App\Models\Channel;
 use App\Models\ChannelMessage;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +16,10 @@ class DownloadChannelAttachmentAction
             return null;
         }
 
-        if (!ChannelMember::where('channel_id', $message->channel_id)->where('user_id', $userId)->exists()) {
+        if (!Channel::withoutTrashed()
+            ->whereKey($message->channel_id)
+            ->whereHas('memberUsers', fn($memberQ) => $memberQ->where('users.id', $userId))
+            ->exists()) {
             return null;
         }
 
@@ -33,6 +36,10 @@ class DownloadChannelAttachmentAction
             return null;
         }
 
-        return response()->download($real, $attachment['name']);
+        return tap(response()->download($real), fn($r) => $r->setContentDisposition(
+            'attachment',
+            $attachment['name'],
+            basename($attachment['path'])
+        ));
     }
 }

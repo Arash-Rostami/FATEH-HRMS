@@ -48,11 +48,11 @@ class UserExporter extends Exporter
 
             ExportColumn::make('last_seen')
                 ->label(__('resources/user/strings.export.last_seen'))
-                ->formatStateUsing(fn ($state): string => $state?->format('Y/m/d H:i') ?? '-'),
+                ->formatStateUsing(fn ($state) => $state ? toJalaliSmart($state) : '-'),
 
             ExportColumn::make('created_at')
                 ->label(__('resources/user/strings.export.created_at'))
-                ->formatStateUsing(fn ($state): string => $state?->format('Y/m/d H:i') ?? '-'),
+                ->formatStateUsing(fn ($state) => $state ? toJalaliSmart($state) : '-'),
         ];
     }
 

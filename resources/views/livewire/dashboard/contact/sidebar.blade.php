@@ -1,5 +1,5 @@
 @php
-    $contactList     = $p->sidebar($this->filteredContacts, auth()->id());
+    $contactList     = $p->sidebar($this->contacts, auth()->id());
     $totalUnread     = $p->totalUnread($this->contacts);
 @endphp
 <aside @class([
@@ -40,9 +40,10 @@
     <div class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
 
     {{-- Filters --}}
-    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5" role="tablist">
+    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5" role="tablist" aria-label="فیلتر مخاطبین">
         @foreach([['all','همه'],['unread','خوانده‌نشده'],['online','آنلاین']] as $f)
             <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
+                    aria-controls="contact-list"
                     aria-selected="{{ $filter === $f[0] ? 'true' : 'false' }}"
                 @class([ 'px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200',
                     'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $filter === $f[0],
@@ -52,7 +53,7 @@
     </div>
 
     {{-- Contact List --}}
-    <div class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
+    <div id="contact-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($contactList as $contact)
             <button wire:key="contact-{{ $contact['id'] }}" wire:click="selectContact({{ $contact['id'] }})"
                     data-rf="people-{{ $contact['id'] }}" role="option"

@@ -23,6 +23,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\Response;
 
 class Main extends Component
 {
@@ -35,6 +36,7 @@ class Main extends Component
     public string $filter = 'all';
     public bool $mobileShowChat = false;
     public int $editTimeLimit = 300;
+    #[Locked]
     public ?array $lastDeleted = null;
     public int $messagesLimit = 10;
     public string $messageSearch = '';
@@ -43,7 +45,6 @@ class Main extends Component
     #[Locked]
     public int $focusOlder = 5;
     public bool $hasOlder = false;
-    private ?int $_cachedMessageTotal = null;
 
     #[Computed]
     public function activeContact(): ?User
@@ -84,7 +85,6 @@ class Main extends Component
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
             'presence' => $user->presence,
-            'last_seen_at' => $user->last_seen?->toISOString(),
         ])->when($this->filter === 'online', fn($c) => $c->filter(fn($u) => $u['is_online'] ?? false))
             ->values()->all();
     }
@@ -103,27 +103,28 @@ class Main extends Component
         $this->dispatch('show-undo-toast', message: 'پیام حذف شد', type: 'warning');
     }
 
-    public function downloadAttachment(int $messageId, int $index)
+    public function downloadAttachment(int $messageId, int $index): ?Response
     {
         $message = Message::withoutTrashed()->find($messageId);
-        if (!$message) return;
+        if (!$message) return null;
 
         $me = auth()->id();
-        if (!in_array($me, [$message->sender_id, $message->recipient_id], true)) return;
+        if (!in_array($me, [$message->sender_id, $message->recipient_id], true)) return null;
 
         $attachment = ($message->attachments ?? [])[$index] ?? null;
-        if (!$attachment) return;
+        if (!is_array($attachment) || !isset($attachment['path'], $attachment['name'])) return null;
 
-        $filePath = Storage::disk('public')->path($attachment['path']);
-        if (!file_exists($filePath) || !is_file($filePath)) return;
+        $disk = Storage::disk('public');
+        $root = realpath($disk->path(''));
+        $real = realpath($disk->path($attachment['path']));
 
-        return response()->download($filePath, $attachment['name']);
-    }
+        if ($root === false || $real === false || !is_file($real) || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) return null;
 
-    #[Computed]
-    public function filteredContacts(): array
-    {
-        return $this->contacts;
+        return tap(response()->download($real), fn($r) => $r->setContentDisposition(
+            'attachment',
+            $attachment['name'],
+            basename($attachment['path'])
+        ));
     }
 
     #[Computed]
@@ -196,6 +197,13 @@ class Main extends Component
             ->all();
     }
 
+    #[Computed]
+    public function lastMessageId(): ?int
+    {
+        $id = collect($this->messages)->max('id');
+        return $id === null ? null : (int) $id;
+    }
+
     public function loadMoreMessages(): void
     {
         if ($this->focusAnchorId !== null) {
@@ -210,7 +218,6 @@ class Main extends Component
     public function messages(): array
     {
         if (!$this->activeUserId) {
-            $this->_cachedMessageTotal = 0;
             return [];
         }
 
@@ -220,10 +227,6 @@ class Main extends Component
                 ->where(fn($q) => $q->where('sender_id', $me)->where('recipient_id', $this->activeUserId))
                 ->orWhere(fn($q) => $q->where('sender_id', $this->activeUserId)->where('recipient_id', $me))
             );
-
-        if ($this->_cachedMessageTotal === null) {
-            $this->_cachedMessageTotal = (clone $baseQuery)->count();
-        }
 
         if ($this->focusAnchorId !== null) {
             $anchor = (int) $this->focusAnchorId;
@@ -251,14 +254,11 @@ class Main extends Component
         return collect($rows)->map(fn($m) => [
                 'id' => (int)$m->id,
                 'sender_id' => (int)$m->sender_id,
-                'recipient_id' => (int)$m->recipient_id,
                 'body' => $m->body,
                 'attachments' => $m->attachments,
-                'reply_to_id' => $m->reply_to_id,
                 'is_edited' => (bool)$m->is_edited,
                 'read_at' => $m->read_at?->toISOString(),
                 'created_at' => $m->created_at->toISOString(),
-                'updated_at' => $m->updated_at?->toISOString(),
                 'deleted_at' => $m->deleted_at?->toISOString(),
                 'reply_to' => $m->replyTo ? [
                     'id' => $m->replyTo->id,
@@ -268,8 +268,6 @@ class Main extends Component
                 'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl()],
             ])->values()->all();
     }
-
-    public function mount(): void { }
 
     public function removeAttachment(int $index): void
     {
@@ -339,24 +337,6 @@ class Main extends Component
     public function setFilter(string $filter): void { $this->filter = $filter; }
 
     #[Computed]
-    public function totalMessages(): int
-    {
-        if (!$this->activeUserId) return 0;
-        if ($this->_cachedMessageTotal !== null) return $this->_cachedMessageTotal;
-
-        $me = auth()->id();
-        $count = Message::withoutTrashed()
-            ->where(fn($q) => $q
-                ->where(fn($q) => $q->where('sender_id', $me)->where('recipient_id', $this->activeUserId))
-                ->orWhere(fn($q) => $q->where('sender_id', $this->activeUserId)->where('recipient_id', $me))
-            )->count();
-
-        $this->_cachedMessageTotal = $count;
-
-        return $count;
-    }
-
-    #[Computed]
     public function totalStaff(): int
     {
         return User::active()->count();
@@ -376,8 +356,7 @@ class Main extends Component
 
     private function invalidateMessageCache(): void
     {
-        $this->_cachedMessageTotal = null;
-        unset($this->messages);
+        unset($this->messages, $this->lastMessageId);
     }
 
     private function resetAllStates(): void

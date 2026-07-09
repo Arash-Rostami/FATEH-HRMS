@@ -19,7 +19,7 @@
                      transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                      {{ $p->cardClasses() }}">
 
-                <div class="relative z-10 {{ $p->isObscured() ? 'blur-[1px] grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">
+                <div class="relative z-10 {{ $p->isObscured() ? 'grayscale-[50%]' : '' }} transition-all duration-300 group-hover:blur-none group-hover:grayscale-0">
                     <img
                         src="{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}"
                         alt="{{ $user->name }}"

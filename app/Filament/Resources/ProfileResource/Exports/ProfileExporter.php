@@ -76,7 +76,7 @@ class ProfileExporter extends Exporter
 
             ExportColumn::make('birthdate')
                 ->label(__('resources/profile/strings.export.birthdate'))
-                ->formatStateUsing(fn($state): string => $state?->format('Y/m/d') ?? '-'),
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
 
             ExportColumn::make('age')
                 ->label(__('resources/profile/strings.export.age'))
@@ -123,11 +123,11 @@ class ProfileExporter extends Exporter
 
             ExportColumn::make('start_date')
                 ->label(__('resources/profile/strings.export.start_date'))
-                ->formatStateUsing(fn($state): string => $state?->format('Y/m/d') ?? '-'),
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
 
             ExportColumn::make('end_date')
                 ->label(__('resources/profile/strings.export.end_date'))
-                ->formatStateUsing(fn($state): string => $state?->format('Y/m/d') ?? '-'),
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
 
             ExportColumn::make('work_experience')
                 ->label(__('resources/profile/strings.export.work_experience'))
@@ -162,7 +162,7 @@ class ProfileExporter extends Exporter
 
             ExportColumn::make('created_at')
                 ->label(__('resources/profile/strings.export.created_at'))
-                ->formatStateUsing(fn($state): string => $state?->format('Y/m/d H:i') ?? '-'),
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '-'),
         ];
     }
 

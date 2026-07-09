@@ -15,14 +15,13 @@ class MessageResource extends SearchResource
     protected array $columns = ['body'];
     protected ?string $subtitleField = 'body';
 
-    /** Open the conversation with the OTHER party (works from either side). */
     public function action($row): string
     {
         $other = (int) $row->sender_id === $this->me()
             ? (int) $row->recipient_id
             : (int) $row->sender_id;
 
-        return $this->route('contact', $other);
+        return 'url:' . route('contact', ['open' => $other, 'focus_msg' => (int) $row->getKey()], false);
     }
 
     protected function scope(Builder $query): void

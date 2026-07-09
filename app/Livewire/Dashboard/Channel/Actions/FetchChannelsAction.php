@@ -26,7 +26,7 @@ class FetchChannelsAction
             ->groupBy('channel_members.channel_id');
 
         return Channel::query()
-            ->select('channels.*', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'))
+            ->select('channels.*', 'channel_members.entered_at', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'))
             ->join('channel_members', 'channels.id', '=', 'channel_members.channel_id')
             ->leftJoinSub($lastMsgSub, 'lm', 'channels.id', '=', 'lm.channel_id')
             ->leftJoinSub($unreadSub, 'uc', 'channels.id', '=', 'uc.channel_id')

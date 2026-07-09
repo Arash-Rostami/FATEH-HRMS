@@ -8,6 +8,7 @@
             if (v) requestAnimationFrame(() => requestAnimationFrame(() => active = true))
             else active = false
         })"
+        x-on:keydown.escape.window="if(show) show = false"
         class="custom-modal"
         :class="{ 'active': active }"
         style="display: none;"

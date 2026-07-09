@@ -31,7 +31,7 @@ class EnergyTestInfolistPresenter
             ->icon('heroicon-o-clock')
             ->iconPosition(IconPosition::After)
             ->alignEnd()
-            ->tooltip(fn($state) => $state?->diffForHumans())
+            ->tooltip(fn($state) => $state ? toJalaliRelative($state) : null)
             ->color('gray');
     }
 
@@ -42,7 +42,7 @@ class EnergyTestInfolistPresenter
             ->placeholder('—')
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
             ->icon('heroicon-o-calendar')
-            ->tooltip(fn($state) => $state?->diffForHumans())
+            ->tooltip(fn($state) => $state ? toJalaliRelative($state) : null)
             ->color('gray');
     }
 

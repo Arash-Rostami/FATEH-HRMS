@@ -29,7 +29,8 @@ class PostExporter extends Exporter
             ExportColumn::make('pinned')
                 ->label(__('resources/post/strings.fields.pinned'))
                 ->formatStateUsing(fn($state) => $state ? 'بله' : 'خیر'),
-            ExportColumn::make('created_at')->label(__('resources/post/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/post/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

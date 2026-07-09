@@ -27,7 +27,8 @@ class LinkExporter extends Exporter
                 ->label(__('resources/link/strings.fields.smart_routing'))
                 ->state(fn($record) => filled($record->internal_url) ? 'بله' : 'خیر'),
             ExportColumn::make('url_description')->label(__('resources/link/strings.fields.url_description')),
-            ExportColumn::make('created_at')->label(__('resources/link/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/link/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

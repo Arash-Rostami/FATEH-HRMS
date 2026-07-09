@@ -77,6 +77,11 @@ class Message extends Model
             ->toArray();
     }
 
+    public static function totalUnreadFor(int $userId): int
+    {
+        return static::where('recipient_id', $userId)->whereNull('read_at')->count();
+    }
+
     public function prunable()
     {
         return static::where('deleted_at', '<=', now()->subDays(self::PRUNE_DAYS));

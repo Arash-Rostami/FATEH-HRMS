@@ -23,7 +23,8 @@ class FAQExporter extends Exporter
             ExportColumn::make('user.name')->label(__('resources/faq/strings.fields.user')),
             ExportColumn::make('department.name')->label(__('resources/faq/strings.fields.department'))
                 ->state(fn($record) => $record->department?->displayLabel() ?? '-'),
-            ExportColumn::make('created_at')->label(__('resources/faq/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/faq/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

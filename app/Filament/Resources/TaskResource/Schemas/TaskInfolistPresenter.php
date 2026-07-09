@@ -66,7 +66,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('created_at')
             ->label(__('resources/task/strings.fields.created_at'))
-            ->formatStateUsing(fn($state, $record) => $state ? $record->created_formatted : '—')
+            ->formatStateUsing(fn($state, $record) => $record->createdLabel())
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -83,7 +83,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state, $record) => $state ? $record->deadline_formatted : null)
+            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deadline', null))
             ->alignRight()
             ->iconPosition(IconPosition::After)
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
@@ -115,7 +115,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('deleted_at')
             ->label(__('resources/task/strings.fields.deleted_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : null)
+            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deleted_at', null))
             ->placeholder('—')
             ->color('danger')
             ->icon('heroicon-o-trash')
@@ -205,7 +205,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('updated_at')
             ->label(__('resources/task/strings.fields.updated_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : '—')
+            ->formatStateUsing(fn($state, $record) => $record->updatedLabel())
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

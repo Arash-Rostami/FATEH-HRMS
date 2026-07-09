@@ -51,7 +51,7 @@ class TaskTablePresenter
     {
         return TextColumn::make('created_at')
             ->label(__('resources/task/strings.fields.created_at'))
-            ->formatStateUsing(fn($state, $record) => $state ? $record->created_formatted : '—')
+            ->formatStateUsing(fn($state, $record) => $record->createdLabel())
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
@@ -94,7 +94,7 @@ class TaskTablePresenter
     {
         return TextColumn::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state, $record) => $state ? $record->deadline_formatted : '—')
+            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deadline'))
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignCenter()
             ->color(fn($record) => match (true) {
@@ -130,7 +130,7 @@ class TaskTablePresenter
     {
         return TextColumn::make('deleted_at')
             ->label(__('resources/task/strings.fields.deleted_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'j F Y') : '—')
+            ->formatStateUsing(fn($state, $record) => $record->deletedLabel())
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('—')
             ->sortable()

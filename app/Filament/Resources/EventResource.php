@@ -104,7 +104,7 @@ class EventResource extends Resource
     {
         return [
             __('resources/event/strings.fields.user') => $record->user?->name ?? '—',
-            __('resources/event/strings.fields.date') => $record->date?->format('Y-m-d') ?? '—',
+            __('resources/event/strings.fields.date') => toJalaliSmart($record->date),
         ];
     }
 

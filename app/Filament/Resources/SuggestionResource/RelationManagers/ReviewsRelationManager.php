@@ -51,7 +51,7 @@ class ReviewsRelationManager extends RelationManager
                         ->boolean(),
                     TextEntry::make('comments')->label('توضیحات')->columnSpanFull(),
                     TextEntry::make('actions')->label('اقدامات')->columnSpanFull(),
-                    TextEntry::make('created_at')->label('تاریخ')->dateTime(),
+                    TextEntry::make('created_at')->label('تاریخ')->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—'),
                 ])
                 ->columnSpanFull()
                 ->columns(2),
@@ -79,7 +79,7 @@ class ReviewsRelationManager extends RelationManager
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->label('تاریخ')
-                    ->dateTime()
+                    ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
                     ->sortable(),
             ])
             ->recordActions([

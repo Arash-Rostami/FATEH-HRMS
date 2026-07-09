@@ -8,13 +8,20 @@ class UndoDeleteAction
 {
     public function execute(array $lastDeleted): void
     {
+        $userId = auth()->id();
+
         $restored = Message::withTrashed()
+            ->where('sender_id', $userId)
             ->find($lastDeleted['original_id'] ?? null)
             ?->restore();
 
         if (!$restored) {
+            if (($lastDeleted['sender_id'] ?? null) !== $userId) {
+                return;
+            }
+
             Message::create([
-                'sender_id'    => $lastDeleted['sender_id'],
+                'sender_id'    => $userId,
                 'recipient_id' => $lastDeleted['recipient_id'],
                 'body'         => $lastDeleted['body'],
                 'is_edited'    => $lastDeleted['is_edited'],

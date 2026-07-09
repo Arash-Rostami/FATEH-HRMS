@@ -31,6 +31,7 @@
                 class="modal-btn modal-btn-confirm"
                 wire:click="{{ $action }}"
                 wire:loading.attr="disabled"
+                aria-label="{{ $confirmText }}"
             >
                 <span wire:loading.remove wire:target="{{ $action }}">{{ $confirmText }}</span>
                 <span wire:loading wire:target="{{ $action }}">

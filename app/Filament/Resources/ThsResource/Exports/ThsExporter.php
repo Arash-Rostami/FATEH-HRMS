@@ -54,11 +54,11 @@ class ThsExporter extends Exporter
 
             ExportColumn::make('completion_deadline')
                 ->label(__('resources/ths/strings.fields.deadline'))
-                ->state(fn($record) => $record->completion_deadline?->format('Y-m-d H:i')),
+                ->state(fn($record) => $record->completion_deadline ? toJalaliSmart($record->completion_deadline) : '-'),
 
             ExportColumn::make('completion_date')
                 ->label(__('resources/ths/strings.fields.completion_date'))
-                ->state(fn($record) => $record->completion_date?->format('Y-m-d H:i')),
+                ->state(fn($record) => $record->completion_date ? toJalaliSmart($record->completion_date) : '-'),
 
             ExportColumn::make('effectiveness')->label(__('resources/ths/strings.fields.effectiveness')),
 
@@ -66,7 +66,8 @@ class ThsExporter extends Exporter
 
             ExportColumn::make('action_result')->label(__('resources/ths/strings.fields.action_result')),
 
-            ExportColumn::make('created_at')->label(__('resources/ths/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/ths/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
         ];
     }
 

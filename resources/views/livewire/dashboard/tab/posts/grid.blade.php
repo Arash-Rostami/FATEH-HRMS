@@ -63,7 +63,7 @@
 
                             <span
                                 class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">
-                                {{ $post->created_at->diffForHumans() }}
+                                {{ toJalaliRelative($post->created_at) }}
                             </span>
                         </div>
 

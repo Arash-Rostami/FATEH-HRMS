@@ -26,11 +26,12 @@ class GalleryExporter extends Exporter
                 }),
             ExportColumn::make('event_date')
                 ->label(__('resources/gallery/strings.fields.event_date'))
-                ->state(fn($record) => $record->event_date?->format('Y-m-d')),
+                ->state(fn($record) => $record->event_date ? toJalaliSmart($record->event_date) : '-'),
             ExportColumn::make('photos_count')
                 ->label(__('resources/gallery/strings.fields.count'))
                 ->state(fn($record) => count($record->path ?? [])),
-            ExportColumn::make('created_at')->label(__('resources/gallery/strings.fields.created_at')),
+            ExportColumn::make('created_at')->label(__('resources/gallery/strings.fields.created_at'))
+                ->formatStateUsing(fn($state) => toJalaliSmart($state)),
         ];
     }
 

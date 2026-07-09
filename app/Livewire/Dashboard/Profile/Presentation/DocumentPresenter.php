@@ -21,11 +21,14 @@ class DocumentPresenter
                 'url'          => self::resolvePublicAssetUrl($item['path']),
                 'fileName'     => basename($item['path']),
                 'uploadedTime' => isset($item['uploaded_at'])
-                    ? Carbon::parse($item['uploaded_at'])->timezone('Asia/Tehran')->format('Y/m/d H:i')
-                    : Carbon::createFromTimestamp(
-                        (int) preg_replace('/.*_(\d{10,})\.\w+$/', '$1', basename($item['path'])),
-                        'Asia/Tehran'
-                    )->format('Y/m/d H:i'),
+                    ? toJalali(Carbon::parse($item['uploaded_at'])->timezone('Asia/Tehran'), 'Y/m/d H:i')
+                    : toJalali(
+                        Carbon::createFromTimestamp(
+                            (int) preg_replace('/.*_(\d{10,})\.\w+$/', '$1', basename($item['path'])),
+                            'Asia/Tehran'
+                        ),
+                        'Y/m/d H:i'
+                    ),
             ])
             ->values();
     }

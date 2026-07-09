@@ -21,7 +21,6 @@ use App\Livewire\Dashboard\Channel\Forms\CreateChannelForm;
 use App\Livewire\Dashboard\Channel\Forms\EditChannelMessageForm;
 use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Models\Channel;
-use App\Models\ChannelMember;
 use App\Models\ChannelMessage;
 use App\Models\User;
 use App\Traits\FocusOnRecord;
@@ -34,7 +33,9 @@ use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Support\Facades\DB;
 
 #[Isolate]
 class Main extends Component
@@ -56,6 +57,7 @@ class Main extends Component
     public bool $mobileShowChat = false;
     public int $editTimeLimit = 300;
     public ?array $editingMsg = null;
+    #[Locked]
     public ?array $lastDeleted = null;
     public int $loadedLimit = 10;
     public bool $hasOlder = false;
@@ -66,6 +68,7 @@ class Main extends Component
 
     public bool $isManageMembersOpen = false;
     public array $memberRecipientIds = [];
+    public array $createRecipientIds = [];
 
     public function mount(): void
     {
@@ -114,6 +117,7 @@ class Main extends Component
                 'description' => $ch->description,
                 'type' => $ch->type->value,
                 'owner_id' => $ch->owner_id,
+                'is_entered' => !empty($ch->entered_at),
                 'unread_count' => (int)($ch->unread_count ?? 0),
                 'last_message' => $last ? [
                     'body' => $last->body,
@@ -213,6 +217,36 @@ class Main extends Component
     }
 
     #[Computed]
+    public function readers(): array
+    {
+        if (!$this->activeChannelId) {
+            return [];
+        }
+
+        $users = $this->activeChannel->memberUsers()
+            ->with('profile')
+            ->get();
+
+        $map = [];
+        foreach ($users as $user) {
+            $map[(int) $user->id] = [
+                'cursor' => (int) ($user->pivot->last_read_message_id ?? 0),
+                'name'   => $user->name ?? '—',
+                'avatar' => $user->getProfileImageUrl(),
+            ];
+        }
+
+        return $map;
+    }
+
+    #[Computed]
+    public function lastMessageId(): ?int
+    {
+        $id = collect($this->messages)->max('id');
+        return $id === null ? null : (int) $id;
+    }
+
+    #[Computed]
     public function presenter(): ChannelPresenter
     {
         return new ChannelPresenter();
@@ -234,14 +268,17 @@ class Main extends Component
 
     public function selectChannel(int $channelId): void
     {
-        $channel = Channel::withoutTrashed()->find($channelId);
-        if (!$channel || !ChannelMember::where('channel_id', $channelId)->where('user_id', auth()->id())->exists()) {
+        if (!Channel::withoutTrashed()
+            ->whereKey($channelId)
+            ->whereHas('memberUsers', fn($memberQ) => $memberQ->where('users.id', auth()->id()))
+            ->exists()) {
             return;
         }
 
         $this->activeChannelId = $channelId;
         $this->mobileShowChat = true;
         $this->browseMode = false;
+        $this->createMode = false;
         $this->loadedLimit = 10;
         $this->hasOlder = false;
         $this->focusAnchorId = null;
@@ -259,13 +296,15 @@ class Main extends Component
 
     public function focusRecord(int $channelId): void
     {
-        if (ChannelMember::where('channel_id', $channelId)->where('user_id', auth()->id())->exists()) {
-            $this->selectChannel($channelId);
+        $this->selectChannel($channelId);
 
-            $focusMsg = (int) request()->query('focus_msg', 0);
-            if ($focusMsg > 0) {
-                $this->focusMessage($focusMsg);
-            }
+        if ($this->activeChannelId !== $channelId) {
+            return;
+        }
+
+        $focusMsg = (int) request()->query('focus_msg', 0);
+        if ($focusMsg > 0) {
+            $this->focusMessage($focusMsg);
         }
     }
 
@@ -318,6 +357,7 @@ class Main extends Component
     public function toggleBrowse(): void
     {
         $this->browseMode = !$this->browseMode;
+        $this->createMode = false;
         $this->mobileShowChat = $this->browseMode || $this->mobileShowChat;
         unset($this->joinableChannels);
     }
@@ -329,6 +369,8 @@ class Main extends Component
         $this->mobileShowChat = true;
         $this->create->reset();
         $this->create->type = 'open';
+        $this->createRecipientIds = [];
+        unset($this->memberCandidates);
     }
 
     public function closeCreate(): void
@@ -337,13 +379,22 @@ class Main extends Component
         $this->mobileShowChat = false;
     }
 
-    public function createChannel(): void
+    public function createChannel(SyncChannelMembersAction $sync): void
     {
         try {
-            $channel = app(CreateChannelAction::class)->execute($this->create);
+            $channel = DB::transaction(function () use ($sync) {
+                $channel = app(CreateChannelAction::class)->execute($this->create);
+
+                if (!empty($this->createRecipientIds)) {
+                    $sync->execute((int) $channel->id, (int) auth()->id(), $this->createRecipientIds);
+                }
+
+                return $channel;
+            });
 
             $this->createMode = false;
-            unset($this->channels, $this->joinableChannels, $this->activeChannel);
+            $this->createRecipientIds = [];
+            unset($this->channels, $this->joinableChannels, $this->activeChannel, $this->memberCandidates);
             $this->selectChannel($channel->id);
             $this->dispatch('show-toast', message: 'کانال ایجاد شد', type: 'success');
         } catch (ValidationException $e) {
@@ -457,7 +508,6 @@ class Main extends Component
         $action->execute($this->lastDeleted);
         $this->lastDeleted = null;
         unset($this->messages);
-        $this->dispatch('messages-updated');
         $this->dispatch('show-toast', message: 'پیام بازیابی شد', type: 'success');
     }
 
@@ -492,10 +542,9 @@ class Main extends Component
             return;
         }
 
-        $this->memberRecipientIds = ChannelMember::query()
-            ->where('channel_id', $channelId)
-            ->where('user_id', '!=', auth()->id())
-            ->pluck('user_id')
+        $this->memberRecipientIds = $channel->memberUsers()
+            ->wherePivot('user_id', '!=', auth()->id())
+            ->pluck('users.id')
             ->all();
 
         unset($this->memberCandidates);
@@ -532,7 +581,7 @@ class Main extends Component
         $this->composer->attachments = array_values($attachments);
     }
 
-    public function downloadAttachment(int $messageId, int $index)
+    public function downloadAttachment(int $messageId, int $index): ?Response
     {
         return app(DownloadChannelAttachmentAction::class)->execute(
             $messageId,
@@ -545,17 +594,6 @@ class Main extends Component
     public function markRead(int $channelId): void
     {
         app(MarkChannelReadAction::class)->execute($channelId, auth()->id());
-    }
-
-    #[Js]
-    public function resetComposer()
-    {
-        return <<<'JS'
-            $wire.composer.body = ''
-            $wire.composer.attachments = []
-            $wire.composer.replyToId = null
-            $wire.editingMsg = null
-        JS;
     }
 
     #[Js]

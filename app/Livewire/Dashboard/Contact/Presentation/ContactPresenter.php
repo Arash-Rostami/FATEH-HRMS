@@ -25,7 +25,6 @@ class ContactPresenter
         return [
             'id'       => $c['id'],
             'name'     => $c['name'],
-            'initials' => mb_substr($c['name'], 0, 1),
             'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null),
             'position' => $c['profile']['position'] ?? 'عضو سازمان',
             'is_online' => (bool) ($c['is_online'] ?? false),
@@ -52,7 +51,7 @@ class ContactPresenter
             ? 'امروز'
             : (Carbon::parse($date)->isYesterday()
                 ? 'دیروز'
-                : Carbon::parse($date)->translatedFormat('j F Y'));
+                : toJalali($date, 'j F Y'));
 
         return [
             'date'  => $date,
@@ -78,15 +77,15 @@ class ContactPresenter
                 'id'         => (int) ($msg['id'] ?? 0),
                 'body'       => $msg['body'] ?? '',
                 'body_html'  => nl2br($this->linkify(e($msg['body'] ?? '')), false),
-                'created_at' => $msg['created_at'] ?? null,
-                'time'       => $createdAt->format('H:i'),
+                'time'       => $createdAt->isToday() ? toJalali($createdAt->toDateTimeString(), 'H:i') : toJalali($createdAt->toDateTimeString(), 'Y/m/d H:i'),
                 'datetime'   => $msg['created_at'] ?? '',
                 'is_mine'    => $isMine,
-                'is_first'   => $isFirst,
                 'is_last'    => $isLast,
                 'is_edited'  => (bool) ($msg['is_edited'] ?? false),
                 'is_read'    => !empty($msg['read_at']),
-                'is_deleted' => !empty($msg['deleted_at']),
+                'read_at_label' => !empty($msg['read_at']) ? toJalali($msg['read_at'], 'Y/m/d H:i') : null,
+                'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
+                'sender_avatar' => $msg['sender']['avatar'] ?? null,
                 'can_edit'   => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']),
                 'attachments' => $this->attachments($msg['attachments'] ?? []),

@@ -463,7 +463,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('created_at')
             ->label(__('resources/user/strings.infolist.created_at'))
-            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->formatStateUsing(fn($state, $record) => $record->createdLabel())
             ->color('gray')
             ->placeholder('-');
     }
@@ -1552,6 +1552,16 @@ Converts a Gregorian date to Jalali. Detects already-Jalali years (1300–1500 r
 ### `toJalaliSmart($date)`
 
 Same as `toJalali` but omits the time portion when it is `00:00` — avoids showing meaningless midnight times on date-only fields.
+
+### Admin date-display standard — `HasJalaliAdminLabels` trait
+
+The admin-panel uniform date format is `toJalaliSmart` (`Y/m/d H:i`, auto-drops time when `00:00`). Apply the `App\Models\Traits\HasJalaliAdminLabels` trait to the model and call its labels from Filament presenters instead of raw `toJalali($state, '<format>')`:
+
+- `createdLabel()` / `updatedLabel()` / `deletedLabel()` — wrap `created_at` / `updated_at` / `deleted_at`.
+- `adminDateLabel(string $column, ?string $fallback = '—')` — any other date column (e.g. `deadline`).
+- In a presenter: `->formatStateUsing(fn($state, $record) => $record->createdLabel())`.
+
+Do NOT mutate existing date accessors/getters (e.g. `created_formatted`) — they may be used by the user panel or other code; add the trait label alongside and call it from admin presenters (backward compatible). Apply the trait + presenter swap only to models whose display accessor uses a non-smart format (e.g. Task `j F Y`); models already on `toJalaliSmart` or settled `toJalaliRelative` (presence/last-seen) need no change. Keep `toJalaliRelative` for presence/last-seen columns — intentional, not part of this absolute-date rule.
 
 ### `convertToPersian(?string $string)`
 

@@ -19,7 +19,7 @@ class TicketPresenter
     public function formatTimestamp(?array $ticket, string $col): string
     {
         if (!$ticket || !isset($ticket[$col])) return 'نامشخص';
-        return Carbon::parse($ticket[$col])->diffForHumans();
+        return toJalaliRelative($ticket[$col]);
     }
 
     public function requestAreaLabel(string $requestType, string $requestArea, ?string $department = null): string
