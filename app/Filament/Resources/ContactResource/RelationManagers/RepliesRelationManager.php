@@ -22,17 +22,17 @@ class RepliesRelationManager extends RelationManager
 
     public static function getModelLabel(): string
     {
-        return __('resources/contact/strings.label');
+        return __('resources/contact/strings.fields.has_reply');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('resources/contact/strings.plural_label');
+        return __('resources/contact/strings.fields.replies');
     }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('resources/contact/strings.plural_label');
+        return __('resources/contact/strings.fields.replies');
     }
 
     public function infolist(Schema $schema): Schema

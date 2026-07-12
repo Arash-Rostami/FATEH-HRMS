@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -59,15 +60,24 @@ class TaskFormPresenter
         return Repeater::make('attachments')
             ->label(__('resources/task/strings.fields.attachments'))
             ->schema([
-                FileUpload::make('file')
+                FileUpload::make('path')
                     ->label(__('resources/task/strings.fields.file'))
                     ->disk('public')
                     ->directory('task/attachments')
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
-                    ->getUploadedFileNameForStorageUsing(fn(TemporaryUploadedFile $file) => self::fileName($file))
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, callable $set) {
+                        $path = $file->storeAs('task/attachments', self::fileName($file), 'public');
+                        $set('name', $file->getClientOriginalName());
+                        $set('mime', $file->getMimeType());
+                        $set('size', $file->getSize());
+                        return $path;
+                    })
                     ->openable()
                     ->downloadable(),
+                Hidden::make('name'),
+                Hidden::make('mime'),
+                Hidden::make('size'),
             ])
             ->maxItems(5)
             ->helperText(__('resources/task/strings.hints.attachments'))

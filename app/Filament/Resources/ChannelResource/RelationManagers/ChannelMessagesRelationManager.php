@@ -9,9 +9,11 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ChannelMessagesRelationManager extends RelationManager
 {
@@ -26,7 +28,9 @@ class ChannelMessagesRelationManager extends RelationManager
 
     public function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['sender']);
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->with(['sender']);
     }
 
     public static function getModelLabel(): string
@@ -76,6 +80,21 @@ class ChannelMessagesRelationManager extends RelationManager
                     ->trueColor('warning')
                     ->falseColor('gray'),
 
+                TextColumn::make('deleted_at')
+                    ->label(__('resources/channel/strings.fields.deleted_at'))
+                    ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+                    ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('prune_status')
+                    ->label(__('resources/channel/strings.fields.prune_status'))
+                    ->getStateUsing(fn($record) => $record->pruneStatusText())
+                    ->color(fn($record) => $record->pruneStatusColor())
+                    ->badge()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('created_at')
                     ->label(__('resources/channel/strings.fields.created_at'))
                     ->alignCenter()
@@ -84,12 +103,20 @@ class ChannelMessagesRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->filters([
+                Filter::make('pruning_soon')
+                    ->label(__('resources/channel/strings.filters.pruning_soon'))
+                    ->query(fn(Builder $query) => $query
+                        ->whereNotNull('channel_messages.deleted_at')
+                        ->where('channel_messages.deleted_at', '<=', now()->subDays(30))
+                    )
+                    ->toggle(),
                 self::createdAtFilter(),
             ])
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
-                self::deleteAction(),
+                self::restoreAction(),
+                self::deleteAction()->visible(fn($record) => !$record->trashed()),
             ], RecordActionsPosition::AfterCells)
             ->defaultSort('channel_messages.created_at', 'asc')
             ->emptyStateIcon('heroicon-o-bookmark');

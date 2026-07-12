@@ -121,6 +121,7 @@ if (!function_exists('quotes')) {
     }
 }
 
+
 if (!function_exists('isSpecialDay')) {
     function isSpecialDay(string $type): bool
     {
@@ -130,9 +131,11 @@ if (!function_exists('isSpecialDay')) {
             return false;
         }
 
-        if (cache()->has($type . $user->id)) {
+        if (cache()->has($type . '_' . $user->id)) {
             return false;
         }
+
+        $user->loadMissing('profile');
 
         $date = match ($type) {
             'birthdate' => $user->profile?->birthdate,
@@ -310,19 +313,24 @@ if (!function_exists('jNow')) {
 if (!function_exists('canAdmin')) {
     function canAdmin(): bool
     {
-        $userId = auth()->id();
+        static $status = [];
+        $user = auth()->user();
 
-        if (!$userId) {
+        if (!$user) {
             return false;
         }
 
-        // Developers are super-admin by role — no permission row needed.
-        if (auth()->user()?->isDeveloper()) {
-            return true;
+        if (isset($status[$user->id])) {
+            return $status[$user->id];
         }
 
-        $adminPerm = Permission::forUser($userId);
+        // Developers are super-admin by role — no permission row needed.
+        if ($user->isDeveloper()) {
+            return $status[$user->id] = true;
+        }
 
-        return $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));
+        $adminPerm = Permission::forUser($user->id);
+
+        return $status[$user->id] = $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));
     }
 }

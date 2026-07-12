@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class NavigationService
 {
+    protected static ?Collection $items = null;
+
     /**
      * Search for items based on a query string.
      */
@@ -68,7 +70,7 @@ class NavigationService
 
     protected function getSearchableItems(): Collection
     {
-        return collect([
+        return static::$items ??= collect([
             [
                 'id' => 'home',
                 'title' => 'خانه',
@@ -316,7 +318,7 @@ class NavigationService
                 'title' => 'آنبوردینگ',
                 'subtitle' => 'آشنایی استخدام‌شدگان جدید با شرکت و راهنماها',
                 'icon' => 'apartment',
-                'action' => 'url:/profile?activeTab=onboarding',
+                'action' => 'url:/profile?tab=onboarding',
                 'keywords' => [
                     'onboarding', 'new hire', 'orientation', 'welcome', 'guide', 'first day', 'boarding',
                     'آنبوردینگ', 'استخدام', 'استخدام جدید', 'جدید', 'ورود', 'ورود به شرکت', 'آشنایی', 'معارفه',
@@ -328,7 +330,7 @@ class NavigationService
                 'title' => 'مدارک و اسناد',
                 'subtitle' => 'بارگذاری و مدیریت مدارک هویتی و پرسنلی',
                 'icon' => 'cloud_upload',
-                'action' => 'url:/profile?activeTab=documents',
+                'action' => 'url:/profile?tab=documents',
                 'keywords' => [
                     'documents', 'document', 'upload', 'download', 'identity', 'id', 'personnel', 'attachments',
                     'مدارک', 'اسناد', 'بارگذاری', 'آپلود', 'دانلود', 'پرسنلی', 'هویت', 'شناسنامه', 'کارت ملی',
@@ -340,7 +342,7 @@ class NavigationService
                 'title' => 'دسترسی‌های سازمانی',
                 'subtitle' => 'نام کاربری و رمز عبور سامانه‌ها در کیف پول امن',
                 'icon' => 'vpn_key',
-                'action' => 'url:/profile?activeTab=credentials',
+                'action' => 'url:/profile?tab=credentials',
                 'keywords' => [
                     'credentials', 'password', 'username', 'login', 'access', 'secret', 'vault', 'credential vault',
                     'سامانه', 'رمز', 'رمز عبور', 'نام کاربری', 'دسترسی', 'امن', 'کیف پول', 'کیف پول رمز', 'ورود',

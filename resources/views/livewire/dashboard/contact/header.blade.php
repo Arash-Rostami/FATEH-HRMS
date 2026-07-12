@@ -1,89 +1,90 @@
-<header class="border-runner flex-shrink-0 flex items-center gap-3 px-4 md:px-5 py-2.5 border-b z-10
-               bg-[color-mix(in_srgb,var(--md-sys-color-surface)_90%,transparent)]
-               border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+@php
+    $presence = \App\Enums\PresenceStatus::tryFrom($activeContact->presence->value ?? '');
+@endphp
 
-    @php($presence = \App\Enums\PresenceStatus::tryFrom($activeContact->presence->value ?? ''))
+<header class="relative z-10 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 backdrop-blur-xl transition-all duration-300
+               bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
+               border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
+               shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
 
-    {{-- Back (mobile) --}}
     <button wire:click="backToList" aria-label="بازگشت"
-            class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
-                   bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
-                   hover:brightness-95 active:scale-90 transition-all">
-        <span class="material-symbols-rounded text-[18px]">arrow_forward</span>
+            class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] active:scale-95 md:hidden">
+        <span class="material-symbols-rounded text-base">arrow_forward</span>
     </button>
 
-    {{-- Avatar --}}
     <div class="relative flex-shrink-0">
-        <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]
+        <div class="flex h-11 w-11 select-none items-center justify-center overflow-hidden rounded-2xl font-bold shadow-sm ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]
                     bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))]
-                    text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center font-bold select-none">
+                    text-[var(--md-sys-color-on-primary-container)]">
             <x-ui.avatar :image="null" :existingImage="$activeContact->getProfileImageUrl()"
-                         :alt="$activeContact->name" icon-size="text-xl" class="rounded-xl" />
+                         :alt="$activeContact->name" icon-size="text-xl" class="rounded-2xl" />
         </div>
         @if($presence)
-            <span class="absolute -bottom-0.5 -end-0.5 w-3 h-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $presence->activeClass() }}"></span>
+            <span class="absolute -bottom-0.5 -end-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $presence->activeClass() }}"></span>
         @endif
     </div>
 
-    {{-- Identity --}}
-    <div class="flex-1 min-w-0 relative">
-        <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)] truncate">{{ $activeContact->name }}</h2>
+    <div class="relative min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2">
+            <h2 class="truncate text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ $activeContact->name }}</h2>
             @if($presence)
-                <span class="text-[9px] font-bold px-1.5 py-px rounded {{ $presence->iconBgClass() }}" title="{{ $presence->label() }}">{{ $presence->label() }}</span>
+                <span class="rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide {{ $presence->iconBgClass() }}" title="{{ $presence->label() }}">
+                    {{ $presence->label() }}
+                </span>
             @endif
         </div>
-        <div class="flex items-center gap-2 mt-px flex-wrap">
+        <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
             @if($activeContact->profile?->position)
-                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $activeContact->profile->position_label }}</span>
+                <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $activeContact->profile->position_label }}</span>
+                <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
             @if($activeContact->profile?->department)
-                <span class="text-[10px] font-medium px-1.5 py-px rounded-md
-                             bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]"
+                <span class="rounded-md bg-[var(--md-sys-color-secondary-container)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--md-sys-color-on-secondary-container)]"
                       title="{{ $activeContact->profile->department->tooltipLabel() }}">
                     {{ $activeContact->profile->department->displayLabel() }}
                 </span>
+                <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <span class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">
+            <span class="truncate font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]">
                 {{ toJalaliRelative($activeContact->last_seen) ?: 'نامشخص' }}
             </span>
         </div>
         @include('livewire.dashboard.contact.search')
     </div>
 
-    {{-- Actions --}}
-    <div class="flex items-center gap-1.5 flex-wrap flex-shrink-0">
+    <div class="flex flex-wrap items-center gap-1">
         <button type="button" x-on:click="openMessageSearch()" aria-label="جستجوی پیام" title="جستجوی پیام"
-                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
-                       bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
-                       active:scale-90"
-                :class="searchMessages ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
-            <span class="material-symbols-rounded text-[18px]">search</span>
+                class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                :class="searchMessages ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
+            <span class="material-symbols-rounded text-base">search</span>
+        </button>
+
+        <button type="button" x-on:click="$store.sound.toggleMute({{ $activeContact->id }}, 'contact')"
+                :aria-pressed="$store.sound.isMuted({{ $activeContact->id }}, 'contact')"
+                :aria-label="$store.sound.isMuted({{ $activeContact->id }}, 'contact') ? 'باصدا کردن' : 'بی‌صدا کردن'"
+                :title="$store.sound.isMuted({{ $activeContact->id }}, 'contact') ? 'باصدا کردن' : 'بی‌صدا کردن'"
+                class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                :class="$store.sound.isMuted({{ $activeContact->id }}, 'contact') ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
+            <span class="material-symbols-rounded text-base" x-text="$store.sound.isMuted({{ $activeContact->id }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
         </button>
 
         <button type="button" @click="toggleHighlight()" aria-label="پیش زمینه چت" title="پیش زمینه چت"
-                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
-                       bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
-                       active:scale-90"
-                :class="isHighlighted ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
-            <span class="material-symbols-rounded text-[18px]" x-text="isHighlighted ? 'hide_image' : 'texture'"></span>
+                class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                :class="isHighlighted ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
+            <span class="material-symbols-rounded text-base" x-text="isHighlighted ? 'hide_image' : 'texture'"></span>
         </button>
 
         <button @click="toggleMaximize()"
                 :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
-                       bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
-                       active:scale-90" aria-label="تغییر اندازه">
-            <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
+                aria-label="تغییر اندازه"
+                class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                :class="max ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
+            <span class="material-symbols-rounded text-base" x-text="max ? 'close_fullscreen' : 'open_in_full'" aria-hidden="true"></span>
         </button>
 
-
         <button x-on:click="showInfo = !showInfo" aria-label="اطلاعات بیشتر" title="اطلاعات بیشتر"
-                class="min-w-10 min-h-10 rounded-lg flex items-center justify-center transition-all
-                       bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
-                       hover:!bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)]
-                       active:scale-90">
-            <span class="material-symbols-rounded text-[18px]">info</span>
+                class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] active:scale-95">
+            <span class="material-symbols-rounded text-base">info</span>
         </button>
     </div>
 </header>

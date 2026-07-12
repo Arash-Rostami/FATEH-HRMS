@@ -22,8 +22,6 @@ class ChannelMessage extends Model
         Prunable,
         HasPrunableStatus;
 
-    public const PRUNE_DAYS = 30;
-
     protected $fillable = [
         'channel_id',
         'sender_id',
@@ -61,11 +59,6 @@ class ChannelMessage extends Model
         );
     }
 
-    public function getPruneDays(): int
-    {
-        return self::PRUNE_DAYS;
-    }
-
     public static function lastIdForChannel(int $channelId): ?int
     {
         return static::withoutTrashed()
@@ -87,7 +80,7 @@ class ChannelMessage extends Model
 
     public function prunable()
     {
-        return static::where('deleted_at', '<=', now()->subDays(self::PRUNE_DAYS));
+        return static::where('deleted_at', '<=', now()->subDays($this->getPruneDays()));
     }
 
     public function prune()

@@ -2,6 +2,7 @@
     $p = $this->presenter;
     $channelList = $p->sidebar($this->channels, auth()->id());
     $totalUnread = $p->totalUnread($this->channels);
+    $allChannelIds = collect($channelList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
 @endphp
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
@@ -23,13 +24,26 @@
                     <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">کانال‌های موضوعی</p>
                 </div>
             </div>
-            @if($totalUnread)
-                <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
-                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
-                      aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
-                    {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
-                </span>
-            @endif
+            <div class="flex items-center gap-1.5">
+                @if($totalUnread)
+                    <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
+                                 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
+                          aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
+                        {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
+                    </span>
+                @endif
+                @if(count($channelList))
+                    <button type="button"
+                            x-on:click="$store.sound.toggleAll({{ $allChannelIds }}, 'channel')"
+                            :aria-pressed="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel')"
+                            :aria-label="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه کانال‌ها' : 'بی‌صدا کردن همه کانال‌ها'"
+                            :title="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه کانال‌ها' : 'بی‌صدا کردن همه کانال‌ها'"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            :class="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
+                    </button>
+                @endif
+            </div>
         </div>
 
         @include('livewire.dashboard.channel.search-field', [
@@ -83,17 +97,34 @@
 
     <div id="channel-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($channelList as $ch)
-            <button wire:key="channel-{{ $ch['id'] }}" x-on:click="selectChannel({{ $ch['id'] }})"
+            <div wire:key="channel-{{ $ch['id'] }}" x-on:click="selectChannel({{ $ch['id'] }})"
+                    x-on:keydown.enter.prevent="selectChannel({{ $ch['id'] }})"
+                    x-on:keydown.space.prevent="selectChannel({{ $ch['id'] }})"
                     data-rf="channel-{{ $ch['id'] }}"
                     data-channel-id="{{ $ch['id'] }}"
                     data-channel-name="{{ $ch['name'] }}"
                     role="option"
+                    tabindex="0"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"
                 @class([
-                    'ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'group ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeChannelId === $ch['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeChannelId !== $ch['id'],
                 ])>
+
+                <button type="button"
+                        x-on:click.stop="$store.sound.toggleMute({{ $ch['id'] }}, 'channel')"
+                        x-on:keydown.enter.stop
+                        x-on:keydown.space.stop
+                        :aria-pressed="$store.sound.isMuted({{ $ch['id'] }}, 'channel')"
+                        :aria-label="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
+                        :title="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
+                        class="absolute top-1.5 end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-[opacity,transform] duration-200 ease-out"
+                        :class="$store.sound.isMuted({{ $ch['id'] }}, 'channel')
+                                  ? 'opacity-100 scale-100 pointer-events-auto text-[var(--md-sys-color-primary)]'
+                                  : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto focus:opacity-100 focus:scale-100 focus:pointer-events-auto text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]'">
+                    <span class="material-symbols-rounded text-[14px]" aria-hidden="true" x-text="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
+                </button>
 
                 <div class="relative flex-shrink-0">
                     <div @class([
@@ -158,7 +189,7 @@
                         @endif
                     </div>
                 </div>
-            </button>
+            </div>
         @empty
             <x-ui.empty icon="campaign" title="کانالی یافت نشد" variant="search" />
         @endforelse

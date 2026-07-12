@@ -6,7 +6,10 @@ use Carbon\Carbon;
 
 trait HasPrunableStatus
 {
-    abstract public function getPruneDays(): int;
+    public function getPruneDays(): int
+    {
+        return 30;
+    }
 
     public function getPruneWarnDays(): int
     {

@@ -1,6 +1,7 @@
 <div
     dir="rtl"
     x-data="contact()"
+    data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     wire:poll.10s
     x-on:chat-ready.window="$nextTick(() => { scrollToBottom(false); resetUI(); if (window.innerWidth < 768) document.getElementById('msg-ta')?.focus(); })"
     x-on:keydown.ctrl.k.window="focusSearch()"

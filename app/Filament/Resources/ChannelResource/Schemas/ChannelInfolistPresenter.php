@@ -101,4 +101,14 @@ class ChannelInfolistPresenter
             ->color('danger')
             ->icon('heroicon-o-trash');
     }
+
+    public static function prunableWarning(): TextEntry
+    {
+        return TextEntry::make('prune_info')
+            ->label(__('resources/channel/strings.fields.prune_status'))
+            ->getStateUsing(fn($record) => $record->pruneStatusText())
+            ->color(fn($record) => $record->pruneStatusColor())
+            ->badge()
+            ->hidden(fn($record) => !$record->deleted_at);
+    }
 }

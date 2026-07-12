@@ -2,6 +2,7 @@
     dir="rtl"
     x-data="channel()"
     x-init="init()"
+    data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
     role="region"
     aria-label="کانال‌ها"

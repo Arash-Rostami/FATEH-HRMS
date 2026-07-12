@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
@@ -22,8 +23,6 @@ class Message extends Model
         Prunable,
         HasPrunableStatus;
 
-    public const PRUNE_DAYS = 30;
-
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
 
     protected $fillable = [
@@ -43,11 +42,6 @@ class Message extends Model
             fn($item) => [...$item, 'url' => Storage::disk('public')->url($item['path'])],
             $this->attachments ?? []
         );
-    }
-
-    public function getPruneDays(): int
-    {
-        return self::PRUNE_DAYS;
     }
 
     public function isRead(): bool
@@ -84,7 +78,12 @@ class Message extends Model
 
     public function prunable()
     {
-        return static::where('deleted_at', '<=', now()->subDays(self::PRUNE_DAYS));
+        return static::where('deleted_at', '<=', now()->subDays($this->getPruneDays()));
+    }
+
+    public function prune()
+    {
+        app(ForceDeleteMessageAction::class)->execute($this);
     }
 
     public function recipient(): BelongsTo
@@ -121,5 +120,16 @@ class Message extends Model
             'is_edited' => 'boolean',
             'read_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::forceDeleted(function (self $message) {
+            foreach ($message->attachments ?? [] as $attachment) {
+                if (!empty($attachment['path'])) {
+                    Storage::disk('public')->delete($attachment['path']);
+                }
+            }
+        });
     }
 }

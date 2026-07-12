@@ -42,7 +42,7 @@ class TaskInfolistPresenter
         return RepeatableEntry::make('detail.attachments')
             ->label(__('resources/task/strings.fields.attachments'))
             ->schema([
-                TextEntry::make('file')
+                TextEntry::make('path')
                     ->hiddenLabel()
                     ->formatStateUsing(fn($state) => __('resources/task/strings.fields.view_file'))
                     ->url(fn($state) => $state ? asset('storage/' . $state) : null)
@@ -119,6 +119,16 @@ class TaskInfolistPresenter
             ->placeholder('—')
             ->color('danger')
             ->icon('heroicon-o-trash')
+            ->hidden(fn($record) => !$record->deleted_at);
+    }
+
+    public static function prunableWarning(): TextEntry
+    {
+        return TextEntry::make('prune_info')
+            ->label(__('resources/task/strings.fields.prune_status'))
+            ->getStateUsing(fn($record) => $record->pruneStatusText())
+            ->color(fn($record) => $record->pruneStatusColor())
+            ->badge()
             ->hidden(fn($record) => !$record->deleted_at);
     }
 

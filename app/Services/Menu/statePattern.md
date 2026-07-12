@@ -32,7 +32,7 @@ App\Services\Menu\
 │   ├── SpecialDays.php             key=special-days          isActive = Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
 │   └── TasksTodo.php                key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
 ├── Notifications\
-│   ├── ActiveAdsNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
+│   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
 │   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion updated/deleted + Review created/updated
 │   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted  show=true  for=User::active()
@@ -42,7 +42,7 @@ App\Services\Menu\
 │   └── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=owner (User::active()->where('id', $subject->assigned_to ?? $subject->user_id), empty→collect())
 │   └── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted show=true  for=staged recipient (Ticket::currentActionRecipient(), empty→collect())
 │   └── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=isPendingFor($u)  for=DMS::pendingRecipients() (visible live + pending users)
-│   └── ChannelInviteNudge.php      key=channels-controller:nudge  triggers=Channel deleted/forceDeleted (cleanup only; create/prune via manual dispatch from SyncChannelMembersAction/MarkChannelReadAction/LeaveChannelAction)  show=whereNull('entered_at')  for=not-yet-entered members (DB::table pivot pluck + User::whereIn)
+│   └── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 └── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
@@ -411,7 +411,7 @@ Each design choice, why:
 
 ### The rules (`NudgeServiceProvider`)
 
-Each row is one trigger declared inside a `MenuNudge` class in `Notifications\` (`ActiveAdsNudge`,
+Each row is one trigger declared inside a `MenuNudge` class in `Notifications\` (`AdNudge`,
 `SharedEventsNudge`, `SuggestionNudge`); one class can declare several triggers sharing the same key.
 
 | Trigger | `on` | `subject` | `show` | `for` (recipients) |
@@ -583,7 +583,7 @@ public static function bootHasMenuState(): void
 
 ## Posts unread badge (`UnreadPosts`) + per-record nudges (`PostNudge`), created-today feeds badge (`TodayFeeds`) + `FeedNudge`
 
-A pair mirroring `ActiveAds`/`ActiveAdsNudge`, but the "today" gate is the date, not a status flag:
+A pair mirroring `ActiveAds`/`AdNudge`, but the "today" gate is the date, not a status flag:
 
 - **Badge** — `UnreadPosts` (key `posts-controller`): `isActive()` =
   `Post::hasUnreadFor($u)` (per-user, reads `posts-controller:nudge` unread rows within `FRESHNESS_DAYS` via
@@ -628,7 +628,7 @@ Both are **Signal-2 only** (no `MenuBadge` indicator, no menu dot) — the bell 
   `refresh = true`. Mirrors `SuggestionNudge` scoping.
 - **`ReportNudge`** (key `reports-controller:nudge`) — broadcast: `for = User::active()->get()` (all active
   users), `show = $subject->active` (only published reports nudge — the `Report.active` boolean gate,
-  same shape as `ActiveAdsNudge::show = $ad->active`), `refresh = true`. The title carries the publishing
+  same shape as `AdNudge::show = $ad->active`), `refresh = true`. The title carries the publishing
   department's full name: `'گزارش جدید از ' . (($subject->department?->description ?: $subject->department?->name) ?? 'سازمان') . ': ' . $subject->title`
   — `Department` exposes `description` (the complete display name, preferred) and `name` (short fallback);
   `?:` falls through an empty `description` to `name`, and `?? 'سازمان'` covers a department-less

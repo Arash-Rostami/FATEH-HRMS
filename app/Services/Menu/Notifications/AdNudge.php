@@ -6,7 +6,7 @@ use App\Models\Ad;
 use App\Models\User;
 use App\Services\Menu\Contracts\MenuNudge;
 
-class ActiveAdsNudge implements MenuNudge
+class AdNudge implements MenuNudge
 {
     public function getKey(): string
     {

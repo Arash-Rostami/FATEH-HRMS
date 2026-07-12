@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\Menu\Notifications\ActiveAdsNudge;
-use App\Services\Menu\Notifications\ChannelInviteNudge;
+use App\Services\Menu\Notifications\AdNudge;
+use App\Services\Menu\Notifications\ChannelNudge;
 use App\Services\Menu\Notifications\ContactNudge;
 use App\Services\Menu\Notifications\DmsNudge;
 use App\Services\Menu\Notifications\FeedNudge;
@@ -22,7 +22,7 @@ class NudgeServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        NudgeService::register(new ActiveAdsNudge());
+        NudgeService::register(new AdNudge());
         NudgeService::register(new SharedEventsNudge());
         NudgeService::register(new SuggestionNudge());
         NudgeService::register(new PostNudge());
@@ -33,6 +33,6 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new ContactNudge());
         NudgeService::register(new ThsNudge());
         NudgeService::register(new DmsNudge());
-        NudgeService::register(new ChannelInviteNudge());
+        NudgeService::register(new ChannelNudge());
     }
 }

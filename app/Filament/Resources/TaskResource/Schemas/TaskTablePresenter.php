@@ -200,6 +200,28 @@ class TaskTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function prunableWarning(): TextColumn
+    {
+        return TextColumn::make('prune_status')
+            ->label(__('resources/task/strings.fields.prune_status'))
+            ->getStateUsing(fn($record) => $record->pruneStatusText())
+            ->color(fn($record) => $record->pruneStatusColor())
+            ->badge()
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function pruningSoonFilter(): Filter
+    {
+        return Filter::make('pruning_soon')
+            ->label(__('resources/task/strings.filters.pruning_soon'))
+            ->query(fn(Builder $query) => $query
+                ->whereNotNull('deleted_at')
+                ->where('deleted_at', '<=', now()->subDays(30))
+            )
+            ->toggle();
+    }
+
     public static function responsibleUser(): TextColumn
     {
         return TextColumn::make('detail.responsibleUser.name')

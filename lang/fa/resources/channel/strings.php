@@ -25,6 +25,7 @@ return [
         'created_at'        => 'تاریخ ایجاد',
         'updated_at'        => 'آخرین بروزرسانی',
         'deleted_at'        => 'تاریخ حذف',
+        'prune_status'      => 'وضعیت حذف خودکار',
     ],
 
     'form' => [
@@ -34,6 +35,7 @@ return [
 
     'filters' => [
         'type' => 'نوع کانال',
+        'pruning_soon' => 'در آستانه حذف خودکار',
     ],
 
     'hints' => [

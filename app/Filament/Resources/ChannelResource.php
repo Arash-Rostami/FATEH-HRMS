@@ -120,6 +120,7 @@ class ChannelResource extends Resource
                     ChannelInfolistPresenter::createdAt(),
                     ChannelInfolistPresenter::updatedAt(),
                     ChannelInfolistPresenter::deletedAt(),
+                    ChannelInfolistPresenter::prunableWarning(),
                 ])
                 ->columnSpanFull()
                 ->columns(3),
@@ -138,12 +139,14 @@ class ChannelResource extends Resource
                 ChannelTablePresenter::messagesCount(),
                 ChannelTablePresenter::createdAt(),
                 ChannelTablePresenter::deletedAt(),
+                ChannelTablePresenter::prunableWarning(),
             ])
             ->groups([
                 ChannelTablePresenter::typeGroup(),
             ])
             ->filters([
                 ChannelTablePresenter::typeFilter(),
+                ChannelTablePresenter::pruningSoonFilter(),
                 self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)

@@ -173,6 +173,7 @@ class TaskResource extends Resource
                                     TaskInfolistPresenter::createdAt(),
                                     TaskInfolistPresenter::updatedAt(),
                                     TaskInfolistPresenter::deletedAt(),
+                                    TaskInfolistPresenter::prunableWarning(),
                                 ])
                                 ->columnSpanFull()
                                 ->columns(3),
@@ -224,6 +225,7 @@ class TaskResource extends Resource
                 TaskTablePresenter::state(),
                 TaskTablePresenter::responsibleUser(),
                 TaskTablePresenter::deletedAt(),
+                TaskTablePresenter::prunableWarning(),
                 TaskTablePresenter::createdAt(),
             ])
             ->groups([
@@ -239,6 +241,7 @@ class TaskResource extends Resource
                 TaskTablePresenter::delegatedFilter(),
                 self::createdAtFilter(),
                 TaskTablePresenter::overdueFilter(),
+                TaskTablePresenter::pruningSoonFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

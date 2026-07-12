@@ -74,10 +74,10 @@
             <ul class="space-y-1.5 mb-2">
                 @foreach($form->existingAttachments as $index => $attachment)
                     <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
-                        <a href="{{ asset('storage/' . $attachment['file']) }}" target="_blank"
+                        <a href="{{ asset('storage/' . $attachment['path']) }}" target="_blank"
                            class="flex items-center gap-1.5 text-[var(--md-sys-color-primary)] truncate">
                             <span class="material-symbols-rounded text-sm">description</span>
-                            {{ basename($attachment['file']) }}
+                            {{ $attachment['name'] ?? basename($attachment['path']) }}
                         </a>
                         @unless($isReadOnly)
                             <button type="button" wire:click="removeExistingAttachment({{ $index }})"

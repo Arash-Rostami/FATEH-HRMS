@@ -49,7 +49,16 @@ class UpdateTaskAction
     private function storeAttachments(TaskForm $form): array
     {
         return collect($form->attachments)
-            ->map(fn($file) => ['file' => $file->store('task/attachments', 'public')])
+            ->map(function ($file) {
+                $path = $file->store('task/attachments', 'public');
+
+                return [
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                    'mime' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                ];
+            })
             ->values()
             ->all();
     }

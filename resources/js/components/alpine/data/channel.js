@@ -158,6 +158,7 @@ export default function channel() {
             this.$wire.on('message-sent', () => {
                 this.scrollToBottom(true);
                 this.sending = false;
+                this.$store.sound?.playOutgoing(this.$wire.activeChannelId);
                 setTimeout(() => this.scrollToBottom(true), 120);
             });
 

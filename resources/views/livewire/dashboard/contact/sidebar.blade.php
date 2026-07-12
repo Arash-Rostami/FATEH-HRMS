@@ -1,6 +1,7 @@
 @php
     $contactList     = $p->sidebar($this->contacts, auth()->id());
     $totalUnread     = $p->totalUnread($this->contacts);
+    $allContactIds   = collect($contactList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
 @endphp
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
@@ -23,13 +24,26 @@
                     <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">اطلاعات مخاطبین</p>
                 </div>
             </div>
-            @if($totalUnread)
-                <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
-                             bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
-                      aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
-                    {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
-                </span>
-            @endif
+            <div class="flex items-center gap-1.5">
+                @if($totalUnread)
+                    <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
+                                 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
+                          aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
+                        {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
+                    </span>
+                @endif
+                @if(count($contactList))
+                    <button type="button"
+                            x-on:click="$store.sound.toggleAll({{ $allContactIds }}, 'contact')"
+                            :aria-pressed="$store.sound.isAllMuted({{ $allContactIds }}, 'contact')"
+                            :aria-label="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
+                            :title="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            :class="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
+                    </button>
+                @endif
+            </div>
         </div>
 
         <x-ui.forms.search model="search" placeholder="جستجوی همکاران..." debounce="200"
@@ -55,14 +69,30 @@
     {{-- Contact List --}}
     <div id="contact-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($contactList as $contact)
-            <button wire:key="contact-{{ $contact['id'] }}" wire:click="selectContact({{ $contact['id'] }})"
-                    data-rf="people-{{ $contact['id'] }}" role="option"
+            <div wire:key="contact-{{ $contact['id'] }}" x-on:click="$wire.selectContact({{ $contact['id'] }})"
+                    x-on:keydown.enter.prevent="$wire.selectContact({{ $contact['id'] }})"
+                    x-on:keydown.space.prevent="$wire.selectContact({{ $contact['id'] }})"
+                    data-rf="people-{{ $contact['id'] }}" role="option" tabindex="0"
                     aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                 @class([
-                    'ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'group ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeUserId !== $contact['id'],
                 ])>
+
+                <button type="button"
+                        x-on:click.stop="$store.sound.toggleMute({{ $contact['id'] }}, 'contact')"
+                        x-on:keydown.enter.stop
+                        x-on:keydown.space.stop
+                        :aria-pressed="$store.sound.isMuted({{ $contact['id'] }}, 'contact')"
+                        :aria-label="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'باصدا کردن مخاطب' : 'بی‌صدا کردن مخاطب'"
+                        :title="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'باصدا کردن مخاطب' : 'بی‌صدا کردن مخاطب'"
+                        class="absolute top-1.5 end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-[opacity,transform] duration-200 ease-out"
+                        :class="$store.sound.isMuted({{ $contact['id'] }}, 'contact')
+                                  ? 'opacity-100 scale-100 pointer-events-auto text-[var(--md-sys-color-primary)]'
+                                  : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto focus:opacity-100 focus:scale-100 focus:pointer-events-auto text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]'">
+                    <span class="material-symbols-rounded text-[14px]" aria-hidden="true" x-text="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
+                </button>
 
                 <div class="relative flex-shrink-0">
                     <div @class([
@@ -129,7 +159,7 @@
                         @endif
                     </div>
                 </div>
-            </button>
+            </div>
         @empty
             <x-ui.empty icon="person_search" title="کاربری یافت نشد" variant="search" />
         @endforelse

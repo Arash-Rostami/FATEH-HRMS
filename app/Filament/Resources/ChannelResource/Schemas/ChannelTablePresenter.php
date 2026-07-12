@@ -4,8 +4,10 @@ namespace App\Filament\Resources\ChannelResource\Schemas;
 
 use App\Enums\ChannelType;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
+use Illuminate\Database\Eloquent\Builder;
 
 class ChannelTablePresenter
 {
@@ -100,6 +102,28 @@ class ChannelTablePresenter
             ->label(__('resources/channel/strings.filters.type'))
             ->options(collect(ChannelType::cases())
                 ->mapWithKeys(fn(ChannelType $t) => [$t->value => $t->getLabel()]));
+    }
+
+    public static function prunableWarning(): TextColumn
+    {
+        return TextColumn::make('prune_status')
+            ->label(__('resources/channel/strings.fields.prune_status'))
+            ->getStateUsing(fn($record) => $record->pruneStatusText())
+            ->color(fn($record) => $record->pruneStatusColor())
+            ->badge()
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function pruningSoonFilter(): Filter
+    {
+        return Filter::make('pruning_soon')
+            ->label(__('resources/channel/strings.filters.pruning_soon'))
+            ->query(fn(Builder $query) => $query
+                ->whereNotNull('deleted_at')
+                ->where('deleted_at', '<=', now()->subDays(30))
+            )
+            ->toggle();
     }
 
     public static function typeGroup(): Group

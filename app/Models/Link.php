@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class Link extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory,
+        HasPublicAssetUrl;
 
     protected $fillable = [
         'url',

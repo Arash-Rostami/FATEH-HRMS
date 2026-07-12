@@ -2,22 +2,28 @@
 
 namespace App\Models;
 
+use App\Livewire\Dashboard\TaskBoard\Actions\ForceDeleteTaskAction;
 use App\Models\Traits\HasJalaliAdminLabels;
 use App\Models\Traits\HasMenuState;
+use App\Models\Traits\HasPrunableStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Task extends Model
 {
     use HasFactory,
         HasJalaliAdminLabels,
         HasMenuState,
-        SoftDeletes;
+        SoftDeletes,
+        Prunable,
+        HasPrunableStatus;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
 
@@ -163,5 +169,28 @@ class Task extends Model
         return Attribute::make(
             set: fn(mixed $value) => $value instanceof \BackedEnum ? $value->value : $value,
         );
+    }
+
+    public function prunable()
+    {
+        return static::with('detail')->where('deleted_at', '<=', now()->subDays($this->getPruneDays()));
+    }
+
+    public function prune()
+    {
+        app(ForceDeleteTaskAction::class)->execute($this);
+    }
+
+    protected static function booted(): void
+    {
+        static::forceDeleting(function (self $task) {
+            if ($task->detail && !empty($task->detail->attachments)) {
+                foreach ($task->detail->attachments as $attachment) {
+                    if (!empty($attachment['path'])) {
+                        Storage::disk('public')->delete($attachment['path']);
+                    }
+                }
+            }
+        });
     }
 }

@@ -31,7 +31,7 @@ app/Services/Search/
 ├── Resources/
 │   ├── PostResource.php      # one tiny class per searchable module …
 │   ├── FeedResource.php
-│   └── … (19 in total)
+│   └── … (20 in total)
 ├── ContentService.php        # orchestrator: registry + ranking of resources
 └── NavigationService.php     # the module-shortcut engine (static list)
 ```

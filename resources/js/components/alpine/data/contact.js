@@ -113,10 +113,13 @@ export default function contact() {
             };
             document.addEventListener('keydown', this._onKeyDown);
 
-            this.$wire.on('message-sent', () => this.$nextTick(() => {
-                this.scrollToBottom(true);
-                this.sending = false;
-            }));
+            this.$wire.on('message-sent', () => {
+                this.$nextTick(() => {
+                    this.scrollToBottom(true);
+                    this.sending = false;
+                });
+                this.$store.sound?.playOutgoing(this.$wire.activeUserId, 'contact');
+            });
 
             this.$wire.on('message-error', () => this.$nextTick(() => {
                 this.sending = false;

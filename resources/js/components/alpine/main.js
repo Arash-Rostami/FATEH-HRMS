@@ -1,6 +1,7 @@
 import registerAppStore from './stores/app.js'
 import registerThemeStore from './stores/theme.js'
 import registerBackgroundStore from './stores/background.js'
+import registerSoundStore from './stores/sound.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
@@ -46,6 +47,7 @@ export default function initAlpine() {
         registerAppStore(Alpine)
         registerThemeStore(Alpine)
         registerBackgroundStore(Alpine)
+        registerSoundStore(Alpine)
 
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
