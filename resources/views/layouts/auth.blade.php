@@ -7,8 +7,14 @@
           useVideo: localStorage.getItem('use-video') !== 'false',
           videoIndex: 0,
           videos: [
-                '{{ asset('build/assets/video/mining-01.mp4') }}',
-                '{{ asset('build/assets/video/mining-02.mp4') }}',
+                '{{ asset('build/assets/video/1.mp4') }}',
+                '{{ asset('build/assets/video/2.mp4') }}',
+                '{{ asset('build/assets/video/3.mp4') }}',
+                '{{ asset('build/assets/video/4.mp4') }}',
+                '{{ asset('build/assets/video/5.mp4') }}',
+                '{{ asset('build/assets/video/6.mp4') }}',
+                '{{ asset('build/assets/video/7.mp4') }}',
+
           ],
           playNext() {
             const nextIndex = (this.videoIndex + 1) % this.videos.length;
@@ -29,14 +35,10 @@
           $watch('useVideo', val => localStorage.setItem('use-video', val));
       ">
 <head>
-    {{--    '{{ asset('build/assets/video/1.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/2.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/3.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/4.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/5.mp4') }}',--}}
-    {{--    '{{ asset('build/assets/video/6.mp4') }}',--}}
 
 
+{{--    '{{ asset('build/assets/video/mining-01.mp4') }}',--}}
+{{--    '{{ asset('build/assets/video/mining-02.mp4') }}',--}}
     <x-dashboard.meta-tags/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles

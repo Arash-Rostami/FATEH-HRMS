@@ -192,10 +192,12 @@ class DmsFormPresenter
     private static function uniqueLiveRule(): Closure
     {
         return function (Get $get, $record): UniqueLiveDocument {
+            $status = $get('status');
+
             return new UniqueLiveDocument(
                 code: (string)($get('code') ?? ''),
                 version: (string)($get('version') ?? ''),
-                status: (string)($get('status') ?? ''),
+                status: $status instanceof DocumentStatus ? $status->value : (string)($status ?? ''),
                 exceptId: $record?->id,
             );
         };

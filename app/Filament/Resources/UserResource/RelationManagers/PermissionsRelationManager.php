@@ -8,6 +8,7 @@ use App\Filament\Resources\PermissionResource\Schemas\PermissionTablePresenter;
 use App\Models\Permission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
+use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -25,18 +26,24 @@ class PermissionsRelationManager extends RelationManager
 
     public function canViewAny(): bool
     {
+        return static::canViewForRecord($this->getOwnerRecord(), $this->getPageClass());
+    }
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $actor = Auth::user();
+
         // Developers are super-admin by role and may administer permissions.
-        if (Auth::user()?->isDeveloper()) {
+        if ($actor?->isDeveloper()) {
             return true;
         }
 
         // Permission rows are admin-only — hide when the owner is a developer or plain user.
-        $owner = $this->getOwnerRecord();
-        if (($owner->role ?? null) !== 'admin') {
+        if (($ownerRecord->role ?? null) !== 'admin') {
             return false;
         }
 
-        return (bool)Permission::forUser(Auth::id())?->is_super_admin;
+        return $actor && (bool)Permission::forUser($actor->id)?->is_super_admin;
     }
 
     public function form(Schema $schema): Schema
@@ -116,7 +123,7 @@ class PermissionsRelationManager extends RelationManager
                 PermissionTablePresenter::superOnlyFilter(),
                 self::createdAtFilter(),
             ])
-            ->headerActions([])
+            ->headerActions([CreateAction::make()])
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),

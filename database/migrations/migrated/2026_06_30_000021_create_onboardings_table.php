@@ -18,7 +18,7 @@ return new class extends Migration {
                 $table->longText('schedule')->nullable();
                 $table->json('extras')->nullable();
                 $table->boolean('is_active')->default(1);
-                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('user_id')->nullable();
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');

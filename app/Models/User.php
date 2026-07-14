@@ -121,35 +121,35 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public static function getCachedActiveOptions(): Collection
     {
-        return once(fn() => Cache::remember('user_active_options',
+        return Cache::remember('user_active_options',
             now()->addHour(),
             fn() => self::active()->orderBy('name')->pluck('name', 'id')
-        ));
+        );
     }
 
     /** Admin-role users only — permission rows are an admin-only concept (developers are super by role, users can't reach the panel). */
     public static function getCachedAdminOptions(): Collection
     {
-        return once(fn() => Cache::remember('user_admin_options',
+        return Cache::remember('user_admin_options',
             now()->addHours(6),
             fn() => self::where('role', 'admin')->orderBy('name')->pluck('name', 'id')
-        ));
+        );
     }
 
     public static function getCachedAllOptions(): Collection
     {
-        return once(fn() => Cache::remember('user_all_options',
+        return Cache::remember('user_all_options',
             now()->addHours(6),
             fn() => self::orderBy('name')->pluck('name', 'id')
-        ));
+        );
     }
 
     public static function getCachedNames(): Collection
     {
-        return once(fn() => Cache::remember('user_names_map',
+        return Cache::remember('user_names_map',
             now()->addHour(),
             fn() => self::orderBy('name')->pluck('name', 'id')
-        ));
+        );
     }
 
     public function getExtraValue(string $key, mixed $default = null): mixed

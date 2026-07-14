@@ -18,7 +18,7 @@ return new class extends Migration {
                 $table->enum('employment_status', ['probational', 'working', 'terminated'])->default('probational');
                 $table->string('id_card_number', 255)->nullable();
                 $table->string('id_booklet_number', 255)->nullable();
-                $table->enum('degree', ['undergraduate', 'graduate', 'postgraduate'])->default('undergraduate');
+                $table->enum('degree', ['undergraduate', 'graduate', 'postgraduate', 'doctorate'])->default('undergraduate');
                 $table->string('field', 255)->nullable();
                 $table->date('birthdate')->nullable();
                 $table->string('landline', 255)->nullable();

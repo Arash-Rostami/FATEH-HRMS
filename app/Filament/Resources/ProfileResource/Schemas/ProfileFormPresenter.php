@@ -92,7 +92,7 @@ class ProfileFormPresenter
             ->schema([
                 TextInput::make('key')
                     ->label('نام پیوست')
-                    ->required()
+                    ->required(fn(Get $get): bool => filled($get('path')))
                     ->maxLength(255),
 
                 Select::make('category')
@@ -104,7 +104,7 @@ class ProfileFormPresenter
                         'standard' => 'استاندارد',
                         'custom' => 'سفارشی'
                     ])
-                    ->required()
+                    ->required(fn(Get $get): bool => filled($get('path')))
                     ->native(false),
 
                 FileUpload::make('path')
@@ -121,7 +121,7 @@ class ProfileFormPresenter
                     ])
                     ->directory('profiles/docs')
                     ->maxSize(5120)
-                    ->required()
+                    ->fetchFileInformation(false)
                     ->columnSpanFull(),
             ])
             ->columns(2)
@@ -132,8 +132,8 @@ class ProfileFormPresenter
             ->helperText(__('resources/profile/strings.hints.attachments'))
             ->dehydrateStateUsing(fn(?array $state): array => array_values(array_filter(
                 $state ?? [],
-                fn(array $item): bool => filled($item['name'] ?? null) ||
-                    filled($item['type'] ?? null) ||
+                fn(array $item): bool => filled($item['key'] ?? null) ||
+                    filled($item['category'] ?? null) ||
                     filled($item['path'] ?? null)
             )));
     }

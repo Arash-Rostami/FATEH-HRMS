@@ -11,13 +11,15 @@ enum Degree: string implements HasColor, HasIcon, HasLabel
     case Undergraduate = 'undergraduate';
     case Graduate      = 'graduate';
     case Postgraduate  = 'postgraduate';
+    case Doctorate     = 'doctorate';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::Undergraduate => 'کاردانی / کارشناسی',
-            self::Graduate      => 'کارشناسی ارشد',
-            self::Postgraduate  => 'دکترا',
+            self::Undergraduate => 'دیپلم یا کاردانی',
+            self::Graduate      => 'کارشناسی',
+            self::Postgraduate  => 'کارشناسی ارشد',
+            self::Doctorate     => 'دکترا',
         };
     }
 
@@ -27,15 +29,12 @@ enum Degree: string implements HasColor, HasIcon, HasLabel
             self::Undergraduate => 'gray',
             self::Graduate      => 'info',
             self::Postgraduate  => 'warning',
+            self::Doctorate     => 'danger',
         };
     }
 
     public function getIcon(): ?string
     {
-        return match ($this) {
-            self::Undergraduate => 'heroicon-o-academic-cap',
-            self::Graduate      => 'heroicon-o-academic-cap',
-            self::Postgraduate  => 'heroicon-o-academic-cap',
-        };
+        return 'heroicon-o-academic-cap';
     }
 }

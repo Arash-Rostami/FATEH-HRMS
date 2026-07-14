@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Traits\FocusOnRecord;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use InvalidArgumentException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -121,8 +122,12 @@ class Main extends Component
             $action->execute($this->form);
         } catch (ValidationException|HttpException $e) {
             throw $e;
-        } catch (Exception) {
+        } catch (InvalidArgumentException $e) {
             $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
+            return;
+        } catch (Exception $e) {
+            report($e);
+            $this->addError('form', 'عملیات با خطا مواجه شد؛ دوباره تلاش کنید.');
             return;
         }
 
@@ -380,8 +385,12 @@ class Main extends Component
             $action->execute($task, $this->form);
         } catch (ValidationException|HttpException $e) {
             throw $e;
-        } catch (Exception) {
+        } catch (InvalidArgumentException $e) {
             $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
+            return;
+        } catch (Exception $e) {
+            report($e);
+            $this->addError('form', 'عملیات با خطا مواجه شد؛ دوباره تلاش کنید.');
             return;
         }
 

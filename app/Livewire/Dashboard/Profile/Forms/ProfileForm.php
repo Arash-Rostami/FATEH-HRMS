@@ -31,7 +31,7 @@ class ProfileForm extends Form
 
     public string $id_booklet_number = '';
 
-    #[Validate('required|string|in:undergraduate,graduate,postgraduate')]
+    #[Validate('required|string|in:undergraduate,graduate,postgraduate,doctorate')]
     public string $degree = '';
 
     #[Validate('required|string|max:255')]

@@ -128,7 +128,7 @@ class OnboardingFormPresenter
             ->label(__('resources/onboarding/strings.fields.is_active'))
             ->helperText(__('resources/onboarding/strings.fields.is_active_hint'))
             ->inline(false)
-            ->default(false);
+            ->default(true);
     }
 
     public static function mission(): RichEditor
@@ -172,7 +172,7 @@ class OnboardingFormPresenter
                     ->directory('onboarding/video')
                     ->acceptedFileTypes(['video/*'])
                     ->helperText(__('resources/onboarding/strings.hints.videos_file'))
-                    ->maxSize(204800)
+                    ->maxSize(76800)
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
                     ),

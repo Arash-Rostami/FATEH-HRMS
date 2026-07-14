@@ -70,6 +70,7 @@ class FAQFormPresenter
                     ->maxLength(100),
             ])
             ->createOptionUsing(fn(array $data): string => $data['category'])
+            ->getOptionLabelUsing(fn($value) => $value)
             ->extraFieldWrapperAttributes(['class' => 'no-shell'])
             ->required()
             ->helperText(__('resources/faq/strings.hints.category'));

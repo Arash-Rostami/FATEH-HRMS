@@ -187,7 +187,7 @@ final class PersianDateFieldService
                 ? Carbon::instance($raw)
                 : Carbon::parse($raw);
 
-            $jalali = Jalalian::fromCarbon($carbon);
+            $jalali = Jalalian::fromCarbon($carbon->setTimezone(config('app.timezone')));
 
             return [$jalali->getYear(), $jalali->getMonth(), $jalali->getDay()];
         } catch (\Throwable) {

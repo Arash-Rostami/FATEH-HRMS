@@ -248,7 +248,8 @@
                         <option value="">انتخاب مدرک</option>
                         <option value="undergraduate">دیپلم یا کاردانی</option>
                         <option value="graduate">کارشناسی</option>
-                        <option value="postgraduate">کارشناسی ارشد یا دکترا</option>
+                        <option value="postgraduate">کارشناسی ارشد</option>
+                        <option value="doctorate">دکترا</option>
                     </x-ui.forms.select>
 
                     <x-ui.forms.input label="رشته تحصیلی"

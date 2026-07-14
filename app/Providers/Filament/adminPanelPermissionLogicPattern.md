@@ -143,6 +143,24 @@ are editable only by super admins / developers.
   `User` saved/deleted alongside the other user caches.
 - Developers never hit `forUser` (the bypass short-circuits first), so no cache entry
   is needed for them.
+- **Never wrap `Cache::remember(...)` in `once(...)`** for any cache a `booted()`
+  `saved`/`deleted` hook reactively forgets. `once()` memoizes in a PHP `static` that
+  lives for the whole php-fpm worker (up to `pm.max_requests=500`), and there is no API
+  to clear it — so `Cache::forget` flushes Redis but the worker's `once()` memo keeps
+  serving the pre-forget value regardless (confirmed by direct reproduction: after
+  promoting a user to admin, `Cache::get('user_admin_options')` correctly returns `null`
+  post-forget, yet the very next `once()`-wrapped read in the same process still returns
+  the stale pre-promotion list — the invalidation logic itself is correct, `once()` is
+  what hides it). All four `User::getCached*Options()` methods use bare `Cache::remember`
+  for this reason.
+- `Permission::availableModules()` is the deliberate exception: it stays `once()`-wrapped.
+  Nothing ever calls `Cache::forget('permission_modules')` — the module list is derived
+  from a filesystem glob of `Resource.php` files, so it only changes at deploy time
+  (which needs opcache/autoloader to pick up the new class anyway, i.e. a worker restart
+  regardless). `once()` there is a safe, real win: it collapses the 4-5 calls to
+  `availableModules()` within a single Permission form/table/infolist render
+  (`PermissionFormPresenter`, `PermissionTablePresenter`, `PermissionInfolistPresenter`,
+  `ModuleGroup`) into one Redis round trip instead of one per call site.
 
 ## Developer role cannot be granted from the UI
 

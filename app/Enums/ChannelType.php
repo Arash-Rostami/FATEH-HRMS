@@ -39,9 +39,11 @@ enum ChannelType: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Open => 'campaign',
-            self::Private => 'lock_closed',
+            self::Private => 'lock',
         };
     }
+
+
 
     public function getMaterialColor(): string
     {
