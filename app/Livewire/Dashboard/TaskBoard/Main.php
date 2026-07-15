@@ -248,17 +248,29 @@ class Main extends Component
             ->selectRaw('status, COUNT(*) as aggregate')
             ->pluck('aggregate', 'status');
 
+        $unionQuery = null;
+
         foreach ($this->columns as $column) {
             $this->totalCount[$column] = $counts->get($column, 0);
 
-            $this->tasks[$column] = (clone $baseQuery)
+            $columnQuery = (clone $baseQuery)
                 ->where('status', $column)
                 ->orderBy('created_at', 'desc')
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
-                ->with($this->relationsToLoad)
-                ->get($this->columnsToSelect)
-                ->toArray();
+                ->select($this->columnsToSelect);
+
+            if ($unionQuery === null) {
+                $unionQuery = $columnQuery;
+            } else {
+                $unionQuery->unionAll($columnQuery);
+            }
+        }
+
+        $allTasks = $unionQuery ? $unionQuery->with($this->relationsToLoad)->get() : collect();
+
+        foreach ($this->columns as $column) {
+            $this->tasks[$column] = $allTasks->where('status', $column)->values()->toArray();
         }
     }
 
