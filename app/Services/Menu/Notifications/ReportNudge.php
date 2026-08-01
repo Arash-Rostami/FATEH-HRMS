@@ -44,4 +44,9 @@ class ReportNudge implements MenuNudge
             ['class' => Report::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('dashboard', ['tab' => 'reports', 'open' => $subject->getKey()]);
+    }
 }

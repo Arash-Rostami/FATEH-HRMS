@@ -92,7 +92,7 @@ class NudgeService
 
                     if ($existing !== null) {
                         if (($rule['refresh'] ?? false) && $existing->read_at === null) {
-                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId);
+                            $data = self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url']);
                             if ($existing->data != $data) {
                                 $existing->update(['data' => $data]);
                             }
@@ -107,7 +107,7 @@ class NudgeService
                     $user->notifications()->create([
                         'id' => (string)Str::uuid(),
                         'type' => FilamentDatabaseNotification::class,
-                        'data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId),
+                        'data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url']),
                     ]);
                 }
             });
@@ -132,6 +132,7 @@ class NudgeService
             'title' => fn($subject, $user) => $nudge->title($subject, $user),
             'body' => fn($subject, $user) => $nudge->body($subject, $user),
             'badge_suppress' => method_exists($nudge, 'badgeSuppressesCreate') ? $nudge->badgeSuppressesCreate() : true,
+            'url' => method_exists($nudge, 'url') ? fn($subject) => $nudge->url($subject) : null,
         ];
 
         foreach ($nudge->triggers() as $trigger) {
@@ -174,21 +175,28 @@ class NudgeService
         callable|string $body,
         string          $ruleKey,
         string          $itemId,
+        ?callable       $url = null,
     ): array
     {
+        $actions = [];
+
+        if ($url && ($href = $url($subject))) {
+            $actions[] = Action::make('view')->label('مشاهده')->url($href);
+        }
+
+        $actions[] = Action::make('read')
+            ->label('حذف اعلان')
+            ->color('primary')
+            ->markAsRead()
+            ->button();
+
         return [
             ...Notification::make()
                 ->title($title($subject, $user))
                 ->body(is_string($body) ? $body : $body($subject, $user))
                 ->warning()
                 ->persistent()
-                ->actions([
-                    Action::make('read')
-                        ->label('حذف اعلان')
-                        ->color('primary')
-                        ->markAsRead()
-                        ->button(),
-                ])
+                ->actions($actions)
                 ->getDatabaseMessage(),
             'menu_key' => $ruleKey,
             'item_id' => $itemId,

@@ -115,6 +115,36 @@
     animation: backdropFadeOut 0.4s ease-in forwards !important;
 }
 
+@keyframes backdropCrossfadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.75);
+    }
+    to {
+        opacity: 0.35;
+        transform: scale(1);
+    }
+}
+
+.animate-backdrop-crossfade-in {
+    animation: backdropCrossfadeIn 0.9s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+
+@keyframes backdropCrossfadeOut {
+    from {
+        opacity: 0.35;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.75);
+    }
+}
+
+.animate-backdrop-crossfade-out {
+    animation: backdropCrossfadeOut 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
 @keyframes lightboxIn {
     from {
         opacity: 0;

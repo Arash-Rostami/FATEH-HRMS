@@ -15,7 +15,7 @@
     <div
         x-ref="timeline"
         @scroll.debounce.100ms="handleScroll"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[5%] md:pr-[10%] md:pl-4 relative"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[10%] relative"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
         <x-ui.modals.max-backdrop state="maximizedFeed" close="toggleMaximize(null)" class="max-backdrop--sync"/>
@@ -33,8 +33,8 @@
                     class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'scale-100 md:scale-[1.15]': activeId == {{ $feed->id }},
-                        'scale-95 opacity-100 md:opacity-80 md:grayscale-[30%]': activeId != {{ $feed->id }},
-                        'max-widget-column !grayscale-0 !opacity-100': maximizedFeed === feed($el)
+                        'scale-95 opacity-100': activeId != {{ $feed->id }},
+                        'max-widget-column !opacity-100': maximizedFeed === feed($el)
                     }"
                 >
                     <div
@@ -96,23 +96,27 @@
         </div>
     </div>
 
-    <button
-        x-show="!maximizedFeed"
-        @click="scrollPrev"
-        class="absolute top-1/2 right-4 sm:right-8 -translate-y-1/2 z-40 w-12 h-12 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-        aria-label="Previous"
-    >
-        <span class="material-symbols-rounded text-2xl">chevron_right</span>
-    </button>
+    <template x-teleport="body">
+        <div x-show="!maximizedFeed" class="pointer-events-none">
+            <button
+                type="button"
+                @click="scrollPrev"
+                class="pointer-events-auto fixed top-1/2 right-4 md:right-[calc(11%)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
+                aria-label="Previous"
+            >
+                <span class="material-symbols-rounded text-2xl">chevron_right</span>
+            </button>
 
-    <button
-        x-show="!maximizedFeed"
-        @click="scrollNext"
-        class="absolute top-1/2 left-4 sm:left-8 -translate-y-1/2 z-40 w-12 h-12 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-        aria-label="Next"
-    >
-        <span class="material-symbols-rounded text-2xl">chevron_left</span>
-    </button>
+            <button
+                type="button"
+                @click="scrollNext"
+                class="pointer-events-auto fixed top-1/2 left-2 md:left-[calc(10%-80px)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
+                aria-label="Next"
+            >
+                <span class="material-symbols-rounded text-2xl">chevron_left</span>
+            </button>
+        </div>
+    </template>
 @else
     <div class="w-full h-full flex items-center justify-center px-8">
         <x-ui.empty icon="feed" title="هیچ خبری برای نمایش وجود ندارد" description="هنوز هیچ پستی در فید منتشر نشده است." variant="welcome" />

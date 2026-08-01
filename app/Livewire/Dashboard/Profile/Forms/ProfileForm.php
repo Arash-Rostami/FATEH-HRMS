@@ -2,21 +2,17 @@
 
 namespace App\Livewire\Dashboard\Profile\Forms;
 
+use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 use Livewire\Attributes\Validate;
+use Morilog\Jalali\CalendarUtils;
 
 class ProfileForm extends Form
 {
-    #[Validate('nullable|string|max:50')]
-    public ?string $personnel_id = '';
-
     #[Validate('required|in:male,female')]
     public string $gender = '';
-
-    #[Validate('nullable|string|max:50')]
-    public ?string $employment_type = '';
 
     #[Validate('required|in:single,married')]
     public string $marital_status = '';
@@ -55,9 +51,6 @@ class ProfileForm extends Form
     #[Validate('nullable|string|max:500')]
     public ?string $accessibility = '';
 
-    #[Validate('nullable|string|max:50')]
-    public ?string $position = '';
-
     #[Validate('required|string|max:50')]
     public string $insurance = '';
 
@@ -79,16 +72,12 @@ class ProfileForm extends Form
     #[Validate('nullable|image|max:2048')]
     public $image = null;
 
-    #[Validate('nullable|array')]
     public array $favoriteColors = [];
 
-    #[Validate('nullable|integer')]
     public ?int $birthYear = null;
 
-    #[Validate('nullable|integer')]
     public ?int $birthMonth = null;
 
-    #[Validate('nullable|integer')]
     public ?int $birthDay = null;
 
     protected function rules(): array
@@ -98,7 +87,24 @@ class ProfileForm extends Form
         return [
             'id_card_number' => ['nullable', 'string', 'max:20', Rule::unique('profiles', 'id_card_number')->ignore($profileId)],
             'id_booklet_number' => ['required', 'string', 'max:20', Rule::unique('profiles', 'id_booklet_number')->ignore($profileId)],
+            'birthYear' => 'nullable|integer|min:1300|max:1500|required_with:birthMonth,birthDay',
+            'birthMonth' => 'nullable|integer|min:1|max:12|required_with:birthYear,birthDay',
+            'birthDay' => ['nullable', 'integer', 'min:1', 'max:31', 'required_with:birthYear,birthMonth', $this->validBirthDate()],
+            'favoriteColors' => 'nullable|array',
+            'favoriteColors.*' => ['string', 'regex:/^(#[0-9a-fA-F]{3,8}|rgb\([^)]*\)|rgba\([^)]*\)|hsl\([^)]*\)|hsla\([^)]*\)|[a-z]+)$/'],
         ];
+    }
+
+    private function validBirthDate(): Closure
+    {
+        return function ($attribute, $value, $fail) {
+            if (
+                $this->birthYear && $this->birthMonth && $this->birthDay
+                && !CalendarUtils::checkDate((int) $this->birthYear, (int) $this->birthMonth, (int) $this->birthDay, true)
+            ) {
+                $fail('تاریخ تولد واردشده معتبر نیست.');
+            }
+        };
     }
 
     /**

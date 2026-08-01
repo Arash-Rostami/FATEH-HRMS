@@ -78,12 +78,19 @@ class GalleryFormPresenter
             ->directory('gallery')
             ->multiple()
             ->maxFiles(50)
-            ->maxSize(5120)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+            ->maxSize(51200)
+            ->acceptedFileTypes([
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'image/webp',
+                'video/mp4',
+                'video/webm',
+                'video/quicktime',
+            ])
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
             )
-            ->image()
             ->imagePreviewHeight('100')
             ->panelLayout('grid')
             ->reorderable()

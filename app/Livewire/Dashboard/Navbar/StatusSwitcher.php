@@ -4,13 +4,12 @@ namespace App\Livewire\Dashboard\Navbar;
 
 use App\Enums\PresenceStatus;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class StatusSwitcher extends Component
 {
-    public string $status = 'onsite';
+    public string $status = PresenceStatus::Onsite->value;
 
     public function changeStatus(string $val): void
     {
@@ -18,12 +17,6 @@ class StatusSwitcher extends Component
         if (!$statusEnum) return;
 
         $user = Auth::user();
-        $key = "idle_{$user->id}";
-
-        in_array($statusEnum, [PresenceStatus::Busy, PresenceStatus::Grumpy, PresenceStatus::Angry])
-            ? Cache::add($key, true, now()->addHours(8))
-            : Cache::forget($key);
-
         $user->update(['presence' => $statusEnum]);
         $this->status = $statusEnum->value;
         $this->dispatch('statusSwitcher-updated', status: $val);
@@ -32,7 +25,7 @@ class StatusSwitcher extends Component
     public function mount(): void
     {
         $current = Auth::user()->presence;
-        $this->status = $current instanceof PresenceStatus ? $current->value : ($current ?? 'onsite');
+        $this->status = $current instanceof PresenceStatus ? $current->value : ($current ?? PresenceStatus::Onsite->value);
     }
 
     public function render()

@@ -17,7 +17,36 @@
             icon="energy"
             title="پرسشنامه انرژی"
             count="{{ $this->userTestCount }}"
+        >
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'energy-badge-legend' })"
+                    title="راهنمای نشانگر اعلان"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">notifications</span>
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'energy-legend' })"
+                    title="راهنمای پرسشنامه انرژی"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        <x-dashboard.modal.badge-legend
+            name="energy-badge-legend"
+            :items="[\App\Services\Menu\BadgeLegendCatalog::get('energy-controller')]"
+            title="راهنمای نشانگر انرژی"
         />
+
+        <x-ui.modals.dialog name="energy-legend" title="راهنمای پرسشنامه انرژی">
+            @include('livewire.dashboard.energy.legend')
+        </x-ui.modals.dialog>
 
         <x-ui.buttons.tab-selector
             :activeTab="$activeTab"

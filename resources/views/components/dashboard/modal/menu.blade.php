@@ -36,13 +36,26 @@
                                                 {{-- restore RTL for the grid content --}}
                                                 <div dir="rtl" class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                                                     <template x-for="item in pageItems" :key="item.id">
-                                                        <a :href="item.href === '-' ? '#' : item.href"
+                                                        <a :href="item.disabled ? '#' : (item.href === '-' ? '#' : item.href)"
+                                                           :target="item.disabled || item.href === '-' ? '_self' : '_blank'"
+                                                           rel="noopener"
+                                                           :aria-disabled="item.disabled ? 'true' : 'false'"
+                                                           :title="item.disabled ? 'این گزینه در حال حاضر توسط مدیریت غیرفعال شده است' : ''"
                                                            @click="handleItemClick(item, $event)"
-                                                           class="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] active:scale-[0.96] transition-all duration-200 h-[110px] sm:h-[130px] justify-center border border-transparent hover:border-[var(--md-sys-color-outline-variant)]/20 cursor-pointer">
-                                                            <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
+                                                           class="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] active:scale-[0.96] transition-all duration-200 h-[110px] sm:h-[130px] justify-center border border-transparent"
+                                                           :class="item.disabled
+                                                                ? 'opacity-40 grayscale-[35%] cursor-not-allowed hover:bg-[var(--md-sys-color-surface-container-low)]'
+                                                                : 'hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-outline-variant)]/20 cursor-pointer'">
+                                                            <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-[var(--md-sys-color-primary)]/10 to-[var(--md-sys-color-primary)]/5 border border-[var(--md-sys-color-primary)]/10 shadow-sm transition-all duration-300"
+                                                                 :class="item.disabled ? '' : 'group-hover:shadow-md group-hover:scale-110'">
                                                                 <span class="material-symbols-rounded text-[22px] sm:text-[24px] text-[var(--md-sys-color-primary)]" x-text="item.icon"></span>
                                                                 <template x-if="@js($menuState)[item.id]">
                                                                     <x-ui.notification-badge />
+                                                                </template>
+                                                                <template x-if="item.disabled">
+                                                                    <span class="absolute -bottom-1 -left-1 w-5 h-5 rounded-full bg-[var(--md-sys-color-surface-container-highest)] border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-center shadow-sm">
+                                                                        <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-on-surface-variant)]">lock</span>
+                                                                    </span>
                                                                 </template>
                                                             </div>
                                                             <div class="text-center w-full" :id="item.id">

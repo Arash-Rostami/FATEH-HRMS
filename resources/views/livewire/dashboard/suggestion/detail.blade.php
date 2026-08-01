@@ -238,9 +238,9 @@
             <div>
                 <x-ui.title icon="description" title="شرح"/>
                 <p class="mt-3 text-sm leading-relaxed text-justify text-[var(--md-sys-color-on-surface-variant)]">
-                    {{ is_array($p->suggestion()->description)
+                    {!! \Illuminate\Support\Str::sanitizeHtml(is_array($p->suggestion()->description)
                         ? ($p->suggestion()->description['self'] ?? '')
-                        : $p->suggestion()->description }}
+                        : $p->suggestion()->description) !!}
                 </p>
             </div>
 
@@ -320,12 +320,15 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 @foreach($p->reviewItems() as $item)
                     <div @class([
-                    'rounded-xl p-4 space-y-3 border transition-all duration-200',
+                    'rounded-xl p-4 space-y-3 border transition-all duration-200 relative overflow-hidden',
                     $item['bg_class'] => true,
                     'border-r-[3px] border-r-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)]' => $item['is_ma'],
                     'border-[3px] border-[var(--md-sys-color-primary-container)] border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && $item['is_action'],
                     'border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && !$item['is_action'],
                 ])>
+                        @if($item['is_system_generated'])
+                            <span class="pointer-events-none absolute -top-1 left-3 rotate-[-8deg] text-[30px] font-black tracking-wider opacity-[0.06] select-none text-[var(--md-sys-color-on-surface)]">خودکار</span>
+                        @endif
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ $item['icon_bg_class'] }}">
@@ -341,6 +344,12 @@
                                     <span class="material-symbols-rounded text-xs shrink-0 text-[var(--md-sys-color-secondary)]" title="ارجاع برای اقدام">
                                     forward_to_inbox
                                 </span>
+                                @endif
+                                @if($item['is_system_generated'])
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                                        <span class="material-symbols-rounded text-[10px]">smart_toy</span>
+                                        تولید خودکار
+                                    </span>
                                 @endif
                             </div>
                             <span class="text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0 {{ $item['badge_bg_class'] }} {{ $item['badge_text_class'] }}">

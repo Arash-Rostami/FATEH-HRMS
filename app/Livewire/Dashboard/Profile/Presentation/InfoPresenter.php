@@ -28,13 +28,6 @@ class InfoPresenter
         2 => ['label' => 'سازمانی', 'icon' => 'badge', 'sub' => 'مشخصات هویتی'],
         3 => ['label' => 'تکمیلی', 'icon' => 'tune', 'sub' => 'تماس و سایر'],
     ];
-    public static array $birthYearRange = [];
-
-    public function __construct()
-    {
-        $now = now()->year;
-        self::$birthYearRange = range($now - 696, $now - 616);
-    }
 
     public static function getColors(): array
     {
@@ -47,7 +40,6 @@ class InfoPresenter
             'steps' => self::$steps,
             'stepFields' => self::$stepFields,
             'colors' => self::getColors(),
-            'birthYearRange' => self::$birthYearRange,
             'existingImage' => $existingImage,
         ];
     }

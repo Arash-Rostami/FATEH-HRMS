@@ -27,30 +27,3 @@
         </div>
     </div>
 @endif
-
-<div class="pr-6 py-3 w-1/2">
-    <div
-        title="راهنمای وضعیت سند"
-        class="inline-flex w-full flex-wrap items-center gap-3 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-3 text-sm font-medium text-[var(--md-sys-color-on-surface)]"
-    >
-        @foreach([
-            ['icon' => 'edit_document', 'color' => 'error', 'label' => 'نیازمند تایید دریافت'],
-            ['icon' => 'menu_book', 'color' => 'tertiary', 'label' => 'نیازمند تایید مطالعه'],
-            ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه شده'],
-        ] as $index => $item)
-            @if($index > 0)
-                <div class="h-6 w-px bg-[var(--md-sys-color-outline-variant)]/70"></div>
-            @endif
-
-            <div class="flex items-center gap-2.5 group">
-                <div
-                    class="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--md-sys-color-{{ $item['color'] }})] text-white shadow-md ring-1 ring-white/30 transition-transform group-hover:scale-105"
-                    title="{{ $item['label'] }}"
-                >
-                    <span class="material-symbols-rounded text-[16px]">{{ $item['icon'] }}</span>
-                </div>
-                <span class="whitespace-nowrap">{{ $item['label'] }}</span>
-            </div>
-        @endforeach
-    </div>
-</div>

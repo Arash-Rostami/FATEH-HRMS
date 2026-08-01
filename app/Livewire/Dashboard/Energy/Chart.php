@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\EnergyQuestionService;
 use App\Services\PersolTeamService as TeamData;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Chart extends Component
@@ -108,6 +109,12 @@ class Chart extends Component
     public function user(): User
     {
         return auth()->user();
+    }
+
+    #[On('energy-test-submitted')]
+    public function refreshAfterSubmit(): void
+    {
+        unset($this->history, $this->latestTest, $this->companyAverages, $this->teamMembersData);
     }
 
     public function render()

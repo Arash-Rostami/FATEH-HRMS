@@ -27,7 +27,7 @@
             {{ superClean($task['title']) }}
         </h3>
 
-        @if($task['can_delete'])
+        @if($task['can_delete'] && !$task['ticket_id'])
             <button
                 wire:click="deleteTask({{ $task['id'] }})"
                 class="opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] -m-2 p-2 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
@@ -37,7 +37,7 @@
             </button>
         @endif
 
-        @if($task['can_change_status'])
+        @if($task['can_change_status'] && !$task['ticket_id'])
             <div x-data="{ open: false }" class="relative">
                 <button
                     @click="open = !open"
@@ -89,8 +89,19 @@
         </p>
     @endif
 
-    @if($task['deadline'] || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id()) || ($activeTab === 'assigned-tasks' && $task['assignee_name']))
+    @if($task['deadline'] || $task['ticket_id'] || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id()) || ($activeTab === 'assigned-tasks' && $task['assignee_name']))
         <div class="flex flex-wrap items-center gap-2">
+            @if($task['ticket_id'])
+                <a
+                    href="{{ route('ths', ['open' => $task['ticket_id']]) }}"
+                    title="مشاهده تیکت مرتبط"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:brightness-110 transition"
+                >
+                    <span class="material-symbols-rounded text-sm">support_agent</span>
+                    <span>از تیکت</span>
+                </a>
+            @endif
+
             @if($task['deadline'])
                 <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold
                     {{ isPast($task['deadline']) && $task['status'] !== 'done'
@@ -133,7 +144,7 @@
         </div>
 
         <div class="flex items-center gap-1">
-            @if($task['is_delegator'] && $column !== 'done')
+            @if($task['is_delegator'] && $column !== 'done' && !$task['ticket_id'])
                 <button
                     wire:click="undoAssignment({{ $task['id'] }})"
                     class="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-xl text-[10px] font-bold text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95"
@@ -147,9 +158,9 @@
                 <button
                     wire:click="editTask({{ $task['id'] }})"
                     class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
-                    title="ویرایش"
+                    title="{{ $task['ticket_id'] ? 'مشاهده' : 'ویرایش' }}"
                 >
-                    <span class="material-symbols-rounded text-xl">edit</span>
+                    <span class="material-symbols-rounded text-xl">{{ $task['ticket_id'] ? 'visibility' : 'edit' }}</span>
                 </button>
             @elseif($task['is_delegator'])
                 <button

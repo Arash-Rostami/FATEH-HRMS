@@ -11,7 +11,7 @@
     @livewireStyles
 </head>
 <body
-    class="antialiased container-scrollbar custom-scrollbar min-h-screen bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
+    class="antialiased container-scrollbar custom-scrollbar min-h-screen flex flex-col bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
 <div class="loading-line"></div>
 
 @unless(View::hasSection('minimal_layout'))
@@ -19,11 +19,13 @@
     @livewire(\App\Livewire\Dashboard\Countdown::class)
 @endunless
 
-@isset($slot)
-    {{ $slot }}
-@else
-    @yield('content')
-@endisset
+<div id="content-shell">
+    @isset($slot)
+        {{ $slot }}
+    @else
+        @yield('content')
+    @endisset
+</div>
 
 
 

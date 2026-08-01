@@ -61,6 +61,33 @@ class DmsFormPresenter
             ->helperText(__('resources/dms/strings.hints.file'));
     }
 
+    public static function extraFiles(): FileUpload
+    {
+        return FileUpload::make('extra_files')
+            ->label(__('resources/dms/strings.fields.extra_files'))
+            ->disk('public')
+            ->directory('dms')
+            ->multiple()
+            ->openable()
+            ->downloadable()
+            ->maxSize(4096)
+            ->acceptedFileTypes([
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/csv',
+                'text/plain',
+            ])
+            ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => self::forgeFileName($file)
+            )
+            ->nullable()
+            ->columnSpanFull()
+            ->helperText(__('resources/dms/strings.hints.extra_files'));
+    }
+
     public static function owners(): Select
     {
         return Select::make('owners')

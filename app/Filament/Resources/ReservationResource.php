@@ -34,6 +34,15 @@ class ReservationResource extends Resource
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office';
     protected static ?int $navigationSort = 2;
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->resource?->labeled_name ?? $record->user?->name;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

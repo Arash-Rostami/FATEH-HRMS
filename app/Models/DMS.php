@@ -6,12 +6,14 @@ use App\Models\Traits\HasDepartmentHelpers;
 use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasUserHelpers;
+use App\Services\Dms\DmsKeyGrouper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 
 class DMS extends Model
@@ -47,6 +49,7 @@ class DMS extends Model
         'revision',
         'combined_read_count',
         'extra',
+        'extra_files',
         'tags',
     ];
 
@@ -54,7 +57,9 @@ class DMS extends Model
     {
         if (empty($this->owners)) return new Collection();
 
-        return once(fn() => Department::whereIn('code', $this->owners)->get());
+        return Department::getCachedModels()
+            ->filter(fn($model, $code) => in_array($code, $this->owners, true))
+            ->values();
     }
 
     public function getStatusIcon()
@@ -129,6 +134,19 @@ class DMS extends Model
         return $this->hasMany(Read::class, 'document_id');
     }
 
+    public function renditions(): array
+    {
+        return collect([$this->file, ...($this->extra_files ?? [])])
+            ->filter()
+            ->unique()
+            ->values()
+            ->map(fn($path) => [
+                'path' => $path,
+                'ext' => strtolower(pathinfo($path, PATHINFO_EXTENSION)),
+            ])
+            ->all();
+    }
+
     protected function readerNamesTooltip(): Attribute
     {
         return Attribute::make(get: function (): ?string {
@@ -161,7 +179,7 @@ class DMS extends Model
 
     private function readsBySignedUser(): Collection
     {
-        return once(fn () => $this->reads()->where('read', true)->get(['user_id', 'read_count'])->groupBy('user_id'));
+        return $this->reads()->where('read', true)->get(['user_id', 'read_count'])->groupBy('user_id');
     }
 
     public function scopeNonSystematic($query)
@@ -209,6 +227,8 @@ class DMS extends Model
 
     protected static function booted(): void
     {
+        static::saved(fn() => static::forgetListCaches());
+
         static::updated(function (DMS $document): void {
             if ($document->wasChanged('file') || $document->wasChanged('revision')) {
                 $document->reads()->update(['read' => false, 'read_count' => 0]);
@@ -216,7 +236,16 @@ class DMS extends Model
             }
         });
 
-        static::deleted(fn(DMS $document) => $document->reads()->delete());
+        static::deleted(function (DMS $document): void {
+            $document->reads()->delete();
+            static::forgetListCaches();
+        });
+    }
+
+    private static function forgetListCaches(): void
+    {
+        Cache::forget('dms_document_counts');
+        Cache::forget(DmsKeyGrouper::CACHE_KEY);
     }
 
     protected function casts(): array
@@ -225,6 +254,7 @@ class DMS extends Model
             'owners' => 'array',
             'users' => 'array',
             'extra' => 'array',
+            'extra_files' => 'array',
             'tags' => 'array',
             'type' => 'boolean',
         ];

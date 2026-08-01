@@ -24,7 +24,7 @@ class Details extends Component
 
         $existing = $profile ? $profile->detailsMap()->toArray() : [];
 
-        $values = collect(ProfileDetailCatalog::keys())
+        $values = collect(array_keys(ProfileDetailCatalog::userDefinitions()))
             ->mapWithKeys(fn($key) => [$key => $existing[$key] ?? ''])
             ->all();
 

@@ -124,6 +124,15 @@ class Suggestion extends Model
         return $query->whereJsonContains('departments', $code);
     }
 
+    public function scopeWithReviewCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'reviews as agree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['agree']),
+            'reviews as neutral_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['neutral']),
+            'reviews as disagree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['disagree']),
+        ]);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -4,7 +4,22 @@
     x-data="{ calendarOpen: true }"
     @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)">
 
-    <x-ui.title icon="calendar_month" title="تقویم کاری"/>
+    <x-ui.title icon="calendar_month" title="تقویم کاری">
+        <x-slot:actions>
+            <button
+                type="button"
+                @click="$dispatch('open-modal', { name: 'calendar-legend' })"
+                title="راهنمای دیدن و ویرایش رویدادها"
+                class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+            >
+                <span class="material-symbols-rounded text-lg">help</span>
+            </button>
+        </x-slot:actions>
+    </x-ui.title>
+
+    <x-ui.modals.dialog name="calendar-legend" title="راهنمای دیدن و ویرایش رویدادها">
+        @include('livewire.dashboard.tab.calendar.legend')
+    </x-ui.modals.dialog>
 
     @include('components.dashboard.header.focus-chip')
 

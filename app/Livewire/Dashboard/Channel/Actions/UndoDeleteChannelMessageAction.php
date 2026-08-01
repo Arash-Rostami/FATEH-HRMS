@@ -22,7 +22,7 @@ class UndoDeleteChannelMessageAction
                 return;
             }
 
-            ChannelMessage::create([
+            (new ChannelMessage())->forceFill([
                 'channel_id'  => $channelId,
                 'sender_id'   => $userId,
                 'body'        => $lastDeleted['body'],
@@ -31,7 +31,7 @@ class UndoDeleteChannelMessageAction
                 'reply_to_id' => $lastDeleted['reply_to_id'],
                 'created_at'  => $lastDeleted['created_at'],
                 'updated_at'  => now(),
-            ]);
+            ])->save();
         }
     }
 }

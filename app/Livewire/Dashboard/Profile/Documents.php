@@ -28,6 +28,12 @@ class Documents extends Component
         UploadStandardDocumentAction $standardAction,
         UploadCustomDocumentAction   $customAction): void
     {
+        if (!Auth::user()->profile) {
+            $this->dispatch('toast', message: 'ابتدا «اطلاعات فردی» را تکمیل و ذخیره کنید.', type: 'error');
+            $this->resetUploadState();
+            return;
+        }
+
         $isCustom = $this->pendingUploadKey === 'custom_upload_pending';
 
         $result = $isCustom

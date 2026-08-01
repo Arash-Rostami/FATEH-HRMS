@@ -12,7 +12,7 @@ class AssignTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !$task->can_change_status) {
+        if (!$task || !$task->can_change_status || $task->ticket_id) {
             return null;
         }
 

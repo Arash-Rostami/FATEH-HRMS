@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\PresenceStatus;
 use App\Models\Department;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -120,7 +121,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function departmentsData(): array
     {
-        $total = Department::count();
+        $total = Department::getCachedModels()->count();
         $withUsers = Department::has('users')->count();
         $mostDense = Department::withCount('users')->orderByDesc('users_count')->orderBy('code')->first()?->displayLabel() ?? 'نامشخص';
 
@@ -627,8 +628,8 @@ class ModuleAnalytics extends Widget implements HasSchemas
             COUNT(*) as total,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
             COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,
-            COUNT(CASE WHEN last_seen >= ? OR presence = 'onsite' THEN 1 END) as online
-        ", [now()->subMinutes(15)])->first();
+            COUNT(CASE WHEN last_seen >= ? OR presence = ? THEN 1 END) as online
+        ", [now()->subMinutes(15), PresenceStatus::Onsite->value])->first();
 
         return [
             Stat::make('کل کاربران', $stats->total)

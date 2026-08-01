@@ -4,6 +4,8 @@ namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Models\Message;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SendMessageAction
@@ -14,13 +16,25 @@ class SendMessageAction
 
         $senderId = auth()->id();
 
-        return Message::create([
-            'sender_id'    => $senderId,
-            'recipient_id' => $recipientId,
-            'body'         => trim($form->body),
-            'attachments'  => $this->storeAttachments($form->attachments, $senderId) ?: null,
-            'reply_to_id'  => $this->resolveReplyToId($replyToId, $senderId, $recipientId),
-        ]);
+        return DB::transaction(function () use ($form, $recipientId, $replyToId, $senderId) {
+            $stored = $this->storeAttachments($form->attachments, $senderId);
+
+            try {
+                return Message::create([
+                    'sender_id'    => $senderId,
+                    'recipient_id' => $recipientId,
+                    'body'         => trim($form->body),
+                    'attachments'  => $stored ?: null,
+                    'reply_to_id'  => $this->resolveReplyToId($replyToId, $senderId, $recipientId),
+                ]);
+            } catch (\Throwable $e) {
+                foreach ($stored as $item) {
+                    Storage::disk('public')->delete($item['path']);
+                }
+
+                throw $e;
+            }
+        });
     }
 
     private function resolveReplyToId(?int $replyToId, int $senderId, int $recipientId): ?int
@@ -39,16 +53,32 @@ class SendMessageAction
 
     private function storeAttachments(array $attachments, int $senderId): array
     {
-        return collect($attachments)->map(function ($file) use ($senderId) {
-            $name = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs("messages/{$senderId}", $name, 'public');
+        $stored = [];
 
-            return [
-                'path' => $path,
-                'name' => $file->getClientOriginalName(),
-                'mime' => $file->getMimeType(),
-                'size' => $file->getSize(),
-            ];
-        })->values()->all();
+        try {
+            foreach ($attachments as $file) {
+                $name = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $originalName = $file->getClientOriginalName();
+                $mime = $file->getMimeType();
+                $size = $file->getSize();
+
+                $path = $file->storeAs("messages/{$senderId}", $name, 'public');
+
+                $stored[] = [
+                    'path' => $path,
+                    'name' => $originalName,
+                    'mime' => $mime,
+                    'size' => $size,
+                ];
+            }
+        } catch (\Throwable $e) {
+            foreach ($stored as $item) {
+                Storage::disk('public')->delete($item['path']);
+            }
+
+            throw $e;
+        }
+
+        return $stored;
     }
 }

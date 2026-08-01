@@ -43,10 +43,6 @@ class SyncChannelMembersAction
                 $inserted = $channel->memberUsers()->newPivotStatement()->insertOrIgnore($rows);
             }
 
-            if (empty($recipientIds)) {
-                return;
-            }
-
             $toRemove = array_values(array_diff($current, $recipientIds, [$ownerId]));
 
             if (!empty($toRemove)) {

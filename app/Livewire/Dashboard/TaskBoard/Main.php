@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\TaskBoard;
 
+use App\Livewire\Dashboard\TaskBoard\Actions\AddTaskReplyAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\AssignTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkAssignTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkDeleteTasksAction;
@@ -11,6 +12,7 @@ use App\Livewire\Dashboard\TaskBoard\Actions\DeleteTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UndoTaskAssignmentAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UpdateTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UpdateTaskStatusAction;
+use App\Livewire\Dashboard\TaskBoard\Forms\ReplyForm;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Department;
@@ -34,18 +36,23 @@ class Main extends Component
     use WithFileUploads;
 
     public TaskForm $form;
+    public ReplyForm $taskReplyForm;
     public array $tasks = ['todo' => [], 'in-progress' => [], 'pending' => [], 'done' => []];
     public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'pending' => 0, 'done' => 0];
+    public array $doneTotalCount = ['done' => 0];
     public array $page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
+    public bool $showAllDone = false;
+
+    private const DONE_WINDOW_DAYS = 45;
 
     #[Locked]
     public ?int $editingTaskId = null;
     public array $staffMembers = [];
     public array $departmentOptions = [];
     public array $columns = ['todo', 'in-progress', 'pending', 'done'];
-    public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to'];
+    public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to', 'ticket_id'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
     public string $search = '';
     public bool $selectionMode = false;
@@ -78,6 +85,43 @@ class Main extends Component
     public function selectedDepartment(): ?Department
     {
         return Department::getCachedModels()->get($this->form->departmentId);
+    }
+
+    #[Computed]
+    public function editingTask(): ?Task
+    {
+        if (!$this->editingTaskId) {
+            return null;
+        }
+
+        $userId = auth()->id();
+
+        return Task::with('replies.user')
+            ->where(fn(Builder $query) => $query->where('user_id', $userId)->orWhere('assigned_to', $userId))
+            ->find($this->editingTaskId);
+    }
+
+    #[Computed]
+    public function canReplyToTask(): bool
+    {
+        $task = $this->editingTask;
+
+        return $task && in_array(auth()->id(), [$task->user_id, $task->assigned_to], true);
+    }
+
+    public function postTaskReply(AddTaskReplyAction $action): void
+    {
+        $task = $this->editingTask;
+
+        if (!$task) {
+            return;
+        }
+
+        $action->execute($this->taskReplyForm, $task, auth()->user());
+
+        $this->taskReplyForm->reset();
+        unset($this->editingTask);
+        $this->dispatch('toast', message: 'پاسخ شما ثبت شد.', type: 'success');
     }
 
     #[Computed]
@@ -156,9 +200,10 @@ class Main extends Component
 
         $this->editingTaskId = $taskId;
         $this->populateFormFromTask($task);
+        $this->taskReplyForm->reset();
 
         $this->isEditMode = true;
-        $this->isReadOnly = false;
+        $this->isReadOnly = (bool) $task->ticket_id;
         $this->isModalOpen = true;
     }
 
@@ -170,6 +215,7 @@ class Main extends Component
 
         $this->editingTaskId = $taskId;
         $this->populateFormFromTask($task);
+        $this->taskReplyForm->reset();
 
         $this->isEditMode = false;
         $this->isReadOnly = true;
@@ -237,10 +283,12 @@ class Main extends Component
                 ->whereNotNull('assigned_to')
                 ->where('assigned_to', '!=', $userId)
             )
-            ->when($this->search, fn($q) => $q->where(fn($sub) => $sub
+            ->when($this->search !== '', fn($q) => $q->where(fn($sub) => $sub
                 ->where('title', 'like', "%{$this->search}%")
                 ->orWhere('description', 'like', "%{$this->search}%")
             ));
+
+        $doneWindow = $this->doneWindowScope();
 
         $counts = (clone $baseQuery)
             ->whereIn('status', $this->columns)
@@ -248,18 +296,36 @@ class Main extends Component
             ->selectRaw('status, COUNT(*) as aggregate')
             ->pluck('aggregate', 'status');
 
+        $this->doneTotalCount['done'] = (int) ($counts->get('done', 0));
+
         foreach ($this->columns as $column) {
-            $this->totalCount[$column] = $counts->get($column, 0);
+            $isDone = $column === 'done';
+
+            $this->totalCount[$column] = $isDone && $doneWindow
+                ? (clone $baseQuery)->where('status', 'done')->tap($doneWindow)->count()
+                : $counts->get($column, 0);
 
             $this->tasks[$column] = (clone $baseQuery)
                 ->where('status', $column)
-                ->orderBy('created_at', 'desc')
+                ->when($isDone && $doneWindow, $doneWindow)
+                ->orderBy($isDone ? 'updated_at' : 'created_at', 'desc')
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
                 ->with($this->relationsToLoad)
                 ->get($this->columnsToSelect)
                 ->toArray();
         }
+    }
+
+    private function doneWindowScope(): ?callable
+    {
+        if ($this->showAllDone || $this->search !== '') {
+            return null;
+        }
+
+        $threshold = now()->subDays(self::DONE_WINDOW_DAYS);
+
+        return fn(Builder $query) => $query->where('updated_at', '>=', $threshold);
     }
 
     public function mount(): void
@@ -284,6 +350,24 @@ class Main extends Component
             $this->page[$column]++;
             $this->loadTasks();
         }
+    }
+
+    public function jumpToPage(string $column, int $target): void
+    {
+        if (!isset($this->page[$column])) {
+            return;
+        }
+
+        $lastPage = max(1, (int) ceil($this->totalCount[$column] / $this->perPage));
+        $this->page[$column] = max(1, min($target, $lastPage));
+        $this->loadTasks();
+    }
+
+    public function toggleShowAllDone(): void
+    {
+        $this->showAllDone = !$this->showAllDone;
+        $this->page['done'] = 1;
+        $this->loadTasks();
     }
 
     public function openCreateModal(): void
@@ -338,6 +422,7 @@ class Main extends Component
     {
         $this->activeTab = $tab;
         $this->page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
+        $this->showAllDone = false;
         $this->selectedTasks = [];
         $this->loadTasks();
     }

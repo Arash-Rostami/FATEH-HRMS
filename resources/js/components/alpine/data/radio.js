@@ -1,3 +1,5 @@
+import clipboardMixin from "../mixins/clipboard.js";
+
 export default function radio(id) {
     const API_SERVERS = [
         'https://de2.api.radio-browser.info/json',
@@ -25,6 +27,7 @@ export default function radio(id) {
     };
 
     return {
+        ...clipboardMixin(),
         open: false,
         minimized: false,
         playing: false,
@@ -197,9 +200,7 @@ export default function radio(id) {
         copyCurrentStation() {
             const text = this.currentStationUrl || this.formattedDisplay;
             if (!text) return;
-            navigator.clipboard.writeText(text)
-                .then(() => this.$dispatch('toast', { message: 'با موفقیت کپی شد.', type: 'success' }))
-                .catch(console.error);
+            this.copyText(text, 'با موفقیت کپی شد.');
         },
 
         minimize() { this.minimized = true; this.open = false; this.saveState(); },

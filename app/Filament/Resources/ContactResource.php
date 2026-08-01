@@ -20,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class ContactResource extends Resource
 {
@@ -32,6 +33,15 @@ class ContactResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return Str::limit($record->body ?? '', 60);
     }
 
     public static function form(Schema $schema): Schema

@@ -65,7 +65,7 @@ class Reservation extends Model
 
     public function scopePrevious(Builder $q): Builder
     {
-        return $q->where('status', 'active')
+        return $q->where('status', ReservationStatus::Active->value)
             ->where('end_time', '<', now());
     }
 
@@ -74,9 +74,16 @@ class Reservation extends Model
         return $q->whereNull('parent_id');
     }
 
+    public function scopeForToday(Builder $q): Builder
+    {
+        return $q->where('status', ReservationStatus::Active->value)
+            ->where('start_time', '<=', now()->endOfDay())
+            ->where('end_time', '>=', now()->startOfDay());
+    }
+
     public function scopeUpcoming(Builder $q): Builder
     {
-        return $q->where('status', 'active')
+        return $q->where('status', ReservationStatus::Active->value)
             ->where('end_time', '>=', now());
     }
 

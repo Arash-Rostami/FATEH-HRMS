@@ -8,6 +8,7 @@ export default function gallery() {
         showTimeline: false,
         month: '',
         visibleCount: 0,
+        previewTimer: null,
 
         init() {
             this.$nextTick(() => {
@@ -143,6 +144,38 @@ export default function gallery() {
             } finally {
                 this.loading = false;
             }
+        },
+
+        galleryPreviewPlay(el) {
+            if (!el || el.tagName !== 'VIDEO') return;
+            try {
+                el.currentTime = 0;
+                const p = el.play();
+                if (p && typeof p.then === 'function') p.catch(() => {});
+                if (this.previewTimer) clearTimeout(this.previewTimer);
+                this.previewTimer = setTimeout(() => {
+                    try { el.pause(); } catch (e) {}
+                }, 1500);
+            } catch (e) {}
+        },
+
+        galleryPreviewStop(el) {
+            if (this.previewTimer) {
+                clearTimeout(this.previewTimer);
+                this.previewTimer = null;
+            }
+            if (!el || el.tagName !== 'VIDEO') return;
+            try {
+                el.pause();
+                el.currentTime = 0.1;
+            } catch (e) {}
+        },
+
+        formatDuration(seconds) {
+            if (!seconds || !isFinite(seconds)) return '';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + String(s).padStart(2, '0');
         }
     }
 }

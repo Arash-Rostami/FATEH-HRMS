@@ -24,7 +24,7 @@ class DeleteChannelMessageAction
             'attachments' => $message->attachments,
             'is_edited'   => (bool) $message->is_edited,
             'reply_to_id' => $message->reply_to_id,
-            'created_at'  => $message->created_at->toISOString(),
+            'created_at'  => $message->created_at->toDateTimeString(),
             'original_id' => (int) $message->id,
         ];
 

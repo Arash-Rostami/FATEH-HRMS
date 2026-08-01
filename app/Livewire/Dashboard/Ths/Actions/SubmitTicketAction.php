@@ -12,9 +12,7 @@ class SubmitTicketAction
     {
         $form->validate();
 
-        $form->files = collect($form->files)
-            ->map(fn($f) => is_array($f) ? reset($f) : $f)
-            ->filter()->toArray();
+        $form->files = collect($form->files)->filter()->values()->all();
 
         Ticket::create([
             'request_type' => $form->requestType,
@@ -34,7 +32,7 @@ class SubmitTicketAction
     private function storeFiles(array $files): array
     {
         return collect($files)->map(function ($file) {
-            $name = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $name = time() . '_' . Str::random(10) . '.' . $file->extension();
             $path = $file->storeAs('ticket/requester', $name, 'public');
             return ['file' => $path];
         })->values()->all();

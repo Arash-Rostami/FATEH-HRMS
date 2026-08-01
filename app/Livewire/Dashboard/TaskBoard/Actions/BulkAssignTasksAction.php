@@ -10,7 +10,7 @@ class BulkAssignTasksAction
 {
     public function execute(array $taskIds, ?int $userId): int
     {
-        $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_change_status);
+        $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_change_status && !$task->ticket_id);
 
         if ($tasks->isEmpty()) {
             return 0;

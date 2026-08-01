@@ -16,7 +16,7 @@ class ReactionFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
             'feed_id' => Feed::inRandomOrder()->value('id') ?? Feed::factory(),
-            'emoji' => fake()->word(),
+            'emoji' => fake()->randomElement(['👍', '❤️', '😂', '😮', '😢', '👏', '🔥', '🎉']),
         ];
     }
 }

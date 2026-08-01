@@ -5,13 +5,14 @@ namespace App\Filament\Resources\ReservationPolicyResource\Pages;
 use App\Filament\Resources\ReservationPolicyResource;
 use App\Models\ReservationPolicy;
 use App\Services\Reservation\ValidationService;
+use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentPageBehavior;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class EditPolicy extends EditRecord
 {
-    use FilamentPageBehavior;
+    use FilamentEditHeading, FilamentPageBehavior;
 
     protected static string $resource = ReservationPolicyResource::class;
 

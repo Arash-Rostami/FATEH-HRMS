@@ -44,4 +44,9 @@ class AdNudge implements MenuNudge
     {
         return true;
     }
+
+    public function url($subject): ?string
+    {
+        return route('ads', ['open' => $subject->getKey()]);
+    }
 }

@@ -18,6 +18,7 @@ use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class FeedResource extends Resource
 {
@@ -26,6 +27,15 @@ class FeedResource extends Resource
     protected static ?string $model = Feed::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-rss';
     protected static ?int $navigationSort = 2;
+
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return Str::limit($record->content ?? '', 60);
+    }
 
     public static function form(Schema $schema): Schema
     {

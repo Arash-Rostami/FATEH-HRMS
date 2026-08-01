@@ -8,12 +8,14 @@ use Illuminate\Support\Collection;
 trait HasProfileHierarchy
 {
     public const RANKS = [
-        'c-manager'  => 1,
-        'manager'    => 2,
-        'supervisor' => 3,
-        'senior'     => 4,
-        'expert'     => 5,
-        'employee'   => 6,
+        'chairman'   => 1,
+        'ceo'        => 1,
+        'c-manager'  => 2,
+        'manager'    => 3,
+        'supervisor' => 4,
+        'senior'     => 5,
+        'expert'     => 6,
+        'employee'   => 7,
     ];
 
 
@@ -32,6 +34,21 @@ trait HasProfileHierarchy
         return $this->isInDepartment('MA');
     }
 
+    public function isTopExecutive(): bool
+    {
+        return in_array($this->profile?->position, ['chairman', 'ceo'], true);
+    }
+
+    public function isSeniorDecisionMaker(): bool
+    {
+        if ($this->isTopExecutive()) return true;
+
+        $anyTopExecutiveExists = static::active()
+            ->whereHas('profile', fn(Builder $q) => $q->whereIn('position', ['chairman', 'ceo']))
+            ->exists();
+
+        return !$anyTopExecutiveExists && $this->isInDepartment('MA');
+    }
 
     public function isDeptHead(): bool
     {

@@ -53,9 +53,9 @@ class Faqs extends Component
                 fn($q) => $q->whereKey($this->open),
                 // NORMAL MODE: apply the user's own filters.
                 fn($q) => $q
-                    ->when($this->search, fn($q, $s) => $q->where(fn($sub) => $sub
-                        ->where('question', 'like', "%{$s}%")
-                        ->orWhere('answer', 'like', "%{$s}%")
+                    ->when($this->search !== '', fn($q) => $q->where(fn($sub) => $sub
+                        ->where('question', 'like', "%{$this->search}%")
+                        ->orWhere('answer', 'like', "%{$this->search}%")
                     ))
                     ->when($this->selectedCategory, fn($q, $c) => $q->where('category', 'like', "%{$c}%"))
                     ->when($this->selectedDepartment, fn($q, $d) => $q->where('department_id', 'like', "%{$d}%"))

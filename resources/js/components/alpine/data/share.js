@@ -1,5 +1,8 @@
+import clipboardMixin from "../mixins/clipboard.js";
+
 export default function share() {
     return {
+        ...clipboardMixin(),
         panelOpen: false,
         sharePopoverOpen: false,
         shareTitle: '',
@@ -30,15 +33,8 @@ export default function share() {
         },
 
         copyToClipboard() {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(this.shareTitle + '\n\n' + this.shareText)
-                    .then(() => {
-                        this.sharePopoverOpen = false;
-                    })
-                    .catch(err => {
-                        console.error('Failed to copy text: ', err);
-                    });
-            }
+            this.copyText(this.shareTitle + '\n\n' + this.shareText);
+            this.sharePopoverOpen = false;
         },
 
         sendEmail() {

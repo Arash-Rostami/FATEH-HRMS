@@ -1,5 +1,7 @@
 <?php
 
+$tenant = (require __DIR__ . '/tenants.php')[env('APP_TENANT', 'fateh')] ?? [];
+
 return [
 
     /*
@@ -13,8 +15,28 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'InterrA'),
-    'company_name' => env('APP_NAME_ALT', 'اینترا'),
+    'tenant' => env('APP_TENANT', 'fateh'),
+
+    'name' => env('APP_NAME', $tenant['name'] ),
+    'name_en' => env('APP_NAME_EN', $tenant['name_en'] ),
+    'company_name' => env('APP_NAME_ALT', $tenant['company_name'] ),
+    'organization_name' => env('APP_ORGANIZATION', $tenant['organization_name'] ),
+    'organization_name_en' => env('APP_ORGANIZATION_EN', $tenant['organization_name_en'] ),
+    'slogan' => env('APP_SLOGAN', $tenant['slogan'] ),
+    'slogan_en' => env('APP_SLOGAN_EN', $tenant['slogan_en']),
+    'company_logo' => env('COMPANY_LOGO', $tenant['company_logo'] ),
+    'app_logo_light' => env('APP_LOGO_LIGHT', $tenant['app_logo_light'] ),
+    'app_logo_dark' => env('APP_LOGO_DARK', $tenant['app_logo_dark'] ),
+    'admin_reverse_logo' => (bool)($tenant['admin_reverse_logo'] ?? false),
+    'user_reverse_logo' => (bool)($tenant['user_reverse_logo'] ?? false),
+    'admin_use_company_logo' => (bool)($tenant['admin_use_company_logo'] ?? false),
+    'user_use_company_logo' => (bool)($tenant['user_use_company_logo'] ?? false),
+    'favicon' => env('APP_FAVICON', $tenant['favicon']),
+    'background_image' => env('APP_BACKGROUND_IMAGE', $tenant['background_image'] ),
+    'admin_background_image' => $tenant['admin_background_image'],
+    'videos' => $tenant['videos'] ?? [],
+    'instagram' => env('APP_INSTAGRAM', $tenant['instagram'] ?? null),
+    'linkedin' => env('APP_LINKEDIN', $tenant['linkedin'] ?? null),
     'version' => env('APP_VERSION', 'β'),
     'developer' => env('DEVELOPER', 'Arash R.'),
     'last_update' => env('APP_UPDATE', now()),
@@ -48,7 +70,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool)env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------

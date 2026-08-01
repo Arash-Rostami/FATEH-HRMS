@@ -43,6 +43,15 @@ class PermissionResource extends Resource
         return (bool)Permission::forUser(Auth::id())?->is_super_admin;
     }
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->user?->name ?? ('#' . $record->id);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

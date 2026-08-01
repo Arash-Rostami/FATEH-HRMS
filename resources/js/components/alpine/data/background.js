@@ -1,48 +1,32 @@
 export default function background() {
     return {
         activeIndex: 0,
-        direction: 'up',
+        previousIndex: null,
 
         init() {
             if (this.$wire) {
-                this.updateState();
+                this.updateState(true);
 
                 this.$watch('$wire.activeTab', () => this.updateState());
-                this.$watch('$wire.direction', () => this.updateState());
             }
         },
 
-        updateState() {
+        updateState(initial = false) {
             const tab = this.$wire.activeTab;
-            this.direction = this.$wire.direction;
 
             const index = Alpine.store('background').tabsOrder.indexOf(tab);
 
             if (index !== -1) {
+                this.previousIndex = initial ? null : this.activeIndex;
                 this.activeIndex = index - 1;
             }
         },
 
         getClasses(index) {
-            if (index === this.activeIndex) return 'opacity-[35%] translate-y-0 scale-100 w-[85%] mx-auto my-5';
+            if (index === this.activeIndex) return 'animate-backdrop-crossfade-in animate-delay-200 w-[85%] mx-auto my-5';
+            if (index === this.previousIndex) return 'animate-backdrop-crossfade-out z-0';
 
-            let transform = '';
-
-            if (this.direction === 'up') {
-                if (index < this.activeIndex) {
-                    transform = '-translate-y-full scale-75';
-                } else {
-                    transform = 'translate-y-full scale-75';
-                }
-            } else {
-                if (index > this.activeIndex) {
-                    transform = 'translate-y-full scale-75';
-                } else {
-                    transform = '-translate-y-full scale-75';
-                }
-            }
-
-            return `opacity-0 ${transform} z-0`;
+            return 'opacity-0 z-0';
         }
     }
 }

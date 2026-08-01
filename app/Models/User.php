@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
+use App\Enums\ResourceType;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasProfileHierarchy;
+use App\Services\User\UserKeyGrouper;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
@@ -26,6 +29,9 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         Notifiable,
         HasProfileHierarchy,
         HasImage;
+
+    protected static ?array $todaysDeskCache = null;
+    protected static ?array $todaysReservationsCache = null;
 
     protected $fillable = [
         'name',
@@ -51,7 +57,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         'type' => 'employee',
         'role' => 'user',
         'status' => 'active',
-        'presence' => 'remote',
+        'presence' => PresenceStatus::Remote->value,
     ];
 
     public function assignedTasks(): HasMany
@@ -157,6 +163,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         return Arr::get($this->extra ?? [], $key, $default);
     }
 
+    public static function forgetDynamicGroupCache(): void
+    {
+        Cache::forget(UserKeyGrouper::CACHE_KEY);
+    }
+
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->getProfileImageUrl();
@@ -179,7 +190,43 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function getTodaysDeskExtension(): ?string
     {
-        return null;
+        return static::$todaysDeskCache[$this->id] ?? null;
+    }
+
+    public function getTodaysReservationsLabel(): ?string
+    {
+        return static::$todaysReservationsCache[$this->id] ?? null;
+    }
+
+    public static function primeTodaysDeskCache(): void
+    {
+        if (static::$todaysDeskCache !== null) {
+            return;
+        }
+
+        $reservations = Reservation::forToday()
+            ->whereHas('resource', fn(Builder $q) => $q->whereIn('type', [ResourceType::Seat->value, ResourceType::Car->value]))
+            ->with('resource:id,type,name,metadata')
+            ->get(['id', 'user_id', 'resource_id']);
+
+        static::$todaysDeskCache = $reservations
+            ->mapWithKeys(fn(Reservation $r) => [
+                $r->user_id => Arr::get((array) $r->resource?->metadata, 'extension'),
+            ])
+            ->filter()
+            ->all();
+
+        static::$todaysReservationsCache = $reservations
+            ->groupBy('user_id')
+            ->map(fn(Collection $rows) => $rows->pluck('resource.labeled_name')->filter()->implode('، '))
+            ->filter()
+            ->all();
+    }
+
+    public static function resetTodaysDeskCache(): void
+    {
+        static::$todaysDeskCache = null;
+        static::$todaysReservationsCache = null;
     }
 
     public function hasElevatedRole(): bool
@@ -277,6 +324,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         return $query->where('status', 'active');
     }
 
+    public function scopeVisibleOnBoard($query)
+    {
+        return $query->active()->whereNot('type', UserType::Guest->value);
+    }
+
     public function scopeOfType($query, string $type)
     {
         return $query->where('type', $type);
@@ -289,7 +341,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function scopeSearch(Builder $query, string $term): void
     {
-        $query->when($term, fn($q) => $q->where(fn($q) => $q
+        $query->when($term !== '', fn($q) => $q->where(fn($q) => $q
             ->where('name', 'like', "%{$term}%")
             ->orWhereHas('profile', fn($p) => $p
                 ->where('position', 'like', "%{$term}%")
@@ -332,8 +384,13 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public function touchLastSeen(): void
     {
+        $was = $this->timestamps;
         $this->timestamps = false;
-        $this->forceFill(['last_seen' => now()])->saveQuietly();
+        try {
+            $this->forceFill(['last_seen' => now()])->saveQuietly();
+        } finally {
+            $this->timestamps = $was;
+        }
     }
 
     protected function booking(): Attribute
@@ -363,10 +420,19 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     protected static function booted(): void
     {
         $keys = ['user_active_options', 'user_all_options', 'user_names_map', 'user_admin_options'];
-        $forget = fn() => collect($keys)->each(Cache::forget(...));
+        $forget = function () use ($keys) {
+            foreach ($keys as $key) {
+                Cache::forget($key);
+            }
+        };
 
+        static::created(fn() => $forget());
         static::saved(fn(self $u) => $u->wasChanged(['name', 'role', 'status']) && $forget());
-        static::deleted($forget);
+        static::saved(fn() => self::forgetDynamicGroupCache());
+        static::deleted(function () use ($forget) {
+            $forget();
+            self::forgetDynamicGroupCache();
+        });
     }
 
     protected function casts(): array

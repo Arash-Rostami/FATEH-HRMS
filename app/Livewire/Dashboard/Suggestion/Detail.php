@@ -11,6 +11,7 @@ use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
 use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
+use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -37,26 +38,13 @@ class Detail extends Component
     #[Computed]
     public function canDecide(): bool
     {
-        return $this->isCeo() && $this->suggestion?->stage === 'awaiting_decision';
+        return SuggestionAccessPolicy::canDecide($this->suggestion);
     }
 
     #[Computed]
     public function canMarkComplete(): bool
     {
-        $user = Auth::user();
-        if (!$user) return false;
-
-        $s = $this->suggestion;
-        if (!$s) return false;
-
-        $deptId = $user->profile?->department_id;
-        if (!$deptId) return false;
-
-        $ceoReview = $s->reviews->firstWhere('department_id', 'MA');
-        if (!$ceoReview || !in_array($deptId, $ceoReview->referral ?? [], true)) return false;
-
-        $deptReview = $s->reviews->firstWhere('department_id', $deptId);
-        return $deptReview !== null && !$deptReview->isComplete();
+        return SuggestionAccessPolicy::canMarkComplete($this->suggestion);
     }
 
     public function markComplete(MarkImplementationCompleteAction $action): void
@@ -73,35 +61,14 @@ class Detail extends Component
     #[Computed]
     public function canGiveFeedback(): bool
     {
-        if (!Auth::user()?->isDeptHead() || Auth::user()?->isCeo()) return false;
-
-        $s = $this->suggestion;
-        if (!$s || $s->stage !== 'dept_remarks') return false;
-        if (!in_array(Auth::user()->profile?->department_id, $s->departments ?? [])) return false;
-
-        $hasNoReview = !$this->myReview;
-        $hasIncompleteReview = $this->myReview && !in_array($this->myReview->feedback, ['agree', 'disagree', 'neutral'], true);
-
-        return $hasNoReview || $hasIncompleteReview;
-    }
-
-    #[Computed]
-    public function isCeo(): bool
-    {
-        return Auth::user()?->isCeo() ?? false;
-    }
-
-    #[Computed]
-    public function isDeptHead(): bool
-    {
-        return Auth::user()?->isDeptHead() ?? false;
+        return SuggestionAccessPolicy::canGiveFeedback($this->suggestion);
     }
 
     #[Computed]
     public function myReview(): ?Review
     {
         return $this->suggestion?->reviews
-            ->firstWhere('department_id', Auth::user()?->profile?->department->code);
+            ->firstWhere('department_id', Auth::user()?->profile?->department?->code);
     }
 
     public function render()

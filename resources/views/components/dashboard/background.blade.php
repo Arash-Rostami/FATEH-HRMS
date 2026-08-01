@@ -18,7 +18,7 @@
     >
         <template x-for="i in $store.background.images.length" :key="i">
             <div
-                class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                class="absolute inset-0 bg-cover bg-center"
                 :class="getClasses(i - 1)"
                 :style="{ backgroundImage: 'url(' + $store.background.images[i - 1] + ')' }">
             </div>

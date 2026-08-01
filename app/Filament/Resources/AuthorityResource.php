@@ -27,6 +27,15 @@ class AuthorityResource extends Resource
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-shield-check';
     protected static ?int $navigationSort = 4;
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->duty ?? $record->department?->name ?? ('#' . $record->id);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

@@ -31,6 +31,7 @@ class DepartmentResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Department::class;
+    protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 3;
 

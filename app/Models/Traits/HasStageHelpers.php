@@ -2,8 +2,6 @@
 
 namespace App\Models\Traits;
 
-use Illuminate\Support\Facades\Auth;
-
 trait HasStageHelpers
 {
     public function syncStage(): void
@@ -18,13 +16,8 @@ trait HasStageHelpers
             return;
         }
 
-        $user = Auth::user();
-        $myDept = $user?->profile?->department?->code;
+        $myDept = $deptCodes[0];
 
-        if (!$myDept) return;
-
-        //  Single pass over reviews
-        $hasMyDeptReview = false;
         $maReview = null;
         $otherDepWithValidFeedBack = [];
 
@@ -32,9 +25,10 @@ trait HasStageHelpers
             $deptId = $review->department_id;
             if (in_array($review->feedback, ['agree', 'disagree', 'neutral'])) $otherDepWithValidFeedBack[$deptId] = true;
 
-            if ($deptId === $myDept) $hasMyDeptReview = true;
             if ($deptId === 'MA') $maReview = $review;
         }
+
+        $hasMyDeptReview = isset($otherDepWithValidFeedBack[$myDept]);
 
         // Check if ALL departments have been reviewed
         $allDeptsReviewed = collect($deptCodes)->every(fn($code) => isset($otherDepWithValidFeedBack[$code]));

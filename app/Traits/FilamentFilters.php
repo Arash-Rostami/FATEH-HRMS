@@ -28,12 +28,12 @@ trait FilamentFilters
                 ])
             ])
             ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'], fn($q) => $q->whereDate('created_at', '>=', $data['from']))
-                ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
+                ->when($data['from'] ?? null, fn($q) => $q->whereDate('created_at', '>=', $data['from']))
+                ->when($data['until'] ?? null, fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
             ->indicateUsing(function (array $data): array {
                 $indicators = [];
-                if ($data['from']) $indicators[] = __('resources/general/strings.filters.date_from') . ': ' . $data['from'];
-                if ($data['until']) $indicators[] = __('resources/general/strings.filters.date_until') . ': ' . $data['until'];
+                if ($from = $data['from'] ?? null) $indicators[] = __('resources/general/strings.filters.date_from') . ': ' . $from;
+                if ($until = $data['until'] ?? null) $indicators[] = __('resources/general/strings.filters.date_until') . ': ' . $until;
                 return $indicators;
             });
     }

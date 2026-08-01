@@ -33,6 +33,15 @@ class ProfileResource extends Resource
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-identification';
     protected static ?int $navigationSort = 2;
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->user?->name ?? ('#' . $record->personnel_id);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -244,6 +253,8 @@ class ProfileResource extends Resource
                         ->icon('heroicon-o-briefcase')
                         ->schema([
                             ProfileInfolistPresenter::department(),
+                            ProfileInfolistPresenter::unit(),
+                            ProfileInfolistPresenter::section(),
                             ProfileInfolistPresenter::position(),
                             ProfileInfolistPresenter::employmentType(),
                             ProfileInfolistPresenter::employmentStatus(),

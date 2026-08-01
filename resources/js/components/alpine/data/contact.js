@@ -2,6 +2,8 @@ import settings from "./settings.js";
 import {emojis} from "../stores/emoji.js";
 
 import maximizeMixin from "../mixins/maximize.js";
+import clipboardMixin from "../mixins/clipboard.js";
+import pasteImageMixin from "../mixins/pasteImage.js";
 
 const segmenter = new Intl.Segmenter();
 const emojiSet = new Set(emojis.flatMap(c => c.items));
@@ -9,6 +11,8 @@ const emojiSet = new Set(emojis.flatMap(c => c.items));
 export default function contact() {
     return {
         ...maximizeMixin(),
+        ...clipboardMixin(),
+        ...pasteImageMixin(),
         bgOption: 'a',
         searchMessages: false,
         messageSearchFullscreen: false,
@@ -33,6 +37,7 @@ export default function contact() {
         _onSelectionChange: null,
         _onKeyDown: null,
         _selRaf: null,
+        _unreadObserver: null,
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');
@@ -52,6 +57,9 @@ export default function contact() {
 
         init() {
             this.initPattern();
+            this.syncPushNotify();
+            this._unreadObserver = new MutationObserver(() => this.syncPushNotify());
+            this._unreadObserver.observe(document.body, {subtree: true, attributes: true, attributeFilter: ['data-total-unread']});
             const saved = localStorage.getItem('chat-settings');
             if (saved) {
                 try {
@@ -148,6 +156,16 @@ export default function contact() {
             if (this._selRaf) cancelAnimationFrame(this._selRaf);
             if (this._onSelectionChange) document.removeEventListener('selectionchange', this._onSelectionChange);
             if (this._onKeyDown) document.removeEventListener('keydown', this._onKeyDown);
+            if (this._unreadObserver) this._unreadObserver.disconnect();
+        },
+
+        syncPushNotify() {
+            const el = document.querySelector('[data-total-unread]');
+            const now = parseInt(el?.dataset.totalUnread) || 0;
+            if (this._lastUnread !== undefined && now > this._lastUnread) {
+                this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', 'contact');
+            }
+            this._lastUnread = now;
         },
 
         initPattern() {
@@ -246,35 +264,7 @@ export default function contact() {
 
         copyMessage(text) {
             if (!text || typeof text !== 'string') return;
-
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text)
-                    .then(() => this.toast('پیام کپی شد', 'info'))
-                    .catch(() => this.fallbackCopyText(text));
-            } else {
-                this.fallbackCopyText(text);
-            }
-        },
-
-        fallbackCopyText(text) {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.top = '0';
-            ta.style.left = '0';
-            ta.style.opacity = '0';
-            ta.setAttribute('readonly', '');
-            document.body.appendChild(ta);
-            ta.select();
-
-            try {
-                document.execCommand('copy');
-                this.toast('پیام کپی شد', 'info');
-            } catch (err) {
-                this.toast('خطا در کپی پیام', 'error');
-            } finally {
-                document.body.removeChild(ta);
-            }
+            this.copyText(text, 'پیام کپی شد', 'info');
         },
 
         startReply(id, senderName, body) {
@@ -317,7 +307,7 @@ export default function contact() {
             const rect = sel.getRangeAt(0).getBoundingClientRect();
             this.quoteChip = {
                 visible: true,
-                x: rect.left + (rect.width / 2),
+                x: rect.left,
                 y: rect.top,
                 id,
                 sender: senderEl?.getAttribute('data-sender') || '',

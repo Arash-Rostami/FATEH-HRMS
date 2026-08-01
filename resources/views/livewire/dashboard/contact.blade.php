@@ -53,12 +53,5 @@
 
     </div>
 
-    <div x-show="quoteChip.visible"
-         x-cloak
-         x-on:click.prevent="useQuoteChip()"
-         :style="`position:fixed; left:${quoteChip.x}px; top:${quoteChip.y - 44}px; transform:translateX(-50%); z-index:60;`"
-         class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg shadow-xl cursor-pointer text-[11px] font-semibold whitespace-nowrap bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-        <span class="material-symbols-rounded text-[14px]">reply</span>
-        <span>↩ پاسخ</span>
-    </div>
+    @include('livewire.dashboard.contact.quote-chip')
 </div>

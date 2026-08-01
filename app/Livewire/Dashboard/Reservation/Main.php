@@ -487,6 +487,7 @@ class Main extends Component
             $this->dispatch('toast', message: 'رزرو با موفقیت انجام شد', type: 'success');
             $this->invalidateAfterMutation();
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
     }
@@ -498,6 +499,7 @@ class Main extends Component
             $this->dispatch('toast', message: 'رزرو با موفقیت لغو شد', type: 'success');
             $this->invalidateAfterMutation();
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
     }
@@ -622,15 +624,20 @@ class Main extends Component
 
     public function render()
     {
-        $tabs = array_filter(
-            ResourceType::tabs(),
-            fn(array $tab): bool => $this->userCanBook($tab['id']),
+        $tabs = array_map(
+            fn(array $tab): array => [...$tab, 'disabled' => !app(ValidationService::class)->isTypeActive($tab['id'])],
+            array_filter(ResourceType::tabs(), fn(array $tab): bool => $this->userCanBook($tab['id'])),
         );
 
         return view('livewire.dashboard.reservation', [
             'tabs' => array_values($tabs),
             'historyTabs' => self::getHistoryTabs(),
         ])->extends('layouts.app')->section('content');
+    }
+
+    private function canBookTab(string $type): bool
+    {
+        return $this->userCanBook($type) && app(ValidationService::class)->isTypeActive($type);
     }
 
     private function userCanBook(string $type): bool
@@ -642,11 +649,11 @@ class Main extends Component
 
     private function ensurePermittedTab(): void
     {
-        if ($this->userCanBook($this->activeTab)) {
+        if ($this->canBookTab($this->activeTab)) {
             return;
         }
 
-        $first = collect(ResourceType::tabs())->first(fn (array $tab) => $this->userCanBook($tab['id']));
+        $first = collect(ResourceType::tabs())->first(fn (array $tab) => $this->canBookTab($tab['id']));
 
         if ($first) {
             $this->activeTab = $first['id'];
@@ -709,7 +716,7 @@ class Main extends Component
             return;
         }
 
-        if ($this->activeTab === $tab) return;
+        if ($this->activeTab === $tab || !$this->canBookTab($tab)) return;
         $this->activeTab = $tab;
         $this->resetFilters();
     }

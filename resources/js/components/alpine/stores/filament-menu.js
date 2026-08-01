@@ -10,11 +10,25 @@ export default class FilamentMenuManager {
             window.Alpine.store('filamentMenu', {
                 fullscreen: false,
                 wakeLock: null,
+                resetting: false,
 
                 init() {
                     document.addEventListener('fullscreenchange', () =>
                         this.fullscreen = !!document.fullscreenElement
                     );
+                },
+
+                async resetServerCache() {
+                    this.resetting = true;
+                    try {
+                        const response = await fetch('/reset');
+                        if (!response.ok) throw new Error();
+                        new window.FilamentNotification().title('کش سرور بازنشانی شد').success().send();
+                    } catch {
+                        new window.FilamentNotification().title('بازنشانی کش سرور ناموفق بود').danger().send();
+                    } finally {
+                        this.resetting = false;
+                    }
                 },
 
                 async toggleFullscreen() {

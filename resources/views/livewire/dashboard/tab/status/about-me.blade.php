@@ -51,6 +51,39 @@
             <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1">
                 <div class="max-w-5xl mx-auto w-full space-y-8">
 
+                    <div x-show="user?.department || user?.division || user?.section || (user?.favoriteColors && user.favoriteColors.length)"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="flex flex-wrap items-center gap-2">
+                        <template x-if="user?.department">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium">
+                                <span class="material-symbols-rounded text-[14px] opacity-70">domain</span>
+                                <span x-text="user.department"></span>
+                            </span>
+                        </template>
+                        <template x-if="user?.division">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium">
+                                <span class="material-symbols-rounded text-[14px] opacity-70">account_tree</span>
+                                <span x-text="user.division"></span>
+                            </span>
+                        </template>
+                        <template x-if="user?.section">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium">
+                                <span class="material-symbols-rounded text-[14px] opacity-70">view_module</span>
+                                <span x-text="user.section"></span>
+                            </span>
+                        </template>
+                        <template x-if="user?.favoriteColors && user.favoriteColors.length">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--md-sys-color-surface-variant)]/40 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium">
+                                <span class="material-symbols-rounded text-[14px] opacity-70">palette</span>
+                                <template x-for="c in user.favoriteColors" :key="c">
+                                    <span class="w-3.5 h-3.5 rounded-full border border-[var(--md-sys-color-outline-variant)]/60" :style="`background:${c}`" :title="c"></span>
+                                </template>
+                            </span>
+                        </template>
+                    </div>
+
                     <div x-show="aboutMe.bio"
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 translate-y-4"

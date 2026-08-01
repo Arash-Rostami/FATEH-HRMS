@@ -11,7 +11,35 @@
             icon="support_agent"
             title="تیکتینگ"
             :count="$this->totalTickets"
+        >
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'ths-badge-legend' })"
+                    title="راهنمای نشانگر اعلان"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">notifications</span>
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'ths-legend' })"
+                    title="راهنمای گردش‌کار تیکتینگ"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        <x-dashboard.modal.badge-legend
+            name="ths-badge-legend"
+            :items="[\App\Services\Menu\BadgeLegendCatalog::get('ths-controller')]"
         />
+
+        <x-ui.modals.dialog name="ths-legend" title="راهنمای گردش‌کار تیکتینگ">
+            @include('livewire.dashboard.ths.legend')
+        </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
 
@@ -52,7 +80,18 @@
              class="w-full">
             <x-ui.modals.max-backdrop/>
             <div :class="{ 'max-widget': max }">
-                @include('livewire.dashboard.ths.list')
+                <div class="flex mb-4">
+                    <x-ui.buttons.toggle
+                        wire:click="toggleActionableFilter"
+                        :checked="$listFilter === 'actionable'"
+                        title="نیاز به اقدام من"
+                        name="listFilter"
+                        bordered="true"
+                        class="mr-auto"
+                    />
+                </div>
+
+                @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
             </div>
         </div>
     </div>

@@ -1,31 +1,22 @@
-# View Layer Architecture Documentation
+# View Layer Architecture
 
-## Overview
-This document defines the structural organization of the view layer, establishing clear boundaries between reusable UI primitives, domain-specific components, and page-level compositions.
+Structural organization of the view layer: boundaries between reusable UI primitives, domain components, and page-level compositions.
 
 ---
 
 ## 1. Components (`resources/views/components/`)
 
-### 1.1 Directory Structure
 ```
 components/
-├── admin/          # Administrative interface components
-├── auth/           # Authentication flow components
-├── dashboard/      # Dashboard-specific widgets
-└── ui/             # Domain-agnostic design system
+├── admin/
+├── auth/
+├── dashboard/
+└── ui/
 ```
 
-### 1.2 Classification Criteria
+### 1.1 UI Components (`components.ui.*`)
+Design system primitives with zero business logic. Dedicated subdirectories for variant families (`ui/buttons/`, `ui/modals/`, `ui/forms/`); root `ui/` for singletons.
 
-#### 1.2.1 UI Components (`components.ui.*`)
-**Purpose:** Design system primitives with zero business logic dependency.
-
-**Location Logic:**
-- **Dedicated subdirectories** (e.g., `ui/buttons/`, `ui/modals/`, `ui/forms/`) — for variants requiring type differentiation
-- **Root level** (`ui/`) — for singleton components without significant variation
-
-**Determining Factors:**
 | Criterion | UI Location | Domain Location |
 |-----------|-------------|-----------------|
 | Cross-domain utilization | Required | Prohibited |
@@ -33,121 +24,67 @@ components/
 | Eloquent model dependency | None | Allowed |
 | `config()` or `auth()` references | None | Allowed |
 
-**Example:**
 ```php
-{{-- UI: Pure presentation --}}
 <x-ui.button variant="primary" size="lg">Submit</x-ui.button>
-
-{{-- Domain: Business logic encapsulated --}}
 <x-dashboard.employee.status-badge :employee="$user" />
 ```
 
-#### 1.2.1.1 Opt-in Behavior Composition (`maximizable`)
-**Purpose:** Share a stateful Alpine/Livewire behavior (not just markup) across multiple `ui.forms.*` primitives without duplicating it per-component.
+#### 1.1.1 Opt-in Behavior Composition (`maximizable`)
+Share a stateful Alpine/Livewire behavior across multiple `ui.forms.*` primitives without duplicating it per-component. Two small partials — `ui.forms.maximize-trigger` and `ui.forms.maximize-overlay` — are included by any host that declares the shared `x-data` scope. The host (`input`, `textarea`, `search`) takes a `maximizable` prop (default `false`); only when true, wraps its root with `x-data="{ value: @entangle($attributes->wire('model')->value() ?? '').live, fullscreen: false }"` plus `wire:ignore.self` — deriving the entangled property from the `wire:model` attribute already on the tag (same technique `select.blade.php` uses), so no separate `model` string prop is needed. Apply only to genuinely long-form free text (bio, descriptions, decision notes) — never short structured fields.
 
-**Pattern:**
-- The behavior's markup lives in two small partials — `ui.forms.maximize-trigger` (the expand button) and `ui.forms.maximize-overlay` (the teleported fullscreen editor) — included by any host component that declares the shared `x-data` scope.
-- The host component (`input`, `textarea`, `search`) takes a `maximizable` prop (default `false`, opt-in) and, only when true, wraps its root element with `x-data="{ value: @entangle($attributes->wire('model')->value() ?? '').live, fullscreen: false }"` plus `wire:ignore.self` — deriving the entangled property straight from the `wire:model` attribute already on the tag (same technique `select.blade.php` uses for its searchable dropdown), so no separate `model` string prop is needed.
-- The host's own field keeps its normal `wire:model` binding; the entangled `value` is purely the bridge that lets the fullscreen overlay's `x-model="value"` stay in sync with the same Livewire property.
-- Apply `maximizable` only where the field is genuinely long-form free text (bio, descriptions, decision notes) — not on short structured fields (codes, phone numbers, single selects).
-
-**Example:**
 ```blade
 <x-ui.forms.textarea label="شرح پیشنهاد" name="form.descriptionSelf" wire:model="form.descriptionSelf" :rows="5" :maximizable="true"/>
 ```
 
-#### 1.2.1.2 Image gallery maximize (teleported fullscreen viewer)
-**Purpose:** Click any image in a media grid (1, 2, 3, … images — count does not matter) to open it fullscreen, with prev/next navigation across the set. Reuse the same shape wherever a media grid appears (`posts/details.blade.php` single image; `feeds/media.blade.php` multi-image).
+#### 1.1.2 Image gallery maximize (teleported fullscreen viewer)
+Click any image in a media grid to open it fullscreen with prev/next navigation. Reuse wherever a media grid appears (`posts/details.blade.php`, `feeds/media.blade.php`).
 
-**Pattern:**
-- Self-contained Alpine scope on the grid root: `x-data="{ open: false, index: 0 }"`. Each image cell's `@click="index = N; open = true"` opens the viewer at that image's position; `cursor-zoom-in` + an `open_in_full` badge signal it is clickable. Videos stay inline (`<video controls>`) and are **excluded** from the viewer.
-- The viewer is `<template x-teleport="body">` → a `fixed inset-0 z-[99999] bg-black/90` overlay, so it is never clipped by ancestor `overflow-hidden` (unlike an in-card absolute tooltip). Close via `@click.self` on the backdrop, a close button, or `@keydown.escape.window`.
-- Build two lists from the raw paths: `$items` (all, for the grid) and `$images` (non-videos only, for the viewer). Walk `$items` with an image-only counter so each image's click target equals its position in `$images`; render one `<img x-show="index === N">` per image in the viewer and `x-show` toggles the active one. Use `!isVideo($p)` (the closure param), never `$path` (undefined in that scope → keeps videos too → broken `<img>` in the viewer).
-- Grid sizing: `grid-cols-2` alone leaves rows auto-sized to each image's intrinsic height, so a 4-image set's second row overflows the card's `overflow-hidden` and is clipped. Fix with explicit `grid-rows-{{ ceil($count/$cols) }}` plus a definite height (`h-[400px]` for multi-row, `h-[320px]` single) so rows share the space equally (`minmax(0,1fr)`) and every cell stays visible without scrolling.
-- Multi-image prev/next use modular wraparound: `index = (index - 1 + total) % total` / `index = (index + 1) % total`; only render the arrows when `count($images) > 1`.
-- Because the `x-data` is per-include, each card/post has its own independent viewer; only the clicked one opens. Reuse `animate-backdrop-in` for the entrance.
+- Per-grid Alpine scope `x-data="{ open: false, index: 0 }"`; each cell `@click="index = N; open = true"` with `cursor-zoom-in`. Videos stay inline (`<video controls>`) and are **excluded** from the viewer.
+- Viewer is `<template x-teleport="body">` → `fixed inset-0 z-[99999] bg-black/90`, so never clipped by ancestor `overflow-hidden`. Close via `@click.self` backdrop, close button, or `@keydown.escape.window`.
+- Build `$items` (all, for the grid) and `$images` (non-videos, for the viewer). Walk `$items` with an image-only counter so each click target equals its position in `$images`. Use `!isVideo($p)` (the closure param), never `$path` (undefined in that scope → keeps videos → broken `<img>`).
+- Grid sizing: `grid-cols-2` alone leaves rows auto-sized to intrinsic height, so a 4-image set's second row overflows `overflow-hidden`. Fix with explicit `grid-rows-{{ ceil($count/$cols) }}` plus definite height (`h-[400px]` multi-row, `h-[320px]` single) so rows share space equally (`minmax(0,1fr)`).
+- Multi-image prev/next wrap modularly: `index = (index - 1 + total) % total` / `index = (index + 1) % total`; render arrows only when `count($images) > 1`. Per-include `x-data` means each card has its own independent viewer. Reuse `animate-backdrop-in`.
 
-#### 1.2.2 Domain Components (`components.{admin,auth,dashboard}.*`)
-**Purpose:** Controller-less Blade compositions representing specific business contexts.
-
-**Characteristics:**
-- Encapsulate domain-specific presentation logic
-- May interact with services, repositories, or Presenter patterns
-- Not intended for cross-domain reuse
-- Flat structure preferred; nested only when component count exceeds 5+ related partials
+### 1.2 Domain Components (`components.{admin,auth,dashboard}.*`)
+Controller-less Blade compositions for specific business contexts. May interact with services, repositories, or Presenters; not for cross-domain reuse. Flat structure; nest only at 5+ related partials.
 
 ---
 
 ## 2. Livewire Components (`resources/views/livewire/`)
 
-### 2.1 Directory Mapping
-Mirrors `App\Livewire\` namespace structure:
-
-```
-livewire/
-├── admin/
-├── auth/
-└── dashboard/
-```
-
-### 2.2 Organizational Rules
+Mirrors `App\Livewire\` namespace: `livewire/{admin,auth,dashboard}/`.
 
 | Aspect | Convention |
 |--------|------------|
 | **Primary view** | `livewire/{domain}/{Module}.blade.php` |
 | **Controller** | `App\Livewire\{Domain}\{Module}.php` |
-| **Partials** | Co-located in `livewire/{domain}/` directory |
+| **Partials** | Co-located in `livewire/{domain}/` |
 
-### 2.3 Partial Extraction Criteria
-Extract to dedicated partial only when:
-- Component exceeds 150 lines
-- Section requires conditional inclusion
-- Logic is reused within the same domain
-
-**Anti-pattern:** Strict separation for components under 100 lines creates navigation friction.
+Extract a partial only when the component exceeds 150 lines, a section needs conditional inclusion, or logic is reused within the same domain. Anti-pattern: strict separation under 100 lines creates navigation friction.
 
 ---
 
 ## 3. Error Views (`resources/views/errors/`)
 
-### 3.1 Requirements
-- **Template Inheritance:** Must extend `layouts.app`
-- **Layout Suppression:** Implement `@section('minimal_layout', true)` to exclude:
-    - Navigation headers
-    - Sidebars
-    - Footers
-
-### 3.2 Rationale
-Error pages require reduced chrome to prevent recursive failures in shared components (e.g., database-dependent navigation).
+Must extend `layouts.app` and set `@section('minimal_layout', true)` to suppress navigation headers, sidebars, and footers. Reduced chrome prevents recursive failures in shared components (e.g., database-dependent navigation).
 
 ---
 
 ## 4. Layouts (`resources/views/layouts/`)
 
-### 4.1 Responsibility
-Centralized orchestration layer for:
-- HTML document structure
-- Asset pipeline inclusion (Vite, Livewire)
-- Global component injection
-- Render slot flexibility
+Centralized orchestration for HTML document structure, asset pipeline inclusion (Vite, Livewire), global component injection, and render slot flexibility.
 
-### 4.2 Contract
 ```blade
-{{-- Supports both modern component syntax --}}
 @isset($slot)
     {{ $slot }}
 @else
-    {{-- Legacy yield for backward compatibility --}}
     @yield('content')
 @endisset
 ```
 
-### 4.3 Global UI Injection
-Layout automatically includes cross-cutting concerns:
-- Confirmation modals
-- Toast notifications
-- Background elements
-- Header/Footer (unless `minimal_layout` section defined)
+The `@else` branch is a legacy yield for backward compatibility — kept so non-component views still resolve `@section('content')`.
+
+Layout auto-includes cross-cutting concerns: confirmation modals, toast notifications, background elements, and header/footer (unless `minimal_layout` is set).
 
 ---
 
@@ -176,28 +113,53 @@ Layout automatically includes cross-cutting concerns:
 
 ## 7. Anti-Patterns to Avoid
 
-1. **Deep nesting:** Maximum 3 levels (`domain/sub-component/file`)
-2. **`.index` suffix:** Use `footer.blade.php`, not `footer/index.blade.php`
-3. **`partials/` subfolders:** Co-locate; use folders only for 5+ related files
-4. **Business logic in UI:** Move to domain or Livewire controller
-5. **Generic naming:** `components.partials.card` → `components.ui.card`
+1. Deep nesting: max 3 levels (`domain/sub-component/file`)
+2. `.index` suffix: use `footer.blade.php`, not `footer/index.blade.php`
+3. `partials/` subfolders: co-locate; use folders only for 5+ related files
+4. Business logic in UI: move to domain or Livewire controller
+5. Generic naming: `components.partials.card` → `components.ui.card`
 
 ---
 
 ## 8. Shared component patterns
 
-### 8.1 Shared empty-state component (`<x-ui.empty>`)
-
-A single design-system component for **all** user-panel empty-states. Props: `icon` (required), `title` (required), `description?`, `variant?` (`'list'|'welcome'|'filtered'`), `fill?` (bool — `h-full w-full` instead of the default `h-64`), `watermark?` (decorative background icon), `animate?` (bool — `animate-pulse` on the icon). With no extra props it renders byte-equivalent to the original inline empty-states, so adopting it is a pure substitution. Keep genuinely special cases inline (the gallery filtered-overlay, the contact welcome panel) rather than forcing them through the component. Profile onboarding/credentials wrap it in a dashed-border card div. Rule: reach for `<x-ui.empty>` first; only fall back to inline markup when the empty-state has structure the component cannot express.
+### 8.1 Shared empty-state (`<x-ui.empty>`)
+One design-system component for **all** user-panel empty-states. Props: `icon` (required), `title` (required), `description?`, `variant?` (`'list'|'welcome'|'filtered'`), `fill?` (bool — `h-full w-full` instead of default `h-64`), `watermark?`, `animate?`. With no extra props it renders byte-equivalent to the original inline empty-states, so adopting is a pure substitution. Keep genuinely special cases inline (gallery filtered-overlay, contact welcome panel). Profile onboarding/credentials wrap it in a dashed-border card. Reach for `<x-ui.empty>` first; fall back to inline only when the empty-state has structure the component cannot express.
 
 ### 8.2 Solid-button dropdown for filters
-
-The gallery month filter is a **solid button that opens a dropdown on click** — not chips, not a native `<select>`. Wrapper: `x-data="{ open: false }" @click.outside="open = false"`; button `@click="open = !open"` with `:class="open || month ? 'primary-bg' : 'surface-container-highest'"`; popup `x-show="open" x-transition x-cloak` listing options that set the Alpine `month` var and `open = false`. This matches the reports card/list solid segmented-toggle visual language (surface-container-high container, primary active state). Use this shape for any single-dimension filter that picks one value from a short list — it stays consistent with the rest of the user panel's solid-toggle vocabulary.
+The gallery month filter is a **solid button opening a dropdown on click** — not chips, not native `<select>`. Wrapper: `x-data="{ open: false }" @click.outside="open = false"`; button `@click="open = !open"` with `:class="open || month ? 'primary-bg' : 'surface-container-highest'"`; popup `x-show="open" x-transition x-cloak` listing options that set the Alpine `month` var and `open = false`. Matches the reports card/list solid segmented-toggle visual language. Use this shape for any single-dimension filter picking one value from a short list.
 
 ### 8.3 Pre-paint theme bootstrap (`public/js/mode-manager.js`)
+Dark mode is class-based (`@variant dark (&:where(.dark, .dark *))` in `app.css`, palette vars in `core/theme.css` keyed on `:root.dark` / `[data-theme='x'].dark`), so the page is dark **only when `.dark` is on `<html>`**. The toggle in `resources/js/core/theme-manager.js` loads as a deferred `type="module"` via `@vite` — executing *after* first paint, causing a light→dark flash (FOUC) on cold load, hard refresh, and `wire:navigate` transitions. Fix: `public/js/mode-manager.js` — a standalone IIFE that reads `localStorage('user-mode')` (fallback `matchMedia('(prefers-color-scheme: dark)')`) and `localStorage('user-theme')` (fallback `'default'`) and sets `.dark` + `data-theme` on `documentElement` synchronously. Included in `layouts/app.blade.php` `<head>` as a **plain classic `<script src>` before `@vite`** (`<script src="{{ asset('js/mode-manager.js') }}"></script>`) — never via `@vite` (would emit `type="module"` deferred → re-introduce flash). Filament admin gets the same tag at `PanelsRenderHook::HEAD_START` in `FilamentServiceProvider::registerThemeBootstrap()`. Auth layout is intentionally not covered. The file lives directly under `public/js/` (NOT `public/build/`, NOT a `viteStaticCopy` target, NOT a Vite entry) so Laravel's web server serves it at `/js/mode-manager.js` in dev and prod with no build step, manifest, or hashing. Classic head scripts re-execute on `wire:navigate`, so SPA nav is covered. `ThemeManager` stays unchanged — re-applies idempotently, owns Alpine-store sync and cross-tab `storage` listeners. Rule: any client-resolved, paint-affecting state must be asserted by a render-blocking classic script in `<head>` before the deferred `@vite` bundle; ship as a static `public/` asset (not through Vite); reuse existing storage keys, never add a parallel mechanism.
 
-Dark mode is class-based (`@variant dark (&:where(.dark, .dark *))` in `app.css`, palette vars in `core/theme.css` keyed on `:root.dark` / `[data-theme='x'].dark`), so the page is dark **only when `.dark` is on `<html>`**. The toggle lives in `resources/js/core/theme-manager.js`, loaded as a deferred `type="module"` via `@vite` — which executes *after* first paint, causing a light→dark flash (FOUC) on cold load, hard refresh, and `wire:navigate` SPA transitions. Fix: `public/js/mode-manager.js` — a standalone IIFE (no deps, no comments) that reads `localStorage('user-mode')` (fallback `matchMedia('(prefers-color-scheme: dark)')`) and `localStorage('user-theme')` (fallback `'default'`) and sets `.dark` + `data-theme` on `documentElement` synchronously. It is included in `layouts/app.blade.php` `<head>` as a **plain classic `<script src>` before `@vite`** (`<script src="{{ asset('js/mode-manager.js') }}"></script>`) — never via `@vite`, which would emit `type="module"` (deferred) and re-introduce the flash. The Filament admin gets the same tag injected at `PanelsRenderHook::HEAD_START` in `FilamentServiceProvider::registerThemeBootstrap()`. Auth layout is intentionally not covered. The file lives directly under `public/js/` (NOT `public/build/`, NOT a `viteStaticCopy` target, NOT a Vite entry) so Laravel's web server serves it at `/js/mode-manager.js` in both dev and prod with no build step, no manifest, no hashing. Classic head scripts re-execute on `wire:navigate`, so SPA nav is covered by the same mechanism. `ThemeManager` stays unchanged — it re-applies idempotently and keeps owning Alpine-store sync and cross-tab `storage` listeners. Rule: any client-resolved, paint-affecting state must be asserted by a render-blocking classic script in `<head>` before the deferred `@vite` bundle runs; ship it as a static `public/` asset (not through Vite) so it is never deferred or hashed; reuse the existing storage keys, never add a parallel mechanism.
+### 8.4 In-page tools survive navigation (`@persist` + new-tab module links)
+Dashboard tools (radio/calculator/stopwatch in `components/dashboard/tools/*`, Alpine `x-data` whose minimized pills `x-teleport="#tool-dock"`) live in the **layout** via `components/dashboard/global.blade.php` (included by `layouts/app.blade.php`), outside the page slot — so in-place tab swaps (`switch-tab`) never touch them. Rule: **a module either opens in-page (SPA, tools preserved) or in a new tab (full reload, originating tab's tools untouched) — never a same-tab full reload that kills the tools.** (1) The **menu modal** (`components/dashboard/modal/menu.blade.php`) uses plain `<a href>`, so route items get `:target="item.href === '-' ? '_self' : '_blank'"` + `rel="noopener"` — in-page tools (`href:'-'`, which `handleItemClick` `preventDefault`s + `$dispatch`es) stay `_self`; every route item opens a new tab, leaving the dashboard tab's radio playing. Matches the left-sidebar (`navbars/left.blade.php`) and account-dropdown `target="_blank"` convention. (2) **SPA navigation** (command palette `navigate:true`, `wire:navigate` chips, profile back-to-dashboard link) swaps the body and would re-init tools — so the 3 tool includes + `#tool-dock` are wrapped in `@persist('dashboard-tools') ... @endpersist` inside `global.blade.php`; Livewire v4 caches that subtree across `wire:navigate`, preserving Alpine state, window listeners, and the detached `new Audio()` (radio audio keeps playing). `#tool-dock` MUST stay inside the same `@persist` region as the tools. Toast/occasion stay outside `@persist`. Do NOT add an empty `x-persist="dashboard-tools"` stub on `minimal_layout` pages — it would cache an empty node on navigate-away and overwrite the real tools on the next normal page; the current "no stub on minimal pages" state is correct. `menu.js` needs no change.
+
+### 8.5 Badge/nudge notification legend (`<x-dashboard.modal.badge-legend>` + `BadgeLegendCatalog`)
+A reusable cross-module modal explaining `App\Services\Menu`'s two notification signals (see `app/Services/Menu/statePattern.md`): the "dot" (live status, Signal 1) and the "bell" (one-time dismissible alert, Signal 2). Wraps `<x-ui.modals.dialog>` — does not fork it. The bell's always-shown intro chip also explains the optional click-to-redirect `url()` capability — a bell with a "مشاهده" action jumps straight to the relevant record; aggregated bell cards (5+ folded into one) never have this button. One shared sentence in `badge-legend.blade.php` covers every consumer.
+
+**Single source of truth — `App\Services\Menu\BadgeLegendCatalog`.** Every badge's row data (`tone`, `icon`, `label`, `lights`/`clears` copy, `surface`) is defined **once**, keyed by the indicator's `getKey()`. `BadgeLegendCatalog::get($key)` returns one row; `BadgeLegendCatalog::grouped()` returns all 14 rows bucketed into 5 thematic tabs (`groups()`). Editing a row updates it everywhere at once — replacing an earlier draft that duplicated each row literally in every Blade file (a real content-drift bug: Ths's two copies disagreed on what clears the badge).
+
+**Props on `<x-dashboard.modal.badge-legend>`:** `name` (required, unique dispatch name), `title` (optional, defaults to "راهنمای نشانگرهای اعلان"), `items` (flat array — normally `[BadgeLegendCatalog::get('some-key')]` — single "در این صفحه" heading, for a page with one relevant badge), `groups` (array of `{id, label, icon, items}` — normally `BadgeLegendCatalog::grouped()` verbatim — segmented pill tab-switcher, one tab per theme). Row rendering is factored into `<x-dashboard.modal.badge-legend-row :item="$item">`, reused by both branches.
+
+**Row shape:** `tone` picks a semantic Tool token (`userStylesPattern.md` §3.2) — `sapphire` (view-based, dot clears on look), `gold` (action-based, clears on completing the task), `amethyst` (global/org-wide, never view-gated), `sage` (nudge-only with no matching dot/badge — `channels-controller`, `gallery-controller`, `reports-controller`; bell only, cleared by dismissing; `lights`/`clears` copy says so instead of describing dot behavior that doesn't exist). `badge-legend-row.blade.php` resolves `tone` through a static `match()` returning a complete literal Tailwind class string per case — **never** interpolate into `bg-[var(--tool-{{ $tone }}-bg)]`; Tailwind's JIT scanner needs the full class text literally in source, and a runtime-assembled value silently fails unless that exact string appears elsewhere by coincidence (a real bug caught in review — the `amethyst` variant rendered with no background/icon color). `lights`/`clears` are plain-language triggers sourced from the corresponding `Indicators\*` class's `getTitle()`/`getBody()` copy or its underlying model condition. Optional `surface` names WHERE the dot actually renders (a hamburger-menu item id from `resources/js/components/alpine/data/menu.js`, or a `Tabs.php` `'badge'` field) — existing wiring, never a new indicator location.
+
+**Height boundary:** tab-panel content (and the `items` single-list branch) is wrapped in `max-h-[45vh] overflow-y-auto` — the modal never grows taller than the viewport. Tab strip uses `flex flex-wrap` (not `flex-1` per button) so 5 tabs wrap on narrow screens.
+
+**Trigger convention:** same `<x-ui.title>` `actions`-slot help-icon pattern as `taskboard.blade.php`/`ths.blade.php`'s workflow-legend button — `notifications` icon (distinct from the `help` icon used for a module's own workflow/role legend when both exist), `@click="$dispatch('open-modal', { name: '...' })"`.
+
+**Current usages:** `taskboard.blade.php`, `ths.blade.php`, `channel.blade.php`, `dms.blade.php`, `energy.blade.php` each pass a single `items` entry (e.g. `[BadgeLegendCatalog::get('tasks-controller')]`). The **master catalog** (all 14 entries) lives in `resources/views/livewire/dashboard/profile.blade.php` (`App\Livewire\Dashboard\Profile\Main`), shown on every profile sub-tab except onboarding (`$isProfileTab = $activeTab !== 'onboarding'`), passing `groups="$badgeLegendGroups"` where `Main::render()` computes `'badgeLegendGroups' => BadgeLegendCatalog::grouped()`. Not on the Status sidebar tab (no badge of its own per `Tabs.php`). Add a new usage: add the row to `BadgeLegendCatalog::all()` with the right `group`, then one `<x-dashboard.modal.badge-legend>` include + one trigger button in the module's header, pulling that row via `get()`.
+
+### 8.6 Per-module "workflow/role legend" (`help` icon → `<x-ui.modals.dialog>` → icon-chip rows)
+Explains a module's own role-dependent behavior or status meanings — distinct from §8.5 by icon (`help`, not `notifications`) and by having no `BadgeLegendCatalog` backing. Each is a one-off `legend.blade.php` partial local to its module, `@include`d inside a plain `<x-ui.modals.dialog name="...">` (no wrapper component).
+
+**Two shapes:**
+- **Role-tabs** (`x-data="{ role: 'first-role' }"`, segmented pill switcher, one `x-show` panel per role, rows keyed `visibility`/`bolt`/`notifications` for "می‌بینید"/"اقدام شما"/"اعلان") — when different users see/do different things: `taskboard/legend.blade.php` (creator/assignee), `ths/legend.blade.php` (requester/dept-head/assignee), `channel/legend.blade.php` (owner/member).
+- **Flat list** (no tabs, icon-chip rows) — one perspective, several status meanings: `reservation/legend.blade.php` (the 4 `ReservationStatus` values), `tab/calendar/legend.blade.php` (private/public visibility + owner-only edit/share/delete — deliberately does NOT repeat the calendar grid's already-visible inline icon key for holiday/birthday/anniversary/shared-event dots), `dms/status-legend.blade.php` (the 3 confirmation states framed as a two-step digital signature; `dms/legend.blade.php` now holds only the still-relevant "action required" banner), `energy/legend.blade.php` (25-day survey cooldown + last-option-is-exclusive rule, re-derived from `Energy\Main::mount()`/`updatedAnswers()`).
+
+**Tailwind pitfall — same as §8.5's `amethyst` bug.** Every icon-chip row resolves color through a `@php $chipClasses = match ($row['color']) { 'x' => 'bg-[var(--...)] text-[var(--...)]', ... };` block producing a complete literal class string per case — never interpolate into `bg-[var(--tool-{{ $color }}-bg)]`. JIT needs the exact class text literally in source; an interpolated value only "works" if that string appears elsewhere by coincidence.
+
+**Content accuracy rule:** copy must be re-derived from the actual gating code (`@if($isOwner)` guards, model scopes, enum `getLabel()`/policy classes) each time — e.g. `reservation/legend.blade.php`'s `CancelledAdmin` row text is sourced from `CancelAction::execute()`'s `$user->hasElevatedRole()` branch, not a guess.
 
 ---
-
 ```

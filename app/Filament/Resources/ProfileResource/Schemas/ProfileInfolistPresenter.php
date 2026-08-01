@@ -34,7 +34,7 @@ class ProfileInfolistPresenter
             ])
             ->columns(2)
             ->getStateUsing(fn($record): array => collect($record->about_me ?? [])
-                ->map(fn($v, $k) => ['key' => $k, 'value' => (string)$v])
+                ->map(fn($v, $k) => ['key' => $k, 'value' => is_array($v) ? collect($v)->implode(' / ') : (string)$v])
                 ->values()
                 ->toArray()
             )
@@ -155,6 +155,24 @@ class ProfileInfolistPresenter
             ->placeholder('-')
             ->formatStateUsing(fn(?Model $record): string => $record?->department?->displayLabel() ?? '-')
             ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-');
+    }
+
+    public static function unit(): TextEntry
+    {
+        return TextEntry::make('unit')
+            ->label(__('resources/profile/strings.infolist.unit'))
+            ->placeholder('-')
+            ->visible(fn(?Model $record): bool => filled($record?->detailsMap()->get('unit')))
+            ->formatStateUsing(fn(?Model $record): string => (string) $record?->detailsMap()->get('unit'));
+    }
+
+    public static function section(): TextEntry
+    {
+        return TextEntry::make('section')
+            ->label(__('resources/profile/strings.infolist.section'))
+            ->placeholder('-')
+            ->visible(fn(?Model $record): bool => filled($record?->detailsMap()->get('section')))
+            ->formatStateUsing(fn(?Model $record): string => (string) $record?->detailsMap()->get('section'));
     }
 
     public static function emergencyPhone(): TextEntry

@@ -100,6 +100,11 @@ class Profile extends Model
         return $this->resolveImageUrl($this->image);
     }
 
+    public function getDocsPathToken(): string
+    {
+        return hash_hmac('sha256', (string) $this->id, config('app.key'));
+    }
+
     public function getInitialsAvatarUrl(): string
     {
         return $this->generateInitialsAvatar($this->user?->name);

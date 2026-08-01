@@ -65,4 +65,9 @@ class ContactNudge implements MenuNudge
             ],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('contact', ['open' => $subject->getKey()]);
+    }
 }

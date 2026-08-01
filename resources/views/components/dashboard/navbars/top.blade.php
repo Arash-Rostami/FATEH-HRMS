@@ -3,11 +3,11 @@
     'direction' => 'up'
 ])
 
-<div x-data="menu({ canAdmin: @json( canAdmin()) })"
+<div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()) })'
      id="navbar"
      @resize.window="updatePerPage"
-     :class="isVisible ? 'top-[60px] lg:top-[80px]' : 'top-0'"
-     class="sticky z-[51] w-full transition-all duration-300 ease-in-out">
+     :class="isVisible ? 'translate-y-0' : '-translate-y-[60px] lg:-translate-y-[80px]'"
+     class="sticky top-[60px] lg:top-[80px] z-[51] w-full will-change-transform transition-transform duration-300 ease-in-out">
 
     <nav x-cloak
          dir="rtl"
@@ -64,6 +64,9 @@
 
             <x-dashboard.navbars.top.palette/>
             <x-dashboard.modal.release/>
+            @auth
+                <livewire:dashboard.release-request.main/>
+            @endauth
             <livewire:dashboard.navbar.quick-settings/>
         </div>
 

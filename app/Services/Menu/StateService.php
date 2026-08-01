@@ -9,7 +9,7 @@ use App\Services\Menu\Indicators\SharedEvents;
 use App\Services\Menu\Indicators\SpecialDays;
 use App\Services\Menu\Indicators\TasksTodo;
 use App\Services\Menu\Indicators\ThsBadge;
-use App\Services\Menu\Indicators\TodayFeeds;
+use App\Services\Menu\Indicators\UnreadFeeds;
 use App\Services\Menu\Indicators\UnreadPosts;
 
 use App\Services\Menu\Indicators\DmsBadge;
@@ -26,7 +26,7 @@ class StateService
         PendingSuggestions::class,
         SharedEvents::class,
         UnreadPosts::class,
-        TodayFeeds::class,
+        UnreadFeeds::class,
         SpecialDays::class,
         TasksTodo::class,
         UnreadMessages::class,
@@ -45,6 +45,29 @@ class StateService
     public static function flush(): void
     {
         Cache::forever(self::VERSION_KEY, now()->getPreciseTimestamp());
+    }
+
+    public static function markViewed(string $tab): void
+    {
+        $user = auth()->user();
+        if ($user === null || self::viewedToday($tab)) {
+            return;
+        }
+
+        Cache::put(self::viewedKey($tab, $user->id), now()->toDateString(), now()->endOfDay());
+        self::flush();
+    }
+
+    public static function viewedToday(string $tab): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && Cache::get(self::viewedKey($tab, $user->id)) === now()->toDateString();
+    }
+
+    private static function viewedKey(string $tab, int $userId): string
+    {
+        return "tab_viewed:{$tab}:{$userId}";
     }
 
     public function get(): array

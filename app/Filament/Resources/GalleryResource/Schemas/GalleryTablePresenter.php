@@ -128,7 +128,13 @@ class GalleryTablePresenter
             ->disk('public')
             ->square()
             ->imageSize(56)
-            ->getStateUsing(fn($record) => collect($record->path ?? [])->first())
+            ->getStateUsing(function ($record) {
+                $first = collect($record->path ?? [])->first();
+                if ($first && in_array(strtolower(pathinfo($first, PATHINFO_EXTENSION)), ['mp4', 'webm', 'mov'], true)) {
+                    return null;
+                }
+                return $first;
+            })
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

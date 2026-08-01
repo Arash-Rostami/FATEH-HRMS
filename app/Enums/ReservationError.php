@@ -25,6 +25,7 @@ enum ReservationError: string
     case PastBooking        = 'ERR-019';
     case ResourceInactive   = 'ERR-020';
     case DataCorruption     = 'ERR-021';
+    case TypeInactive       = 'ERR-022';
 
     public static function legend(): array
     {
@@ -50,6 +51,7 @@ enum ReservationError: string
             'ERR-019' => ['policy' => '—', 'hint' => 'تاریخ رزرو باید در آینده باشد'],
             'ERR-020' => ['policy' => '—', 'hint' => 'وضعیت منبع را از پنل مدیریت بررسی کنید'],
             'ERR-021' => ['policy' => '—', 'hint' => 'داده‌های پایگاه داده را بررسی کنید (ارتباط خودارجاعی)'],
+            'ERR-022' => ['policy' => __('resources/policy/strings.fields.window_days') . ' / ' . __('resources/policy/strings.fields.window_hours'), 'hint' => 'این نوع منبع غیرفعال است؛ برای فعال‌سازی حداقل یکی از این دو مقدار را بزرگ‌تر از صفر تنظیم کنید'],
         ];
     }
 
@@ -77,6 +79,7 @@ enum ReservationError: string
             self::PastBooking        => 'امکان رزرو در گذشته وجود ندارد.',
             self::ResourceInactive   => 'این منبع در حال حاضر در دسترس یا فعال نیست.',
             self::DataCorruption     => 'خطای سیستمی: ساختار داده‌ای این رزرو دچار مشکل شده است.',
+            self::TypeInactive       => 'این نوع منبع در حال حاضر توسط مدیریت غیرفعال شده است.',
         };
 
         return "[{$this->value}] {$text}";

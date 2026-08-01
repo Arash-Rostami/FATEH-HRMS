@@ -7,7 +7,7 @@ use App\Models\ChannelMessage;
 
 class SaveEditChannelMessageAction
 {
-    public const EDIT_TIME_LIMIT = 300;
+    public const EDIT_TIME_LIMIT = 600;
 
     public function execute(EditChannelMessageForm $form, int $messageId): bool
     {

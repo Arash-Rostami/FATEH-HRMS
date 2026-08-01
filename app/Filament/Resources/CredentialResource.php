@@ -27,6 +27,7 @@ class CredentialResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Credential::class;
+    protected static ?string $recordTitleAttribute = 'app_name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';
     protected static ?int $navigationSort = 6;
 

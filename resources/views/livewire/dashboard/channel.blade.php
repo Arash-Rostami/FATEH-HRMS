@@ -13,10 +13,36 @@
 
         <x-ui.title icon="campaign" title="کانال‌ها">
             <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'channel-badge-legend' })"
+                    title="راهنمای نشانگر اعلان"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">notifications</span>
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'channel-legend' })"
+                    title="راهنمای نقش‌های کانال"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
                 <span x-text="channelCount + ' ' + 'کانال'"
                       class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]"></span>
             </x-slot:actions>
         </x-ui.title>
+
+        <x-dashboard.modal.badge-legend
+            name="channel-badge-legend"
+            :items="[\App\Services\Menu\BadgeLegendCatalog::get('channels-controller')]"
+            title="راهنمای اعلان کانال"
+        />
+
+        <x-ui.modals.dialog name="channel-legend" title="راهنمای نقش‌های کانال">
+            @include('livewire.dashboard.channel.legend')
+        </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
 
@@ -55,38 +81,8 @@
 
     </div>
 
-    <div class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-[320px]" x-show="inviteToasts.length > 0" x-cloak>
-        <template x-for="t in inviteToasts" :key="t.id">
-            <div class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/60 rounded-2xl shadow-xl p-4 animate-fade" x-transition>
-                <div class="flex items-start gap-2.5">
-                    <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] flex-shrink-0">group_add</span>
-                    <div class="min-w-0">
-                        <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">شما به کانال زیر اضافه شدید</p>
-                        <p class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] truncate" x-text="t.name"></p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 mt-3">
-                    <button type="button" x-on:click="acceptInvite(t.id)"
-                            class="flex-1 px-3 py-2 rounded-lg text-[11px] font-semibold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 active:scale-95 transition-all">
-                        متوجه شدم
-                    </button>
-                    <button type="button" x-on:click="declineInvite(t.id)"
-                            class="flex-1 px-3 py-2 rounded-lg text-[11px] font-semibold bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:brightness-95 active:scale-95 transition-all">
-                        خروج از کانال
-                    </button>
-                </div>
-            </div>
-        </template>
-    </div>
+    @include('livewire.dashboard.channel.invite-toasts')
 
-    <div x-show="quoteChip.visible" x-cloak
-         :style="`position: fixed; left: ${quoteChip.x}px; top: ${quoteChip.y}px; z-index: 60;`"
-         x-on:click.prevent="startReply(quoteChip.id, quoteChip.sender, quoteChip.snippet); quoteChip.visible = false"
-         x-on:mousedown.prevent=""
-         class="fixed -translate-y-full -translate-x-1/2 -mt-1 px-2.5 py-1.5 rounded-lg shadow-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-[11px] font-semibold flex items-center gap-1 cursor-pointer hover:brightness-110 active:scale-95 transition-all"
-         role="button" aria-label="پاسخ به متن انتخاب‌شده">
-        <span class="material-symbols-rounded text-[14px]">reply</span>
-        پاسخ
-    </div>
+    @include('livewire.dashboard.channel.quote-chip')
 
 </div>

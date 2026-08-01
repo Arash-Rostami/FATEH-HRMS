@@ -54,6 +54,12 @@ class TaskBoardPresenter
                 'icon' => 'flag',
                 'errors' => ['form.actionSourceDomain', 'form.actionSource', 'form.state', 'form.attachments'],
             ],
+            [
+                'key' => 'reply',
+                'label' => 'گفتگو',
+                'icon' => 'forum',
+                'errors' => ['taskReplyForm.body', 'taskReplyForm.files'],
+            ],
         ];
     }
 }

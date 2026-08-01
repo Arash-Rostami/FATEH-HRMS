@@ -1,6 +1,10 @@
 @php
     $p = $this->presenter;
     $header = $p->channelHeader($this->activeChannel);
+    $isOwner = $this->activeChannel
+        && $this->activeChannel->owner_id !== null
+        && auth()->check()
+        && (int) $this->activeChannel->owner_id === (int) auth()->id();
 @endphp
 
 <header class="relative z-10 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 transition-all duration-300
@@ -78,10 +82,12 @@
             <span class="material-symbols-rounded text-base">info</span>
         </button>
 
-        <button x-on:click="leaveChannel({{ $header['id'] }})"
-                aria-label="خروج از کانال" title="خروج از کانال"
-                class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
-            <span class="material-symbols-rounded text-base">logout</span>
-        </button>
+        @if(!$isOwner)
+            <button x-on:click="leaveChannel({{ $header['id'] }})"
+                    aria-label="خروج از کانال" title="خروج از کانال"
+                    class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
+                <span class="material-symbols-rounded text-base">logout</span>
+            </button>
+        @endif
     </div>
 </header>

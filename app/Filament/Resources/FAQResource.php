@@ -28,6 +28,7 @@ class FAQResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = FAQ::class;
+    protected static ?string $recordTitleAttribute = 'question';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';
     protected static ?int $navigationSort = 9;
 

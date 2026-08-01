@@ -28,7 +28,17 @@ class Department extends Model
     ];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
+    public $incrementing = false;
 
+
+    public static function anyHasCustomTicketOptions(): bool
+    {
+        return once(fn() => Cache::remember(
+            'department_any_has_ticket_options',
+            now()->addYear(),
+            fn() => self::excludingEmptyTicketOptions()->exists()
+        ));
+    }
 
     public function authorities(): HasMany
     {
@@ -131,6 +141,7 @@ class Department extends Model
             Cache::forget('department_options_v2');
             Cache::forget('department_options_with_tickets_v2');
             Cache::forget('department_models');
+            Cache::forget('department_any_has_ticket_options');
         };
 
         static::saved($forgetCache);

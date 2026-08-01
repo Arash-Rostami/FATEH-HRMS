@@ -31,6 +31,7 @@ class AdResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ad::class;
+    protected static ?string $recordTitleAttribute = 'position';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-briefcase';
     protected static ?int $navigationSort = 5;
 

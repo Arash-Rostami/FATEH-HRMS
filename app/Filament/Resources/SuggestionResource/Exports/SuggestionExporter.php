@@ -16,7 +16,7 @@ class SuggestionExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->with(['user']);
+        return $query->with(['user'])->withReviewCounts();
     }
 
     public static function getColumns(): array

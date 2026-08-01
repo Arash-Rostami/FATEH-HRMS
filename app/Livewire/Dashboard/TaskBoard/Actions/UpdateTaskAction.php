@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\TaskBoard\Actions;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Task;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -14,22 +15,24 @@ class UpdateTaskAction
 {
     public function execute(Task $task, TaskForm $form): void
     {
-        abort_if(!$task->can_change_status, 403);
+        abort_if(!$task->can_change_status || $task->ticket_id, 403);
 
         $form->validate();
         $this->validateAttachments($form);
 
-        $task->update([
-            'title'       => $form->newTitle,
-            'description' => $form->newDescription,
-            'deadline'    => $this->resolveDeadline($form),
-            'assigned_to' => $form->selectedAssignee ?: null,
-        ]);
+        DB::transaction(function () use ($task, $form) {
+            $task->update([
+                'title'       => $form->newTitle,
+                'description' => $form->newDescription,
+                'deadline'    => $this->resolveDeadline($form),
+                'assigned_to' => $form->selectedAssignee ?: null,
+            ]);
 
-        $task->detail()->updateOrCreate([], [
-            ...$form->detailAttributes(),
-            'attachments' => [...$form->existingAttachments, ...$this->storeAttachments($form)],
-        ]);
+            $task->detail()->updateOrCreate([], [
+                ...$form->detailAttributes(),
+                'attachments' => [...$form->existingAttachments, ...$this->storeAttachments($form)],
+            ]);
+        });
     }
 
     private function resolveDeadline(TaskForm $form): ?Carbon
@@ -50,13 +53,17 @@ class UpdateTaskAction
     {
         return collect($form->attachments)
             ->map(function ($file) {
+                $originalName = $file->getClientOriginalName();
+                $mime = $file->getMimeType();
+                $size = $file->getSize();
+
                 $path = $file->store('task/attachments', 'public');
 
                 return [
                     'path' => $path,
-                    'name' => $file->getClientOriginalName(),
-                    'mime' => $file->getMimeType(),
-                    'size' => $file->getSize(),
+                    'name' => $originalName,
+                    'mime' => $mime,
+                    'size' => $size,
                 ];
             })
             ->values()

@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
-use App\Traits\{FilamentDateHandler, FilamentHeaderActions, FilamentPageBehavior};
+use App\Traits\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
 use Filament\Resources\Pages\EditRecord;
 
 class EditTask extends EditRecord
 {
-    use FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler;
+    use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler;
 
     protected static string $resource = TaskResource::class;
 

@@ -22,7 +22,7 @@ class Credentials extends Component
                 // FOCUS MODE: pin to the single record chosen in the command palette
                 fn($q) => $q->whereKey($this->open),
                 // NORMAL MODE: apply the search box.
-                fn($q) => $q->when($this->search, fn($q) => $q
+                fn($q) => $q->when($this->search !== '', fn($q) => $q
                     ->where('app_name', 'like', "%{$this->search}%")
                     ->orWhere('username', 'like', "%{$this->search}%")
                 )

@@ -4,13 +4,14 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
+use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Filament\Resources\Pages\EditRecord;
 
 class EditUser extends EditRecord
 {
-    use FilamentPageBehavior, FilamentHeaderActions;
+    use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions;
 
     protected static string $resource = UserResource::class;
 

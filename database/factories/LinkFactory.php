@@ -15,7 +15,7 @@ class LinkFactory extends Factory
         return [
             'url' => fake()->url(),
             'url_title' => fake()->sentence(),
-            'url_description' => fake()->paragraph(),
+            'url_description' => fake()->sentence(4),
             'internal_url' => fake()->url(),
             'image' => fake()->imageUrl(),
             'image_description' => fake()->imageUrl(),

@@ -12,7 +12,28 @@
         <x-ui.title
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"
-        />
+        >
+            @if($isProfileTab)
+                <x-slot:actions>
+                    <button
+                        type="button"
+                        @click="$dispatch('open-modal', { name: 'profile-badge-legend' })"
+                        title="راهنمای نشانگرهای اعلان"
+                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                    >
+                        <span class="material-symbols-rounded text-lg">notifications</span>
+                    </button>
+                </x-slot:actions>
+            @endif
+        </x-ui.title>
+
+        @if($isProfileTab)
+            <x-dashboard.modal.badge-legend
+                name="profile-badge-legend"
+                title="راهنمای نشانگرهای اعلان"
+                :groups="$badgeLegendGroups"
+            />
+        @endif
 
         <div class="w-full flex flex-col gap-5">
             @if($isProfileTab)

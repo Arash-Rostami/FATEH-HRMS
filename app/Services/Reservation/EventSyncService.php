@@ -6,6 +6,9 @@ use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Models\Event;
 use App\Models\Reservation;
+use App\Services\Menu\StateService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class EventSyncService
 {
@@ -23,6 +26,11 @@ class EventSyncService
             ->when($reservation->start_time, fn($query) => $query->whereDate('date', $reservation->start_time))
             ->when($userIds, fn($query) => $query->whereIn('user_id', $userIds))
             ->delete();
+
+        DB::afterCommit(function (): void {
+            Cache::forget('countdown:active');
+            StateService::flush();
+        });
     }
 
     public function sync(Reservation $reservation): void

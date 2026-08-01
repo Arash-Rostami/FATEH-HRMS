@@ -46,10 +46,14 @@ class Main extends Component
     #[Computed(seconds: 3600, cache: true, key: 'authority-departments')]
     public function departments()
     {
-        return Department::whereHas('authorities')
-            ->select(['code', 'name', 'description'])
-            ->orderBy('name')
-            ->get();
+        $codes = Authority::query()->whereNotNull('department_id')->distinct()->pluck('department_id');
+        $models = Department::getCachedModels();
+
+        return Department::getCachedOptions()
+            ->keys()
+            ->filter(fn($code) => $codes->contains($code))
+            ->map(fn($code) => $models->get($code))
+            ->values();
     }
 
     public function loadMore(): void

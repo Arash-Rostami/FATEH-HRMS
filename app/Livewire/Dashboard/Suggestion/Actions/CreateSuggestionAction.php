@@ -3,17 +3,33 @@
 namespace App\Livewire\Dashboard\Suggestion\Actions;
 
 use App\Livewire\Dashboard\Suggestion\Forms\SuggestionForm;
+use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Menu\StateService;
+use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CreateSuggestionAction
 {
     public function execute(SuggestionForm $form): void
     {
         $form->validate();
+
+        if (Auth::user()?->profile?->department_id === 'MA') {
+            throw ValidationException::withMessages([
+                'form.title' => __('resources/suggestion/strings.errors.ma_restricted'),
+            ]);
+        }
+
+        $validDeptCodes = Department::getCachedModels()->keys()->all();
+        foreach ($form->departments as $dept) {
+            if (!in_array($dept, $validDeptCodes, true)) {
+                throw ValidationException::withMessages(['departments' => 'واحد انتخابی معتبر نیست.']);
+            }
+        }
 
         DB::transaction(function () use ($form) {
             $authDeptCode = Auth::user()->profile?->department_id;
@@ -44,6 +60,7 @@ class CreateSuggestionAction
     private function mergeDepartments(SuggestionForm $form, ?string $authDeptCode): array
     {
         return collect($form->departments)
+            ->filter(fn($dept) => $dept !== 'MA')
             ->when($authDeptCode, fn($c) => $c->prepend($authDeptCode))
             ->unique()
             ->values()
@@ -56,46 +73,17 @@ class CreateSuggestionAction
         ?string $authDeptCode,
         bool $authIsManager
     ): array {
-        if (!$form->selfFill && !$authIsManager) {
-            return [];
-        }
-
-        $uid  = Auth::id();
-        $now  = now();
-        $managerNote = 'توجه به اینکه پیشنهاد دهنده هستم، نیاز به بررسی و اعلام نظر از سمت مدیریت';
-
-        $base = [
-            'suggestion_id' => $suggestion->id,
-            'department_id' => $authDeptCode,
-            'user_id'       => $uid,
-            'complete'      => false,
-            'created_at'    => $now,
-            'updated_at'    => $now,
-        ];
-
-        if ($authIsManager && !$form->selfFill) {
-            return [array_merge($base, [
-                'feedback' => 'agree',
-                'comments' => $managerNote,
-            ])];
-        }
-
-        $defaultFeedback = $authIsManager ? 'agree' : 'unknown';
-        $defaultComment  = $authIsManager ? $managerNote : null;
-
-        $rows = [array_merge($base, [
-            'feedback' => $form->feedbackTeam ?: $defaultFeedback,
-            'comments' => $form->descriptionTeam ?: $defaultComment,
-        ])];
-
-        foreach ($form->departments as $dept) {
-            $rows[] = array_merge($base, [
-                'department_id' => $dept,
-                'feedback'      => $form->feedback[$dept] ?? 'unknown',
-                'comments'      => $form->descriptionDepts[$dept] ?? '',
-            ]);
-        }
-
-        return $rows;
+        return SuggestionAccessPolicy::buildReviewRows(
+            suggestionId: $suggestion->id,
+            departments: $suggestion->departments,
+            homeDept: $authDeptCode,
+            submitterUserId: Auth::id(),
+            submitterIsManager: $authIsManager,
+            selfFill: $form->selfFill,
+            homeFeedback: $form->feedbackTeam,
+            homeComment: $form->descriptionTeam,
+            deptFeedback: $form->feedback,
+            deptComments: $form->descriptionDepts,
+        );
     }
 }

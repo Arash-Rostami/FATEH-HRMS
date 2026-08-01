@@ -28,7 +28,7 @@ class SuggestionFormPresenter
             ->downloadable()
             ->previewable()
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
-            ->maxSize(2048)
+            ->maxSize(10240)
             ->helperText(__('resources/suggestion/strings.hints.attachment'))
             ->columnSpanFull();
     }
@@ -90,7 +90,7 @@ class SuggestionFormPresenter
         return Select::make('priority')
             ->label(__('resources/suggestion/strings.fields.priority'))
             ->options(Suggestion::PRIORITIES)
-            ->default('low')
+            ->default('medium')
             ->native(false)
             ->helperText(__('resources/suggestion/strings.hints.priority'));
     }

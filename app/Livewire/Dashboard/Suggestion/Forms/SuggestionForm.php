@@ -36,6 +36,14 @@ class SuggestionForm extends Form
         return $this->validate();
     }
 
+    protected function rules(): array
+    {
+        return [
+            'feedbackTeam' => ['in:,agree,neutral,disagree'],
+            'feedback.*' => ['in:agree,neutral,disagree'],
+        ];
+    }
+
     protected function attributes(): array
     {
         return [
@@ -68,6 +76,8 @@ class SuggestionForm extends Form
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
             'attachment.mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
             'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
+            'feedbackTeam.in' => 'بازخورد معتبر انتخاب کنید.',
+            'feedback.*.in' => 'بازخورد معتبر انتخاب کنید.',
         ];
     }
 }

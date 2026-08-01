@@ -26,6 +26,6 @@ class EnergyTestBadge implements MenuBadge
     {
         $user = auth()->user();
 
-        return $user !== null && !EnergyTest::hasForCurrentJalaliMonth($user->id);
+        return $user !== null && EnergyTest::canSubmit($user->id);
     }
 }

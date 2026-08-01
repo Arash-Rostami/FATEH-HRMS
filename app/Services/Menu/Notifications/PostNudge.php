@@ -35,7 +35,7 @@ class PostNudge implements MenuNudge
 
     public function title($subject, User $user): string
     {
-        return 'اطلاعیه جدید: ' . $subject->title;
+        return 'اطلاعیه جدید: ' . superClean($subject->title, 100);
     }
 
     public function triggers(): array
@@ -43,5 +43,10 @@ class PostNudge implements MenuNudge
         return [
             ['class' => Post::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
         ];
+    }
+
+    public function url($subject): ?string
+    {
+        return route('dashboard', ['tab' => 'post', 'open' => $subject->getKey()]);
     }
 }

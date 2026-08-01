@@ -29,6 +29,7 @@ class ReportResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-presentation-chart-line';
     protected static ?int $navigationSort = 5;
 

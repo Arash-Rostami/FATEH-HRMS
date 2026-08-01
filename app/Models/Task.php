@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\TaskBoard\Actions\ForceDeleteTaskAction;
 use App\Models\Traits\HasJalaliAdminLabels;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPrunableStatus;
+use App\Models\Traits\HasReplies;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +22,7 @@ class Task extends Model
     use HasFactory,
         HasJalaliAdminLabels,
         HasMenuState,
+        HasReplies,
         SoftDeletes,
         Prunable,
         HasPrunableStatus;
@@ -34,6 +36,7 @@ class Task extends Model
         'deadline',
         'user_id',
         'assigned_to',
+        'ticket_id',
     ];
 
     protected $appends = [
@@ -59,6 +62,11 @@ class Task extends Model
     public function detail(): HasOne
     {
         return $this->hasOne(TaskDetail::class);
+    }
+
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
     }
 
     public static function getInProgressCount(int $userId): int

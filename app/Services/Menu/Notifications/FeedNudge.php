@@ -47,4 +47,9 @@ class FeedNudge implements MenuNudge
             ['class' => Feed::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('dashboard', ['tab' => 'feed', 'open' => $subject->getKey()]);
+    }
 }

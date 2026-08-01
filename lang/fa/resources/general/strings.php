@@ -2,6 +2,8 @@
 
 return [
 
+    'edit_heading' => 'ویرایش :label: :title',
+
     'table' => [
         'action_view' => 'مشاهده',
         'action_edit' => 'ویرایش',

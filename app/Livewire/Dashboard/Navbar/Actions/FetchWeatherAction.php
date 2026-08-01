@@ -3,23 +3,35 @@
 namespace App\Livewire\Dashboard\Navbar\Actions;
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class FetchWeatherAction
 {
     private static array $default = ['weather' => '', 'temperature' => 'N/A', 'description' => ''];
 
+    // Fresh window: served instantly, no API call. Stale window: still served instantly, but
+    // one background refresh is deferred (Cache::flexible's atomic lock guarantees at most one
+    // real HTTP call fires across all concurrent requests, protecting the API quota).
+    private const FRESH_SECONDS = 14400;
+    private const STALE_SECONDS = 21600;
+
     public function execute(): array
     {
-        $config = [
-            'keys'     => explode(',', Config::get('services.openweather.keys')),
-            'url_base' => Config::get('services.openweather.url', 'http://api.openweathermap.org/data/2.5/weather'),
-            'city'     => Config::get('services.openweather.city', 'Tehran'),
-        ];
+        $city = Config::get('services.openweather.city', 'Tehran');
+        $cacheKey = 'weather.' . Str::slug($city);
 
-        if (empty($config['keys']) || !$config['keys'][0]) return self::$default;
+        return Cache::flexible($cacheKey, [self::FRESH_SECONDS, self::STALE_SECONDS], fn() => $this->fetch($city));
+    }
 
-        $url = "{$config['url_base']}?q={$config['city']}&appid={$config['keys'][array_rand($config['keys'])]}&units=metric";
+    private function fetch(string $city): array
+    {
+        $keys = array_filter(explode(',', (string) Config::get('services.openweather.keys')));
+        if (!$keys) return self::$default;
+
+        $urlBase = Config::get('services.openweather.url', 'http://api.openweathermap.org/data/2.5/weather');
+        $url = "{$urlBase}?q={$city}&appid={$keys[array_rand($keys)]}&units=metric";
 
         try {
             $response = (new Client(['timeout' => 5, 'connect_timeout' => 3]))->get($url);
@@ -36,7 +48,8 @@ class FetchWeatherAction
                 ]
                 : self::$default;
 
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            report($e);
             return self::$default;
         }
     }

@@ -11,6 +11,7 @@
         style="display: none;"
         class="fixed inset-0 z-[100] overflow-y-auto px-4 py-6 sm:px-0 flex items-center justify-center animate-slide-down"
         x-cloak
+        dir="rtl"
     >
         <div x-show="show" class="fixed inset-0 transform transition-all" x-on:click="show = false"
              x-transition:enter="ease-out duration-300"

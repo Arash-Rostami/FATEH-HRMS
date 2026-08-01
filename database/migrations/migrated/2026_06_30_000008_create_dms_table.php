@@ -12,6 +12,7 @@ return new class extends Migration {
             Schema::create('dms', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('file', 191);
+                $table->longText('extra_files')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
                 $table->string('code', 191);
                 $table->string('version', 191);
                 $table->string('title', 191);

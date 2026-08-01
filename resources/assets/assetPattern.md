@@ -1,94 +1,84 @@
 ```markdown
-## 10. Static Asset Architecture (`resources/assets/`)
+# Static Asset Architecture
 
-### 10.1 Directory Structure
+Conventions for `resources/assets/` — static, non-hashed files copied verbatim to `public/build/assets/` by Vite, referenced by literal `asset('build/assets/...')` paths (not the Vite manifest).
+
+## Directory Structure
 
 ```
 resources/assets/
-├── audio/              # Audio assets (UI sounds, notifications)
-├── fonts/              # Custom typefaces (non-Google Fonts)
-├── img/                # Static images
-│   ├── bg   /          # All bgs of dashboard
-├── js/                 # Vendored browser-global JS (NOT Vite-processed)
-│   └── lib/            # Third-party libs referenced by literal asset() path
-└── video/              # Background videos, tutorials
+├── audio/
+├── fonts/
+├── img/
+│   ├── <tenant>/     — per-tenant role-named files, see Tenant-scoped assets below
+│   └── bg/
+├── js/
+│   └── lib/
+└── video/
+    └── <tenant>/     — per-tenant sequentially-numbered files, see below
 ```
 
-### 10.2 Organization Principles
+**Flat vs. nested:** single-use images (favicon, hero) live at `img/` root as the generic/platform-default fallback; thematic groups get a subfolder (`img/bg/`). Tenant subfolders (`img/<tenant>/`, `video/<tenant>/`) are the one exception to "max 2 levels" — they're a separate categorization axis (per-company branding), not a thematic group. Reserve subfolders for 5+ related assets otherwise.
 
-**Flat vs. Nested Decision Matrix:**
+## Tenant-scoped assets — see `config/tenantPattern.md` for the full mechanism
 
-| Scenario | Structure | Example |
-|----------|-----------|---------|
-| Single-use image (favicon, hero) | Root of `img/` | `img/favicon.svg` |
-| Thematic image group | Subfolder under `img/` | `img/bg/` |
-| Domain-specific assets | Domain-named subfolder | `img/dashboard/` |
-| Vector icons | `img/icons/` | `img/icons/close.svg` |
+`img/<tenant>/` and `video/<tenant>/` (`<tenant>` = a slug matching a `config/tenants.php` entry, e.g. `fateh`, `persol`) are auto-discovered at config-resolution time via `tenantAsset()`/`tenantVideos()` (`app/Helpers/index.php`) — no filename is ever hardcoded in PHP or Blade. Two different naming conventions apply inside a tenant folder:
+- **Images**: role-named, extension-agnostic — `logo.*`, `light.*`, `dark.*`, `favicon.*`, `user-background.*`, `admin-background.*`. Matched by basename only (`glob("{$dir}/{$role}.*")`), so `.jpg`/`.png`/`.svg`/`.webp` all work interchangeably per tenant.
+- **Videos**: sequentially numbered, no fixed count — `1.<ext>`, `2.<ext>`, ... as many as that tenant has.
+- A tenant may keep an `extra/` subfolder for unused/reference assets — the glob only checks the tenant's immediate folder, so `extra/` is correctly ignored by the mechanism.
 
-**Rationale:** Deep nesting creates friction for rapid prototyping. Reserve subfolders for collections exceeding 5+ related assets.
+Onboarding a new tenant is purely additive: add the folder + files, add one `config/tenants.php` entry, set `APP_TENANT`. Never hardcode a tenant's asset path outside `config/tenants.php`.
 
-### 10.3 Build Pipeline
+## Build Pipeline
 
-**Vite Plugin:** `vite-plugin-static-copy`
+`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix.
 
-**Configuration:**
 ```javascript
-// vite.config.js
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-
-export default {
-    plugins: [
-        viteStaticCopy({
-            targets: [
-                {
-                    src: 'resources/assets/*',
-                    dest: 'assets'
-                }
-            ]
-        })
+viteStaticCopy({
+    targets: [
+        {src: 'resources/assets/audio', dest: 'assets'},
+        {src: 'resources/assets/video', dest: 'assets'},
+        {src: 'resources/assets/img', dest: 'assets'},
+        {src: 'resources/assets/fonts', dest: 'assets'},
+        {src: 'resources/assets/js', dest: 'assets'},
+        {
+            src: 'node_modules/material-symbols/rounded.css',
+            dest: 'assets/material-symbols'
+        },
+        {
+            src: 'node_modules/material-symbols/material-symbols-rounded.woff2',
+            dest: 'assets/material-symbols'
+        },
     ]
-}
+})
 ```
 
-**Behavior:**
-- Copies entire `resources/assets/` tree to `public/assets/`
-- Preserves directory structure
-- Non-hashed (unlike `resources/js/` and `resources/css/` assets)
-- Referenced by literal path, not Vite manifest
+## Reference Patterns
 
-### 10.4 Reference Patterns
-
-**Blade Components:**
 ```blade
-<!-- Images -->
-<img src="{{ asset('assets/img/logo.svg') }}" alt="Logo">
+<img src="{{ asset('build/assets/img/logo.svg') }}" alt="Logo">
 
-<!-- Fonts -->
 <style>
     @font-face {
         font-family: 'CustomFont';
-        src: url('{{ asset('assets/fonts/custom.woff2') }}') format('woff2');
+        src: url('{{ asset('build/assets/fonts/custom.woff2') }}') format('woff2');
     }
 </style>
 
-<!-- Audio (Alpine.js interaction) -->
-<audio x-ref="notification" src="{{ asset('assets/audio/notification.mp3') }}"></audio>
-
-<!-- Video -->
-<video src="{{ asset('assets/video/hero-bg.mp4') }}" autoplay muted loop></video>
-
-<script src="{{ asset('assets/js/lib/confetti.browser.min.js') }}"></script>
+<audio x-ref="notification" src="{{ asset('build/assets/audio/notification.mp3') }}"></audio>
+<video src="{{ asset('build/assets/video/hero-bg.mp4') }}" autoplay muted loop></video>
+<script src="{{ asset('build/assets/js/lib/confetti.browser.min.js') }}"></script>
 ```
 
-**CSS References:**
+Tenant-scoped brand assets are never hand-written as literal paths like the above — always go through `config('app.*')` (resolved per-tenant in `config/tenants.php`) or `tenantVideos()`, e.g. `asset(config('app.company_logo'))`, not `asset('build/assets/img/fateh/logo.png')`.
+
 ```css
-/* Relative to final public location */
 .hero {
-    background-image: url('/assets/img/hero-bg.jpg');
+    background-image: url('/build/assets/img/hero-bg.jpg');
 }
 ```
 
-### 10.5 Categorization Guidelines
+## Categorization
 
 | Asset Type | Location | Processing |
 |------------|----------|------------|
@@ -96,29 +86,30 @@ export default {
 | Notification tones | `audio/alerts/` | Copied as-is |
 | Custom web fonts | `fonts/` | Copied as-is |
 | Vendored browser-global JS | `js/lib/` | Copied as-is (assigned to `window`, loaded via literal `<script src=asset(...)>`) |
-| Brand logos | `img/logos/` | Copied as-is |
-| Hero/background images | `img/` root | Copied as-is |
+| Per-tenant brand logos/backgrounds/favicon | `img/<tenant>/` | Copied as-is; role-named, see Tenant-scoped assets above |
+| Generic/platform-default logos | `img/` root | Copied as-is; fallback when a tenant lacks a role file |
+| Hero/background images (non-tenant) | `img/` root or `img/bg/` | Copied as-is |
 | Icon system (SVG) | `img/icons/` | Potential future: sprite generation |
-| Looping backgrounds | `video/ambient/` | Copied as-is |
+| Per-tenant auth-page video playlist | `video/<tenant>/` | Copied as-is; sequentially numbered, see Tenant-scoped assets above |
+| Looping backgrounds (non-tenant) | `video/ambient/` | Copied as-is |
 | Tutorial content | `video/tutorials/` | Copied as-is |
 
-### 10.6 Anti-Patterns
+## Anti-Patterns
 
 | Violation | Correction |
-|-----------|------------|
-| Importing assets from `resources/assets/` in JS/CSS | Use `resources/` sibling folders for Vite-processed assets; `assets/` is for static copy only |
-| Hashing filenames manually | Vite handles hashing for JS/CSS; `assets/` contents remain literal for direct reference |
-| Deep nesting (`img/dashboard/widgets/icons/`) | Maximum 2 levels: `img/{category}/file` |
+|-----------|-----------|
+| Importing assets from `resources/assets/` in JS/CSS | Use `resources/` sibling folders for Vite-processed assets; `assets/` is static copy only |
+| Hashing filenames manually | Vite hashes JS/CSS; `assets/` contents stay literal for direct reference |
+| Deep nesting (`img/dashboard/widgets/icons/`) | Max 2 levels: `img/{category}/file` |
 | Mixing processed and static assets | Keep `resources/js/img/` (processed) separate from `resources/assets/img/` (static) |
 
-### 10.7 Service Worker Integration
+## Service Worker Integration
 
-Static assets in `public/assets/` require explicit Workbox configuration for runtime caching:
+Static assets in `public/assets/` require explicit Workbox runtime-caching config:
 
 ```javascript
-// sw.js
 registerRoute(
-    ({ request }) => request.destination === 'image' || 
+    ({ request }) => request.destination === 'image' ||
                     request.destination === 'video' ||
                     request.destination === 'font',
     new CacheFirst({
@@ -126,7 +117,7 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 100,
-                maxAgeSeconds: 365 * 24 * 60 * 60  // 1 year
+                maxAgeSeconds: 365 * 24 * 60 * 60
             })
         ]
     })
@@ -134,5 +125,4 @@ registerRoute(
 ```
 
 ---
-
 ```

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PresenceStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +23,7 @@ class UserFactory extends Factory
             'type' => fake()->randomElement(['employee', 'manager', 'customer']),
             'role' => fake()->randomElement(['user', 'admin']),
             'status' => fake()->randomElement(['active', 'inactive']),
-            'presence' => fake()->randomElement(['remote', 'office']),
+            'presence' => fake()->randomElement(array_column(PresenceStatus::cases(), 'value')),
             'booking' => '[{"key":"all","value":false},{"key":"car","value":false},{"key":"seat","value":true},{"key":"spot","value":true},{"key":"meeting","value":true}]',
             'last_seen' => now(),
             'extra' => ['preferences' => ['theme' => 'light']],

@@ -48,6 +48,34 @@ export default (feedId) => ({
         this.autoGrow(ta);
     },
 
+    toggleBold() {
+        const ta = this.$refs.commentInput;
+        if (!ta) return;
+        const s = ta.selectionStart ?? 0;
+        const e = ta.selectionEnd ?? 0;
+        const val = ta.value;
+        const before = val.slice(Math.max(0, s - 2), s);
+        const after = val.slice(e, e + 2);
+        const wrapped = before === '**' && after === '**';
+        let next, sel;
+        if (wrapped) {
+            next = val.slice(0, s - 2) + val.slice(s, e) + val.slice(e + 2);
+            sel = [s - 2, e - 2];
+        } else if (s === e) {
+            const marker = '**';
+            next = val.slice(0, s) + marker + marker + val.slice(e);
+            sel = [s + 2, s + 2];
+        } else {
+            next = val.slice(0, s) + '**' + val.slice(s, e) + '**' + val.slice(e);
+            sel = [s + 2, e + 2];
+        }
+        ta.value = next;
+        ta.focus();
+        ta.setSelectionRange(sel[0], sel[1]);
+        ta.dispatchEvent(new Event('input'));
+        this.autoGrow(ta);
+    },
+
     // Enter submits the comment; Shift+Enter inserts a newline (mirrors the original inline handler).
     onEnter(e) {
         if (!e.shiftKey) {

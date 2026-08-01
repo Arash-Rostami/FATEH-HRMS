@@ -30,6 +30,15 @@ class OnboardingResource extends Resource
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 7;
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->user?->name ?? __('resources/onboarding/strings.fields.global_audience');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

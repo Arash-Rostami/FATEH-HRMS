@@ -65,4 +65,9 @@ class ChannelNudge implements MenuNudge
             ['class' => ChannelMessage::class, 'on' => ['created', 'deleted'], 'subject' => fn(ChannelMessage $message) => $message->channel],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('channels', ['open' => $subject->getKey()]);
+    }
 }

@@ -55,8 +55,17 @@
                             @input="autoGrow($el)"
                             placeholder="نظرت رو بنویس..."
                             rows="1"
-                            class="w-full bg-transparent border-none outline-none resize-none pl-8 pr-3 py-2.5 text-[13px] leading-relaxed text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 overflow-hidden"
+                            class="w-full bg-transparent border-none outline-none resize-none pl-8 pr-16 py-2.5 text-[13px] leading-relaxed text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/50 overflow-hidden"
                         ></textarea>
+
+                        <button
+                            type="button"
+                            @click="toggleBold()"
+                            title="پررنگ (B)"
+                            class="absolute bottom-0 right-8 w-6 h-6 flex items-center justify-center rounded-md text-[13px] font-bold text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] active:scale-90 transition-all duration-100"
+                        >
+                            <span class="leading-none select-none">B</span>
+                        </button>
 
                         <button
                             type="button"
@@ -104,6 +113,27 @@
                     >
                         <span class="material-symbols-rounded text-[18px]">send</span>
                     </button>
+                </div>
+
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/20 text-[10px] text-[var(--md-sys-color-on-surface-variant)]/70 select-none">
+                    <span class="inline-flex items-center gap-1">
+                        <kbd class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40 font-sans font-semibold">Enter</kbd>
+                        <span>ارسال</span>
+                    </span>
+                    <span class="opacity-40">·</span>
+                    <span class="inline-flex items-center gap-1">
+                        <kbd class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40 font-sans font-semibold">Shift</kbd>
+                        <span>+</span>
+                        <kbd class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40 font-sans font-semibold">Enter</kbd>
+                        <span>خط جدید</span>
+                    </span>
+                    <span class="opacity-40">·</span>
+                    <span class="inline-flex items-center gap-1">
+                        <span class="font-bold">**</span>
+                        <span>متن</span>
+                        <span class="font-bold">**</span>
+                        <span>پررنگ</span>
+                    </span>
                 </div>
             </div>
         @else
@@ -183,8 +213,8 @@
                                     </div>
                                 </div>
                             @else
-                                <p class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)]">
-                                    {!! superClean($comment?->content, 100, true) ?? '' !!}
+                                <p class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)] [&_strong]:font-bold [&_strong]:text-[var(--md-sys-color-on-surface)]">
+                                    {!! renderComment($comment?->content) !!}
                                 </p>
                             @endif
 

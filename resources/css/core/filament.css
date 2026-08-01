@@ -906,7 +906,8 @@
     }
 
     .fi-simple-layout::before {
-        @apply content-[''] absolute top-[-10%] right-[-5%] h-[120%] w-[70%] z-0 will-change-transform bg-[url('/resources/assets/img/mining.webp')] bg-center bg-cover bg-no-repeat;
+        @apply content-[''] absolute top-[-10%] right-[-5%] h-[120%] w-full z-0 will-change-transform bg-center bg-cover bg-no-repeat;
+        background-image: var(--tenant-bg-image, url('/build/assets/img/admin-background.jpg'));
         mask-image: linear-gradient(to right, transparent 5%, black 35%);
         animation: kenburnsTopLeft 25s ease-in-out infinite alternate !important;
     }

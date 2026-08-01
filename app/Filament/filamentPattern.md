@@ -1,18 +1,16 @@
 # Filament 5 Module Structure Guide
 
-This document describes the preferred module structure for a Filament PHP 5 resource. The goal is to keep each concern isolated, reusable, easy to scan, and consistent with the Livewire module pattern used elsewhere in the codebase.
+Preferred module structure for a Filament PHP 5 resource — each concern isolated, reusable, and consistent with the Livewire module pattern used elsewhere.
 
 > Before implementing, study the latest Filament PHP 5 docs: https://filamentphp.com/docs/5.x/resources/overview
 
-Filament's resource model centers on a main resource class plus dedicated `Pages`. Tables hold columns, filters, groups, and actions. Forms and infolists define schema-driven UI. Relation managers are the standard way to manage related records inside a resource.
+Filament's resource model centers on a main resource class plus dedicated `Pages`; tables hold columns/filters/groups/actions; forms and infolists are schema-driven UI; relation managers manage related records inside a resource.
 
 ---
 
 ## Core idea
 
-Each module is organized around a main `Resource` class that acts as the entry point. The resource only composes the module and defines page registration, query behavior, and high-level layout. All detailed UI definitions live in dedicated presenter classes.
-
-The resource does **not** contain inline form, table, or infolist definitions. It calls static methods from dedicated schema classes.
+Each module is organized around a main `Resource` class that acts as the entry point — it only composes the module and defines page registration, query behavior, and high-level layout. The resource does **not** contain inline form/table/infolist definitions; it calls static methods from dedicated schema classes (presenters).
 
 ---
 
@@ -46,9 +44,18 @@ App/
 
 App/
 └── Traits/
+    ├── AuthValidationRules.php
+    ├── AuthorizesByPermission.php
     ├── FilamentActions.php
+    ├── FilamentDateHandler.php
+    ├── FilamentEditHeading.php
+    ├── FilamentFilters.php
+    ├── FilamentFormDivider.php
     ├── FilamentHeaderActions.php
-    └── FilamentPageBehavior.php
+    ├── FilamentPageBehavior.php
+    ├── FilamentPreferences.php
+    ├── FocusOnRecord.php
+    └── InteractsWithNotifications.php
 ```
 
 ### Key structural rules
@@ -60,7 +67,7 @@ App/
 - **Pages are flexible**: a resource may have `Manage`, `Create`, `Edit`, `List`, and `View` pages.
 - **Actions are optional** and used only when a module needs reusable write operations.
 - **No Validators folder**: validation rules and messages stay inside each field method.
-- **Shared cross-cutting behavior lives in Traits**: `FilamentActions`, `FilamentHeaderActions`, `FilamentPageBehavior`.
+- **Shared cross-cutting behavior lives in Traits** (illustrative — the full `App/Traits/` set is listed in the tree above): `FilamentActions`, `FilamentFilters`, `AuthorizesByPermission`, `FilamentHeaderActions`, `FilamentPageBehavior`, and `FilamentEditHeading` (Edit pages only). The remaining traits (`AuthValidationRules`, `FilamentDateHandler`, `FilamentFormDivider`, `FilamentPreferences`, `FocusOnRecord`, `InteractsWithNotifications`) are narrower helpers documented in their own sections below.
 
 ---
 
@@ -401,6 +408,115 @@ typos (`Catergory`) stay separate — only whitespace/case variants merge, never
   page** (it loads the page, then buckets those rows) — it does not SQL `GROUP BY` the full result
   set (`groupQuery`/`groupBy` is only used for table summaries). So a selected group reflects only
   the current page's records. Accept this, or load all rows when grouped, if full grouping is needed.
+
+**Grouping by a JSON array column (multi-value, not per-key like `extra`/`tags`)** — e.g. `owners`
+on DMS, a JSON array of department codes (`["MA","IT"]` or the `"ALL"` sentinel). Same
+`scopeQueryByKeyUsing` requirement as above applies whenever `getKeyFromRecordUsing` returns
+anything other than a raw column value — here it's `implode(',', $record->owners ?? [])`, so the
+scope must reconstruct that exact string server-side via `GROUP_CONCAT(JSON_UNQUOTE(JSON_EXTRACT(
+owners, CONCAT('$[', n, ']'))) ORDER BY n SEPARATOR ',')` over a numbers-table unnest (same 5.7/8.x
+technique as `DmsKeyGrouper`), bound via `?` — never trust the `implode` to be reproducible any
+other way. Missing this scope doesn't crash (the column is real, unlike a hash id) — it silently
+selects **zero rows** on "select all in group", which is easy to miss in manual QA. Reference:
+`DmsTablePresenter::ownersGroup()` / `ownersKeyExpression()`.
+
+**MariaDB fails to match a JSON object key when the stored document has it `\uXXXX`-escaped but the
+query's JSON path references it via literal UTF-8 bytes** — confirmed live on production (MariaDB
+10.6.20, Laravel's generic `mysql` driver). PHP's default `json_encode()` (what Eloquent's `array`
+cast uses to save `dms.tags`/`dms.extra`, and what a Filament `KeyValue` field submission goes
+through) escapes non-ASCII characters to `\uXXXX` — so a Persian key like `نوع سند` is stored as
+literal ASCII bytes (`نوع سند`), not literal UTF-8. Any raw PHP string
+built from that same logical key (e.g. from a rendered button's click value, or a variant computed
+in PHP) contains the literal UTF-8 bytes instead. Both represent the identical JSON value and
+`json_decode` treats them as equal — but MariaDB's `JSON_CONTAINS`/`JSON_EXTRACT`+`JSON_UNQUOTE`
+path-matching does **not**: querying `JSON_EXTRACT(tags, '$."نوع سند"')` (literal-bytes path)
+against a document whose key was stored escaped returns nothing, even when the key/value pulled
+directly from that exact row is used verbatim in the query — a real MariaDB JSON-path defect, not a
+collation/locale/`strtolower()` issue (all ruled out via direct empirical testing; `mb_strtolower`
+and `strtolower` produced byte-identical output for Persian text, and MySQL's *native* `json()`
+column type on local dev auto-canonicalizes storage to literal UTF-8, silently sidestepping the bug
+entirely — so this class of bug is invisible in local testing and only surfaces against MariaDB).
+**This affects any JSON-path SQL expression built from a dynamic, non-ASCII, admin-entered key** —
+confirmed broken in `App\Livewire\Dashboard\Dms\Main::getBaseQuery()`'s `activeFilter` tag matching
+(fixed — see `app/Livewire/livewirePattern.md` for the applied fix), but **`DmsKeyGrouper` and
+`UserKeyGrouper`'s `scopeQueryByKeyUsing`/`valueExpression`/`jsonPath` mechanism above builds the
+identical `JSON_UNQUOTE(JSON_EXTRACT(col, '$."k"'))` shape and has not yet been audited or fixed for
+this — treat "select all in group" on a Persian-keyed dynamic group as suspect on MariaDB until
+verified.** The fix applied to the Livewire board: match dynamic keys in PHP after fetching (decode
+via the model's own array cast, compare with plain PHP equality/`in_array`) instead of pushing the
+key into a SQL JSON path — sidesteps the MariaDB defect entirely regardless of storage encoding,
+since PHP's `json_decode` already normalizes both forms. The same fix direction would apply to
+`DmsKeyGrouper`/`UserKeyGrouper` if their grouped-bulk-action `scopeQueryByKeyUsing` is ever
+confirmed broken the same way (currently unverified, not yet reproduced against MariaDB for these
+two).
+
+**Filtering a JSON array column that carries an "all/wildcard" sentinel** — if the column's
+semantics include a sentinel value meaning "matches everyone" (e.g. `owners` containing `"ALL"`),
+every `SelectFilter`/`Filter` that does `orWhereJsonContains(column, $specificValue)` must also
+`orWhereJsonContains(column, 'ALL')` inside the same `where()` group, or wildcard-owned rows
+silently disappear the moment any specific value is selected — a "the filter doesn't work" bug
+report with no error, just wrong (under-inclusive) results. Reference: `DmsTablePresenter::ownersFilter()`.
+
+**Dynamic per-key classifier on a single JSON-object column (groups **and** filters)** — when a model
+has one JSON-object column holding admin-defined key/value tags with no fixed schema (e.g.
+`users.extra` routed by its accessor into the `$.admin` sub-object), reuse the `DmsKeyGrouper` shape
+but scope to that one column at its JSON path. Reference: `app/Services/User/UserKeyGrouper.php`.
+- The `User::extra` accessor has a two-bucket setter: `preferences` (merged) and `admin` (the
+  catch-all — every top-level key that isn't `preferences`/`admin` is routed into `$.admin`). So
+  classifier keys live at `$.admin.<key>`, and the grouper's `map()` uses the 2-arg
+  `JSON_KEYS(extra, '$.admin')` (MySQL 5.7.9+/MariaDB 10.6+, returns NULL on a missing/non-object
+  path — no error). This is the only divergence from `DmsKeyGrouper`, which reads top-level keys of
+  two columns via the 1-arg `JSON_KEYS(col)`.
+- Emits **both** `Group[]` (via `groups()`, same `scopeQueryByKeyUsing`/`orderQueryUsing(fn($q)=>$q)`
+  pattern as DMS) **and** `SelectFilter[]` (via `filters()`). Each filter's `->options(fn() => ...)`
+  is a lazy `SELECT DISTINCT (COALESCE(...))` over the variants — one small query per dropdown open,
+  not on page render. Register with spreads: `->groups([..., ...UserKeyGrouper::groups()])` and
+  `->filters([..., ...UserKeyGrouper::filters()])`. Grouper ids are `dyn_<sha1:16>` — no collision
+  with hand-written filter/group names.
+- Cache invalidation: the grouper cache (`user_dynamic_group_keys`, 900s) is busted on every
+  `User::saved` (unconditional, because classifier edits change `extra` which `wasChanged(['name',
+  'role','status'])` would miss) **and** on `User::deleted` (so a deleted user's values stop
+  appearing as filter options). `touchLastSeen()` uses `saveQuietly()`, which skips `saved`, so the
+  frequent heartbeat does NOT bust the cache. See `User::booted()`.
+- `jsonPath` escapes the same `"`/`'`/`\` set as DMS (`addcslashes($key, '"\'\\')`) — the key is
+  admin-controlled via the KeyValue field, so this is the SQL-injection surface and must stay escaped.
+- Reusing the same classifier outside Filament (a plain Livewire board, not a table filter): don't
+  duplicate the `whereRaw` condition — `UserKeyGrouper::applyFilter(Builder $query, array $variants,
+  string $value): Builder` is the public, parameterized query builder `filters()` itself calls
+  internally; call it directly. Reference: `Status::applyClassifier()` in
+  `app/Livewire/Dashboard/Tab/Status.php`, which encodes the active selection as a single
+  `"{norm}|{value}"` string property (same shape as the pre-existing `Dms` Livewire board's
+  `activeFilter`), resolves `$norm` back to its `variants` via `UserKeyGrouper::map()`, and applies it
+  identically in both `stats()` and `users()` (AND-combined with the existing presence/search filters,
+  never replacing them).
+- **Admin-only tags**: since any admin-typed key auto-surfaces as a filter, some tags may not be meant
+  for every authenticated user to see (the Status board sits behind plain `auth` middleware, wider than
+  the admin panel). Convention: a key whose normalized form starts with `UserKeyGrouper::HIDDEN_PREFIX`
+  (`_`, e.g. `_Salary`) is excluded from any user-facing surface via `UserKeyGrouper::isHidden($norm)`
+  — checked both when building the visible group list (so it never renders as a button) **and** inside
+  the query-applying method (so a hand-crafted/tampered filter value targeting a hidden key is a no-op,
+  not a narrowing leak). The admin's own Filament `SelectFilter`/`Group` (`filters()`/`groups()`) are
+  unaffected by this — hidden tags stay fully usable there. Deliberately opt-out (visible by default,
+  hide via prefix), not opt-in, to match the feature's no-predefined-enum design; a hardcoded
+  sensitive-keyword blocklist was rejected as fragile (typos, language variants) and against that same
+  design intent.
+- Free-text values interpolated into inline Alpine expressions (`@click`, `:class`, etc.) must go
+  through `{{ \Illuminate\Support\Js::from($value) }}`, never a bare `{{ $value }}` inside a JS string
+  literal — Blade's `{{ }}` only HTML-attribute-escapes, so an admin-typed value containing a quote
+  breaks out of the JS string once the browser HTML-decodes the attribute. Reference:
+  `resources/views/livewire/dashboard/tab/status/filters.blade.php` and the pre-existing precedent in
+  the sibling `grid.blade.php`.
+
+**Visibility scope for the colleague-status board (`scopeVisibleOnBoard`)** — to hide a class of
+users from the "وضعیت همکاران" Livewire board while keeping them fully functional everywhere else
+(login, channels, tasks, reservations), add a named combo scope on the model rather than reusing
+`scopeActive` (which other call sites depend on). Reference: `User::scopeVisibleOnBoard()` =
+`active()->whereNot('type', UserType::Guest->value)`, used in `Status` Livewire's `stats()` and
+`users()`. `UserType::Guest` was a defined-but-unused enum case — repurposing it as the hide signal
+needs no migration, no new column, no new enum case. Admin side surfaces these users via a list tab
+(`ListUsers::getTabs()` → `'hidden'` tab filtering `type = guest`) plus the pre-existing
+`typeFilter`. Note: `whereNot` excludes NULL-typed rows in SQL; safe here only because the schema
+defaults `type` to `'employee'`.
 - `->filtersFormColumns(2)` — use 2-column filter layout when there are multiple filters
 - `->recordActions([...], RecordActionsPosition::AfterCells)` — always position after cells
 - `->groupedBulkActions([...])` — use `self::bulkActions(ExporterClass::class)` from `FilamentActions` trait
@@ -942,6 +1058,7 @@ class CreateUser extends CreateRecord
 
 class EditUser extends EditRecord
 {
+    use FilamentEditHeading;
     use FilamentHeaderActions;
     use FilamentPageBehavior;
 
@@ -1044,7 +1161,7 @@ Apply colors purposefully across tables, infolists, and forms. Avoid decorative 
 5. **Module-qualified naming** — `UserFormPresenter.php`, not `Form.php`.
 6. **Resource is the orchestrator** — composes schema and page structure only; no field/column logic.
 7. **One method = one component** — each field, column, and display entry is isolated.
-8. **Pages use both traits** — `FilamentHeaderActions` and `FilamentPageBehavior` on all Create/Edit/List pages.
+8. **Pages use both traits** — `FilamentHeaderActions` and `FilamentPageBehavior` on all Create/Edit/List pages. Edit pages additionally `use FilamentEditHeading;` for the record-aware heading (see §6 below).
 9. **FilamentActions trait is mandatory** — no inline action definitions in resources or relation managers.
 10. **Pages are flexible** — Manage, Create, Edit, View, List depending on workflow.
 11. **Actions are optional** — `Actions/` only for reusable/complex write operations.
@@ -1193,6 +1310,46 @@ This bypasses `permits()` entirely for that one check while other `can*` methods
 
 ---
 
+### 6) `FilamentEditHeading` trait
+
+Located at `app/Traits/FilamentEditHeading.php`. Applied on **every `EditRecord` page** (alongside `FilamentHeaderActions` + `FilamentPageBehavior`). Gives each Edit page a record-aware heading so the admin never edits the wrong record:
+
+> **ویرایش {modelLabel}: {recordTitle}** — e.g. `ویرایش قوانین رزرو: میز کار`
+
+Filament's default `EditRecord::getHeading()` resolves to `getTitle()` → `ویرایش :label` where `:label = getRecordTitle()` — and `getRecordTitle()` falls back to the generic model label when the resource sets no record title, so every Edit page reads identically. This trait overrides `getHeading()` to surface the record's own identity, resolved through `Resource::getRecordTitle($record)`, with a safe fallback to `$this->getTitle()` when the resource has no real title (no regression for unconfigured resources or null records).
+
+```php
+trait FilamentEditHeading
+{
+    public function getHeading(): string|Htmlable
+    {
+        $resource = static::getResource();
+        $label = $resource::getModelLabel();
+        $title = (string) $resource::getRecordTitle($this->getRecord());
+
+        if (! filled($title) || $title === $label) {
+            return $this->getTitle();
+        }
+
+        return __('resources/general/strings.edit_heading', ['label' => $label, 'title' => $title]);
+    }
+}
+```
+
+The heading format string lives once in `lang/fa/resources/general/strings.php` → `edit_heading` (`'ویرایش :label: :title'`).
+
+**Each resource supplies its record title via exactly one of two levers** (this is the only resource-side config the trait needs):
+
+1. **Column-based** — set `protected static ?string $recordTitleAttribute = '<column>';` when one column identifies the record (`UserResource` → `'name'`, `PostResource` → `'title'`, `ThsResource` → `'request_subject'`, …). Filament reads it natively; no method needed.
+2. **Composite / enum / accessor** — override `getRecordTitle(?Model $record): ?string` when the identity is a combination or a non-column value (`ReservationPolicyResource` → `ResourceType::tryFrom($record->resource_type)?->getLabel()`, `ProfileResource` → `$record->user?->name ?? '#'.$record->personnel_id`, `ResourceResource` → `$record->labeled_name`, `FeedResource`/`ContactResource` → `Str::limit($record->content/body, 60)`). Always guard `if (! $record) return null;` first — the `?Model` signature permits null (Filament may call before a record is loaded).
+
+**Rules:**
+- Every `EditRecord` page must `use FilamentEditHeading;`. Create/List/View pages do **not** use it — `$this->record` is null there and the trait is Edit-only.
+- Relations accessed inside a composite `getRecordTitle` must already be eager-loaded by the resource's `getEloquentQuery()` (e.g. `ReservationResource` withs `resource`, `ProfileResource` withs `user`) — the trait runs on the Edit page where the record is already loaded, but keep it lazy-load-safe by relying on those withs.
+- Do not duplicate this heading logic per-Edit-page — the trait is the single source. Add only the per-resource title lever (one line) above.
+
+---
+
 ## Resource-local Enums
 
 Beyond global enums in `app/Enums/`, each resource that models domain-specific states has an `Enums/` subfolder:
@@ -1205,13 +1362,14 @@ FeedResource/Enums/FeedCategory.php
 ThsResource/Enums/TicketStatus.php
 ThsResource/Enums/TicketPriority.php
 ThsResource/Enums/RequestType.php
-TaskboardResource/Enums/TaskStatus.php
+TaskResource/Enums/TaskStatus.php
+TaskResource/Enums/TaskState.php
 DmsResource/Enums/DocumentStatus.php
 LinkResource/Enums/LinkType.php
-EnergyResource/Enums/ImpactScore.php
-EnergyResource/Enums/ExecutionProcedure.php
 ...
 ```
+
+**A resource-local enum's backing string values are the single source of truth wherever that domain concept has an ordinal rank.** `ProfileResource/Enums/Position.php` backs `HasProfileHierarchy::RANKS` (`app/Models/Traits/HasProfileHierarchy.php`) — every enum case's value is a `RANKS` key (lower number = higher rank). Adding a case means updating both the enum's match arms (label/color/icon) and `RANKS` in lockstep; every consumer (admin form/table/infolist/export, `rank()`, `isDeptHead()`, `highestRankingInDepartments()`, and the user-panel Status board's `ORDER BY FIELD(...)` sort) reads from one of these two places, so nothing else needs touching. Never hard-code the position list a third time elsewhere.
 
 **Every resource-local enum implements `HasColor`, `HasIcon`, `HasLabel`:**
 
@@ -1284,6 +1442,26 @@ public static function getNavigationBadgeTooltip(): ?string
 - Return `null` (not `'0'`) when the count is zero — an empty badge should not appear.
 - Tooltip is always localized.
 - Only add badges to resources where an unread/pending state has operational significance (contacts, tickets, etc.).
+
+---
+
+## User-panel badge/nudge legend (cross-reference, not this doc's mechanism)
+
+The Filament nav badges above are admin-panel-only. The **user panel** has a separate, unrelated
+notification system — `App\Services\Menu` (dot/badge = live status, bell/nudge = one-time dismissible
+alert), documented in full at `app/Services/Menu/statePattern.md`. Do not conflate the two.
+
+That system's user-facing explainer — `<x-dashboard.modal.badge-legend>` (documented at
+`resources/views/viewPattern.md` §8.5) — is backed by a **single source of truth**,
+`App\Services\Menu\BadgeLegendCatalog`, keyed by each indicator's `getKey()`. There is exactly one
+master catalog (all 11 badges, grouped into themed tabs) in the actual Profile module
+(`resources/views/livewire/dashboard/profile.blade.php`), and per-module micro-legends in modules that
+have their own dedicated badge (currently TaskBoard, Ths). **Rule: never hand-write a badge row's copy
+in more than one place.** A module's micro-legend must call `BadgeLegendCatalog::get('its-own-key')`;
+the master catalog must call `BadgeLegendCatalog::grouped()`. Both read the same row, so they cannot
+drift out of sync. If you add a badge to a new module, add its row to `BadgeLegendCatalog::all()` first,
+then wire both the module's own legend (if it gets one) and confirm it appears in the master catalog —
+never write the `tone`/`icon`/`label`/`lights`/`clears` text a second time anywhere else.
 
 ---
 
@@ -1448,6 +1626,24 @@ Locale-conditional Yekan font via local provider:
 )
 ```
 
+### Brand logo (light/dark, per-tenant reversible) — see `config/tenantPattern.md`
+
+```php
+->brandLogo(fn() => $this->logoHtml(false))
+->darkModeBrandLogo(fn() => $this->logoHtml(true))
+
+private function logoHtml(bool $dark): HtmlString
+{
+    $onLogin = request()->routeIs('filament.admin.auth.login');
+    $showDark = config('app.admin_reverse_logo') ? ($dark === $onLogin) : $dark;
+
+    $key = $showDark ? 'app.app_logo_dark' : 'app.app_logo_light';
+    // single <img> builder, both brandLogo()/darkModeBrandLogo() calls route through it
+}
+```
+
+`darkModeBrandLogo()` renders both images; Filament's CSS (`fi-logo-light`/`fi-logo-dark`, plain `dark:` Tailwind variants) toggles visibility off the `.dark` class on `<html>` — no JS needed beyond what's already wired by the app's own theme sync. Works even with `->darkMode(false)` since that flag doesn't gate the CSS. `config('app.admin_reverse_logo')` is a per-tenant flag (`config/tenants.php`): when `true`, the login page renders normally and the rest of the authenticated panel swaps light/dark (a legacy Persol quirk, preserved via the original `$dark === $onLogin` formula); when `false` (fateh), there's no swap anywhere, login included. Logo paths always come from `config('app.app_logo_light')` / `app_logo_dark`, never hardcoded — those in turn resolve per-tenant, see `config/tenantPattern.md`.
+
 ### Global search
 
 ```php
@@ -1508,7 +1704,7 @@ Because the form's `KeyValue` only edits the `admin` bucket, `EditUser::mutateFo
 ->databaseTransactions()                        // all writes wrapped in transactions
 ->databaseNotifications()
 ->databaseNotificationsPolling('60s')
-->darkMode(false)                               // dark mode is disabled app-wide
+->darkMode(false)                               // suppresses Filament's own switcher; the app's custom ThemeManager/mode-manager.js already toggles `.dark` on <html> independently, so dark-mode-reactive CSS (e.g. darkModeBrandLogo) still works
 ->maxContentWidth(Width::Full)
 ->subNavigationPosition(SubNavigationPosition::End)
 ->viteTheme('resources/css/core/filament.css')
@@ -1643,19 +1839,19 @@ Field-level convention for the companion table itself: when an FK-like column st
 
 **33. Department labels go through the `HasDepartmentLabel` trait — never read `name`/`description`/`code` directly as a display label.** The `Department` model carries the `App\Models\Traits\HasDepartmentLabel` trait as the single source of truth for department labeling: `displayLabel()` = `description ?: name ?: code` (Farsi-first primary label, empty-string-safe `?:` not `??`), `tooltipLabel()` = `name ?: code ?: description` (English-first vice-versa tooltip). Everywhere a department is *referenced* — FK `TextColumn`/`TextEntry`, exporters, global-search titles, SQL chart axes, `Group` headings (`->getTitleFromRecordUsing(fn(?Model $record) => $record?->department?->displayLabel())`), filter buttons, Blade chips — the visible label is `displayLabel()` and the `->tooltip()` / `title=""` is `tooltipLabel()`. SQL projections use `COALESCE(NULLIF(description,''), name, code)` (add `description` to the matching `groupBy`). `Department::getCachedOptions()` / `getCachedOptionsExcludingEmptyTickets()` stay **keyed by `code`** with label = `displayLabel()` — the keys (codes) are what gets saved, so this is a purely cosmetic label change with **no save-logic/schema change**. The **exception** is `DepartmentResource` itself (table/infolist/form/exporter): as the master edit surface its own `name`/`description`/`code` columns show the **raw** field values so an admin toggling a column sees the actual data to fix — no `displayLabel`/`tooltipLabel` mixing there (global-search title stays `$record->description ?? $record->name`). The multi-department DMS layer uses the `HasDepartmentHelpers` trait (`getDepartmentDisplayLabels()` / `getDepartmentTooltipLabels()`, joined with ` ┆ `, `'ALL'` placeholder short-circuit). Code-columns storing department codes (e.g. `Review::referral`, `Suggestion::departments`) must `pluck('code')` for any `in_array` code-matching and map codes→`displayLabel()` for display — `pluck('description')` is a bug (codes never match descriptions). A standalone `code` badge next to a label is allowed for brevity; raw `description ?? name` used *as* the label is not.
 
-**34. Kill per-row correlated subqueries under `wire:poll` with non-correlated `UNION ALL` derived tables + covering indexes — never `addSelect([subquery])` against the outer row.** The contact-list query (`FetchContactsAction`) was `User::active()->addSelect(['last_message_id' => MAX(id) subquery, 'unread_count' => COUNT(*) subquery])`, where each subquery `whereColumn`'d `users.id` — MySQL plans it as `DEPENDENT SUBQUERY`, re-executing once **per outer users row**. Under `wire:poll.10s` that's `O(N·k)` re-runs per viewer per poll; at 5K users / 500K messages it measured **1103 ms** (vs **8.8 ms** after the fix, **≈125×**). The fix is structural: pre-aggregate into **non-correlated derived tables** and `leftJoinSub` them once — `$sent = MAX(id) GROUP BY recipient_id WHERE sender_id=viewer`, `$received = MAX(id) GROUP BY sender_id WHERE recipient_id=viewer`, `$lastMsgSub = fromSub($sent->unionAll($received))->selectRaw('contact_id, MAX(max_id)')->groupBy('contact_id')`, plus `$unreadSub = COUNT(id) GROUP BY sender_id WHERE recipient_id=viewer AND read_at IS NULL`; `User::active()->select('users.*','lm.last_message_id', DB::raw('COALESCE(uc.unread_count,0) as unread_count'))->leftJoinSub($lastMsgSub,'lm',...)->leftJoinSub($unreadSub,'uc',...)`. `HAVING unread_count > 0` becomes `WHERE uc.unread_count > 0` (it's a real joined column now); users with no messages keep `null`/`0` via `leftJoinSub` + `COALESCE`. **The `OR`-defeats-index pitfall:** the old `WHERE (sender_id=V AND recipient_id=u.id) OR (sender_id=u.id AND recipient_id=V)` made the optimizer **ignore** both directional composites and fall back to `idx_deleted_at` + `filesort`; the same OR in the 1-on-1 thread view (`->latest()->take()`, `ORDER BY created_at`) defeats the directional composite there too — so `idx_sender_recipient_created`/`idx_recipient_sender_created` were load-bearing for **no** query (verified by `EXPLAIN`, not assumed) and were dropped. **Covering indexes that replace them:** `idx_sent_covering(sender_id, deleted_at, recipient_id, id)` + `idx_received_covering(recipient_id, deleted_at, read_at, sender_id, id)` — `deleted_at` in the middle (after the equality prefix) lets `whereNull('deleted_at')` prune in-index, `id` is the implicit InnoDB PK made explicit so `MAX(id)`/`COUNT(id)` resolve `Using index` with **no row lookup**; the `(recipient_id, deleted_at, read_at, sender_id, id)` index covers **both** the received-MAX leg (prefix `recipient_id, deleted_at`, group `sender_id`) and the unread-COUNT leg (prefix `recipient_id, deleted_at, read_at IS NULL`). Drop `idx_recipient_read_at(recipient_id, read_at)` — strict subset of `idx_received_covering`. **Migration ordering gotcha:** if an index backs a foreign key (`messages_sender_id_foreign`/`_recipient_id_foreign`), InnoDB refuses `DROP INDEX` ("needed in a foreign key constraint") — **add the new covering indexes first** (they lead with `sender_id`/`recipient_id`, satisfying the FK), then drop the old composites in a separate `Schema::table` call. `DB::table()` bypasses Eloquent `SoftDeletes`, so `whereNull('deleted_at')` is **mandatory** in every derived leg. Validated on an isolated `perf_benchmark` database (seeded 5K users / 500K messages) via `EXPLAIN` + wall-clock — never trust theory for index choices; seed at scale and measure (`EXPLAIN ANALYZE` on MySQL 8/MariaDB, `EXPLAIN` + timed runs on 5.7). Canonical migration `2026_06_30_000001_optimize_messages_indexes_for_contacts`.
+**34. Kill per-row correlated subqueries under `wire:poll` with non-correlated `UNION ALL` derived tables + covering indexes — never `addSelect([subquery])` against the outer row.** `FetchContactsAction` was `User::active()->addSelect(['last_message_id' => MAX(id) subquery, 'unread_count' => COUNT(*) subquery])` with each subquery `whereColumn`'ing `users.id` → MySQL `DEPENDENT SUBQUERY`, re-running per outer row; under `wire:poll.10s` that's `O(N·k)` per viewer per poll (5K users / 500K msgs: 1103 ms → 8.8 ms, ≈125×). Fix: pre-aggregate into non-correlated derived tables and `leftJoinSub` once — `$sent = MAX(id) GROUP BY recipient_id WHERE sender_id=viewer`, `$received = MAX(id) GROUP BY sender_id WHERE recipient_id=viewer`, `$lastMsgSub = fromSub($sent->unionAll($received))->selectRaw('contact_id, MAX(max_id)')->groupBy('contact_id')`, `$unreadSub = COUNT(id) GROUP BY sender_id WHERE recipient_id=viewer AND read_at IS NULL`; `User::active()->select('users.*','lm.last_message_id', DB::raw('COALESCE(uc.unread_count,0) as unread_count'))->leftJoinSub($lastMsgSub,'lm',...)->leftJoinSub($unreadSub,'uc',...)`. `HAVING unread_count > 0` → `WHERE uc.unread_count > 0`; no-message users keep `null`/`0` via `leftJoinSub` + `COALESCE`. **`OR`-defeats-index:** old `WHERE (sender_id=V AND recipient_id=u.id) OR (sender_id=u.id AND recipient_id=V)` made the optimizer ignore both directional composites → `idx_deleted_at` + `filesort`; same OR in the 1-on-1 thread view (`->latest()->take()`, `ORDER BY created_at`) defeats the composite there — so `idx_sender_recipient_created`/`idx_recipient_sender_created` were load-bearing for no query (EXPLAIN-verified) and dropped. **Covering replacements:** `idx_sent_covering(sender_id, deleted_at, recipient_id, id)` + `idx_received_covering(recipient_id, deleted_at, read_at, sender_id, id)` — `deleted_at` mid-prefix (after equality prefix) for in-index `whereNull('deleted_at')` prune, explicit `id` (InnoDB PK) so `MAX(id)`/`COUNT(id)` resolve `Using index` with no row lookup; `(recipient_id, deleted_at, read_at, sender_id, id)` covers both received-MAX and unread-COUNT legs. Drop `idx_recipient_read_at` (strict subset). **FK migration ordering:** if an index backs `messages_sender_id_foreign`/`_recipient_id_foreign`, InnoDB refuses `DROP INDEX` — add covering indexes first (they lead with the FK col), drop old composites in a separate `Schema::table`. `DB::table()` bypasses `SoftDeletes`, so `whereNull('deleted_at')` is mandatory in every derived leg. Validate on isolated `perf_benchmark` DB (5K/500K): seed at scale and measure — `EXPLAIN ANALYZE` on MySQL 8/MariaDB, `EXPLAIN` + timed runs on 5.7 — never trust theory for index choices. Migration: `database/migrations/migrated/2026_06_30_000019_create_messages_table.php` (covering indexes live in this create-table migration; no separate optimize migration).
 
-**35. Presenter `->tooltip()` / `formatStateUsing()` closures read a model accessor or eager relation — never issue a per-row query inside a Schema closure.** A `->tooltip(fn($record) => SomeModel::where(...)->...)` (or any query inside `formatStateUsing`) is an N+1: one extra query per rendered row. Move the data-shaping logic into a **model accessor** that consumes a relation already eager-loaded in `getEloquentQuery()` (Rule 18), and let the closure only read `$record->accessor`. Reference: `DMS::readerNamesTooltip` reads the eager `reads` collection (loaded via `DmsResource::getEloquentQuery()->with(['reads.user'])`) and dedupes `user_id` → `User::getCachedNames()` joined with ` ┆`, replacing the per-row `Read::getReaderNamesTooltipForDocument($record->id)` static query that used to sit in `DmsTablePresenter::readCount()`. Same principle as Rule 32 (display reads the model accessor, not an inline re-derivation) and Rule 33 (labels via trait) — the Schema stays pure UI composition, the model stays the single source of truth. Before applying, confirm the relation is eager-loaded with the columns the accessor reads and is **not** scope-constrained to a different row (a `hasMany` by the right FK, unconstrained, is the safe shape).
+**35. Presenter `->tooltip()` / `formatStateUsing()` closures read a model accessor or eager relation — never issue a per-row query inside a Schema closure.** A `->tooltip(fn($record) => SomeModel::where(...)->...)` (or any query inside `formatStateUsing`) is an N+1. Move data-shaping into a **model accessor** consuming a relation already eager-loaded in `getEloquentQuery()` (Rule 18); the closure only reads `$record->accessor`. Confirm the relation is eager-loaded with the columns the accessor reads and is **not** scope-constrained to a different row (a `hasMany` by the right FK, unconstrained, is the safe shape). Reference: `DMS::readerNamesTooltip` reads the eager `reads` collection (`DmsResource::getEloquentQuery()->with(['reads.user'])`), dedupes `user_id` → `User::getCachedNames()` joined with ` ┆`, replacing the per-row `Read::getReaderNamesTooltipForDocument($record->id)` static query in `DmsTablePresenter::readCount()`. Same principle as Rule 32 (display reads the model accessor, not an inline re-derivation) and Rule 33 (labels via trait) — the Schema stays pure UI composition, the model stays the single source of truth.
 
 **36. `use Closure;` is mandatory when a Presenter method declares `: Closure` (or a `Closure` parameter).** Inside a namespaced Filament Presenter class, an unimported `Closure` resolves to `<namespace>\Closure` (nonexistent) — PHP throws a TypeError at call time and the entire admin page 500s. Reference: `LinkFormPresenter` declared a `: Closure` return type without the import and took down the whole Link admin page; siblings `DmsFormPresenter`/`DetailsFormPresenter` already had it. Always add `use Closure;` at the top of any Presenter that references `Closure` in a signature.
 
-**37. Cross-field closure validation rule — attach the SAME closure to both fields and branch on `$attribute`.** To enforce a dependency between two fields (e.g. extra IPs require `internal_url`), return `fn(Get $get) => function(string $attribute, mixed $value, Closure $fail) use($get){…}` from a private static helper and attach it to **both** fields via `->rule(self::extraRequiresInternalUrl())`. Filament's `getValidationRules()` calls `$this->evaluate($rule)` (injects `Get`), and the returned inner closure becomes the Laravel closure-rule called with `($attribute, $value, $fail)`. Branch on `$attribute` inside the inner closure so each field is handled symmetrically and the failure surfaces under the field the user edited. Filter empty tags before the cross-field check so empty/junk tags don't falsely trigger. Reference: `LinkFormPresenter::extraRequiresInternalUrl()`. Distinct from the `ValidationRule` object pattern in §2.1 ("Cross-field validation rule that re-runs when any sibling changes", the `UniqueLiveDocument`/`uniqueLiveRule()` shape) — this is the Laravel closure-rule form for dependencies that don't warrant a dedicated Rule class.
+**37. Cross-field closure validation rule — attach the SAME closure to both fields and branch on `$attribute`.** To enforce a dependency (e.g. extra IPs require `internal_url`), return `fn(Get $get) => function(string $attribute, mixed $value, Closure $fail) use($get){…}` from a private static helper and attach to **both** fields via `->rule(self::extraRequiresInternalUrl())`. Filament's `getValidationRules()` calls `$this->evaluate($rule)` (injects `Get`); the returned inner closure is the Laravel closure-rule called with `($attribute, $value, $fail)`. Branch on `$attribute` so the failure surfaces under the edited field; filter empty tags before the cross-field check. Reference: `LinkFormPresenter::extraRequiresInternalUrl()`. Distinct from the `ValidationRule` object pattern in §2.1 (`UniqueLiveDocument`/`uniqueLiveRule()`) — this is the closure-rule form for dependencies that don't warrant a dedicated Rule class.
 
 **38. TagsInput `->dehydrateStateUsing` must strip empty/whitespace tags before save.** TagsInput's default dehydrate only TRIMS tags; it does NOT filter empty ones, so `['']` persists to the DB. When storing arrays (IPs, tags), add `->dehydrateStateUsing(fn($state) => is_array($state) ? array_values(array_filter(array_map('trim', $state), fn($v) => $v !== '')) : $state)`. The Link model's read-time `array_filter` in `resolvedIsInternal()` is defense-in-depth, but the form should not persist junk in the first place.
 
-**39. A RelationManager (or Resource) calling `self::createdAtFilter()` (or any `FilamentFilters` helper) must `use App\Traits\FilamentFilters;` AND `use FilamentFilters;` in the class body — `FilamentActions` alone does NOT provide filters.** `createdAtFilter()` / `typeFilter()` / etc. live in `App\Traits\FilamentFilters`, while `viewAction`/`editAction`/`deleteAction`/`bulkActions` live in `App\Traits\FilamentActions`. A class that only imports `FilamentActions` and calls `self::createdAtFilter()` in `->filters([...])` throws a fatal `Call to undefined method ...::createdAtFilter()` the moment the RM table renders its filter row. Mirror the Resource itself: `ChannelResource` imports both (`use App\Traits\FilamentActions; use App\Traits\FilamentFilters;` + `use FilamentActions, FilamentFilters, AuthorizesByPermission;`). Always pair them — if a RM uses any `self::...Filter()`, add the `FilamentFilters` import + trait. Reference: `ChannelMessagesRelationManager` shipped with only `FilamentActions` and fatalled on filter render until `FilamentFilters` was added.
+**39. A RelationManager (or Resource) calling `self::createdAtFilter()` (or any `FilamentFilters` helper) must `use App\Traits\FilamentFilters;` AND `use FilamentFilters;` — `FilamentActions` alone does NOT provide filters.** `createdAtFilter()` / `typeFilter()` / etc. live in `App\Traits\FilamentFilters`; `viewAction`/`editAction`/`deleteAction`/`bulkActions` live in `App\Traits\FilamentActions`. A class importing only `FilamentActions` and calling `self::createdAtFilter()` fatalles `Call to undefined method ...::createdAtFilter()` on filter-row render. Mirror `ChannelResource`: `use App\Traits\FilamentActions; use App\Traits\FilamentFilters;` + `use FilamentActions, FilamentFilters, AuthorizesByPermission;`. Reference: `ChannelMessagesRelationManager` shipped with only `FilamentActions` and fatalled until `FilamentFilters` was added.
 
-**40. Attachment JSON has ONE canonical shape project-wide — `{path, name, mime, size}` — built at write time, never `{file: path}`.** Every model that stores uploaded files in a JSON/array column (`Message.attachments`, `ChannelMessage.attachments`, `TaskDetail.attachments`) stores each item as the same four-key object: `path` = the stored relative path on the public disk (`$file->store(...)` / `storeAs(...)`), `name` = `$file->getClientOriginalName()` (the user's original filename, for display only), `mime` = `$file->getMimeType()` (server-side `finfo`, safe), `size` = `$file->getSize()`. Build it in the write Action's `storeAttachments()` — mirror `SendMessageAction` / `SendChannelMessageAction` verbatim; `Task`'s `CreateTaskAction`/`UpdateTaskAction` now do too. Never store a bare path string under a `file` key — that was the `Task` inconsistency that broke cross-module parity (it had `{file}` with no metadata and `basename()` for display). Display reads `name` (always via Blade `{{ }}` — `name` is client-controlled and only safe because every render path escapes it; never `{!! !!}`) and links to `path`; the model's `forceDeleting`/`forceDeleted` storage hook deletes by `path`. `name` is display metadata only — never feed it into a storage path or `Content-Disposition`.
+**40. Attachment JSON has ONE canonical shape project-wide — `{path, name, mime, size}` — built at write time, never `{file: path}`.** Every model with a JSON/array attachment column (`Message.attachments`, `ChannelMessage.attachments`, `TaskDetail.attachments`) stores each item as: `path` = stored relative path on the public disk (`$file->store(...)`/`storeAs(...)`), `name` = `$file->getClientOriginalName()` (display only), `mime` = `$file->getMimeType()` (server-side `finfo`), `size` = `$file->getSize()`. Build it in the write Action's `storeAttachments()` — mirror `SendMessageAction`/`SendChannelMessageAction` verbatim; `Task`'s `CreateTaskAction`/`UpdateTaskAction` do too. Never store a bare path under a `file` key (the `Task` inconsistency that broke cross-module parity). Display reads `name` (always via Blade `{{ }}` — `name` is client-controlled; never `{!! !!}`) and links to `path`; the model's `forceDeleting`/`forceDeleted` hook deletes by `path`. `name` is display metadata — never feed it into a storage path or `Content-Disposition`.
 
 **The relationship-Repeater metadata trap:** when an attachments `Repeater` lives inside a `Section::relationship('detail')` (Rule 31), Filament saves the Repeater items straight into the related model's column, bypassing the page's `mutateFormDataBeforeCreate/Save` (those only see the parent record's fields). A bare `FileUpload::make('path')` stores `{path}` only and **truncates** `name`/`mime`/`size` on every admin save (the Repeater hydrates only declared schema fields from the model, so undeclared keys are dropped). The fix is to declare the metadata as `Hidden` siblings inside the Repeater and populate them from the real uploaded file inside `saveUploadedFileUsing` — NOT `afterStateUpdated`:
 
@@ -1678,15 +1874,15 @@ Repeater::make('attachments')->schema([
 
 Why `saveUploadedFileUsing` and NOT `afterStateUpdated`: `BaseFileUpload::saveUploadedFiles()` (vendor) passes **existing stored-path strings through unchanged** and calls `callAfterStateUpdated()` **unconditionally on every save** — so an `afterStateUpdated` closure re-runs for untouched existing items too. Deriving `name = basename($path)` there would **overwrite** a user-panel `getClientOriginalName()` whenever an admin later edits the task without touching attachments (an admin↔user sync violation), and a `!filled($get('name'))` guard to prevent that then breaks the **replace-file-in-place** case (stale hydrated metadata for the new file). `saveUploadedFileUsing` fires **only** for genuine new `TemporaryUploadedFile` uploads (passthrough strings skip it), hands you the real file object — so `name` is the true original client name (matching the Livewire Actions exactly, no `basename` fallback), and `mime`/`size` come from the file with **no disk read and no `Storage::mimeType()` throw risk** — so admin and user panels now produce the identical shape AND identical `name` value. `$set('name', ...)` resolves the sibling within the same Repeater item (Filament injects the `Set` utility by parameter name via `Component::resolveDefaultClosureDependencyForEvaluationByName`). `Hidden extends Field` and does not call `dehydrated(false)`, so the siblings hydrate from the model on edit and dehydrate back on save — that's what stops the truncation. Reference: `TaskFormPresenter::attachments()` + `TaskInfolistPresenter::attachments()` (`TextEntry::make('path')`) + `detail-fields.blade.php` + `Task::forceDeleting`.
 
-**41. Prune-state admin UI is ONE surface, rendered identically on every prune-capable resource — `prunableWarning()` column + `pruningSoonFilter()` filter + `prunableWarning()` infolist entry, all driven by the `HasPrunableStatus` trait.** Any model using `Prunable` + `App\Models\Traits\HasPrunableStatus` (currently `Message`/`Channel`/`ChannelMessage`/`Task`, all defaulting to `getPruneDays()=30`) gets the **same** three-part UI in its admin table/infolist, no per-resource variation. The trait is the single source of truth: `pruneStatusText()` (Farsi "در آستانه حذف" / "تا حذف خودکار: {interval}" / "وضعیت ایمن تا: {interval}", or `null` when not soft-deleted) and `pruneStatusColor()` (`danger`/`warning`/`info`). The canonical column (per-resource `*TablePresenter::prunableWarning()`): `TextColumn::make('prune_status')->label(fields.prune_status)->getStateUsing(fn($r) => $r->pruneStatusText())->color(fn($r) => $r->pruneStatusColor())->badge()->placeholder('—')->toggleable(isToggledHiddenByDefault: true)`. The canonical filter (`*TablePresenter::pruningSoonFilter()`): `Filter::make('pruning_soon')->label(filters.pruning_soon)->query(fn(Builder $q) => $q->whereNotNull('deleted_at')->where('deleted_at', '<=', now()->subDays(30)))->toggle()` — off by default, so the unfiltered list is unchanged. The canonical infolist entry (`*InfolistPresenter::prunableWarning()`): `TextEntry::make('prune_info')->label(fields.prune_status)->getStateUsing(pruneStatusText)->color(pruneStatusColor)->badge()->hidden(fn($r) => !$r->deleted_at)`. Each resource owns its own `prunableWarning()`/`pruningSoonFilter()` in its **TablePresenter/InfolistPresenter** with its own `resources/<r>/strings` lang keys (`fields.prune_status` = "وضعیت حذف خودکار", `filters.pruning_soon` = "در آستانه حذف خودکار") — do **not** put a model-specific prune filter in the shared `FilamentFilters` trait (that trait stays generic: only `createdAtFilter()`); a RelationManager with no Presenter inlines the same column/filter definition directly in its `table()`. Reference surface: `ContactResource` (Message) is the original; `ChannelResource`, `TaskResource`, and `ChannelMessagesRelationManager` now mirror it.
+**41. Prune-state admin UI is ONE surface, rendered identically on every prune-capable resource — `prunableWarning()` column + `pruningSoonFilter()` filter + `prunableWarning()` infolist entry, all driven by the `HasPrunableStatus` trait.** Models using `Prunable` + `App\Models\Traits\HasPrunableStatus` (currently `Message`/`Channel`/`ChannelMessage`/`Task`, `getPruneDays()=30`) get the same three-part UI. The trait is the single source: `pruneStatusText()` ("در آستانه حذف" / "تا حذف خودکار: {interval}" / "وضعیت ایمن تا: {interval}", or `null` when not soft-deleted) + `pruneStatusColor()` (`danger`/`warning`/`info`). Canonical column (`*TablePresenter::prunableWarning()`): `TextColumn::make('prune_status')->label(fields.prune_status)->getStateUsing(fn($r) => $r->pruneStatusText())->color(fn($r) => $r->pruneStatusColor())->badge()->placeholder('—')->toggleable(isToggledHiddenByDefault: true)`. Canonical filter (`*TablePresenter::pruningSoonFilter()`): `Filter::make('pruning_soon')->label(filters.pruning_soon)->query(fn(Builder $q) => $q->whereNotNull('deleted_at')->where('deleted_at', '<=', now()->subDays(30)))->toggle()` (off by default). Canonical infolist entry (`*InfolistPresenter::prunableWarning()`): `TextEntry::make('prune_info')->label(fields.prune_status)->getStateUsing(pruneStatusText)->color(pruneStatusColor)->badge()->hidden(fn($r) => !$r->deleted_at)`. Each resource owns its own in its **TablePresenter/InfolistPresenter** with its own `resources/<r>/strings` keys (`fields.prune_status`="وضعیت حذف خودکار", `filters.pruning_soon`="در آستانه حذف خودکار"); do **not** put a model-specific prune filter in `FilamentFilters` (stays generic: only `createdAtFilter()`); a Presenter-less RM inlines the same definitions in `table()`. Reference: `ContactResource` (Message) original; `ChannelResource`, `TaskResource`, `ChannelMessagesRelationManager` mirror it.
 
 **The RM soft-delete-scope gotcha:** a prune column/filter is meaningless on a query that hides soft-deleted rows — `deleted_at` is always `null` so the badge is always `—` and the filter returns zero rows. A Resource solves this at `getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class])` (Contact/Channel/Task already do); a RelationManager that adds the prune surface must do the **same** in its own `getEloquentQuery()` — and once trashed rows are visible, pair it with `self::restoreAction()` plus `self::deleteAction()->visible(fn($r) => !$r->trashed())` for parity with the Resource (trashed rows restorable, delete only on live rows). When the RM's base query may carry a join/alias, prefix the filter column with the real table name (`channel_messages.deleted_at`) to match the RM's own `defaultSort('channel_messages.created_at')` convention and avoid ambiguity. Reference: `ChannelMessagesRelationManager` (query drops `SoftDeletingScope`, `deleted_at` + `prune_status` columns, `pruning_soon` filter, restore/delete gated). Verdict on the inline-vs-trait question for the RM filter: inline in `table()` is correct here — the RM already inlines all its columns and has no Presenter; extracting to `FilamentFilters` would diverge from the Presenter-based reference and pollute a model-agnostic trait.
 
-**42. `$get('field')` on a Select bound to a backed enum returns the ENUM CASE, not the scalar value — never `(string)`-cast it.** When a `Select` uses `->options(SomeBackedEnum::class)` (a Filament `HasLabel` backed enum), Filament hydrates the field state to the **enum case instance** during the form lifecycle and only dehydrates to the scalar on save. So `$get('status')` yields a `DocumentStatus` object, not `'live'`. PHP does **not** auto-cast a backed enum via `(string)` (enums have no `__toString`) — `(string)($get('status') ?? '')` throws `Error: Object of class … could not be converted to string` mid-validation and 500s the form (which surfaces as "cannot upload file" because the file-drop validation round trips the whole form). Normalize before handing to a `string`-typed consumer: `$s = $get('status'); $s instanceof DocumentStatus ? $s->value : (string)($s ?? '')`. This applies to **any** rule/closure/`ValidationRule` constructor that reads a sibling enum-backed Select via `Get` — feed it the `->value`, never a cast. Reference: `DmsFormPresenter::uniqueLiveRule()` → `UniqueLiveDocument(string $status)`; the `(string)` cast on the hydrated `DocumentStatus` case threw at `DmsFormPresenter.php:198` and broke DMS file upload + create. Same family as Rule 23 (export columns humanize enums via `tryFrom($state)?->getLabel()`) and Rule 36 (a missing import silently fatalles a Presenter) — Filament hands you enum objects in more places than it advertises.
+**42. `$get('field')` on a Select bound to a backed enum returns the ENUM CASE, not the scalar value — never `(string)`-cast it.** A `Select` using `->options(SomeBackedEnum::class)` (a Filament `HasLabel` backed enum) hydrates field state to the **enum case instance** during the form lifecycle; it only dehydrates to the scalar on save. `$get('status')` yields a `DocumentStatus` object, not `'live'`. PHP does not auto-cast a backed enum via `(string)` — `(string)($get('status') ?? '')` throws `Error: Object of class … could not be converted to string` mid-validation and 500s the form (surfaces as "cannot upload file" because file-drop validation round-trips the whole form). Normalize: `$s = $get('status'); $s instanceof DocumentStatus ? $s->value : (string)($s ?? '')`. Applies to any rule/closure/`ValidationRule` constructor reading a sibling enum-backed Select via `Get` — feed it `->value`, never a cast. Reference: `DmsFormPresenter::uniqueLiveRule()` → `UniqueLiveDocument(string $status)`; the cast threw at `DmsFormPresenter.php:198` and broke DMS upload + create. Same family as Rule 23 (export columns humanize enums via `tryFrom($state)?->getLabel()`) and Rule 36 (a missing import silently fatalles a Presenter) — Filament hands you enum objects in more places than it advertises.
 
 **43. `FileUpload->downloadable()` on the `public` disk renders as a plain `<a href>` to `Storage::url()` (→ `/storage/...`, served statically off the symlink) — it does NOT route through the admin panel and does NOT run `EnsureHasPermission`.** A click is a client-side anchor (`vendor/filament/forms/.../file-upload.js::getDownloadLink`), not a Livewire roundtrip. Don't assume panel auth gates a public-disk download — it bypasses `EnsureHasPermission` entirely; use a private disk + a streamed/signed route if access must be enforced. The infolist `asset('storage/'.$path)` link is the same static URL.
 
-**44. `FileUpload->maxSize()` is in KB and must stay ≤ PHP `upload_max_filesize`/`post_max_size`.** A larger value makes uploads fail silently (PHP rejects before Filament's rule runs). Cap in code or raise php.ini — reference: `OnboardingFormPresenter::videos()` was `maxSize(204800)` (200MB) vs 100M PHP and rejected real videos.
+**44. `FileUpload->maxSize()` is in KB and must stay ≤ PHP `upload_max_filesize`/`post_max_size` AND ≤ Livewire's `temporary_file_upload.rules` `max:` (KB).** A larger value fails silently (PHP rejects before Filament's rule runs). Binding ceilings: PHP `upload_max_filesize=100M`/`post_max_size=105M`, `config/livewire.php` `temporary_file_upload.rules = ['max:102400']` (100MB — Livewire's multipart temp-upload endpoint, distinct from `payload.max_size` which only guards JSON snapshots). Cap in code or raise php.ini/livewire config. Reference: `OnboardingFormPresenter::videos()` was `maxSize(204800)` (200MB) vs 100M PHP → rejected real videos; raised to `97280` KB (95MB), under `FeedFormPresenter` video (`102400` KB/100MB) and both ceilings. For "no practical limit" infrequent large uploads, still cap just under the lowest binding ceiling.
 
 **45. A column the app treats as nullable must be `->nullable()` in the migration — the form's `->nullable()` is not enough.** Saving the null case otherwise throws `1048 Column 'x' cannot be null`. Reference: `onboardings.user_id` is the "global audience" key (null = global), but the migration omitted `->nullable()` so creating a global onboarding 500'd until the column was made nullable.
 
@@ -1695,3 +1891,38 @@ Why `saveUploadedFileUsing` and NOT `afterStateUpdated`: `BaseFileUpload::saveUp
 **47. A required field on a non-active Filament `Tab` blocks save with its error hidden on that tab.** The admin sees "fix the errors" with nothing visible on the current tab. Make non-first-tab critical fields optional, or surface the error. Reference: `OnboardingFormPresenter::welcome()` is the only `required` RichEditor; saving from another tab fails silently.
 
 **48. Form `->default()` overrides the DB column default on Create.** Filament dehydrates the field default into the insert payload, so `default(false)` beats a migration `default(1)` — the saved value surprises. Align the two. Reference: `OnboardingFormPresenter::isActive()` was `default(false)` vs migration `default(1)`, so new onboardings saved inactive.
+
+**49. `TextInput->url()` uses Laravel's `url` rule = `filter_var(FILTER_VALIDATE_URL)`, which REQUIRES `scheme://host` — it rejects schemeless IPs/hosts (`127.0.0.1`, `192.168.1.1`, `example.com`).** To allow internal IPs / schemeless URLs, drop `->url()` and use `->rules(['string', 'regex:'.self::URL_HOST_REGEX])` with a three-branch regex: `(?:mailto|tel):…` | `scheme://…` | `[host][(:port)]?[(/?#)…]`. Strict `mailto|tel` keeps `javascript:` rejected. Caveat: `javascript://x` passes BOTH old `url` and this regex (pre-existing surface, not a regression) — block `javascript`/`data` explicitly if hardening is required. Reference: `LinkFormPresenter::URL_HOST_REGEX` on `internal_url` + `url`.
+
+**50. A locked/audit submitter field is a non-submittable `Placeholder`, NEVER a `disabled()->dehydrated(true)` relationship `Select` — and an admin "quick submit" modal is a header `Action::schema([...])` that persists via inline `Model::create`, gated by `canCreate()`.** `Select::make('user_id')->relationship('user','name')->disabled()->dehydrated(true)` is wrong on two axes: it runs an **unbounded** query loading the entire `users` table for a dropdown the user can't change (data leakage + scaling), and `dehydrated(true)` on a disabled field still ships `user_id` in the Livewire payload with no server re-assertion — a crafted request can reassign the record. Correct display: `Placeholder::make('user_id')->content(fn(?Model $record) => $record?->user?->name ?? ($record === null ? auth()->user()?->name : null) ?? __('...deleted_user'))` — the `??` chain MUST gate the auth fallback on `$record === null`, else a record whose author was deleted (`$record->user` null, `$record` non-null) falls through to `auth()->user()->name` and mis-attributes the row to the current viewer. `Placeholder` submits nothing, so `user_id` is enforced server-side: on Create via `mutateFormDataBeforeCreate(array $data): array { $data['user_id'] = Auth::id(); return $data; }` (see `CreateReleaseRequest::mutateFormDataBeforeCreate`), and on Edit it's simply not in the form data so it's preserved untouched. **Rule: a display-only field is a `Placeholder` with a `$record === null`-gated auth fallback; the value is injected server-side or kept out of the form — never a `disabled()->dehydrated(true)` Select that leaks the table and trusts the payload.**
+
+The admin "quick submit" modal (the user panel has its own Livewire modal; admin needs one too — a Resource + Create page is a full page, not a modal) is a header `Action::make('submitRequest')->schema([Presenter::type(), Presenter::title(), Presenter::body()])->action(fn(array $data) => ReleaseRequest::create(['user_id'=>(int)Auth::id(), 'type'=>$data['type'], 'title'=>$data['title'], 'body'=>$data['body'], 'status'=>ReleaseRequestStatus::Open->value]))` on `ListReleaseRequests::getHeaderActions()`, alongside the standard `CreateAction`. Two gates the custom Action does NOT get for free (unlike `CreateAction`, which auto-enforces the create policy): `->visible(fn() => $this->getResource()::canCreate())` hides it from users without create permission, and `->authorize('create', Model::class)` re-checks at submit time. Persistence goes straight to `Model::create([...])` with `user_id` and `status` forced **server-side** (never read from `$data`) — the schema validates user-editable fields (type/title/body via Presenter rules), `$fillable` is scoped to safe columns, so no mass-assignment risk and **no separate Service class is needed** (same convention as `CreateTaskAction` etc. — Action owns persistence; do not introduce a `*Service`). **Rule: a custom header Action that creates rows needs explicit `canCreate()` visibility + `authorize('create')` (CreateAction gets these implicitly) and must force immutable columns server-side — but it does NOT need a Service; inline `Model::create` with a `$fillable`-scoped model + server-forced fields is the pattern.** Reference: `ReleaseRequestResource` + `ListReleaseRequests` (header `submitRequest` → `ReleaseRequest::create` with server-forced `user_id`/`status`) + `CreateReleaseRequest::mutateFormDataBeforeCreate`.
+
+**51. A new admin module gets a top-navbar shortcut button alongside the cache/utilities strip — a `canCreate()`-gated `<a>` to `Resource::getUrl('create')`, rendered via the `GLOBAL_SEARCH_START` → `filament.resources.dashboard.utilities` render hook.** The utilities strip (`utilities.blade.php`, registered in `FilamentServiceProvider::registerComponentHooks()` at `PanelsRenderHook::GLOBAL_SEARCH_START`) is a horizontal scroll of `w-10 h-10` icon buttons. A deep-link to a Resource create page is a plain `<a href="{{ Resource::getUrl('create') }}">` styled identically (same `group relative shrink-0 flex w-10 h-10 … rounded-xl … text-[var(--md-sys-color-primary-container)]` + `<x-ui.modals.tooltip position="bottom"/>`), NOT a `<button @click>` — it's navigation, not an Alpine action. Gate it `@if(Resource::canCreate())` so only permitted admins see it (the create page enforces the policy, but hiding the entry avoids a 403 click). Icon is a Material Symbols name matching the resource (`auto_awesome` for `ReleaseRequestResource`). **Rule: a top-navbar deep-link to a Resource page is a `canCreate()`-gated `<a>` using `Resource::getUrl('create')`, styled like the existing icon buttons — never a `<button @click>` and never ungated.** Reference: `utilities.blade.php` (release-request create shortcut) + `ReleaseRequestResource::canCreate()`/`getUrl('create')`.
+
+**52. Release-note sync — every new admin module/feature gets a `config/releases.php` checkpoint AFTER its pattern doc (this file) is updated.** `config/releases.php` is an array of checkpoints rendered by `components/dashboard/modal/release.blade.php` as `collect(config('releases', []))->reverse()` — the **last** entry is newest. Doc-sync order when a module ships: (1) add the reusable pattern here in `filamentPattern.md` (and the user-panel side in `livewirePattern.md`) FIRST; (2) THEN append a checkpoint at the **end of the array** so it becomes newest. Checkpoint shape: `id` (kebab), `version` (next β.N), `badge` => `'جدیدترین'`, `period` (Jalali month), `icon`+`theme_icon` (Material Symbols), `color` (token key; newest forced `primary`), `theme_title` (Farsi), `items` = `['title'=>…,'desc'=>…]` Farsi pairs. **Demotion: re-badge the previously-newest entry from `'جدیدترین'` to a real category badge before appending, so only ONE `'جدیدترین'` ever exists.** Never edit an old checkpoint in place. Reference: the `release-request` β.9 checkpoint + the re-badged `channels-launch` (was `'جدیدترین'` → `'ارتباطات'`).
+
+**53. A mixed-media `FileUpload` (image + video) MUST drop `->image()` — `->image()` forces image-only server validation and rejects every non-image mime regardless of `acceptedFileTypes`.** `acceptedFileTypes` alone is NOT enough: `->image()` adds Laravel's `image` rule (`jpg,jpeg,png,bmp,gif,webp,avif`) on top, so `video/mp4` in `acceptedFileTypes` while keeping `->image()` still 422's a `.mp4`. Gate: drop `->image()` entirely, enumerate both image AND video mimes in `acceptedFileTypes`, bump `maxSize()` to the video ceiling (Rule 44). Filament's FileUpload grid does NOT render video thumbnails natively (only image previews) — accepted trade-off; the user-panel render supplies the cover frame (see `livewirePattern.md` "Gallery mixed-media render"). Reference: `GalleryFormPresenter::path()` — was `->image()` + 4 image mimes + `maxSize(5120)`; now no `->image()`, mimes include `video/mp4|video/webm|video/quicktime`, `maxSize(51200)`. The stored `path` JSON array shape is unchanged — video support needs NO migration and NO model edit, only the form gate + a render-time extension branch.
+
+**54. A relationship `Repeater` (`->relationship()`) that allows optional/empty rows must use `->defaultItems(0)` + conditional `->required(fn(Get $get) => filled($get('key')))` on the key/value fields + return `null` from the `mutateRelationshipDataBefore*Using` helper to skip empty items — NOT a repeater-level `dehydrateStateUsing` filter.** Filament's relationship-save loop (`vendor/filament/forms/src/Components/Repeater.php` `saveRelationshipsUsing`) iterates `getItems()` (child components), **not** the dehydrated state array, and does `if ($itemData === null) continue;` — so returning `null` from `mutateRelationshipDataBeforeCreateUsing`/`mutateRelationshipDataBeforeSaveUsing` is the only way to drop an empty row. The deletion check keys state by `"record-{modelID}"` via `array_key_exists("record-{$id}", $state)` (key lookup, not positional). **Never wrap a relationship repeater's `dehydrateStateUsing` in `array_values()`** — it strips those `"record-{id}"` keys and makes every Edit save delete-all + re-create every child (PK churn, lost timestamps, cascade risk); `array_values(array_filter(...))` is only safe on a JSON-column repeater with no reconciliation (Rule 40 `attachments()`). Symptom prevented: an empty default repeater row with a `required` key blocks Create with `"فیلد … الزامی است"` even when other rows are filled — the error is on the unnoticed empty row. Reference: `ProfileFormPresenter::details()` — `->defaultItems(0)`, `key`/`value_*` conditional `->required`, `dehydrateDetailValue()` returns `null` for a blank key; `key` `->required($rowHasValue)` fires when any value field is filled (catches "value entered, key forgotten"), each `value_*` `->required(fn(Get $get) => filled($get('key')))` fires when a key is chosen (catches "key chosen, value forgotten") — an entirely empty row passes both and is skipped at save.
+
+**55. `disabledOn('edit')` stops a field from being *saved* — it does NOT stop Filament from *validating* it against a live-recomputed `options()` list; add `->validatedWhenNotDehydrated(false)` whenever the field's options depend on mutable data.** `disabled()` makes `isSaved()`/`isDehydrated()` false on that operation, but `isValidatedWhenNotDehydrated()` defaults to `true` and is never implied false by `disabled()` — so a `Select` whose `options()` closure is scoped to admin-editable data (e.g. a department's `ticket_options`) still runs Filament's auto-derived `in:` rule against the *current* options set on every save, even though the field can't be changed. If that data narrows after the record was created (a department gets/loses a custom type), the stored value falls outside the new options list, and editing ANY other field on that record throws a spurious "selected X is invalid" error from the untouched disabled field. Verified against installed Filament source (`CanBeValidated`/`Select::getInValidationRuleValues()`). **Rule: any `disabledOn('edit')` field whose `options()` is computed from data that can change after the record exists needs `->validatedWhenNotDehydrated(false)` — a relationship-bound Select (label resolved from the relationship, not a static options array) and a static-enum-backed Select are NOT at risk.** Reference: `TicketFormPresenter::requestType()`/`requestArea()`/`targetDepartment()`.
+
+**56. An interactive widget shared between the admin panel and a user-panel Livewire module is ONE embeddable Livewire component, mounted via `Filament\Schemas\Components\Livewire::make($componentClass, fn(?Model $record) => [...])` on the admin side — not a second, parallel implementation of the same UI.** Gate with `->visible(fn(?Model $record) => $record !== null)` (no record yet on Create). The embedded component's blade must render **one stable root element unconditionally** — never wrap the whole template in a top-level `@if`; Livewire's nested-component tracker extracts the child's tag name from rendered HTML on mount and reuses it on the next partial re-render (e.g. from a `->live()` sibling), and zero/malformed output on any render pass poisons that stored tag, throwing `Invalid Livewire child tag name` on the *next* interaction — move the `@if` inside the root div, not around it. Full pattern (shared policy class + one embedded widget + reply-thread trait + effectiveness/notification wiring) in `livewirePattern.md` "Shared access policy + one embeddable widget". Reference: `ThsResource::form()` embedding `Ths\Workspace`.
+
+**57. A `Repeater` with a custom `saveRelationshipsUsing()`/`afterStateHydrated()`/`dehydrateStateUsing()` that flattens a list-of-pairs into a scalar map (or vice versa) is a reshape BOUNDARY — normalize defensively on both sides, and if a `RichEditor` shares the same column with a user-facing plain-text form, sanitize before rendering unescaped, never just un-escape.** Two hazards: (1) shape mismatch (nested array where a scalar is expected) crashes a typed Livewire `Form` property or hard-typed helper — coerce non-scalars to a joined string at the read boundary rather than trusting every writer (`Profile.about_me`, `Feed.poll_options`); (2) if the same column is also writable as plain text via a user-facing Livewire form (dual-authored, not admin-only), rendering it as unescaped HTML once a `RichEditor` is added is a stored-XSS hole — a user typing `<script>` gets it rendered unescaped to every viewer. Full decision table (shape-normalize guard vs. `Str::sanitizeHtml()` vs. `superClean()` for excerpts) in `livewirePattern.md` "Rendering text/HTML in Blade" — read it before adding a `RichEditor` to any column with (or might get) a plain-text writer, or before adding a custom reshape closure to any `Repeater`. Reference: `ProfileFormPresenter::aboutMe()`, `FeedFormPresenter::pollOptions()`, `SuggestionFormPresenter::description()` (dual-authored with `SuggestionForm::$descriptionSelf`), `CommentsRelationManager`'s `RichEditor` (dual-authored with the front-end comment composer).
+
+## Admin panel feature-test convention — one `ResourceTest` per resource
+
+Every admin resource has ONE feature-test file `tests/Feature/Filament/<Module>ResourceTest.php` (26 files, one per resource — no standalone filter/helper-text files; those were folded in). The full skeleton + gotcha list lives in `.claude/tmp/admin-test-brief.md`; the load-bearing rules:
+
+- **Trait-level cover-gap tests live in `tests/Feature/Traits/` (mirrors `app/Traits/`, NOT the `Filament/` ResourceTest folder):** the per-resource `*ResourceTest` files only exercise the shared traits through the developer super-admin bypass, so each shared trait gets its OWN dedicated `tests/Feature/Traits/<Trait>Test.php` (namespace `Tests\Feature\Traits`) for its real contract — 9 files covering all 8 `App\Traits\Filament*` traits + `AuthorizesByPermission`. The DB-backed ones reuse the verbatim `useMysql()` + transaction + `developer()`/`admin()` scaffolding (identical to the ResourceTest skeleton below) and add `setLocale('fa')` wherever a `__()` string is asserted; the two pure-static factories (`FilamentFormDividerTest`, `FilamentActionsTest`) drop `useMysql()`/transactions/auth entirely (no DB dependency — keeping them would be dead weight the reviewer blocks). Coverage map: `FilamentEditHeadingTest` (format branch "ویرایش {label}: {title}" via a column-based resource + a composite `getRecordTitle` override, plus the `title === label` fallback to `getTitle()`; mounts a real Edit page, reads `$component->instance()->getHeading()`), `AuthorizesByPermissionTest` (`moduleKey()` incl. the `ResourceResource → "resource"` edge case, developer bypass, non-developer `role='admin'` denial WITHOUT a Permission row, granted-actions via `abilities=[['module'=>'post','actions'=>['view','create']]]`, unauthenticated denial), `FilamentPageBehaviorTest` (`getRedirectUrl`→index + `getCreatedNotificationTitle`/`getSavedNotificationTitle` fa strings — protected methods invoked via `ReflectionMethod::setAccessible(true)`), `FilamentFiltersTest` (`createdAtFilter` date-range `from`/`until` scoping via `filterTable('created_at', ['from'=>…,'until'=>…])`), `FilamentHeaderActionsTest` (`getHeaderActions` returns `['create']` on a List page, `['create','delete']` on an Edit page — reflection), `FilamentDateHandlerTest` (`mergeDeadline` joins `deadline_date`+`deadline_time`→`deadline` on Create, `mutateFormDataBeforeFill` splits on Edit, via the real `CreateTask`/`EditTask` consumers; assert on the RAW DB value, not the `datetime`-cast/Jalali accessor), `FilamentActionsTest` (every `public static` action factory — instance type + `getName()` + `isConfirmationRequired()`/`getExporter()`/`getLabel()`; do NOT invoke the `assign`/`unassign` action closures — they send Filament Notifications needing a Livewire session), `FilamentFormDividerTest` (`divider()` returns a `TextEntry` named `divider` with `getColumnSpan()['default'] === 'full'` — call via a consuming Presenter like `AdFormPresenter::divider()`, not the trait name), `FilamentPreferencesTest` (the `App\Livewire\Admin\ManagePreferences` page: `mount()` hydrates from `Auth::user()->extra['preferences']`, `save()` persists back, `getTogglesCount()` equals `count(getPreferenceFields())` — use `$component->set('data.field', …)` to mutate form state through Livewire's update lifecycle, not direct `instance()->data` writes). Heading assertions are ALSO embedded into the relevant resource's own ResourceTest (column-based: `PostResourceTest`; composite: `ReservationPolicyResourceTest`) via `assertStringContainsString($record->title|$type, (string) $component->instance()->getHeading())` so a regression in either the trait OR the per-resource `recordTitleAttribute`/`getRecordTitle` config is caught at the resource level too. **Bug surfaced + fixed by `FilamentFiltersTest`:** `FilamentFilters::createdAtFilter()` read `$data['from']`/`$data['until']` unguarded in both the `query` and `indicateUsing` closures, so a single-sided date range (only `from` or only `until`) threw `Undefined array key` under Laravel's warning→exception handler — fixed with `$data['from'] ?? null` / `$data['until'] ?? null` guards; `test_created_at_from_only_filter_works_without_until_key` locks the fix by passing only the `from` key.
+
+- **Skeleton (copied verbatim across all 26 files):** `setUp` calls `useMysql()` (copies `.env` MySQL creds at runtime, `DB::purge('mysql')`, sets `mysql` default — no `RefreshDatabase`, migrations are MySQL-only under `database/migrations/migrated/`), then `DB::beginTransaction()`; `tearDown` does `DB::rollBack()`. A private `developer()` helper creates a `role='developer'` User + an `is_super_admin` Permission row — the developer bypass in `AuthorizesByPermission::permits()` (and `EnsureHasPermission` middleware) makes every `canViewAny/canCreate/canEdit/canDelete` pass without per-module ability rows. Auto-increment IDs are NOT reset between tests; create fresh factory rows inside the transaction.
+- **DeleteAction namespace:** this Filament v5 install has UNIFIED actions — `callTableAction(\Filament\Actions\DeleteAction::class, $record)`. `Filament\Tables\Actions\DeleteAction` does NOT exist here (throws `ActionNotResolvableException`). The string form `callTableAction('delete', $record)` also works (resources register delete via the `FilamentActions` trait under name `delete`).
+- **`filterTable` second-arg shape** (`TestsFilters::filterTable` signature `$data = null` with auto-wrapping): bare scalar for `SelectFilter` (non-multiple) and `TernaryFilter` FALSE-case — `filterTable('gender','Male')`, `filterTable('active','0')` (string `'0'`, not `false` — `blank(false)` no-ops a TernaryFilter). BOOLEAN `true` for a `TernaryFilter` TRUE-case — `filterTable('has_users', true)`; string `'1'` lands in the else branch and silently fails to select the true query. ARRAY for multi-select — `filterTable('owners', ['departments'=>['MA']])`. NO second arg for a plain toggle `BaseFilter` — `filterTable('low_score')` sets `['isActive'=>true]`. Symptom of a wrong shape: `array_key_exists(): Argument #1 must be a valid array offset type` or a silent no-op — swap scalar↔array↔boolean↔none; the test run is the source of truth.
+- **RichEditor (Tiptap) quirk:** `->required()` does NOT register the `required` rule key in Livewire's validator (closure-based `getRequiredValidationRule` calls `$fail('validation.required')->translate()`), so `assertHasFormErrors(['field'=>'required'])` cannot match — use key-only `assertHasFormErrors(['field'])` or the message-string form `['field'=>'validation.required']`. The empty-Tiptap-doc value `{type:doc,content:[{type:paragraph,content:[]}]}` is what trips required (plain `''`/`null` does NOT). RichEditor stores HTML — DB assertions use `assertStringContainsString`, not exact match.
+- **Locale:** `.env.testing` forces `APP_LOCALE=en` but most `lang/en/...` option-translation files don't exist (only `lang/fa`). Any field whose options come from `__('resources/.../strings.*')` throws a `ViewException` ("Return value must be of type array, string returned") on mount under `en`. Add `$this->app->setLocale('fa')` in `setUp` (or per-test) when the FormPresenter/TablePresenter uses `__()` for option arrays — reach for it the moment you see that ViewException on mount.
+- **Pagination flake on `assertCanSeeTableRecords`:** the dev DB has many seeded rows and tables with `defaultSort` paginate at 10/page — a factory row with a mid-alphabet name can sort beyond page 1. Give factory rows `0`-prefix names/titles so they land on page 1 (test-data choice, not a production change).
+- **Read-only / List+Edit-only resources:** some resources hard-code `canCreate()=false` and register only an `EditAction` (no delete, no filters) — e.g. `ReservationPolicyResource`. Do NOT invent create/delete/filter tests; cover List + Edit mount + Edit save + 1-2 edit-form validation tests. A resource with only `index`+`view` pages (e.g. `EnergyTestResource`) gets List + View + filter tests only.
+- **Embedded user-panel widgets on an admin Edit page can 403 the admin** (open issue, Rule 56): `ThsResource::form()` embeds `Ths\Workspace`, whose `mount()` enforces `TicketAccessPolicy::canView()` — which has NO developer/admin bypass (only requester/assignee/head-of-target-dept). So an admin/developer who is none of those gets a 403 mounting admin `EditTicket`. Tests route around it by factory-creating the ticket with `requester_id => $admin->id` (NOT `assigned_to` — `TicketFormPresenter::assignedTo()` options are scoped to the target department and reject an out-of-department assignee via `in:`). The production fix (admin bypass in `TicketAccessPolicy` vs. admin-context skip in `Workspace`) is unresolved — flagged, not fixed.

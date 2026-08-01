@@ -64,7 +64,33 @@ class GalleryInfolistPresenter
             ->columnSpanFull()
             ->stacked()
             ->limit(12)
-            ->limitedRemainingText();
+            ->limitedRemainingText()
+            ->getStateUsing(fn($record) => collect($record->path ?? [])
+                ->filter(fn($p) => !in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['mp4', 'webm', 'mov'], true))
+                ->values()
+                ->all());
+    }
+
+    public static function videos(): TextEntry
+    {
+        return TextEntry::make('videos')
+            ->label(__('resources/gallery/strings.fields.video_badge'))
+            ->columnSpanFull()
+            ->html()
+            ->visible(fn($record) => collect($record->path ?? [])
+                ->contains(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['mp4', 'webm', 'mov'], true)))
+            ->getStateUsing(function ($record) {
+                $videos = collect($record->path ?? [])
+                    ->filter(fn($p) => in_array(strtolower(pathinfo($p, PATHINFO_EXTENSION)), ['mp4', 'webm', 'mov'], true))
+                    ->map(fn($p) => \App\Models\Photo::resolvePublicAssetUrl($p))
+                    ->values();
+
+                return $videos->map(fn($url) => sprintf(
+                    '<video controls preload="metadata" playsinline class="w-full max-w-md rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 mb-2" src="%s#t=0.1"></video>',
+                    e($url),
+                ))->implode('');
+            })
+            ->placeholder('—');
     }
 
     public static function photosCount(): TextEntry

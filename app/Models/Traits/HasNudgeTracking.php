@@ -33,6 +33,13 @@ trait HasNudgeTracking
             ->update(['read_at' => now()]);
     }
 
+    public static function markAllReadFor(int $userId): int
+    {
+        return static::nudgeQuery($userId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+    }
+
     public static function seenIdsFor(int $userId): Collection
     {
         return static::nudgeQuery($userId)

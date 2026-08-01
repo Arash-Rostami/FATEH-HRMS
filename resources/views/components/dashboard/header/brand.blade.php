@@ -22,9 +22,9 @@
                             leading-none select-none whitespace-nowrap
                             bg-gradient-to-l from-white via-white/90 to-white/60
                             bg-clip-text text-transparent">
-                    اینتـرا،&nbsp;
+                    {{ config('app.name') }}،
                     <span class="bg-[var(--header-border-color)] bg-clip-text text-transparent font-normal">
-                        خانه دیجیتـال سازمان ما
+                        {{ config('app.slogan') }}
                     </span>
                 </h1>
 
@@ -46,17 +46,40 @@
             </div>
 
             <div class="group relative flex items-center shrink-0">
-                <div class="absolute -inset-3 rounded-full
-                            bg-gradient-to-r from-[#FF7F6E]/15 to-[#ffb199]/10
-                            opacity-0 group-hover:opacity-100
-                            transition duration-700 pointer-events-none"></div>
-                <img src="{{ asset('build/assets/img/logo.png') }}"
-                     alt="Fateh Logo"
-                     class="relative h-[30px] lg:h-[44px] w-auto
-                            transition-all duration-500 ease-out
-                            group-hover:scale-105
-                            group-hover:drop-shadow-[0_0_10px_rgba(255,127,110,0.45)]">
-            </div>
+                <div class="flex items-center gap-3 shrink-0 group">
+                    @if(config('app.user_use_company_logo'))
+                        <button type="button"
+                                x-data="{ flipped: false }"
+                                @click="flipped = !flipped"
+                                class="relative h-[30px] lg:h-[35px] w-[110px] lg:w-[130px] shrink-0 perspective-1000 cursor-pointer
+                       transition-transform duration-500 ease-out group-hover:scale-105"
+                                title="{{ config('app.organization_name_en') }} / {{ config('app.name_en') }}">
+                            <div class="absolute inset-0 preserve-3d transition-transform duration-700 ease-out"
+                                 :class="flipped ? 'rotate-x-180' : ''">
+                                <img src="{{ asset(config('app.company_logo')) }}"
+                                     alt="{{ config('app.organization_name_en') }}"
+                                     class="absolute inset-0 h-full w-full object-contain object-center backface-hidden">
+                                <div class="absolute inset-0 backface-hidden rotate-x-180">
+                                    <img src="{{ asset(tenantLogo(true)) }}"
+                                         alt="{{ config('app.name_en') }}"
+                                         class="absolute inset-0 h-full w-full object-contain object-center hidden dark:block">
+                                    <img src="{{ asset(tenantLogo(false)) }}"
+                                         alt="{{ config('app.name_en') }}"
+                                         class="absolute inset-0 h-full w-full object-contain object-center dark:hidden">
+                                </div>
+                            </div>
+                        </button>
+                    @else
+                        <img src="{{ asset(tenantLogo(true)) }}"
+                             alt="{{ config('app.name_en') }}" title="{{ config('app.name_en') }}"
+                             class="relative h-[30px] lg:h-[35px] w-auto transition-all duration-500 ease-out
+                    group-hover:scale-105 group-hover:drop-shadow-[0_0_10px_rgba(255,127,110,0.45)] hidden dark:block">
+                        <img src="{{ asset(tenantLogo(false)) }}"
+                             alt="{{ config('app.name_en') }}" title="{{ config('app.name_en') }}"
+                             class="relative h-[30px] lg:h-[35px] w-auto transition-all duration-500 ease-out
+                    group-hover:scale-105 group-hover:drop-shadow-[0_0_10px_rgba(255,127,110,0.45)] dark:hidden">
+                    @endif
+                </div>
 
         </div>
     </header>

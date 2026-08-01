@@ -4,6 +4,7 @@ use App\Enums\PresenceStatus;
 use App\Models\Permission;
 use App\Services\GreetingService;
 use App\Services\QuoteService;
+use App\Services\Reservation\ValidationService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -36,6 +37,23 @@ if (!function_exists('superClean')) {
         $text = Str::limit(trim((string)$text), $limit);
 
         return $nl2br ? nl2br(e($text), false) : $text;
+    }
+}
+
+if (!function_exists('renderComment')) {
+    function renderComment(?string $text, int $limit = 2000): string
+    {
+        if (blank($text)) {
+            return '';
+        }
+
+        $text = html_entity_decode((string)$text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/[ \t]+/u', ' ', $text);
+        $text = Str::limit(trim($text), $limit);
+        $text = preg_replace('/\*\*(.+?)\*\*/su', '<strong>$1</strong>', $text);
+        $text = Str::sanitizeHtml((string)$text);
+
+        return nl2br($text, false);
     }
 }
 
@@ -157,6 +175,7 @@ if (!function_exists('getEventStyles')) {
         return match ($type) {
             'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
             'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
+            'holiday' => 'bg-rose-50 text-rose-600 ring-1 ring-rose-100',
             default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
         };
     }
@@ -332,5 +351,50 @@ if (!function_exists('canAdmin')) {
         $adminPerm = Permission::forUser($user->id);
 
         return $status[$user->id] = $adminPerm && ($adminPerm->is_super_admin || !empty($adminPerm->abilities));
+    }
+}
+
+if (!function_exists('disabledReservationTypes')) {
+    function disabledReservationTypes(): array
+    {
+        return app(ValidationService::class)->disabledTypes();
+    }
+}
+
+if (!function_exists('tenantAsset')) {
+    function tenantAsset(string $tenant, string $type, string $role, ?string $fallback = null): ?string
+    {
+        $matches = glob(resource_path("assets/{$type}/{$tenant}/{$role}.*")) ?: [];
+
+        return $matches ? "build/assets/{$type}/{$tenant}/" . basename($matches[0]) : $fallback;
+    }
+}
+
+if (!function_exists('tenantVideos')) {
+    function tenantVideos(string $tenant): array
+    {
+        $files = glob(resource_path("assets/video/{$tenant}/*.*")) ?: [];
+        natsort($files);
+
+        return array_map(
+            fn(string $file): string => "build/assets/video/{$tenant}/" . basename($file),
+            array_values($files)
+        );
+    }
+}
+
+if (!function_exists('tenantLogo')) {
+    function tenantLogo(bool $dark, string $scope = 'user'): string
+    {
+        if ($scope === 'admin' && config('app.admin_use_company_logo')) {
+            return config('app.company_logo');
+        }
+
+        $reversed = config("app.{$scope}_reverse_logo");
+        $showDark = $scope === 'admin' && $reversed
+            ? $dark === request()->routeIs('filament.admin.auth.login')
+            : ($reversed ? !$dark : $dark);
+
+        return config($showDark ? 'app.app_logo_dark' : 'app.app_logo_light');
     }
 }

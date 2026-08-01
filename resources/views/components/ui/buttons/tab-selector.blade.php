@@ -16,19 +16,30 @@
 
     @foreach($tabs as $tab)
         @if($tab['condition'] ?? true)
+            @php($isDisabled = $tab['disabled'] ?? false)
             <button
-                wire:click="switchTab('{{ $tab['id'] }}')"
+                @if($isDisabled)
+                    type="button"
+                    disabled
+                    title="{{ $tab['disabledReason'] ?? 'این گزینه در حال حاضر توسط مدیریت غیرفعال شده است' }}"
+                @else
+                    wire:click="switchTab('{{ $tab['id'] }}')"
+                @endif
                 @if($hasA11y)
                     role="tab"
+                    aria-disabled="{{ $isDisabled ? 'true' : 'false' }}"
                 :aria-selected="$wire.activeTab === '{{ $tab['id'] }}'"
                 @endif
-                class="{{ $buttonBaseClass }} {{ $activeTab === $tab['id'] ? $buttonActiveClass : $buttonInactiveClass }}"
+                class="{{ $buttonBaseClass }} {{ $isDisabled ? 'opacity-40 grayscale-[35%] cursor-not-allowed hover:bg-transparent' : ($activeTab === $tab['id'] ? $buttonActiveClass : $buttonInactiveClass) }}"
             >
                 <span
-                    class="{{ $iconBaseClass }} {{ $activeTab === $tab['id'] ? $iconActiveClass : $iconInactiveClass }}">
+                    class="{{ $iconBaseClass }} {{ $isDisabled ? 'opacity-70' : ($activeTab === $tab['id'] ? $iconActiveClass : $iconInactiveClass) }}">
                     {{ $tab['icon'] }}
                 </span>
                 {{ $tab['label'] }}
+                @if($isDisabled)
+                    <span class="material-symbols-rounded text-[15px] opacity-80">lock</span>
+                @endif
             </button>
         @endif
     @endforeach

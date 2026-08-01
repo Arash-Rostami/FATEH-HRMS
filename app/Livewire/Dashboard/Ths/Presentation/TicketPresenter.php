@@ -22,9 +22,9 @@ class TicketPresenter
         return toJalaliRelative($ticket[$col]);
     }
 
-    public function requestAreaLabel(string $requestType, string $requestArea, ?string $department = null): string
+    public function requestAreaLabel(string $requestType, ?string $requestArea, ?string $department = null): string
     {
-        return Ticket::getCustomRequestAreaLabel($requestType, $requestArea, $department);
+        return $requestArea ? Ticket::getCustomRequestAreaLabel($requestType, $requestArea, $department) : '—';
     }
 
     public function requestAreaIcon(?string $area, ?string $department = null, string $fallback = 'location_on'): string

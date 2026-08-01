@@ -35,9 +35,11 @@ class Main extends Component
     public string $search = '';
     public string $filter = 'all';
     public bool $mobileShowChat = false;
-    public int $editTimeLimit = 300;
+    #[Locked]
+    public int $editTimeLimit = 600;
     #[Locked]
     public ?array $lastDeleted = null;
+    #[Locked]
     public int $messagesLimit = 10;
     public string $messageSearch = '';
     #[Locked]
@@ -81,6 +83,8 @@ class Main extends Component
             'id' => (int)$user->id,
             'name' => $user->name,
             'profile' => $user->profile?->toArray(),
+            'unit' => $user->profile?->detailsMap()->get('unit'),
+            'section' => $user->profile?->detailsMap()->get('section'),
             'last_message' => $lastMessages->get($user->last_message_id)?->toArray(),
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
@@ -192,7 +196,7 @@ class Main extends Component
     public function groupedMessages(): array
     {
         return collect($this->messages)
-            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->toDateString())
+            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->setTimezone(config('app.timezone'))->toDateString())
             ->map(fn($group) => $group->values()->all())
             ->all();
     }
@@ -329,6 +333,7 @@ class Main extends Component
             $this->dispatch('message-error');
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('message-error');
             $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
         }

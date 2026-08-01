@@ -53,6 +53,7 @@ export default class ThemeManager {
         this.applyThemeDOM(theme);
         this.applyModeDOM(mode);
         this.syncStore(theme, mode);
+        this.syncThemeColorMeta();
         this.dispatchSyncEvent();
     }
 
@@ -76,6 +77,7 @@ export default class ThemeManager {
         this.applyThemeDOM(theme);
         localStorage.setItem(THEME_KEY, theme);
         this.syncStore();
+        this.syncThemeColorMeta();
         this.dispatchSyncEvent();
     }
 
@@ -86,7 +88,19 @@ export default class ThemeManager {
         localStorage.setItem(MODE_KEY, newMode);
 
         this.syncStore();
+        this.syncThemeColorMeta();
         this.dispatchSyncEvent();
+    }
+
+    static syncThemeColorMeta() {
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) return;
+
+        const value = getComputedStyle(document.documentElement)
+            .getPropertyValue('--md-sys-color-primary')
+            .trim();
+
+        if (value) meta.setAttribute('content', value);
     }
 
     static syncStore(forcedTheme = null, forcedMode = null) {

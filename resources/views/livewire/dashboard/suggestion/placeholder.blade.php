@@ -13,11 +13,13 @@
         از لیست سمت راست یک پیشنهاد انتخاب کنید یا پیشنهاد جدیدی ثبت نمایید.
     </p>
 
+    @if($this->authDeptCode !== 'MA')
     <x-ui.buttons.form
             icon="add"
             wire:click="openCreate">
         ثبت پیشنهاد جدید
     </x-ui.buttons.form>
+    @endif
 
     <div class="w-full h-px mt-10 bg-gradient-to-r from-transparent via-[var(--md-sys-color-outline-variant)] to-transparent opacity-40 my-6"></div>
 

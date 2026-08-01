@@ -10,7 +10,36 @@
             icon="folder_open"
             :title="$activeTab === 'systematic' ? 'مستندات سیستمی' : 'مستندات غیر سیستمی'"
             :count="$this->totalDocs"
-            countLabel="سند"/>
+            countLabel="سند">
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'dms-badge-legend' })"
+                    title="راهنمای نشانگر اعلان"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">notifications</span>
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'dms-status-legend' })"
+                    title="راهنمای وضعیت سند"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        <x-dashboard.modal.badge-legend
+            name="dms-badge-legend"
+            :items="[\App\Services\Menu\BadgeLegendCatalog::get('dms-controller')]"
+            title="راهنمای نشانگر اسناد"
+        />
+
+        <x-ui.modals.dialog name="dms-status-legend" title="راهنمای وضعیت سند">
+            @include('livewire.dashboard.dms.status-legend')
+        </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-banner')
 

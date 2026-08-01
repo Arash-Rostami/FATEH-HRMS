@@ -10,9 +10,9 @@ class LogoutButton extends Component
 
     public function logout()
     {
-        Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+        Auth::guard('web')->logout();
+        session()->invalidate();
+        session()->regenerateToken();
         return redirect('/login');
     }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReservationResource\Pages;
 
 use App\Filament\Resources\ReservationResource;
 use App\Services\Reservation\ValidationService;
+use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Carbon\Carbon;
@@ -12,7 +13,7 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditReservation extends EditRecord
 {
-    use FilamentPageBehavior, FilamentHeaderActions;
+    use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions;
 
     protected static string $resource = ReservationResource::class;
 

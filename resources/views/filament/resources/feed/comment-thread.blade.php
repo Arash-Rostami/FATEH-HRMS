@@ -2,7 +2,7 @@
     <div class="flex gap-4 relative z-10">
         <div class="flex-shrink-0">
             <div class="flex rounded-md h-8 w-8">
-                <x-ui.avatar :existingImage="optional(auth()->user()?->profile)->image"/>
+                <x-ui.avatar :existingImage="auth()->user()?->getProfileImageUrl()"/>
             </div>
         </div>
 

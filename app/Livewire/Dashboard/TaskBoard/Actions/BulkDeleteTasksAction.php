@@ -10,7 +10,7 @@ class BulkDeleteTasksAction
 {
     public function execute(array $taskIds): int
     {
-        $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_delete);
+        $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => $task->can_delete && !$task->ticket_id);
 
         if ($tasks->isEmpty()) {
             return 0;

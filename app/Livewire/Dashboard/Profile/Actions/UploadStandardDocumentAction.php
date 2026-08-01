@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Profile\Actions;
 use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UploadStandardDocumentAction
 {
@@ -36,9 +37,12 @@ class UploadStandardDocumentAction
             }
 
             $fileName = "doc_standard_{$key}_{$timestamp}.{$extension}";
-            $newPath = $uploadedFile->storeAs("profiles/docs/{$userProfile->id}", $fileName, 'public');
+            $newPath = $uploadedFile->storeAs("profiles/docs/{$userProfile->getDocsPathToken()}", $fileName, 'public');
 
             $currentAttachments = collect($userProfile->attachments ?? []);
+            $oldPaths = $currentAttachments
+                ->filter(fn ($item) => str_contains($item['path'] ?? '', "doc_standard_{$key}_"))
+                ->pluck('path');
 
             $userProfile->attachments = $currentAttachments
                 ->reject(fn ($item) => str_contains($item['path'] ?? '', "doc_standard_{$key}_"))
@@ -52,12 +56,15 @@ class UploadStandardDocumentAction
 
             $userProfile->save();
 
+            $oldPaths->each(fn ($path) => Storage::disk('public')->delete($path));
+
             // Reset the file from form after successful upload
             $this->resetAction->removeFile($form, $key);
 
             return ['success' => true, 'path' => $newPath, 'error' => null];
 
         } catch (\Exception $e) {
+            report($e);
             return ['success' => false, 'path' => null, 'error' => 'خطایی در بارگذاری فایل رخ داد.'];
         }
     }

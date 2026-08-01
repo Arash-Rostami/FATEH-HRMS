@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Morilog\Jalali\Jalalian;
 
 class EnergyTest extends Model
 {
@@ -76,19 +75,12 @@ class EnergyTest extends Model
         );
     }
 
-    public static function hasForCurrentJalaliMonth(int $userId): bool
+    public static function canSubmit(int $userId, bool $lock = false): bool
     {
-        $now = Jalalian::now();
-        $year = $now->getYear();
-        $month = $now->getMonth();
-        $start = (new Jalalian($year, $month, 1))->toCarbon()->startOfDay();
-        [$ny, $nm] = $month === 12 ? [$year + 1, 1] : [$year, $month + 1];
-        $end = (new Jalalian($ny, $nm, 1))->toCarbon()->startOfDay();
+        $query = static::where('user_id', $userId)
+            ->where('completed_at', '>=', now()->subDays(25));
 
-        return static::where('user_id', $userId)
-            ->where('completed_at', '>=', $start)
-            ->where('completed_at', '<', $end)
-            ->exists();
+        return !($lock ? $query->lockForUpdate() : $query)->exists();
     }
 
 

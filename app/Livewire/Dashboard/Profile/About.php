@@ -19,9 +19,11 @@ class About extends Component
         $profile = Auth::user()->profile;
         $aboutMe = $profile?->about_me ?? [];
 
-        if ($aboutMe) $this->form->fill($aboutMe);
+        $safeAboutMe = collect($aboutMe)->filter(fn ($v) => !is_array($v))->toArray();
+        if ($safeAboutMe) $this->form->fill($safeAboutMe);
 
         $this->extraAnswers = collect($aboutMe)
+            ->filter(fn ($v, $k) => filled($k) && !is_array($v))
             ->except(self::CORE_KEYS)
             ->toArray();
     }

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\TicketError;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Traits\HasReplies;
 use App\Models\Traits\HasTicketCountHelpers;
 use App\Models\Traits\HasTicketOptions;
 use BackedEnum;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +20,7 @@ class Ticket extends Model
     use HasFactory,
         HasMenuState,
         HasPublicAssetUrl,
+        HasReplies,
         HasTicketCountHelpers,
         HasTicketOptions;
 
@@ -63,40 +67,101 @@ class Ticket extends Model
             ->first(fn($dept) => User::highestRankingInDepartment($dept) !== null));
     }
 
-    public function department(): BelongsTo { return $this->belongsTo(Department::class, 'department_id'); }
+    public function composeActionResultFromReplies(): string
+    {
+        return $this->replies()
+            ->get()
+            ->map(fn(Reply $reply) => sprintf(
+                '%s (%s): %s',
+                $reply->user?->name ?? '—',
+                toJalali($reply->created_at, 'Y/m/d H:i'),
+                $reply->body,
+            ))
+            ->implode("\n");
+    }
+
+    protected function department(): Attribute
+    {
+        return Attribute::make(get: fn(): ?Department => $this->departmentId ? Department::getCachedModels()->get($this->departmentId) : null);
+    }
 
     public static function hasUnclosedActionFor(int $userId): bool
     {
-        $openDepts = static::where('status', 'open')
-            ->selectRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ?) AS dept", [static::defaultTargetDepartment()])
-            ->pluck('dept')
-            ->filter()
-            ->unique();
+        $user = User::find($userId);
 
-        if ($openDepts->isNotEmpty()) {
-            $heads = User::highestRankingInDepartments($openDepts->all());
+        return $user ? static::query()->actionableBy($user)->exists() : false;
+    }
 
-            foreach ($openDepts as $deptCode) {
-                if (($heads[$deptCode] ?? null)?->id === $userId) {
-                    return true;
-                }
-            }
-        }
-
-        return static::where('status', 'in-progress')->where('assigned_to', $userId)->exists();
+    public static function isClosingStatus(mixed $status): bool
+    {
+        return ($status instanceof BackedEnum ? $status->value : $status) === 'closed';
     }
 
     public function requester(): BelongsTo { return $this->belongsTo(User::class, 'requester_id'); }
 
-    public function targetDepartment(): BelongsTo { return $this->belongsTo(Department::class, 'target_department_id'); }
+    public function scopeActionableBy(Builder $query, User $user): Builder
+    {
+        $deptCode = $user->profile?->department_id;
+        $isHead = $deptCode && User::highestRankingInDepartment($deptCode)?->is($user);
+
+        return $query->where(function (Builder $q) use ($user, $isHead, $deptCode) {
+            $q->where('assigned_to', $user->id)->where('status', 'in-progress');
+
+            if ($isHead) {
+                $q->orWhere(function (Builder $sq) use ($deptCode) {
+                    $sq->where('status', 'open')
+                        ->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ?) = ?", [
+                            static::defaultTargetDepartment(),
+                            $deptCode,
+                        ]);
+                });
+            }
+        });
+    }
+
+    protected function targetDepartment(): Attribute
+    {
+        return Attribute::make(get: fn(): ?Department => $this->targetDepartmentId ? Department::getCachedModels()->get($this->targetDepartmentId) : null);
+    }
 
     protected static function booted(): void
     {
         static::creating(function (Ticket $ticket) {
+            $extra = $ticket->extra ?? [];
+
             if (empty($ticket->targetDepartmentId)) {
-                $extra = $ticket->extra ?? [];
                 $extra['target_department'] = static::defaultTargetDepartment();
-                $ticket->extra = $extra;
+            }
+
+            if (empty($extra['department']) && filled($ticket->requester_id)) {
+                $dept = Profile::where('user_id', $ticket->requester_id)->value('department_id');
+                if (filled($dept)) {
+                    $extra['department'] = $dept;
+                }
+            }
+
+            $ticket->extra = $extra;
+        });
+
+        static::saving(function (Ticket $ticket) {
+            if ($ticket->isDirty('assigned_to') && !$ticket->isDirty('status')) {
+                if (blank($ticket->assigned_to) && $ticket->getOriginal('status') === 'in-progress') {
+                    $ticket->status = 'open';
+                } elseif (filled($ticket->assigned_to) && in_array($ticket->getOriginal('status'), ['open', null], true)) {
+                    $ticket->status = 'in-progress';
+                }
+            }
+
+            if (!$ticket->isDirty('status') || !static::isClosingStatus($ticket->status)) {
+                return;
+            }
+
+            if (blank($ticket->effectiveness)) {
+                TicketError::EffectivenessRequired->throw();
+            }
+
+            if ($ticket->exists) {
+                $ticket->action_result = $ticket->composeActionResultFromReplies();
             }
         });
     }

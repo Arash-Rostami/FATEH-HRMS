@@ -9,7 +9,7 @@ class SendSmsAction
 {
     public function execute(string $userId, SmsService $smsService): array
     {
-        $user = User::with('profile')->findOrFail($userId);
+        $user = User::visibleOnBoard()->with('profile')->findOrFail($userId);
 
         if ($user->sms_number) {
             $smsService->send($user->sms_number, " to be inserted later on ...");

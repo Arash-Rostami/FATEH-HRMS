@@ -19,8 +19,8 @@ class ProfilePresenter
         if (!$profile) return 0;
 
         $fields = [
-            'personnel_id', 'gender', 'employment_type', 'marital_status', 'id_card_number', 'degree', 'field', 'birthdate',
-            'cellphone', 'address', 'department_id', 'position', 'insurance', 'emergency_phone', 'start_date',
+            'gender', 'marital_status', 'id_card_number', 'degree', 'field', 'birthdate',
+            'cellphone', 'address', 'department_id', 'insurance', 'emergency_phone',
         ];
 
         $filled = collect($fields)->filter(fn($f) => $profile->{$f} !== null && $profile->{$f} !== '')->count();
@@ -31,6 +31,18 @@ class ProfilePresenter
     public function departmentName(User $user): string
     {
         return $user->profile?->department?->displayLabel() ?? 'واحد عمومی';
+    }
+
+    public function divisionName(User $user): ?string
+    {
+        $unit = $user->profile?->detailsMap()->get('unit');
+        return filled($unit) ? (string)$unit : null;
+    }
+
+    public function sectionName(User $user): ?string
+    {
+        $section = $user->profile?->detailsMap()->get('section');
+        return filled($section) ? (string)$section : null;
     }
 
     public function lastSeen(User $user): string
@@ -68,7 +80,9 @@ class ProfilePresenter
     {
         $aboutMe = $user->profile?->about_me;
 
-        $aboutText = is_array($aboutMe) ? collect($aboutMe)->implode(' | ') : (string)$aboutMe;
+        $aboutText = is_array($aboutMe)
+            ? collect($aboutMe)->map(fn($v) => is_array($v) ? implode(', ', $v) : (string)$v)->implode(' | ')
+            : (string)$aboutMe;
         if (blank($aboutText)) return null;
 
         return $aboutText;

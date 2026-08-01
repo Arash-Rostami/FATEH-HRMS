@@ -67,10 +67,15 @@ class TaskFormPresenter
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, callable $set) {
+                        $name = $file->getClientOriginalName();
+                        $mime = $file->getMimeType();
+                        $size = $file->getSize();
+
                         $path = $file->storeAs('task/attachments', self::fileName($file), 'public');
-                        $set('name', $file->getClientOriginalName());
-                        $set('mime', $file->getMimeType());
-                        $set('size', $file->getSize());
+
+                        $set('name', $name);
+                        $set('mime', $mime);
+                        $set('size', $size);
                         return $path;
                     })
                     ->openable()
@@ -180,7 +185,7 @@ class TaskFormPresenter
     {
         return Select::make('section')
             ->label(__('resources/task/strings.fields.section'))
-            ->options(fn(Get $get) => Department::find($get('department_id'))?->sectionsOptions() ?? [])
+            ->options(fn(Get $get) => Department::getCachedModels()->get($get('department_id'))?->sectionsOptions() ?? [])
             ->searchable()
             ->nullable()
             ->helperText(__('resources/task/strings.hints.section'));
@@ -218,7 +223,7 @@ class TaskFormPresenter
     {
         return Select::make('unit')
             ->label(__('resources/task/strings.fields.unit'))
-            ->options(fn(Get $get) => Department::find($get('department_id'))?->unitsOptions() ?? [])
+            ->options(fn(Get $get) => Department::getCachedModels()->get($get('department_id'))?->unitsOptions() ?? [])
             ->searchable()
             ->nullable()
             ->helperText(__('resources/task/strings.hints.unit'));

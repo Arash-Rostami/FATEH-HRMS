@@ -1,5 +1,5 @@
 <div
-    class="relative ms-4 me-2 w-full max-w-[180px] xs:max-w-[240px] sm:max-w-[340px] border-x !border-[var(--header-border-color)] pl-3 pr-6 md:pl-0 md:pr-3">
+    class="relative ms-4 me-2 w-full max-w-[180px] xs:max-w-[240px] sm:max-w-[340px] md:max-w-[400px] lg:max-w-[420px] border-x !border-[var(--header-border-color)] pl-3 pr-6 md:pl-0 md:pr-3">
     <!-- Swipe hint – kept exactly as you had it -->
     <div
         class="absolute top-6 right-1 scale-90 z-20 flex md:hidden items-center justify-center w-5 h-5 rounded-md border border-[var(--md-sys-color-primary-container)]/30 bg-[var(--md-sys-color-primary)]/40 text-[var(--md-sys-color-primary-container)] backdrop-blur-sm pointer-events-none animate-pulse">
@@ -48,11 +48,25 @@
                 <x-ui.modals.tooltip text="پاک‌سازی کش" position="bottom"/>
             </button>
 
+            <button type="button" @click="$store.filamentMenu.resetServerCache()" :disabled="$store.filamentMenu.resetting"
+                    class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)] disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100" :class="{ 'animate-spin': $store.filamentMenu.resetting }" x-text="$store.filamentMenu.resetting ? 'progress_activity' : 'cached'"></span>
+                <x-ui.modals.tooltip text="بازنشانی کش سرور" position="bottom"/>
+            </button>
+
             <button type="button" @click="window.filamentMenu.showShortcuts()"
                     class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
                 <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100">keyboard_command_key</span>
                 <x-ui.modals.tooltip text="میانبرها" position="bottom"/>
             </button>
+
+            @if(\App\Filament\Resources\ReleaseRequestResource::canCreate())
+                <a href="{{ \App\Filament\Resources\ReleaseRequestResource::getUrl('create') }}"
+                   class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
+                    <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100">auto_awesome</span>
+                    <x-ui.modals.tooltip text="پیشنهاد ماژول" position="bottom"/>
+                </a>
+            @endif
         </div>
     </div>
 </div>

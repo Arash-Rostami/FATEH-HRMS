@@ -8,7 +8,7 @@
             <button
                 wire:click="$set('activeFilter', 'all')"
                 class="px-4 py-2 rounded-xl text-sm font-medium transition-colors border"
-                :class="activeFilter === 'all'
+                :class="$wire.activeFilter === 'all'
                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
                     : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-variant)]'"
             >همه</button>
@@ -24,7 +24,7 @@
                         <button
                             wire:click="$set('activeFilter', '{{ $key }}|{{ $value }}')"
                             class="px-4 py-2 rounded-xl text-sm font-medium transition-colors border"
-                            :class="activeFilter === '{{ $key }}|{{ $value }}'
+                            :class="$wire.activeFilter === '{{ $key }}|{{ $value }}'
                                 ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
                                 : 'bg-transparent text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-variant)]'"
                         >{{ $value }}</button>

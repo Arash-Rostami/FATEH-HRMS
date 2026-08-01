@@ -8,16 +8,17 @@ use Illuminate\Support\Facades\Auth;
 
 class SaveAboutAction
 {
-    /**
-     * Execute the about me save operation.
-     */
     public function execute(AboutForm $form, array $extra = []): Profile
     {
         $form->validate();
 
+        $extra = collect($extra)
+            ->filter(fn($v, $k) => filled($k) && !is_array($v))
+            ->toArray();
+
         return Profile::updateOrCreate(
             ['user_id' => Auth::id()],
-            ['about_me' => array_merge($form->getAboutMeData(), $extra)]
+            ['about_me' => array_merge($extra, $form->getAboutMeData())]
         );
     }
 }

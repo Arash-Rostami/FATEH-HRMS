@@ -11,7 +11,7 @@ class DetailsPresenter
     {
         return once(function () {
             $out = [];
-            foreach (ProfileDetailCatalog::grouped() as $section => $fields) {
+            foreach (ProfileDetailCatalog::userGrouped() as $section => $fields) {
                 $out[] = [
                     'group'  => ProfileDetailGroup::from($section),
                     'fields' => $fields,

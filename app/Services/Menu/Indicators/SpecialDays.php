@@ -4,6 +4,7 @@ namespace App\Services\Menu\Indicators;
 
 use App\Models\Profile;
 use App\Services\Menu\Contracts\MenuBadge;
+use App\Services\Menu\StateService;
 
 class SpecialDays implements MenuBadge
 {
@@ -24,6 +25,10 @@ class SpecialDays implements MenuBadge
 
     public function isActive(): bool
     {
+        if (StateService::viewedToday('calendar')) {
+            return false;
+        }
+
         $now = now();
 
         return Profile::query()

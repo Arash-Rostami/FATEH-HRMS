@@ -19,6 +19,8 @@ class LinkFormPresenter
 {
     use FilamentFormDivider;
 
+    private const URL_HOST_REGEX = '/^((?:mailto|tel):[A-Za-z0-9._~:\/?#\[\]@!$&()*+,;=%-]+|[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[A-Za-z0-9._~:\/?#\[\]@!$&()*+,;=%-]+|[A-Za-z0-9][A-Za-z0-9._-]+(:[0-9]{1,5})?([\/?#][A-Za-z0-9._~:\/?#@!$&()*+,;=%-]*)?)$/';
+
     public static function companyIps(): TagsInput
     {
         return TagsInput::make('extra')
@@ -110,7 +112,7 @@ class LinkFormPresenter
     {
         return TextInput::make('internal_url')
             ->label(__('resources/link/strings.fields.internal_url'))
-            ->url()
+            ->rules(['string', 'regex:' . self::URL_HOST_REGEX])
             ->maxLength(2048)
             ->live()
             ->helperText(__('resources/link/strings.fields.internal_url_hint'))
@@ -144,7 +146,7 @@ class LinkFormPresenter
         return TextInput::make('url')
             ->label(__('resources/link/strings.fields.url'))
             ->required()
-            ->url()
+            ->rules(['string', 'regex:' . self::URL_HOST_REGEX])
             ->maxLength(2048)
             ->placeholder('//:https')
             ->helperText(__('resources/link/strings.fields.url_hint'));

@@ -27,6 +27,7 @@ class EventResource extends Resource
     use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Event::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?int $navigationSort = 3;
 

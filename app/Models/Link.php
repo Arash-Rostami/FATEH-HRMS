@@ -27,6 +27,24 @@ class Link extends Model
         'extra'
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $link) {
+            $link->extra = $link->normalizedExtra();
+        });
+    }
+
+    public function normalizedExtra(): ?array
+    {
+        if (! is_array($this->extra)) {
+            return null;
+        }
+
+        $ips = array_values(array_filter(array_map('trim', $this->extra), fn ($v) => $v !== ''));
+
+        return $ips ?: [];
+    }
+
     public function isExtraEmptyInDatabase(): bool
     {
         return (bool)DB::scalar(

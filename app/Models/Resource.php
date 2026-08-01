@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
+use App\Models\Traits\HasPublicAssetUrl;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -10,11 +12,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class Resource extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicAssetUrl;
 
     protected $fillable = [
         'name',
@@ -54,7 +55,7 @@ class Resource extends Model
             ->where('status', 'active')
             ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
             ->whereDoesntHave('reservations', fn($q) => $q
-                ->whereIn('status', $allowOverlap ? ['active'] : ['active', 'released'])
+                ->whereIn('status', $allowOverlap ? [ReservationStatus::Active->value] : [ReservationStatus::Active->value, ReservationStatus::Released->value])
                 ->where(fn($q) => $q
                     ->where(fn($q) => $q
                         ->where('start_time', '<', $end)
@@ -94,9 +95,9 @@ class Resource extends Model
     {
         return Attribute::make(
             get: fn() => $this->display_image
-                ? Storage::url($this->display_image)
+                ? self::resolvePublicAssetUrl($this->display_image)
                 : null
-        );
+        )->shouldCache();
     }
 
     protected function formattedMetadata(): Attribute

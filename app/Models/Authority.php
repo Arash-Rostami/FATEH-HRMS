@@ -24,14 +24,30 @@ class Authority extends Model
 
     public function scopeSearch($query, ?string $search)
     {
-        $keys = ['duty', 'execution_procedure', 'repeat_frequency', 'impact_score', 'proposed_delegation', 'approved_delegation', 'co_delegate'];
+        if (blank($search)) {
+            return $query;
+        }
 
-        return $query->when($search, fn($q) => $q->where(fn($q) => $q
-            ->whereRaw(
-                implode(' OR ', array_map(fn($k) => "JSON_UNQUOTE(JSON_EXTRACT(details, '$.{$k}')) LIKE ?", $keys)),
-                array_fill(0, count($keys), "%{$search}%")
-            )->orWhereHas('department', fn($d) => $d->whereAny(['code', 'name', 'description'], 'like', "%{$search}%"))
+        $term = str_replace(['ك', 'ي'], ['ک', 'ی'], trim($search));
+        $keys = [
+            'duty',
+            'execution_procedure',
+            'repeat_frequency',
+            'impact_score',
+            'proposed_delegation',
+            'approved_delegation',
+            'co_delegate',
+        ];
+
+        $jsonSql = implode(' OR ', array_map(
+            fn($k) => "CONVERT(JSON_UNQUOTE(JSON_EXTRACT(details, '$.{$k}')) USING utf8mb4) COLLATE utf8mb4_persian_ci LIKE ?",
+            $keys
         ));
+
+        return $query->where(fn($q) => $q
+            ->whereRaw($jsonSql, array_fill(0, count($keys), "%{$term}%"))
+            ->orWhereHas('department', fn($d) => $d->whereAny(['code', 'name', 'description'], 'like', "%{$term}%"))
+        );
     }
 
     public function user(): BelongsTo

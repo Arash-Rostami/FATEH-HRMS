@@ -55,7 +55,7 @@
             </div>
 
             <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-transparent px-5 py-6 sm:px-8 sm:py-8">
-                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] post-body">
+                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] post-body" dir="rtl">
                     {!! $selectedPost->body !!}
                 </div>
             </div>

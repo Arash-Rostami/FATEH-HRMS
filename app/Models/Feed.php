@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasMenuState;
+use App\Models\Traits\HasNudgeTracking;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,8 +14,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feed extends Model
 {
-    use HasFactory, HasMenuState, HasPublicAssetUrl;
+    use HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl;
 
+    public const NUDGE_KEY = 'feeds:nudge';
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     public const VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'avi', 'mkv'];
 
@@ -56,7 +58,7 @@ class Feed extends Model
                 'mode' => $options[0] === 'multiple' ? 'multiple' : 'single',
                 'comments' => in_array($options[1], ['1', 'true', true, 1], true),
                 'reactions' => in_array($options[2], ['1', 'true', true, 1], true),
-                'choices' => array_values(array_slice($options, 3)),
+                'choices' => self::normalizePollChoices(array_slice($options, 3)),
             ];
         }
 
@@ -64,17 +66,16 @@ class Feed extends Model
             'mode' => 'single',
             'comments' => true,
             'reactions' => true,
-            'choices' => array_values($options),
+            'choices' => self::normalizePollChoices($options),
         ];
     }
 
-    public static function getTodayCount(): int
+    private static function normalizePollChoices(array $choices): array
     {
-        $now = now();
-
-        return self::where('created_at', '>=', $now->copy()->startOfDay())
-            ->where('created_at', '<', $now->copy()->addDay()->startOfDay())
-            ->count();
+        return array_values(array_map(
+            fn($choice) => is_array($choice) ? implode(', ', $choice) : $choice,
+            $choices
+        ));
     }
 
     public function pollChoices(): array
@@ -110,11 +111,6 @@ class Feed extends Model
     public function polls(): HasMany
     {
         return $this->hasMany(Poll::class);
-    }
-
-    public static function postedToday(): bool
-    {
-        return self::getTodayCount() > 0;
     }
 
     public function reactions(): HasMany

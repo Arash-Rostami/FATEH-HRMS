@@ -16,9 +16,28 @@
     @include('livewire.dashboard.tab.feeds.header', ['feed' => $feed])
 
     <div class="flex-1 overflow-y-auto feed-scrollbar p-5 md:p-6 space-y-5 pb-6">
+        @if(!empty($feed?->media_paths))
+            <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-variant)] shadow-sm">
+                @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_urls])
+            </div>
+        @endif
+
         @if(!empty($feed?->content))
-            <div class="text-sm leading-[2] text-[var(--md-sys-color-on-surface)] text-right text-justify" dir="rtl">
-                {!! superClean($feed->content) !!}
+            @php $feedContent = superClean($feed->content, PHP_INT_MAX); @endphp
+            <div x-data="{ expanded: false }" class="text-sm leading-[2] text-[var(--md-sys-color-on-surface)] text-right text-justify" dir="rtl">
+                <div class="relative overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                     :style="expanded ? ('max-height:' + $el.scrollHeight + 'px') : 'max-height: 7rem'">
+                    {!! $feedContent !!}
+                    @if(mb_strlen($feedContent) > 160)
+                        <div x-show="!expanded" x-transition.opacity.duration.200ms class="absolute bottom-0 inset-x-0 h-8 pointer-events-none bg-gradient-to-t from-[var(--md-sys-color-surface)] to-transparent"></div>
+                    @endif
+                </div>
+                @if(mb_strlen($feedContent) > 160)
+                    <button type="button" @click="expanded = !expanded" class="text-[var(--md-sys-color-primary)] text-xs font-medium mt-2 inline-flex items-center gap-1 select-none rounded-lg px-2.5 py-1 -mx-2.5 transition-colors duration-200 hover:bg-[var(--md-sys-color-primary-container)]/50 hover:text-[var(--md-sys-color-on-primary-container)]">
+                        <span class="material-symbols-rounded text-[14px] transition-transform duration-300" :class="expanded ? 'rotate-180' : ''">expand_more</span>
+                        <span x-text="expanded ? 'بستن' : 'مشاهده بیشتر'"></span>
+                    </button>
+                @endif
             </div>
         @endif
 
@@ -67,12 +86,6 @@
                         @endif
                     @endauth
                 </div>
-            </div>
-        @endif
-
-        @if(!empty($feed?->media_paths))
-            <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-variant)] shadow-sm">
-                @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_urls])
             </div>
         @endif
 

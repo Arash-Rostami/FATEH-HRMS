@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\User;
 use App\Traits\FilamentHeaderActions;
 use Filament\Resources\Pages\ListRecords;
@@ -37,6 +38,12 @@ class ListUsers extends ListRecords
                 ->badgeColor('danger')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'inactive')),
 
+            'hidden' => Tab::make('مخفی‌شده')
+                ->icon('heroicon-o-eye-slash')
+                ->badge(fn() => $this->getStats()->hidden_count ?: null)
+                ->badgeColor('gray')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('type', UserType::Guest->value)),
+
             'admins' => Tab::make('مدیران')
                 ->icon('heroicon-o-shield-check')
                 ->badge(fn() => $this->getStats()->admin_count ?: null)
@@ -51,6 +58,7 @@ class ListUsers extends ListRecords
             ->selectRaw("
                 SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_count,
                 SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) AS inactive_count,
+                SUM(CASE WHEN type = '" . UserType::Guest->value . "' THEN 1 ELSE 0 END) AS hidden_count,
                 SUM(CASE WHEN role IN ('admin', 'developer') THEN 1 ELSE 0 END) AS admin_count
             ")
             ->first());

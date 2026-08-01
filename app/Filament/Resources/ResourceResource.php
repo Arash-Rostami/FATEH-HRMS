@@ -33,6 +33,15 @@ class ResourceResource extends Resource
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 4;
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return $record->labeled_name;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

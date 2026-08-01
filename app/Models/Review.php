@@ -27,6 +27,8 @@ class Review extends Model
         'unknown' => '❓',
     ];
 
+    public const AUTO_RESOLVE_COMMENT = 'نیمه موافق خودکار به دلیل عدم پاسخ در بازه ۴۸ ساعته';
+
     protected $fillable = [
         'comments',
         'actions',
@@ -53,7 +55,11 @@ class Review extends Model
 
     public function referralDepartments(): Collection
     {
-        return Department::whereIn('code', $this->referral ?? [])->get();
+        $codes = $this->referral ?? [];
+
+        return Department::getCachedModels()
+            ->filter(fn($model, $code) => in_array($code, $codes, true))
+            ->values();
     }
 
     public function suggestion(): BelongsTo

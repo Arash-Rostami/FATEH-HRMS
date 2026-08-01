@@ -51,7 +51,7 @@
     <div x-show="month && visibleCount === 0" x-cloak
          class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
         <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
-        <p class="text-sm font-medium opacity-80">تصویری در این ماه یافت نشد</p>
+        <p class="text-sm font-medium opacity-80">موردی در این ماه یافت نشد</p>
     </div>
 
     <div
@@ -70,7 +70,7 @@
     <div
         x-ref="timeline"
         @scroll.debounce.100ms="handleScroll"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[5%] md:pr-[10%] md:pl-4 z-10"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[10%] z-10"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
         <div
@@ -86,7 +86,7 @@
                     class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'z-30 scale-100 md:scale-[1.15]': activeId == {{ $photo->id }},
-                        'z-10 scale-95 opacity-100 md:opacity-80 md:grayscale-[30%]': activeId != {{ $photo->id }}
+                        'z-10 scale-95 opacity-100': activeId != {{ $photo->id }}
                     }"
                 >
                     <div
@@ -148,25 +148,31 @@
         </div>
     </div>
 
-    <button
-        @click="scrollPrev"
-        class="absolute top-1/2 right-4 sm:right-8 -translate-y-1/2 z-40 w-12 h-12 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-        aria-label="Previous"
-    >
-        <span class="material-symbols-rounded text-2xl">chevron_right</span>
-    </button>
+    <template x-teleport="body">
+        <div class="pointer-events-none">
+            <button
+                type="button"
+                @click="scrollPrev"
+                class="pointer-events-auto fixed top-1/2 right-4 md:right-[calc(11%)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
+                aria-label="Previous"
+            >
+                <span class="material-symbols-rounded text-2xl">chevron_right</span>
+            </button>
 
-    <button
-        @click="scrollNext"
-        class="absolute top-1/2 left-4 sm:left-8 -translate-y-1/2 z-40 w-12 h-12 flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-        aria-label="Next"
-    >
-        <span class="material-symbols-rounded text-2xl">chevron_left</span>
-    </button>
+            <button
+                type="button"
+                @click="scrollNext"
+                class="pointer-events-auto fixed top-1/2 left-2 md:left-[calc(10%-80px)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
+                aria-label="Next"
+            >
+                <span class="material-symbols-rounded text-2xl">chevron_left</span>
+            </button>
+        </div>
+    </template>
 
 @else
     <div class="w-full h-full">
-        <x-ui.empty icon="photo_library" title="گالری هنوز خالی است" description="هیچ تصویری بارگذاری نشده است."
+        <x-ui.empty icon="photo_library" title="گالری هنوز خالی است" description="هنوز هیچ محتوایی بارگذاری نشده است."
                     variant="list" :fill="true"/>
     </div>
 @endif

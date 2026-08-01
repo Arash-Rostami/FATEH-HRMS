@@ -7,9 +7,9 @@
 
     <x-ui.title
             icon="photo_library"
-            title="گالری تصاویر"
+            title="گالری"
             :count="$this->totalPhotos"
-            countLabel="تصویر"/>
+            countLabel="مورد"/>
 
     @include('components.dashboard.header.focus-banner')
 

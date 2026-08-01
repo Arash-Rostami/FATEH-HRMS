@@ -57,6 +57,24 @@
                         {{ $departmentName ?? '—' }}
                     </span>
 
+                    @if(!empty($divisionName))
+                        <span class="text-[var(--md-sys-color-on-surface-variant)]/50">|</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]"
+                              title="واحد">
+                            <span class="material-symbols-rounded text-[16px] opacity-70">account_tree</span>
+                            {{ $divisionName }}
+                        </span>
+                    @endif
+
+                    @if(!empty($sectionName))
+                        <span class="text-[var(--md-sys-color-on-surface-variant)]/50">|</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]"
+                              title="بخش">
+                            <span class="material-symbols-rounded text-[16px] opacity-70">view_module</span>
+                            {{ $sectionName }}
+                        </span>
+                    @endif
+
                     <span class="text-[var(--md-sys-color-on-surface-variant)]/50">|</span>
 
                     <span class="inline-flex items-center gap-1.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">

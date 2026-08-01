@@ -27,9 +27,7 @@ class Main extends Component
 
     public function mount(): void
     {
-        $this->showSurvey = !EnergyModel::where('user_id', auth()->id())
-            ->where('completed_at', '>=', now()->subDays(25))
-            ->exists();
+        $this->showSurvey = EnergyModel::canSubmit(auth()->id());
 
         if (!$this->showSurvey) return;
 
@@ -59,10 +57,16 @@ class Main extends Component
 
     public function submitTest(SubmitTestAction $action): void
     {
-        $action->execute($this->answers, $this->questions, $this->monthIndex);
+        try {
+            $action->execute($this->answers, $this->questions, $this->monthIndex);
+        } catch (\InvalidArgumentException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            return;
+        }
 
         $this->showSurvey = false;
         $this->dispatch('toast', message: 'پاسخ با موفقیت ذخیره شد.', type: 'success');
+        $this->dispatch('energy-test-submitted')->to('dashboard.energy.chart');
     }
 
     public function switchTab(string $tabId): void

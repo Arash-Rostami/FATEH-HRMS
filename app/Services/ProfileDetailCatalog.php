@@ -18,6 +18,43 @@ class ProfileDetailCatalog
         return $attrs;
     }
 
+    public static function userDefinitions(): array
+    {
+        return once(fn() => collect(self::definitions())->reject(fn($d) => $d['admin_only'] ?? false)->all());
+    }
+
+    public static function userGrouped(): array
+    {
+        return once(function () {
+            $out = [];
+            foreach (ProfileDetailGroup::ordered() as $group) {
+                $out[$group->value] = [];
+            }
+            foreach (self::userDefinitions() as $key => $def) {
+                $out[$def['section']][$key] = $def;
+            }
+            return array_filter($out);
+        });
+    }
+
+    public static function userRules(string $prefix = 'values'): array
+    {
+        $rules = [];
+        foreach (self::userDefinitions() as $key => $def) {
+            $rules["{$prefix}.{$key}"] = self::ruleFor($def);
+        }
+        return $rules;
+    }
+
+    public static function userAttributes(string $prefix = 'values'): array
+    {
+        $attrs = [];
+        foreach (self::userDefinitions() as $key => $def) {
+            $attrs["{$prefix}.{$key}"] = $def['label'];
+        }
+        return $attrs;
+    }
+
     public static function definition(string $key): ?array
     {
         return self::definitions()[$key] ?? null;
@@ -39,6 +76,8 @@ class ProfileDetailCatalog
             'contract_type' => ['section' => 'employment', 'label' => 'نوع قرارداد', 'type' => 'select', 'options' => self::list(['دائم', 'موقت', 'پروژه‌ای', 'ساعتی', 'کارآموزی'])],
             'job_title' => ['section' => 'employment', 'label' => 'شغل', 'type' => 'text'],
             'work_shift' => ['section' => 'employment', 'label' => 'شیفت کاری', 'type' => 'select', 'options' => self::list(['اداری', 'شیفت صبح', 'شیفت عصر', 'شیفت شب', 'گردشی'])],
+            'unit' => ['section' => 'employment', 'label' => 'واحد', 'type' => 'select', 'options' => [], 'admin_only' => true],
+            'section' => ['section' => 'employment', 'label' => 'بخش', 'type' => 'select', 'options' => [], 'admin_only' => true],
 
             // ───────────────── Experience & insurance history ─────────────────
             'company_work_history' => ['section' => 'experience', 'label' => 'سابقه کار در شرکت', 'type' => 'text'],

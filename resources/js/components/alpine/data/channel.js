@@ -1,6 +1,8 @@
 import {emojis} from "../stores/emoji.js";
 
 import maximizeMixin from "../mixins/maximize.js";
+import clipboardMixin from "../mixins/clipboard.js";
+import pasteImageMixin from "../mixins/pasteImage.js";
 
 const segmenter = new Intl.Segmenter();
 const emojiSet = new Set(emojis.flatMap(c => c.items));
@@ -8,6 +10,8 @@ const emojiSet = new Set(emojis.flatMap(c => c.items));
 export default function channel() {
     return {
         ...maximizeMixin(),
+        ...clipboardMixin(),
+        ...pasteImageMixin(),
         showScrollFab: false,
         showInfo: false,
         searchMessages: false,
@@ -54,6 +58,7 @@ export default function channel() {
                 } catch (e) {}
             }
             this.syncChannelCount();
+            this.syncPushNotify();
             const seenKey = 'channel-seen-invites';
             const stored = localStorage.getItem(seenKey);
             if (stored === null) {
@@ -192,7 +197,7 @@ export default function channel() {
 
         startPolling() {
             if (this._timer) return;
-            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncInviteToasts(); }), 10000);
+            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncInviteToasts(); this.syncPushNotify(); }), 10000);
         },
 
         stopPolling() {
@@ -242,6 +247,15 @@ export default function channel() {
         syncChannelCount() {
             const el = document.querySelector('[data-channel-count]');
             if (el) this.channelCount = parseInt(el.dataset.channelCount) || 0;
+        },
+
+        syncPushNotify() {
+            const el = document.querySelector('[data-total-unread]');
+            const now = parseInt(el?.dataset.totalUnread) || 0;
+            if (this._lastUnread !== undefined && now > this._lastUnread) {
+                this.$store.push.notify('پیام جدید', 'یک کانال پیام جدید دارد', 'channel');
+            }
+            this._lastUnread = now;
         },
 
         syncInviteToasts() {
@@ -361,35 +375,7 @@ export default function channel() {
 
         copyMessage(text) {
             if (!text || typeof text !== 'string') return;
-
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text)
-                    .then(() => this.toast('پیام کپی شد', 'info'))
-                    .catch(() => this.fallbackCopyText(text));
-            } else {
-                this.fallbackCopyText(text);
-            }
-        },
-
-        fallbackCopyText(text) {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.top = '0';
-            ta.style.left = '0';
-            ta.style.opacity = '0';
-            ta.setAttribute('readonly', '');
-            document.body.appendChild(ta);
-            ta.select();
-
-            try {
-                document.execCommand('copy');
-                this.toast('پیام کپی شد', 'info');
-            } catch (err) {
-                this.toast('خطا در کپی پیام', 'error');
-            } finally {
-                document.body.removeChild(ta);
-            }
+            this.copyText(text, 'پیام کپی شد', 'info');
         },
 
         selectChannel(id) {

@@ -132,7 +132,7 @@ class TicketsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'department']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee']))
             ->recordTitleAttribute('request_subject')
             ->columns([
                 TicketTablePresenter::ticketId(),

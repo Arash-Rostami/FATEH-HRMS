@@ -7,6 +7,7 @@ use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\User;
 use App\Services\Menu\StateService;
+use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -14,24 +15,33 @@ class SubmitDecisionAction
 {
     public function execute(DecisionForm $form, Suggestion $suggestion): void
     {
+        abort_unless(SuggestionAccessPolicy::canDecide($suggestion), 403);
+
         $form->validate();
 
         DB::transaction(function () use ($form, $suggestion): void {
             $suggestion->comments = $form->decisionComment;
             $suggestion->save();
 
-            if ($form->decision === 'accepted' && !empty($form->referralDepts)) {
-                Review::create([
-                    'suggestion_id' => $suggestion->id,
-                    'department_id' => 'MA',
-                    'feedback' => 'agree',
-                    'comments' => $form->decisionComment,
-                    'referral' => $form->referralDepts,
-                    'actions' => $form->referralActions,
-                    'user_id' => Auth::id(),
-                    'complete' => false,
-                ]);
+            $isAccepted = $form->decision === 'accepted';
 
+            Review::updateOrCreate(
+                ['suggestion_id' => $suggestion->id, 'department_id' => 'MA'],
+                [
+                    'feedback' => match ($form->decision) {
+                        'accepted'     => 'agree',
+                        'rejected'     => 'disagree',
+                        'under_review' => 'incomplete',
+                    },
+                    'comments' => $form->decisionComment,
+                    'referral' => $isAccepted ? $form->referralDepts : null,
+                    'actions'  => $isAccepted ? $form->referralActions : null,
+                    'user_id'  => Auth::id(),
+                    'complete' => false,
+                ]
+            );
+
+            if ($isAccepted && !empty($form->referralDepts)) {
                 $this->ensureReferralReviews($suggestion, $form);
             }
         });

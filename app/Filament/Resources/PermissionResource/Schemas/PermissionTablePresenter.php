@@ -67,7 +67,7 @@ class PermissionTablePresenter
         return TextColumn::make('user.name')
             ->label(__('resources/permission/strings.fields.user'))
             ->sortable()
-            ->searchable(['users.name', 'users.email'])
+            ->searchable(['user.name', 'user.email'])
             ->weight(FontWeight::Bold)
             ->description(fn(?Model $record): ?string => $record?->user?->email);
     }

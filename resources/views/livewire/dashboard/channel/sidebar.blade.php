@@ -11,7 +11,7 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) aria-label="لیست کانال‌ها" data-channel-count="{{ count($this->channels) }}">
+]) aria-label="لیست کانال‌ها" data-channel-count="{{ count($this->channels) }}" data-total-unread="{{ $totalUnread }}">
 
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
         <div class="flex items-center justify-between mb-4">
@@ -43,6 +43,15 @@
                         <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
+                <button type="button" x-show="$store.push.supported" x-cloak
+                        x-on:click="$store.push.toggle('channel')"
+                        :aria-pressed="$store.push.isEnabled('channel')"
+                        :aria-label="$store.push.isEnabled('channel') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
+                        :title="$store.push.isEnabled('channel') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
+                        class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                        :class="$store.push.isEnabled('channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                    <span class="material-symbols-rounded text-[14px]" x-text="$store.push.isEnabled('channel') ? 'notifications_active' : 'notifications_off'"></span>
+                </button>
             </div>
         </div>
 

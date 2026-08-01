@@ -4,6 +4,7 @@ namespace App\Services\Reservation;
 
 use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
+use App\Enums\ResourceType;
 use App\Models\Reservation;
 use App\Models\ReservationPolicy;
 use App\Models\Resource;
@@ -20,6 +21,7 @@ use App\Services\Reservation\Validators\Recurrence;
 use App\Services\Reservation\Validators\ResourceActive;
 use App\Services\Reservation\Validators\ResourceAvailability;
 use App\Services\Reservation\Validators\TimeWindow;
+use App\Services\Reservation\Validators\TypeActive;
 use App\Services\Reservation\Validators\UserActive;
 use App\Services\Reservation\Validators\UserConflict;
 use Carbon\Carbon;
@@ -29,6 +31,7 @@ class ValidationService
 {
     private array $bookingRules = [
         UserActive::class => ['skip_admin' => true],
+        TypeActive::class => ['skip_admin' => false],
         ResourceActive::class => ['skip_admin' => false],
         BookingPermission::class => ['skip_admin' => true],
         TimeWindow::class => ['skip_admin' => true],
@@ -46,6 +49,23 @@ class ValidationService
     public function flushPolicyCache(string $resourceType): void
     {
         Cache::forget("reservation_policies_{$resourceType}");
+        Cache::forget('reservation_disabled_types');
+    }
+
+    public function isTypeActive(string $resourceType): bool
+    {
+        return TypeActive::isTypeActive($this->getPolicies($resourceType));
+    }
+
+    public function disabledTypes(): array
+    {
+        return Cache::remember('reservation_disabled_types', 3600,
+            fn() => collect(ResourceType::cases())
+                ->reject(fn(ResourceType $type) => $this->isTypeActive($type->value))
+                ->map(fn(ResourceType $type) => $type->value)
+                ->values()
+                ->all()
+        );
     }
 
     public function getPolicies(string $resourceType): array

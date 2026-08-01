@@ -166,7 +166,7 @@
     }
 
     .dark .glass-panel {
-        background-color: rgba(30, 30, 35, 0.6);
+        background: rgba(30, 30, 35, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
@@ -831,6 +831,10 @@
     .rotate-y-180 {
         transform: rotateY(180deg);
     }
+
+    .rotate-x-180 {
+        transform: rotateX(180deg);
+    }
 }
 
 ::selection {
@@ -1258,6 +1262,41 @@
 .post-body :where(code, pre, blockquote, kbd, samp, mark, table, thead, tbody, tfoot, tr, th, td, a, span, strong, em, b, i, u, img, figure, figcaption, hr, div, ul, ol, li) {
     background: transparent !important;
     color: inherit !important;
+}
+
+.post-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.post-body :where(th, td) {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    padding: 0.5em 0.75em;
+    text-align: right;
+}
+
+.post-body span.color,
+.prose span.color,
+.onb-prose span.color {
+    color: var(--color) !important;
+}
+
+.post-body mark {
+    background: var(--md-sys-color-tertiary-container) !important;
+    color: var(--md-sys-color-on-tertiary-container) !important;
+    border-radius: 0.2em;
+    padding: 0 0.15em;
+}
+
+:root.dark .post-body span.color,
+:root.dark .prose span.color,
+:root.dark .onb-prose span.color {
+    color: var(--dark-color) !important;
+}
+
+.post-body th {
+    font-weight: 700;
 }
 
 .collage-item {

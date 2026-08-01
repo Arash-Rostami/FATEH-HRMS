@@ -67,6 +67,11 @@ class DmsNudge implements MenuNudge
         ];
     }
 
+    public function url($subject): ?string
+    {
+        return route('dms', ['open' => $subject->getKey()]);
+    }
+
     private function requiresSignFor(User $user): bool
     {
         return !isset($this->signedUserIds[$user->id]);

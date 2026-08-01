@@ -56,17 +56,19 @@
                         <button
                             wire:key="day-{{ $day['date'] }}"
                             wire:click="selectDate('{{ $day['date'] }}')"
+                            @if($day['hasHoliday']) title="{{ $day['holidayTitle'] }}" @endif
                             class="group relative aspect-[1/0.85] w-full rounded-[14px] shadow-sm transition-all duration-300 ease-out flex flex-col items-center justify-start pt-1 gap-0.5 overflow-hidden isolate outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]
                                 {{ $day['isSelected']
                                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_10px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] z-10 font-bold'
                                     : ($day['isToday']
                                         ? '!bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-[0_4px_12px_color-mix(in_srgb,var(--md-sys-color-primary)_20%,transparent)] z-10'
-                                        : ($index % 7 === 6
+                                        : (($index % 7 === 6 || $day['hasHoliday'])
                                             ? 'bg-[color-mix(in_srgb,#f43f5e_6%,var(--md-sys-color-surface))] text-[var(--md-sys-color-on-surface)] shadow-[0_4px_10px_color-mix(in_srgb,#f43f5e_8%,transparent)] hover:bg-[color-mix(in_srgb,#f43f5e_12%,var(--md-sys-color-surface))]'
                                             : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] shadow-[0_4px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:bg-[var(--md-sys-color-surface-container-highest)]'))
                                 }}
                                 {{ $day['isToday'] && !$day['isSelected'] ? 'ring-1 ring-[var(--md-sys-color-primary)]/50 bg-[var(--md-sys-color-surface-container-highest)]/60' : '' }}
                                 {{ (!empty($day['hasImminentShared']) && !$day['isSelected'] && !$day['isToday']) ? 'ring-1 ring-[var(--md-sys-color-error)]/70' : '' }}
+                                {{ ($day['hasHoliday'] && !$day['isSelected']) ? 'ring-1 ring-rose-400/50' : '' }}
                             "
                         >
                             <span class="text-xs font-bold z-10 transition-colors {{ $day['isToday'] && !$day['isSelected'] ? 'text-[var(--md-sys-color-primary)]' : '' }}">
@@ -74,7 +76,10 @@
                             </span>
 
                             <div class="flex items-center justify-center mt-0.5 min-h-[16px]">
-                                @if($day['hasBirthday'])
+                                @if($day['hasHoliday'])
+                                    <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-rose-500' }} drop-shadow-sm"
+                                          style="font-variation-settings: 'FILL' 1;">event_busy</span>
+                                @elseif($day['hasBirthday'])
                                     <span class="material-symbols-rounded text-[16px] {{ $day['isSelected'] ? 'text-white' : 'text-pink-500' }} drop-shadow-sm"
                                           style="font-variation-settings: 'FILL' 1;">cake</span>
                                 @elseif($day['hasAnniversary'])
@@ -129,6 +134,11 @@
                 </div>
                 <div class="flex items-center justify-between px-2 mt-3 mb-1">
                     <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1">
+                        <span class="material-symbols-rounded text-[12px] text-rose-500"
+                              style="font-variation-settings: 'FILL' 1;">event_busy</span>
+                            <span class="text-[9px] text-[var(--md-sys-color-on-surface-variant)] font-bold">تعطیل</span>
+                        </div>
                         <div class="flex items-center gap-1">
                         <span class="material-symbols-rounded text-[12px] text-pink-500"
                               style="font-variation-settings: 'FILL' 1;">cake</span>

@@ -52,4 +52,9 @@ class PhotoNudge implements MenuNudge
             ['class' => Photo::class, 'on' => ['created', 'updated', 'deleted'], 'subject' => null],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('dashboard', ['tab' => 'gallery', 'open' => $subject->getKey()]);
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Actions\AddCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\DeleteCommentAction;
+use App\Livewire\Dashboard\Tab\Actions\MarkFeedsAsReadAction;
 use App\Livewire\Dashboard\Tab\Actions\ToggleReactionAction;
 use App\Livewire\Dashboard\Tab\Actions\UpdateCommentAction;
 use App\Livewire\Dashboard\Tab\Actions\VotePollAction;
@@ -42,9 +43,11 @@ class Feeds extends Component
 
     public function addComment($feedId, AddCommentAction $action, $parentId = null): void
     {
+        if (!Auth::check()) return;
+
         $this->commentForm->content = $parentId
-            ? $this->replyComments[$parentId]
-            : $this->newComments[$feedId];
+            ? ($this->replyComments[$parentId] ?? '')
+            : ($this->newComments[$feedId] ?? '');
 
         $action->execute($this->commentForm, $feedId, $parentId);
 
@@ -148,8 +151,12 @@ class Feeds extends Component
         unset($this->feeds);
     }
 
-    public function mount(): void
+    public function mount(MarkFeedsAsReadAction $markFeedsAsReadAction): void
     {
+        if (Auth::id()) {
+            $markFeedsAsReadAction->execute(Auth::id());
+        }
+
         if ($this->open && Feed::whereKey($this->open)->exists()) {
             $this->feedIds = [$this->open];
             $this->selectedFeedId = $this->open;
@@ -224,7 +231,7 @@ class Feeds extends Component
     private function baseQuery()
     {
         return Feed::query()
-            ->when($this->search, fn($q, $s) => $q->where('content', 'like', "%{$s}%"))
+            ->when($this->search !== '', fn($q) => $q->where('content', 'like', "%{$this->search}%"))
             ->when($this->selectedCategory, fn($q, $c) => $q->where('category', $c));
     }
 

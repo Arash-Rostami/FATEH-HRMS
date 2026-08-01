@@ -30,12 +30,17 @@ trait HasSuggestionAlert
 
             $q->whereRaw('1=0');
 
-            if ($user->isCeo()) {
+            if ($user->isSeniorDecisionMaker()) {
                 $q->orWhere('stage', 'awaiting_decision');
             }
 
-            if ($user->isDeptHead()) {
-               //  Initial feedback
+            if ($user->isDeptHead() && !$user->isTopExecutive()) {
+                $q->orWhere(fn($q) => $q
+                    ->where('stage', 'team_remarks')
+                    ->where('departments->[0]', $deptId)
+                );
+
+                //  Initial feedback
                 $q->orWhere(fn($q) => $q
                     ->where('stage', 'dept_remarks')
                     ->whereJsonContains('departments', $deptId)

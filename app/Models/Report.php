@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class Report extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPublicAssetUrl;
 
     protected $fillable = [
         'user_id',
@@ -80,7 +80,7 @@ class Report extends Model
         return Attribute::make(
             get: function () {
                 if ($this->cover_image) {
-                    return Storage::url($this->cover_image);
+                    return self::resolvePublicAssetUrl($this->cover_image);
                 }
 
                 return match ($this->file_type) {
@@ -89,6 +89,6 @@ class Report extends Model
                     default => asset('build/assets/img/report.png'),
                 };
             }
-        );
+        )->shouldCache();
     }
 }

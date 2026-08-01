@@ -9,11 +9,13 @@ use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Support\TicketAccessPolicy;
 use App\Traits\FocusOnRecord;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -34,35 +36,63 @@ class Main extends Component
     public array $requestAreas = [];
     public array $departmentOptions = [];
 
+    #[Url(as: 'queue')]
+    public string $listFilter = 'mine';
     public int $perPage = 10;
+    public int $inboxPerPage = 10;
     public string $ticketSearch = '';
 
     public function addFileInput(): void
     {
-        $this->ticket->fileInputs[] = uniqid('', true);
+        $this->ticket->fileInputs[] = Str::random(13);
     }
 
     public function focusRecord(int $id): void
     {
-        $owned = Ticket::whereKey($id)
-            ->where(fn(Builder $q) => $q->where('requester_id', auth()->id())->orWhere('assigned_to', auth()->id())
-            )->exists();
+        $ticket = Ticket::find($id);
 
-        if ($owned) {
+        if ($ticket && TicketAccessPolicy::canView($ticket, auth()->user())) {
             $this->viewTicket($id);
+            $this->modalTab = 'response';
             $this->dispatch('ths-modal');
         }
     }
 
     public function loadMore(): void
     {
-        $this->perPage += 10;
+        if ($this->listFilter === 'actionable') {
+            $this->inboxPerPage += 10;
+        } else {
+            $this->perPage += 10;
+        }
+    }
+
+    public function setListFilter(string $filter): void
+    {
+        if (!in_array($filter, ['mine', 'actionable'], true) || $this->listFilter === $filter) {
+            return;
+        }
+
+        $this->listFilter = $filter;
+        $this->perPage = 10;
+        $this->inboxPerPage = 10;
+    }
+
+    public function toggleActionableFilter(): void
+    {
+        $this->setListFilter($this->listFilter === 'actionable' ? 'mine' : 'actionable');
+    }
+
+    #[Computed]
+    public function activeTickets()
+    {
+        return $this->listFilter === 'actionable' ? $this->inboxTickets : $this->tickets;
     }
 
     public function mount(): void
     {
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
-        $this->ticket->fileInputs[] = uniqid('', true);
+        $this->ticket->fileInputs[] = Str::random(13);
         $this->ticket->requestTypeOptions = Ticket::$requestTypeOptions;
         $this->departmentOptions = Department::getCachedOptionsExcludingEmptyTickets()->toArray();
         $this->loadRequestAreas();
@@ -109,13 +139,21 @@ class Main extends Component
 
     public function submitTicket(SubmitTicketAction $action): void
     {
-        $action->execute($this->ticket);
+        try {
+            $action->execute($this->ticket);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            report($e);
+            $this->dispatch('toast', message: 'ثبت درخواست ناموفق بود. لطفاً دوباره تلاش کنید.', type: 'error');
+            return;
+        }
 
         $this->ticket->reset();
         $this->ticket->department = data_get(auth()->user(), 'profile.department_id', 'N/A');
         $this->ticket->requestType = 'support';
         $this->ticket->priority = 'low';
-        $this->ticket->fileInputs[] = uniqid('', true);
+        $this->ticket->fileInputs[] = Str::random(13);
         $this->loadRequestAreas();
 
         $this->activeTab = 'log';
@@ -141,6 +179,16 @@ class Main extends Component
         }
 
         $this->activeTab = $tab;
+    }
+
+    #[Computed]
+    public function inboxTickets()
+    {
+        return Ticket::query()
+            ->with('assignee', 'requester')
+            ->actionableBy(auth()->user())
+            ->orderByDesc('created_at')
+            ->paginate($this->inboxPerPage, ['*'], 'inboxPage');
     }
 
     #[Computed]
@@ -192,12 +240,9 @@ class Main extends Component
     }
     public function viewTicket($ticketId): void
     {
-        $ticket = Ticket::with('assignee')
-            ->whereKey($ticketId)
-            ->where(fn(Builder $q) => $q->where('requester_id', auth()->id())->orWhere('assigned_to', auth()->id()))
-            ->first();
+        $ticket = Ticket::with('assignee')->find($ticketId);
 
-        if (!$ticket) {
+        if (!$ticket || !TicketAccessPolicy::canView($ticket, auth()->user())) {
             return;
         }
 

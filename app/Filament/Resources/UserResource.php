@@ -19,6 +19,7 @@ use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Models\User;
+use App\Services\User\UserKeyGrouper;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
@@ -37,6 +38,7 @@ class UserResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = User::class;
+    protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 1;
 
@@ -225,6 +227,7 @@ class UserResource extends Resource
                 UserTablePresenter::statusGroup(),
                 UserTablePresenter::roleGroup(),
                 UserTablePresenter::presenceGroup(),
+                ...UserKeyGrouper::groups(),
             ])
             ->filters([
                 UserTablePresenter::statusFilter(),
@@ -232,6 +235,7 @@ class UserResource extends Resource
                 UserTablePresenter::typeFilter(),
                 UserTablePresenter::presenceFilter(),
                 self::createdAtFilter(),
+                ...UserKeyGrouper::filters(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([

@@ -1,7 +1,7 @@
 <x-ui.forms.filters
     searchModel="search"
-    activeCondition="this.$wire.get('activeFilter') !== 'all'"
-    clearAction="this.$wire.set('activeFilter', 'all'); this.$wire.set('search', '');"
+    activeCondition="this.$wire.get('activeFilter') !== 'all' || this.$wire.get('activeClassifier') !== 'all'"
+    clearAction="this.$wire.set('activeFilter', 'all'); this.$wire.set('activeClassifier', 'all'); this.$wire.set('search', '');"
     filterTitle="وضعیت حضور"
     placeholder="جستجو..."
     open="{{false}}"
@@ -45,4 +45,35 @@
             </button>
         @endforeach
     </div>
+
+    @if($this->classifierGroups)
+        <div class="flex flex-col gap-3 mt-3 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/30">
+            <div class="flex flex-wrap gap-2">
+                <button
+                    @click="$wire.set('activeClassifier', 'all')"
+                    :class="$wire.activeClassifier === 'all'
+                        ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm'
+                        : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
+                    class="flex shrink-0 items-center h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200"
+                >همه</button>
+            </div>
+
+            @foreach($this->classifierGroups as $norm => $group)
+                <div class="flex flex-col gap-2">
+                    <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $group['label'] }}</span>
+                    <div class="flex flex-wrap items-center gap-2 w-full justify-start scale-[0.8] md:scale-[1.0]">
+                        @foreach($group['values'] as $value)
+                            <button
+                                @click="$wire.set('activeClassifier', {{ \Illuminate\Support\Js::from($norm . '|' . $value) }})"
+                                :class="$wire.activeClassifier === {{ \Illuminate\Support\Js::from($norm . '|' . $value) }}
+                                    ? 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] border-transparent shadow-sm'
+                                    : 'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)] hover:bg-[var(--md-sys-color-surface-container-low)]'"
+                                class="flex shrink-0 items-center h-8 px-4 rounded-xl text-sm font-medium border transition-all duration-200"
+                            >{{ $value }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </x-ui.forms.filters>

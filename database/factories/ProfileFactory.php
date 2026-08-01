@@ -15,8 +15,8 @@ class ProfileFactory extends Factory
     {
         return [
             'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
-            'department_id' => Department::inRandomOrder()->value('code') ?? Department::factory(),
-            'personnel_id' => fake()->unique()->numerify('PC-####'),
+            'department_id' => Department::inRandomOrder()->value('code') ?? Department::first()?->code ?? 'HR',
+            'personnel_id' => fake()->unique()->numerify('PC-######'),
             'gender' => fake()->randomElement(['female', 'male']),
             'employment_type' => fake()->randomElement(['fulltime', 'parttime', 'contract']),
             'marital_status' => fake()->randomElement(['married', 'single']),

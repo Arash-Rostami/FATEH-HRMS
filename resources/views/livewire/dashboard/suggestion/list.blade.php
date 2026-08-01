@@ -8,6 +8,7 @@
             count="{{ $this->perPage }}"
         />
 
+        @if($this->authDeptCode !== 'MA')
         <x-ui.buttons.form
             class="w-full justify-center gap-2 hover:brightness-95 active:scale-[0.97] transition-all glow-sm"
             icon="add"
@@ -15,6 +16,7 @@
         >
             ایجاد
         </x-ui.buttons.form>
+        @endif
 
         <x-ui.forms.search
             name="search"

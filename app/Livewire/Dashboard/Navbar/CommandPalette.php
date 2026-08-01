@@ -79,7 +79,8 @@ class CommandPalette extends Component
     {
         try {
             $this->redirectRoute($target, navigate: true);
-        } catch (Exception) {
+        } catch (Exception $e) {
+            report($e);
         }
     }
 

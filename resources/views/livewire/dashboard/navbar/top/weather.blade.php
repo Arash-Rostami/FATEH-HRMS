@@ -34,5 +34,5 @@
     @endphp
 
     <span class="material-symbols-rounded text-[18px] {{ $color }} animate-pulse">{{ $icon }}</span>
-    <span>{{ $temp }} °C</span>
+    <span dir="ltr">{{ $temp }} °C</span>
 </div>

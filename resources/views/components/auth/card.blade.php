@@ -36,11 +36,12 @@
 
                 <!-- Brand Text -->
                 <div class="space-y-4 text-center relative z-10">
-                    <h2 class="text-3xl font-bold text-[var(--md-sys-color-on-surface)] tracking-tight drop-shadow-sm">
-                        {{ config('app.name', 'HRMS') }}
+                    <h2 class="text-3xl font-bold text-[var(--md-sys-color-on-surface)] tracking-tight drop-shadow-sm"
+                        title="{{ config('app.name_en') }}">
+                        {{ config('app.name') }}
                     </h2>
                     <p class="text-[var(--md-sys-color-on-surface-variant)] text-lg max-w-[250px] mx-auto leading-relaxed font-medium">
-                        سیستم مدیریت منابع انسانی
+                        {{ config('app.slogan') }}
                     </p>
                 </div>
             </div>

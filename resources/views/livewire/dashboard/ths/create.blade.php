@@ -10,7 +10,9 @@
                 <x-ui.forms.select label="واحد سازمانی ارجاع‌شونده (اختیاری)" name="ticket.targetDepartment"
                                    wire:model.live="ticket.targetDepartment" icon="domain">
                     <option value="">انتخاب واحد سازمانی...</option>
-                    <option value="N/A">پیش‌فرض (پشتیبانی عمومی)</option>
+                    @unless(\App\Models\Department::anyHasCustomTicketOptions())
+                        <option value="N/A">پیش‌فرض (پشتیبانی عمومی)</option>
+                    @endunless
                     @foreach ($departmentOptions as $code => $name)
                         <option value="{{ $code }}">{{ $name }}</option>
                     @endforeach

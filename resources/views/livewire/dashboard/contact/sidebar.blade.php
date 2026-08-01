@@ -10,7 +10,7 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) aria-label="لیست مکالمات">
+]) aria-label="لیست مکالمات" data-total-unread="{{ $totalUnread }}">
 
     {{-- Header --}}
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
@@ -43,6 +43,15 @@
                         <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
+                <button type="button" x-show="$store.push.supported" x-cloak
+                        x-on:click="$store.push.toggle('contact')"
+                        :aria-pressed="$store.push.isEnabled('contact')"
+                        :aria-label="$store.push.isEnabled('contact') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
+                        :title="$store.push.isEnabled('contact') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
+                        class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                        :class="$store.push.isEnabled('contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                    <span class="material-symbols-rounded text-[14px]" x-text="$store.push.isEnabled('contact') ? 'notifications_active' : 'notifications_off'"></span>
+                </button>
             </div>
         </div>
 
@@ -145,7 +154,8 @@
                                 {{ $contact['last_message']['body'] }}
                             </p>
                         @else
-                            <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">
+                            @php($orgTitle = collect([$contact['unit'] ?? null, $contact['section'] ?? null])->filter()->implode(' › '))
+                            <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="{{ $orgTitle }}">
                                 {{ $contact['position'] }}
                             </p>
                         @endif

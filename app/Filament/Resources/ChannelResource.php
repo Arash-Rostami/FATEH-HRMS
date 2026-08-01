@@ -24,6 +24,7 @@ class ChannelResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Channel::class;
+    protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?int $navigationSort = 8;
 

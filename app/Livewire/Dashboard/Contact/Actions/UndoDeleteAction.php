@@ -20,15 +20,17 @@ class UndoDeleteAction
                 return;
             }
 
-            Message::create([
+            (new Message())->forceFill([
                 'sender_id'    => $userId,
                 'recipient_id' => $lastDeleted['recipient_id'],
                 'body'         => $lastDeleted['body'],
+                'attachments'  => $lastDeleted['attachments'] ?? [],
                 'is_edited'    => $lastDeleted['is_edited'],
                 'reply_to_id'  => $lastDeleted['reply_to_id'],
+                'read_at'      => $lastDeleted['read_at'] ?? null,
                 'created_at'   => $lastDeleted['created_at'],
                 'updated_at'   => now(),
-            ]);
+            ])->save();
         }
     }
 }

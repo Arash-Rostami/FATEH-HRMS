@@ -149,7 +149,7 @@ class PolicyFormPresenter
             ->helperText(__('resources/policy/strings.hints.window_days'))
             ->validationAttribute(__('resources/policy/strings.fields.window_days'))
             ->numeric()
-            ->minValue(1)
+            ->minValue(0)
             ->maxValue(365)
             ->placeholder('۲۱');
     }

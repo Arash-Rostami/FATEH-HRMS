@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\SuggestionResource\Pages;
 
 use App\Filament\Resources\SuggestionResource;
-use App\Filament\Resources\SuggestionResource\Actions\SuggestionAccessPolicy;
 use App\Filament\Resources\SuggestionResource\Enums\ReviewFeedback;
 use App\Livewire\Dashboard\Suggestion\Actions\MarkImplementationCompleteAction;
 use App\Livewire\Dashboard\Suggestion\Actions\SubmitDecisionAction;
@@ -12,6 +11,7 @@ use App\Livewire\Dashboard\Suggestion\Forms\DecisionForm;
 use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
 use App\Models\Department;
 use App\Models\Suggestion;
+use App\Support\SuggestionAccessPolicy;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;

@@ -42,7 +42,7 @@
                     class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
                     :class="{
                         'md:scale-[1.15] z-30': activeId == {{ $report->id }},
-                        'md:scale-95 md:opacity-80 md:grayscale-[30%] z-10': activeId != {{ $report->id }}
+                        'md:scale-95 z-10': activeId != {{ $report->id }}
                     }"
                     @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true"
                 >

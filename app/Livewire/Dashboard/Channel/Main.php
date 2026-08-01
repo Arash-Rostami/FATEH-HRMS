@@ -55,10 +55,12 @@ class Main extends Component
     public bool $browseMode = false;
     public bool $createMode = false;
     public bool $mobileShowChat = false;
-    public int $editTimeLimit = 300;
+    #[Locked]
+    public int $editTimeLimit = 600;
     public ?array $editingMsg = null;
     #[Locked]
     public ?array $lastDeleted = null;
+    #[Locked]
     public int $loadedLimit = 10;
     public bool $hasOlder = false;
     #[Locked]
@@ -93,7 +95,9 @@ class Main extends Component
     public function activeChannel(): ?Channel
     {
         return $this->activeChannelId
-            ? Channel::with('owner')->withCount('members')->find($this->activeChannelId)
+            ? Channel::with('owner')->withCount('members')
+                ->whereHas('memberUsers', fn($q) => $q->where('users.id', auth()->id()))
+                ->find($this->activeChannelId)
             : null;
     }
 
@@ -211,7 +215,7 @@ class Main extends Component
     public function groupedMessages(): array
     {
         return collect($this->messages)
-            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->toDateString())
+            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->setTimezone(config('app.timezone'))->toDateString())
             ->map(fn($group) => $group->values()->all())
             ->all();
     }
@@ -400,6 +404,7 @@ class Main extends Component
         } catch (ValidationException $e) {
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ایجاد کانال', type: 'error');
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
         }
     }
@@ -471,6 +476,7 @@ class Main extends Component
         } catch (HttpException $e) {
             throw $e;
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
         }
     }
@@ -521,7 +527,9 @@ class Main extends Component
 
     public function leaveChannel(LeaveChannelAction $action, int $channelId): void
     {
-        $action->execute($channelId, auth()->id());
+        if (!$action->execute($channelId, auth()->id())) {
+            return;
+        }
         if ($this->activeChannelId === $channelId) {
             $this->activeChannelId = null;
             $this->mobileShowChat = false;

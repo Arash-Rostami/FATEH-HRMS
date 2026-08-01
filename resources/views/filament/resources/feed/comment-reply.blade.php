@@ -2,7 +2,7 @@
     <div class="flex-shrink-0 pt-0.5 relative z-10">
         <div class="flex rounded-md {{ $depth > 2 ? '!h-6 !w-6' : 'h-8 w-8 text-xs' }}">
             <x-ui.avatar
-                :existingImage="optional(auth()->user()?->profile)->image"
+                :existingImage="auth()->user()?->getProfileImageUrl()"
             />
         </div>
     </div>

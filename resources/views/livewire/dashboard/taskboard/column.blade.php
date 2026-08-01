@@ -12,7 +12,7 @@
         'bg-[var(--md-sys-color-primary-container)]/20 !border-dashed !border-2 !border-[var(--md-sys-color-primary)] scale-[1.02]': dragTask,
         'max-widget-column': maximizedColumn === $el.dataset.column
     }"
-    class="flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-[350px] max-h-[calc(100vh-220px)] min-h-[320px] flex flex-col gap-3 md:gap-4 rounded-3xl bg-[var(--md-sys-color-on-primary)] p-3 md:p-4 shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 transition-all duration-300"
+    class="flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-0 max-h-[calc(100vh-220px)] min-h-[320px] flex flex-col gap-3 md:gap-4 rounded-3xl bg-[var(--md-sys-color-on-primary)] p-3 md:p-4 shadow-sm border border-[var(--md-sys-color-outline-variant)]/40 transition-all duration-300"
 >
     <!-- Column Header -->
     <div class="flex items-center justify-between gap-3 px-2">
@@ -28,11 +28,28 @@
                 </h3>
                 <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-80">
                     {{ $taskCount }} مورد
+                    @if($column === 'done' && !$showAllDone && $search === '')
+                        <span class="text-[var(--md-sys-color-primary)]">· ۴۵ روز اخیر</span>
+                    @endif
                 </span>
             </div>
         </div>
 
         <div class="flex items-center gap-1">
+            @if($column === 'done')
+                <button
+                    wire:click="toggleShowAllDone"
+                    @class([
+                        'ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center',
+                        'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $showAllDone,
+                        'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => !$showAllDone,
+                    ])
+                    title="{{ ($showAllDone || $search !== '') ? 'نمایش ۴۵ روز اخیر' : 'نمایش تمام موارد قدیمی‌تر' }}"
+                >
+                    <span class="material-symbols-rounded text-lg">{{ ($showAllDone || $search !== '') ? 'history_toggle_off' : 'history' }}</span>
+                </button>
+            @endif
+
             <button
                 class="ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                 @click="toggleMaximize(col($el))"
@@ -74,7 +91,25 @@
             @forelse($columnTasks as $task)
                 @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column])
             @empty
-                <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" description="با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند" variant="list" />
+                @php
+                    $windowActive = ($column === 'done') && !$showAllDone && ($search === '');
+                    $olderExist = $windowActive && (($doneTotalCount['done'] ?? 0) > 0);
+                @endphp
+                @if($olderExist)
+                    <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
+                        <x-slot:slot>
+                            <button
+                                wire:click="toggleShowAllDone"
+                                class="ripple-effect px-4 py-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-sm font-bold transition-all duration-200 active:scale-95 inline-flex items-center gap-1"
+                            >
+                                <span class="material-symbols-rounded text-base">history</span>
+                                نمایش موارد قدیمی‌تر
+                            </button>
+                        </x-slot:slot>
+                    </x-ui.empty>
+                @else
+                    <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" description="با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند" variant="list" />
+                @endif
             @endforelse
 
             <!-- Drop Zone Indicator -->
@@ -100,9 +135,34 @@
                     <span class="material-symbols-rounded">chevron_right</span>
                 </button>
 
-                <span class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] tabular-nums tracking-widest px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)]">
-                    {{ $page[$column] ?? 1 }} / {{ ceil($taskCount / $perPage) }}
-                </span>
+                @php $lastPage = (int) ceil($taskCount / $perPage); @endphp
+                <div
+                    x-data="{ editing: false, val: {{ $page[$column] ?? 1 }} }"
+                    class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] tabular-nums tracking-widest px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)]"
+                >
+                    <button
+                        x-show="!editing"
+                        @click="editing = true; val = {{ $page[$column] ?? 1 }}; $nextTick(() => $refs.jump.select())"
+                        type="button"
+                        title="رفتن به صفحه"
+                        class="cursor-pointer transition-colors hover:text-[var(--md-sys-color-primary)]"
+                    >{{ $page[$column] ?? 1 }} / {{ $lastPage }}</button>
+
+                    <div x-show="editing" x-cloak class="flex items-center gap-1">
+                        <input
+                            x-ref="jump"
+                            type="number"
+                            min="1"
+                            max="{{ $lastPage }}"
+                            x-model.number="val"
+                            @keydown.enter.prevent="editing = false; $wire.jumpToPage('{{ $column }}', val)"
+                            @keydown.escape.prevent="editing = false"
+                            @blur="editing = false"
+                            class="w-10 bg-transparent text-center outline-none border-b border-[var(--md-sys-color-primary)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span class="opacity-70">/ {{ $lastPage }}</span>
+                    </div>
+                </div>
 
                 <button
                     wire:click="nextPage('{{ $column }}')"

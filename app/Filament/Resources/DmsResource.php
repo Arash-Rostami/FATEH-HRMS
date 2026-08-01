@@ -26,6 +26,7 @@ class DmsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = DMS::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder-open';
     protected static ?int $navigationSort = 1;
 
@@ -42,6 +43,7 @@ class DmsResource extends Resource
                     DmsFormPresenter::status(),
                     DmsFormPresenter::divider(),
                     DmsFormPresenter::file(),
+                    DmsFormPresenter::extraFiles(),
                     DmsFormPresenter::revision(),
                 ])
                 ->columns(2),
@@ -133,6 +135,7 @@ class DmsResource extends Resource
                     DmsInfolistPresenter::version(),
                     DmsInfolistPresenter::status(),
                     DmsInfolistPresenter::file(),
+                    DmsInfolistPresenter::extraFiles(),
                     DmsInfolistPresenter::revision(),
 
                     DmsInfolistPresenter::owners(),

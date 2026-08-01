@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ResourceType;
 use App\Filament\Resources\ReservationPolicyResource\Pages\EditPolicy;
 use App\Filament\Resources\ReservationPolicyResource\Pages\ListPolicies;
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyFormPresenter;
@@ -16,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ReservationPolicyResource extends Resource
 {
@@ -28,6 +30,15 @@ class ReservationPolicyResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return ResourceType::tryFrom($record->resource_type)?->getLabel() ?? $record->resource_type;
     }
 
     public static function form(Schema $schema): Schema

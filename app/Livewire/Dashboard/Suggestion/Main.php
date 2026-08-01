@@ -132,12 +132,8 @@ class Main extends Component
         return Suggestion::query()
             ->with(['user.profile.department', 'reviews'])
             ->selectRaw('*, JSON_LENGTH(departments) as departments_count')
-            ->withCount([
-                'reviews as agree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['agree']),
-                'reviews as neutral_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['neutral']),
-                'reviews as disagree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['disagree']),
-            ])
-            ->when($this->search, function ($q) {
+            ->withReviewCounts()
+            ->when($this->search !== '', function ($q) {
                 $term = "%{$this->search}%";
                 $q->where('title', 'like', $term)
                     ->orWhereRaw(

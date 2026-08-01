@@ -10,10 +10,10 @@ export default function menu(options = {}) {
             {id: 'dms-controller', href: '/dms', icon: 'folder_open', title: 'مدیریت اسناد', sub: 'سرویس'},
             {id: 'ths-controller', href: '/ths', icon: 'support_agent', title: 'تیکتینگ', sub: 'ثبت و پیگیری'},
             {id: 'suggestion-controller', href: '/suggestion', icon: 'lightbulb', title: 'پیشنهادات', sub: 'کانون نقاط نظر سازمانی'},
-            {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری'},
-            {id: 'reservation-spot', href: '/reservation?tab=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک'},
-            {id: 'reservation-car', href: '/reservation?tab=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت'},
-            {id: 'reservation-appointment', href: '/reservation?tab=meeting', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری'},
+            {id: 'reservation-seat', href: '/reservation?tab=seat', icon: 'chair_alt', title: 'رزرو میز', sub: 'جایگاه اداری', resourceType: 'seat'},
+            {id: 'reservation-spot', href: '/reservation?tab=spot', icon: 'local_parking', title: 'رزرو پارکینگ', sub: 'جای پارک', resourceType: 'spot'},
+            {id: 'reservation-car', href: '/reservation?tab=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت', resourceType: 'car'},
+            {id: 'reservation-appointment', href: '/reservation?tab=meeting', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری', resourceType: 'meeting'},
             {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین (پیام‌رسان)', sub: 'پیام‌رسان داخلی'},
             {id: 'channels', href: '/channels', icon: 'campaign', title: 'کانال‌ها', sub: 'کانال‌های موضوعی'},
             {id: 'ads-controller', href: '/ads', icon: 'work', title: 'فرصت‌های شغلی', sub: 'استخدامی'},
@@ -39,6 +39,10 @@ export default function menu(options = {}) {
         },
 
         handleItemClick(item, event) {
+            if (item.disabled) {
+                event.preventDefault();
+                return;
+            }
             if (item.href === '-') {
                 event.preventDefault();
                 if (item.action) this.$dispatch(item.action);
@@ -68,6 +72,12 @@ export default function menu(options = {}) {
             if (!options.canAdmin) {
                 this.items = this.items.filter(item => !item.adminOnly);
             }
+
+            const disabledTypes = options.disabledReservationTypes || [];
+            this.items = this.items.map(item => ({
+                ...item,
+                disabled: !!item.resourceType && disabledTypes.includes(item.resourceType),
+            }));
 
             this.updatePerPage();
             window.addEventListener('resize', () => this.updatePerPage());

@@ -72,6 +72,7 @@ class DmsTablePresenter
             ->query(fn(Builder $query, array $data) => $query
                 ->when($data['departments'] ?? null, function (Builder $query, array $codes) {
                     $query->where(function (Builder $inner) use ($codes) {
+                        $inner->orWhereJsonContains('owners', 'ALL');
                         foreach ($codes as $code) {
                             $inner->orWhereJsonContains('owners', $code);
                         }
@@ -98,8 +99,27 @@ class DmsTablePresenter
                     ? __('resources/dms/strings.fields.all_departments') : ($record->getDepartmentDisplayLabels() ?: '—')
             )
             ->getKeyFromRecordUsing(fn($record): string => implode(',', $record->owners ?? []))
+            ->orderQueryUsing(fn(Builder $query) => $query)
+            ->scopeQueryByKeyUsing(function (Builder $query, $key) {
+                $expr = self::ownersKeyExpression();
+
+                if ($key === '' || $key === null) {
+                    return $query->whereRaw("({$expr}) IS NULL");
+                }
+
+                return $query->whereRaw("({$expr}) = ?", [$key]);
+            })
             ->titlePrefixedWithLabel(false)
             ->collapsible();
+    }
+
+    private static function ownersKeyExpression(): string
+    {
+        $rows = array_map(fn(int $n): string => "SELECT {$n} AS n", range(0, 31));
+        $numbers = '(' . implode(' UNION ALL ', $rows) . ') AS numbers';
+
+        return "(SELECT GROUP_CONCAT(JSON_UNQUOTE(JSON_EXTRACT(owners, CONCAT('$[', n, ']'))) ORDER BY n SEPARATOR ',')"
+            . " FROM {$numbers} WHERE JSON_EXTRACT(owners, CONCAT('$[', n, ']')) IS NOT NULL)";
     }
 
     public static function readCount(): TextColumn

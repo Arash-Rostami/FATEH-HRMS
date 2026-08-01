@@ -25,9 +25,10 @@ class Gallery extends Component
 
     public function loadInitialPhotos(): void
     {
-        $this->photoIds = $this->getBaseQuery()->take($this->perPage)->pluck('id')->toArray();
+        $ids = $this->getBaseQuery()->take($this->perPage + 1)->pluck('id')->toArray();
 
-        $this->hasMorePages = count($this->photoIds) >= $this->perPage;
+        $this->hasMorePages = count($ids) > $this->perPage;
+        $this->photoIds = array_slice($ids, 0, $this->perPage);
 
         if (!empty($this->photoIds) && !$this->selectedPhotoId) {
             $this->selectedPhotoId = $this->photoIds[0];
@@ -42,14 +43,17 @@ class Gallery extends Component
             return;
         }
 
-        $newIds = $this->getBaseQuery()
+        $ids = $this->getBaseQuery()
             ->skip(count($this->photoIds))
-            ->take($this->perPage)
+            ->take($this->perPage + 1)
             ->pluck('id')
             ->toArray();
 
+        $this->hasMorePages = count($ids) > $this->perPage;
+
+        $newIds = array_slice($ids, 0, $this->perPage);
+
         if (empty($newIds)) {
-            $this->hasMorePages = false;
             return;
         }
 
@@ -107,7 +111,7 @@ class Gallery extends Component
 
     private function getBaseQuery(): Builder
     {
-        $dept = Auth::user()->profile->department_id ?? null;
+        $dept = Auth::user()?->profile?->department_id;
 
         return Photo::query()
             ->orderByDesc('event_date')

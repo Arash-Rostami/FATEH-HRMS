@@ -97,7 +97,11 @@ class Reports extends Component
     #[Computed(seconds: 14400, cache: true)]
     public function departments()
     {
-        return Department::whereIn('code', Report::active()->whereNotNull('department_id')->select('department_id')->toBase())->get();
+        $codes = Report::active()->whereNotNull('department_id')->pluck('department_id');
+
+        return Department::getCachedModels()
+            ->filter(fn($model, $code) => $codes->contains($code))
+            ->values();
     }
 
     public function toggleView($view)

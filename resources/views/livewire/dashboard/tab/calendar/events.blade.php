@@ -51,6 +51,8 @@
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 @elseif(($event['type'] ?? '') === 'anniversary')
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">celebration</span>
+                                @elseif(($event['type'] ?? '') === 'holiday')
+                                    <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">event_busy</span>
                                 @else
                                     <span class="material-symbols-rounded">event</span>
                                 @endif
@@ -59,18 +61,33 @@
                     </div>
 
                     <div class="flex-1 min-w-0 pt-0.5">
-                        <div class="flex justify-between items-start mb-1">
-                            <h4 class="font-bold text-[var(--md-sys-color-on-surface)] truncate text-sm md:text-base">
+                        <div class="flex justify-between items-start gap-2 mb-1">
+                            <h4 class="font-bold text-[var(--md-sys-color-on-surface)] break-words min-w-0 flex-1 text-sm md:text-base">
                                 {{ $event['title'] }}
                             </h4>
-                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0 ml-2">
+                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0">
                                 {{ convertToPersian($event['time']) }}
                             </span>
                         </div>
 
-                        <p class="text-xs md:text-sm text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed opacity-90">
-                            {{ $event['description'] }}
-                        </p>
+                        @php $eventDescription = $event['description'] ?? ''; @endphp
+                        @if($eventDescription !== '')
+                            <div x-data="{ expanded: false }" class="text-xs md:text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed opacity-90">
+                                <div class="relative overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                                     :style="expanded ? ('max-height:' + $el.scrollHeight + 'px') : 'max-height: 3rem'">
+                                    {{ $eventDescription }}
+                                    @if(mb_strlen($eventDescription) > 55)
+                                        <div x-show="!expanded" x-transition.opacity.duration.200ms class="absolute bottom-0 inset-x-0 h-5 pointer-events-none bg-gradient-to-t from-[var(--md-sys-color-surface)] group-hover:from-[var(--md-sys-color-surface-container-high)] to-transparent"></div>
+                                    @endif
+                                </div>
+                                @if(mb_strlen($eventDescription) > 55)
+                                    <button type="button" @click.stop="expanded = !expanded" class="text-[var(--md-sys-color-primary)] text-[11px] font-medium mt-1 inline-flex items-center gap-1 select-none rounded-lg px-2 py-0.5 -mx-2 transition-colors duration-200 hover:bg-[var(--md-sys-color-primary-container)]/50 hover:text-[var(--md-sys-color-on-primary-container)]">
+                                        <span class="material-symbols-rounded text-[13px] transition-transform duration-300" :class="expanded ? 'rotate-180' : ''">expand_more</span>
+                                        <span x-text="expanded ? 'بستن' : 'مشاهده بیشتر'"></span>
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
 
                         <div class="flex items-center gap-3 mt-3">
                             <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded-md">

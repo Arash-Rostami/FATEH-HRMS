@@ -31,9 +31,9 @@ class DetailsForm extends Form
 
     protected function rules(): array
     {
-        $rules = ProfileDetailCatalog::rules('values');
+        $rules = ProfileDetailCatalog::userRules('values');
 
-        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
+        foreach (ProfileDetailCatalog::userDefinitions() as $key => $def) {
             if ($def['type'] === 'date') {
                 $rules["values.{$key}Year"] = "nullable|integer|min:1300|max:1500|required_with:values.{$key}Month,values.{$key}Day";
                 $rules["values.{$key}Month"] = "nullable|integer|min:1|max:12|required_with:values.{$key}Year,values.{$key}Day";
@@ -59,9 +59,9 @@ class DetailsForm extends Form
 
     protected function validationAttributes(): array
     {
-        $attrs = ProfileDetailCatalog::attributes('values');
+        $attrs = ProfileDetailCatalog::userAttributes('values');
 
-        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
+        foreach (ProfileDetailCatalog::userDefinitions() as $key => $def) {
             if ($def['type'] === 'date') {
                 $attrs["values.{$key}Year"] = 'سال ' . $def['label'];
                 $attrs["values.{$key}Month"] = 'ماه ' . $def['label'];

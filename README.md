@@ -1,59 +1,131 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Intranet & Operations Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modular, dual-panel employee intranet and operations suite built on **Laravel 12**, **Filament v5**, and **Livewire 4**. Persian-first (RTL) with Jalali calendar support; ships as an installable PWA.
 
-## About Laravel
+> Behavior here is **verified against the codebase** — marketing prose that overstates implemented features is intentionally omitted (see Accuracy Notes).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Overview
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Two cooperating panels over one Laravel app:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Admin panel** (Filament v5) — system administration, content management, and configuration of every module.
+- **Employee panel** (Livewire 4 dashboard) — the daily workspace: tabbed home, command palette, quick access, and per-module tools.
 
-## Learning Laravel
+Access is role-scoped via Filament policies and per-module permissions.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Highlights & Features
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **23 self-contained modules**, each independently deployable and configurable.
+- **Dual panel** sharing one registry — add/reorder a module in `config/modules.php` once; it appears in both.
+- **Command palette** + **deep-linking** (`FocusOnRecord`) for keyboard-driven nav and URL-pinned records.
+- **Global + individual search** — boolean full-text where supported, scoped per module.
+- **Theming** — dark/light mode with 15 color themes, synced across open tabs.
+- **PWA** — installable, offline shell, persistent tool dock that survives SPA navigation; Alpine-driven polling for unread counts, polls, and presence.
+- **Security** — Laravel Fortify auth, encrypted credential storage (`Crypt`), HTML sanitization on rich text, IP-based internal/external routing.
+- **Patterns** — Action / Validator / Presenter / Service (Livewire); Schemas / Actions / Pages (Filament); reusable traits (`HasNudgeTracking`, `HasCountdown`, `FocusOnRecord`, `HasPublicAssetUrl`).
 
-## Laravel Sponsors
+## Tech Stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Layer | Technology |
+|---|---|
+| Backend | PHP 8.2+, Laravel 12, Laravel Fortify (auth) |
+| Admin panel | Filament v5 |
+| User panel | Livewire 4.1 (islands, `wire:navigate`) |
+| Database | MySQL 5.7+ / 8.0 (SQLite for quick local dev) |
+| Frontend | Tailwind CSS 4, Vite 7, Alpine.js, Material Symbols |
+| Media/UI | Fancybox 6 (lightbox), Swiper 12 (carousels) |
+| Calendar | morilog/jalali 3 (Jalali date helpers) |
+| PWA | vite-plugin-pwa + Workbox 7 |
+| Testing | PHPUnit 11, Faker, Mockery |
 
-### Premium Partners
+## Modules (23)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Canonical titles (Persian), icons, and descriptions live in `config/modules.php`; both panels iterate it via `moduleMeta()` and `moduleFilamentIcons()`.
 
-## Contributing
+| Category | Modules |
+|---|---|
+| Content & Communications | Announcements (`announce`), Feed (`feed`), Calendar (`calendar`), Gallery (`gallery`) |
+| Organizational Knowledge | Reports (`reports`), Links (`links`), FAQ (`faq`) |
+| Human Resources | Profile (`profile`), Onboarding (`onboarding`), Documents (`documents`), Credentials (`credentials`), Job Ads (`ads`) |
+| Processes & Decisions | Suggestions (`suggestion`), Task Board (`taskboard`), DMS (`dms`), Tickets (`ths`) |
+| Operations | Reservations (`reservation`), Messenger (`contact`), Channels (`channel`), Energy (`energy`) |
+| Governance | Authorities (`auth`) |
+| Welfare & Tools | Live Radio (`radio`), Other Tools (`others`) |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Architecture
 
-## Code of Conduct
+```
+app/
+├── Filament/Resources/    Admin panel (Schemas/Actions/Pages) + Widgets/
+├── Livewire/Dashboard/    Employee panel: Tab/, <Module>/+Actions/, Navbar/
+├── Models/  Services/  Rules/  Enums/  Traits/
+config/modules.php         Single module registry → BOTH panels
+resources/{views,css,js}/  Blade, Tailwind, Alpine components
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Cross-cutting traits**: `HasNudgeTracking` (read/fresh state), `HasCountdown` (event countdown), `FocusOnRecord` (deep-link pin), `HasPublicAssetUrl` (safe asset URLs).
+- **Search**: a `Search/` service hierarchy powers global and per-module search (boolean full-text where supported).
 
-## Security Vulnerabilities
+## Requirements
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+PHP **8.2+** with standard Laravel extensions (mbstring, openssl, pdo, tokenizer, xml, ctype, json, bcmath, fileinfo); **MySQL 5.7+ / 8.0** recommended (SQLite works for a quick local run); **Node 18+** and **npm**; writable `storage/` and `bootstrap/cache/`.
+
+## Installation
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+npm install
+npm run build
+```
+
+Edit `.env` first: `DB_*`, `APP_URL`, and brand keys (consumed by `config/app.php`); use `npm run dev` for HMR. One-shot alternative:
+
+```bash
+composer setup
+```
+
+## Available Commands
+
+| Command | Purpose |
+|---|---|
+| `composer dev` | Run server + queue worker + log tail (`pail`) + Vite concurrently |
+| `php artisan serve` | Start the dev server |
+| `npm run dev` | Vite dev server with HMR |
+| `npm run build` | Production Vite build (+ PWA service worker) |
+| `php artisan migrate --seed` | Run migrations + seeders |
+| `php artisan test` | Run the test suite (PHPUnit) |
+| `php artisan optimize` | Config + route + view cache for production |
+| `php artisan tinker` | REPL |
+
+## Configuration
+
+Key `.env` values (see `.env.example`):
+
+```
+APP_NAME=...  APP_ENV=local  APP_URL=http://localhost
+DB_CONNECTION=mysql  DB_HOST=127.0.0.1  DB_DATABASE=...
+SESSION_DRIVER=database  QUEUE_CONNECTION=database  CACHE_STORE=database  MAIL_MAILER=log
+```
+
+- **`config/modules.php`** — the module registry (id, icon, title, category, descriptions). Edit to add/reorder modules; both panels pick it up automatically.
+- **`config/app.php`** — env-driven brand keys (name, company/organization, slogan, logo, version, support) consumed across Blade views.
+- **Theme / PWA** — Tailwind 4 theme tokens and the Workbox PWA config live under `resources/` and `vite.config.js`.
+
+## Accuracy Notes
+
+The following are **not** implemented and are deliberately not claimed here (they appear in some older prose but not in the code):
+
+- Calendar seasonal theming, birthday countdown, and congratulation messages/SMS.
+- Email blast notifications on announcement creation.
+- Server-side PDF/document generation (admins upload PDF/DOC; no generator).
+- Documents approval workflow / reviewer state (presence of a file is the "approved" state).
+- Reservation building/gate/car-entry integration and interactive office/parking maps.
+- Radio admin station management (stations come from the public API + hardcoded fallback).
+- Google Translate language picker (fa→en only).
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT). This application's own source is provided under the same license unless stated otherwise in a deployed environment.

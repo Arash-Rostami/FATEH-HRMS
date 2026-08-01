@@ -26,7 +26,7 @@ class SaveDetailsAction
         $values = $form->values;
         $formatted = [];
 
-        foreach (ProfileDetailCatalog::definitions() as $key => $def) {
+        foreach (ProfileDetailCatalog::userDefinitions() as $key => $def) {
             if ($def['type'] === 'date') {
                 if (
                     array_key_exists($key . 'Year', $values) || array_key_exists($key . 'Month', $values) || array_key_exists($key . 'Day', $values)

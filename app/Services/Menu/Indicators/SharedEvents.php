@@ -5,6 +5,7 @@ namespace App\Services\Menu\Indicators;
 use App\Models\Event;
 use App\Models\EventShare;
 use App\Services\Menu\Contracts\MenuBadge;
+use App\Services\Menu\StateService;
 
 class SharedEvents implements MenuBadge
 {
@@ -28,6 +29,7 @@ class SharedEvents implements MenuBadge
         $user = auth()->user();
 
         return $user !== null
+            && !StateService::viewedToday('calendar')
             && (EventShare::hasImminentFor($user) || Event::hasImminentSharedFor($user));
     }
 }

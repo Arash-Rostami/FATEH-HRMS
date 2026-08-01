@@ -182,7 +182,7 @@ class UnreadNotifications extends DatabaseNotifications
 
     protected function genericAggregateRow(string $key, int $count, DatabaseNotification $representative): DatabaseNotification
     {
-        $latest = $representative->data['title'] ?? $key;
+        $latest = superClean($representative->data['title'] ?? $key, 100);
 
         return $this->makeAggregateRow("{$count} اعلان جدید", "آخرین: {$latest}", $key);
     }

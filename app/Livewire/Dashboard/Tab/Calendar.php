@@ -9,6 +9,8 @@ use App\Livewire\Dashboard\Tab\Forms\EventForm;
 use App\Models\Event;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\HolidayService;
+use App\Services\Menu\StateService;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -109,6 +111,8 @@ class Calendar extends Component
                 $hasEvent = $dayEvents !== null;
                 $hasBirthday = $birthdays->has($mdKey);
                 $hasAnniversary = $anniversaries->has($mdKey);
+                $dayHolidays = HolidayService::getHolidaysForDate($dateString);
+                $hasHoliday = $dayHolidays !== [];
 
                 $hasShared = $hasEvent && $dayEvents->contains($isShared);
                 $hasImminentShared = $hasShared && $dayEvents->contains(
@@ -130,6 +134,8 @@ class Calendar extends Component
                     'eventCount' => $eventCount,
                     'hasShared' => $hasShared,
                     'hasImminentShared' => $hasImminentShared,
+                    'hasHoliday' => $hasHoliday,
+                    'holidayTitle' => $hasHoliday ? $dayHolidays[0]['title'] : null,
                 ];
 
                 $currentDate->addDay();
@@ -213,6 +219,8 @@ class Calendar extends Component
 
     public function mount(): void
     {
+        StateService::markViewed('calendar');
+
         $now = Jalalian::now();
 
         if (!isset($this->currentYear)) {
@@ -367,6 +375,17 @@ class Calendar extends Component
             return collect();
         }
 
+        $holidays = collect(HolidayService::getHolidaysForDate($this->selectedDate))
+            ->map(fn($holiday, $index) => [
+                'id' => 'holiday-' . $index,
+                'type' => 'holiday',
+                'title' => $holiday['title'],
+                'description' => $holiday['type'] . (($holiday['hijri'] ?? null) ? ' · ' . $holiday['hijri'] : ''),
+                'time' => '00:00',
+                'is_owner' => false,
+                'private' => false,
+            ]);
+
         $events = Event::query()
             ->with('shares:user_id,event_id')
             ->whereDate('date', $gregorianDate)
@@ -410,8 +429,7 @@ class Calendar extends Component
                 'time' => '00:00',
                 'is_owner' => false,
                 'private' => false,
-                'image' => $p->image,
-                'avatar' => $p->image,
+                'avatar' => $p->getImageUrl(),
             ]);
 
         $anniversaries = $profiles->filter(fn($p) => $p->start_date?->month === $month && $p->start_date?->day === $day)
@@ -425,11 +443,10 @@ class Calendar extends Component
                     'time' => '00:00',
                     'is_owner' => false,
                     'private' => false,
-                    'image' => $p->image,
-                    'avatar' => $p->image,
+                    'avatar' => $p->getImageUrl(),
                 ];
             });
 
-        return collect()->concat($events)->concat($birthdays)->concat($anniversaries);
+        return collect()->concat($holidays)->concat($events)->concat($birthdays)->concat($anniversaries);
     }
 }

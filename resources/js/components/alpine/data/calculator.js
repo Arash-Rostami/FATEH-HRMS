@@ -1,5 +1,8 @@
+import clipboardMixin from "../mixins/clipboard.js";
+
 export default function calculator() {
     return {
+        ...clipboardMixin(),
         display: '',
         formattedDisplay: '',
         history: [],
@@ -63,16 +66,10 @@ export default function calculator() {
         copyLedger() {
             if (this.history.length === 0) return;
             let text = this.history.slice().reverse().map(item => `${item.eq} = ${item.res}`).join('\n');
-            navigator.clipboard.writeText(text)
-                .then(() => this.$dispatch('toast', {message: 'رسید محاسبات کپی شد.', type: 'success'}))
-                .catch(err => console.error('Failed to copy text: ', err));
+            this.copyText(text, 'رسید محاسبات کپی شد.');
         },
         copyToClipboard() {
-            if (this.display) {
-                navigator.clipboard.writeText(this.display)
-                    .then(() => this.$dispatch('toast', {message: 'با موفقیت کپی شد.', type: 'success'}))
-                    .catch(err => console.error('Failed to copy text: ', err));
-            }
+            if (this.display) this.copyText(this.display, 'با موفقیت کپی شد.');
         },
         clearDisplay() {
             if (this.display === '') {

@@ -7,14 +7,9 @@
           useVideo: localStorage.getItem('use-video') !== 'false',
           videoIndex: 0,
           videos: [
-                '{{ asset('build/assets/video/1.mp4') }}',
-                '{{ asset('build/assets/video/2.mp4') }}',
-                '{{ asset('build/assets/video/3.mp4') }}',
-                '{{ asset('build/assets/video/4.mp4') }}',
-                '{{ asset('build/assets/video/5.mp4') }}',
-                '{{ asset('build/assets/video/6.mp4') }}',
-                '{{ asset('build/assets/video/7.mp4') }}',
-
+                @foreach(config('app.videos', []) as $video)
+                '{{ asset($video) }}',
+                @endforeach
           ],
           playNext() {
             const nextIndex = (this.videoIndex + 1) % this.videos.length;
@@ -36,9 +31,6 @@
       ">
 <head>
 
-
-{{--    '{{ asset('build/assets/video/mining-01.mp4') }}',--}}
-{{--    '{{ asset('build/assets/video/mining-02.mp4') }}',--}}
     <x-dashboard.meta-tags/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -50,7 +42,8 @@
 
 <div class="fixed inset-0 z-0 bg-black overflow-hidden pointer-events-none h-screen">
     <template x-if="useVideo">
-        <video x-ref="bgVideo" autoplay muted playsinline disablepictureinpicture preload="metadata" oncontextmenu="return false" controlslist="nodownload noplaybackrate"
+        <video x-ref="bgVideo" autoplay muted playsinline disablepictureinpicture preload="metadata"
+               oncontextmenu="return false" controlslist="nodownload noplaybackrate"
                class="w-full h-full object-cover scale-110 select-none"
                :style="`filter: brightness(${videoBrightness}%)`"
                @ended="playNext">
@@ -61,11 +54,13 @@
     <template x-if="!useVideo">
         <div class="w-full h-full"
              :style="`filter: brightness(${videoBrightness}%)`">
-            <img src="{{ asset('build/assets/img/mining.webp') }}"
-                 alt="Background"
-                 fetchpriority="high"
-                 decoding="async"
-                 class="w-full md:w-2/3 h-full object-cover animate-kenburns-infinite">
+            <img
+                src="{{ asset(config('app.background_image')) }}"
+                alt="Background"
+                fetchpriority="high"
+                decoding="async"
+                class="w-full h-full object-cover will-change-transform animate-kenburns"
+            >
         </div>
     </template>
 
@@ -80,19 +75,28 @@
     <div
         class="relative hidden lg:flex lg:w-[40%] h-full min-h-screen flex-col justify-end px-12 pb-24 order-1 group cursor-default animate-slide-in-right animate-delay-1750">
         <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-out">
-            <h1 class="text-6xl font-black text-white mb-4 drop-shadow-2xl tracking-tight opacity-90 group-hover:opacity-100 transition-opacity duration-500">
-                اینترا</h1>
-            <h2 class="text-3xl font-bold text-[#FF7F6E] mb-3 drop-shadow-lg">خانه دیجیتال سازمان ما</h2>
-            <p class="text-gray-200 text-base font-medium leading-relaxed max-w-md bg-black/20 p-4 rounded-xl border border-white/10 opacity-80 group-hover:opacity-100 transition-all duration-500">
-                شرکت توسعه معادن و صنایع معدنی فاتح</p>
+            <h1 class="text-6xl font-black text-white mb-4 drop-shadow-2xl tracking-tight opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                title="{{ config('app.name_en') }}">
+                {{ config('app.name') }}
+            </h1>
+            <h2 class="text-3xl font-bold text-[#FF7F6E] mb-3 drop-shadow-lg"
+                title="{{ config('app.slogan_en') }}">
+                {{ config('app.slogan') }}
+            </h2>
+            <p class="text-gray-200 text-base font-medium leading-relaxed max-w-md bg-black/20 p-4 rounded-xl border border-white/10 opacity-80 group-hover:opacity-100 transition-all duration-500"
+               title="{{ config('app.organization_name_en') }}">
+                {{ config('app.organization_name') }}
+            </p>
         </div>
     </div>
 
     <div
         class="w-full  lg:flex-1 flex flex-col justify-center items-right p-4 sm:p-8 lg:p-16 xl:p-24 z-20 order-2 transition-all duration-500 relative min-h-screen">
-        <div class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2 md:animate-slide-in-right md:animate-delay-1500" x-cloak>
+        <div
+            class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2 md:animate-slide-in-right md:animate-delay-1500"
+            x-cloak>
             <div
-                class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 bg-white/80 dark:bg-black/50 opacity-[0.6] border border-gray-200 dark:border-white/10 shadow-2xl transition-all hover:bg-white hover:dark:bg-black/70">
+                class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 border border-gray-200 dark:border-white/10 shadow-2xl transition-all">
                 <button @click="useVideo = !useVideo"
                         class="group relative w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all">
                     <span class="material-symbols-rounded text-[22px]" x-text="useVideo ? 'image' : 'movie'"></span>
@@ -137,9 +141,17 @@
     </div>
 </div>
 
-<div class="hidden md:flex md:fixed md:top-8 md:left-8 z-30 items-center gap-2.5 px-3.5 py-2 rounded-2xl shadow-xl ring-1 ring-inset ring-white/10 bg-black/55 dark:bg-black/70 animate-slide-in-left animate-delay-1500 hover:-translate-y-0.5 transition-all duration-300"
-     style="backdrop-filter:blur(12px);">
-    <img src="{{ asset('build/assets/img/logo.png') }}" alt="{{ config('app.name', 'INTERRA') }}" class="h-12 w-auto rounded-lg" fetchpriority="low" decoding="async">
+<div class="hidden md:flex md:fixed md:top-8 md:left-8 z-30 items-center gap-3 px-2 py-1.5 rounded-2xl
+            bg-white/70 dark:bg-zinc-900/70 border border-white/20 dark:border-white/10
+            shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 animate-slide-in-left animate-delay-1500"
+     style="backdrop-filter: blur(16px);">
+
+    <img src="{{ asset(config('app.company_logo', 'build/assets/img/logo.svg')) }}"
+         alt="{{ config('app.organization_name_en') }}"
+         title="{{ config('app.organization_name_en') }}"
+         class="h-11 w-auto transition-transform duration-300 hover:scale-105"
+         fetchpriority="low"
+         decoding="async">
 </div>
 
 @livewireScripts

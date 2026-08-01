@@ -13,12 +13,12 @@ class SuggestionPresenter
     use HasPublicAssetUrl;
 
     private const CEO_DEPT_ID = 'MA';
-    private const REVIEW_DEADLINE_DAYS = 5;
+    private const REVIEW_DEADLINE_HOURS = 48;
 
     private const DEFAULT_FEEDBACK = 'unknown';
     private const WORKFLOW_STEPS = [
         1 => ['ثبت پیشنهاد', 'ثبت اولیه توسط کاربر و تعیین واحدهای ذی‌نفع', 'lightbulb'],
-        2 => ['نظر تیم / مدیر مستقیم', 'تأیید خودکار پس از ۴۸ ساعت در صورت عدم پاسخ', 'group'],
+        2 => ['نظر تیم / مدیر مستقیم', 'نیمه موافق خودکار پس از ۴۸ ساعت در صورت عدم پاسخ', 'group'],
         3 => ['بررسی هم‌زمان ذی‌نفعان', 'ارسال به سرپرستان واحدها — عدم پاسخ به منزله نیمه موافق', 'corporate_fare'],
         4 => ['تجمیع و ارسال به مدیریت ارشد', 'جمع‌بندی خودکار نظرات و آماده‌سازی برای تصمیم نهایی', 'summarize'],
         5 => ['تصمیم مدیریت ارشد سازمان', 'تأیید، رد یا درخواست تکمیل مجدد', 'gavel'],
@@ -70,7 +70,7 @@ class SuggestionPresenter
 
     public function deadlineConfig(): array
     {
-        $deadline = $this->suggestion->created_at->addDays(self::REVIEW_DEADLINE_DAYS);
+        $deadline = $this->suggestion->updated_at->addHours(self::REVIEW_DEADLINE_HOURS);
         $isPast = $deadline->isPast();
 
         return [
@@ -320,6 +320,7 @@ class SuggestionPresenter
             'badge_text_class' => 'text-[var(--md-sys-color-' . $style[1] . ')]',
             'is_ma'            => $isCeo,
             'is_action'        => in_array($review->department_id, $referrals, true),
+            'is_system_generated' => !$isCeo && $review->comments === Review::AUTO_RESOLVE_COMMENT,
             'label'            => $isCeo ? 'مدیریت ارشد' : ($review->department?->displayLabel() ?? Department::getCachedModels()->get($review->department_id)?->displayLabel() ?? $review->department_id),
             'tooltip'          => $isCeo ? null : ($review->department?->tooltipLabel() ?? Department::getCachedModels()->get($review->department_id)?->tooltipLabel()),
             'referral_labels'  => collect(($review->referral ?? []))

@@ -2,30 +2,24 @@
 
 namespace App\Livewire\Dashboard\Tab\Forms;
 
-use Livewire\Attributes\Validate;
+use Closure;
 use Livewire\Form;
+use Morilog\Jalali\CalendarUtils;
 
 class EventForm extends Form
 {
-    #[Validate('required|string|max:255')]
     public string $title = '';
 
-    #[Validate('nullable|string|max:1000')]
     public string $description = '';
 
-    #[Validate('required|numeric')]
     public string $dateYear = '';
 
-    #[Validate('required|numeric|min:1|max:12')]
     public string $dateMonth = '';
 
-    #[Validate('required|numeric|min:1|max:31')]
     public string $dateDay = '';
 
-    #[Validate('required')]
     public string $time = '12:00';
 
-    #[Validate('boolean')]
     public bool $private = false;
 
     public ?int $editingId = null;
@@ -45,21 +39,55 @@ class EventForm extends Form
         return $this->validate();
     }
 
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'dateYear' => ['required', 'numeric', 'min:1300', 'max:1500'],
+            'dateMonth' => ['required', 'numeric', 'min:1', 'max:12'],
+            'dateDay' => [
+                'required',
+                'numeric',
+                'min:1',
+                'max:31',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if ($value === '' || $value === null) {
+                        return;
+                    }
+                    $year = (int) $this->dateYear;
+                    $month = (int) $this->dateMonth;
+                    if ($year < 1300 || $year > 1500 || $month < 1 || $month > 12) {
+                        return;
+                    }
+                    if (!CalendarUtils::checkDate($year, $month, (int) $value, true)) {
+                        $fail('روز نامعتبر است');
+                    }
+                },
+            ],
+            'time' => ['required', 'date_format:H:i'],
+            'private' => ['boolean'],
+        ];
+    }
+
     protected function messages(): array
     {
         return [
             'title.required' => 'عنوان رویداد الزامی است',
             'dateYear.required' => 'تاریخ الزامی است',
+            'dateYear.min' => 'سال نامعتبر است',
+            'dateYear.max' => 'سال نامعتبر است',
             'dateMonth.required' => 'تاریخ الزامی است',
-            'dateDay.required' => 'تاریخ الزامی است',
             'dateMonth.min' => 'ماه نامعتبر است',
             'dateMonth.max' => 'ماه نامعتبر است',
+            'dateDay.required' => 'تاریخ الزامی است',
             'dateDay.min' => 'روز نامعتبر است',
             'dateDay.max' => 'روز نامعتبر است',
             'time.required' => 'زمان الزامی است',
+            'time.date_format' => 'زمان را به‌صورت ساعت:دقیقه وارد کنید',
             'description.string' => 'توضیحات باید متن باشد',
             'description.max' => 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',
-            'private.boolean' => 'مقدار حریم خصوصی نامعتبر است'
+            'private.boolean' => 'مقدار حریم خصوصی نامعتبر است',
         ];
     }
 }

@@ -1,9 +1,13 @@
 export default function scrollManager() {
     return {
-        isVisible: true,
+        _isVisible: true,
         lastY: 0,
         ticking: false,
         scrollHandler: null,
+
+        get isVisible() {
+            return !this.$store.chrome.forceHidden && this._isVisible;
+        },
 
         init() {
             this.scrollHandler = () => {
@@ -19,9 +23,9 @@ export default function scrollManager() {
             const y = window.scrollY;
             const delta = y - this.lastY;
 
-            if (y < 60)             this.isVisible = true;
-            else if (delta > 4)     this.isVisible = false;
-            else if (delta < -6)    this.isVisible = true;
+            if (y < 60)             this._isVisible = true;
+            else if (delta > 4)     this._isVisible = false;
+            else if (delta < -6)    this._isVisible = true;
 
             this.lastY = y;
             this.ticking = false;

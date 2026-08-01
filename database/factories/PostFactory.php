@@ -17,7 +17,22 @@ class PostFactory extends Factory
             'body' => fake()->paragraph(),
             'image' => fake()->imageUrl(),
             'pinned' => fake()->boolean(),
-            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'user_id' => User::factory(),
         ];
+    }
+
+    public function pinned(): static
+    {
+        return $this->state(fn() => ['pinned' => 1]);
+    }
+
+    public function notPinned(): static
+    {
+        return $this->state(fn() => ['pinned' => 0]);
+    }
+
+    public function ownedBy(User $user): static
+    {
+        return $this->state(fn() => ['user_id' => $user->id]);
     }
 }

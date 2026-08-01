@@ -76,6 +76,7 @@
                           x-on:keydown.ctrl.enter.prevent="sendMessage()"
                           x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();sendMessage();}"
                           x-on:input="$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
+                          x-on:paste="pasteImage($event, 'composer-attachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
                           class="w-full bg-transparent px-3 py-2.5 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[160px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
                 <span x-show="$refs.msgTa && $refs.msgTa.value.length > 1800"

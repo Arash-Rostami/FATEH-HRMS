@@ -47,6 +47,7 @@
 
     <div class="border-t border-[var(--md-sys-color-outline-variant)]/40 mt-2 pt-2 pb-1">
         <a href="{{ route('dashboard') }}"
+           wire:navigate
            title="بازگشت به داشبورد"
            class="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:brightness-95 active:scale-[0.98] transition-all duration-200 mb-1">
             <span class="material-symbols-rounded text-xl flex-shrink-0">home</span>

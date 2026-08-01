@@ -21,6 +21,7 @@ class LinkResource extends Resource
     use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Link::class;
+    protected static ?string $recordTitleAttribute = 'url_title';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-arrow-top-right-on-square';
     protected static ?int $navigationSort = 8;
 

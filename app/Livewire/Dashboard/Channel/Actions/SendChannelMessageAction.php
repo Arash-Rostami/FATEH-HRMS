@@ -32,17 +32,17 @@ class SendChannelMessageAction
                 'reply_to_id' => $this->resolveReplyToId($form->replyToId, $channelId),
             ]);
 
+            $attachments = $this->storeAttachments($form->attachments, $channelId, $message->id);
+
+            if ($attachments) {
+                $message->update(['attachments' => $attachments]);
+            }
+
             $channel->memberUsers()->newPivotStatementForId($senderId)
                 ->update(['last_read_message_id' => $message->id, 'updated_at' => now()]);
 
             return $message;
         });
-
-        $attachments = $this->storeAttachments($form->attachments, $channelId, $message->id);
-
-        if ($attachments) {
-            $message->update(['attachments' => $attachments]);
-        }
 
         return $message;
     }
@@ -70,13 +70,17 @@ class SendChannelMessageAction
     {
         return collect($attachments)->map(function ($file) use ($channelId, $messageId) {
             $name = time() . '_' . Str::random(10) . '.' . $file->extension();
+            $originalName = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $size = $file->getSize();
+
             $path = $file->storeAs("channel_messages/{$channelId}/{$messageId}", $name, 'public');
 
             return [
                 'path' => $path,
-                'name' => $file->getClientOriginalName(),
-                'mime' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'name' => $originalName,
+                'mime' => $mime,
+                'size' => $size,
             ];
         })->values()->all();
     }

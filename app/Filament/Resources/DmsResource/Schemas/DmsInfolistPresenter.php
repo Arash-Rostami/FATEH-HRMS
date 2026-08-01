@@ -59,6 +59,28 @@ class DmsInfolistPresenter
             ->columnSpanFull();
     }
 
+    public static function extraFiles(): TextEntry
+    {
+        return TextEntry::make('extra_files')
+            ->label(__('resources/dms/strings.fields.extra_files'))
+            ->icon('heroicon-o-paper-clip')
+            ->html()
+            ->getStateUsing(fn($record) => collect($record->extra_files ?? [])
+                ->filter()
+                ->map(function ($path) {
+                    $ext = pathinfo($path, PATHINFO_EXTENSION);
+
+                    return sprintf(
+                        '<a href="%s" target="_blank" class="text-primary-600 font-medium underline">%s</a>',
+                        e(asset('storage/' . $path)),
+                        e(strtoupper($ext !== '' ? $ext : pathinfo($path, PATHINFO_BASENAME)))
+                    );
+                })
+                ->implode('<br>') ?: null)
+            ->placeholder('—')
+            ->columnSpanFull();
+    }
+
     public static function owners(): TextEntry
     {
         return TextEntry::make('owners_names')

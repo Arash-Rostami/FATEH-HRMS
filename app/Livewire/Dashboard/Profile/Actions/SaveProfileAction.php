@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Profile\Actions;
 use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Morilog\Jalali\Jalalian;
 
 class SaveProfileAction
@@ -25,15 +26,22 @@ class SaveProfileAction
         $profile->fill($form->getProfileData());
 
         if ($form->birthYear && $form->birthMonth && $form->birthDay) {
-            $profile->birthdate = (new Jalalian(
-                $form->birthYear,
-                $form->birthMonth,
-                $form->birthDay
-            ))->toCarbon();
+            try {
+                $profile->birthdate = (new Jalalian(
+                    $form->birthYear,
+                    $form->birthMonth,
+                    $form->birthDay
+                ))->toCarbon();
+            } catch (\Throwable) {
+                $profile->birthdate = null;
+            }
+        } else {
+            $profile->birthdate = null;
         }
 
         if (!$user->profile || !$profile->department_id) $profile->department_id = 'HR';
 
+        $oldImage = $profile->image;
         $imagePath = null;
         if ($form->image) {
             $imagePath = $form->image->store('profiles/images', 'public');
@@ -42,7 +50,21 @@ class SaveProfileAction
 
         $profile->favorite_colors = $form->favoriteColors;
 
-        $profile->save();
+        try {
+            $profile->save();
+        } catch (\Throwable $e) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            throw $e;
+        }
+
+        if ($imagePath && $oldImage) {
+            Storage::disk('public')->delete($oldImage);
+        }
+
+        $user->setRelation('profile', $profile);
 
         return ['profile' => $profile, 'imagePath' => $imagePath];
     }

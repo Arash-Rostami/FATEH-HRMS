@@ -148,7 +148,7 @@ class ProfileExporter extends Exporter
                 ->label(__('resources/profile/strings.export.about_me'))
                 ->state(fn(Profile $record): string => $record->about_me
                     ? collect($record->about_me)
-                        ->map(fn(array $item): string => ($item['key'] ?? '') . ': ' . ($item['value'] ?? ''))
+                        ->map(fn($v, $k): string => $k . ': ' . (is_array($v) ? implode(', ', $v) : (string)$v))
                         ->implode(' | ')
                     : '-'
                 ),

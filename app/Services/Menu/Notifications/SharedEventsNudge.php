@@ -72,4 +72,9 @@ class SharedEventsNudge implements MenuNudge
             ['class' => Event::class, 'on' => ['updated', 'deleted'], 'subject' => null],
         ];
     }
+
+    public function url($subject): ?string
+    {
+        return route('dashboard', ['tab' => 'calendar', 'open' => $subject->getKey()]);
+    }
 }

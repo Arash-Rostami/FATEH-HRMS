@@ -25,6 +25,13 @@ Route::get('/', function () {
 });
 
 
+Route::get('/site.webmanifest', fn () => response()
+    ->view('components.manifest')
+    ->header('Content-Type', 'application/manifest+json; charset=utf-8')
+    ->header('Cache-Control', 'no-store'))
+    ->name('manifest');
+
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
     Route::get('/register', Register::class)->name('register');
@@ -49,9 +56,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/reservation', Reservation::class)->name('reservation');
 
-    Route::get('/authorized/{filename}', [Dms::class, 'getAuthorizedFile'])
-        ->where('filename', '.*')
-        ->name('secure-file');
+    Route::controller(Dms::class)->group(function () {
+        Route::get('/authorized/{filename}', 'getAuthorizedFile')
+            ->where('filename', '.*')
+            ->name('secure-file');
+
+        Route::get('/authorized-extra/{filename}', 'getAuthorizedExtraFile')
+            ->where('filename', '.*')
+            ->name('secure-extra-file');
+    });
 
     Route::view('/coming', 'layouts.toCome')->name('coming');
     Route::get('/ping', fn() => response('', 204)->header('Cache-Control', 'no-store'));

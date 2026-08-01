@@ -6,12 +6,15 @@ use App\Livewire\Dashboard\Suggestion\Forms\FeedbackForm;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Menu\StateService;
+use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
 
 class SubmitFeedbackAction
 {
     public function execute(FeedbackForm $form, Suggestion $suggestion): void
     {
+        abort_unless(SuggestionAccessPolicy::canGiveFeedback($suggestion), 403);
+
         $form->validate();
 
         Review::updateOrCreate(

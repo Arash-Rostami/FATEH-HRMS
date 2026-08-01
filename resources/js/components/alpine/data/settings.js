@@ -20,8 +20,11 @@ let activePatternInstance = null;
 let patternInitRunId = 0;
 let patternInitAbort = null;
 
+import clipboardMixin from "../mixins/clipboard.js";
+
 export default function settings() {
     return {
+        ...clipboardMixin(),
         open: false,
         focusMode: false,
         fontSizeLevel: 0,
@@ -111,18 +114,14 @@ export default function settings() {
             if (this.doubleClickCopy) {
                 document.addEventListener('mouseup', this._copyHandler = () => {
                     const selection = window.getSelection()?.toString().trim();
-                    if (selection) {
-                        navigator.clipboard.writeText(selection).then(() => {
-                            this._showCopyToast();
-                        });
-                    }
+                    if (selection) this.copyText(selection, 'کپی شد');
                 });
             } else {
                 document.removeEventListener('mouseup', this._copyHandler);
             }
         },
 
-        _showCopyToast() {
+        _copyToast() {
             const toast = document.createElement('div');
             toast.textContent = 'کپی شد';
             toast.classList.add('toast-floating');

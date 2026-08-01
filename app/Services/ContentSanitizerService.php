@@ -12,7 +12,6 @@ class ContentSanitizerService
     private const ARTIFACTS = [
         "\xEF\xBB\xBF",       // UTF-8 BOM
         "\xE2\x80\x8B",       // Zero-width space
-        "\xE2\x80\x8C",       // Zero-width non-joiner
         "\xE2\x80\x8D",       // Zero-width joiner
         "\xE2\x80\xAF",       // Narrow no-break space
         "\xE2\x81\x9F",       // Medium mathematical space

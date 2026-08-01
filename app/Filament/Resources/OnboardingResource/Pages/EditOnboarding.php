@@ -5,13 +5,14 @@ namespace App\Filament\Resources\OnboardingResource\Pages;
 use App\Filament\Resources\OnboardingResource;
 use App\Filament\Resources\OnboardingResource\Pages\Action\EnforcesActiveOnboarding;
 use App\Filament\Resources\OnboardingResource\Schemas\OnboardingFormPresenter;
+use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Filament\Resources\Pages\EditRecord;
 
 class EditOnboarding extends EditRecord
 {
-    use FilamentHeaderActions, FilamentPageBehavior;
+    use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = OnboardingResource::class;
 

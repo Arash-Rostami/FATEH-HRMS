@@ -48,4 +48,9 @@ class SuggestionNudge implements MenuNudge
     {
         return true;
     }
+
+    public function url($subject): ?string
+    {
+        return route('suggestion', ['open' => $subject->getKey()]);
+    }
 }

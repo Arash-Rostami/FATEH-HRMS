@@ -6,10 +6,12 @@ use App\Filament\Resources\ThsResource\Exports\ThsExporter;
 use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\ThsResource\Pages\{CreateTicket, EditTicket, ListTickets};
 use App\Filament\Resources\ThsResource\Schemas\{TicketFormPresenter, TicketInfolistPresenter, TicketTablePresenter};
+use App\Livewire\Dashboard\Ths\Workspace;
 use App\Models\Ticket;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -24,6 +26,7 @@ class ThsResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ticket::class;
+    protected static ?string $recordTitleAttribute = 'request_subject';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-lifebuoy';
     protected static ?int $navigationSort = 2;
 
@@ -83,6 +86,13 @@ class ThsResource extends Resource
                                     TicketFormPresenter::assigneeFiles(),
                                 ])
                                 ->columns(2),
+
+                            Section::make(__('resources/ths/strings.form.section_workspace'))
+                                ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
+                                ->visible(fn(?Ticket $record) => $record !== null)
+                                ->schema([
+                                    Livewire::make(Workspace::class, fn(?Ticket $record) => ['ticketId' => $record?->id ?? 0]),
+                                ]),
                         ]),
                 ])
                 ->columnSpanFull(),
@@ -92,7 +102,7 @@ class ThsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['requester', 'assignee', 'department', 'targetDepartment']);
+            ->with(['requester', 'assignee']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

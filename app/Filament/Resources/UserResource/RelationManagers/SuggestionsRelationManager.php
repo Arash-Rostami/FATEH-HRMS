@@ -2,16 +2,20 @@
 
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
+use App\Filament\Resources\SuggestionResource\Pages\CreateSuggestion;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionFormPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionInfolistPresenter;
 use App\Filament\Resources\SuggestionResource\Schemas\SuggestionTablePresenter;
+use App\Models\Suggestion;
 use App\Traits\FilamentActions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class SuggestionsRelationManager extends RelationManager
@@ -168,6 +172,15 @@ class SuggestionsRelationManager extends RelationManager
                 SuggestionTablePresenter::hasReferralFilter(),
             ])
             ->filtersFormColumns(2)
+            ->modifyQueryUsing(fn(Builder $query) => $query->withReviewCounts())
+            ->headerActions([
+                CreateAction::make()
+                    ->visible(fn(): bool => $this->getOwnerRecord()->profile?->department_id !== 'MA')
+                    ->using(fn(array $data): Suggestion => CreateSuggestion::createSuggestionRecord([
+                        ...$data,
+                        'user_id' => $this->getOwnerRecord()->id,
+                    ])),
+            ])
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),

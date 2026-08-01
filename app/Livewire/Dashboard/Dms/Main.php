@@ -21,6 +21,8 @@ class Main extends Component
 
     private const FILTER_LABELS = ['type' => 'دسته بندی'];
 
+    private ?array $parsedActiveFilterCache = null;
+
     #[Url(as: 'tab')]
     public string $activeTab = 'systematic';
     public string $search = '';
@@ -33,7 +35,7 @@ class Main extends Component
     public function confirmRead(int $docId, ConfirmReadAction $action): void
     {
         $action->execute($docId);
-        unset($this->confirmedDocs, $this->readDocs);
+        $this->refreshReadState();
     }
 
     #[Computed]
@@ -72,7 +74,7 @@ class Main extends Component
     {
         $groups = [];
 
-        $this->applyTabFilter(DMS::visibleToUser())
+        $this->visibleTabQuery()
             ->get()
             ->each(function ($item) use (&$groups) {
                 foreach (['type', 'Type'] as $k) {
@@ -100,30 +102,43 @@ class Main extends Component
         $doc = DMS::visibleToUser()->where('file', $filename)->first();
 
         if (!$doc) {
-            return response()->view('errors.document-not-found', [], 404);
+            return $this->notFound();
         }
 
-        $filePath = Storage::disk('public')->path($doc->file);
+        return $this->serveFile(Storage::disk('public')->path($doc->file));
+    }
 
-        if (!file_exists($filePath) || !is_file($filePath)) {
-            return response()->view('errors.document-not-found', [], 404);
+    public function getAuthorizedExtraFile(string $filename): Response
+    {
+        $doc = DMS::visibleToUser()->whereJsonContains('extra_files', $filename)->first();
+
+        if (!$doc) {
+            return $this->notFound();
         }
 
-        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf'
-            ? response()->file($filePath)
-            : response()->download($filePath);
+        $disk = Storage::disk('public');
+        $filePath = $disk->path($filename);
+        $realPath = realpath($filePath);
+        $diskRoot = realpath($disk->path(''));
+
+        if ($realPath === false || $diskRoot === false || $realPath === $diskRoot || !str_starts_with($realPath, $diskRoot . DIRECTORY_SEPARATOR)) {
+            return $this->notFound();
+        }
+
+        return $this->serveFile($filePath);
     }
 
     public function incrementRead(int $docId, ConfirmReadAction $action): void
     {
         $action->execute($docId, increment: true);
-        unset($this->confirmedDocs, $this->readDocs);
+        $this->refreshReadState();
     }
 
     public function loadInitialDocs(): void
     {
-        $this->docIds = $this->getBaseQuery()->take($this->perPage)->pluck('id')->toArray();
-        $this->hasMorePages = count($this->docIds) >= $this->perPage;
+        $ids = $this->matchingDocIds();
+        $this->docIds = array_slice($ids, 0, $this->perPage);
+        $this->hasMorePages = count($ids) > $this->perPage;
         unset($this->docs);
     }
 
@@ -133,11 +148,8 @@ class Main extends Component
             return;
         }
 
-        $newIds = $this->getBaseQuery()
-            ->skip(count($this->docIds))
-            ->take($this->perPage)
-            ->pluck('id')
-            ->toArray();
+        $ids = $this->matchingDocIds();
+        $newIds = array_slice($ids, count($this->docIds), $this->perPage);
 
         if (empty($newIds)) {
             $this->hasMorePages = false;
@@ -164,7 +176,7 @@ class Main extends Component
     public function onConfirmationConfirmed(string $method, int $params, ConfirmReadAction $action): void
     {
         $action->execute($params);
-        unset($this->confirmedDocs, $this->readDocs);
+        $this->refreshReadState();
     }
 
     #[Computed]
@@ -181,7 +193,7 @@ class Main extends Component
     #[Computed]
     public function readPendingCount(): int
     {
-        return $this->applyTabFilter(DMS::visibleToUser())
+        return $this->visibleTabQuery()
             ->whereIn('id', $this->confirmedDocs)
             ->whereNotIn('id', $this->readDocs)
             ->count();
@@ -190,7 +202,7 @@ class Main extends Component
     #[Computed]
     public function receivePendingCount(): int
     {
-        return $this->applyTabFilter(DMS::visibleToUser())
+        return $this->visibleTabQuery()
             ->whereNotIn('id', $this->confirmedDocs)
             ->count();
     }
@@ -213,26 +225,23 @@ class Main extends Component
         $this->activeTab = $tab;
         $this->search = "";
         $this->activeFilter = "all";
-        $this->open = null;
-        $this->loadInitialDocs();
+        $this->resetAndReload();
     }
 
     #[Computed]
     public function totalDocs(): int
     {
-        return $this->applyTabFilter(DMS::visibleToUser())->count();
+        return $this->visibleTabQuery()->count();
     }
 
     public function updatedActiveFilter(): void
     {
-        $this->open = null;
-        $this->loadInitialDocs();
+        $this->resetAndReload();
     }
 
     public function updatedSearch(): void
     {
-        $this->open = null;
-        $this->loadInitialDocs();
+        $this->resetAndReload();
     }
 
     protected function recordFocusType(): string
@@ -245,35 +254,111 @@ class Main extends Component
         return $this->activeTab === 'systematic' ? $query->systematic() : $query->nonSystematic();
     }
 
+    private function visibleTabQuery(): Builder
+    {
+        return $this->applyTabFilter(DMS::visibleToUser());
+    }
+
+    private function parsedActiveFilter(): array
+    {
+        return $this->parsedActiveFilterCache ??= (function (): array {
+            $parts = explode('|', $this->activeFilter, 2);
+
+            return [$parts[0] ?? '', $parts[1] ?? ''];
+        })();
+    }
+
     private function getBaseQuery(): Builder
     {
-        return $this->applyTabFilter(DMS::visibleToUser())
-            ->when($this->search, fn($query, $search) => $query->where(fn($q) => $q
-                ->where('title', 'like', "%{$search}%")
-                ->orWhere('code', 'like', "%{$search}%")
-                ->orWhere('version', 'like', "%{$search}%")
-                ->orWhereJsonContains('extra->category', $search)
-                ->orWhereJsonContains('extra->Category', $search)
-                ->orWhereJsonContains('extra->type', $search)
-                ->orWhereJsonContains('extra->Type', $search)
+        return $this->visibleTabQuery()
+            ->when($this->search !== '', fn($query) => $query->where(fn($q) => $q
+                ->where('title', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%")
+                ->orWhere('version', 'like', "%{$this->search}%")
+                ->orWhereJsonContains('extra->category', $this->search)
+                ->orWhereJsonContains('extra->Category', $this->search)
+                ->orWhereJsonContains('extra->type', $this->search)
+                ->orWhereJsonContains('extra->Type', $this->search)
             ))
-            ->when($this->activeFilter !== 'all', function ($query) {
-                $parts = explode('|', $this->activeFilter, 2);
-                $key = $parts[0] ?? '';
-                $value = $parts[1] ?? '';
+            ->when(
+                $this->activeFilter !== 'all' && $this->parsedActiveFilter()[0] === 'type',
+                function ($query) {
+                    [, $value] = $this->parsedActiveFilter();
 
-                $key === 'type'
-                    ? $query->where(fn($q) => $q
-                    ->whereJsonContains('extra->type', $value)
-                    ->orWhereJsonContains('extra->Type', $value)
-                    ->whereJsonContains('tags->type', $value, 'or')
-                    ->whereJsonContains('tags->Type', $value, 'or')
-                )
-                    : $query->where(fn($q) => $q
-                    ->whereJsonContains("tags->{$key}", $value)
-                    ->whereJsonContains("tags->" . ucfirst($key), $value, 'or')
-                );
-            })
+                    $query->where(fn($q) => $q
+                        ->whereJsonContains('extra->type', $value)
+                        ->orWhereJsonContains('extra->Type', $value)
+                        ->whereJsonContains('tags->type', $value, 'or')
+                        ->whereJsonContains('tags->Type', $value, 'or')
+                    );
+                }
+            )
             ->latest();
+    }
+
+    private function matchingDocIds(): array
+    {
+        $query = $this->getBaseQuery();
+
+        if ($this->activeFilter === 'all' || $this->parsedActiveFilter()[0] === 'type') {
+            return $query->pluck('id')->all();
+        }
+
+        [$key, $value] = $this->parsedActiveFilter();
+        $variants = array_unique([$key, ucfirst($key)]);
+
+        $ids = [];
+
+        foreach ($query->select(['id', 'tags'])->cursor() as $doc) {
+            if (self::tagMatches($doc->tags, $variants, $value)) {
+                $ids[] = $doc->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    private static function tagMatches(?array $tags, array $variants, string $value): bool
+    {
+        foreach ($variants as $variant) {
+            $tagValue = $tags[$variant] ?? null;
+
+            if ($tagValue === null) {
+                continue;
+            }
+
+            if (is_array($tagValue) ? in_array($value, $tagValue, true) : $tagValue === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function notFound(): Response
+    {
+        return response()->view('errors.document-not-found', [], 404);
+    }
+
+    private function refreshReadState(): void
+    {
+        unset($this->confirmedDocs, $this->readDocs);
+    }
+
+    private function resetAndReload(): void
+    {
+        $this->open = null;
+        $this->loadInitialDocs();
+    }
+
+    private function serveFile(string $filePath): Response
+    {
+        if (!file_exists($filePath) || !is_file($filePath)) {
+            return $this->notFound();
+        }
+
+        return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf'
+            ? response()->file($filePath)
+            : response()->download($filePath);
     }
 }

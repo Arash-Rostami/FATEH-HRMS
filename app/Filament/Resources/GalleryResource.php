@@ -24,6 +24,7 @@ class GalleryResource extends Resource
     use FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Photo::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-photo';
     protected static ?int $navigationSort = 4;
 
@@ -110,6 +111,7 @@ class GalleryResource extends Resource
                     GalleryInfolistPresenter::title(),
                     GalleryInfolistPresenter::description(),
                     GalleryInfolistPresenter::photos(),
+                    GalleryInfolistPresenter::videos(),
                     GalleryInfolistPresenter::department(),
                     GalleryInfolistPresenter::photosCount(),
                     GalleryInfolistPresenter::eventDate(),

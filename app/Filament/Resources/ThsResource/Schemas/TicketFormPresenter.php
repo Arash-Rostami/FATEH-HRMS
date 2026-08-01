@@ -30,6 +30,8 @@ class TicketFormPresenter
             ->rows(3)
             ->maxLength(5000)
             ->nullable()
+            ->disabled()
+            ->dehydrated(false)
             ->helperText(__('resources/ths/strings.hints.action_result'))
             ->columnSpanFull();
     }
@@ -152,7 +154,7 @@ class TicketFormPresenter
                 '2' => '★★☆☆☆ — کم‌اثر',
                 '1' => '★☆☆☆☆ — بی‌اثر',
             ])
-            ->nullable()
+            ->required(fn(Get $get): bool => Ticket::isClosingStatus($get('status')))
             ->helperText(__('resources/ths/strings.hints.effectiveness'));
     }
 
@@ -187,6 +189,7 @@ class TicketFormPresenter
             ->allowHtml()
             ->required()
             ->disabledOn('edit')
+            ->validatedWhenNotDehydrated(false)
             ->live()
             ->helperText(__('resources/ths/strings.hints.request_area'));
     }
@@ -210,6 +213,7 @@ class TicketFormPresenter
             ->required()
             ->live()
             ->disabledOn('edit')
+            ->validatedWhenNotDehydrated(false)
             ->native(false)
             ->afterStateUpdated(fn(callable $set) => $set('request_area', null))
             ->helperText(__('resources/ths/strings.hints.request_type'));
@@ -289,6 +293,7 @@ class TicketFormPresenter
             ->searchable()
             ->live()
             ->disabledOn('edit')
+            ->validatedWhenNotDehydrated(false)
             ->afterStateUpdated(function (callable $set) {
                 $set('request_area', null);
                 $set('assigned_to', null);

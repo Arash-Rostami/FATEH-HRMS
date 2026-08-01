@@ -30,6 +30,7 @@ class SuggestionResource extends Resource
     use FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Suggestion::class;
+    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-light-bulb';
     protected static ?int $navigationSort = 6;
 
@@ -84,11 +85,7 @@ class SuggestionResource extends Resource
                 'reviews.department',
                 'reviews.user:id,name',
             ])
-            ->withCount([
-                'reviews as agree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['agree']),
-                'reviews as neutral_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['neutral']),
-                'reviews as disagree_count' => fn($q) => $q->whereRaw('LOWER(feedback) = ?', ['disagree']),
-            ]);
+            ->withReviewCounts();
     }
 
     public static function getGlobalSearchResultActions(Model $record): array

@@ -10,7 +10,7 @@ class DeleteTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task?->can_delete) {
+        if (!$task?->can_delete || $task->ticket_id) {
             return false;
         }
 

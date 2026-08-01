@@ -172,7 +172,7 @@ class OnboardingFormPresenter
                     ->directory('onboarding/video')
                     ->acceptedFileTypes(['video/*'])
                     ->helperText(__('resources/onboarding/strings.hints.videos_file'))
-                    ->maxSize(76800)
+                    ->maxSize(97280)
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
                     ),

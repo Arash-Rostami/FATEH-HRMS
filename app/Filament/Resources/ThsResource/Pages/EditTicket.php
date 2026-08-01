@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\ThsResource\Pages;
 
 use App\Filament\Resources\ThsResource;
-use App\Traits\{FilamentDateHandler, FilamentHeaderActions, FilamentPageBehavior};
+use App\Traits\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
 use Filament\Resources\Pages\EditRecord;
 
 class EditTicket extends EditRecord
 {
-    use FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler;
+    use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler;
 
     protected static string $resource = ThsResource::class;
 

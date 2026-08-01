@@ -41,11 +41,13 @@ class ListDepartments extends ListRecords
 
     private function getStats(): object
     {
-        return once(fn() => Department::query()
-            ->selectRaw("
-                SUM(CASE WHEN ticket_options IS NOT NULL AND JSON_LENGTH(ticket_options) > 0 THEN 1 ELSE 0 END) AS with_ticket_options_count,
-                SUM(CASE WHEN ticket_options IS NULL OR JSON_LENGTH(ticket_options) = 0 THEN 1 ELSE 0 END) AS no_ticket_options_count
-            ")
-            ->first());
+        return once(function () {
+            $departments = Department::getCachedModels();
+
+            return (object) [
+                'with_ticket_options_count' => $departments->filter(fn($d) => !empty($d->ticket_options))->count(),
+                'no_ticket_options_count' => $departments->filter(fn($d) => empty($d->ticket_options))->count(),
+            ];
+        });
     }
 }

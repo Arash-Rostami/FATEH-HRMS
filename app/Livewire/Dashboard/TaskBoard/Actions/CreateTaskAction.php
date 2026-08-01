@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\TaskBoard\Actions;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Task;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;
 use Morilog\Jalali\CalendarUtils;
@@ -16,21 +17,23 @@ class CreateTaskAction
         $form->validate();
         $this->validateAttachments($form);
 
-        $task = Task::create([
-            'title'       => $form->newTitle,
-            'description' => $form->newDescription,
-            'status'      => 'todo',
-            'deadline'    => $this->resolveDeadline($form),
-            'user_id'     => auth()->id(),
-            'assigned_to' => $form->selectedAssignee ?: null,
-        ]);
+        return DB::transaction(function () use ($form) {
+            $task = Task::create([
+                'title'       => $form->newTitle,
+                'description' => $form->newDescription,
+                'status'      => 'todo',
+                'deadline'    => $this->resolveDeadline($form),
+                'user_id'     => auth()->id(),
+                'assigned_to' => $form->selectedAssignee ?: null,
+            ]);
 
-        $task->detail()->create([
-            ...$form->detailAttributes(),
-            'attachments' => $this->storeAttachments($form),
-        ]);
+            $task->detail()->create([
+                ...$form->detailAttributes(),
+                'attachments' => $this->storeAttachments($form),
+            ]);
 
-        return $task;
+            return $task;
+        });
     }
 
     private function resolveDeadline(TaskForm $form): ?Carbon
@@ -51,13 +54,17 @@ class CreateTaskAction
     {
         return collect($form->attachments)
             ->map(function ($file) {
+                $originalName = $file->getClientOriginalName();
+                $mime = $file->getMimeType();
+                $size = $file->getSize();
+
                 $path = $file->store('task/attachments', 'public');
 
                 return [
                     'path' => $path,
-                    'name' => $file->getClientOriginalName(),
-                    'mime' => $file->getMimeType(),
-                    'size' => $file->getSize(),
+                    'name' => $originalName,
+                    'mime' => $mime,
+                    'size' => $size,
                 ];
             })
             ->values()
