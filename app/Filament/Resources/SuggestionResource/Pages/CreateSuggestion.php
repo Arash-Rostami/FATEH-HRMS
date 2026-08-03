@@ -8,12 +8,10 @@ use App\Models\Suggestion;
 use App\Models\User;
 use App\Support\SuggestionAccessPolicy;
 use App\Traits\FilamentPageBehavior;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class CreateSuggestion extends CreateRecord
 {
@@ -30,18 +28,6 @@ class CreateSuggestion extends CreateRecord
     {
         $submitter = User::with('profile.department')->find($data['user_id']) ?? Auth::user();
         $submitterDept = $submitter?->profile?->department_id;
-
-        if ($submitterDept === 'MA') {
-            Notification::make()
-                ->title(__('resources/suggestion/strings.errors.ma_restricted'))
-                ->danger()
-                ->send();
-
-            throw ValidationException::withMessages([
-                'user_id' => __('resources/suggestion/strings.errors.ma_restricted'),
-            ]);
-        }
-
         $submitterIsManager = (bool)($submitter?->isDeptHead() ?? false);
 
         return DB::transaction(function () use ($data, $submitterDept, $submitterIsManager): Suggestion {

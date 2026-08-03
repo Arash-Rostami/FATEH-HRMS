@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 
 class ModulesGuideWidget extends Widget
 {
+    protected static ?int $sort = -1;
+
     protected string $view = 'filament.widgets.guide';
 
     protected int|string|array $columnSpan = 'full';
@@ -44,20 +46,15 @@ class ModulesGuideWidget extends Widget
 
     public function getTools(): array
     {
-        return [
-            ['icon' => 'schema', 'label' => 'Relation Managers', 'desc' => 'نمایش رکوردهای مرتبط'],
-            ['icon' => 'filter_alt', 'label' => 'Filters & Filter Shortcuts', 'desc' => 'فیلترنگ مرکب داده‌ها'],
-            ['icon' => 'layers', 'label' => 'Groups', 'desc' => 'گروه بندی هوشمند سطرها'],
-            ['icon' => 'manage_search', 'label' => 'Individual & Global Search', 'desc' => 'سرچ عمومی و اختصاصی'],
-            ['icon' => 'tune', 'label' => 'Toggle & Sort', 'desc' => 'مدیریت نما اختصاصی ستون‌ها'],
-            ['icon' => 'bolt', 'label' => 'Actions & Bulk Actions', 'desc' => 'عملیات اختصاصی و گروهی'],
-            ['icon' => 'edit_note', 'label' => 'Form', 'desc' => 'فرم قابل ویرایش ثبت اطلاعات'],
-            ['icon' => 'description', 'label' => 'Info List', 'desc' => 'نمای غیر قابل ویرایش اطلاعات'],
-            ['icon' => 'table_chart', 'label' => 'Table', 'desc' => 'جداول اطلاعات پایه سیستم'],
-            ['icon' => 'account_tree', 'label' => 'Nested Resources', 'desc' => 'مدیریت رکوردهای تو در تو و سلسله‌مراتب'],
-            ['icon' => 'calculate', 'label' => 'Table Summaries', 'desc' => 'خلاصه‌سازی، محاسبات و استخراج آمار ستون‌ها'],
-            ['icon' => 'speed', 'label' => 'Deferred Analytics', 'desc' => 'بارگذاری تدریجی و مستقل ویجت‌های سنگین'],
-        ];
+        return array_map(
+            fn (string $icon, string $key): array => [
+                'icon' => $icon,
+                'label' => __("resources/dashboard/strings.guide.tools.{$key}.label"),
+                'desc' => __("resources/dashboard/strings.guide.tools.{$key}.desc"),
+            ],
+            ['schema', 'filter_alt', 'layers', 'manage_search', 'tune', 'bolt', 'edit_note', 'description', 'table_chart', 'account_tree', 'calculate', 'speed'],
+            ['relation_managers', 'filters', 'groups', 'search', 'toggle_sort', 'actions', 'form', 'infolist', 'table', 'nested_resources', 'table_summaries', 'deferred_analytics'],
+        );
     }
 
     protected function moduleFilamentIcons(): array
@@ -71,6 +68,7 @@ class ModulesGuideWidget extends Widget
             'links' => ['filament_icon' => 'heroicon-o-arrow-top-right-on-square'],
             'faq' => ['filament_icon' => 'heroicon-o-question-mark-circle'],
             'profile' => ['filament_icon' => 'heroicon-o-identification'],
+            'skills' => ['filament_icon' => 'heroicon-o-bolt'],
             'onboarding' => ['filament_icon' => 'heroicon-o-building-office-2'],
             'documents' => ['filament_icon' => 'heroicon-o-cloud-arrow-up'],
             'credentials' => ['filament_icon' => 'heroicon-o-key'],
@@ -111,6 +109,7 @@ class ModulesGuideWidget extends Widget
             'radio' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'ایستگاه‌های رادیویی زنده را تنظیم کنید. با استفاده از ستون‌های Toggle امکان فعال یا غیرفعال‌سازی سریع کانال‌های در حال پخش فراهم است.'],
             'others' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'تنظیمات امکانات رفاهی و ابزارهای کوچک سازمان را یکپارچه مدیریت کنید. از قابلیت شخصی‌سازی ستون‌ها (Column Toggling) برای تمرکز بر داده‌های کلیدی استفاده کنید.'],
             'profile' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'پروفایل‌های پرسنلی را با جزئیات کامل سازمانی یکپارچه کنید. از Relation Managers برای مدیریت اسناد هویتی و سوابق فعالیت‌های کاربر در سیستم بهره‌مند شوید.'],
+            'skills' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'صف درخواست‌های مهارت را با فیلترهای وضعیت و دپارتمان پیگیری کنید و از Bulk Actions برای تأیید یا رد گروهی استفاده نمایید. ویجت «تقاضای پنهان» در داشبورد، پرتکرارترین مهارت‌های غایب از کاتالوگ را برای افزودن سریع نمایش می‌دهد.'],
             'onboarding' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مسیرهای شروع‌به‌کار را به‌صورت گام‌به‌گام طراحی کنید. با استفاده از ابزار مرتب‌سازی سطرها (Reorder Actions)، اولویت و توالی مراحل را به‌راحتی تنظیم نمایید.'],
             'documents' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مدارک الزامی کاربران را کنترل کنید. از قابلیت‌های نمایش وضعیت با استفاده از آیکون‌ها و رنگ‌های مختلف (Badge Columns) برای رهگیری سریع تاییدیه اسناد استفاده کنید.'],
             'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اطلاعات کاربری و دسترسی‌های سازمانی را با امنیت بالا نگهداری کنید. فیلترهای پیشرفته برای رهگیری تاریخ انقضا و وضعیت اکانت‌های اختصاص‌یافته در دسترس است.'],

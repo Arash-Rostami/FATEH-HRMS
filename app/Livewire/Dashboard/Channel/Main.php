@@ -298,24 +298,26 @@ class Main extends Component
         unset($this->channels, $this->messages, $this->activeChannel);
     }
 
-    public function focusRecord(int $channelId): void
+    public function focusRecord(int $channelId): bool
     {
         $this->selectChannel($channelId);
 
         if ($this->activeChannelId !== $channelId) {
-            return;
+            return false;
         }
 
         $focusMsg = (int) request()->query('focus_msg', 0);
         if ($focusMsg > 0) {
-            $this->focusMessage($focusMsg);
+            return $this->focusMessage($focusMsg);
         }
+
+        return false;
     }
 
-    public function focusMessage(int $id): void
+    public function focusMessage(int $id): bool
     {
         if (!$this->activeChannelId || $id <= 0) {
-            return;
+            return false;
         }
 
         $overLimit = app(FocusChannelMessageAction::class)->execute(
@@ -326,7 +328,7 @@ class Main extends Component
         );
 
         if ($overLimit === null) {
-            return;
+            return false;
         }
 
         $this->messageSearch = '';
@@ -338,13 +340,14 @@ class Main extends Component
                 unset($this->messages, $this->groupedMessages);
             }
             $this->dispatch('record-focus', type: 'channel-message', id: $id);
-            return;
+            return true;
         }
 
         $this->focusAnchorId = $id;
         $this->focusOlder = 5;
         unset($this->messages, $this->groupedMessages);
         $this->dispatch('record-focus', type: 'channel-message', id: $id);
+        return true;
     }
 
     public function refreshUnread(): void

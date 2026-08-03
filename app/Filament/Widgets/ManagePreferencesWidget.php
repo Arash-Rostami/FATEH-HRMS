@@ -9,11 +9,13 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Widgets\Widget;
 
-class ManagePreferences extends Widget implements HasActions, HasSchemas
+class ManagePreferencesWidget extends Widget implements HasActions, HasSchemas
 {
     use InteractsWithActions;
     use InteractsWithSchemas;
     use FilamentPreferences;
+
+    protected static ?int $sort = -2;
 
     protected string $view = 'livewire.admin.widgets.filament-preferences';
 

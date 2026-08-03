@@ -7,6 +7,7 @@ use App\Models\Authority;
 use App\Models\Department;
 use App\Traits\FocusOnRecord;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,6 +18,8 @@ class Main extends Component
 
     public string $activeDept = '';
     public string $search = '';
+
+    #[Url(as: 'tab')]
     public string $activeTab = 'manager';
     public int $perPage = 20;
 

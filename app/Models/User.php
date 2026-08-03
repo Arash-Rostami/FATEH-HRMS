@@ -319,9 +319,14 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         return $this->hasMany(Review::class);
     }
 
+    public function skillUsers(): HasMany
+    {
+        return $this->hasMany(SkillUser::class);
+    }
+
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('users.status', 'active');
     }
 
     public function scopeVisibleOnBoard($query)

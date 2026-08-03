@@ -31,7 +31,7 @@ class AllowedHours implements BookingRule
         }
 
         if ($context->start->lessThan($windowStart) || $context->end->greaterThan($windowEnd)) {
-            ReservationError::HourNotAllowed->throw($allowedHours['start'], $allowedHours['end']);
+            ReservationError::HourNotAllowed->throw($allowedHours['start'] ?? '00:00:00', $allowedHours['end'] ?? '23:59:59');
         }
     }
 }

@@ -5,7 +5,7 @@
 
     <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک"/>
 
-    @include('components.dashboard.header.focus-banner')
+    @include('components.dashboard.header.focus-chip')
 
     @include('livewire.dashboard.tab.links.smart')
 

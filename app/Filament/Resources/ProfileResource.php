@@ -111,6 +111,12 @@ class ProfileResource extends Resource
                         ])
                         ->columns(2),
 
+                    Tab::make(__('resources/profile/strings.form.section_skills'))
+                        ->icon('heroicon-o-academic-cap')
+                        ->schema([
+                            ProfileFormPresenter::skills(),
+                        ]),
+
                     Tab::make(__('resources/profile/strings.form.section_about'))
                         ->icon('heroicon-o-information-circle')
                         ->schema([
@@ -274,6 +280,12 @@ class ProfileResource extends Resource
                             ProfileInfolistPresenter::attachments(),
                         ])
                         ->columns(2),
+
+                    Tab::make(__('resources/profile/strings.infolist.section_skills'))
+                        ->icon('heroicon-o-academic-cap')
+                        ->schema([
+                            ProfileInfolistPresenter::skills(),
+                        ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_about'))
                         ->icon('heroicon-o-information-circle')

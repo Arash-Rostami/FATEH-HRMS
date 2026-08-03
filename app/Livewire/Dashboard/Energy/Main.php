@@ -8,6 +8,7 @@ use App\Models\EnergyTest as EnergyModel;
 use App\Services\EnergyQuestionService;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Main extends Component
@@ -23,6 +24,8 @@ class Main extends Component
     public array $prompts = [];
     public array $sections = [];
     public array $answers = [];
+
+    #[Url(as: 'tab')]
     public string $activeTab = 'survey';
 
     public function mount(): void

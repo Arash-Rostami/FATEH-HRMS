@@ -14,7 +14,7 @@
 
     <div :class="{ 'hidden': maximizedFeed }" class="flex flex-col gap-6">
 
-        @include('components.dashboard.header.focus-banner')
+        @include('components.dashboard.header.focus-chip')
 
         @include('livewire.dashboard.tab.feeds.filters')
     </div>

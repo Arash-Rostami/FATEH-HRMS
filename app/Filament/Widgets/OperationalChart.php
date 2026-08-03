@@ -14,36 +14,36 @@ use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Computed;
 
 
-class ModuleAnalyticsChartsLeft extends ChartWidget
+class OperationalChart extends ChartWidget
 {
     use HasFiltersSchema;
 
     protected static bool $isLazy = true;
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 7;
     protected bool $hasDeferredFilters = true;
     protected int|string|array $columnSpan = ['sm' => 'full', 'md' => 1];
 
     public function filtersApplyAction(Action $action): Action
     {
-        return $action->label('اعمال')->color('success');
+        return $action->label(__('resources/dashboard/strings.chart_widgets.filters.apply'))->color('success');
     }
 
     public function filtersResetAction(Action $action): Action
     {
-        return $action->label('بازنشانی');
+        return $action->label(__('resources/dashboard/strings.chart_widgets.filters.reset'));
     }
 
     public function filtersSchema(Schema $schema): Schema
     {
         return $schema->components([
             Radio::make('module')
-                ->label('ماژول تحلیلی')
+                ->label(__('resources/dashboard/strings.chart_widgets.filters.module_field'))
                 ->default(null)
                 ->options([
-                    'module_a' => 'شاخص پیش‌بینی فرسودگی سرمایه انسانی',
-                    'module_b' => 'شاخص اصطکاک و تاخیر بین واحدها',
-                    'module_c' => 'قیف پیشرفت نوآوری و پیشنهادات',
-                    'module_d' => 'پراکندگی و تراکم استفاده از منابع',
+                    'module_a' => __('resources/dashboard/strings.operational_chart.modules.module_a'),
+                    'module_b' => __('resources/dashboard/strings.operational_chart.modules.module_b'),
+                    'module_c' => __('resources/dashboard/strings.operational_chart.modules.module_c'),
+                    'module_d' => __('resources/dashboard/strings.operational_chart.modules.module_d'),
                 ]),
         ]);
     }
@@ -67,35 +67,44 @@ class ModuleAnalyticsChartsLeft extends ChartWidget
                 . 'ساعات شلوغ نشان می‌دهد کجا باید منابع بیشتری اضافه یا زمان‌بندی‌ها پراکنده‌تر شوند. '
                 . '(منابع: رزروها ← «زمان شروع»)',
 
-            default => 'لطفاً برای مشاهده آمار دقیق، یکی از ماژول‌های تحلیلی را انتخاب کنید.',
+            default => __('resources/dashboard/strings.chart_widgets.default_description'),
         };
     }
 
     public function getHeading(): string|Htmlable|null
     {
-        return new HtmlString(Blade::render('<span class="relative -top-5 w-full !mb-0 !pb-0"><x-ui.title icon="analytics" title="تحلیل‌های منابع و عملکرد" count="4" countLabel="آیتم آماری" /></span>'));
+        return new HtmlString(Blade::render(
+            '<span class="relative -top-5 w-full !mb-0 !pb-0"><x-ui.title icon="analytics" :title="$title" count="4" countLabel="آیتم آماری" /></span>',
+            ['title' => __('resources/dashboard/strings.operational_chart.heading')]
+        ));
     }
 
     #[Computed(seconds: 300, cache: true)]
     public function getModuleAData(string $departmentCode): array
     {
+        $energyAgg = DB::table('energy_tests')
+            ->join('users', 'users.id', '=', 'energy_tests.user_id')
+            ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->select('profiles.department_id as code', DB::raw('AVG(energy_tests.overall_score) as avg_energy'))
+            ->where('energy_tests.completed_at', '>=', now()->subDays(30))
+            ->groupBy('profiles.department_id');
+
+        $tasksAgg = DB::table('tasks')
+            ->join('users', 'users.id', '=', 'tasks.assigned_to')
+            ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->select('profiles.department_id as code', DB::raw('COUNT(tasks.id) as pending_tasks'))
+            ->whereIn('tasks.status', ['todo', 'in-progress'])
+            ->groupBy('profiles.department_id');
+
         $query = DB::table('departments')
             ->select(
                 DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
-                DB::raw('COALESCE(AVG(energy_tests.overall_score), 0) as avg_energy'),
-                DB::raw('COUNT(tasks.id) as pending_tasks')
+                DB::raw('COALESCE(e.avg_energy, 0) as avg_energy'),
+                DB::raw('COALESCE(t.pending_tasks, 0) as pending_tasks')
             )
-            ->leftJoin('profiles', 'departments.code', '=', 'profiles.department_id')
-            ->leftJoin('users', 'profiles.user_id', '=', 'users.id')
-            ->leftJoin('energy_tests', function ($join) {
-                $join->on('users.id', '=', 'energy_tests.user_id')
-                    ->where('energy_tests.completed_at', '>=', now()->subDays(30));
-            })
-            ->leftJoin('tasks', function ($join) {
-                $join->on('users.id', '=', 'tasks.assigned_to')
-                    ->whereIn('tasks.status', ['todo', 'in-progress']);
-            })
-            ->groupBy('departments.code', 'departments.name', 'departments.description');
+            ->leftJoinSub($energyAgg, 'e', 'e.code', '=', 'departments.code')
+            ->leftJoinSub($tasksAgg, 't', 't.code', '=', 'departments.code')
+            ->orderBy('departments.code');
 
         if ($departmentCode) {
             $query->where('departments.code', $departmentCode);

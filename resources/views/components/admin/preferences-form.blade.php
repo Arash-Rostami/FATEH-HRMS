@@ -1,19 +1,21 @@
-@props(['form', 'action' => null])
+@props(['form', 'action' => null, 'showHeader' => true])
 <div
     class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide animate-fade">
     <div class="max-w-[88rem] mx-auto">
-        <header class="mb-8">
-            <x-ui.title
-                icon="palette"
-                title=" تنظیمات رابط کاربری ادمین پنل"
-                :count="$this->getTogglesCount()"
-                countLabel="گزینه"
-            />
+        @if($showHeader)
+            <header class="mb-8">
+                <x-ui.title
+                    icon="palette"
+                    title=" تنظیمات رابط کاربری ادمین پنل"
+                    :count="$this->getTogglesCount()"
+                    countLabel="گزینه"
+                />
 
-            <small class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
-                تنظیمات مربوط به ظاهر و نحوه تعامل با پنل مدیریت را در این بخش مدیریت کنید.
-            </small>
-        </header>
+                <small class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed">
+                    تنظیمات مربوط به ظاهر و نحوه تعامل با پنل مدیریت را در این بخش مدیریت کنید.
+                </small>
+            </header>
+        @endif
 
         <form wire:submit="save">
             {{ $form }}

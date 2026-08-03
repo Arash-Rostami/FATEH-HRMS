@@ -15,11 +15,14 @@ trait FocusOnRecord
             return;
         }
 
+        $handled = false;
         if (method_exists($this, 'focusRecord')) {
-            $this->focusRecord((int) $this->open);
+            $handled = (bool) $this->focusRecord((int) $this->open);
         }
 
-        $this->dispatch('record-focus', type: $this->recordFocusType(), id: (int) $this->open);
+        if (! $handled) {
+            $this->dispatch('record-focus', type: $this->recordFocusType(), id: (int) $this->open);
+        }
     }
 
     public function isFocusing(): bool

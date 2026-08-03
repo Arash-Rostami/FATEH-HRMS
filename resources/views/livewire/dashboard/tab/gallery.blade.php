@@ -11,7 +11,7 @@
             :count="$this->totalPhotos"
             countLabel="مورد"/>
 
-    @include('components.dashboard.header.focus-banner')
+    @include('components.dashboard.header.focus-chip')
 
 
     @include('livewire.dashboard.tab.gallery.timeline')

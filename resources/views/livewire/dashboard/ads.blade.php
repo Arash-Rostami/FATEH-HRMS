@@ -11,7 +11,7 @@
                 countLabel="فرصت فعال"
         />
 
-        @include('components.dashboard.header.focus-banner')
+        @include('components.dashboard.header.focus-chip')
 
         <div class="mb-6">
             @include('livewire.dashboard.ads.filters')

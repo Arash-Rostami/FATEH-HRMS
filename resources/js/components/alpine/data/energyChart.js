@@ -9,10 +9,10 @@ export default function energyChart(history, companyAverages, sections, latestTe
 
         async init() {
             if (!history?.length) return;
-            const { Chart } = await import ('../../../core/chart.js');
+            await import ('../../../core/chart.js');
             this.$nextTick(() => {
-                this.renderHistoryChart(Chart);
-                this.renderRadarChart(Chart);
+                this.renderHistoryChart();
+                this.renderRadarChart();
             });
         },
 
@@ -66,6 +66,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 700, easing: 'easeOutQuad' },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
@@ -137,6 +138,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 700, easing: 'easeOutQuad' },
                     plugins: {
                         legend: {
                             position: 'bottom',

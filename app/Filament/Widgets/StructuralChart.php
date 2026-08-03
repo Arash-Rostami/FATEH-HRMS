@@ -15,37 +15,37 @@ use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Computed;
 use Morilog\Jalali\Jalalian;
 
-class ModuleAnalyticsChartsRight extends ChartWidget
+class StructuralChart extends ChartWidget
 {
     use HasFiltersSchema;
 
     protected static bool $isLazy = true;
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 8;
     protected bool $hasDeferredFilters = true;
     protected int|string|array $columnSpan = ['sm' => 'full', 'md' => 1];
 
     public function filtersApplyAction(Action $action): Action
     {
-        return $action->label('اعمال')->color('success');
+        return $action->label(__('resources/dashboard/strings.chart_widgets.filters.apply'))->color('success');
     }
 
     public function filtersResetAction(Action $action): Action
     {
-        return $action->label('بازنشانی');
+        return $action->label(__('resources/dashboard/strings.chart_widgets.filters.reset'));
     }
 
     public function filtersSchema(Schema $schema): Schema
     {
         return $schema->components([
             Radio::make('module')
-                ->label('ماژول تحلیلی')
+                ->label(__('resources/dashboard/strings.chart_widgets.filters.module_field'))
                 ->default(null)
                 ->options([
-                    'module_e' => 'توزیع بار کاری (وظایف و تیکت‌ها)',
-                    'module_f' => 'ترکیب جمعیتی و وضعیت اشتغال',
-                    'module_g' => 'روند تعاملات و تولید محتوا',
-                    'module_h' => 'تراکم گزارشات و نظارت پذیری',
-                    'module_i' => 'توزیع سنوات خدمت کارکنان',
+                    'module_e' => __('resources/dashboard/strings.structural_chart.modules.module_e'),
+                    'module_f' => __('resources/dashboard/strings.structural_chart.modules.module_f'),
+                    'module_g' => __('resources/dashboard/strings.structural_chart.modules.module_g'),
+                    'module_h' => __('resources/dashboard/strings.structural_chart.modules.module_h'),
+                    'module_i' => __('resources/dashboard/strings.structural_chart.modules.module_i'),
                 ]),
         ]);
     }
@@ -73,24 +73,51 @@ class ModuleAnalyticsChartsRight extends ChartWidget
                 . 'اگر بیشتر نیرو در دسته‌های اول باشند دانش سازمانی شکننده است و ریسک خروج بالاست. '
                 . '(منابع: پروفایل پرسنلی ← «تاریخ شروع»، «وضعیت استخدام»)',
 
-            default => 'لطفاً برای مشاهده آمار دقیق، یکی از ماژول‌های تحلیلی را انتخاب کنید.',
+            default => __('resources/dashboard/strings.chart_widgets.default_description'),
         };
     }
 
 
     public function getHeading(): string|Htmlable|null
     {
-        return new HtmlString(Blade::render('<span class="relative -top-5 w-full !mb-0 !pb-0"><x-ui.title icon="analytics" title="تحلیل‌های ساختاری و سازمانی" count="5" countLabel="آیتم آماری" /></span>'));
+        return new HtmlString(Blade::render(
+            '<span class="relative -top-5 w-full !mb-0 !pb-0"><x-ui.title icon="analytics" :title="$title" count="5" countLabel="آیتم آماری" /></span>',
+            ['title' => __('resources/dashboard/strings.structural_chart.heading')]
+        ));
     }
 
     #[Computed(seconds: 300, cache: true)]
     public function getModuleEData(string $departmentCode): array
     {
         $query = DB::table('departments')
+            ->leftJoinSub(
+                DB::table('tasks')
+                    ->join('users', 'tasks.assigned_to', '=', 'users.id')
+                    ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->whereIn('tasks.status', ['todo', 'in-progress'])
+                    ->select('profiles.department_id as code', DB::raw('COUNT(*) as task_count'))
+                    ->groupBy('profiles.department_id'),
+                'task_agg',
+                'task_agg.code',
+                '=',
+                'departments.code'
+            )
+            ->leftJoinSub(
+                DB::table('tickets')
+                    ->join('users', 'tickets.assigned_to', '=', 'users.id')
+                    ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->whereIn('tickets.status', ['open', 'in-progress'])
+                    ->select('profiles.department_id as code', DB::raw('COUNT(*) as ticket_count'))
+                    ->groupBy('profiles.department_id'),
+                'ticket_agg',
+                'ticket_agg.code',
+                '=',
+                'departments.code'
+            )
             ->select(
                 DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
-                DB::raw('(SELECT COUNT(*) FROM tasks INNER JOIN users ON tasks.assigned_to = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code AND tasks.status IN ("todo", "in-progress")) as task_count'),
-                DB::raw('(SELECT COUNT(*) FROM tickets INNER JOIN users ON tickets.assigned_to = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code AND tickets.status IN ("open", "in-progress")) as ticket_count')
+                DB::raw('COALESCE(task_agg.task_count, 0) as task_count'),
+                DB::raw('COALESCE(ticket_agg.ticket_count, 0) as ticket_count')
             );
 
         if ($departmentCode) {
@@ -175,11 +202,32 @@ class ModuleAnalyticsChartsRight extends ChartWidget
     public function getModuleHData(string $departmentCode): array
     {
         $query = DB::table('departments')
+            ->leftJoinSub(
+                DB::table('profiles')
+                    ->select('profiles.department_id as code', DB::raw('COUNT(*) as users_count'))
+                    ->groupBy('profiles.department_id'),
+                'prof_agg',
+                'prof_agg.code',
+                '=',
+                'departments.code'
+            )
+            ->leftJoinSub(
+                DB::table('reports')
+                    ->join('users', 'reports.user_id', '=', 'users.id')
+                    ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->select('profiles.department_id as code', DB::raw('COUNT(*) as reports_count'))
+                    ->groupBy('profiles.department_id'),
+                'rep_agg',
+                'rep_agg.code',
+                '=',
+                'departments.code'
+            )
             ->select(
                 DB::raw('COALESCE(NULLIF(departments.description, ""), departments.name, departments.code) as department_name'),
-                DB::raw('(SELECT COUNT(*) FROM profiles WHERE profiles.department_id = departments.code) as users_count'),
-                DB::raw('(SELECT COUNT(*) FROM reports INNER JOIN users ON reports.user_id = users.id INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.department_id = departments.code) as reports_count')
+                DB::raw('COALESCE(prof_agg.users_count, 0) as users_count'),
+                DB::raw('COALESCE(rep_agg.reports_count, 0) as reports_count')
             )
+            ->orderBy('departments.id')
             ->limit(10);
 
         if ($departmentCode) {

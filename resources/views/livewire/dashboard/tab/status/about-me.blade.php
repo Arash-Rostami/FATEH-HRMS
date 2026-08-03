@@ -84,6 +84,23 @@
                         </template>
                     </div>
 
+                    @if($this->aboutMeSkills->isNotEmpty())
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-bold text-[var(--md-sys-color-primary)] uppercase tracking-widest">مهارت‌ها</h4>
+                            <div class="bg-[var(--md-sys-color-surface)] rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 divide-y divide-[var(--md-sys-color-outline-variant)]/30 px-5">
+                                @foreach($this->aboutMeSkills as $skillUser)
+                                    @include('livewire.dashboard.profile.skill-row', [
+                                        'skillUser' => $skillUser,
+                                        'owner' => $skillUser->user,
+                                        'viewer' => Auth::user(),
+                                        'skillUserPresenter' => $skillUserPresenter,
+                                        'skillPresenter' => $skillPresenter,
+                                    ])
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div x-show="aboutMe.bio"
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 translate-y-4"

@@ -17,7 +17,7 @@
                 countLabel="اختیار"
         />
 
-        @include('components.dashboard.header.focus-banner')
+        @include('components.dashboard.header.focus-chip')
 
         @include('livewire.dashboard.authority.filters')
 

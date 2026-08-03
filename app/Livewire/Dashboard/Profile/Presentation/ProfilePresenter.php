@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
 use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Models\SkillUser;
 use App\Models\User;
 use Illuminate\Support\Str;
 
@@ -94,11 +95,17 @@ class ProfilePresenter
             ?->getLabel() ?? Position::Employee->getLabel();
     }
 
+    public function newBadgeVisible(): bool
+    {
+        return now()->lt(SkillUser::newBadgeUntil());
+    }
+
     public function tabs(): array
     {
         return [
             'info' => ['label' => 'اطلاعات فردی', 'icon' => 'person', 'sub' => 'مشخصات و تماس', 'title' => 'ویرایش اطلاعات فردی', 'component' => 'dashboard.profile.info', 'key' => 'tab-info', 'lazy' => false],
             'details' => ['label' => 'اطلاعات تکمیلی', 'icon' => 'list_alt', 'sub' => 'سوابق و جزئیات', 'title' => 'اطلاعات تکمیلی پرسنلی', 'component' => 'dashboard.profile.details', 'key' => 'tab-details', 'lazy' => true],
+            'skills' => ['label' => 'استعدادها', 'icon' => 'military_tech', 'sub' => 'مهارت‌ها و تخصص‌ها', 'title' => 'استعدادها و مهارت‌ها', 'component' => 'dashboard.profile.skills', 'key' => 'tab-skills', 'lazy' => true, 'isNew' => $this->newBadgeVisible()],
             'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => true],
             'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'cloud_upload', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => true],
             'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'vpn_key', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => true],

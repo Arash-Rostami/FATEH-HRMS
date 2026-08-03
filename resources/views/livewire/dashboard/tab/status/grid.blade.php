@@ -7,7 +7,13 @@
                 $sms = $user->sms_number;
                 $ext = $user->getTodaysDeskExtension();
                 $reserved = $user->getTodaysReservationsLabel();
-                $hasBar = $obscured || $sms || $ext || $reserved;
+                $skillTier = ($skillId !== null && $user->skill_tier_endorsements_count !== null)
+                    ? (new \App\Models\SkillUser([
+                        'endorsements_count' => $user->skill_tier_endorsements_count,
+                        'last_used_at' => $user->skill_tier_last_used_at,
+                    ]))->stateTier()
+                    : null;
+                $hasBar = $obscured || $sms || $ext || $reserved || $skillTier !== null;
                 $hasCall = !$obscured && ($sms || $ext);
                 $deptName = $user->profile?->department?->displayLabel();
                 $unitName = $user->profile?->detailsMap()->get('unit');
@@ -49,6 +55,7 @@
                                        bg-[var(--md-sys-color-primary)] flex items-center justify-center
                                        border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow hover:scale-110 transition-transform z-20"
                                 title="درباره من"
+                                wire:click="openAboutMe({{ $user->id }})"
                                 x-on:click.stop="$dispatch('open-about-me', {
                                     user: {
                                         name: {{ \Illuminate\Support\Js::from($user->name) }},
@@ -94,6 +101,13 @@
                                 transition-all duration-300
                                 {{ $obscured ? 'opacity-0 pointer-events-none' : '' }}">
 
+                        @if($skillTier)
+                            <div class="flex items-center justify-center px-1.5 py-0.5 rounded-md {{ $skillTier->badgeClasses() }}"
+                                 title="{{ $skillTier->label() }} · این مهارت">
+                                <span class="material-symbols-rounded text-[13px] block">{{ $skillTier->icon() }}</span>
+                            </div>
+                        @endif
+
                         @if($sms && !$obscured)
                             <button
                                 type="button"
@@ -132,7 +146,11 @@
 
         @empty
             <div class="col-span-full">
-                <x-ui.empty icon="manage_search" title="کاربری یافت نشد" variant="search" />
+                @if($skillId !== null || trim($skillSearch) !== '')
+                    <x-ui.empty icon="manage_search" title="همکاری با این مهارت یافت نشد" variant="filtered" />
+                @else
+                    <x-ui.empty icon="manage_search" title="کاربری یافت نشد" variant="search" />
+                @endif
             </div>
         @endforelse
     </div>

@@ -39,6 +39,7 @@
             <button
                 wire:click="selectSuggestion({{ $item->id }})"
                 wire:key="s-{{ $item->id }}"
+                data-rf="suggestion-{{ $item->id }}"
                 @class([
                     'group relative w-full text-right rounded-2xl border p-4 transition-all text-left hover:-translate-y-[1px]',
                     'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/30' => $selectedId !== $item->id,

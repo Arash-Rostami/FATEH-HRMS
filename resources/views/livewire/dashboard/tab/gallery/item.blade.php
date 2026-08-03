@@ -16,6 +16,7 @@
 @endphp
 
 <div
+    data-rf="gallery-{{ $photo->id }}"
     x-data="{ titleExpanded: false, captionExpanded: false }"
     class="flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
     :class="{

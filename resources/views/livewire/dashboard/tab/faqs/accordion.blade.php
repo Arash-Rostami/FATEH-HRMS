@@ -1,4 +1,5 @@
 <div
+    data-rf="faqs-{{ $faq->id }}"
     x-data="{ expanded: false }"
     x-init="$watch('active', value => expanded = value === {{ $faq->id }})"
     class="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] bg-[var(--md-sys-color-surface)] w-full shadow-sm"

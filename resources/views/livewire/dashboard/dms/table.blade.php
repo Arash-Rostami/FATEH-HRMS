@@ -73,7 +73,7 @@
                                 : 'var(--md-sys-color-primary)');
                     @endphp
 
-                    <tr wire:key="dms-doc-{{ $doc->id }}" class="group transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-low)]">
+                    <tr wire:key="dms-doc-{{ $doc->id }}" data-rf="dms-{{ $doc->id }}" class="group transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-low)]">
                         <td class="relative min-w-[240px] border-b border-[var(--md-sys-color-outline-variant)] pl-14 pr-1.5 pt-0 text-right align-middle"
                             style="box-shadow: inset -3px 0 0 0 {{ $statusColor }};">
                             <div class="absolute right-0 top-0 z-20 cursor-help pr-1 transition-transform duration-200 group-hover:scale-105">

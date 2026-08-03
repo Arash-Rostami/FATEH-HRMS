@@ -1,4 +1,5 @@
 @props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد'])
+@php($objectMode = $searchable && filled($options) && !is_string(\Illuminate\Support\Arr::first($options)))
 
 <div
     class="relative group w-full md3-input-group"
@@ -7,16 +8,26 @@
         open: false, pos: {}, search: '',
         selected: @entangle($attributes->wire('model')->value() ?? ''),
         options: @js($options),
+        objectMode: @js($objectMode),
+        norm(v) { return (v ?? '').toString().toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک'); },
         get filtered() {
-            if (!this.search) return this.options.slice(0, 50);
-            return this.options.filter(o => o.toLowerCase().includes(this.search.toLowerCase())).slice(0, 50);
+            const q = this.norm(this.search);
+            const list = !q ? this.options : this.options.filter(o => this.norm(this.objectMode ? o.label : o).includes(q));
+            return list.slice(0, 50);
         },
-        select(v) {
-            this.selected = this.search = v; this.open = false;
-            this.$refs.hiddenInput.value = v;
+        select(opt) {
+            this.selected = this.objectMode ? opt.value : opt;
+            this.search = this.objectMode ? opt.label : opt;
+            this.open = false;
+            this.$refs.hiddenInput.value = this.selected;
             this.$refs.hiddenInput.dispatchEvent(new Event('input'));
         },
-        init() { if (this.selected) this.search = this.selected; }
+        init() {
+            if (!this.selected) return;
+            this.search = this.objectMode
+                ? (this.options.find(o => o.value == this.selected)?.label ?? this.selected)
+                : this.selected;
+        }
     }"
     @endif
 >
@@ -54,13 +65,20 @@
                 :style="{ position:'fixed', zIndex:9999, top:pos.bottom+'px', left:pos.left+'px', width:pos.width+'px' }"
                 class="mt-1 bg-white dark:bg-gray-800 border rounded-lg shadow-lg max-h-60 overflow-y-auto text-right"
             >
-                <template x-for="opt in filtered" :key="opt">
-                    <div
-                        @click="select(opt)"
-                        :class="selected === opt ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
-                        class="px-4 py-2.5 cursor-pointer text-sm transition-colors"
-                        x-text="opt"
-                    ></div>
+                <template x-for="(opt, index) in filtered" :key="objectMode ? opt.value : opt">
+                    <div>
+                        <div
+                            x-show="objectMode && opt.category && (index === 0 || filtered[index - 1].category !== opt.category)"
+                            class="px-4 py-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)]"
+                            x-text="opt.category"
+                        ></div>
+                        <div
+                            @click="select(opt)"
+                            :class="(objectMode ? selected === opt.value : selected === opt) ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="px-4 py-2.5 cursor-pointer text-sm transition-colors"
+                            x-text="objectMode ? opt.label : opt"
+                        ></div>
+                    </div>
                 </template>
             </div>
 

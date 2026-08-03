@@ -9,7 +9,7 @@
     <div class="pb-0 shrink-0">
         <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال"/>
 
-        @include('components.dashboard.header.focus-banner')
+        @include('components.dashboard.header.focus-chip')
     </div>
 
     @include('livewire.dashboard.tab.faqs.filters')

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
 use App\Enums\ProfileDetailGroup;
+use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
@@ -10,18 +11,23 @@ use App\Filament\Resources\ProfileResource\Enums\Gender;
 use App\Filament\Resources\ProfileResource\Enums\MaritalStatus;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
+use App\Livewire\Dashboard\Profile\Presentation\SkillPresenter;
 use App\Models\Department;
+use App\Models\Skill;
 use App\Services\PersianDateFieldService;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Database\Eloquent\Model;
 
 class ProfileFormPresenter
 {
@@ -469,6 +475,108 @@ class ProfileFormPresenter
             ->helperText(__('resources/profile/strings.hints.position'));
     }
 
+    public static function skills(): Repeater
+    {
+        return Repeater::make('skills')
+            ->label(__('resources/profile/strings.form.skills'))
+            ->schema([
+                Hidden::make('id'),
+
+                Select::make('skill_id')
+                    ->label(__('resources/skill/strings.fields.skill'))
+                    ->options(fn(): array => self::skillCatalogOptions())
+                    ->searchable()
+                    ->distinct()
+                    ->required()
+                    ->native(false),
+
+                Select::make('status')
+                    ->label(__('resources/skill/strings.fields.status'))
+                    ->options(collect(SkillRequestStatus::cases())->mapWithKeys(fn(SkillRequestStatus $case): array => [$case->value => $case->label()]))
+                    ->default(SkillRequestStatus::Approved->value)
+                    ->required()
+                    ->native(false),
+
+                PersianDateFieldService::make(
+                    'last_used_at',
+                    __('resources/skill/strings.fields.last_used_at'),
+                    required: false,
+                    yearFrom: 1370,
+                ),
+
+                Toggle::make('is_mentoring')
+                    ->label(__('resources/skill/strings.fields.is_mentoring')),
+
+                Toggle::make('is_private')
+                    ->label(__('resources/skill/strings.fields.is_private')),
+            ])
+            ->afterStateHydrated(function (Repeater $component): void {
+                $record = $component->getRecord();
+                $skillUsers = $record instanceof Model ? $record->user?->skillUsers()->with('skill')->latest('id')->get() : null;
+
+                $component->state(($skillUsers ?? collect())->map(fn($skillUser): array => [
+                    'id' => $skillUser->id,
+                    'skill_id' => $skillUser->skill_id,
+                    'status' => $skillUser->status->value,
+                    'last_used_at' => $skillUser->last_used_at?->format('Y-m-d'),
+                    'is_mentoring' => $skillUser->is_mentoring,
+                    'is_private' => $skillUser->is_private,
+                ])->values()->toArray());
+            })
+            ->saveRelationshipsUsing(function (Repeater $component, mixed $record): void {
+                $user = $record instanceof Model ? $record->user : null;
+
+                if (!$user) {
+                    return;
+                }
+
+                $existingIds = $user->skillUsers()->pluck('id')->all();
+                $keptIds = [];
+
+                foreach ($component->getState() ?? [] as $item) {
+                    if (blank($item['skill_id'] ?? null)) {
+                        continue;
+                    }
+
+                    $status = $item['status'] ?? SkillRequestStatus::Approved->value;
+                    $isApproved = $status === SkillRequestStatus::Approved->value;
+
+                    $payload = [
+                        'skill_id' => $item['skill_id'],
+                        'status' => $status,
+                        'last_used_at' => $item['last_used_at'] ?? null,
+                        'is_mentoring' => (bool)($item['is_mentoring'] ?? false),
+                        'is_private' => (bool)($item['is_private'] ?? false),
+                        'approved_at' => $isApproved ? now() : null,
+                        'approved_by' => $isApproved ? auth()->id() : null,
+                    ];
+
+                    $id = (int)($item['id'] ?? 0);
+
+                    if ($id && in_array($id, $existingIds, true)) {
+                        $user->skillUsers()->whereKey($id)->update($payload);
+                        $keptIds[] = $id;
+                        continue;
+                    }
+
+                    $keptIds[] = $user->skillUsers()->create($payload)->id;
+                }
+
+                $toDelete = array_diff($existingIds, $keptIds);
+
+                if (filled($toDelete)) {
+                    $user->skillUsers()->whereKey($toDelete)->delete();
+                }
+            })
+            ->columns(2)
+            ->dehydrated(false)
+            ->addable()
+            ->deletable()
+            ->reorderable(false)
+            ->columnSpanFull()
+            ->helperText(__('resources/profile/strings.hints.skills'));
+    }
+
     public static function startDate(): FusedGroup
     {
         return PersianDateFieldService::make(
@@ -548,5 +656,17 @@ class ProfileFormPresenter
         $set('value_date_year', null);
         $set('value_date_month', null);
         $set('value_date_day', null);
+    }
+
+    private static function skillCatalogOptions(): array
+    {
+        $presenter = new SkillPresenter();
+
+        return Skill::cachedActiveCatalog()
+            ->groupBy(fn(Skill $skill): string => $presenter->categoryLabel($skill))
+            ->map(fn($skills) => $skills->mapWithKeys(fn(Skill $skill): array => [
+                $skill->id => trim($skill->name . ($skill->name_en ? " ({$skill->name_en})" : '')),
+            ]))
+            ->toArray();
     }
 }

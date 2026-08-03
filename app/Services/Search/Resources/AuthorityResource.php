@@ -15,6 +15,16 @@ class AuthorityResource extends SearchResource
     protected ?string $titleField = 'sub_duty';
     protected ?string $subtitleField = 'details';
 
+    protected function subtitleFor($row): string
+    {
+        $details = $row->details ?? [];
+        $duty = is_array($details) && is_scalar($details['duty'] ?? null) ? (string) $details['duty'] : '';
+
+        $sub = superClean($duty, 120);
+
+        return $sub !== '' ? $sub : $this->group;
+    }
+
     public function action($row): string
     {
         return $this->route('authority', $row->getKey());

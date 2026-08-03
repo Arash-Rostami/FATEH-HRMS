@@ -1337,7 +1337,7 @@
     will-change: transform;
 }
 
-@keyframes focus-banner-in {
+@keyframes focus-chip-in {
     from {
         opacity: 0;
         transform: translateY(-6px);
@@ -1348,7 +1348,7 @@
     }
 }
 
-@keyframes focus-banner-pulse {
+@keyframes focus-chip-pulse {
     0% {
         box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
     }

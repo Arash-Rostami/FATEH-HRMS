@@ -19,6 +19,7 @@ use App\Services\Search\Resources\PeopleResource;
 use App\Services\Search\Resources\PostResource;
 use App\Services\Search\Resources\ReportResource;
 use App\Services\Search\Resources\ReservationResource;
+use App\Services\Search\Resources\SkillSearchResource;
 use App\Services\Search\Resources\SuggestionResource;
 use App\Services\Search\Resources\TaskResource;
 use App\Services\Search\Resources\TicketResource;
@@ -55,6 +56,7 @@ class ContentService
         CredentialResource::class,
         OnboardingResource::class,
         MessageResource::class,
+        SkillSearchResource::class,
     ];
 
     public function search(string $query): array

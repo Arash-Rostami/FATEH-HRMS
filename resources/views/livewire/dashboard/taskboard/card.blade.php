@@ -3,6 +3,7 @@
 @endphp
 
 <div
+    data-rf="task-{{ $task['id'] }}"
     :draggable="{{ $task['can_change_status'] ? 'true' : 'false' }}"
     @dragstart="{{ $task['can_change_status'] ? 'handleDragStart($event, '. $task['id'] . ')' : 'event.preventDefault()' }}"
     @dragend="handleDragEnd($event)"

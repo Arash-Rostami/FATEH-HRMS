@@ -11,6 +11,7 @@ use App\Models\Profile;
 use App\Models\User;
 use App\Services\HolidayService;
 use App\Services\Menu\StateService;
+use App\Services\Reservation\EventSyncService;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -172,6 +173,14 @@ class Calendar extends Component
 
     public function deleteEvent(int $eventId): void
     {
+        $event = Event::where('user_id', Auth::id())->find($eventId);
+
+        if ($event && EventSyncService::isReservationEvent($event->description)) {
+            $this->deletingEventId = null;
+            $this->dispatch('toast', message: 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای لغو آن به تب رزرو مراجعه کنید.', type: 'error');
+            return;
+        }
+
         app(DeleteEventAction::class)->execute($eventId, Auth::id());
         $this->deletingEventId = null;
     }
@@ -181,6 +190,11 @@ class Calendar extends Component
         $event = Event::where('user_id', Auth::id())->find($eventId);
 
         if (!$event) {
+            return;
+        }
+
+        if (EventSyncService::isReservationEvent($event->description)) {
+            $this->dispatch('toast', message: 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.', type: 'error');
             return;
         }
 
@@ -307,6 +321,11 @@ class Calendar extends Component
             return;
         }
 
+        if (EventSyncService::isReservationEvent($event->description)) {
+            $this->dispatch('toast', message: 'این رویداد از طریق سیستم رزرو به‌طور خودکار به‌اشتراک گذاشته شده است.', type: 'error');
+            return;
+        }
+
         $this->sharingEventId = $eventId;
         $this->shareRecipientIds = $event->shares()
             ->pluck('user_id')
@@ -407,6 +426,8 @@ class Calendar extends Component
                 'private' => $event->private,
                 'is_shared' => $event->user_id !== Auth::id()
                     && $event->shares->contains('user_id', Auth::id()),
+                'is_reservation_linked' => EventSyncService::isReservationEvent($event->description),
+                'reservation_id' => EventSyncService::reservationIdFrom($event->description),
             ]);
 
         $profiles = Profile::query()

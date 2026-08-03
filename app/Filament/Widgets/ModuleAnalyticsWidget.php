@@ -3,6 +3,10 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\PresenceStatus;
+use App\Enums\ReleaseRequestStatus;
+use App\Enums\ReleaseRequestType;
+use App\Enums\ReservationStatus;
+use App\Enums\SkillRequestStatus;
 use App\Models\Department;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -14,12 +18,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Computed;
 
-class ModuleAnalytics extends Widget implements HasSchemas
+class ModuleAnalyticsWidget extends Widget implements HasSchemas
 {
     use InteractsWithSchemas;
 
     protected static bool $isLazy = true;
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 6;
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';
     protected int|string|array $columnSpan = 'full';
@@ -74,6 +78,30 @@ class ModuleAnalytics extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function channelsData(): array
+    {
+        $stats = DB::table('channels')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN type = 'open' THEN 1 ELSE 0 END) as open,
+            SUM(CASE WHEN type = 'private' THEN 1 ELSE 0 END) as private
+        ")->whereNull('deleted_at')->first();
+
+        $messagesCount = DB::table('channel_messages')->whereNull('deleted_at')->count();
+
+        return [
+            Stat::make(__('resources/channel/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->color('primary'),
+            Stat::make(__('resources/channel/strings.fields.type'), $stats->open . ' ┆ ' . $stats->private)
+                ->icon('heroicon-o-globe-alt')
+                ->color('info'),
+            Stat::make(__('resources/channel/strings.fields.messages_count'), $messagesCount)
+                ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function contactsData(): array
     {
         $stats = DB::table('messages')->selectRaw("
@@ -122,18 +150,19 @@ class ModuleAnalytics extends Widget implements HasSchemas
     public function departmentsData(): array
     {
         $total = Department::getCachedModels()->count();
-        $withUsers = Department::has('users')->count();
-        $mostDense = Department::withCount('users')->orderByDesc('users_count')->orderBy('code')->first()?->displayLabel() ?? 'نامشخص';
+        $ranked = Department::withCount('users')->orderByDesc('users_count')->orderBy('code')->get();
+        $withUsers = $ranked->where('users_count', '>', 0)->count();
+        $mostDense = $ranked->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
         return [
-            Stat::make('کل واحدها', $total)
+            Stat::make(__('resources/dashboard/strings.analytics.departments.total'), $total)
                 ->icon('heroicon-o-building-office')
                 ->color('primary'),
-            Stat::make('دارای کاربر', $withUsers)
+            Stat::make(__('resources/dashboard/strings.analytics.departments.with_users'), $withUsers)
                 ->icon('heroicon-o-user-group')
                 ->color('success'),
             Stat::make(
-                'پرتراکم‌ترین واحدها',
+                __('resources/dashboard/strings.analytics.departments.most_dense'),
                 new HtmlString("
                             <div class='text-[14px] sm:text-md font-medium tracking-tighter flex items-center gap-1'>
                                  <span>{$mostDense}</span>
@@ -322,6 +351,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'reports' => count($this->reportsData),
             'energy' => count($this->energyData),
             'authorities' => count($this->authoritiesData),
+            'channels' => count($this->channelsData),
             'contacts' => count($this->contactsData),
             'credentials' => count($this->credentialsData),
             'dms' => count($this->dmsData),
@@ -333,6 +363,9 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'onboardings' => count($this->onboardingsData),
             'posts' => count($this->postsData),
             'profiles' => count($this->profilesData),
+            'support' => count($this->releaseRequestsData),
+            'reservations' => count($this->reservationsData),
+            'skills' => count($this->skillsData),
             'suggestions' => count($this->suggestionsData),
             'tasks' => count($this->tasksData),
             'ths' => count($this->thsData),
@@ -344,7 +377,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
     public function getAllTabs(): array
     {
         return [
-            'users' => ['icon' => 'heroicon-o-users', 'label' => __('کاربران')],
+            'users' => ['icon' => 'heroicon-o-users', 'label' => __('resources/dashboard/strings.analytics.tabs.users')],
             'profiles' => ['icon' => 'heroicon-o-identification', 'label' => __('resources/profile/strings.navigation.plural')],
             'departments' => ['icon' => 'heroicon-o-building-office', 'label' => __('resources/department/strings.plural_label')],
             'authorities' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/authority/strings.plural_label')],
@@ -364,6 +397,10 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'onboardings' => ['icon' => 'heroicon-o-academic-cap', 'label' => __('resources/onboarding/strings.plural_label')],
             'faqs' => ['icon' => 'heroicon-o-question-mark-circle', 'label' => __('resources/faq/strings.plural_label')],
             'ths' => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
+            'channels' => ['icon' => 'heroicon-o-chat-bubble-left-right', 'label' => __('resources/channel/strings.plural_label')],
+            'reservations' => ['icon' => 'heroicon-o-map-pin', 'label' => __('resources/reservation/strings.plural_label')],
+            'skills' => ['icon' => 'heroicon-o-sparkles', 'label' => __('resources/skill/strings.plural_label')],
+            'support' => ['icon' => 'heroicon-o-lifebuoy', 'label' => __('resources/release_request/strings.plural_label')],
         ];
     }
 
@@ -466,31 +503,125 @@ class ModuleAnalytics extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function releaseRequestsData(): array
+    {
+        $stats = DB::table('release_requests')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open,
+            SUM(CASE WHEN status = 'in_review' THEN 1 ELSE 0 END) as in_review,
+            SUM(CASE WHEN type = 'bug' THEN 1 ELSE 0 END) as bugs
+        ")->first();
+
+        return [
+            Stat::make(__('resources/release_request/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-lifebuoy')
+                ->color('primary'),
+            Stat::make(ReleaseRequestStatus::Open->getLabel(), $stats->open)
+                ->icon(ReleaseRequestStatus::Open->getIcon())
+                ->color(ReleaseRequestStatus::Open->getColor()),
+            Stat::make(ReleaseRequestStatus::InReview->getLabel(), $stats->in_review)
+                ->icon(ReleaseRequestStatus::InReview->getIcon())
+                ->color(ReleaseRequestStatus::InReview->getColor()),
+            Stat::make(ReleaseRequestType::Bug->getLabel(), $stats->bugs)
+                ->icon(ReleaseRequestType::Bug->getIcon())
+                ->color(ReleaseRequestType::Bug->getColor()),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function reportsData(): array
     {
         $stats = DB::table('reports')
             ->selectRaw('COUNT(*) as total, SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active')
             ->first();
 
-        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->displayLabel() ?? 'نامشخص';
+        $mostDense = Department::withCount('reports')->orderByDesc('reports_count')->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
         return [
-            Stat::make('واحدها با بیشترین گزارش', $mostDense)
+            Stat::make(__('resources/dashboard/strings.analytics.reports.top_department'), $mostDense)
                 ->icon('heroicon-o-chart-bar')
                 ->extraAttributes(['class' => '!text-xs'])
                 ->color('warning'),
-            Stat::make('کل گزارش‌ها', $stats->total)
+            Stat::make(__('resources/dashboard/strings.analytics.reports.total'), $stats->total)
                 ->icon('heroicon-o-document-text')
                 ->color('primary'),
-            Stat::make('گزارش‌های فعال', $stats->active)
+            Stat::make(__('resources/dashboard/strings.analytics.reports.active'), $stats->active)
                 ->icon('heroicon-o-document-check')
                 ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function reservationsData(): array
+    {
+        $stats = DB::table('reservations')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status IN ('cancelled_user', 'cancelled_admin') THEN 1 ELSE 0 END) as cancelled,
+            SUM(CASE WHEN status = 'active' AND start_time <= NOW() AND end_time >= NOW() THEN 1 ELSE 0 END) as ongoing
+        ")->first();
+
+        return [
+            Stat::make(__('resources/reservation/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-map-pin')
+                ->color('primary'),
+            Stat::make(ReservationStatus::Active->getLabel(), $stats->active)
+                ->icon(ReservationStatus::Active->getIcon())
+                ->color(ReservationStatus::Active->getColor()),
+            Stat::make(__('resources/dashboard/strings.analytics.reservations.ongoing'), $stats->ongoing)
+                ->icon('heroicon-o-clock')
+                ->color('info'),
+            Stat::make(__('resources/dashboard/strings.analytics.reservations.cancelled'), $stats->cancelled)
+                ->icon('heroicon-o-x-circle')
+                ->color('danger'),
         ];
     }
 
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function skillsData(): array
+    {
+        $skills = DB::table('skills')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN is_active = 0 AND is_ghost = 0 THEN 1 ELSE 0 END) as draft,
+            SUM(CASE WHEN is_ghost = 1 THEN 1 ELSE 0 END) as ghost
+        ")->first();
+
+        $requests = DB::table('skill_user')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+            SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+        ")->first();
+
+        return [
+            Stat::make(__('resources/skill/strings.plural_label'), $skills->total)
+                ->icon('heroicon-o-sparkles')
+                ->color('primary'),
+            Stat::make(__('resources/skill/strings.filters.active'), $skills->active)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/skill/strings.filters.inactive'), $skills->draft)
+                ->icon('heroicon-o-document')
+                ->color('gray'),
+            Stat::make(__('resources/skill/strings.widget.title'), $skills->ghost)
+                ->icon('heroicon-o-magnifying-glass')
+                ->color('warning'),
+            Stat::make(SkillRequestStatus::Pending->label(), $requests->pending)
+                ->icon('heroicon-o-clock')
+                ->color('warning'),
+            Stat::make(SkillRequestStatus::Approved->label(), $requests->approved)
+                ->icon('heroicon-o-check-badge')
+                ->color('info'),
+            Stat::make(SkillRequestStatus::Rejected->label(), $requests->rejected)
+                ->icon('heroicon-o-x-circle')
+                ->color('danger'),
+        ];
     }
 
     public function statsSchema(Schema $schema): Schema
@@ -502,6 +633,7 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'reports' => $this->reportsData,
             'energy' => $this->energyData,
             'authorities' => $this->authoritiesData,
+            'channels' => $this->channelsData,
             'contacts' => $this->contactsData,
             'credentials' => $this->credentialsData,
             'dms' => $this->dmsData,
@@ -513,6 +645,9 @@ class ModuleAnalytics extends Widget implements HasSchemas
             'onboardings' => $this->onboardingsData,
             'posts' => $this->postsData,
             'profiles' => $this->profilesData,
+            'support' => $this->releaseRequestsData,
+            'reservations' => $this->reservationsData,
+            'skills' => $this->skillsData,
             'suggestions' => $this->suggestionsData,
             'tasks' => $this->tasksData,
             'ths' => $this->thsData,
@@ -632,16 +767,16 @@ class ModuleAnalytics extends Widget implements HasSchemas
         ", [now()->subMinutes(15), PresenceStatus::Onsite->value])->first();
 
         return [
-            Stat::make('کل کاربران', $stats->total)
+            Stat::make(__('resources/dashboard/strings.analytics.users.total'), $stats->total)
                 ->icon('heroicon-o-users')
                 ->color('primary'),
-            Stat::make('کاربران فعال', $stats->active)
+            Stat::make(__('resources/dashboard/strings.analytics.users.active'), $stats->active)
                 ->icon('heroicon-o-check-circle')
                 ->color('success'),
-            Stat::make('ادمین‌ها', $stats->admins)
+            Stat::make(__('resources/dashboard/strings.analytics.users.admins'), $stats->admins)
                 ->icon('heroicon-o-shield-check')
                 ->color('danger'),
-            Stat::make('کاربران آنلاین', $stats->online)
+            Stat::make(__('resources/dashboard/strings.analytics.users.online'), $stats->online)
                 ->icon('heroicon-o-signal')
                 ->color('info'),
         ];

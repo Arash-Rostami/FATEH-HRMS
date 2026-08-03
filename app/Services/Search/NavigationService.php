@@ -300,6 +300,18 @@ class NavigationService
                     'مدیرعامل', 'سازمانی', 'شفاف', 'حکم', 'اختیار', 'اختیارات سازمانی', 'دسترسی‌ها',
                 ],
             ],
+            [
+                'id' => 'analytics',
+                'title' => 'تحلیل‌های منابع انسانی',
+                'subtitle' => 'نمودارهای ترکیب جمعیتی، صلاحیت، سلامت واحد و مشارکت',
+                'icon' => 'monitoring',
+                'action' => 'route:analytics',
+                'keywords' => [
+                    'analytics', 'chart', 'charts', 'hr analytics', 'demographics', 'engagement', 'dashboard', 'statistics',
+                    'تحلیل', 'تحلیل‌ها', 'آمار', 'نمودار', 'نمودارها', 'منابع انسانی', 'جمعیت‌شناسی', 'مشارکت',
+                    'سلامت واحد', 'صلاحیت', 'گزارش تحلیلی', 'داشبورد تحلیلی',
+                ],
+            ],
 
             [
                 'id' => 'profile',
@@ -347,6 +359,18 @@ class NavigationService
                     'credentials', 'password', 'username', 'login', 'access', 'secret', 'vault', 'credential vault',
                     'سامانه', 'رمز', 'رمز عبور', 'نام کاربری', 'دسترسی', 'امن', 'کیف پول', 'کیف پول رمز', 'ورود',
                     'جستجو', 'کپی', 'اعتبارنامه', 'credential', 'login info', 'اطلاعات ورود', 'اطلاعات دسترسی',
+                ],
+            ],
+            [
+                'id' => 'skills',
+                'title' => 'مهارت‌ها',
+                'subtitle' => 'کاتالوگ مهارت‌ها، تأییدیه همکاران و درخواست مهارت جدید',
+                'icon' => 'bolt',
+                'action' => 'url:/profile?tab=skills',
+                'keywords' => [
+                    'skills', 'skill', 'talent', 'talent pool', 'endorsement', 'endorse', 'catalog', 'expertise',
+                    'مهارت', 'مهارت‌ها', 'استعداد', 'تأییدیه', 'تایید مهارت', 'کاتالوگ', 'تخصص', 'توانمندی',
+                    'درخواست مهارت', 'منتورینگ', 'راهنمایی',
                 ],
             ],
 

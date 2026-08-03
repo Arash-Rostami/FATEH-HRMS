@@ -25,6 +25,7 @@ use InvalidArgumentException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Morilog\Jalali\Jalalian;
@@ -41,6 +42,8 @@ class Main extends Component
     public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'pending' => 0, 'done' => 0];
     public array $doneTotalCount = ['done' => 0];
     public array $page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
+
+    #[Url(as: 'tab')]
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
     public bool $showAllDone = false;

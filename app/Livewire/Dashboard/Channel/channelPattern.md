@@ -358,7 +358,7 @@ toggleBrowse / openCreate / closeCreate   Alpine wrappers → $wire
 startReply(id, name, body)  replyingTo={...}; $wire.replyTo(id); $wire.cancelEdit()
 cancelReply / startEdit / cancelEdit
 saveEdit(id)        await $wire.saveEdit(id) (try/catch toast)
-scrollToMessage(id) if (!id) return; in-DOM fast path: querySelector(`[data-rf="channel-message-${id}"]`) → scrollIntoView smooth center + restart `record-focus-flash` (same class record-focus.js uses) + remove on animationend; fallback (row not in loaded window): `$wire.$island('messages').focusMessage(id)` (loads anchor/recent window + dispatches `record-focus` → record-focus.js scroll+flash). Wired from the reply-preview block click/Enter/Space; reuses the `data-*` + `$el.dataset` island-safe pattern (matches `focusSearchResult`)
+scrollToMessage(id) if (!id) return; in-DOM fast path: querySelector(`[data-rf="channel-message-${id}"]`) → sweep-clear any stale `.record-focus-flash` via `querySelectorAll` (matches record-focus.js/contact.js) → scrollIntoView smooth center + add `record-focus-flash` (CSS `transition`, not a keyframe `animation` — no `animationend` cleanup); fallback (row not in loaded window): `$wire.$island('messages').focusMessage(id)` (loads anchor/recent window + dispatches `record-focus` → record-focus.js scroll+flash). Wired from the reply-preview block click/Enter/Space; reuses the `data-*` + `$el.dataset` island-safe pattern (matches `focusSearchResult`)
 confirmDelete(id)   $wire.deleteMessage(id)
 sendMessage()       guard empty + >4000 char; await $wire.send(); 500ms sending lock
 $watch($wire.lastDeleted)  4s undo toast window

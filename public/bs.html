@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پرسال بیزینس | شریک شما در تحول دیجیتال، هوش مصنوعی و سیستم‌های مدیریتی</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                    colors: { navy:'#2e327d', sky:'#309bf4', violet:'#6453f3', cream:'#fff2cc', peri:'#d3def2' },
+                    fontFamily: { head:['Vazirmatn','Tahoma','sans-serif'], body:['Vazirmatn','Tahoma','sans-serif'] }
+                }}
+        }
+    </script>
+    <style>
+        :root{
+            --navy:#2e327d; --sky:#309bf4; --violet:#6453f3; --cream:#fff2cc; --peri:#d3def2;
+            --hero-grad:linear-gradient(160deg,#6453f3 0%,#4b46c9 30%,#2e327d 66%,#181a44 100%);
+            --line:#e6e8f0; --ink-soft:#5d5d5d;
+        }
+        html{scroll-behavior:smooth;}
+        body{font-family:'Vazirmatn',Tahoma,sans-serif; color:#1f1f1f; background:#fff; -webkit-font-smoothing:antialiased;}
+        h1,h2,h3,.font-head{font-family:'Vazirmatn',Tahoma,sans-serif;}
+        img[src*="flat-color-icons"]{filter:saturate(.6);}
+
+        .h-hero{font-size:40px; font-weight:900; line-height:1.25; color:var(--navy); letter-spacing:-.01em;}
+        .h-xl{font-size:28px; font-weight:900; line-height:1.35; color:var(--navy); letter-spacing:-.01em;}
+        .h-md{font-size:20px; font-weight:900; line-height:1.5; color:var(--navy);}
+        .eyebrow{font-size:12px; font-weight:800; letter-spacing:.06em;}
+        .ink{color:var(--sky);}
+        .stat-num{font-size:36px; font-weight:900; line-height:1;}
+        @media (max-width:640px){ .h-hero{font-size:30px;} .h-xl{font-size:24px;} }
+
+        .btn{display:inline-flex; align-items:center; justify-content:center; gap:.5rem; height:40px; border-radius:12px; font-weight:800; font-size:14px; transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease; cursor:pointer; padding-top:0!important; padding-bottom:0!important;}
+        .btn-primary{background:var(--sky); color:#fff; padding:.8rem 1.6rem; box-shadow:0 12px 26px -10px rgba(48,155,244,.6);}
+        .btn-primary:hover{transform:translateY(-2px); background:#1f8ae8; box-shadow:0 18px 34px -10px rgba(48,155,244,.7);}
+        .btn-ghost{background:#fff; color:var(--navy); padding:.8rem 1.5rem; border:1.5px solid var(--line);}
+        .btn-ghost:hover{transform:translateY(-2px); border-color:var(--sky); box-shadow:0 12px 24px -12px rgba(46,50,125,.3);}
+        .btn-ghost-dark{background:rgba(255,255,255,.08); color:#fff; padding:.8rem 1.5rem; border:1.5px solid rgba(255,255,255,.3);}
+        .btn-ghost-dark:hover{transform:translateY(-2px); background:rgba(255,255,255,.16); border-color:#fff;}
+        .btn-violet{background:var(--violet); color:#fff; padding:.8rem 1.6rem; box-shadow:0 12px 26px -10px rgba(100,83,243,.5);}
+        .btn-violet:hover{transform:translateY(-2px);}
+        .btn-dark{background:var(--navy); color:#fff; padding:.8rem 1.6rem;}
+        .btn-dark:hover{transform:translateY(-2px); background:#001a7d;}
+
+        .card{border-radius:18px; background:#fff; border:1px solid var(--line); box-shadow:0 10px 30px -22px rgba(0,19,97,.35); transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;}
+        .lift:hover{transform:translateY(-6px); box-shadow:0 26px 50px -26px rgba(0,19,97,.4); border-color:#d6dbef;}
+
+        .why-card{position:relative; overflow:hidden; border-radius:18px; background:#fff; border:1px solid var(--line); box-shadow:0 10px 30px -22px rgba(0,19,97,.35); transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;}
+        .why-card::before{content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(160deg,#7a68f7 0%,#6453f3 45%,#4b3fd1 100%); transform:scaleX(0); transform-origin:left; transition:transform .5s cubic-bezier(.65,0,.35,1);}
+        .why-card:hover{transform:translateY(-4px); border-color:var(--violet); box-shadow:0 26px 50px -26px rgba(100,83,243,.6);}
+        .why-card:hover::before{transform:scaleX(1);}
+        .why-card > *{position:relative; z-index:1;}
+        .why-ic{display:inline-grid; place-items:center; width:56px; height:56px; margin-inline:auto; border-radius:16px; transition:background .4s ease, box-shadow .4s ease;}
+        .why-card:hover .why-ic{background:#fff !important; box-shadow:0 12px 26px -12px rgba(0,0,0,.4);}
+        .why-card h3{color:var(--navy); transition:color .35s ease;}
+        .why-card p{color:#475569; transition:color .35s ease;}
+        .why-card:hover h3{color:#fff;}
+        .why-card:hover p{color:rgba(255,255,255,.85);}
+
+        .bracketed{position:relative;}
+        .bracketed .br{position:absolute; width:20px; height:20px; pointer-events:none; z-index:5;}
+        .bracketed .br::before,.bracketed .br::after{content:""; position:absolute; background:var(--sky);}
+        .bracketed.light .br::before,.bracketed.light .br::after{background:#fff;}
+        .bracketed .br::before{width:20px; height:2.5px;} .bracketed .br::after{width:2.5px; height:20px;}
+        .bracketed .br-tr{top:-9px; right:-9px;} .bracketed .br-tr::before{top:0; right:0;} .bracketed .br-tr::after{top:0; right:0;}
+        .bracketed .br-tl{top:-9px; left:-9px;}  .bracketed .br-tl::before{top:0; left:0;}  .bracketed .br-tl::after{top:0; left:0;}
+        .bracketed .br-br{bottom:-9px; right:-9px;} .bracketed .br-br::before{bottom:0; right:0;} .bracketed .br-br::after{bottom:0; right:0;}
+        .bracketed .br-bl{bottom:-9px; left:-9px;}  .bracketed .br-bl::before{bottom:0; left:0;}  .bracketed .br-bl::after{bottom:0; left:0;}
+
+        .connector{display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 0;}
+        .connector .dline{width:2px; height:48px; background:repeating-linear-gradient(var(--line) 0 5px, transparent 5px 11px);}
+        .connector .ddot{width:9px; height:9px; border-radius:99px; background:var(--sky); box-shadow:0 0 0 5px rgba(48,155,244,.14);}
+
+        .reveal{opacity:0; transform:translateY(26px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);}
+        .reveal.in{opacity:1; transform:none;}
+
+        .rotator{display:inline-block; position:relative; color:var(--cream); min-width:5ch; text-align:center;}
+        .rotator .rw{display:inline-block; transition:opacity .4s ease, transform .4s ease;}
+        .rotator.swap .rw{opacity:0; transform:translateY(40%);}
+
+        .marquee{display:flex; gap:14px; width:max-content; animation:scrollx 64s linear infinite; padding:8px 0;}
+        @keyframes scrollx{from{transform:translateX(0)} to{transform:translateX(50%)}}
+        .marquee-wrap:hover .marquee{animation-play-state:paused;}
+        .brand{filter:grayscale(1); opacity:.7; transition:filter .25s ease, opacity .25s ease, transform .25s ease;}
+        .brand:hover{filter:grayscale(0); opacity:1; transform:translateY(-2px);}
+
+        .stat-pop{animation:statpop .5s cubic-bezier(.2,.8,.2,1);}
+        @keyframes statpop{0%{transform:scale(.82)} 55%{transform:scale(1.09)} 100%{transform:scale(1)}}
+        .stat-item{opacity:0; transform:translateY(18px); transition:opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1);}
+        .stat-item.in{opacity:1; transform:none;}
+
+        .faq-body{max-height:0; overflow:hidden; transition:max-height .4s ease;}
+        .dotgrid{background-image:radial-gradient(rgba(0,19,97,.10) 1px,transparent 1px); background-size:22px 22px;}
+
+        .acc-item{border:1px solid transparent; border-radius:16px; padding:0 8px; transition:background .3s, box-shadow .3s, border-color .3s;}
+        .acc-item+.acc-item{margin-top:2px;}
+        .acc-item.active{background:#fff; border-color:var(--line); box-shadow:0 18px 40px -26px rgba(0,19,97,.5);}
+        .acc-trigger{display:flex; align-items:center; gap:12px; width:100%; text-align:right; padding:15px 8px; cursor:pointer; color:#8a90b0; transition:color .25s;}
+        .acc-item.active .acc-trigger{color:var(--navy);}
+        .acc-ic{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; flex-shrink:0; background:#fff; border:1px solid var(--line); transition:.3s;}
+        .acc-item.active .acc-ic{border-color:var(--violet); box-shadow:0 8px 18px -8px rgba(100,83,243,.6);}
+        .acc-body{max-height:0; overflow:hidden; transition:max-height .4s ease, opacity .3s ease; opacity:0;}
+        .acc-item.active .acc-body{opacity:1;}
+        .acc-progress{height:3px; background:var(--line); border-radius:99px; overflow:hidden; margin:0 8px; opacity:0; transition:opacity .3s;}
+        .acc-item.active .acc-progress{opacity:1;}
+        .acc-progress span{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--sky),var(--violet));}
+        .acc-item.active .acc-progress span{animation:accfill 5s linear forwards;}
+        .acc-paused .acc-item.active .acc-progress span{animation-play-state:paused;}
+        @keyframes accfill{from{width:0} to{width:100%}}
+        .achip{display:inline-flex; align-items:center; padding:4px 11px; border-radius:99px; background:#eef1fb; color:#4a4f6a; font-size:11.5px; font-weight:700;}
+        .fdot{width:8px; height:8px; border-radius:99px; background:#cfd6ea; transition:.35s; cursor:pointer;}
+        .fdot.on{width:24px; background:linear-gradient(90deg,var(--sky),var(--violet));}
+        .feat-media-img{transition:opacity .45s ease, transform .6s ease;}
+
+        @media (max-width:1023px){
+            .acc-item{background:#fff; border-color:var(--line); box-shadow:0 12px 28px -20px rgba(0,19,97,.45); padding:8px 12px 12px;}
+            .acc-item .acc-body{max-height:none !important; opacity:1 !important;}
+            .acc-progress{display:none;}
+            .hero-card{border-radius:28px;}
+        }
+
+        @keyframes floaty{0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)}}
+        .floaty{animation:floaty 6s ease-in-out infinite;}
+        @keyframes floaty2{0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-22px) rotate(8deg)}}
+        .floaty2{animation:floaty2 8s ease-in-out infinite;}
+
+        .nav-link{font-size:14.5px; font-weight:700; color:#2a2f4a; transition:color .15s;}
+        .nav-link:hover{color:var(--sky);}
+        #mobileMenu{position:absolute; left:0; right:0; top:100%; transition:opacity .25s ease, transform .25s ease; box-shadow:0 16px 30px -16px rgba(0,19,97,.3);}
+        #mobileMenu.hidden-menu{opacity:0; pointer-events:none; transform:translateY(-8px); visibility:hidden;}
+
+        .frame{border-radius:16px; overflow:hidden; border:1px solid var(--line); box-shadow:0 50px 90px -45px rgba(46,50,125,.5);}
+        .hero-card{position:relative; border-radius:40px; background:var(--hero-grad);}
+        .hero-notch{position:absolute; top:0; left:50%; width:200px; height:46px; transform:translate(-50%,-1px); z-index:3; pointer-events:none;}
+
+        .device-wrap{perspective:2000px;}
+        .device{border-radius:30px; border:4px solid #6c6c6c; background:#181a44; padding:12px; transform-origin:center center; will-change:transform; transition:transform .12s ease-out; transform:rotateX(0deg) scale(1); box-shadow:rgba(0,0,0,.3) 0 0, rgba(0,0,0,.29) 0 9px 20px, rgba(0,0,0,.26) 0 37px 37px, rgba(0,0,0,.15) 0 84px 50px, rgba(0,0,0,.04) 0 149px 60px;}
+        .device-inner{position:relative; border-radius:16px; background:#0f112e;}
+        .device-tabs{position:absolute; top:-46px; left:50%; transform:translateX(-50%); display:inline-flex; align-items:center; gap:4px; height:40px; padding:4px; border-radius:10px 10px 0 0; background:#181a44;}
+        .device-tab{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; white-space:nowrap; border:none; background:transparent; transition:background .2s, color .2s;}
+        .device-tab:hover{background:rgba(255,255,255,.12);}
+        .device-tab.active{background:#fff; color:#2e327d;}
+        .device-shot{border-radius:12px; overflow:hidden; min-height:420px;}
+        @media (max-width:640px){ .device{padding:6px; border-radius:22px;} .device-tab{padding:6px 9px; font-size:11.5px;} }
+
+        .gic{display:inline-grid; place-items:center; color:#fff; border-radius:9px; flex-shrink:0; background:linear-gradient(150deg,#8273f9 0%,#6453f3 55%,#5240d8 100%); border:1px solid rgba(255,255,255,.4); box-shadow:0 5px 12px -4px rgba(100,83,243,.5), inset 0 1px 2px rgba(255,255,255,.55), inset 0 -3px 5px rgba(40,30,120,.22);}
+
+        @media (prefers-reduced-motion: reduce){
+            *{animation:none !important; transition:none !important; scroll-behavior:auto !important;}
+            .reveal,.stat-item{opacity:1 !important; transform:none !important;}
+            .device{transform:none !important;}
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-800 antialiased selection:bg-sky/20 selection:text-navy">
+
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+    <div class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 h-16 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet via-navy to-sky flex items-center justify-center text-white shadow-md shadow-violet/20 group-hover:scale-105 transition-transform">
+                <i data-lucide="layers" class="w-5.5 h-5.5"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-head font-black text-xl text-navy leading-tight tracking-tight">پرسال بیزینس</span>
+                <span class="text-[10px] font-bold text-sky tracking-widest uppercase">PERSOL BUSINESS</span>
+            </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-8">
+            <a href="#services" class="nav-link">خدمات ما</a>
+            <a href="#why-us" class="nav-link">چرا پرسال؟</a>
+            <a href="#solutions" class="nav-link">راهکارها</a>
+            <a href="#faq" class="nav-link">سوالات متداول</a>
+            <a href="#contact" class="nav-link">تماس با ما</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <a href="#contact" class="btn btn-primary hidden sm:inline-flex">
+                <span>درخواست مشاوره</span>
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </a>
+            <button id="menuBtn" class="md:hidden p-2 text-navy hover:bg-slate-100 rounded-lg transition" aria-label="منو">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="mobileMenu" class="hidden-menu md:hidden bg-white border-b border-slate-200 px-6 py-5 flex flex-col gap-4">
+        <a href="#services" class="nav-link py-2 border-b border-slate-100">خدمات ما</a>
+        <a href="#why-us" class="nav-link py-2 border-b border-slate-100">چرا پرسال؟</a>
+        <a href="#solutions" class="nav-link py-2 border-b border-slate-100">راهکارها</a>
+        <a href="#faq" class="nav-link py-2 border-b border-slate-100">سوالات متداول</a>
+        <a href="#contact" class="nav-link py-2">تماس با ما</a>
+        <a href="#contact" class="btn btn-primary w-full mt-2">
+            <span>درخواست مشاوره</span>
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </a>
+    </div>
+</header>
+
+<main>
+    <section class="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 pt-6 pb-20">
+        <div class="hero-card px-6 sm:px-12 lg:px-20 py-16 sm:py-24 text-center text-white overflow-hidden shadow-2xl">
+            <div class="absolute inset-0 dotgrid opacity-10 pointer-events-none"></div>
+
+            <svg class="hero-notch" viewBox="0 0 200 46" fill="none" preserveAspectRatio="none">
+                <path d="M0 0C40 0 50 46 100 46C150 46 160 0 200 0H0Z" fill="#ffffff"/>
+            </svg>
+
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-sky/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet/40 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-cream text-xs font-extrabold mb-8">
+                <span class="w-2 h-2 rounded-full bg-sky animate-ping"></span>
+                <span>پرسال بیزینس • شریک شما در تحول دیجیتال</span>
+            </div>
+
+            <h1 class="h-hero text-white mb-6 max-w-4xl mx-auto leading-tight">
+                خلق ارزش و هوشمندسازی سازمان با
+                <span class="rotator inline-block" id="heroRotator"><span class="rw">تحول دیجیتال</span></span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+                ارائه خدمات مشاوره مدیریت، هوش مصنوعی، هوش تجاری و سیستم‌های جامع سازمانی. ما تغییر را با درک عمیق از فرایندها و فناوری‌های روز معنا می‌بخشیم.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 mb-16 relative z-10">
+                <a href="#contact" class="btn btn-primary text-white">
+                    <span>شروع همکاری و درخواست پروپوزال</span>
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </a>
+                <a href="#services" class="btn btn-ghost-dark">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <span>بررسی خدمات تخصصی</span>
+                </a>
+            </div>
+
+            <div class="device-wrap max-w-5xl mx-auto mt-4">
+                <div class="device text-right" id="mainDevice">
+                    <div class="device-tabs">
+                        <button class="device-tab active" data-tab="ai">
+                            <span class="ic bg-violet-600"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i></span>
+                            <span>هوش مصنوعی</span>
+                        </button>
+                        <button class="device-tab" data-tab="bi">
+                            <span class="ic bg-sky-600"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i></span>
+                            <span>هوش تجاری (BI)</span>
+                        </button>
+                        <button class="device-tab" data-tab="web">
+                            <span class="ic bg-indigo-600"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i></span>
+                            <span>وب‌اپلیکیشن سازمانی</span>
+                        </button>
+                        <button class="device-tab" data-tab="bpm">
+                            <span class="ic bg-emerald-600"><i data-lucide="git-branch" class="w-3.5 h-3.5"></i></span>
+                            <span>مدیریت فرآیند (BPM)</span>
+                        </button>
+                    </div>
+
+                    <div class="device-inner p-6 sm:p-8 border border-white/10 text-white">
+                        <div id="tab-content-ai" class="tab-panel grid lg:grid-cols-12 gap-6 items-center">
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-violet-500/20 text-violet-300 text-xs font-bold border border-violet-500/30">
+                                    <i data-lucide="bot" class="w-4 h-4"></i>
+                                    <span>اتوماسیون هوشمند & یادگیری ماشین</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white">با هوش مصنوعی، فرآیندها را هوشمند کنید و آینده را امروز بسازید</h3>
+                                <p class="text-sm text-slate-300 leading-relaxed">
+                                    توسعه راهکارهای تخصصی پردازش زبان طبیعی، تحلیل پیش‌بینانه و یادگیری ماشین جهت تصمیم‌گیری سریع‌تر و اتوماسیون وظایف پیچیده سازمانی.
+                                </p>
+                                <div class="grid grid-cols-2 gap-3 pt-2">
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-sky font-black text-lg">پردازش هوشمند</div>
+                                        <div class="text-xs text-slate-400">تحلیل داده‌های متنی و اسناد</div>
+                                    </div>
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-violet-300 font-black text-lg">پیش‌بینی دقیق</div>
+                                        <div class="text-xs text-slate-400">مدل‌سازی رفتاری و مالی</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-5">
+                                <div class="bracketed light p-4 bg-navy/80 rounded-2xl border border-white/15 space-y-3">
+                                    <div class="br br-tr"></div><div class="br br-tl"></div><div class="br br-br"></div><div class="br br-bl"></div>
+                                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                                        <span class="text-xs font-bold text-slate-300">موتور تحلیل هوش مصنوعی</span>
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div class="w-4/5 h-full bg-gradient-to-r from-sky to-violet"></div>
+                                        </div>
+                                        <div class="flex justify-between text-[11px] text-slate-400">
+                                            <span>دقت مدل پردازشی</span>
+                                            <span class="text-cream font-bold">۹۹.۴٪</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-slate-300 leading-normal">
+                                        «کاهش ۷۵ درصدی خطای انسانی در طبقه‌بندی اسناد سازمانی پس از استقرار الگوریتم‌های اختصاصی پرسال.»
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tab-content-bi" class="tab-panel hidden grid lg:grid-cols-12 gap-6 items-center">
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
+                                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                                    <span>داشبوردهای تعاملی & داستان‌سرایی داده</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white">داده‌ها را به فرصت تبدیل کنید و هوشمندانه تصمیم بگیرید</h3>
+                                <p class="text-sm text-slate-300 leading-relaxed">
+                                    ارائه بینش‌های عملیاتی و راهبردی با رعایت استانداردهای جهانی Visuals، Slice و Dice جهت توانمندسازی مدیران ارشد.
+                                </p>
+                                <div class="grid grid-cols-2 gap-3 pt-2">
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-sky font-black text-lg">گزارش‌گیری زنده</div>
+                                        <div class="text-xs text-slate-400">اتصال آنلاین به دیتابیس‌ها</div>
+                                    </div>
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-cream font-black text-lg">تحلیل چندبعدی</div>
+                                        <div class="text-xs text-slate-400">ارزیابی دقیق KPIها</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-5">
+                                <div class="bracketed light p-4 bg-navy/80 rounded-2xl border border-white/15 space-y-3">
+                                    <div class="br br-tr"></div><div class="br br-tl"></div><div class="br br-br"></div><div class="br br-bl"></div>
+                                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                                        <span class="text-xs font-bold text-slate-300">نمای داشبورد مدیریتی</span>
+                                        <i data-lucide="trending-up" class="w-4 h-4 text-sky"></i>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="bg-white/5 p-2 rounded-lg text-center">
+                                            <div class="text-[10px] text-slate-400">فروش</div>
+                                            <div class="text-sm font-bold text-emerald-400">+۴۲٪</div>
+                                        </div>
+                                        <div class="bg-white/5 p-2 rounded-lg text-center">
+                                            <div class="text-[10px] text-slate-400">بهره‌وری</div>
+                                            <div class="text-sm font-bold text-sky">+۶۸٪</div>
+                                        </div>
+                                        <div class="bg-white/5 p-2 rounded-lg text-center">
+                                            <div class="text-[10px] text-slate-400">هزینه</div>
+                                            <div class="text-sm font-bold text-rose-400">-۲۵٪</div>
+                                        </div>
+                                    </div>
+                                    <div class="h-20 bg-white/5 rounded-xl border border-white/5 flex items-end p-2 gap-1.5 justify-around">
+                                        <div class="w-full bg-sky/40 rounded-t h-8"></div>
+                                        <div class="w-full bg-sky/60 rounded-t h-12"></div>
+                                        <div class="w-full bg-violet/80 rounded-t h-16"></div>
+                                        <div class="w-full bg-sky rounded-t h-14"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tab-content-web" class="tab-panel hidden grid lg:grid-cols-12 gap-6 items-center">
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-500/30">
+                                    <i data-lucide="code" class="w-4 h-4"></i>
+                                    <span>معماری مقیاس‌پذیر & UX تخصصی</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white">توسعه وب‌اپلیکیشن‌های هوشمند، متکی بر تجربه و فرایند</h3>
+                                <p class="text-sm text-slate-300 leading-relaxed">
+                                    تحلیل دقیق جریان داده و طراحی سامانه‌های اختصاصی سفارشی‌سازی‌شده جهت سهولت در تعامل و خودکارسازی رویه‌های کاری.
+                                </p>
+                                <div class="grid grid-cols-2 gap-3 pt-2">
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-sky font-black text-lg">یکپارچگی کامل</div>
+                                        <div class="text-xs text-slate-400">اتصال به سیستم‌های موجود</div>
+                                    </div>
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-violet-300 font-black text-lg">امنیت بالا</div>
+                                        <div class="text-xs text-slate-400">استانداردهای نوین سازمانی</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-5">
+                                <div class="bracketed light p-4 bg-navy/80 rounded-2xl border border-white/15 space-y-3">
+                                    <div class="br br-tr"></div><div class="br br-tl"></div><div class="br br-br"></div><div class="br br-bl"></div>
+                                    <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                                        <span class="text-[11px] text-slate-400 mr-auto">Enterprise Portal</span>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-2">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-300">سرعت پاسخ‌دهی سیستم</span>
+                                            <span class="text-emerald-400 font-bold">کمتر از ۱۲۰ms</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-300">نرخ پذیریش کاربران</span>
+                                            <span class="text-sky font-bold font-head">۹۶٪</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tab-content-bpm" class="tab-panel hidden grid lg:grid-cols-12 gap-6 items-center">
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                                    <span>استانداردسازی & چابکی سازمانی</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white">مدیریت فرایندهای سازمانی، متکی بر معماری و چابکی</h3>
+                                <p class="text-sm text-slate-300 leading-relaxed">
+                                    مدل‌سازی دقیق استاندارد BPMN، حذف فعالیت‌های زائد و ایجاد شفافیت کامل در جریان فعالیت‌ها و نقاط اتصال بین واحدها.
+                                </p>
+                                <div class="grid grid-cols-2 gap-3 pt-2">
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-emerald-400 font-black text-lg">شفافیت کامل</div>
+                                        <div class="text-xs text-slate-400">رهگیری دقیق فرایندها</div>
+                                    </div>
+                                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                        <div class="text-sky font-black text-lg">حذف گلوگاه‌ها</div>
+                                        <div class="text-xs text-slate-400">افزایش سرعت چرخه کار</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-5">
+                                <div class="bracketed light p-4 bg-navy/80 rounded-2xl border border-white/15 space-y-3">
+                                    <div class="br br-tr"></div><div class="br br-tl"></div><div class="br br-br"></div><div class="br br-bl"></div>
+                                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                                        <span class="text-xs font-bold text-slate-300">نقشه بهینه‌سازی فرایند</span>
+                                        <span class="text-xs text-emerald-400 font-bold">چابکی عالی</span>
+                                    </div>
+                                    <div class="space-y-2 text-xs">
+                                        <div class="p-2 bg-white/5 rounded flex justify-between">
+                                            <span class="text-slate-300">تحلیل وضعیت موجود (As-Is)</span>
+                                            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                                        </div>
+                                        <div class="p-2 bg-white/5 rounded flex justify-between">
+                                            <span class="text-slate-300">طراحی وضعیت مطلوب (To-Be)</span>
+                                            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                                        </div>
+                                        <div class="p-2 bg-white/5 rounded flex justify-between">
+                                            <span class="text-slate-300">پیاده‌سازی و نهادینه‌سازی</span>
+                                            <i data-lucide="loader" class="w-4 h-4 text-sky animate-spin"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="stat-item p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:shadow-xl transition-all">
+                <div class="stat-num text-navy mb-2" data-target="98">۰٪</div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">رضایت سازمان‌های همکار</div>
+            </div>
+            <div class="stat-item p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:shadow-xl transition-all">
+                <div class="stat-num text-sky mb-2" data-target="150">۰+</div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">پروژه و سیستم مستقرشده</div>
+            </div>
+            <div class="stat-item p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:shadow-xl transition-all">
+                <div class="stat-num text-violet mb-2" data-target="65">۰٪</div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">میانگین افزایش بهره‌وری</div>
+            </div>
+            <div class="stat-item p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:shadow-xl transition-all">
+                <div class="stat-num text-navy mb-2" data-target="24">۰/۷</div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">پشتیبانی و همراهی مستمر</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section id="why-us" class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span class="eyebrow inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-peri text-navy mb-3">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-sky"></i>
+                <span>ارزش‌های کلیدی ما</span>
+            </span>
+            <h2 class="h-xl mt-2">
+                چرا سازمان‌ها <span class="ink">پرسال بیزینس</span> را انتخاب می‌کنند؟
+            </h2>
+            <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                ما ریشه در یک مجموعه بزرگ تجاری داریم و چالش‌های واقعی فضای کسب‌وکار را از نزدیک زیسته‌ایم.
+            </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="why-card p-6 reveal">
+                <div class="why-ic bg-sky/10 text-sky mb-4">
+                    <i data-lucide="sliders" class="w-7 h-7"></i>
+                </div>
+                <h3 class="h-md mb-2 text-lg">راهکارهای متناسب</h3>
+                <p class="text-xs leading-relaxed">
+                    طراحی دقیق راهکارها متناسب با ساختار، فرایندها و نیاز واقعی هر سازمان، بدون تحمیل هزینه‌های زائد.
+                </p>
+            </div>
+
+            <div class="why-card p-6 reveal">
+                <div class="why-ic bg-violet/10 text-violet mb-4">
+                    <i data-lucide="handshake" class="w-7 h-7"></i>
+                </div>
+                <h3 class="h-md mb-2 text-lg">همراهی تا نهادینه‌سازی</h3>
+                <p class="text-xs leading-relaxed">
+                    استقرار پایان کار نیست؛ تا نهادینه‌شدن کامل راهکارها و آموزش تیم‌های اجرایی در کنار شما هستیم.
+                </p>
+            </div>
+
+            <div class="why-card p-6 reveal">
+                <div class="why-ic bg-emerald-500/10 text-emerald-600 mb-4">
+                    <i data-lucide="boxes" class="w-7 h-7"></i>
+                </div>
+                <h3 class="h-md mb-2 text-lg">رویکرد چندتخصصی</h3>
+                <p class="text-xs leading-relaxed">
+                    تلفیق دانش مدیریت، تحلیل داده، مهندسی نرم‌افزار و هوش مصنوعی برای ارائه راهکارهای یکپارچه.
+                </p>
+            </div>
+
+            <div class="why-card p-6 reveal">
+                <div class="why-ic bg-amber-500/10 text-amber-600 mb-4">
+                    <i data-lucide="globe" class="w-7 h-7"></i>
+                </div>
+                <h3 class="h-md mb-2 text-lg">معیار جهانی، اجرای بومی</h3>
+                <p class="text-xs leading-relaxed">
+                    سازگارسازی الگوهای برتر جهانی با واقعیت‌ها، مقررات و فرهنگ سازمانی در بازار داخلی.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section id="services" class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span class="eyebrow inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-peri text-navy mb-3">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-sky"></i>
+                <span>خدمات تخصصی</span>
+            </span>
+            <h2 class="h-xl mt-2">
+                خدمات کلیدی برای <span class="ink">تحول و رشد</span> پایدار
+            </h2>
+            <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                پوشش کامل زنجیره ارزش تحول دیجیتال از عارضه‌یابی تا پیاده‌سازی ابزارهای هوشمند.
+            </p>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-6 space-y-3" id="servicesAccordion">
+                <div class="acc-item active" data-acc="acc-ai">
+                    <button class="acc-trigger">
+                        <div class="acc-ic text-violet"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+                        <div class="flex-1">
+                            <div class="font-black text-base text-navy">راهکارهای هوش مصنوعی (AI)</div>
+                            <div class="text-xs text-slate-500 mt-0.5">پردازش زبان طبیعی، تحلیل پیش‌بینانه و اتوماسیون</div>
+                        </div>
+                    </button>
+                    <div class="acc-body px-3 pb-4 space-y-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            خدمات هوش مصنوعی ما صرفاً به کارگیری الگوریتم‌ها محدود نمی‌شود. ما راهکارهایی توسعه می‌دهیم که با اتوماسیون هوشمند و یادگیری ماشین، تصمیم‌گیری سریع‌تر و دقیق‌تر را برای سازمان شما فراهم می‌آورد.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="achip">پردازش اسناد</span>
+                            <span class="achip">پیش‌بینی تقاضا</span>
+                            <span class="achip">چت‌بات سازمانی</span>
+                        </div>
+                    </div>
+                    <div class="acc-progress"><span></span></div>
+                </div>
+
+                <div class="acc-item" data-acc="acc-bi">
+                    <button class="acc-trigger">
+                        <div class="acc-ic text-sky"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
+                        <div class="flex-1">
+                            <div class="font-black text-base text-navy">سیستم هوش تجاری (BI)</div>
+                            <div class="text-xs text-slate-500 mt-0.5">طراحی و پیاده‌سازی داشبوردهای تعاملی مدیریتی</div>
+                        </div>
+                    </button>
+                    <div class="acc-body px-3 pb-4 space-y-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            طراحی گرافیکی دقیق، تجربه کاربری روان، داستان‌سرایی داده، و رعایت استانداردهای تعامل میان اجزای بصری جهت اتخاذ تصمیمات راهبردی و عملیاتی دقیق.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="achip">انبار داده (DWH)</span>
+                            <span class="achip">Power BI</span>
+                            <span class="achip">داشبورد هیئت‌مدیره</span>
+                        </div>
+                    </div>
+                    <div class="acc-progress"><span></span></div>
+                </div>
+
+                <div class="acc-item" data-acc="acc-web">
+                    <button class="acc-trigger">
+                        <div class="acc-ic text-indigo-600"><i data-lucide="layout" class="w-5 h-5"></i></div>
+                        <div class="flex-1">
+                            <div class="font-black text-base text-navy">وب‌اپلیکیشن‌های سازمانی</div>
+                            <div class="text-xs text-slate-500 mt-0.5">طراحی، توسعه و استقرار سامانه‌های اختصاصی</div>
+                        </div>
+                    </button>
+                    <div class="acc-body px-3 pb-4 space-y-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            طراحی وب‌اپلیکیشن‌های مبتنی بر شناخت دقیق فرایندها با امکاناتی نظیر گزارش‌گیری سریع، فیلترهای پیشرفته و رابط کاربری بسیار ساده و روان برای پرسنل.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="achip">سامانه‌های ERP</span>
+                            <span class="achip">پورتال مشتریان</span>
+                            <span class="achip">اتوماسیون اختصاصی</span>
+                        </div>
+                    </div>
+                    <div class="acc-progress"><span></span></div>
+                </div>
+
+                <div class="acc-item" data-acc="acc-bpm">
+                    <button class="acc-trigger">
+                        <div class="acc-ic text-emerald-600"><i data-lucide="git-merge" class="w-5 h-5"></i></div>
+                        <div class="flex-1">
+                            <div class="font-black text-base text-navy">مدیریت فرآیندهای کسب‌وکار (BPM)</div>
+                            <div class="text-xs text-slate-500 mt-0.5">شناسایی، بهینه‌سازی و مدل‌سازی استاندارد</div>
+                        </div>
+                    </button>
+                    <div class="acc-body px-3 pb-4 space-y-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            تحلیل عمیق ساختار سازمانی و استخراج فرایندها از دل اقدامات روزمره جهت حذف گلوگاه‌ها، افزایش شفافیت و ایجاد سازمانی چابک و آماده تغییر.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="achip">استاندارد BPMN 2.0</span>
+                            <span class="achip">حذف فعالیت زائد</span>
+                            <span class="achip">بهبود مستمر</span>
+                        </div>
+                    </div>
+                    <div class="acc-progress"><span></span></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6">
+                <div class="bracketed p-6 bg-slate-900 text-white rounded-3xl shadow-2xl relative min-h-[380px] flex flex-col justify-between" id="servicePreviewFrame">
+                    <div class="br br-tr"></div><div class="br br-tl"></div><div class="br br-br"></div><div class="br br-bl"></div>
+
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                        </div>
+                        <span class="text-xs text-slate-400 font-mono" id="previewTag">PERSOL_AI_ENGINE_v2.4</span>
+                    </div>
+
+                    <div class="my-6 space-y-4" id="previewContent">
+                        <h4 class="text-2xl font-black text-sky" id="previewTitle">راهکارهای هوش مصنوعی</h4>
+                        <p class="text-sm text-slate-300 leading-relaxed" id="previewDesc">
+                            الگوریتم‌های پیشرفته یادگیری ماشین و پردازش متن جهت خودکارسازی فرایندهای پیچیده سازمانی و ایجاد مزیت رقابتی پایدار.
+                        </p>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-xl">
+                                <div class="text-xs text-slate-400">سرعت پردازش</div>
+                                <div class="text-lg font-bold text-emerald-400">۱۰ برابر سریع‌تر</div>
+                            </div>
+                            <div class="p-3 bg-white/5 border border-white/10 rounded-xl">
+                                <div class="text-xs text-slate-400">کاهش هزینه‌ها</div>
+                                <div class="text-lg font-bold text-cream">تا ۴۵ درصد</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-slate-400">
+                        <span>وضعیت: آماده استقرار سازمانی</span>
+                        <a href="#contact" class="text-sky hover:underline font-bold flex items-center gap-1">
+                            <span>درخواست دمو</span>
+                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-12">
+        <div class="text-center mb-8">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">سازمان‌ها و پروژه‌های شاخص همکار</span>
+        </div>
+        <div class="overflow-hidden marquee-wrap relative">
+            <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+
+            <div class="marquee">
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-4 h-4 text-sky"></i>
+                    <span>گروه شرکت‌های پرسال</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="factory" class="w-4 h-4 text-violet"></i>
+                    <span>صنایع تولیدی و بازرگانی</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="landmark" class="w-4 h-4 text-emerald-600"></i>
+                    <span>مؤسسات مالی و اعتباری</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-600"></i>
+                    <span>مراکز آموزشی و پژوهشی</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="stethoscope" class="w-4 h-4 text-rose-500"></i>
+                    <span>سازمان‌های حوزه سلامت</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-4 h-4 text-sky"></i>
+                    <span>گروه شرکت‌های پرسال</span>
+                </div>
+                <div class="brand px-6 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-navy text-sm flex items-center gap-2">
+                    <i data-lucide="factory" class="w-4 h-4 text-violet"></i>
+                    <span>صنایع تولیدی و بازرگانی</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section id="solutions" class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span class="eyebrow inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-peri text-navy mb-3">
+                <i data-lucide="target" class="w-3.5 h-3.5 text-sky"></i>
+                <span>مدل‌های همکاری</span>
+            </span>
+            <h2 class="h-xl mt-2">
+                مسیر همکاری با <span class="ink">پرسال بیزینس</span>
+            </h2>
+            <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                انعطاف‌پذیری کامل در ارائه خدمات متناسب با سطح بلوغ دیجتال سازمان شما.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="card lift p-6 flex flex-col justify-between hover:border-sky transition-colors reveal">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-sky/10 text-sky flex items-center justify-center font-bold mb-4">
+                        <i data-lucide="search" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="h-md mb-2">عارضه‌یابی و مشاوره</h3>
+                    <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                        تحلیل عمیق وضعیت موجود، شناسایی گلوگاه‌ها و ارائه نقشه راه جامع تحول دیجیتال.
+                    </p>
+                    <ul class="space-y-2.5 text-xs text-slate-700 mb-8">
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>مصاحبه تخصصی با ذینفعان</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>مستندسازی فرایندهای As-Is</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>تدوین گزارش عارضه‌یابی</span></li>
+                    </ul>
+                </div>
+                <a href="#contact" class="btn btn-ghost w-full">درخواست مشاوره</a>
+            </div>
+
+            <div class="card lift p-6 flex flex-col justify-between border-violet shadow-xl relative scale-105 bg-gradient-to-b from-white to-slate-50/50 reveal">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-violet text-white text-[11px] font-bold">
+                    پیشنهاد ویژه سازمان‌ها
+                </div>
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-violet/10 text-violet flex items-center justify-center font-bold mb-4">
+                        <i data-lucide="rocket" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="h-md mb-2">استقرار و پیاده‌سازی</h3>
+                    <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                        طراحی، توسعه و استقرار کامل سیستم‌های BI، وب‌اپلیکیشن‌ها و الگوریتم‌های هوش مصنوعی.
+                    </p>
+                    <ul class="space-y-2.5 text-xs text-slate-700 mb-8">
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-violet"></i><span>توسعه سفارشی نرم‌افزار</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-violet"></i><span>پیاده‌سازی داشبوردهای BI</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-violet"></i><span>یکپارچه‌سازی پایگاه داده</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-violet"></i><span>آموزش کامل کاربران</span></li>
+                    </ul>
+                </div>
+                <a href="#contact" class="btn btn-violet w-full">درخواست استقرار</a>
+            </div>
+
+            <div class="card lift p-6 flex flex-col justify-between hover:border-sky transition-colors reveal">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-navy/10 text-navy flex items-center justify-center font-bold mb-4">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="h-md mb-2">پشتیبانی و نهادینه‌سازی</h3>
+                    <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                        همراهی مستمر پس از استقرار برای اطمینان از بهینه‌سازی مداوم و نهادینه‌شدن تغییرات.
+                    </p>
+                    <ul class="space-y-2.5 text-xs text-slate-700 mb-8">
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>پایش مداوم عملکرد سیستم</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>به‌روزرسانی و بهبود مدل‌ها</span></li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i><span>پشتیبانی فنی اختصاصی</span></li>
+                    </ul>
+                </div>
+                <a href="#contact" class="btn btn-ghost w-full">اطلاعات بیشتر</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section id="faq" class="max-w-[820px] mx-auto px-6 sm:px-10 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span class="eyebrow inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-peri text-navy mb-3">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5 text-sky"></i>
+                <span>پاسخ به ابهامات</span>
+            </span>
+            <h2 class="h-xl mt-2">
+                سوالات متداول درباره <span class="ink">خدمات پرسال بیزینس</span>
+            </h2>
+        </div>
+
+        <div class="space-y-4">
+            <div class="card p-5 cursor-pointer faq-item">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="font-bold text-navy text-base">پرسال بیزینس چه تفاوتی با سایر شرکت‌های نرم‌افزاری دارد؟</h3>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-navy font-bold text-lg transition-transform faq-icon">+</span>
+                </div>
+                <div class="faq-body text-xs text-slate-600 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    ما ریشه در یک شرکت بزرگ بازرگانی داریم و فرایندها را از نگاه کسب‌وکار می‌فهمیم، نه فقط کدنویسی. تمرکز ما روی خلق ارزش عملیاتی، همراهی تا نهادینه‌سازی و ارائه راهکارهای یکپارچه مبتنی بر هوش مصنوعی و هوش تجاری است.
+                </div>
+            </div>
+
+            <div class="card p-5 cursor-pointer faq-item">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="font-bold text-navy text-base">پروژه‌های تحول دیجیتال معمولاً چقدر زمان می‌برند؟</h3>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-navy font-bold text-lg transition-transform faq-icon">+</span>
+                </div>
+                <div class="faq-body text-xs text-slate-600 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    مدت زمان پروژه بستگی به ابعاد سازمان و دامنه خدمات دارد. معمولاً فاز عارضه‌یابی و نیازمندی‌سنجی بین ۲ تا ۴ هفته و فاز پیاده‌سازی فازبندی‌شده از ۲ ماه به بالا زمان می‌برد تا نتایج ملموس در کوتاه مدت حاصل شود.
+                </div>
+            </div>
+
+            <div class="card p-5 cursor-pointer faq-item">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="font-bold text-navy text-base">آیا سیستم‌های پرسال قابلیت یکپارچه‌سازی با نرم‌افزارهای فعلی ما را دارند؟</h3>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-navy font-bold text-lg transition-transform faq-icon">+</span>
+                </div>
+                <div class="faq-body text-xs text-slate-600 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    بله، تمامی وب‌اپلیکیشن‌ها، داشبوردهای BI و موتورهای هوش مصنوعی ما دارای معماری باز (API-First) بوده و به راحتی با نرم‌افزارهای مالی، CRM، ERP و دیتابیس‌های موجود سازمان شما متصل می‌شوند.
+                </div>
+            </div>
+
+            <div class="card p-5 cursor-pointer faq-item">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="font-bold text-navy text-base">نحوه دریافت مشاوره اولیه و ثبت درخواست پروپوزال چگونه است؟</h3>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-navy font-bold text-lg transition-transform faq-icon">+</span>
+                </div>
+                <div class="faq-body text-xs text-slate-600 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    کافی است فرم تماس انتهای صفحه را تکمیل نمایید یا با شماره ۰۲۱۷۹۸۸۵ (داخلی ۱۰۶) تماس بگیرید. کارشناسان ما پس از بررسی اولیه، جلسه معارفه و نیازمندی‌سنجی رایگان تنظیم خواهند کرد.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector" aria-hidden="true"><div class="dline"></div><div class="ddot"></div></div>
+
+    <section id="contact" class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 py-16">
+        <div class="grid lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-5 space-y-6">
+                <div>
+                    <span class="eyebrow inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cream text-navy mb-3">
+                        <i data-lucide="phone-call" class="w-3.5 h-3.5 text-navy"></i>
+                        <span>ارتباط با ما</span>
+                    </span>
+                    <h2 class="h-xl mt-2">
+                        آماده شروع <span class="ink">تحول دیجیتال</span> هستید؟
+                    </h2>
+                    <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+                        با ما تماس بگیرید یا پیام بگذارید تا کارشناسان پرسال بیزینس در اسرع وقت برای ارائه مشاوره تخصصی با شما ارتباط بگیرند.
+                    </p>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div class="card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-sky/10 text-sky flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-navy text-sm">نشانی دفتر مرکزی</div>
+                            <div class="text-slate-600 mt-0.5">تهران، الهیه، خیابان بیدار، پلاک ۵</div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-violet/10 text-violet flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="phone" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-navy text-sm">شماره تلفن مستقیم</div>
+                            <div class="text-slate-600 mt-0.5" dir="ltr">۰۲۱-۷۹۸۸۵ (داخلی ۱۰۶)</div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-navy text-sm">پست الکترونیک</div>
+                            <div class="text-slate-600 mt-0.5 font-mono">info@persolbs.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7">
+                <div class="card p-6 sm:p-8 bg-slate-50 border border-slate-200">
+                    <h3 class="h-md mb-2">درخواست مشاوره و پروپوزال</h3>
+                    <p class="text-[14px] text-slate-500 mb-6">لطفا اطلاعات سازمان خود را وارد نمایید تا با شما تماس بگیریم.</p>
+
+                    <form id="proposalForm" class="space-y-4">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[14px] font-bold text-navy mb-1.5">نام و نام خانوادگی</label>
+                                <input type="text" required placeholder="مثال: علی محمدی" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-[14px] bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[14px] font-bold text-navy mb-1.5">نام سازمان / شرکت</label>
+                                <input type="text" required placeholder="مثال: شرکت بازرگانی..." class="w-full rounded-xl border border-slate-200 px-4 py-3 text-[14px] bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 transition">
+                            </div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[14px] font-bold text-navy mb-1.5">شماره تماس مستقیم</label>
+                                <input type="tel" required placeholder="۰۹۱۲..." class="w-full rounded-xl border border-slate-200 px-4 py-3 text-[14px] bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[14px] font-bold text-navy mb-1.5">حوزه خدمت مورد نیاز</label>
+                                <select class="w-full rounded-xl border border-slate-200 px-4 py-3 text-[14px] bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 transition text-slate-700">
+                                    <option>راهکارهای هوش مصنوعی (AI)</option>
+                                    <option>سیستم هوش تجاری (BI)</option>
+                                    <option>وب‌اپلیکیشن سازمانی</option>
+                                    <option>مدیریت فرآیندهای کسب‌وکار (BPM)</option>
+                                    <option>مشاوره و عارضه‌یابی جامع</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[14px] font-bold text-navy mb-1.5">توضیحات یا خلاصه نیازمندی</label>
+                            <textarea rows="4" placeholder="خلاصه‌ای از چالش‌ها یا انتظارات خود را بنویسید..." class="w-full rounded-xl border border-slate-200 px-4 py-3 text-[14px] bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 transition"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full h-11 text-base">
+                            <span>ارسال درخواست پروپوزال</span>
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+
+                        <div id="formStatus" class="hidden p-3 rounded-xl bg-emerald-50 text-emerald-700 text-[14px] text-center font-bold">
+                            درخواست شما با موفقیت ثبت شد. کارشناسان پرسال بیزینس به‌زودی با شما تماس خواهند گرفت.
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="hero-card rounded-none text-white pt-16 pb-8 relative overflow-hidden mt-12">
+    <div class="absolute inset-0 dotgrid opacity-10 pointer-events-none"></div>
+    <svg class="hero-notch" viewBox="0 0 200 46" fill="none" preserveAspectRatio="none">
+        <path d="M0 0C40 0 50 46 100 46C150 46 160 0 200 0H0Z" fill="#ffffff"/>
+    </svg>
+
+    <div class="max-w-[1180px] mx-auto px-6 sm:px-10 lg:px-24 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10 text-xs">
+            <div class="space-y-4 md:col-span-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-head font-black text-lg text-white">پرسال بیزینس</span>
+                </div>
+                <p class="text-slate-300 leading-relaxed text-[11.5px]">
+                    ارائه خدمات مشاوره مدیریت، هوش مصنوعی، هوش تجاری و توسعه نرم‌افزارهای سازمانی جهت تحول دیجیتال و ارتقای بهره‌وری سازمان‌ها.
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="font-bold text-cream text-sm">خدمات اصلی</div>
+                <ul class="space-y-2 text-slate-300">
+                    <li><a href="#services" class="hover:text-white transition">راهکارهای هوش مصنوعی</a></li>
+                    <li><a href="#services" class="hover:text-white transition">سیستم‌های هوش تجاری (BI)</a></li>
+                    <li><a href="#services" class="hover:text-white transition">وب‌اپلیکیشن‌های سازمانی</a></li>
+                    <li><a href="#services" class="hover:text-white transition">مدیریت فرایندها (BPM)</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <div class="font-bold text-cream text-sm">دسترسی سریع</div>
+                <ul class="space-y-2 text-slate-300">
+                    <li><a href="#why-us" class="hover:text-white transition">درباره ما</a></li>
+                    <li><a href="#solutions" class="hover:text-white transition">راهکارها</a></li>
+                    <li><a href="#faq" class="hover:text-white transition">سوالات متداول</a></li>
+                    <li><a href="#contact" class="hover:text-white transition">ارتباط با ما</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <div class="font-bold text-cream text-sm">ارتباط با گروه پرسال</div>
+                <div class="text-slate-300 space-y-1.5 leading-relaxed">
+                    <div>تهران، الهیه، خیابان بیدار، پلاک ۵</div>
+                    <div dir="ltr" class="text-right">۰۲۱-۷۹۸۸۵ (داخلی ۱۰۶)</div>
+                    <div class="font-mono">info@persolbs.com</div>
+                </div>
+                <div class="pt-2 flex items-center gap-3">
+                    <a href="https://www.linkedin.com/company/persolbs" target="_blank" rel="noopener" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-sky flex items-center justify-center text-white transition">
+                        <i data-lucide="linkedin" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-4">
+            <div>
+                © 2026 کلیه حقوق این وب‌سایت متعلق به <strong>گروه شرکت‌های پرسال</strong> می‌باشد.
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="#" class="hover:text-white transition">قوانین و مقررات</a>
+                <a href="#" class="hover:text-white transition">حریم خصوصی</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('in');
+                    io.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+        const words = ['تحول دیجیتال', 'هوش مصنوعی', 'هوش تجاری', 'مدیریت فرآیند'];
+        let wordIdx = 0;
+        const rotator = document.getElementById('heroRotator');
+        if (rotator) {
+            setInterval(() => {
+                rotator.classList.add('swap');
+                setTimeout(() => {
+                    wordIdx = (wordIdx + 1) % words.length;
+                    rotator.innerHTML = `<span class="rw">${words[wordIdx]}</span>`;
+                    rotator.classList.remove('swap');
+                }, 400);
+            }, 2800);
+        }
+
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden-menu');
+            });
+        }
+
+        const tabs = document.querySelectorAll('.device-tab');
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                tabs.forEach((t) => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                document.querySelectorAll('.tab-panel').forEach((panel) => {
+                    panel.classList.add('hidden');
+                });
+                const targetPanel = document.getElementById(`tab-content-${target}`);
+                if (targetPanel) targetPanel.classList.remove('hidden');
+            });
+        });
+
+        const deviceWrap = document.querySelector('.device-wrap');
+        const device = document.getElementById('mainDevice');
+        let ticked = false;
+        if (deviceWrap && device) {
+            window.addEventListener('scroll', () => {
+                if (!ticked) {
+                    window.requestAnimationFrame(() => {
+                        const rect = deviceWrap.getBoundingClientRect();
+                        const winH = window.innerHeight;
+                        if (rect.top < winH && rect.bottom > 0) {
+                            const progress = (winH - rect.top) / (winH + rect.height);
+                            const rotateX = Math.max(-6, Math.min(12, (0.5 - progress) * 16));
+                            device.style.transform = `rotateX(${rotateX}deg)`;
+                        }
+                        ticked = false;
+                    });
+                    ticked = true;
+                }
+            }, { passive: true });
+        }
+
+        function toPersianDigits(num) {
+            const p = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+            return String(num).replace(/[0-9]/g, (w) => p[parseInt(w)]);
+        }
+
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in');
+                    const numEl = entry.target.querySelector('.stat-num');
+                    if (numEl && numEl.dataset.target) {
+                        const targetNum = parseInt(numEl.dataset.target, 10);
+                        let current = 0;
+                        const duration = 1400;
+                        const step = Math.max(1, Math.floor(targetNum / 40));
+                        const interval = duration / (targetNum / step);
+                        const counter = setInterval(() => {
+                            current += step;
+                            if (current >= targetNum) {
+                                current = targetNum;
+                                clearInterval(counter);
+                            }
+                            if (targetNum === 98 || targetNum === 65) {
+                                numEl.textContent = toPersianDigits(current) + '٪';
+                            } else if (targetNum === 150) {
+                                numEl.textContent = toPersianDigits(current) + '+';
+                            } else if (targetNum === 24) {
+                                numEl.textContent = toPersianDigits(current) + '/۷';
+                            }
+                        }, interval);
+                    }
+                    statObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+        document.querySelectorAll('.stat-item').forEach((item) => statObserver.observe(item));
+
+        const accData = {
+            'acc-ai': {
+                tag: 'PERSOL_AI_ENGINE_v2.4',
+                title: 'راهکارهای هوش مصنوعی',
+                desc: 'الگوریتم‌های پیشرفته یادگیری ماشین و پردازش متن جهت خودکارسازی فرایندهای پیچیده سازمانی و اتخاذ تصمیمات هوشمند.',
+                metric1Title: 'سرعت پردازش اسناد',
+                metric1Val: '۱۰ برابر سریع‌تر',
+                metric2Title: 'کاهش خطای انسانی',
+                metric2Val: 'تا ۷۵ درصد'
+            },
+            'acc-bi': {
+                tag: 'PERSOL_BI_ANALYTICS_v4',
+                title: 'سیستم هوش تجاری (BI)',
+                desc: 'داشبوردهای مدیریتی یکپارچه با قابلیت تحلیل سناریوها، فیلترهای تعاملی و داستان‌سرایی داده برای مدیران ارشد.',
+                metric1Title: 'انبارش داده‌های چندمنبعی',
+                metric1Val: '۱۰۰٪ یکپارچه',
+                metric2Title: 'افزایش دقت تصمیم‌گیری',
+                metric2Val: 'تا ۸۵ درصد'
+            },
+            'acc-web': {
+                tag: 'PERSOL_ENTERPRISE_WEB_v3',
+                title: 'وب‌اپلیکیشن‌های سازمانی',
+                desc: 'سامانه‌های اختصاصی چابک و مقیاس‌پذیر با رابط کاربری روان و فیلترهای پیشرفته جهت خودکارسازی رویه‌های کاری.',
+                metric1Title: 'زمان پاسخ‌دهی سیستم',
+                metric1Val: 'کمتر از ۱۲۰ms',
+                metric2Title: 'رضایت کاربران سازمانی',
+                metric2Val: '۹۶ درصد'
+            },
+            'acc-bpm': {
+                tag: 'PERSOL_BPM_WORKFLOW_v1.8',
+                title: 'مدیریت فرآیند (BPM)',
+                desc: 'معماری چابک سازمانی، استانداردسازی BPMN و حذف گلوگاه‌های عملیاتی جهت ارتقای شفافیت در کل سازمان.',
+                metric1Title: 'حذف فعالیت‌های زائد',
+                metric1Val: 'تا ۴۰ درصد',
+                metric2Title: 'سرعت چرخه فرایند',
+                metric2Val: '۳ برابر افزایش'
+            }
+        };
+
+        const accItems = document.querySelectorAll('.acc-item');
+        let currentAccIdx = 0;
+        let accTimer = null;
+
+        function setAccActive(index) {
+            accItems.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('active');
+                    const accKey = item.dataset.acc;
+                    const data = accData[accKey];
+                    if (data) {
+                        const tag = document.getElementById('previewTag');
+                        const title = document.getElementById('previewTitle');
+                        const desc = document.getElementById('previewDesc');
+                        const frame = document.getElementById('servicePreviewFrame');
+                        if (tag) tag.textContent = data.tag;
+                        if (title) title.textContent = data.title;
+                        if (desc) desc.textContent = data.desc;
+                        if (frame) {
+                            const metrics = frame.querySelectorAll('.grid > div');
+                            if (metrics.length >= 2) {
+                                metrics[0].children[0].textContent = data.metric1Title;
+                                metrics[0].children[1].textContent = data.metric1Val;
+                                metrics[1].children[0].textContent = data.metric2Title;
+                                metrics[1].children[1].textContent = data.metric2Val;
+                            }
+                        }
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function startAccCycle() {
+            accTimer = setInterval(() => {
+                currentAccIdx = (currentAccIdx + 1) % accItems.length;
+                setAccActive(currentAccIdx);
+            }, 5000);
+        }
+
+        accItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                clearInterval(accTimer);
+                currentAccIdx = index;
+                setAccActive(currentAccIdx);
+                startAccCycle();
+            });
+        });
+
+        startAccCycle();
+
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                const body = item.querySelector('.faq-body');
+                const icon = item.querySelector('.faq-icon');
+                const isOpen = body.style.maxHeight && body.style.maxHeight !== '0px';
+
+                faqItems.forEach((other) => {
+                    const b = other.querySelector('.faq-body');
+                    const ic = other.querySelector('.faq-icon');
+                    if (b) b.style.maxHeight = '0px';
+                    if (ic) {
+                        ic.textContent = '+';
+                        ic.style.transform = 'rotate(0deg)';
+                    }
+                });
+
+                if (!isOpen && body) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                    if (icon) {
+                        icon.textContent = '×';
+                        icon.style.transform = 'rotate(90deg)';
+                    }
+                }
+            });
+        });
+
+        const proposalForm = document.getElementById('proposalForm');
+        const formStatus = document.getElementById('formStatus');
+        if (proposalForm && formStatus) {
+            proposalForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                formStatus.classList.remove('hidden');
+                proposalForm.reset();
+                setTimeout(() => {
+                    formStatus.classList.add('hidden');
+                }, 6000);
+            });
+        }
+    });
+</script>
+</body>
+</html>

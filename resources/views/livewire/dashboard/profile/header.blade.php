@@ -115,7 +115,7 @@
             <p class="text-[11px] sm:text-xs text-[var(--md-sys-color-on-surface-variant)] mt-2.5 opacity-80 leading-relaxed">
                 لطفاً برای دسترسی کامل به امکانات سیستم،
 
-                <a href="?activeTab=info"
+                <a href="?tab=info"
                    class="inline-flex items-center gap-1 text-[var(--md-sys-color-primary)] font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)] rounded">
                     اطلاعات پروفایل
                     <span class="material-symbols-rounded text-[14px]">arrow_right</span>

@@ -1,7 +1,12 @@
 <x-filament-widgets::widget>
-    <div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] p-4 md:p-6 shadow-sm shadow-[var(--md-sys-elevation-1)]" dir="rtl">
-        <x-ui.title icon="hub" title="{{ __('راهنمای راهبری و مدیریت سیستم (CMS)') }}" :count="count(config('modules', []))" countLabel="ماژول یکپارچه" />
-
+    <x-filament::section
+        icon="heroicon-o-book-open"
+        heading="{{ __('resources/dashboard/strings.guide.heading') }}"
+        description="{{ count(config('modules', [])) }} {{ __('resources/dashboard/strings.guide.module_count_suffix') }}"
+        collapsible
+        collapsed
+    >
+    <div dir="rtl">
         <p class="text-sm leading-8 text-[var(--md-sys-color-on-surface-variant)] mb-5 text-justify">
             این بستر مدیریتی بر پایه معماری قدرتمند معماری ماژولار (مبتنی بر دامنه - Domain Driven) توسعه یافته است تا
             چابکی و دقت را در فرآیندهای مدیریت داده‌های سازمان به ارمغان آورد. ماژول‌ها در ۴ قلمرو اصلی دسته‌بندی
@@ -22,7 +27,7 @@
                 <div class="p-6 md:p-8 md:pr-6">
                     <p class="text-sm font-semibold text-[var(--md-sys-color-on-surface)] mb-4 flex items-center gap-2">
                         <span class="material-symbols-rounded text-primary">layers</span>
-                        ابزارهای هوشمند مدیریت داده در هسته مرکزی پنل
+                        {{ __('resources/dashboard/strings.guide.tools_heading') }}
                     </p>
 
                     <p class="text-[13px] leading-[2.2] text-[var(--md-sys-color-on-surface-variant)] text-justify mb-6">
@@ -56,7 +61,7 @@
             <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] flex items-center justify-center">
                 <span class="material-symbols-rounded text-base font-fill">account_tree</span>
             </div>
-            <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">معماری ماژول‌های سیستم</h2>
+            <h2 class="text-base font-bold text-[var(--md-sys-color-on-surface)]">{{ __('resources/dashboard/strings.guide.architecture_heading') }}</h2>
             <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
         </div>
 
@@ -69,7 +74,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/30">
-                                {{ $categoryData['modules']->count() }} زیرسیستم
+                                {{ $categoryData['modules']->count() }} {{ __('resources/dashboard/strings.guide.subsystem_count_suffix') }}
                             </span>
                             <span class="material-symbols-rounded text-xl transition-transform duration-300 text-[var(--md-sys-color-outline)]" :class="category === '{{ $hashedCategory }}' ? 'rotate-180 text-[var(--md-sys-color-primary)]' : ''">
                                 expand_more
@@ -104,7 +109,7 @@
                                         <div class="bg-[var(--md-sys-color-surface)] rounded-lg p-3 border border-[var(--md-sys-color-outline-variant)]/20 mt-3">
                                             <div class="flex items-center gap-2 mb-2">
                                                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-secondary)]">settings_suggest</span>
-                                                <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">راهبرد مدیریتی CMS</span>
+                                                <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ __('resources/dashboard/strings.guide.strategy_heading') }}</span>
                                             </div>
                                             <p class="text-[12px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] text-justify pr-6">
                                                 {{ $module['admin_tip'] ?? 'مدیریت پیوسته جریان داده‌ها و اعتبارسنجی دوره‌ای با استفاده از ابزارهای بومی پنل.' }}
@@ -119,4 +124,5 @@
             @endforeach
         </div>
     </div>
+    </x-filament::section>
 </x-filament-widgets::widget>

@@ -656,6 +656,11 @@ that have ≥1 share and are in the window). Pure SQL `whereBetween`, no PHP loo
 `title`/`body` are party-agnostic («رویداد مشترک نزدیک است» / «…در ۲۴ ساعت آینده است…») — one
 message fits both sharer and sharee.
 
+`EventShare` rows are not only user-authored (`ShareEventAction`) — `App\Services\Reservation\EventSyncService`
+also creates one per active meeting-resource booking (booker owns the `Event`, the resource's
+`relatedUser` gets the share), so a reservation rides this exact badge/nudge pair with no bespoke
+notification code. See `app/Services/Reservation/reservationPattern.md`.
+
 **Badge vs nudge window — decoupled.** The **nudge** (`SharedEventsNudge`) is the share-time
 *announcement*: `show` keeps the whole-upcoming span (`date >= now`), so the bell stays from sharing
 until the event passes. The **badge** is the 24h *reminder* that lights only near the event. Share →

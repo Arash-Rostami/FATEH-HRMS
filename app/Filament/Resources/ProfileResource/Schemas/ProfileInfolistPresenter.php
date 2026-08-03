@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
 use App\Enums\ProfileDetailGroup;
+use App\Enums\SkillRequestStatus;
+use App\Enums\SkillTier;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentStatus;
 use App\Filament\Resources\ProfileResource\Enums\EmploymentType;
@@ -13,12 +15,67 @@ use App\Filament\Resources\ProfileResource\Enums\WorkExperience;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Profile;
 use Filament\Infolists\Components\ColorEntry;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 
 class ProfileInfolistPresenter
 {
+
+    public static function skills(): RepeatableEntry
+    {
+        return RepeatableEntry::make('skills')
+            ->label(__('resources/profile/strings.infolist.section_skills'))
+            ->schema([
+                TextEntry::make('skill_name')
+                    ->label(__('resources/skill/strings.fields.skill'))
+                    ->weight('bold'),
+                TextEntry::make('status')
+                    ->label(__('resources/skill/strings.fields.status'))
+                    ->badge()
+                    ->formatStateUsing(fn(SkillRequestStatus $state): string => $state->label())
+                    ->color(fn(SkillRequestStatus $state): string => $state->color()),
+                TextEntry::make('tier')
+                    ->label(__('resources/skill/strings.fields.tier'))
+                    ->badge()
+                    ->formatStateUsing(fn(?SkillTier $state): string => $state?->label() ?? '-')
+                    ->color(fn(?SkillTier $state): string => $state?->color() ?? 'gray'),
+                TextEntry::make('endorsements_count')
+                    ->label(__('resources/skill/strings.fields.endorsements_count')),
+                TextEntry::make('last_used_at')
+                    ->label(__('resources/skill/strings.fields.last_used_at'))
+                    ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+                    ->placeholder('-')
+                    ->color('gray'),
+                IconEntry::make('is_mentoring')
+                    ->label(__('resources/skill/strings.fields.is_mentoring'))
+                    ->boolean(),
+                IconEntry::make('is_private')
+                    ->label(__('resources/skill/strings.fields.is_private'))
+                    ->boolean(),
+            ])
+            ->columns(3)
+            ->getStateUsing(fn (Profile $record): array => static::skillsState($record))
+            ->placeholder(__('resources/profile/strings.form.no_skills'))
+            ->columnSpanFull();
+    }
+
+    public static function skillsState(Profile $record): array
+    {
+        return ($record->user?->skillUsers()->with('skill')->latest('id')->get() ?? collect())
+            ->map(fn ($skillUser): array => [
+                'skill_name' => $skillUser->skill?->name ?? $skillUser->requested_name ?? '-',
+                'status' => $skillUser->status,
+                'tier' => $skillUser->status === SkillRequestStatus::Approved ? $skillUser->stateTier() : null,
+                'endorsements_count' => $skillUser->endorsementLabel(),
+                'last_used_at' => $skillUser->last_used_at,
+                'is_mentoring' => $skillUser->is_mentoring,
+                'is_private' => $skillUser->is_private,
+            ])
+            ->values()
+            ->toArray();
+    }
 
     public static function aboutMe(): RepeatableEntry
     {

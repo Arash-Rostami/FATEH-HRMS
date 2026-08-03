@@ -12,6 +12,7 @@ use App\Filament\Resources\UserResource\RelationManagers\PermissionsRelationMana
 use App\Filament\Resources\UserResource\RelationManagers\ProfileRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ReportsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\ReservationsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\SkillsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TicketsRelationManager;
@@ -145,6 +146,7 @@ class UserResource extends Resource
             EnergyTestsRelationManager::class,
             ReportsRelationManager::class,
             ReservationsRelationManager::class,
+            SkillsRelationManager::class,
             SuggestionsRelationManager::class,
             TasksRelationManager::class,
             TicketsRelationManager::class

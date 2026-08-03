@@ -5,8 +5,23 @@
             icon="badge"
             title="وضعیت همکاران"
             :count="array_sum($this->stats)"
-            countLabel="نفر"/>
+            countLabel="نفر">
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'status-skill-legend' })"
+                    title="راهنمای نشان‌های سطح مهارت"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
     </div>
+
+    <x-ui.modals.dialog name="status-skill-legend" title="راهنمای نشان‌های سطح مهارت">
+        @include('livewire.dashboard.tab.status.legend')
+    </x-ui.modals.dialog>
 
     @include('livewire.dashboard.tab.status.filters')
 

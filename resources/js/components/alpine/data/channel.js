@@ -6,6 +6,8 @@ import pasteImageMixin from "../mixins/pasteImage.js";
 
 const segmenter = new Intl.Segmenter();
 const emojiSet = new Set(emojis.flatMap(c => c.items));
+const HTML_TAG_RE = /<[^>]*>/g;
+const WS_ONLY_RE = /^\s+$/;
 
 export default function channel() {
     return {
@@ -229,10 +231,12 @@ export default function channel() {
         },
 
         isEmojiOnly(text) {
-            const stripped = text?.replace(/<[^>]*>/g, '').trim() ?? '';
+            const stripped = text?.replace(HTML_TAG_RE, '').trim() ?? '';
             if (!stripped) return false;
-            return [...segmenter.segment(stripped)]
-                .every(({segment}) => emojiSet.has(segment) || /^\s+$/.test(segment));
+            for (const {segment} of segmenter.segment(stripped)) {
+                if (!emojiSet.has(segment) && !WS_ONLY_RE.test(segment)) return false;
+            }
+            return true;
         },
 
         toggleHighlight() {

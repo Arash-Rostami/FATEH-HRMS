@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    @include('components.dashboard.header.focus-banner')
+    @include('components.dashboard.header.focus-chip')
 
     @if($this->hasAnyCredentials)
         {{-- Search --}}

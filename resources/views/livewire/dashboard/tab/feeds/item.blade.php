@@ -1,4 +1,5 @@
 <div
+    data-rf="feeds-{{ $feed->id }}"
     class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
     :class="{
         'shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] ring-1 ring-[var(--md-sys-color-primary)]/30': activeId == {{ $feed->id }}

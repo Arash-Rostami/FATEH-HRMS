@@ -145,10 +145,10 @@ class Main extends Component
         );
     }
 
-    public function focusMessage(int $id): void
+    public function focusMessage(int $id): bool
     {
         if (!$this->activeUserId || $id <= 0) {
-            return;
+            return false;
         }
 
         $overLimit = app(FocusMessageAction::class)->execute(
@@ -159,7 +159,7 @@ class Main extends Component
         );
 
         if ($overLimit === null) {
-            return;
+            return false;
         }
 
         $this->messageSearch = '';
@@ -171,25 +171,31 @@ class Main extends Component
                 $this->invalidateMessageCache();
             }
             $this->dispatch('record-focus', type: 'message', id: $id);
-            return;
+            return true;
         }
 
         $this->focusAnchorId = $id;
         $this->focusOlder = 5;
         $this->invalidateMessageCache();
         $this->dispatch('record-focus', type: 'message', id: $id);
+        return true;
     }
 
-    public function focusRecord(int $userId): void
+    public function focusRecord(int $userId): bool
     {
-        if (User::whereKey($userId)->exists()) {
-            $this->selectContact($userId, app(MarkMessagesAsReadAction::class));
-
-            $focusMsg = (int) request()->query('focus_msg', 0);
-            if ($focusMsg > 0) {
-                $this->focusMessage($focusMsg);
-            }
+        if (!User::whereKey($userId)->exists()) {
+            return false;
         }
+
+        $focusMsg = (int) request()->query('focus_msg', 0);
+
+        $this->selectContact($userId, app(MarkMessagesAsReadAction::class), dispatchReady: $focusMsg <= 0);
+
+        if ($focusMsg > 0) {
+            return $this->focusMessage($focusMsg);
+        }
+
+        return false;
     }
 
     #[Computed]
@@ -299,7 +305,7 @@ class Main extends Component
         $this->dispatch('show-toast', message: 'پیام ویرایش شد', type: 'success');
     }
 
-    public function selectContact(int $userId, MarkMessagesAsReadAction $markRead): void
+    public function selectContact(int $userId, MarkMessagesAsReadAction $markRead, bool $dispatchReady = true): void
     {
         if (!User::getCachedAllOptions()->has($userId)) return;
 
@@ -316,7 +322,9 @@ class Main extends Component
         $markRead->execute($userId, auth()->id());
 
         unset($this->contacts);
-        $this->dispatch('chat-ready');
+        if ($dispatchReady) {
+            $this->dispatch('chat-ready');
+        }
     }
 
     public function send(SendMessageAction $action, ?int $replyToId = null): void

@@ -30,6 +30,8 @@ class Main extends Component
     #[Locked]
     public $ticketToRate = null;
     public ?array $selectedTicket = null;
+
+    #[Url(as: 'tab')]
     public string $activeTab = 'new';
     public string $direction = 'up';
     public string $modalTab = 'request';

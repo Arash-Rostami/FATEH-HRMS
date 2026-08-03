@@ -62,9 +62,9 @@
                     class="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center lg:items-stretch xl:items-center gap-4 shrink-0 self-stretch lg:self-center">
                     <div class="flex flex-wrap gap-3 items-center justify-start">
                         @foreach(array_filter([
-                            $roleLabel  ? ['icon' => 'badge',           'label' => 'نقش',  'value' => $roleLabel]  : null,
-                            $department ? ['icon' => 'corporate_fare',  'label' => 'واحد', 'value' => $department] : null,
-                            ['icon' => 'person', 'label' => 'کاربر', 'value' => $user?->name ?? '—'],
+                            $roleLabel  ? ['icon' => 'badge',           'label' => __('resources/dashboard/strings.account_widget.role'),       'value' => $roleLabel]  : null,
+                            $department ? ['icon' => 'corporate_fare',  'label' => __('resources/dashboard/strings.account_widget.department'), 'value' => $department] : null,
+                            ['icon' => 'person', 'label' => __('resources/dashboard/strings.account_widget.user'), 'value' => $user?->name ?? '—'],
                         ]) as $chip)
                             <div
                                 class="flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-2xl bg-[var(--md-sys-color-on-primary-container)]/[0.06] border border-[var(--md-sys-color-on-primary-container)]/[0.1] min-w-[100px] transition-all duration-300 hover:bg-[var(--md-sys-color-on-primary-container)]/[0.09] hover:scale-[1.02]">

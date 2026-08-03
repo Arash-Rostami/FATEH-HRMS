@@ -41,7 +41,7 @@
             @include('livewire.dashboard.dms.status-legend')
         </x-ui.modals.dialog>
 
-        @include('components.dashboard.header.focus-banner')
+        @include('components.dashboard.header.focus-chip')
 
         <div class="w-fit z-1 bg-[var(--md-sys-color-surface)] mb-6">
             <x-ui.buttons.tab-selector

@@ -6,6 +6,7 @@ use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyNotice;
 use App\Livewire\Dashboard\Ads\Main as Ads;
+use App\Livewire\Dashboard\Analytics\Main as Analytics;
 use App\Livewire\Dashboard\Authority\Main as Authority;
 use App\Livewire\Dashboard\Contact\Main as Contact;
 use App\Livewire\Dashboard\Channel\Main as Channel;
@@ -53,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/contacts', Contact::class)->name('contact');
     Route::get('/channels', Channel::class)->name('channels');
     Route::get('/energy', Energy::class)->name('energy');
+    Route::get('/analytics', Analytics::class)->name('analytics');
 
     Route::get('/reservation', Reservation::class)->name('reservation');
 
