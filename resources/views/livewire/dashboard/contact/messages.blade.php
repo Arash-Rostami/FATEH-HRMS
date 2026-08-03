@@ -294,5 +294,5 @@
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 translate-y-4"
      class="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-3 rounded-lg shadow-2xl text-sm bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-    <button x-on:click="$wire.undoDelete()" class="font-bold transition-colors text-[#facc15]">↻ بازگشت</button>
+    <button x-on:click="$wire.$island('messages').undoDelete().then(() => $wire.$island('sidebar').refreshUnread()).catch(() => {})" class="font-bold transition-colors text-[#facc15]">↻ بازگشت</button>
 </div>

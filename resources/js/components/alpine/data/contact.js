@@ -40,6 +40,8 @@ export default function contact() {
         _onKeyDown: null,
         _selRaf: null,
         _unreadObserver: null,
+        _timer: null,
+        _onVisibility: null,
 
         insertEmoji(e) {
             const ta = document.getElementById('msg-ta');
@@ -72,6 +74,10 @@ export default function contact() {
                 }
             }
 
+            this.startPolling();
+            this._onVisibility = () => document.hidden ? this.stopPolling() : this.startPolling();
+            document.addEventListener('visibilitychange', this._onVisibility);
+
             const vp = document.getElementById('msg-viewport');
             if (vp) {
                 vp.style.overflowAnchor = 'none';
@@ -85,7 +91,7 @@ export default function contact() {
                             if (vp.scrollTop < 80 && !this._loadingOlder && this.$wire.hasOlder) {
                                 this._loadingOlder = true;
                                 const prevHeight = vp.scrollHeight;
-                                this.$wire.loadMoreMessages()
+                                this.$wire.$island('messages').loadMoreMessages()
                                     .then(() => {
                                         this.$nextTick(() => {
                                             const delta = vp.scrollHeight - prevHeight;
@@ -153,12 +159,29 @@ export default function contact() {
         },
 
         destroy() {
+            this.stopPolling();
+            if (this._onVisibility) document.removeEventListener('visibilitychange', this._onVisibility);
             const vp = document.getElementById('msg-viewport');
             if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
             if (this._selRaf) cancelAnimationFrame(this._selRaf);
             if (this._onSelectionChange) document.removeEventListener('selectionchange', this._onSelectionChange);
             if (this._onKeyDown) document.removeEventListener('keydown', this._onKeyDown);
             if (this._unreadObserver) this._unreadObserver.disconnect();
+        },
+
+        startPolling() {
+            if (this._timer) return;
+            this._timer = setInterval(() => {
+                this.$wire.$island('sidebar').refreshUnread().catch(() => {});
+                if (this.$wire.activeUserId) {
+                    this.$wire.$island('messages').refreshActive().catch(() => {});
+                }
+            }, 10000);
+        },
+
+        stopPolling() {
+            clearInterval(this._timer);
+            this._timer = null;
         },
 
         syncPushNotify() {
@@ -210,7 +233,7 @@ export default function contact() {
         },
 
         focusSearch() {
-            const searchInput = document.getElementById('search-input');
+            const searchInput = document.getElementById('search');
             if (searchInput) {
                 searchInput.focus();
                 searchInput.select();
@@ -244,7 +267,7 @@ export default function contact() {
                 el.classList.add('record-focus-flash');
                 return;
             }
-            this.$wire.focusMessage(id).catch(() => {});
+            this.$wire.$island('messages').focusMessage(id).catch(() => {});
         },
 
         openMessageSearch() {
@@ -257,7 +280,25 @@ export default function contact() {
         focusSearchResult(id) {
             if (!id) return;
             this.searchMessages = false;
-            this.$wire.focusMessage(id).catch(() => {});
+            this.$wire.$island('messages').focusMessage(id).catch(() => {});
+        },
+
+        selectContact(id) {
+            if (!id) return;
+            this.replyingTo = null;
+            this.editingMsg = null;
+            this.deletingId = null;
+            this.openActionsId = null;
+            this.searchMessages = false;
+            this.$wire.$island('messages').selectContact(id)
+                .then(() => {
+                    this.$wire.$island('sidebar').refreshUnread().catch(() => {});
+                    this.$nextTick(() => {
+                        this.scrollToBottom(false);
+                        if (window.innerWidth < 768) document.getElementById('msg-ta')?.focus();
+                    });
+                })
+                .catch(() => {});
         },
 
         resetUI() {
@@ -346,7 +387,7 @@ export default function contact() {
             if (!this.editingMsg?.id) return;
 
             try {
-                await this.$wire.saveEdit(this.editingMsg.id);
+                await this.$wire.$island('messages').saveEdit(this.editingMsg.id);
                 this.cancelEdit();
             } catch (error) {
                 this.toast('خطا در ذخیره ویرایش پیام.', 'error');
@@ -368,7 +409,7 @@ export default function contact() {
             if (!this.deletingId) return;
 
             try {
-                await this.$wire.deleteMessage(this.deletingId);
+                await this.$wire.$island('messages').deleteMessage(this.deletingId);
                 this.cancelDelete();
                 this.openActionsId = null;
             } catch (error) {
@@ -395,8 +436,9 @@ export default function contact() {
 
             this.sending = true;
             try {
-                await this.$wire.send(this.replyingTo?.id ?? null);
+                await this.$wire.$island('messages').send(this.replyingTo?.id ?? null);
                 this.replyingTo = null;
+                this.$wire.$island('sidebar').refreshUnread().catch(() => {});
             } catch (error) {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {
