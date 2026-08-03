@@ -156,6 +156,14 @@ export default function contact() {
                     this.showUndo = false;
                 }
             });
+
+            const focusMsg = parseInt(new URLSearchParams(window.location.search).get('focus_msg'), 10) || 0;
+            if (this.$wire.activeUserId && focusMsg <= 0) {
+                this.$nextTick(() => {
+                    this.scrollToBottom(false);
+                    if (window.innerWidth < 768) document.getElementById('msg-ta')?.focus();
+                });
+            }
         },
 
         destroy() {
