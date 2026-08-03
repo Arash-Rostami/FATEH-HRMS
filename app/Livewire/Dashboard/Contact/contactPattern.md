@@ -1,0 +1,349 @@
+# Contact Module Pattern Guide
+
+The internal **one-to-one messenger** (`/contacts`). Every active user is reachable by every other active user — there is **no membership gate** (unlike the sibling `channels` module, which is one-to-many broadcast with a `channel_members` gate). Built with Livewire v4.1 islands, Filament v5 admin, Laravel 12, PHP 8.2. MySQL 5.7-compatible baseline (production 8+).
+
+This doc is the **single source of truth** for every file, contract, rule, and gotcha in the module. Read it before touching anything contact-related. The canonical **general** rules for `@island` scope/memoization live in `app/Livewire/livewirePattern.md`; this doc covers the Contact-specific architecture, contracts, and the island-migration history (with the concrete island instance retained in §3 as the lesson that motivated those general rules).
+
+---
+
+## 1. Stack & compatibility (verified)
+
+- **Livewire `^4.1`** (NOT v3) — `@island`, `#[Computed]`, `#[Locked]`, Livewire `Form` objects, `$wire.$island('name').method()`.
+- **Filament `v5`** — admin `MessageResource` (messages are the shared `messages` table; no Contact-specific admin resource).
+- **Laravel 12**, **PHP 8.2** (NO property hooks).
+- **MySQL**: 5.7-compatible (dev) / 8+ (prod). `unionAll`, `leftJoinSub`, composite/covering indexes are used and safe. No `JSON_TABLE`, no window functions. `users.id` = `bigIncrements` → all FKs `unsignedBigInteger`.
+- The `messages` table is **shared** with the Channel module (`ChannelMessage` is a separate model on a separate table; `Message` is the 1:1 model). Contact writes `messages` rows where `sender_id`/`recipient_id` are the two users.
+
+---
+
+## 2. The one invariant that drives everything
+
+> **A user can message any active user. There is no membership gate — it is 1:1, not broadcast.**
+
+Everything flows from this:
+
+- **Sidebar list** = all active users (`FetchContactsAction` returns `User::active()` with `leftJoinSub` for last-message + unread; a user with no prior conversation still appears, with `last_message = null`, `unread_count = 0`). Contrast Channel, where the sidebar is your memberships only.
+- **`selectContact`** guards only on `User::getCachedAllOptions()->has($userId)` (user exists/active) — no membership row, no `whereHas`. Silent `return` on fail (not a 403).
+- **Unread** = messages where `recipient_id = me`, `read_at IS NULL`, `deleted_at IS NULL`, counted per contact (`unreadSub` in `FetchContactsAction`).
+- **Marking read** = `MarkMessagesAsReadAction` sets `read_at` on the contact's inbound messages to me.
+- There is **no create/browse flow** — every active user is already reachable. There is **no channel type**, no owner, no join/leave.
+
+---
+
+## 3. Architecture — the rules that matter
+
+### 3.1 Islands (the critical lesson — read twice)
+
+Two islands: `@island(name:'sidebar')` and `@island(name:'messages')`, wrapped in `contact.blade.php`.
+
+**Island scope rule (hard-won, ported from Channel):** on an **island-scoped method call** (e.g. `$wire.$island('messages').selectContact(id)`, which re-renders the messages island natively after `selectContact`), the island re-renders with a **reduced scope**:
+- ✅ Available: public properties (as bare vars: `$activeUserId`, `$search`, `$filter`, `$mobileShowChat`, `$hasOlder`) **and** `$this` (the component instance) **and** `$__livewire`.
+- ❌ NOT available as bare vars: `#[Computed]` properties (`$activeContact`, `$contacts`, `$messages`, `$groupedMessages`, `$lastMessageId`, `$presenter`).
+
+**Therefore:** inside islands and their `@include` partials, **always** reach computeds via `$this->` (e.g. `$this->activeContact`, `$this->contacts`, `$this->presenter`), never the bare variable. Each partial that needs the presenter opens with `@php($p = $this->presenter; ...)` and uses the **local** `$p`. A bare `$activeContact` in an island partial throws "Undefined variable $activeContact" on the refresh path. `Livewire::test()->html()` does a **full render** that shares scope globally and **masks this bug** — only the real browser refresh exposes it.
+
+**This is Contact's own history, not just a copy of Channel's rule.** The pre-migration monolith injected `['activeContact' => $this->activeContact, 'p' => new ContactPresenter()]` into `render()` and every partial read the bare `$activeContact`/`$p`. The island migration (Phase B) replaced every one of those 29 reads with `$this->activeContact` / a local `$p = $this->presenter`, and only then — Phase A step 2, its own commit — dropped the `render()` injection. The grep audit in §10 is the artifact that proves §3 stays true going forward.
+
+**Nested anonymous Blade components (`<x-...>`) inside an island do NOT inherit `$__livewire`.** So `@entangle` / `<x-ui.forms.search>` (which needs `$__livewire`) fatals inside an island. The sidebar search reuses Channel's shared `livewire.dashboard.channel.search-field` partial — island-safe: plain `wire:model.live.debounce` + Alpine clear + `x-teleport` overlay + `wire:ignore.self`; the `refreshSidebarOnClose` prop appends `$wire.$island('sidebar').refreshUnread()` to its close handler.
+
+### 3.2 Polling (D1 — why Contact's poll differs from Channel's)
+
+**Contact polls TWO islands; Channel polls only the sidebar.** This is a deliberate divergence — do NOT "fix" it back to Channel's sidebar-only pattern.
+
+`contact.js` `startPolling()` runs a `setInterval(10s)` (no `wire:poll` — `wire:poll` was removed in Phase B) that, each tick:
+1. `$wire.$island('sidebar').refreshUnread()` — **always** (recompute the contact list → fresh unread counts + last-message previews for incoming messages).
+2. `$wire.$island('messages').refreshActive()` — **only when `activeUserId` is set** (a conversation is open) — recompute the open thread so a new incoming message appears live without a manual reload.
+
+**Why both:** Contact's open 1:1 conversation must reflect a new incoming message during the poll. Channel's sidebar-only poll works for broadcast because the channel list is the live-update surface; the open channel pane re-renders only on explicit interaction. For Contact, dropping the `messages.refreshActive` leg (i.e. matching Channel exactly) would lose live incoming-message updates in the open conversation — a regression. The `activeUserId` guard avoids a wasted re-render when no conversation is open.
+
+`visibilitychange` gates polling: `document.hidden` → `stopPolling()`, visible → `startPolling()`. Both are wired in `init()` and torn down in `destroy()`.
+
+### 3.3 Growing-LIMIT + anchor-window pagination (the +1-probe `hasOlder` — intentionally identical in shape to Channel §3.3)
+
+`Main::messages()` has two modes, **both** using `take(N + 1) → count() > N → take(N)` so `hasOlder` costs zero extra queries:
+
+- **Recent-N** (`focusAnchorId = null`, the default): ONE indexed query `latest('id')->take(messagesLimit + 1)`, `hasOlder = count() > messagesLimit`, trim to `messagesLimit`, `sortBy('id')` oldest-first (recent stay at bottom).
+- **Anchor** (`focusAnchorId` set by `focusMessage`): TWO indexed queries — `where('id','>=',anchor)->oldest('id')->take(6)` (anchor + up to 5 newer) + `where('id','<',anchor)->latest('id')->take(focusOlder + 1)`; `hasOlder = older.count() > focusOlder`; trim older to `focusOlder`, merge, `sortBy('id')`.
+
+`loadMoreMessages()` is two lines — anchor mode: `focusOlder += 10`; else `messagesLimit += 10`; then `invalidateMessageCache()` — the same query/queries now fetch the grown window, so older rows auto-prepend above recent in one backward scan. No client array, no cap; mutations (`send`/`deleteMessage`/`saveEdit`/`undoDelete`) stay byte-identical — their existing `invalidateMessageCache()` re-queries the full grown window. `#[Computed] messages` caches per-request; `unset()` invalidates.
+
+**`FocusMessageAction::execute` returns `?bool`** (3-way): `null` = invalid/not-in-conversation/no-such-message → `Main::focusMessage` bails; `false` = the target is inside the recent window → clear any stale anchor + `invalidateMessageCache` + `dispatch('record-focus', type:'message')`; `true` = target is beyond the window → set `focusAnchorId=id`+`focusOlder=5` + `invalidateMessageCache` + dispatch. The 3-way return lets Main branch without re-querying; the over-limit check itself is a +1 probe (`take(loadedLimit + 1).count() > loadedLimit`).
+
+### 3.4 What this module deliberately does NOT have
+
+- **No modals** — true architectural fact (1:1 needs no create/manage-members modal; every active user is reachable).
+- **No `HasMenuState` / bare-key badge / sitewide nudge bell** — unread is surfaced only via `data-total-unread` on the sidebar `<aside>`, read by `contact.js`'s `MutationObserver` (`syncPushNotify`) to fire browser push notifications. Adding a nudge/badge row to `notifications` would pollute the Filament bell — see `feedback_no_nudge_badge_proposals`.
+- **No `wire:poll`** — replaced by JS `setInterval` + `visibilitychange` (§3.2) so polling is pauseable and island-scoped.
+- **No `chat-ready` event / `dispatchReady` parameter** — removed (D2); see §3.5.
+- **No membership gate / channel type / create-or-browse flow / owner concept.**
+
+### 3.5 The D2 decision — `chat-ready` is gone, do not reintroduce it
+
+The pre-migration code dispatched a `chat-ready` event from server-side `selectContact` whenever `dispatchReady = ($focusMsg <= 0)`, and `contact.js` listened `x-on:chat-ready.window` → `scrollToBottom(false)` (+ mobile textarea focus). This **raced** with `record-focus`'s `scrollIntoView` for a `focus_msg` deep link — both competed for `#msg-viewport`'s scroll position; the deferred `$nextTick` overrode the synchronous record-focus scroll. The `dispatchReady` flag was a patch on a fundamentally racy mechanism.
+
+The migration **removed `chat-ready` entirely** (no event, no `dispatchReady` param, no `x-on:chat-ready` listener). The deep-link scroll-to-bottom is restored **race-free** instead: `contact.js init()` runs a **mount-only** block, gated on the exact old condition (`activeUserId set && focus_msg <= 0`), reading `focus_msg` from `window.location.search` and `activeUserId` from the snapshot. It is mutually exclusive with the `focus_msg` path (which uses `record-focus` message-scroll) and uses a different scroll container from `record-focus.js`'s `type:'people'` sidebar-row scroll — so no double-scroll, no race. See §13.2.
+
+---
+
+## 4. Data model (no new tables from this migration)
+
+Contact rides the existing `messages` + `users` tables. No migration was added by the island migration. (The covering indexes that make `FetchContactsAction` fast — `idx_messages_*` — were added earlier by the 2026-06 perf audit, migration `2026_06_30_000001`; `FetchContactsAction` went 1103ms → 8.8ms via `UNION ALL` + covering indexes. See `project_perf_audit_2026_06`.)
+
+`messages` columns Contact uses: `sender_id`, `recipient_id`, `body`, `attachments` (JSON), `is_edited`, `read_at` (nullable), `reply_to_id` (nullable FK → messages), `created_at`, `deleted_at` (SoftDeletes). `sender_id`/`recipient_id` are `nullOnDelete` so a deleted user's messages survive as `ناشناس`.
+
+---
+
+## 5. File map (every file, one-line purpose)
+
+```
+app/Livewire/Dashboard/Contact/
+├── Main.php                                            THE Livewire component (user panel)
+├── Forms/
+│   ├── MessageComposerForm.php                         send form (body/attachments) + inline #[Validate]
+│   └── EditMessageForm.php                             edit form (editingBody) + inline #[Validate]
+├── Actions/
+│   ├── FetchContactsAction.php                         sidebar list — UNION ALL sent+received → last_message_id; leftJoinSub unread; User::active()
+│   ├── SendMessageAction.php                           DB::transaction send + attachment store + reply-link validation (drops out-of-conversation reply_to)
+│   ├── SaveEditAction.php                              edit (sender-scoped + 600s limit)
+│   ├── DeleteMessageAction.php                         soft-delete, returns snapshot for undo
+│   ├── UndoDeleteAction.php                            restore from snapshot
+│   ├── FocusMessageAction.php                          focusMessage guard — ?bool 3-way (null/false/true) via +1-probe over-limit check
+│   ├── MarkMessagesAsReadAction.php                    set read_at on contact's inbound messages to viewer
+│   ├── SearchMessagesAction.php                        in-chat message search (LIKE prefix on body)
+│   ├── ForceDeleteMessageAction.php                    $message->forceDelete() (pruning; hooks unlink files)
+│   └── (no Join/Leave/Create — 1:1, no membership)
+├── Presentation/ContactPresenter.php                   all view-shaping (sidebar/contact/totalUnread/messageGroup/messages)
+└── (contactPattern.md — this file)
+
+resources/views/livewire/dashboard/
+├── contact.blade.php                  root view (x-data=contact(), two @island blocks; keydown handlers + modals + quote-chip + switch-tabs at root)
+├── contact/sidebar.blade.php          contact list + shared search-field + filter tabs (uses $this->contacts; local $p=$this->presenter)
+├── contact/header.blade.php           conversation header (uses $this->activeContact)
+├── contact/messages.blade.php         message list + date groups + empty-state (uses $this->activeContact; local $p=$this->presenter)
+├── contact/composer.blade.php         input + attachments + emoji + reply/edit
+├── contact/info.blade.php             contact info side-panel (uses $this->activeContact)
+├── contact/search.blade.php           in-chat message-search panel (uses $this->messageSearch / $this->messageSearchResults)
+├── contact/empty.blade.php            no-contact-selected state (rendered inside the messages island @else)
+└── contact/quote-chip.blade.php       floating reply chip on text-selection (root-level, outside islands)
+
+resources/js/components/alpine/data/contact.js         Alpine component (dual-island polling, selectContact, send, reply/edit, undo, mount deep-link scroll)
+resources/js/core/record-focus.js                      shared global record-focus handler (type:'people' → sidebar row; type:'message' → message row)
+routes/web.php                                         GET /contacts → Contact::class → name 'contact'
+app/Services/Search/NavigationService.php              nav entry 'contact' (route:contact + keywords)
+resources/js/components/alpine/data/menu.js            menu item {id:'contacts-controller', href:'/contacts', icon:'perm_contact_calendar'}
+resources/js/components/alpine/main.js                 import + Alpine.data('contact', contact)
+```
+
+---
+
+## 6. `Main.php` — the user-panel component
+
+### 6.1 Properties
+
+| Property | Contract |
+|---|---|
+| `MessageComposerForm $composer` | send form (body/attachments) |
+| `EditMessageForm $edit` | edit form (editingBody) |
+| `?int $activeUserId = null` | selected contact (the 1:1 peer) |
+| `string $search = ''` | sidebar search |
+| `string $filter = 'all'` | `'all'` \| `'unread'` \| `'online'` |
+| `bool $mobileShowChat = false` | mobile: main pane visible |
+| `#[Locked] int $editTimeLimit = 600` | edit window seconds; mirrors `SaveEditAction::EDIT_TIME_LIMIT` (Locked = client can't widen the presenter's `can_edit` gate) |
+| `#[Locked] ?array $lastDeleted = null` | snapshot for 4s undo (Locked = client can't tamper the restore payload) |
+| `#[Locked] int $messagesLimit = 10` | growing-LIMIT window (Locked = client can't inflate `take(N+1)`; grow by 10 per `loadMoreMessages`, reset to 10 server-side) |
+| `string $messageSearch = ''` | in-chat message-search query (reset on `selectContact`/`backToList`) |
+| `#[Locked] ?int $focusAnchorId = null` | message-id anchor for in-chat search "focus"; `null` = recent-N mode (reset on `selectContact`/`backToList`/`send`) |
+| `#[Locked] int $focusOlder = 5` | older-side window size in anchor mode (grow by 10 per `loadMoreMessages`) |
+| `bool $hasOlder = false` | more older messages exist (`count > limit`) |
+
+### 6.2 Computeds (remember §3.1 — use `$this->` in islands)
+- `activeContact(): ?User` — `User::with(['profile.department'])->find(activeUserId)` (null when none selected).
+- `contacts(): array` — `FetchContactsAction(viewer, search, filter)` + hydrates last-message bodies via a second `whereIn('id', $messageIds)`; maps each user to `{id,name,profile,unit,section,last_message,unread_count,is_online,presence}`; `online` filter applied post-map.
+- `messages(): array` — **two modes** (both +1-probe `hasOlder` — §3.3): (a) recent-N (default): `latest('id')->take(messagesLimit + 1)`, `hasOlder = count() > messagesLimit`, trim, `sortBy('id')`; (b) anchor (`focusAnchorId` set): bounded window via two indexed queries, `hasOlder = older.count() > focusOlder`, merge + `sortBy('id')`.
+- `groupedMessages(): array` — `messages` grouped by `created_at->toDateString()`.
+- `lastMessageId(): ?int` — `collect(messages)->max('id')` (the delete gate — only the absolute last message in the thread is deletable).
+- `messageSearchResults(): array` — null-guards `activeUserId`, then `SearchMessagesAction(activeUserId, messageSearch, auth()->id())`.
+- `presenter(): ContactPresenter` — new instance (stateless).
+- `totalStaff(): int` — `User::active()->count()`.
+
+### 6.3 Lifecycle + methods (contract + do/don't)
+| Method | What it does | Rule |
+|---|---|---|
+| `selectContact(int, MarkMessagesAsReadAction)` | guard: `User::getCachedAllOptions()->has($userId)` → set active, reset messagesLimit/focusAnchorId/focusOlder/composer, `invalidateMessageCache`, `resetAllStates`, `markRead`, `unset(contacts)` | no membership gate (§2); silent `return` on fail; re-selecting exits anchor mode |
+| `focusRecord(int): bool` | deep-link (`FocusOnRecord` trait, `#[Url] open`) → `selectContact` (guards user exists); if `?focus_msg={id}` present, call `focusMessage(id)` and return its bool; else return false (trait then dispatches `record-focus` type:'people') | `focus_msg` read via `request()->query` (mount-only); returns false on no-focus_msg so the trait's people-focus fallback fires (sidebar row scroll) |
+| `focusMessage(int): bool` | delegates to `FocusMessageAction::execute(activeUserId, id, authId, messagesLimit)` → `?bool`; `null` → return false; `false` → clear stale anchor + `invalidateMessageCache` + `dispatch('record-focus', type:'message')`; `true` → set `focusAnchorId=id`+`focusOlder=5` + `invalidateMessageCache` + dispatch | #[Locked] `focusAnchorId`/`focusOlder` — client can't tamper; `activeUserId` not Locked but anchor can't escape the active peer; reuses the global `record-focus` standard (`scrollToRecord('message-{id}')`) |
+| `refreshUnread()` | `unset($this->contacts)` | called by the 10s poll (sidebar leg); cheap recompute |
+| `refreshActive()` | `invalidateMessageCache()` (unsets `messages` + `lastMessageId`) | called by the 10s poll (messages leg, only when `activeUserId` set — §3.2 D1) |
+| `backToList()` | full reset (mobileShowChat/active/messagesLimit/focusAnchorId/focusOlder/hasOlder/messageSearch) + `resetAllStates` | clears the messages island back to the empty state |
+| `send(SendMessageAction, ?replyToId)` | `$action->execute(composer, activeUserId, replyToId)` → reset composer + clear `focusAnchorId`/`focusOlder` (exit anchor → new message visible) + `invalidateMessageCache` + `unset(contacts)` + `dispatch('message-sent')` | catch `ValidationException` (toast) + `\Exception` (generic toast + report) |
+| `setFilter(string)` | set filter | `contacts` recomputed lazily on next render |
+| `saveEdit(SaveEditAction, int)` | `$action->execute(edit, editingId, editTimeLimit)` → if false toast "مهلت به پایان رسیده" | edit window 600s |
+| `deleteMessage(DeleteMessageAction, int)` | `$action->execute(id, editTimeLimit)` → store `lastDeleted` snapshot + `invalidateMessageCache` + `unset(contacts)` + `dispatch('show-undo-toast')` | only the absolute last message (`id === lastMessageId`) is deletable — gated in the blade |
+| `undoDelete(UndoDeleteAction)` | restore from `lastDeleted` → clear + `invalidateMessageCache` + `unset(contacts)` + `dispatch('show-toast')` | 4s window (contact.js) |
+| `loadMoreMessages()` | anchor mode: `focusOlder += 10`; else `messagesLimit += 10`; then `invalidateMessageCache()` | inert default branch; grows the older side of the anchor window |
+| `removeAttachment(int)` | splice `composer.attachments` + reindex | |
+| `downloadAttachment(int, int)` | sender/recipient guard + path-traversal confinement → `?Response` | returns `BinaryFileResponse` or `null`; island-safe (see §13.8) |
+| `render()` | `view('livewire.dashboard.contact')->layout('layouts.app')` | one-liner — the `['activeContact'=>…, 'p'=>…]` injection was dropped after §3 was clean (Phase A step 2) |
+| `recordFocusType()` | returns `'people'` | `FocusOnRecord` trait hook (sidebar row is the people-focus target) |
+
+---
+
+## 7. Actions catalog (contracts)
+
+| Action | Signature | Core contract |
+|---|---|---|
+| `FetchContactsAction` | `execute(int $viewerId, string $search, string $filter): Collection` | `UNION ALL` sent+received → per-contact `last_message_id`; `leftJoinSub` unread_count (`read_at IS NULL`); returns `User::active()` with `profile.department`/`profile.details`; covering-index-served (perf audit 2026-06) |
+| `SendMessageAction` | `execute(MessageComposerForm, int $recipientId, ?int $replyToId): Message` | `DB::transaction`; `Message::create`; attachment store; reply-link validation drops `replyToId` if it's outside this conversation (`isValidContext`) |
+| `SaveEditAction` | `execute(EditMessageForm, int $messageId, int $editTimeLimit): bool` | sender-scoped (`sender_id = auth()->id()`) + 600s limit; false if window expired |
+| `DeleteMessageAction` | `execute(int $messageId, int $editTimeLimit): array\|bool\|null` | sender-scoped; soft-delete; returns snapshot for undo (or false if window expired / null if not found) |
+| `UndoDeleteAction` | `execute(array $lastDeleted): void` | restore-or-recreate from snapshot |
+| `FocusMessageAction` | `execute(int $userId, int $messageId, int $authId, int $loadedLimit): ?bool` | `null` = invalid/no-such-message; `false` = in recent window; `true` = over limit (anchor). Over-limit check is a +1 probe (`take(loadedLimit+1).count() > loadedLimit`) |
+| `MarkMessagesAsReadAction` | `execute(int $contactId, int $viewerId): int` | sets `read_at` on the contact's inbound messages to viewer; returns count |
+| `SearchMessagesAction` | `execute(int $userId, string $query, int $authId): array` | in-chat LIKE-prefix search on body; empty for short/empty query |
+| `ForceDeleteMessageAction` | `execute(int $messageId): void` | `$message->forceDelete()` (pruning; `forceDeleted` hook unlinks attachments) |
+
+---
+
+## 8. Forms catalog
+
+- `MessageComposerForm`: `body` (`#[Validate('required_without:attachments|string|max:2000')]`), `attachments` (array, validated). `reset()` after send.
+- `EditMessageForm`: `editingBody` (`#[Validate('required|string|min:1|max:2000')]`). `reset()` after save.
+
+---
+
+## 9. Presenter `ContactPresenter`
+
+Stateless view-shaping only — **never queries** (all data is passed in from `Main`):
+- `sidebar(array $contacts, int $authId): array` — per-contact view row (name/last_message/unread/presence/online/avatar).
+- `contact(array $c, int $authId): array` — single contact detail row.
+- `totalUnread(array $contacts): int` — sum of unread across contacts (drives `data-total-unread` → push-notify observer).
+- `messageGroup(string $date, array $messages, int $authId, int $editTimeLimit): array` — date-grouped bubble shaping.
+- `messages(array $messages, int $authId, int $editTimeLimit): array` — per-message view row (is_mine/is_last/can_edit/can_delete/sender/avatar/reply).
+
+---
+
+## 10. Views — and the island-scope rule for each
+
+Every partial reads computeds via `$this->` (or a local `$p = $this->presenter` inside its `@php` block). **Never** use a bare computed (`$activeContact`, `$contacts`, `$messages`, `$groupedMessages`, `$presenter`) — see §3.1. This table is the audit artifact proving §3.
+
+| Partial | Opens with / scope | Uses |
+|---|---|---|
+| `contact.blade.php` (root) | `x-data="contact()"`, **outside** both islands | two `@island` blocks; root-level: keydown handlers, `<x-ui.modals.max-backdrop/>`, quote-chip, switch-tabs, title; messages island branches `@if($this->activeContact)` → header+messages+composer+info · `@else` → empty |
+| `sidebar.blade.php` (sidebar island) | `@php($p = $this->presenter; $contactList = $p->sidebar($this->contacts, auth()->id()); $totalUnread = $p->totalUnread($this->contacts))` | `data-total-unread="{{ $totalUnread }}"` (push-notify); shared `livewire.dashboard.channel.search-field` partial (`refreshSidebarOnClose` → `$wire.$island('sidebar').refreshUnread()`); filter tabs; row `x-on:click="selectContact(id)"` + enter/space |
+| `header.blade.php` (messages island) | `$this->activeContact->...` | contact name, presence, back/info/search buttons, per-chat sound mute toggle |
+| `messages.blade.php` (messages island) | `@php($p = $this->presenter; $hasOlder = $this->hasOlder)` | `#msg-viewport`; date-grouped bubbles; each row `data-rf="message-{id}"` (focus target); `@empty` uses `$this->activeContact->name`; avatar gated by `!is_mine` (1:1 convention, unlike Channel's every-row); edit gated by `can_edit && is_last`; delete gated by `can_delete && id === $this->lastMessageId`; load-more button gated by `$wire.hasOlder`; scroll-to-top auto-fires `loadMoreMessages` |
+| `composer.blade.php` (messages island) | | textarea (`msg-ta`), attachments, emoji picker, reply/edit preview |
+| `info.blade.php` (messages island) | `$this->activeContact->...` | `x-show="showInfo"` side panel |
+| `search.blade.php` (messages island) | `$this->messageSearch` / `$this->messageSearchResults` | `x-show="searchMessages"` in-chat search panel |
+| `empty.blade.php` (messages island) | | no-contact-selected state — rendered inside the messages island `@else` so back-to-list re-renders only the island |
+| `quote-chip.blade.php` (root, outside islands) | | floating reply chip on text-selection inside `#msg-viewport`; same positioning technique as Channel's |
+
+---
+
+## 11. `contact.js` (Alpine)
+
+```
+init()              startPolling() + visibilitychange (halt on hidden) + scroll-FAB + scroll-to-top auto-load (loadMoreMessages w/ scroll-anchoring, overflow-anchor:none) + $wire.on listeners + MOUNT deep-link scroll (D2 race-free — see §3.5)
+                    mount scroll block: const focusMsg = parseInt(new URLSearchParams(window.location.search).get('focus_msg'),10)||0;
+                      if (activeUserId && focusMsg <= 0) $nextTick(() => { scrollToBottom(false); if (innerWidth<768) focus #msg-ta });
+                    (mount-only; clicks scroll via selectContact.then; mutually exclusive with focus_msg record-focus path)
+startPolling()      setInterval(10s) → $wire.$island('sidebar').refreshUnread().catch()  AND  if ($wire.activeUserId) $wire.$island('messages').refreshActive().catch()   (D1 dual-island — see §3.2; NO wire:poll)
+stopPolling()       clearInterval
+destroy()           stopPolling + remove listeners (visibilitychange/scroll/selectionchange/keydown) + disconnect unread observer
+syncPushNotify()    reads [data-total-unread]; if increased → $store.push.notify (MutationObserver on data-total-unread)
+selectContact(id)   clear replyingTo/editingMsg/deletingId/openActionsId/searchMessages; $wire.$island('messages').selectContact(id).then(() => { $wire.$island('sidebar').refreshUnread().catch(); $nextTick(scrollToBottom + mobile focus) }).catch()
+                    (fire-and-forget refreshUnread — sidebar refresh never gates the primary scroll/focus init; STRICTLY SAFER than a chained .then that would skip scroll if refreshUnread rejected)
+sendMessage()       guard empty + >2000 char; await $wire.$island('messages').send(replyToId); then $wire.$island('sidebar').refreshUnread().catch(); 500ms sending lock
+saveEdit(id)        await $wire.$island('messages').saveEdit(id) (try/catch toast)
+deleteMessage()     await $wire.$island('messages').deleteMessage(this.deletingId) (try/catch toast)
+loadMoreMessages()  $wire.$island('messages').loadMoreMessages() (scroll-to-top + scroll-anchoring)
+focusMessage ×2     $wire.$island('messages').focusMessage(id) (scrollToMessage in-DOM fast path fallback + focusSearchResult)
+scrollToMessage(id) in-DOM fast path: querySelector([data-rf="message-{id}"]) → sweep .record-focus-flash → scrollIntoView center + flash; fallback $wire.$island('messages').focusMessage(id)
+$wire.on('message-sent')  → $nextTick(scrollToBottom smooth) + sending=false + $store.sound?.playOutgoing(activeUserId,'contact')
+$watch($wire.lastDeleted) → 4s undo toast window
+```
+
+All Alpine-initiated server round-trips use `$wire.$island(...)`. contact.js has **11 `$island(` call sites** (verified: `grep -c '\$island(' contact.js` → 11): the polling leg `refreshUnread` + `refreshActive` (2), `selectContact` + its `.then` sidebar `refreshUnread` (2), `send` + its sidebar `refreshUnread` (2), `loadMoreMessages` (1), `focusMessage` ×2 — `scrollToMessage` fallback + `focusSearchResult` (2), `saveEdit` (1), `deleteMessage` (1). The undo-delete toast's `$wire.$island('messages').undoDelete().then(() => $wire.$island('sidebar').refreshUnread())` lives in `messages.blade.php` (an `x-on:click`), NOT contact.js — counted separately. HTML directives (`wire:click`/`wire:model`) auto-scope to their containing island. **Bare `$wire.method()` from Alpine triggers a FULL re-render** — that's why the undo toast wraps `undoDelete` in `$wire.$island('messages').undoDelete()` instead of calling `$wire.undoDelete()` bare.
+
+---
+
+## 12. Dos and Don'ts (consolidated hard rules)
+
+### DO
+- ✅ Reach computeds inside islands via `$this->` (`$this->activeContact`, `$this->contacts`, `$this->presenter`). Public properties can stay bare (`$activeUserId`, `$search`, `$filter`, `$hasOlder`).
+- ✅ Use a **local** `$p = $this->presenter` inside a partial's `@php` block when calling presenter methods (`$p->sidebar(...)`, `$p->messageGroup(...)`).
+- ✅ Poll **both** islands (sidebar `refreshUnread` always + messages `refreshActive` when a conversation is open) — D1, §3.2.
+- ✅ Use `$wire.$island('messages').method()` for every Alpine-initiated server call (so it stays island-scoped, not a full re-render).
+- ✅ Scope message edits/deletes by `sender_id = auth()->id()` (in `Main` and the actions).
+- ✅ Reuse the shared `livewire.dashboard.channel.search-field` partial for the sidebar search — it is island-safe (plain `wire:model` + Alpine, no `@entangle`).
+- ✅ Keep MySQL 5.7-safe: `unionAll`, `leftJoinSub`, covering indexes — all fine.
+- ✅ No code comments (project rule). Inline Persian for partials; `lang/fa` keys only for Filament.
+
+### DON'T
+- ❌ Don't use a bare computed (`$activeContact`, `$contacts`, `$messages`, `$presenter`) inside `@island` or its `@include` partials — it throws on the refresh path (masked by `Livewire::test`).
+- ❌ Don't use `@entangle` / `<x-ui.forms.search>` / `<x-ui.modals.*>` inside an island — they need `$__livewire` which nested anonymous components don't inherit.
+- ❌ Don't reintroduce `chat-ready` / `dispatchReady` — it raced with `record-focus` (D2, §3.5). The mount deep-link scroll is handled race-free in `contact.js init()`.
+- ❌ Don't "fix" the dual-island poll back to Channel's sidebar-only pattern — it would lose live incoming-message updates in the open conversation (D1, §3.2).
+- ❌ Don't use `wire:poll` — polling is JS `setInterval` + `visibilitychange` (pauseable, island-scoped).
+- ❌ Don't call `$wire.method()` bare from an Alpine `x-on:click` — it triggers a full re-render. Wrap with `$wire.$island('<island>').method()`.
+- ❌ Don't trust `Livewire::test()->html()` alone for island code — it does a full render and masks island-only scope bugs. Add a real island-refresh check (see §14).
+- ❌ Don't add `HasMenuState` / a bare-key badge / a nudge row to `notifications` — unread is surfaced only via `data-total-unread` + the push-notify observer; a nudge row pollutes the Filament bell.
+- ❌ Don't erase/truncate `fateh` DB data without explicit session approval; benchmark only in `perf_benchmark` DB.
+
+---
+
+## 13. Known edge cases / gotchas
+
+1. **Bare `$activeContact` / `$p` in islands** — fixed (Phase B). All island partials use `$this->activeContact` / local `$p = $this->presenter`. The `render()` injection was dropped only after this was clean (Phase A step 2). See §10 for the audit table.
+2. **`chat-ready` scroll race** — fixed (D2). `chat-ready` removed; mount deep-link scroll is race-free in `contact.js init()` (mutually exclusive with the `focus_msg` path; different scroll container from `record-focus` `type:'people'`). See §3.5.
+3. **`@entangle`/`<x-ui.forms.search>` in sidebar island** — fixed by reusing Channel's shared `search-field` partial (plain `wire:model` + Alpine, no `@entangle`).
+4. **Sender soft-deleted** — `sender_id`/`recipient_id` are `nullOnDelete`; the message survives and shows `ناشناس`.
+5. **Edit window** — 600s enforced in `SaveEditAction::EDIT_TIME_LIMIT` and mirrored as `Main::$editTimeLimit` for the `can_edit` presenter flag; keep both in sync.
+6. **Undo after force-delete** — `UndoDeleteAction` falls back to recreating from the snapshot if the soft-deleted row was already force-deleted.
+7. **Delete gate** — only the absolute last message in the thread is deletable (`can_delete && id === $this->lastMessageId`); edit is gated by `can_edit && is_last` (last in a sender group).
+8. **`downloadAttachment` from inside the island** — returns a `BinaryFileResponse` (non-standard Livewire response); file downloads bypass the DOM-morph response entirely, so island scoping is irrelevant. Manually verify (plan §6).
+9. **`refreshUnread`/`refreshActive` `unset()` is redundant-but-harmless** — Livewire `#[Computed]` cache is per-request-only; `->call()` re-hydrates a fresh instance with an empty cache, so the round-trip itself surfaces new DB rows. The `unset()` is belt-and-suspenders (matches Channel). PHPUnit verifies the observable contract (a refresh round-trip surfaces new rows), not the invalidation mechanic — the real island-poll verification is the §14 browser pass.
+
+---
+
+## 14. Verification commands (use these, not just `Livewire::test`)
+
+`Livewire::test()->html()` does a **full render** and masks island-scope bugs. For island code, also verify the island-refresh path:
+
+```bash
+# clear compiled views after any blade edit (stale compiled views cause phantom errors)
+php artisan view:clear
+
+# full render (catches syntax + full-scope errors only)
+php artisan tinker --execute "\Illuminate\Support\Facades\Auth::login(\App\Models\User::first()); \$t=\Livewire\Livewire::test(\App\Livewire\Dashboard\Contact\Main::class); echo strlen(\$t->html());"
+
+# PHPUnit floor (ContactTest — 41 passed, 1 skipped pre-existing)
+php artisan test --filter=ContactTest
+
+# grep audit (§3 clean — run after any blade/js edit):
+#   bare $activeContact (none expected):
+grep -rn --include='*.blade.php' -E '(?<!\$this->)(?<!->)\$activeContact' resources/views/livewire/dashboard/contact/ resources/views/livewire/dashboard/contact.blade.php
+#   wire:poll / chat-ready (none expected):
+grep -rn --include='*.blade.php' -E 'wire:poll|chat-ready' resources/views/livewire/dashboard/contact*
+#   $island call sites in contact.js (expect 11):
+grep -c '\$island(' resources/js/components/alpine/data/contact.js
+
+# real browser check (REQUIRED for island code): open /contacts, click a contact,
+# watch the Network tab for the livewire/update call carrying the island-scoped method
+# (e.g. $island('messages').selectContact) and the console for "Undefined variable".
+```
+
+**For any future island edit, the mandatory verification is the real browser flow** (click contact → watch the island-refresh request + console). `Livewire::test` is necessary but not sufficient.
+
+### §5 manual browser pass (the user runs this — the final arbiter)
+Load `/contacts` cold · click a contact (the exact path that exposed Channel's bare-var bug) · send · edit/save/cancel · delete+undo · in-chat search → result scroll+flash · global-search deep link `?open={id}&focus_msg={id}` (scroll to the message, not the bottom) · global-search deep link `?open={id}` (scroll to bottom — D2 race-free restore) · load-more + scroll-to-top auto-trigger · switch contact then back-to-list (empty state inside the messages island) · wait one 10s poll tick with a conversation open (sidebar unread + open-thread live update — D1) · switch tabs away/back (polling pauses/resumes) · attach/remove/send-attachment-only · reply/cancel/reply-send · mobile viewport (sidebar toggle + `#msg-ta` focus after select) · emoji/copy/quote-chip · per-contact mute + mute-all + push toggle.
+
+---
+
+## 15. Pointers
+
+- Migration plan (the historical record of *why* the architecture looks the way it does): `.claude/plans/contact-island-migration-plan.md` (Phases A–E, decisions D1–D4, §3 bare-var audit, §5 testing, §6 edge cases, §7 rollback, §8 DoD).
+- Livewire conventions: `app/Livewire/livewirePattern.md` — canonical `@island` rules.
+- Filament conventions: `app/Filament/filamentPattern.md`.
+- Sibling module to mirror: `app/Livewire/Dashboard/Channel/` (broadcast) — `channelPattern.md` is the structural twin; Contact diverges only at §2 (no membership gate), §3.2 (dual-island poll), §3.5 (chat-ready removed), and the 1:1 avatar/delete gates.
+- Memory: `project_perf_audit_2026_06` (FetchContactsAction UNION ALL + covering indexes, 1103ms→8.8ms).
