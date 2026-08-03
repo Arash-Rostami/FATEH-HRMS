@@ -187,10 +187,9 @@ class Main extends Component
             return false;
         }
 
+        $this->selectContact($userId, app(MarkMessagesAsReadAction::class));
+
         $focusMsg = (int) request()->query('focus_msg', 0);
-
-        $this->selectContact($userId, app(MarkMessagesAsReadAction::class), dispatchReady: $focusMsg <= 0);
-
         if ($focusMsg > 0) {
             return $this->focusMessage($focusMsg);
         }
@@ -221,6 +220,16 @@ class Main extends Component
         } else {
             $this->messagesLimit += 10;
         }
+        $this->invalidateMessageCache();
+    }
+
+    public function refreshUnread(): void
+    {
+        unset($this->contacts);
+    }
+
+    public function refreshActive(): void
+    {
         $this->invalidateMessageCache();
     }
 
@@ -305,7 +314,7 @@ class Main extends Component
         $this->dispatch('show-toast', message: 'پیام ویرایش شد', type: 'success');
     }
 
-    public function selectContact(int $userId, MarkMessagesAsReadAction $markRead, bool $dispatchReady = true): void
+    public function selectContact(int $userId, MarkMessagesAsReadAction $markRead): void
     {
         if (!User::getCachedAllOptions()->has($userId)) return;
 
@@ -322,9 +331,6 @@ class Main extends Component
         $markRead->execute($userId, auth()->id());
 
         unset($this->contacts);
-        if ($dispatchReady) {
-            $this->dispatch('chat-ready');
-        }
     }
 
     public function send(SendMessageAction $action, ?int $replyToId = null): void
@@ -353,6 +359,12 @@ class Main extends Component
     public function totalStaff(): int
     {
         return User::active()->count();
+    }
+
+    #[Computed]
+    public function presenter(): ContactPresenter
+    {
+        return new ContactPresenter();
     }
 
     public function undoDelete(UndoDeleteAction $action): void
