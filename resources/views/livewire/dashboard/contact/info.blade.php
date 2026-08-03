@@ -22,41 +22,41 @@
                 class="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
                 <x-ui.avatar
                     :image="null"
-                    :existingImage="$activeContact->getProfileImageUrl()"
-                    :alt="$activeContact->name"
+                    :existingImage="$this->activeContact->getProfileImageUrl()"
+                    :alt="$this->activeContact->name"
                     class="rounded-lg" />
             </div>
-            <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $activeContact->name }}</p>
-            @if($activeContact->profile?->position)
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $activeContact->profile->position }}</p>
+            <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $this->activeContact->name }}</p>
+            @if($this->activeContact->profile?->position)
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->position }}</p>
             @endif
         </div>
         <div class="space-y-3">
-            @if($activeContact->profile?->department)
+            @if($this->activeContact->profile?->department)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">apartment</span>
                     <div>
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">واحد سازمانی</p>
-                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" title="{{ $activeContact->profile->department->tooltipLabel() }}">{{ $activeContact->profile->department->displayLabel() }}</p>
+                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" title="{{ $this->activeContact->profile->department->tooltipLabel() }}">{{ $this->activeContact->profile->department->displayLabel() }}</p>
                     </div>
                 </div>
             @endif
-            @if($activeContact->email)
+            @if($this->activeContact->email)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">email</span>
                     <div class="min-w-0">
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">
                             ایمیل</p>
-                        <p class="text-xs font-medium truncate text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ $activeContact->email }}</p>
+                        <p class="text-xs font-medium truncate text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ $this->activeContact->email }}</p>
                     </div>
                 </div>
             @endif
-            @if($activeContact->profile?->cellphone)
+            @if($this->activeContact->profile?->cellphone)
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">phone</span>
                     <div>
                         <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">تلفن</p>
-                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ $activeContact->profile->cellphone }}</p>
+                        <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]" dir="ltr">{{ $this->activeContact->profile->cellphone }}</p>
                     </div>
                 </div>
             @endif

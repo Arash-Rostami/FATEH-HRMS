@@ -1,4 +1,5 @@
 @php
+    $p = $this->presenter;
     $hasOlder = $this->hasOlder;
 @endphp
 
@@ -274,7 +275,7 @@
             </div>
             <div>
                 <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">شروع گفتگو
-                    با {{ $activeContact->name }}</p>
+                    با {{ $this->activeContact->name }}</p>
                 <p class="text-[11px] mt-2 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اولین پیام خود
                     را بنویسید و ارتباط کاری را آغاز کنید</p>
             </div>

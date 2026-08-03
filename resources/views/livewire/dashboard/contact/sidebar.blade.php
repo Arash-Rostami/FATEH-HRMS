@@ -1,4 +1,5 @@
 @php
+    $p = $this->presenter;
     $contactList     = $p->sidebar($this->contacts, auth()->id());
     $totalUnread     = $p->totalUnread($this->contacts);
     $allContactIds   = collect($contactList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
@@ -55,9 +56,20 @@
             </div>
         </div>
 
-        <x-ui.forms.search model="search" placeholder="جستجوی همکاران..." debounce="200"
-                           icon="search" clearable="true" x-ref="searchInput" type="search"
-                           aria-label="جستجوی همکاران" class="w-full" />
+        @include('livewire.dashboard.channel.search-field', [
+            'model' => 'search',
+            'name' => 'search',
+            'id' => 'search',
+            'debounce' => 200,
+            'placeholder' => 'جستجوی همکاران...',
+            'ariaLabel' => 'جستجوی همکاران',
+            'overlayTitle' => 'جستجوی همکاران',
+            'refreshSidebarOnClose' => true,
+            'showLabel' => true,
+            'loadingDisabled' => false,
+            'wireIgnoreSelf' => true,
+            'inputClass' => 'md3-input peer pr-10 pl-10 h-10 leading-[40px] rounded-xl text-sm outline-none transition-all focus:ring-2 w-full bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 placeholder-transparent',
+        ])
     </div>
 
     <div class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
@@ -78,9 +90,9 @@
     {{-- Contact List --}}
     <div id="contact-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($contactList as $contact)
-            <div wire:key="contact-{{ $contact['id'] }}" x-on:click="$wire.selectContact({{ $contact['id'] }})"
-                    x-on:keydown.enter.prevent="$wire.selectContact({{ $contact['id'] }})"
-                    x-on:keydown.space.prevent="$wire.selectContact({{ $contact['id'] }})"
+            <div wire:key="contact-{{ $contact['id'] }}" x-on:click="selectContact({{ $contact['id'] }})"
+                    x-on:keydown.enter.prevent="selectContact({{ $contact['id'] }})"
+                    x-on:keydown.space.prevent="selectContact({{ $contact['id'] }})"
                     data-rf="people-{{ $contact['id'] }}" role="option" tabindex="0"
                     aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                 @class([

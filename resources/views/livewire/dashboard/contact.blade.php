@@ -2,8 +2,6 @@
     dir="rtl"
     x-data="contact()"
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
-    wire:poll.10s
-    x-on:chat-ready.window="$nextTick(() => { scrollToBottom(false); resetUI(); if (window.innerWidth < 768) document.getElementById('msg-ta')?.focus(); })"
     x-on:keydown.ctrl.k.window="focusSearch()"
     x-on:keydown.escape.window="closeOverlays()"
     @keydown.escape.window="if(max) toggleMaximize(null)"
@@ -27,28 +25,32 @@
         <x-ui.modals.max-backdrop/>
         <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max }">
 
-            @include('livewire.dashboard.contact.sidebar')
+            @island(name: 'sidebar')
+                @include('livewire.dashboard.contact.sidebar')
+            @endisland
 
-            <main @class([
-                        'hidden' => !$mobileShowChat,
-                        'flex' => $mobileShowChat,
-                        'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
-                    ])>
-                @if($activeContact)
+            @island(name: 'messages')
+                <main @class([
+                            'hidden' => !$mobileShowChat,
+                            'flex' => $mobileShowChat,
+                            'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
+                        ])>
+                    @if($this->activeContact)
 
-                    @include('livewire.dashboard.contact.header')
+                        @include('livewire.dashboard.contact.header')
 
-                    <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
+                        <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
 
-                    @include('livewire.dashboard.contact.messages')
+                        @include('livewire.dashboard.contact.messages')
 
-                    @include('livewire.dashboard.contact.composer')
+                        @include('livewire.dashboard.contact.composer')
 
-                    @include('livewire.dashboard.contact.info')
-                @else
-                    @include('livewire.dashboard.contact.empty')
-                @endif
-            </main>
+                        @include('livewire.dashboard.contact.info')
+                    @else
+                        @include('livewire.dashboard.contact.empty')
+                    @endif
+                </main>
+            @endisland
         </div>
 
     </div>
