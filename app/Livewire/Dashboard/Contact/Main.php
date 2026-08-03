@@ -297,10 +297,7 @@ class Main extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.contact', [
-            'activeContact' => $this->activeContact,
-            'p' => new ContactPresenter(),
-        ])->layout('layouts.app');
+        return view('livewire.dashboard.contact')->layout('layouts.app');
     }
 
     public function saveEdit(SaveEditAction $action, int $editingId): void
