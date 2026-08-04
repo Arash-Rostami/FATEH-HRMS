@@ -3,6 +3,7 @@
 namespace App\Services\Search\Resources;
 
 use App\Models\Ticket;
+use App\Models\User;
 use App\Services\Search\Contracts\SearchResource;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -24,10 +25,22 @@ class TicketResource extends SearchResource
     protected function scope(Builder $query): void
     {
         $me = $this->me();
+        $user = auth()->user();
+        $deptCode = $user?->profile?->department_id;
+        $isHead = $deptCode && User::highestRankingInDepartment($deptCode)?->is($user);
 
-        $query->where(fn (Builder $q) => $q
-            ->where('requester_id', $me)
-            ->orWhere('assigned_to', $me)
-        );
+        $query->where(function (Builder $q) use ($me, $isHead, $deptCode) {
+            $q->where('requester_id', $me)->orWhere('assigned_to', $me);
+
+            if ($isHead) {
+                $q->orWhere(function (Builder $sq) use ($deptCode) {
+                    $sq->where('status', 'open')
+                        ->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ?) = ?", [
+                            Ticket::defaultTargetDepartment(),
+                            $deptCode,
+                        ]);
+                });
+            }
+        });
     }
 }

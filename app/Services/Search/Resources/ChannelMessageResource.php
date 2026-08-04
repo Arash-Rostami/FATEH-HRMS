@@ -27,12 +27,11 @@ class ChannelMessageResource extends SearchResource
     {
         $me = $this->me();
 
-        $query->where('sender_id', $me)
-            ->whereHas('channel', function (Builder $q) use ($me) {
-                $q->whereHas('members', function (Builder $q2) use ($me) {
-                    $q2->where('user_id', $me);
-                });
+        $query->whereHas('channel', function (Builder $q) use ($me) {
+            $q->whereHas('members', function (Builder $q2) use ($me) {
+                $q2->where('user_id', $me);
             });
+        });
     }
 
     protected function titleFor($row): string
