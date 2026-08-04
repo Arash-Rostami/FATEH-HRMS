@@ -63,26 +63,28 @@
         @error('composer.attachments.*') <p class="text-[10px] text-[var(--md-sys-color-error)] mx-4 mt-1.5">{{ $message }}</p> @enderror
 
         <div class="flex flex-wrap items-center gap-1.5 px-4 py-2.5">
-            <div class="flex-1 min-w-0 order-1 relative rounded-xl overflow-hidden transition-all duration-200 bg-[var(--md-sys-color-surface-variant)] border"
+            <div x-data="{ len: 0 }"
+                 x-effect="len = ($wire.composer.body || '').length"
+                 class="flex-1 min-w-0 order-1 relative rounded-xl overflow-hidden transition-all duration-200 bg-[var(--md-sys-color-surface-variant)] border"
                  :class="[
                      replyingTo ? 'rounded-t-none' : '',
                      (($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0)
                          ? 'border-[var(--md-sys-color-primary)]'
                          : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'
                  ]">
-                <textarea x-ref="msgTa" id="msg-ta"
+                <textarea id="msg-ta"
                           wire:model.defer="composer.body"
                           wire:loading.attr="disabled" wire:target="send"
                           x-on:keydown.ctrl.enter.prevent="sendMessage()"
                           x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();sendMessage();}"
-                          x-on:input="$el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
+                          x-on:input="len = $el.value.length; $el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
                           x-on:paste="pasteImage($event, 'composer-attachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
                           class="w-full bg-transparent px-3 py-2.5 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[160px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
-                <span x-show="$refs.msgTa && $refs.msgTa.value.length > 1800"
-                      x-text="$refs.msgTa ? $refs.msgTa.value.length + ' / 2000' : ''"
+                <span x-show="len > 1800"
+                      x-text="len + ' / 2000'"
                       class="absolute bottom-1.5 end-3 text-[10px] font-medium pointer-events-none"
-                      :class="$refs.msgTa && $refs.msgTa.value.length > 1950 ? 'text-[var(--md-sys-color-error)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]'"
+                      :class="len > 1950 ? 'text-[var(--md-sys-color-error)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]'"
                       aria-live="polite"></span>
             </div>
 

@@ -15,19 +15,23 @@ use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
 use App\Models\Message;
 use App\Models\User;
+use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Js;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\Response;
 
+#[Isolate]
 class Main extends Component
 {
-    use FocusOnRecord, WithFileUploads;
+    use ChatComposer, FocusOnRecord, WithFileUploads;
 
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
@@ -187,7 +191,7 @@ class Main extends Component
             return false;
         }
 
-        $this->selectContact($userId, app(MarkMessagesAsReadAction::class));
+        $this->selectContact($userId);
 
         $focusMsg = (int) request()->query('focus_msg', 0);
         if ($focusMsg > 0) {
@@ -195,22 +199,6 @@ class Main extends Component
         }
 
         return false;
-    }
-
-    #[Computed]
-    public function groupedMessages(): array
-    {
-        return collect($this->messages)
-            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->setTimezone(config('app.timezone'))->toDateString())
-            ->map(fn($group) => $group->values()->all())
-            ->all();
-    }
-
-    #[Computed]
-    public function lastMessageId(): ?int
-    {
-        $id = collect($this->messages)->max('id');
-        return $id === null ? null : (int) $id;
     }
 
     public function loadMoreMessages(): void
@@ -288,11 +276,24 @@ class Main extends Component
             ])->values()->all();
     }
 
-    public function removeAttachment(int $index): void
+    public function replyTo(int $messageId): void
     {
-        $attachments = $this->composer->attachments;
-        unset($attachments[$index]);
-        $this->composer->attachments = array_values($attachments);
+        $this->composer->replyToId = $messageId;
+        $this->edit->reset();
+    }
+
+    #[Async]
+    public function markRead(int $userId): void
+    {
+        app(MarkMessagesAsReadAction::class)->execute($userId, auth()->id());
+    }
+
+    #[Js]
+    public function cancelEdit()
+    {
+        return <<<'JS'
+            $wire.edit.editingBody = ''
+        JS;
     }
 
     public function render()
@@ -311,7 +312,7 @@ class Main extends Component
         $this->dispatch('show-toast', message: 'پیام ویرایش شد', type: 'success');
     }
 
-    public function selectContact(int $userId, MarkMessagesAsReadAction $markRead): void
+    public function selectContact(int $userId): void
     {
         if (!User::getCachedAllOptions()->has($userId)) return;
 
@@ -325,15 +326,15 @@ class Main extends Component
         $this->invalidateMessageCache();
         $this->resetAllStates();
 
-        $markRead->execute($userId, auth()->id());
+        $this->markRead($userId);
 
         unset($this->contacts);
     }
 
-    public function send(SendMessageAction $action, ?int $replyToId = null): void
+    public function send(SendMessageAction $action): void
     {
         try {
-            $action->execute($this->composer, $this->activeUserId, $replyToId);
+            $action->execute($this->composer, $this->activeUserId);
             $this->composer->reset();
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
@@ -378,7 +379,7 @@ class Main extends Component
 
     private function invalidateMessageCache(): void
     {
-        unset($this->messages, $this->lastMessageId);
+        unset($this->messages, $this->lastMessageId, $this->groupedMessages);
     }
 
     private function resetAllStates(): void

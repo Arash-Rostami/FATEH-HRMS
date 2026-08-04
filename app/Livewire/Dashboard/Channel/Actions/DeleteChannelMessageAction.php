@@ -6,14 +6,14 @@ use App\Models\ChannelMessage;
 
 class DeleteChannelMessageAction
 {
-    public function execute(int $messageId): array|false
+    public function execute(int $messageId, int $editTimeLimit): array|false
     {
         $message = ChannelMessage::withoutTrashed()
             ->where('id', $messageId)
             ->where('sender_id', auth()->id())
             ->first();
 
-        if (!$message) {
+        if (!$message || $message->created_at->diffInSeconds(now()) > $editTimeLimit) {
             return false;
         }
 

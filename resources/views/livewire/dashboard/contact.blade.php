@@ -1,10 +1,10 @@
 <div
     dir="rtl"
     x-data="contact()"
+    x-init="init()"
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     x-on:keydown.ctrl.k.window="focusSearch()"
-    x-on:keydown.escape.window="closeOverlays()"
-    @keydown.escape.window="if(max) toggleMaximize(null)"
+    x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
     role="region"
     aria-label="پیام‌رسان"
     class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
@@ -16,7 +16,26 @@
             icon="perm_contact_calendar"
             :count="count($this->contacts)"
             title="مخاطبین (پیام‌رسان)"
-            countLabel="نفر"/>
+            countLabel="نفر">
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
+                    title="راهنمای نشانگر اعلان"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
+                    <span class="material-symbols-rounded text-lg">notifications</span>
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
+                    title="راهنمای پیام‌رسان و کانال"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        @include('livewire.dashboard.messaging.legends')
 
         @include('components.dashboard.header.focus-chip')
 
@@ -55,5 +74,5 @@
 
     </div>
 
-    @include('livewire.dashboard.contact.quote-chip')
+    @include('livewire.dashboard.messaging.quote-chip')
 </div>

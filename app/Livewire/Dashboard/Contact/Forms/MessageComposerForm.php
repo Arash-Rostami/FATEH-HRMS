@@ -16,6 +16,9 @@ class MessageComposerForm extends Form
     ])]
     public array $attachments = [];
 
+    #[Validate('nullable|exists:messages,id')]
+    public ?int $replyToId = null;
+
     protected function messages(): array
     {
         return [
@@ -25,6 +28,7 @@ class MessageComposerForm extends Form
             'attachments.*.file' => 'فایل ضمیمه باید معتبر باشد.',
             'attachments.*.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
             'attachments.*.mimes' => 'فرمت فایل مجاز نیست.',
+            'replyToId.exists' => 'پیام مرجع نامعتبر است.',
         ];
     }
 }

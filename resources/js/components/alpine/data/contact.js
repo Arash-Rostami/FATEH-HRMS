@@ -1,63 +1,22 @@
 import settings from "./settings.js";
-import {emojis} from "../stores/emoji.js";
 
 import maximizeMixin from "../mixins/maximize.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
-
-const segmenter = new Intl.Segmenter();
-const emojiSet = new Set(emojis.flatMap(c => c.items));
-const HTML_TAG_RE = /<[^>]*>/g;
-const WS_ONLY_RE = /^\s+$/;
+import chatBase from "../mixins/chatBase.js";
 
 export default function contact() {
     return {
         ...maximizeMixin(),
         ...clipboardMixin(),
         ...pasteImageMixin(),
+        ...chatBase(),
         bgOption: 'a',
-        searchMessages: false,
-        messageSearchFullscreen: false,
-        messageSearchValue: '',
-        showScrollFab: false,
-        showInfo: false,
-        showUndo: false,
-        undoTimeout: null,
-        sending: false,
-        replyingTo: null,
         editingMsg: null,
-        deletingId: null,
-        emojiOpen: false,
-        activeCat: 0,
-        isHighlighted: false,
-        backgroundPattern: 'off',
-        emojis: emojis,
         quoteChip: {visible: false, x: 0, y: 0, id: null, sender: '', snippet: ''},
-        openActionsId: null,
-        _loadingOlder: false,
-        _onScroll: null,
         _onSelectionChange: null,
         _onKeyDown: null,
-        _selRaf: null,
         _unreadObserver: null,
-        _timer: null,
-        _onVisibility: null,
-
-        insertEmoji(e) {
-            const ta = document.getElementById('msg-ta');
-            if (!ta || typeof e !== 'string') return;
-
-            const s = ta.selectionStart;
-            const val = ta.value;
-
-            this.$wire.set('composer.body', val.slice(0, s) + e + val.slice(s));
-            this.emojiOpen = false;
-
-            this.$nextTick(() => {
-                ta.focus();
-                ta.selectionStart = ta.selectionEnd = s + e.length;
-            });
-        },
 
         init() {
             this.initPattern();
@@ -130,11 +89,10 @@ export default function contact() {
             document.addEventListener('keydown', this._onKeyDown);
 
             this.$wire.on('message-sent', () => {
-                this.$nextTick(() => {
-                    this.scrollToBottom(true);
-                    this.sending = false;
-                });
+                this.scrollToBottom(true);
+                this.sending = false;
                 this.$store.sound?.playOutgoing(this.$wire.activeUserId, 'contact');
+                setTimeout(() => this.scrollToBottom(true), 120);
             });
 
             this.$wire.on('message-error', () => this.$nextTick(() => {
@@ -144,6 +102,10 @@ export default function contact() {
             this.$wire.on('show-toast', (e) => this.toast(e.message, e.type ?? 'info'));
 
             this.$wire.on('show-undo-toast', (e) => this.toast(e.message, 'warning'));
+
+            this.$wire.on('attachments-updated', () => {
+                this.$wire.$island('messages').syncAttachments().catch(() => {});
+            });
 
             this.$watch('$wire.lastDeleted', (val) => {
                 clearTimeout(this.undoTimeout);
@@ -187,11 +149,6 @@ export default function contact() {
             }, 10000);
         },
 
-        stopPolling() {
-            clearInterval(this._timer);
-            this._timer = null;
-        },
-
         syncPushNotify() {
             const el = document.querySelector('[data-total-unread]');
             const now = parseInt(el?.dataset.totalUnread) || 0;
@@ -210,36 +167,6 @@ export default function contact() {
             }
         },
 
-        isEmojiOnly(text) {
-            const stripped = text?.replace(HTML_TAG_RE, '').trim() ?? '';
-            if (!stripped) return false;
-            for (const {segment} of segmenter.segment(stripped)) {
-                if (!emojiSet.has(segment) && !WS_ONLY_RE.test(segment)) return false;
-            }
-            return true;
-        },
-
-        toggleHighlight() {
-            this.isHighlighted = !this.isHighlighted;
-            this.backgroundPattern = this.backgroundPattern === 'on' ? 'off' : 'on';
-            localStorage.setItem('chat-settings', JSON.stringify({
-                isHighlighted: this.isHighlighted,
-                backgroundPattern: this.backgroundPattern
-            }));
-        },
-
-        toast(message, type = 'info') {
-            if (!message) return;
-            window.dispatchEvent(new CustomEvent('toast', {detail: {message, type}}));
-        },
-
-        scrollToBottom(smooth = false) {
-            document.getElementById('msg-viewport')?.scrollTo({
-                top: 999999,
-                behavior: smooth ? 'smooth' : 'instant'
-            });
-        },
-
         focusSearch() {
             const searchInput = document.getElementById('search');
             if (searchInput) {
@@ -252,9 +179,9 @@ export default function contact() {
             this.showInfo = false;
             this.searchMessages = false;
             this.emojiOpen = false;
+            this.cancelReply();
             this.cancelEdit();
             this.cancelDelete();
-            this.replyingTo = null;
             this.quoteChip.visible = false;
             this.openActionsId = null;
         },
@@ -278,19 +205,6 @@ export default function contact() {
             this.$wire.$island('messages').focusMessage(id).catch(() => {});
         },
 
-        openMessageSearch() {
-            this.searchMessages = !this.searchMessages;
-            if (this.searchMessages) {
-                this.$nextTick(() => document.getElementById('msg-search-input')?.focus());
-            }
-        },
-
-        focusSearchResult(id) {
-            if (!id) return;
-            this.searchMessages = false;
-            this.$wire.$island('messages').focusMessage(id).catch(() => {});
-        },
-
         selectContact(id) {
             if (!id) return;
             this.replyingTo = null;
@@ -298,26 +212,17 @@ export default function contact() {
             this.deletingId = null;
             this.openActionsId = null;
             this.searchMessages = false;
+            this.$wire.cancelReply();
             this.$wire.$island('messages').selectContact(id)
-                .then(() => {
-                    this.$wire.$island('sidebar').refreshUnread().catch(() => {});
-                    this.$nextTick(() => {
-                        this.scrollToBottom(false);
-                        if (window.innerWidth < 768) document.getElementById('msg-ta')?.focus();
-                    });
-                })
-                .catch(() => {});
+                .then(() => this.$wire.$island('sidebar').refreshUnread())
+                .then(() => this.$nextTick(() => this.scrollToBottom(true)))
+                .then(() => { if (window.innerWidth < 768) this.$nextTick(() => { document.getElementById('msg-ta')?.focus(); }); });
         },
 
         resetUI() {
             this.replyingTo = null;
             this.editingMsg = null;
             this.deletingId = null;
-        },
-
-        copyMessage(text) {
-            if (!text || typeof text !== 'string') return;
-            this.copyText(text, 'پیام کپی شد', 'info');
         },
 
         startReply(id, senderName, body) {
@@ -327,12 +232,9 @@ export default function contact() {
             this.replyingTo = {id, sender: {name: senderName || 'Unknown'}, body: body || ''};
             this.quoteChip.visible = false;
             this.openActionsId = null;
+            this.$wire.replyTo(id);
+            this.$wire.cancelEdit();
             this.$nextTick(() => document.getElementById('msg-ta')?.focus());
-        },
-
-        useQuoteChip() {
-            if (!this.quoteChip.visible || !this.quoteChip.id) return;
-            this.startReply(this.quoteChip.id, this.quoteChip.sender, this.quoteChip.snippet);
         },
 
         _updateQuoteChip() {
@@ -368,15 +270,12 @@ export default function contact() {
             };
         },
 
-        cancelReply() {
-            this.replyingTo = null;
-        },
-
         startEdit(id, body) {
             if (!id) return;
             this.replyingTo = null;
             this.deletingId = null;
             this.editingMsg = {id, body: body || ''};
+            this.$wire.cancelReply();
             this.$wire.set('edit.editingBody', body);
             this.$nextTick(() => {
                 const ta = document.querySelector('textarea[wire\\:model\\.live="edit.editingBody"]');
@@ -389,14 +288,15 @@ export default function contact() {
 
         cancelEdit() {
             this.editingMsg = null;
+            this.$wire.cancelEdit();
         },
 
-        async saveEdit() {
-            if (!this.editingMsg?.id) return;
+        async saveEdit(id) {
+            if (!id || id !== this.editingMsg?.id) return;
 
             try {
-                await this.$wire.$island('messages').saveEdit(this.editingMsg.id);
-                this.cancelEdit();
+                await this.$wire.$island('messages').saveEdit(id);
+                if (this.editingMsg?.id === id) this.cancelEdit();
             } catch (error) {
                 this.toast('خطا در ذخیره ویرایش پیام.', 'error');
             }
@@ -407,22 +307,6 @@ export default function contact() {
             this.replyingTo = null;
             this.editingMsg = null;
             this.deletingId = id;
-        },
-
-        cancelDelete() {
-            this.deletingId = null;
-        },
-
-        async deleteMessage() {
-            if (!this.deletingId) return;
-
-            try {
-                await this.$wire.$island('messages').deleteMessage(this.deletingId);
-                this.cancelDelete();
-                this.openActionsId = null;
-            } catch (error) {
-                this.toast('خطا در حذف پیام.', 'error');
-            }
         },
 
         async sendMessage() {
@@ -444,7 +328,7 @@ export default function contact() {
 
             this.sending = true;
             try {
-                await this.$wire.$island('messages').send(this.replyingTo?.id ?? null);
+                await this.$wire.$island('messages').send();
                 this.replyingTo = null;
                 this.$wire.$island('sidebar').refreshUnread().catch(() => {});
             } catch (error) {

@@ -23,8 +23,8 @@ use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
 use App\Models\User;
+use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
-use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
@@ -40,7 +40,7 @@ use Illuminate\Support\Facades\DB;
 #[Isolate]
 class Main extends Component
 {
-    use FocusOnRecord, WithFileUploads;
+    use ChatComposer, FocusOnRecord, WithFileUploads;
 
     public ChannelMessageComposerForm $composer;
     public EditChannelMessageForm $edit;
@@ -77,18 +77,6 @@ class Main extends Component
         $this->composer->fill(['body' => '', 'attachments' => [], 'replyToId' => null]);
         $this->edit->fill(['editingBody' => '']);
         $this->create->fill(['name' => '', 'slug' => '', 'description' => null, 'type' => 'open']);
-    }
-
-    public function updated(string $name): void
-    {
-        if ($name === 'composer.attachments') {
-            $this->dispatch('attachments-updated')->self();
-        }
-    }
-
-    public function syncAttachments(): void
-    {
-        unset($this->groupedMessages);
     }
 
     #[Computed]
@@ -212,15 +200,6 @@ class Main extends Component
     }
 
     #[Computed]
-    public function groupedMessages(): array
-    {
-        return collect($this->messages)
-            ->groupBy(fn($m) => Carbon::parse($m['created_at'])->setTimezone(config('app.timezone'))->toDateString())
-            ->map(fn($group) => $group->values()->all())
-            ->all();
-    }
-
-    #[Computed]
     public function readers(): array
     {
         if (!$this->activeChannelId) {
@@ -241,13 +220,6 @@ class Main extends Component
         }
 
         return $map;
-    }
-
-    #[Computed]
-    public function lastMessageId(): ?int
-    {
-        $id = collect($this->messages)->max('id');
-        return $id === null ? null : (int) $id;
     }
 
     #[Computed]
@@ -499,7 +471,7 @@ class Main extends Component
 
     public function deleteMessage(DeleteChannelMessageAction $action, int $deletingId): void
     {
-        $snapshot = $action->execute($deletingId);
+        $snapshot = $action->execute($deletingId, $this->editTimeLimit);
         if (!$snapshot) {
             $this->dispatch('show-toast', message: 'این پیام دیگر قابل حذف نیست.', type: 'error');
             return;
@@ -585,13 +557,6 @@ class Main extends Component
         }
     }
 
-    public function removeAttachment(int $index): void
-    {
-        $attachments = $this->composer->attachments;
-        unset($attachments[$index]);
-        $this->composer->attachments = array_values($attachments);
-    }
-
     public function downloadAttachment(int $messageId, int $index): ?Response
     {
         return app(DownloadChannelAttachmentAction::class)->execute(
@@ -605,14 +570,6 @@ class Main extends Component
     public function markRead(int $channelId): void
     {
         app(MarkChannelReadAction::class)->execute($channelId, auth()->id());
-    }
-
-    #[Js]
-    public function cancelReply()
-    {
-        return <<<'JS'
-            $wire.composer.replyToId = null
-        JS;
     }
 
     #[Js]

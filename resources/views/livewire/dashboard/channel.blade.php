@@ -15,7 +15,7 @@
             <x-slot:actions>
                 <button
                     type="button"
-                    @click="$dispatch('open-modal', { name: 'channel-badge-legend' })"
+                    @click="$dispatch('open-modal', { name: 'messaging-badge-legend' })"
                     title="راهنمای نشانگر اعلان"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                 >
@@ -23,8 +23,8 @@
                 </button>
                 <button
                     type="button"
-                    @click="$dispatch('open-modal', { name: 'channel-legend' })"
-                    title="راهنمای نقش‌های کانال"
+                    @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
+                    title="راهنمای پیام‌رسان و کانال"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
@@ -34,15 +34,7 @@
             </x-slot:actions>
         </x-ui.title>
 
-        <x-dashboard.modal.badge-legend
-            name="channel-badge-legend"
-            :items="[\App\Services\Menu\BadgeLegendCatalog::get('channels-controller')]"
-            title="راهنمای اعلان کانال"
-        />
-
-        <x-ui.modals.dialog name="channel-legend" title="راهنمای نقش‌های کانال">
-            @include('livewire.dashboard.channel.legend')
-        </x-ui.modals.dialog>
+        @include('livewire.dashboard.messaging.legends')
 
         @include('components.dashboard.header.focus-chip')
 
@@ -83,6 +75,6 @@
 
     @include('livewire.dashboard.channel.invite-toasts')
 
-    @include('livewire.dashboard.channel.quote-chip')
+    @include('livewire.dashboard.messaging.quote-chip')
 
 </div>

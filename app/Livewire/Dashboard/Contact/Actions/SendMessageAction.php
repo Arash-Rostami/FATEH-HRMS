@@ -10,13 +10,13 @@ use Illuminate\Support\Str;
 
 class SendMessageAction
 {
-    public function execute(MessageComposerForm $form, int $recipientId, ?int $replyToId): Message
+    public function execute(MessageComposerForm $form, int $recipientId): Message
     {
         $form->validate();
 
         $senderId = auth()->id();
 
-        return DB::transaction(function () use ($form, $recipientId, $replyToId, $senderId) {
+        return DB::transaction(function () use ($form, $recipientId, $senderId) {
             $stored = $this->storeAttachments($form->attachments, $senderId);
 
             try {
@@ -25,7 +25,7 @@ class SendMessageAction
                     'recipient_id' => $recipientId,
                     'body'         => trim($form->body),
                     'attachments'  => $stored ?: null,
-                    'reply_to_id'  => $this->resolveReplyToId($replyToId, $senderId, $recipientId),
+                    'reply_to_id'  => $this->resolveReplyToId($form->replyToId, $senderId, $recipientId),
                 ]);
             } catch (\Throwable $e) {
                 foreach ($stored as $item) {
