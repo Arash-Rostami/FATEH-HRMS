@@ -1,3 +1,5 @@
+import clipboardMixin from "../mixins/clipboard.js";
+
 const patternLoaders = {
     shapes: () => import("./patterns/shapes.js"),
     rain: () => import("./patterns/rain.js"),
@@ -16,11 +18,25 @@ const patternLoaders = {
     snow: () => import("./patterns/snow.js")
 };
 
+const BACKGROUND_ELEMENT_IDS = [
+    'interactive-background',
+    'interactive-background-apple',
+    'interactive-background-google'
+];
+
+const LS_FONT_SIZE = 'fontSizeLevel';
+const LS_READING_RULER = 'readingRuler';
+const LS_DOUBLE_CLICK_COPY = 'doubleClickCopy';
+
+const SCALE_STEP = 0.1;
+const PATTERN_SETTLE_DELAY = 50;
+const RESET_RELOAD_DELAY = 500;
+const TOAST_VISIBLE_MS = 1500;
+const TOAST_FADE_MS = 200;
+
 let activePatternInstance = null;
 let patternInitRunId = 0;
 let patternInitAbort = null;
-
-import clipboardMixin from "../mixins/clipboard.js";
 
 export default function settings() {
     return {
@@ -33,15 +49,24 @@ export default function settings() {
         readingRuler: false,
         doubleClickCopy: false,
 
+        _isDestroyed: false,
+        _rulerHandler: null,
+        _rulerRaf: null,
+        _copyHandler: null,
 
         get availablePatterns() {
-            return Alpine.store('background').patterns;
+            return this.$store?.background?.patterns || [];
         },
 
         init() {
-            this.fontSizeLevel = parseInt(localStorage.getItem('fontSizeLevel') || '0');
-            this.readingRuler = localStorage.getItem('readingRuler') === 'true';
-            this.doubleClickCopy = localStorage.getItem('doubleClickCopy') === 'true';
+            this._isDestroyed = false;
+
+            try {
+                this.fontSizeLevel = parseInt(localStorage.getItem(LS_FONT_SIZE) || '0');
+                this.readingRuler = localStorage.getItem(LS_READING_RULER) === 'true';
+                this.doubleClickCopy = localStorage.getItem(LS_DOUBLE_CLICK_COPY) === 'true';
+            } catch (e) {}
+
             this.applyDoubleClickCopy();
             this.applyFontSize();
             this.applyReadingRuler();
@@ -56,10 +81,10 @@ export default function settings() {
         },
 
         applyFontSize() {
-            const scale = 1 + (this.fontSizeLevel * 0.1);
+            const scale = 1 + (this.fontSizeLevel * SCALE_STEP);
             document.documentElement.style.setProperty('--app-font-scale', scale);
             document.documentElement.style.fontSize = `${scale * 100}%`;
-            localStorage.setItem('fontSizeLevel', this.fontSizeLevel);
+            try { localStorage.setItem(LS_FONT_SIZE, this.fontSizeLevel); } catch (e) {}
         },
 
         increaseFontSize() {
@@ -87,37 +112,56 @@ export default function settings() {
             if (this.fontSizeLevel === 1) return 'بزرگ';
             return 'خیلی بزرگ';
         },
+
         toggleReadingRuler() {
             this.readingRuler = !this.readingRuler;
-            localStorage.setItem('readingRuler', this.readingRuler);
+            try { localStorage.setItem(LS_READING_RULER, this.readingRuler); } catch (e) {}
             this.applyReadingRuler();
         },
 
         applyReadingRuler() {
             document.documentElement.classList.toggle('reading-ruler', this.readingRuler);
-            if (this.readingRuler) {
-                document.addEventListener('mousemove', this._rulerHandler = (e) => {
-                    document.documentElement.style.setProperty('--ruler-y', `${e.clientY}px`);
-                });
-            } else {
+
+            if (this._rulerHandler) {
                 document.removeEventListener('mousemove', this._rulerHandler);
+                this._rulerHandler = null;
+            }
+
+            if (this._rulerRaf) {
+                window.cancelAnimationFrame(this._rulerRaf);
+                this._rulerRaf = null;
+            }
+
+            if (this.readingRuler) {
+                this._rulerHandler = (e) => {
+                    if (this._rulerRaf) return;
+                    this._rulerRaf = window.requestAnimationFrame(() => {
+                        this._rulerRaf = null;
+                        document.documentElement.style.setProperty('--ruler-y', `${e.clientY}px`);
+                    });
+                };
+                document.addEventListener('mousemove', this._rulerHandler, { passive: true });
             }
         },
 
         toggleDoubleClickCopy() {
             this.doubleClickCopy = !this.doubleClickCopy;
-            localStorage.setItem('doubleClickCopy', this.doubleClickCopy);
+            try { localStorage.setItem(LS_DOUBLE_CLICK_COPY, this.doubleClickCopy); } catch (e) {}
             this.applyDoubleClickCopy();
         },
 
         applyDoubleClickCopy() {
+            if (this._copyHandler) {
+                document.removeEventListener('mouseup', this._copyHandler);
+                this._copyHandler = null;
+            }
+
             if (this.doubleClickCopy) {
-                document.addEventListener('mouseup', this._copyHandler = () => {
+                this._copyHandler = () => {
                     const selection = window.getSelection()?.toString().trim();
                     if (selection) this.copyText(selection, 'کپی شد');
-                });
-            } else {
-                document.removeEventListener('mouseup', this._copyHandler);
+                };
+                document.addEventListener('mouseup', this._copyHandler, { passive: true });
             }
         },
 
@@ -126,25 +170,24 @@ export default function settings() {
             toast.textContent = 'کپی شد';
             toast.classList.add('toast-floating');
             document.body.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
+
+            window.requestAnimationFrame(() => toast.classList.add('show'));
 
             setTimeout(() => {
                 toast.classList.remove('show');
-
-                setTimeout(() => toast.remove(), 200);
-            }, 1500);
+                setTimeout(() => toast.remove(), TOAST_FADE_MS);
+            }, TOAST_VISIBLE_MS);
         },
 
         clearVisuals() {
             if (typeof activePatternInstance?.destroy === 'function') {
-                try {
-                    activePatternInstance.destroy();
-                } catch {
-                }
+                try { activePatternInstance.destroy(); } catch (e) {}
             }
             activePatternInstance = null;
-            ['interactive-background', 'interactive-background-apple', 'interactive-background-google']
-                .forEach(id => document.getElementById(id)?.remove());
+
+            for (let i = 0, len = BACKGROUND_ELEMENT_IDS.length; i < len; i++) {
+                document.getElementById(BACKGROUND_ELEMENT_IDS[i])?.remove();
+            }
         },
 
         async initPattern() {
@@ -155,18 +198,19 @@ export default function settings() {
 
             this.clearVisuals();
 
-            if (!Alpine.store('background').patternEnabled) return;
+            const store = this.$store?.background;
+            if (!store?.patternEnabled) return;
 
-            const currentPatternId = Alpine.store('background').activePattern || 'shapes';
+            const currentPatternId = store.activePattern || 'shapes';
             const loader = patternLoaders[currentPatternId];
             if (!loader) return;
 
             try {
                 const module = await loader();
-                if (controller.signal.aborted || runId !== patternInitRunId) return;
+                if (controller.signal.aborted || runId !== patternInitRunId || this._isDestroyed) return;
 
-                await new Promise(r => setTimeout(r, 50));
-                if (controller.signal.aborted || runId !== patternInitRunId) return;
+                await new Promise(r => setTimeout(r, PATTERN_SETTLE_DELAY));
+                if (controller.signal.aborted || runId !== patternInitRunId || this._isDestroyed) return;
 
                 const patternObj = module.default;
                 if (typeof patternObj?.init === 'function') {
@@ -176,36 +220,40 @@ export default function settings() {
                     activePatternInstance = patternObj();
                     if (typeof activePatternInstance === 'function') activePatternInstance();
                 }
-            } catch {
-            }
+            } catch (e) {}
         },
 
         setPattern(patternId) {
-            Alpine.store('background').setPattern(patternId);
+            this.$store?.background?.setPattern?.(patternId);
         },
 
         toggleBackground() {
-            Alpine.store('background').toggleBackground(!Alpine.store('background').enabled);
+            const store = this.$store?.background;
+            store?.toggleBackground?.(!store.enabled);
         },
 
         togglePattern() {
-            Alpine.store('background').togglePattern(!Alpine.store('background').patternEnabled);
+            const store = this.$store?.background;
+            store?.togglePattern?.(!store.patternEnabled);
         },
 
         toggleFocus() {
             this.focusMode = !this.focusMode;
+            const store = this.$store?.background;
 
             if (this.focusMode) {
-                document.documentElement.requestFullscreen().catch(() => {
-                });
-                Alpine.store('background').patternEnabled = false;
-                Alpine.store('background').enabled = false;
-                this.$wire.call('setFocusMode', true);
+                document.documentElement.requestFullscreen?.().catch(() => {});
+                if (store) {
+                    store.patternEnabled = false;
+                    store.enabled = false;
+                }
+                this.$wire?.call('setFocusMode', true);
             } else {
-                document.exitFullscreen?.().catch(() => {
-                });
-                Alpine.store('background').enabled = true;
-                this.$wire.call('setFocusMode', false);
+                document.exitFullscreen?.().catch(() => {});
+                if (store) {
+                    store.enabled = true;
+                }
+                this.$wire?.call('setFocusMode', false);
             }
         },
 
@@ -214,8 +262,32 @@ export default function settings() {
                 caches.keys().then(names => names.forEach(n => caches.delete(n)));
             }
             navigator.serviceWorker?.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-            localStorage.clear();
-            setTimeout(() => location.reload(), 500);
+            try { localStorage.clear(); } catch (e) {}
+            setTimeout(() => location.reload(), RESET_RELOAD_DELAY);
+        },
+
+        destroy() {
+            this._isDestroyed = true;
+
+            patternInitAbort?.abort();
+            patternInitAbort = null;
+
+            if (this._rulerHandler) {
+                document.removeEventListener('mousemove', this._rulerHandler);
+                this._rulerHandler = null;
+            }
+
+            if (this._rulerRaf) {
+                window.cancelAnimationFrame(this._rulerRaf);
+                this._rulerRaf = null;
+            }
+
+            if (this._copyHandler) {
+                document.removeEventListener('mouseup', this._copyHandler);
+                this._copyHandler = null;
+            }
+
+            this.clearVisuals();
         }
     };
 }

@@ -1,4 +1,4 @@
-export default function mobile(initialPage, pageTwoKeys) {
+export default function mobile(initialPage = 0, pageTwoKeys = []) {
     return {
         page: initialPage,
         isAtBottom: false,
@@ -10,15 +10,15 @@ export default function mobile(initialPage, pageTwoKeys) {
         },
 
         syncPage() {
-            this.page = this.pageTwoKeys.includes(this.activeTab) ? 1 : 0;
+            this.page = this.pageTwoKeys?.includes(this.activeTab) ? 1 : 0;
         },
 
         init() {
             const el = document.getElementById('footer') || document.querySelector('footer');
 
             if (el && window.IntersectionObserver) {
-                this.observer = new IntersectionObserver(([e]) => {
-                    this.isAtBottom = !!e?.isIntersecting;
+                this.observer = new IntersectionObserver((entries) => {
+                    this.isAtBottom = !!entries[0]?.isIntersecting;
                 });
                 this.observer.observe(el);
             }
@@ -29,6 +29,7 @@ export default function mobile(initialPage, pageTwoKeys) {
         destroy() {
             if (this.observer) {
                 this.observer.disconnect();
+                this.observer = null;
             }
         }
     };

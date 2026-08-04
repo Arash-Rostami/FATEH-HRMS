@@ -7,55 +7,86 @@ import bg6 from '../../../../assets/img/bg/backdrop6.png';
 import bg7 from '../../../../assets/img/bg/backdrop7.png';
 import bg8 from '../../../../assets/img/bg/backdrop8.png';
 
+const LS_BACKGROUND_ENABLED = 'backgroundEnabled';
+const LS_PATTERN_ENABLED = 'patternEnabled';
+const LS_ACTIVE_PATTERN = 'activePattern';
+const DEFAULT_PATTERN = 'shapes';
+
+const IMAGES = [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8];
+
+const TABS_ORDER = ['home', 'post', 'feed', 'calendar', 'status', 'gallery', 'reports', 'links', 'faqs'];
+
+const PATTERNS = [
+    { id: 'shapes', name: 'اشکال شناور' },
+    { id: 'rain', name: 'نم نم باران' },
+    { id: 'particle', name: 'ذرات مغناطیستی' },
+    { id: 'parallax', name: 'فضای بی‌کران' },
+    { id: 'gradient', name: 'امواج متحرک' },
+    { id: 'geometry', name: 'کریستال‌های معلق' },
+    { id: 'cloud', name: 'ابرهای روان' },
+    { id: 'flora', name: 'گندم‌زار طلایی' },
+    { id: 'ambient', name: 'گوی متحرک' },
+    { id: 'cyber', name: 'هک سایبری' },
+    { id: 'google', name: 'توپ شناور' },
+    { id: 'note', name: 'نت موسیقی' },
+    { id: 'ripple', name: 'آب مواج' },
+    { id: 'firefly', name: 'شب تاب رنگی' },
+    { id: 'snow', name: 'بلور برف' },
+];
+
+const readBool = (key) => {
+    try {
+        return localStorage.getItem(key) === 'true';
+    } catch (e) {
+        return false;
+    }
+};
+
+const readString = (key, fallback) => {
+    try {
+        return localStorage.getItem(key) || fallback;
+    } catch (e) {
+        return fallback;
+    }
+};
+
+const write = (key, value) => {
+    try {
+        localStorage.setItem(key, String(value));
+    } catch (e) {}
+};
+
 export default (Alpine) => {
     Alpine.store('background', {
-        enabled: localStorage.getItem('backgroundEnabled') === 'true',
-        patternEnabled: localStorage.getItem('patternEnabled') === 'true',
-        activePattern: localStorage.getItem('activePattern') || 'shapes',
-        tabsOrder: ['home', 'post', 'feed', 'calendar', 'status', 'gallery', 'reports', 'links', 'faqs'],
-        images: [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8],
-
-        patterns: [
-            { id: 'shapes', name: 'اشکال شناور' },
-            { id: 'rain', name: 'نم نم باران' },
-            { id: 'particle', name: 'ذرات مغناطیستی' },
-            { id: 'parallax', name: 'فضای بی‌کران' },
-            { id: 'gradient', name: 'امواج متحرک' },
-            { id: 'geometry', name: 'کریستال‌های معلق' },
-            { id: 'cloud', name: 'ابرهای روان' },
-            { id: 'flora', name: 'گندم‌زار طلایی' },
-            { id: 'ambient', name: 'گوی متحرک' },
-            { id: 'cyber', name: 'هک سایبری' },
-            { id: 'google', name: 'توپ شناور' },
-            { id: 'note', name: 'نت موسیقی' },
-            { id: 'ripple', name: 'آب مواج' },
-            { id: 'firefly', name: 'شب تاب رنگی' },
-            { id: 'snow', name: 'بلور برف' },
-        ],
-
+        enabled: readBool(LS_BACKGROUND_ENABLED),
+        patternEnabled: readBool(LS_PATTERN_ENABLED),
+        activePattern: readString(LS_ACTIVE_PATTERN, DEFAULT_PATTERN),
+        tabsOrder: TABS_ORDER,
+        images: IMAGES,
+        patterns: PATTERNS,
 
         toggleBackground(value) {
             this.enabled = value;
             if (value) {
                 this.patternEnabled = false;
-                localStorage.setItem('patternEnabled', 'false');
+                write(LS_PATTERN_ENABLED, false);
             }
-            localStorage.setItem('backgroundEnabled', value);
+            write(LS_BACKGROUND_ENABLED, value);
         },
 
         togglePattern(value) {
             this.patternEnabled = value;
             if (value) {
                 this.enabled = false;
-                localStorage.setItem('backgroundEnabled', 'false');
-                localStorage.setItem('activePattern', this.activePattern || 'shapes');
+                write(LS_BACKGROUND_ENABLED, false);
+                write(LS_ACTIVE_PATTERN, this.activePattern || DEFAULT_PATTERN);
             }
-            localStorage.setItem('patternEnabled', value);
+            write(LS_PATTERN_ENABLED, value);
         },
 
         setPattern(patternId) {
             this.activePattern = patternId;
-            localStorage.setItem('activePattern', patternId);
+            write(LS_ACTIVE_PATTERN, patternId);
         }
-    })
-}
+    });
+};

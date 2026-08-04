@@ -1,9 +1,23 @@
+const COOKIE_REGEX = /(^|;)\s*googtrans\s*=\s*([^;]+)/;
+const LS_KEY = 'google_translate_enabled';
+const SCRIPT_URL = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+const SCRIPT_ID = 'google-translate-script';
+const STYLE_ID = 'google-translate-hide-ui';
+const EXPIRY_DATE = 'Thu, 01 Jan 1970 00:00:00 UTC';
+
+const HIDE_UI_CSS = `
+    .goog-te-banner-frame { display: none !important; }
+    .goog-te-gadget-icon { display: none !important; }
+    .goog-te-gadget-simple { display: none !important; }
+    #google_translate_element { display: none !important; }
+    body { top: 0px !important; }
+`;
+
 export default (initialState = false) => ({
     enabled: initialState,
 
     init() {
-        // Check cookie for translation state (googtrans cookie handles the actual translation)
-        const cookie = document.cookie.match(/(^|;)\s*googtrans\s*=\s*([^;]+)/);
+        const cookie = document.cookie.match(COOKIE_REGEX);
         this.enabled = !!cookie;
 
         if (this.enabled) {
@@ -14,19 +28,18 @@ export default (initialState = false) => ({
     toggle() {
         this.enabled = !this.enabled;
 
-        if (this.enabled) {
-            // Set cookie to translate from Farsi (fa) to English (en) automatically
-            document.cookie = "googtrans=/fa/en; path=/; domain=" + location.hostname;
-            document.cookie = "googtrans=/fa/en; path=/; domain=." + location.hostname; // Handling subdomains just in case
-            localStorage.setItem('google_translate_enabled', 'true');
-            window.location.reload();
-        } else {
-            // Clear cookies to disable translation
-            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
-            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + location.hostname;
-            localStorage.setItem('google_translate_enabled', 'false');
-            window.location.reload();
-        }
+        const value = this.enabled ? '/fa/en' : '';
+        const expiry = this.enabled ? '' : `; expires=${EXPIRY_DATE}`;
+        const lsValue = this.enabled ? 'true' : 'false';
+
+        const domain = location.hostname;
+        const baseCookie = `googtrans=${value}${expiry}; path=/`;
+
+        document.cookie = `${baseCookie}; domain=${domain}`;
+        document.cookie = `${baseCookie}; domain=.${domain}`;
+
+        localStorage.setItem(LS_KEY, lsValue);
+        window.location.reload();
     },
 
     loadGoogleScript() {
@@ -44,22 +57,21 @@ export default (initialState = false) => ({
             };
         }
 
+        if (document.getElementById(SCRIPT_ID)) return;
+
         const script = document.createElement('script');
+        script.id = SCRIPT_ID;
         script.type = 'text/javascript';
-        script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.src = SCRIPT_URL;
         document.body.appendChild(script);
     },
 
     cleanUI() {
-        // Hide the Google widget and branding completely since we are using auto-translate via cookies
+        if (document.getElementById(STYLE_ID)) return;
+
         const style = document.createElement('style');
-        style.innerHTML = `
-            .goog-te-banner-frame { display: none !important; }
-            .goog-te-gadget-icon { display: none !important; }
-            .goog-te-gadget-simple { display: none !important; }
-            #google_translate_element { display: none !important; }
-            body { top: 0px !important; }
-        `;
+        style.id = STYLE_ID;
+        style.innerHTML = HIDE_UI_CSS;
         document.head.appendChild(style);
     }
-})
+});

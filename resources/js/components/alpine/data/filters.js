@@ -1,45 +1,78 @@
+const TOP_THRESHOLD = 60;
+const HIDE_DELTA = 4;
+const SHOW_DELTA = -6;
+
 export default (open, searchModel, activeConditionFn, clearActionFn) => ({
     showFilters: open,
     isDocked: true,
     compact: false,
     _lastY: 0,
     _ticking: false,
-    scrollHandler: null,
+    _scrollHandler: null,
+    _rafId: null,
 
     init() {
         this._lastY = window.scrollY;
-        this.scrollHandler = () => {
+
+        this._scrollHandler = () => {
             if (this._ticking) return;
             this._ticking = true;
-            requestAnimationFrame(() => {
-                const y = window.scrollY, d = y - this._lastY;
-                if (y < 60) this.compact = false;
-                else if (d > 4) { this.compact = true; this.showFilters = false; }
-                else if (d < -6) this.compact = false;
+            this._rafId = window.requestAnimationFrame(() => {
+                const y = window.scrollY;
+                const d = y - this._lastY;
+
+                if (y < TOP_THRESHOLD) {
+                    this.compact = false;
+                } else if (d > HIDE_DELTA) {
+                    this.compact = true;
+                    this.showFilters = false;
+                } else if (d < SHOW_DELTA) {
+                    this.compact = false;
+                }
+
                 this._lastY = y;
                 this._ticking = false;
             });
         };
-        window.addEventListener('scroll', this.scrollHandler, { passive: true });
+
+        window.addEventListener('scroll', this._scrollHandler, { passive: true });
 
         this.$watch('isDocked', (docked) => {
-            this.$store.chrome.forceHidden = !docked;
+            if (this.$store?.chrome) {
+                this.$store.chrome.forceHidden = !docked;
+            }
         });
     },
 
     destroy() {
-        window.removeEventListener('scroll', this.scrollHandler);
-        this.$store.chrome.forceHidden = false;
+        if (this._rafId) {
+            window.cancelAnimationFrame(this._rafId);
+            this._rafId = null;
+        }
+
+        if (this._scrollHandler) {
+            window.removeEventListener('scroll', this._scrollHandler);
+            this._scrollHandler = null;
+        }
+
+        if (this.$store?.chrome) {
+            this.$store.chrome.forceHidden = false;
+        }
     },
 
     get hasActiveFilters() {
-        return activeConditionFn.call(this) || this.hasSearchQuery;
+        return (activeConditionFn?.call(this)) || this.hasSearchQuery;
     },
 
     get hasSearchQuery() {
         return (this.$wire.get(searchModel) || '').length > 0;
     },
 
-    clearFilters() { clearActionFn.call(this); },
-    clearSearchOnly() { this.$wire.set(searchModel, ''); },
+    clearFilters() {
+        clearActionFn?.call(this);
+    },
+
+    clearSearchOnly() {
+        this.$wire.set(searchModel, '');
+    },
 });

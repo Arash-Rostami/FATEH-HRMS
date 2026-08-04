@@ -1,5 +1,11 @@
 import maximizeMixin from "../mixins/maximize.js";
 
+const FEED_SELECTOR = '[data-feed]';
+const FEED_ID_SELECTOR = '[data-feed-id]';
+const DESKTOP_BREAKPOINT = 768;
+const SCROLL_THROTTLE_MS = 50;
+const OBSERVER_ROOT_MARGIN = '200px';
+
 export default () => ({
     ...maximizeMixin(),
     activeId: null,
@@ -8,8 +14,13 @@ export default () => ({
     showTimeline: false,
     maximizedFeed: null,
 
+    _isDestroyed: false,
+    _scrollListener: null,
+    _scrollTimeout: null,
+    _morphHook: null,
+
     feed(el) {
-        return el?.closest('[data-feed]')?.dataset.feed;
+        return el?.closest(FEED_SELECTOR)?.dataset.feed;
     },
 
     toggleMaximize(name) {
@@ -18,15 +29,17 @@ export default () => ({
     },
 
     init() {
+        this._isDestroyed = false;
+
         this.$nextTick(() => {
             this.setupScrollListener();
             this.setupInfiniteScroll();
             this.updateActiveItem();
         });
 
-
-        Livewire.hook('morph', ({ el }) => {
-            if (this.$root.contains(el)) {
+        this._morphHook = Livewire.hook('morph', ({ el }) => {
+            if (this._isDestroyed) return;
+            if (this.$root?.contains(el)) {
                 this.$nextTick(() => {
                     this.updateActiveItem();
                     this.observeTrigger();
@@ -37,11 +50,11 @@ export default () => ({
 
     setupInfiniteScroll() {
         this.observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) this.loadMore();
+            if (entries[0]?.isIntersecting) this.loadMore();
         }, {
             root: null,
             threshold: 0,
-            rootMargin: '200px',
+            rootMargin: OBSERVER_ROOT_MARGIN,
         });
         this.observeTrigger();
     },
@@ -64,34 +77,31 @@ export default () => ({
         }
     },
 
-
-    handleScroll() {
-        const el = this.$refs.feedContainer;
-        const scrollLeft = Math.abs(el.scrollLeft);
-        const maxScroll = el.scrollWidth - el.clientWidth;
-    },
-
-
     scrollNext() {
-        this.$refs.timeline.scrollBy({ left: -this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+        const timeline = this.$refs.timeline;
+        if (!timeline) return;
+        timeline.scrollBy({ left: -timeline.offsetWidth, behavior: 'smooth' });
     },
 
     scrollPrev() {
-        this.$refs.timeline.scrollBy({ left: this.$refs.timeline.offsetWidth, behavior: 'smooth' });
+        const timeline = this.$refs.timeline;
+        if (!timeline) return;
+        timeline.scrollBy({ left: timeline.offsetWidth, behavior: 'smooth' });
     },
 
     setupScrollListener() {
         const container = this.$refs.timeline;
         if (!container) return;
 
-        let timeout;
-        container.addEventListener('scroll', () => {
-            if (timeout) return;
-            timeout = setTimeout(() => {
+        this._scrollListener = () => {
+            if (this._scrollTimeout) return;
+            this._scrollTimeout = setTimeout(() => {
+                this._scrollTimeout = null;
                 this.updateActiveItem();
-                timeout = null;
-            }, 50);
-        }, { passive: true });
+            }, SCROLL_THROTTLE_MS);
+        };
+
+        container.addEventListener('scroll', this._scrollListener, { passive: true });
     },
 
     updateActiveItem() {
@@ -100,29 +110,60 @@ export default () => ({
         if (!timeline || !feedContainer) return;
 
         const containerRect = timeline.getBoundingClientRect();
-        const isDesktop = window.innerWidth >= 768;
+        const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
+        const items = feedContainer.querySelectorAll(FEED_ID_SELECTOR);
+
         let closestId = null;
         let minDistance = Infinity;
 
-        feedContainer.querySelectorAll('[data-feed-id]').forEach(item => {
-            const rect = item.getBoundingClientRect();
-            let distance;
-
-            if (isDesktop) {
-                const referencePoint = containerRect.right - containerRect.width * 0.1;
-                distance = Math.abs(referencePoint - rect.right);
-            } else {
-                const containerCenter = containerRect.top + containerRect.height / 2;
+        if (isDesktop) {
+            const referencePoint = containerRect.right - containerRect.width * 0.1;
+            for (let i = 0, len = items.length; i < len; i++) {
+                const rect = items[i].getBoundingClientRect();
+                const distance = Math.abs(referencePoint - rect.right);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestId = items[i].dataset.feedId;
+                }
+            }
+        } else {
+            const containerCenter = containerRect.top + containerRect.height / 2;
+            for (let i = 0, len = items.length; i < len; i++) {
+                const rect = items[i].getBoundingClientRect();
                 const itemCenter = rect.top + rect.height / 2;
-                distance = Math.abs(containerCenter - itemCenter);
+                const distance = Math.abs(containerCenter - itemCenter);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestId = items[i].dataset.feedId;
+                }
             }
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestId = item.dataset.feedId;
-            }
-        });
+        }
 
         if (closestId) this.activeId = closestId;
     },
-})
+
+    destroy() {
+        this._isDestroyed = true;
+
+        if (typeof this._morphHook === 'function') {
+            this._morphHook();
+            this._morphHook = null;
+        }
+
+        if (this._scrollTimeout) {
+            clearTimeout(this._scrollTimeout);
+            this._scrollTimeout = null;
+        }
+
+        const timeline = this.$refs?.timeline;
+        if (timeline && this._scrollListener) {
+            timeline.removeEventListener('scroll', this._scrollListener);
+            this._scrollListener = null;
+        }
+
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
+    }
+});

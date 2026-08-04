@@ -1,17 +1,25 @@
-import {THEME_COLORS} from '../components/alpine/stores/theme.js';
+import { THEME_COLORS } from '../components/alpine/stores/theme.js';
 
 const THEME_KEY = 'user-theme';
 const MODE_KEY = 'user-mode';
+const DARK_MODE_QUERY = '(prefers-color-scheme: dark)';
+const THEME_META_SELECTOR = 'meta[name="theme-color"]';
+const THEME_COLOR_PROPERTY = '--md-sys-color-primary';
+const SYNC_EVENT_NAME = 'theme-system-updated';
 
 export default class ThemeManager {
     static initialized = false;
+    static _mediaQuery = null;
 
     static getColors() {
         return THEME_COLORS;
     }
 
     static getSystemMode() {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        if (!this._mediaQuery) {
+            this._mediaQuery = window.matchMedia(DARK_MODE_QUERY);
+        }
+        return this._mediaQuery.matches ? 'dark' : 'light';
     }
 
     static getUserMode() {
@@ -76,7 +84,7 @@ export default class ThemeManager {
     static setTheme(theme) {
         this.applyThemeDOM(theme);
         localStorage.setItem(THEME_KEY, theme);
-        this.syncStore();
+        this.syncStore(theme);
         this.syncThemeColorMeta();
         this.dispatchSyncEvent();
     }
@@ -87,17 +95,17 @@ export default class ThemeManager {
         this.applyModeDOM(newMode);
         localStorage.setItem(MODE_KEY, newMode);
 
-        this.syncStore();
+        this.syncStore(null, newMode);
         this.syncThemeColorMeta();
         this.dispatchSyncEvent();
     }
 
     static syncThemeColorMeta() {
-        const meta = document.querySelector('meta[name="theme-color"]');
+        const meta = document.querySelector(THEME_META_SELECTOR);
         if (!meta) return;
 
         const value = getComputedStyle(document.documentElement)
-            .getPropertyValue('--md-sys-color-primary')
+            .getPropertyValue(THEME_COLOR_PROPERTY)
             .trim();
 
         if (value) meta.setAttribute('content', value);
@@ -112,7 +120,7 @@ export default class ThemeManager {
     }
 
     static dispatchSyncEvent() {
-        window.dispatchEvent(new CustomEvent('theme-system-updated'));
+        window.dispatchEvent(new CustomEvent(SYNC_EVENT_NAME));
     }
 }
 

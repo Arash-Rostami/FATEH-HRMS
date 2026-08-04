@@ -1,7 +1,14 @@
+const TOUCH_Y_THRESHOLD_MOVE = 30;
+const TOUCH_Y_THRESHOLD_END = 50;
+const TOUCH_X_THRESHOLD_EXPAND = 80;
+const DESKTOP_BREAKPOINT = 1024;
+const TRANSITION_BASE_DELAY = 100;
+const TRANSITION_STEP_DELAY = 50;
+
 export default function sidebar() {
     return {
         isExpanded: false,
-        activeTab: window.location.pathname,
+        activeTab: '',
         touchStartX: 0,
         touchStartY: 0,
         isDragging: false,
@@ -12,39 +19,53 @@ export default function sidebar() {
         },
 
         handleTouchStart(event) {
-            this.touchStartX = event.changedTouches[0].screenX;
-            this.touchStartY = event.changedTouches[0].screenY;
+            const touch = event.changedTouches[0];
+            if (!touch) return;
+
+            this.touchStartX = touch.screenX;
+            this.touchStartY = touch.screenY;
             this.isDragging = true;
         },
 
         handleTouchMove(event) {
-            if (this.isDragging && Math.abs(event.changedTouches[0].screenY - this.touchStartY) < 30) {
-                event.preventDefault();
+            if (!this.isDragging) return;
+
+            const touch = event.changedTouches[0];
+            if (!touch) return;
+
+            if (Math.abs(touch.screenY - this.touchStartY) < TOUCH_Y_THRESHOLD_MOVE) {
+                if (event.cancelable) {
+                    event.preventDefault();
+                }
             }
         },
 
         handleTouchEnd(event) {
             this.isDragging = false;
-            const deltaX = event.changedTouches[0].screenX - this.touchStartX;
-            const deltaY = Math.abs(event.changedTouches[0].screenY - this.touchStartY);
 
-            if (deltaY < 50) {
-                if (deltaX > 80) {
+            const touch = event.changedTouches[0];
+            if (!touch) return;
+
+            const deltaX = touch.screenX - this.touchStartX;
+            const deltaY = Math.abs(touch.screenY - this.touchStartY);
+
+            if (deltaY < TOUCH_Y_THRESHOLD_END) {
+                if (deltaX > TOUCH_X_THRESHOLD_EXPAND) {
                     this.isExpanded = true;
-                } else if (deltaX < -80) {
+                } else if (deltaX < -TOUCH_X_THRESHOLD_EXPAND) {
                     this.isExpanded = false;
                 }
             }
         },
 
         expand() {
-            if (!this.isExpanded && window.innerWidth >= 1024) {
+            if (!this.isExpanded && window.innerWidth >= DESKTOP_BREAKPOINT) {
                 this.isExpanded = true;
             }
         },
 
         collapse() {
-            if (this.isExpanded && window.innerWidth >= 1024) {
+            if (this.isExpanded && window.innerWidth >= DESKTOP_BREAKPOINT) {
                 this.isExpanded = false;
             }
         },
@@ -71,7 +92,7 @@ export default function sidebar() {
 
         getTransitionDelay(index) {
             if (!this.isExpanded) return '0ms';
-            return `${100 + (index * 50)}ms`;
+            return `${TRANSITION_BASE_DELAY + (index * TRANSITION_STEP_DELAY)}ms`;
         }
-    }
+    };
 }

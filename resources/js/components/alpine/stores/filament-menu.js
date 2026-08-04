@@ -1,6 +1,24 @@
+const INPUT_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+const BYTES_PER_MB = 1048576;
+const PIP_WIDTH = 520;
+const PIP_HEIGHT = 640;
+const SHORTCUTS_DURATION = 8000;
+
+const notify = (title, type, body = null, duration = null) => {
+    if (typeof window.FilamentNotification !== 'function') return;
+    const n = new window.FilamentNotification().title(title);
+    if (body) n.body(body);
+    if (type === 'success') n.success();
+    else if (type === 'danger') n.danger();
+    else if (type === 'warning') n.warning();
+    if (duration) n.duration(duration);
+    n.send();
+};
+
 export default class FilamentMenuManager {
     constructor() {
         this.pipWindow = null;
+        this._alpineInitHandler = null;
         this.registerAlpineStore();
         this.registerKeyboardShortcuts();
     }
@@ -13,9 +31,9 @@ export default class FilamentMenuManager {
                 resetting: false,
 
                 init() {
-                    document.addEventListener('fullscreenchange', () =>
-                        this.fullscreen = !!document.fullscreenElement
-                    );
+                    document.addEventListener('fullscreenchange', () => {
+                        this.fullscreen = !!document.fullscreenElement;
+                    });
                 },
 
                 async resetServerCache() {
@@ -23,31 +41,39 @@ export default class FilamentMenuManager {
                     try {
                         const response = await fetch('/reset');
                         if (!response.ok) throw new Error();
-                        new window.FilamentNotification().title('کش سرور بازنشانی شد').success().send();
+                        notify('کش سرور بازنشانی شد', 'success');
                     } catch {
-                        new window.FilamentNotification().title('بازنشانی کش سرور ناموفق بود').danger().send();
+                        notify('بازنشانی کش سرور ناموفق بود', 'danger');
                     } finally {
                         this.resetting = false;
                     }
                 },
 
                 async toggleFullscreen() {
-                    document.fullscreenElement
-                        ? await document.exitFullscreen()
-                        : await document.documentElement.requestFullscreen();
+                    try {
+                        if (document.fullscreenElement) {
+                            await document.exitFullscreen();
+                        } else {
+                            await document.documentElement.requestFullscreen();
+                        }
+                    } catch (e) {}
                 },
 
                 async toggleWakeLock() {
                     if (this.wakeLock) {
-                        await this.wakeLock.release();
+                        try {
+                            await this.wakeLock.release();
+                        } catch (e) {}
                         this.wakeLock = null;
                         return;
                     }
                     try {
                         this.wakeLock = await navigator.wakeLock.request('screen');
-                        this.wakeLock.addEventListener('release', () => this.wakeLock = null);
+                        this.wakeLock.addEventListener('release', () => {
+                            this.wakeLock = null;
+                        });
                     } catch {
-                        new window.FilamentNotification().title('پشتیبانی نمی‌شود').warning().send();
+                        notify('پشتیبانی نمی‌شود', 'warning');
                     }
                 },
             });
@@ -56,7 +82,12 @@ export default class FilamentMenuManager {
         if (window.Alpine) {
             setupStore();
         } else {
-            document.addEventListener('alpine:init', setupStore);
+            this._alpineInitHandler = () => {
+                setupStore();
+                document.removeEventListener('alpine:init', this._alpineInitHandler);
+                this._alpineInitHandler = null;
+            };
+            document.addEventListener('alpine:init', this._alpineInitHandler);
         }
     }
 
@@ -70,7 +101,7 @@ export default class FilamentMenuManager {
 
     registerKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
-            const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable;
+            const isInput = INPUT_TAGS.has(e.target.tagName) || e.target.isContentEditable;
 
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 const submitBtn = document.querySelector('button[type="submit"]');
@@ -117,7 +148,7 @@ export default class FilamentMenuManager {
                 e.preventDefault();
                 const url = new URL(window.location.href);
                 const params = new URLSearchParams(url.search);
-                let page = parseInt(params.get('page')) || 1;
+                const page = parseInt(params.get('page')) || 1;
                 params.set('page', page + 1);
                 url.search = params.toString();
                 this.navigate(url.toString());
@@ -126,7 +157,7 @@ export default class FilamentMenuManager {
             if (e.key === 'ArrowUp') {
                 const url = new URL(window.location.href);
                 const params = new URLSearchParams(url.search);
-                let page = parseInt(params.get('page')) || 1;
+                const page = parseInt(params.get('page')) || 1;
                 if (page > 1) {
                     e.preventDefault();
                     params.set('page', page - 1);
@@ -138,11 +169,13 @@ export default class FilamentMenuManager {
     }
 
     clearStorage() {
+        if (!navigator.storage?.estimate) return;
+
         navigator.storage.estimate().then(({ usage }) => {
-            const mb = (usage / 1048576).toFixed(1);
+            const mb = (usage / BYTES_PER_MB).toFixed(1);
             if (confirm(`${mb} مگابایت کش پاک شود؟`)) {
-                localStorage.clear();
-                sessionStorage.clear();
+                try { localStorage.clear(); } catch (e) {}
+                try { sessionStorage.clear(); } catch (e) {}
                 caches?.keys().then(k => k.forEach(c => caches.delete(c)));
                 location.reload();
             }
@@ -151,7 +184,7 @@ export default class FilamentMenuManager {
 
     requestPiP() {
         if (!('documentPictureInPicture' in window)) {
-            new window.FilamentNotification().title('مرورگر پشتیبانی نمی‌کند').warning().send();
+            notify('مرورگر پشتیبانی نمی‌کند', 'warning');
             return;
         }
 
@@ -160,7 +193,7 @@ export default class FilamentMenuManager {
             return;
         }
 
-        window.documentPictureInPicture.requestWindow({ width: 520, height: 640 })
+        window.documentPictureInPicture.requestWindow({ width: PIP_WIDTH, height: PIP_HEIGHT })
             .then((pip) => {
                 this.pipWindow = pip;
 
@@ -197,9 +230,15 @@ export default class FilamentMenuManager {
     }
 
     copyStylesInto(pip) {
-        [...document.styleSheets].forEach((sheet) => {
+        const sheets = document.styleSheets;
+        for (let i = 0, len = sheets.length; i < len; i++) {
+            const sheet = sheets[i];
             try {
-                const css = [...sheet.cssRules].map((r) => r.cssText).join('\n');
+                const rules = sheet.cssRules;
+                let css = '';
+                for (let j = 0, rLen = rules.length; j < rLen; j++) {
+                    css += rules[j].cssText + '\n';
+                }
                 const style = pip.document.createElement('style');
                 style.textContent = css;
                 pip.document.head.appendChild(style);
@@ -211,7 +250,7 @@ export default class FilamentMenuManager {
                     pip.document.head.appendChild(link);
                 }
             }
-        });
+        }
     }
 
     printPage() {
@@ -220,27 +259,31 @@ export default class FilamentMenuManager {
 
     share() {
         const d = { title: document.title, url: location.href };
-        (navigator.canShare?.(d) ? navigator.share(d) : navigator.clipboard.writeText(d.url))
-            .then(() => new window.FilamentNotification().title('انجام شد').success().send())
-            .catch(() => {});
+        const sharePromise = navigator.canShare?.(d)
+            ? navigator.share(d)
+            : navigator.clipboard?.writeText(d.url);
+
+        if (sharePromise) {
+            sharePromise
+                .then(() => notify('انجام شد', 'success'))
+                .catch(() => {});
+        }
     }
 
     showShortcuts() {
-        new window.FilamentNotification()
-            .title('میانبرها')
-            .body(`
-                <ul style="list-style-type: disc; padding-right: 20px; margin-top: 5px;">
-                    <li>? میانبرها</li>
-                    <li>/ جستجو</li>
-                    <li>⌘S ذخیره فرم</li>
-                    <li>F11 تمام‌صفحه</li>
-                    <li>⇦/⇨ صفحات قبل و بعد</li>
-                    <li>⇧/⇩ صفحه‌بندی</li>
-                </ul>
-            `)
-            .warning()
-            .duration(8000)
-            .send();
+        notify(
+            'میانبرها',
+            'warning',
+            `<ul style="list-style-type: disc; padding-right: 20px; margin-top: 5px;">
+                <li>? میانبرها</li>
+                <li>/ جستجو</li>
+                <li>⌘S ذخیره فرم</li>
+                <li>F11 تمام‌صفحه</li>
+                <li>⇦/⇨ صفحات قبل و بعد</li>
+                <li>⇧/⇩ صفحه‌بندی</li>
+            </ul>`,
+            SHORTCUTS_DURATION
+        );
     }
 }
 

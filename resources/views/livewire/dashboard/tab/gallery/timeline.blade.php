@@ -69,7 +69,6 @@
 
     <div
         x-ref="timeline"
-        @scroll.debounce.100ms="handleScroll"
         class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[10%] z-10"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
