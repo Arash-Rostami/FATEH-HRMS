@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ThsResource\Pages;
 
 use App\Filament\Resources\ThsResource;
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Traits\{FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler};
 use Filament\Resources\Pages\CreateRecord;
 
@@ -22,5 +23,14 @@ class CreateTicket extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         return $this->mergeDeadline($data);
+    }
+
+    protected function afterCreate(): void
+    {
+        if ($this->record->assigned_to === null) {
+            return;
+        }
+
+        app(AssignTicketAction::class)->syncForAdmin($this->record, $this->record->assigned_to);
     }
 }

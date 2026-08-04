@@ -31,12 +31,21 @@ class AssignTicketAction
         return $ticket->fresh();
     }
 
-    private function syncLinkedTask(Ticket $ticket, int $assigneeId): void
+    public function syncForAdmin(Ticket $ticket, ?int $assigneeId): void
+    {
+        DB::transaction(fn () => $this->syncLinkedTask($ticket, $assigneeId));
+    }
+
+    private function syncLinkedTask(Ticket $ticket, ?int $assigneeId): void
     {
         $task = Task::where('ticket_id', $ticket->id)->first();
 
         if ($task) {
             $task->update(['assigned_to' => $assigneeId]);
+            return;
+        }
+
+        if ($assigneeId === null) {
             return;
         }
 
