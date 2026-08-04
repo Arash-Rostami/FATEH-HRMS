@@ -4,6 +4,7 @@ const segmenter = new Intl.Segmenter();
 const emojiSet = new Set(emojis.flatMap(c => c.items));
 const HTML_TAG_RE = /<[^>]*>/g;
 const WS_ONLY_RE = /^\s+$/;
+const SCROLL_TO_BOTTOM_PX = 999999;
 
 export default function chatBase() {
     return {
@@ -43,7 +44,7 @@ export default function chatBase() {
 
         scrollToBottom(smooth = false) {
             document.getElementById('msg-viewport')?.scrollTo({
-                top: 999999,
+                top: SCROLL_TO_BOTTOM_PX,
                 behavior: smooth ? 'smooth' : 'instant'
             });
         },

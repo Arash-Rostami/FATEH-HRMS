@@ -4,6 +4,9 @@
     $totalUnread = $p->totalUnread($this->channels);
     $allChannelIds = collect($channelList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
 @endphp
+@foreach($this->mentionToasts as $mt)
+    <span wire:key="mention-toast-{{ $mt['message_id'] }}" class="hidden" data-mention-toast="{{ $mt['channel_id'] }}" data-msg-id="{{ $mt['message_id'] }}" data-sender-name="{{ $mt['sender_name'] }}" data-channel-name="{{ $mt['channel_name'] }}"></span>
+@endforeach
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
     'hidden' => $mobileShowChat,

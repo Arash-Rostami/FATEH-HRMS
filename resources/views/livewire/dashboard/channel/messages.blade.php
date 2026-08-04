@@ -2,19 +2,24 @@
     $hasOlder = $this->hasOlder;
 @endphp
 
-<div x-show="senderChips.length > 1" x-cloak
-     class="flex-shrink-0 flex items-center gap-1.5 px-4 md:px-8 pt-3 pb-1 overflow-x-auto msg-scrollbar bg-[var(--md-sys-color-surface)]">
-    <button type="button" x-on:click="activeSender = null"
-            :class="activeSender === null ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
-            class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95">
-        همه
-    </button>
-    <template x-for="name in senderChips" :key="name">
-        <button type="button" x-on:click="activeSender = name"
-                :class="activeSender === name ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
-                class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95"
-                x-text="name"></button>
-    </template>
+@php $chipNames = count($this->groupedMessages) > 0 ? array_keys($this->mentionMemberMap) : []; @endphp
+<div x-show="{{ count($chipNames) }} > 1" x-cloak
+     x-on:mouseenter="revealChips()"
+     x-on:mouseleave="scheduleChipsFade()"
+     :class="chipsVisible ? 'opacity-100' : 'opacity-0'"
+     class="flex-shrink-0 px-4 md:px-8 pt-3 pb-1 bg-[var(--md-sys-color-surface)] transition-opacity duration-500">
+    <div class="flex items-center gap-1.5 overflow-x-auto msg-scrollbar" :class="chipsVisible ? '' : 'pointer-events-none'">
+        <button type="button" x-on:click="clearSenderFilter()"
+                :class="activeSender === null ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
+                class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95">
+            همه
+        </button>
+        @foreach($chipNames as $name)
+            <button type="button" wire:key="chip-{{ $name }}" x-on:click="filterSender(@js($name))"
+                    :class="activeSender === @js($name) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
+                    class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95">{{ $name }}</button>
+        @endforeach
+    </div>
 </div>
 
 <div id="msg-viewport"
@@ -46,7 +51,7 @@
     @forelse($this->groupedMessages as $date => $rawMessages)
         @php
             $p = $this->presenter;
-            $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $readersMap);
+            $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $readersMap, $this->mentionMemberMap);
         @endphp
 
         <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4" role="heading" aria-level="3" aria-label="{{ $group['label'] }}">
@@ -134,10 +139,17 @@
                         <div @class([
                                   'px-4 py-2.5 text-sm leading-relaxed break-words select-text cursor-default ' . $msg['bubble_radius'],
                                   'bg-[linear-gradient(145deg,var(--md-sys-color-primary)_0%,color-mix(in_srgb,var(--md-sys-color-primary)_82%,var(--md-sys-color-tertiary))_100%)] text-[var(--md-sys-color-on-primary)] shadow-[0_3px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent),inset_0_1px_0_color-mix(in_srgb,white_12%,transparent)]' => $msg['is_mine'],
-                                  'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine']
+                                  'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine'],
+                                  'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you']
                               ])
                              :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'">
 
+                            @if($msg['mentions_you'])
+                                <span class="mention-you">
+                                    <span class="material-symbols-rounded">alternate_email</span>
+                                    اشاره به شما
+                                </span>
+                            @endif
                             @if(!$msg['is_mine'] && $msg['is_first'])
                                 <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)]">{{ $msg['sender_name'] }}</p>
                             @endif

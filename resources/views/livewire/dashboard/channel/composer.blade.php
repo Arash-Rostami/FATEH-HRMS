@@ -25,6 +25,21 @@
             </div>
         </div>
 
+        <div x-show="mentionOpen" x-on:click.outside="mentionOpen = false" x-cloak x-transition
+             class="absolute bottom-full end-4 mb-2 p-1.5 rounded-xl z-40 min-w-[220px] max-h-[240px] overflow-y-auto bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
+             role="listbox" aria-label="اشاره به کاربر">
+            <template x-for="(name, i) in mentionMatches" :key="i">
+                <button type="button" x-on:click.prevent="pickMention(i)"
+                        x-on:mouseenter="mentionActiveIndex = i"
+                        :class="mentionActiveIndex === i ? 'bg-[var(--md-sys-color-primary-container)]' : 'hover:bg-[var(--md-sys-color-surface-variant)]'"
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12.5px] font-medium text-[var(--md-sys-color-on-surface)] transition-colors text-start">
+                    <span class="material-symbols-rounded text-[15px] flex-shrink-0 text-[var(--md-sys-color-primary)]">alternate_email</span>
+                    <span class="truncate" x-text="name"></span>
+                </button>
+            </template>
+            <p x-show="mentionOpen && mentionMatches.length === 0" class="px-2.5 py-2 text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-60">کاربری یافت نشد</p>
+        </div>
+
         <template x-if="replyingTo">
             <div class="mx-4 mt-3 flex items-center gap-2.5 px-3 py-2 rounded-t-xl rounded-b-md bg-[var(--md-sys-color-surface-variant)] border-r-2 border-[var(--md-sys-color-primary)]">
                 <span class="material-symbols-rounded text-[13px] flex-shrink-0 text-[var(--md-sys-color-primary)]">reply</span>
@@ -75,9 +90,8 @@
                 <textarea id="msg-ta" wire:ref="body"
                           wire:model.defer="composer.body"
                           wire:loading.attr="disabled" wire:target="send"
-                          x-on:keydown.ctrl.enter.prevent="sendMessage()"
-                          x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();sendMessage();}"
-                          x-on:input="len = $el.value.length; $el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'"
+                          x-on:keydown="onComposerKeydown($event)"
+                          x-on:input="len = $el.value.length; $el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'; detectMention($event)"
                           x-on:paste="pasteImage($event, 'composer-cattachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
                           class="w-full bg-transparent px-3 py-2.5 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[160px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
@@ -101,6 +115,11 @@
             </button>
 
             <div class="basis-full h-0 order-3 md:hidden"></div>
+
+            <button x-on:click.prevent="openMentionPicker()" type="button" aria-label="اشاره به کاربر"
+                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                <span class="material-symbols-rounded text-[18px]" :class="mentionOpen ? 'text-[var(--md-sys-color-primary)]' : ''">alternate_email</span>
+            </button>
 
             <button x-on:click="emojiOpen=!emojiOpen" type="button" aria-label="ایموجی"
                     class="flex-shrink-0 w-8 h-8 order-4 md:order-2 ms-auto md:ms-0 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">

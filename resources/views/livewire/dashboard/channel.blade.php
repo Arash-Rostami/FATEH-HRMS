@@ -75,6 +75,8 @@
 
     @include('livewire.dashboard.channel.invite-toasts')
 
+    @include('livewire.dashboard.channel.mention-toasts')
+
     @include('livewire.dashboard.messaging.quote-chip')
 
 </div>

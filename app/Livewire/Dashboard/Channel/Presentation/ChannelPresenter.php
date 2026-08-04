@@ -85,7 +85,7 @@ class ChannelPresenter
         ], $channels);
     }
 
-    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit, array $readersMap = []): array
+    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit, array $readersMap = [], array $mentionMap = []): array
     {
         $label = Carbon::parse($date)->isToday()
             ? 'امروز'
@@ -96,15 +96,21 @@ class ChannelPresenter
         return [
             'date' => $date,
             'label' => $label,
-            'messages' => $this->messages($messages, $authId, $editTimeLimit, $readersMap),
+            'messages' => $this->messages($messages, $authId, $editTimeLimit, $readersMap, $mentionMap),
         ];
     }
 
-    public function messages(array $messages, int $authId, int $editTimeLimit, array $readersMap = []): array
+    public function messages(array $messages, int $authId, int $editTimeLimit, array $readersMap = [], array $mentionMap = []): array
     {
         $total = count($messages);
 
-        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit, $readersMap) {
+        $mentionNames = array_keys($mentionMap);
+        usort($mentionNames, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+        $mentionPattern = $mentionNames
+            ? '/(?<![\w@])@(' . implode('|', array_map(fn($n) => preg_quote(e($n), '/'), $mentionNames)) . ')(?![\p{L}\p{N}_])/u'
+            : '';
+
+        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit, $readersMap, $mentionPattern, $mentionMap) {
             $senderId = (int)($msg['sender_id'] ?? 0);
             $isMine = $senderId === $authId;
             $prev = $i > 0 ? $messages[$i - 1] : null;
@@ -130,10 +136,24 @@ class ChannelPresenter
                 }
             }
 
+            $linked = $this->linkify(e($msg['body'] ?? ''));
+            $mentionsYou = false;
+            if ($mentionPattern !== '') {
+                [$html, $hits] = $this->mentionify($linked, $mentionPattern);
+                foreach ($hits as $name) {
+                    if (in_array($authId, $mentionMap[$name] ?? [], true)) {
+                        $mentionsYou = true;
+                        break;
+                    }
+                }
+            } else {
+                $html = $linked;
+            }
+
             return [
                 'id' => (int)($msg['id'] ?? 0),
                 'body' => $msg['body'] ?? '',
-                'body_html' => nl2br($this->linkify(e($msg['body'] ?? '')), false),
+                'body_html' => nl2br($html, false),
                 'created_at' => $msg['created_at'] ?? null,
                 'time' => $createdAt->isToday() ? toJalali($createdAt->toDateTimeString(), 'H:i') : toJalali($createdAt->toDateTimeString(), 'Y/m/d H:i'),
                 'datetime' => $msg['created_at'] ?? '',
@@ -155,8 +175,27 @@ class ChannelPresenter
                 'read_count' => $readCount,
                 'is_read' => $readCount > 0,
                 'is_read_by_all' => $totalMembers > 0 && $readCount === $totalMembers,
+                'mentions_you' => $mentionsYou,
             ];
         }, array_values($messages), array_keys($messages));
+    }
+
+    private function mentionify(string $linked, string $pattern): array
+    {
+        $parts = preg_split('/(<a\s[^>]*>.*?<\/a>)/us', $linked, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $html = '';
+        $hits = [];
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 1) {
+                $html .= $part;
+                continue;
+            }
+            $html .= preg_replace_callback($pattern, function (array $m) use (&$hits): string {
+                $hits[] = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                return '<span class="mention">@' . $m[1] . '</span>';
+            }, $part);
+        }
+        return [$html, $hits];
     }
 
     private function replyPreview(?array $replyTo): ?array

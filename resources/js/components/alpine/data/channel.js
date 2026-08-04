@@ -3,6 +3,23 @@ import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
 
+const SCOPE = 'channel';
+const POLL_INTERVAL_MS = 10000;
+const MOBILE_BREAKPOINT = 768;
+const MAX_BODY_LENGTH = 4000;
+const UNDO_TOAST_MS = 4000;
+const POST_SEND_SCROLL_DELAY_MS = 120;
+const SEND_LOCK_RESET_MS = 500;
+const LOAD_OLDER_SCROLL_THRESHOLD = 80;
+const SCROLL_FAB_DISTANCE_THRESHOLD = 200;
+const MSG_VIEWPORT_ID = 'msg-viewport';
+const MSG_TEXTAREA_ID = 'msg-ta';
+const TOTAL_UNREAD_ATTR = 'data-total-unread';
+const DATA_SENDER_NAME_ATTR = 'data-sender-name';
+const DATA_RF_MESSAGE_PREFIX = 'channel-message';
+const SEEN_INVITES_KEY = 'channel-seen-invites';
+const MENTION_SEEN_KEY = 'channel-mention-seen';
+
 export default function channel() {
     return {
         ...maximizeMixin(),
@@ -19,8 +36,13 @@ export default function channel() {
         _firstVisit: false,
         quoteChip: {visible: false, x: 0, y: 0, id: 0, sender: '', snippet: ''},
         activeSender: null,
-        senderChips: [],
-        _unregisterMorph: null,
+        chipsVisible: true,
+        chipsFadeTimer: null,
+        mentionOpen: false,
+        mentionQuery: '',
+        mentionActiveIndex: 0,
+        mentionToasts: [],
+        _scrollRaf: null,
 
         init() {
             const saved = localStorage.getItem('chat-settings');
@@ -33,7 +55,7 @@ export default function channel() {
             }
             this.syncChannelCount();
             this.syncPushNotify();
-            const seenKey = 'channel-seen-invites';
+            const seenKey = SEEN_INVITES_KEY;
             const stored = localStorage.getItem(seenKey);
             if (stored === null) {
                 this._firstVisit = true;
@@ -43,21 +65,23 @@ export default function channel() {
                 try { this.seenChannelIds = JSON.parse(stored) || []; } catch (e) { this.seenChannelIds = []; }
             }
             this.$nextTick(() => this.syncInviteToasts());
+            this.$nextTick(() => this.syncMentionToasts());
             this.startPolling();
             this._onVisibility = () => document.hidden ? this.stopPolling() : this.startPolling();
             document.addEventListener('visibilitychange', this._onVisibility);
 
-            const vp = document.getElementById('msg-viewport');
+            const vp = document.getElementById(MSG_VIEWPORT_ID);
             if (vp) {
                 vp.style.overflowAnchor = 'none';
                 let ticking = false;
                 this._onScroll = () => {
                     if (!ticking) {
-                        requestAnimationFrame(() => {
+                        this._scrollRaf = requestAnimationFrame(() => {
+                            this._scrollRaf = null;
                             this.quoteChip.visible = false;
                             this.openActionsId = null;
-                            this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > 200;
-                            if (vp.scrollTop < 80 && !this._loadingOlder && this.$wire.hasOlder) {
+                            this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > SCROLL_FAB_DISTANCE_THRESHOLD;
+                            if (vp.scrollTop < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
                                 this._loadingOlder = true;
                                 const prevHeight = vp.scrollHeight;
                                 this.$wire.$island('messages').loadOlder()
@@ -89,14 +113,14 @@ export default function channel() {
                     }
                     const node = sel.anchorNode;
                     if (!node) { this.quoteChip.visible = false; return; }
-                    const vp = document.getElementById('msg-viewport');
+                    const vp = document.getElementById(MSG_VIEWPORT_ID);
                     if (!vp || !vp.contains(node)) { this.quoteChip.visible = false; return; }
                     const el = node.nodeType === 1 ? node : node.parentElement;
                     if (!el || el.closest('input, textarea, [contenteditable]')) {
                         this.quoteChip.visible = false;
                         return;
                     }
-                    const row = el.closest('[data-rf^="channel-message-"]');
+                    const row = el.closest(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
                     if (!row) { this.quoteChip.visible = false; return; }
                     const text = sel.toString().trim();
                     if (!text) { this.quoteChip.visible = false; return; }
@@ -119,26 +143,11 @@ export default function channel() {
             };
             document.addEventListener('keydown', this._onSlash);
 
-            this._collectSenders = () => {
-                const set = new Set();
-                document.querySelectorAll('[data-rf^="channel-message-"][data-sender-name]').forEach(r => {
-                    const n = r.getAttribute('data-sender-name');
-                    if (n) set.add(n);
-                });
-                this.senderChips = [...set];
-            };
-            this._collectSenders();
-            this._unregisterMorph = Livewire.hook('morph', ({el}) => {
-                if (this.$root.contains(el)) {
-                    this.$nextTick(() => this._collectSenders());
-                }
-            });
-
             this.$wire.on('message-sent', () => {
                 this.scrollToBottom(true);
                 this.sending = false;
-                this.$store.sound?.playOutgoing(this.$wire.activeChannelId);
-                setTimeout(() => this.scrollToBottom(true), 120);
+                this.$store.sound?.playOutgoing(this.$wire.activeChannelId, SCOPE);
+                setTimeout(() => this.scrollToBottom(true), POST_SEND_SCROLL_DELAY_MS);
             });
 
             this.$wire.on('show-toast', (e) => this.toast(e.message, e.type ?? 'info'));
@@ -153,7 +162,7 @@ export default function channel() {
                     this.showUndo = true;
                     this.undoTimeout = setTimeout(() => {
                         this.showUndo = false;
-                    }, 4000);
+                    }, UNDO_TOAST_MS);
                 } else {
                     this.showUndo = false;
                 }
@@ -171,18 +180,19 @@ export default function channel() {
 
         startPolling() {
             if (this._timer) return;
-            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncInviteToasts(); this.syncPushNotify(); }), 10000);
+            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncInviteToasts(); this.syncMentionToasts(); this.syncPushNotify(); }), POLL_INTERVAL_MS);
         },
 
         destroy() {
             this.stopPolling();
             document.removeEventListener('visibilitychange', this._onVisibility);
-            const vp = document.getElementById('msg-viewport');
+            const vp = document.getElementById(MSG_VIEWPORT_ID);
             if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
             document.removeEventListener('selectionchange', this._onSelection);
             document.removeEventListener('keydown', this._onSlash);
+            if (this._scrollRaf) cancelAnimationFrame(this._scrollRaf);
             if (this._selRaf) cancelAnimationFrame(this._selRaf);
-            if (this._unregisterMorph) this._unregisterMorph();
+            if (this.chipsFadeTimer) clearTimeout(this.chipsFadeTimer);
         },
 
         syncChannelCount() {
@@ -191,10 +201,10 @@ export default function channel() {
         },
 
         syncPushNotify() {
-            const el = document.querySelector('[data-total-unread]');
+            const el = document.querySelector(`[${TOTAL_UNREAD_ATTR}]`);
             const now = parseInt(el?.dataset.totalUnread) || 0;
             if (this._lastUnread !== undefined && now > this._lastUnread) {
-                this.$store.push.notify('پیام جدید', 'یک کانال پیام جدید دارد', 'channel');
+                this.$store.push.notify('پیام جدید', 'یک کانال پیام جدید دارد', SCOPE);
             }
             this._lastUnread = now;
         },
@@ -222,6 +232,135 @@ export default function channel() {
             });
         },
 
+        get mentionMatches() {
+            if (!this.mentionOpen) return [];
+            const q = (this.mentionQuery || '').toLowerCase();
+            const list = this.$wire.mentionMemberNames || [];
+            const filtered = q ? list.filter(n => (n || '').toLowerCase().includes(q)) : list;
+            return filtered.slice(0, 8);
+        },
+
+        openMentionPicker() {
+            const ta = document.getElementById(MSG_TEXTAREA_ID);
+            if (!ta) return;
+            const pos = ta.selectionStart ?? ta.value.length;
+            const val = ta.value;
+            const needsSpace = pos > 0 && !/\s/.test(val[pos - 1]);
+            const insert = (needsSpace ? ' ' : '') + '@';
+            const next = val.slice(0, pos) + insert + val.slice(pos);
+            ta.value = next;
+            const at = pos + (needsSpace ? 1 : 0);
+            ta.focus();
+            ta.selectionStart = ta.selectionEnd = at + 1;
+            this.$wire.set('composer.body', next);
+            this.$wire.loadMentionMemberNames().catch(() => {});
+            this.mentionQuery = '';
+            this.mentionActiveIndex = 0;
+            this.mentionOpen = true;
+        },
+
+        detectMention(e) {
+            const ta = e.target;
+            const pos = ta.selectionStart;
+            const before = ta.value.slice(0, pos);
+            const at = before.lastIndexOf('@');
+            if (at < 0) { this.mentionOpen = false; return; }
+            const segment = before.slice(at + 1);
+            if (/[\s@]/.test(segment)) { this.mentionOpen = false; return; }
+            const prev = at > 0 ? before[at - 1] : ' ';
+            if (!/\s/.test(prev)) { this.mentionOpen = false; return; }
+            if (!this.mentionOpen) this.$wire.loadMentionMemberNames().catch(() => {});
+            this.mentionQuery = segment;
+            this.mentionActiveIndex = 0;
+            this.mentionOpen = true;
+        },
+
+        onComposerKeydown(e) {
+            if (this.mentionOpen && this.mentionMatches.length) {
+                if (e.key === 'ArrowDown') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex + 1) % this.mentionMatches.length; return; }
+                if (e.key === 'ArrowUp') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex - 1 + this.mentionMatches.length) % this.mentionMatches.length; return; }
+                if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); this.pickMention(this.mentionActiveIndex); return; }
+                if (e.key === 'Escape') { e.preventDefault(); this.mentionOpen = false; return; }
+            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendMessage(); }
+        },
+
+        pickMention(i) {
+            const name = this.mentionMatches[i];
+            if (!name) { this.mentionOpen = false; return; }
+            const ta = document.getElementById(MSG_TEXTAREA_ID);
+            if (!ta) { this.mentionOpen = false; return; }
+            const pos = ta.selectionStart;
+            const val = ta.value;
+            const at = val.slice(0, pos).lastIndexOf('@');
+            if (at < 0) { this.mentionOpen = false; return; }
+            const insert = name + ' ';
+            const next = val.slice(0, at + 1) + insert + val.slice(pos);
+            this.mentionOpen = false;
+            this.mentionQuery = '';
+            this.$wire.set('composer.body', next);
+            this.$nextTick(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = at + 1 + insert.length; });
+        },
+
+        syncMentionToasts() {
+            const els = document.querySelectorAll('[data-mention-toast]');
+            const seen = this.loadMentionSeen();
+            const byChannel = {};
+            els.forEach(el => {
+                const cid = parseInt(el.dataset.mentionToast);
+                const mid = parseInt(el.dataset.msgId) || 0;
+                if (!cid || !mid || mid <= (seen[cid] || 0)) return;
+                if (!byChannel[cid] || mid > byChannel[cid].message_id) {
+                    byChannel[cid] = {
+                        channel_id: cid,
+                        message_id: mid,
+                        sender_name: el.dataset.senderName || '',
+                        channel_name: el.dataset.channelName || '',
+                    };
+                }
+            });
+            this.mentionToasts = Object.values(byChannel);
+        },
+
+        loadMentionSeen() {
+            try { return JSON.parse(localStorage.getItem(MENTION_SEEN_KEY) || '{}') || {}; }
+            catch (e) { return {}; }
+        },
+
+        advanceMentionSeen(cid, mid) {
+            if (!cid || !mid) return;
+            const seen = this.loadMentionSeen();
+            if ((seen[cid] || 0) < mid) {
+                seen[cid] = mid;
+                try { localStorage.setItem(MENTION_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+            }
+        },
+
+        openMentionToast(t) {
+            if (!t || !t.channel_id) return;
+            this.advanceMentionSeen(t.channel_id, t.message_id);
+            this.replyingTo = null;
+            this.activeSender = null;
+            this.isEditing = false;
+            this.editingMsgId = null;
+            this.editingBody = '';
+            this.editingOriginal = '';
+            this.deletingId = null;
+            this.openActionsId = null;
+            this.searchMessages = false;
+            this.$wire.cancelReply();
+            this.$wire.$island('messages').selectChannel(t.channel_id)
+                .then(() => this.$wire.$island('sidebar').refreshUnread())
+                .then(() => this.$nextTick(() => this.scrollToMessage(t.message_id)))
+                .catch(() => {});
+        },
+
+        dismissMentionToast(t) {
+            if (!t || !t.channel_id) return;
+            this.advanceMentionSeen(t.channel_id, t.message_id);
+            this.mentionToasts = this.mentionToasts.filter(x => x.channel_id !== t.channel_id);
+        },
+
         markSeen(id) {
             if (!id) return;
             if (!this.seenChannelIds.includes(id)) {
@@ -232,7 +371,7 @@ export default function channel() {
         },
 
         saveSeenChannelIds() {
-            try { localStorage.setItem('channel-seen-invites', JSON.stringify(this.seenChannelIds)); } catch (e) {}
+            try { localStorage.setItem(SEEN_INVITES_KEY, JSON.stringify(this.seenChannelIds)); } catch (e) {}
         },
 
         acceptInvite(id) {
@@ -274,7 +413,7 @@ export default function channel() {
 
         scrollToMessage(id) {
             if (!id) return;
-            const el = document.querySelector(`[data-rf="channel-message-${id}"]`);
+            const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);
             if (el) {
                 document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
                 el.style.animation = 'none';
@@ -283,6 +422,39 @@ export default function channel() {
                 return;
             }
             this.$wire.$island('messages').focusMessage(id).catch(() => {});
+        },
+
+        filterSender(name) {
+            this.activeSender = name;
+            let latestId = 0;
+            document.querySelectorAll(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`).forEach(r => {
+                if (r.dataset.senderName !== name) return;
+                const id = parseInt(r.getAttribute('data-rf').slice(DATA_RF_MESSAGE_PREFIX.length + 1), 10);
+                if (id > latestId) latestId = id;
+            });
+            if (latestId) {
+                this.scrollToMessage(latestId);
+                return;
+            }
+            this.$wire.$island('messages').focusSender(name).catch(() => {});
+        },
+
+        clearSenderFilter() {
+            if (this.activeSender === null) return;
+            this.activeSender = null;
+            this.$wire.$island('messages').clearFocus()
+                .then(() => this.$nextTick(() => this.scrollToBottom(true)))
+                .catch(() => {});
+        },
+
+        revealChips() {
+            if (this.chipsFadeTimer) clearTimeout(this.chipsFadeTimer);
+            this.chipsVisible = true;
+        },
+
+        scheduleChipsFade() {
+            if (this.chipsFadeTimer) clearTimeout(this.chipsFadeTimer);
+            this.chipsFadeTimer = setTimeout(() => { this.chipsVisible = false; }, 3000);
         },
 
         selectChannel(id) {
@@ -300,7 +472,8 @@ export default function channel() {
             this.$wire.$island('messages').selectChannel(id)
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
                 .then(() => this.$nextTick(() => this.scrollToBottom(true)))
-                .then(() => { if (window.innerWidth < 768) this.$nextTick(() => { document.getElementById('msg-ta')?.focus(); }); });
+                .then(() => { this.chipsVisible = true; this.scheduleChipsFade(); })
+                .then(() => { if (window.innerWidth < MOBILE_BREAKPOINT) this.$nextTick(() => { document.getElementById(MSG_TEXTAREA_ID)?.focus(); }); });
         },
 
         toggleBrowse() {
@@ -367,7 +540,7 @@ export default function channel() {
             this.openActionsId = null;
             this.$wire.replyTo(id);
             this.$wire.cancelEdit();
-            this.$nextTick(() => document.getElementById('msg-ta')?.focus());
+            this.$nextTick(() => document.getElementById(MSG_TEXTAREA_ID)?.focus());
         },
 
         startEdit(id, body) {
@@ -394,7 +567,7 @@ export default function channel() {
             if (!id || id !== this.editingMsgId) return;
             const body = this.editingBody || '';
             if (body === this.editingOriginal) return;
-            if (body.length > 4000) {
+            if (body.length > MAX_BODY_LENGTH) {
                 this.toast('متن پیام نباید بیشتر از ۴۰۰۰ کاراکتر باشد.', 'warning');
                 return;
             }
@@ -418,7 +591,7 @@ export default function channel() {
         async sendMessage() {
             if (this.sending) return;
 
-            const ta = document.getElementById('msg-ta');
+            const ta = document.getElementById(MSG_TEXTAREA_ID);
             const body = ta?.value ? ta.value.trim() : '';
             const attachments = this.$wire.composer?.attachments || [];
 
@@ -427,7 +600,7 @@ export default function channel() {
                 return;
             }
 
-            if (body.length > 4000) {
+            if (body.length > MAX_BODY_LENGTH) {
                 this.toast('متن پیام نباید بیشتر از ۴۰۰۰ کاراکتر باشد.', 'warning');
                 return;
             }
@@ -442,7 +615,7 @@ export default function channel() {
             } finally {
                 setTimeout(() => {
                     this.sending = false;
-                }, 500);
+                }, SEND_LOCK_RESET_MS);
             }
         },
     };
