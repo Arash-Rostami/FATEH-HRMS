@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Profile\Presentation\DetailsPresenter;
 use App\Services\ProfileDetailCatalog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
@@ -36,7 +37,8 @@ class Details extends Component
                     $values[$key . 'Year'] = $jalali->getYear();
                     $values[$key . 'Month'] = $jalali->getMonth();
                     $values[$key . 'Day'] = $jalali->getDay();
-                } catch (\Throwable) {
+                } catch (\Throwable $e) {
+                    Log::warning("Failed to parse date detail for profile key '{$key}': " . $e->getMessage());
                 }
             }
         }
