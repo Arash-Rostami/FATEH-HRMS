@@ -103,6 +103,8 @@ class Calendar extends Component
             ? $e->shares->isNotEmpty()
             : $e->shares->contains('user_id', $authId);
 
+        $currentDate = clone $startDate;
+
         for ($day = 1; $day <= $daysInMonth; $day++) {
             try {
                 $dateString = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
