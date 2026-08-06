@@ -111,7 +111,13 @@ class NudgeService
                     ]);
                 }
             });
-        } catch (LockTimeoutException) {
+        } catch (LockTimeoutException $e) {
+            \Illuminate\Support\Facades\Log::warning('NudgeService reconcile lock timeout', [
+                'ruleKey' => $ruleKey,
+                'subjectClass' => $subjectClass,
+                'subjectId' => $subjectId,
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 
