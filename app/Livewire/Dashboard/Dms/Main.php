@@ -293,7 +293,7 @@ class Main extends Component
                     );
                 }
             )
-            ->latest();
+            ->latest('updated_at')->latest();
     }
 
     private function matchingDocIds(): array

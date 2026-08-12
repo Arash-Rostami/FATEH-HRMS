@@ -195,7 +195,7 @@ class DmsResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(DmsExporter::class))
             ->emptyStateIcon('heroicon-o-archive-box')
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort(fn(Builder $query): Builder => $query->latest('updated_at')->latest())
             ->striped();
     }
 }
