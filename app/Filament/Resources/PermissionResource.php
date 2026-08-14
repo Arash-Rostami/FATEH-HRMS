@@ -12,6 +12,7 @@ use App\Filament\Resources\PermissionResource\Schemas\PermissionTablePresenter;
 use App\Models\Permission;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -27,11 +28,18 @@ use Illuminate\Support\Facades\Auth;
 
 class PermissionResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Permission::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
     protected static ?int $navigationSort = 5;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'verified_user', 'view' => 'filament.resources.permission.guide.overview'],
+        ['label' => 'دو سطح دسترسی', 'icon' => 'key', 'view' => 'filament.resources.permission.guide.tiers'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.permission.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.permission.guide.list-tabs'],
+    ];
 
     public static function canViewAny(): bool
     {

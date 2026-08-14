@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +22,8 @@ class Message extends Model
         HasMenuState,
         SoftDeletes,
         Prunable,
-        HasPrunableStatus;
+        HasPrunableStatus,
+        CleansAttachedFiles;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted', 'restored', 'forceDeleted'];
 
@@ -124,12 +126,6 @@ class Message extends Model
 
     protected static function booted(): void
     {
-        static::forceDeleted(function (self $message) {
-            foreach ($message->attachments ?? [] as $attachment) {
-                if (!empty($attachment['path'])) {
-                    Storage::disk('public')->delete($attachment['path']);
-                }
-            }
-        });
+        static::forceDeleted(fn(self $message) => static::deleteStoredFiles($message->attachments));
     }
 }

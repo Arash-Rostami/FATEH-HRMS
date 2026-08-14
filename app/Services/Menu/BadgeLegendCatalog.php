@@ -42,8 +42,8 @@ class BadgeLegendCatalog
                 'group' => 'notifications', 'tone' => 'sapphire', 'icon' => 'campaign',
                 'label' => 'اطلاعیهٔ خوانده‌نشده',
                 'lights' => 'با انتشار اطلاعیهٔ تازه.',
-                'clears' => 'با بازکردن همان اطلاعیه در تب «اطلاعات».',
-                'surface' => 'نقطهٔ کنار تب «اطلاعات» در نوار کناری/پایین.',
+                'clears' => 'با بازکردن همان اطلاعیه در تب «اعلانات».',
+                'surface' => 'نقطهٔ کنار تب «اعلانات» در نوار کناری/پایین.',
             ],
             'contacts-controller' => [
                 'group' => 'notifications', 'tone' => 'sapphire', 'icon' => 'chat',
@@ -111,8 +111,8 @@ class BadgeLegendCatalog
             'energy-controller' => [
                 'group' => 'compliance', 'tone' => 'gold', 'icon' => 'bolt',
                 'label' => 'ارزیابی انرژی ماهانه',
-                'lights' => 'وقتی پرسشنامهٔ انرژی این ماه را تکمیل نکرده باشید.',
-                'clears' => 'با تکمیل پرسشنامهٔ همان ماه.',
+                'lights' => 'وقتی پرسشنامهٔ انرژی را طی ۲۵ روز اخیر تکمیل نکرده باشید.',
+                'clears' => 'با تکمیل پرسشنامه؛ ۲۵ روز پس از آن دوباره روشن می‌شود.',
                 'surface' => 'نقطهٔ کنار آیتم «پرسشنامه انرژی» در منوی همبرگری.',
             ],
             'channels-controller' => [

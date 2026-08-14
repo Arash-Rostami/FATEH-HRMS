@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
+use App\Traits\StoresAttachedFiles;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -22,7 +23,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class TaskFormPresenter
 {
-    use FilamentFormDivider;
+    use FilamentFormDivider, StoresAttachedFiles;
 
     public static function actionSource(): Textarea
     {
@@ -67,16 +68,12 @@ class TaskFormPresenter
                     ->maxSize(4096)
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, callable $set) {
-                        $name = $file->getClientOriginalName();
-                        $mime = $file->getMimeType();
-                        $size = $file->getSize();
+                        $meta = static::storeAttachment($file, 'task/attachments', fn($f) => self::fileName($f));
 
-                        $path = $file->storeAs('task/attachments', self::fileName($file), 'public');
-
-                        $set('name', $name);
-                        $set('mime', $mime);
-                        $set('size', $size);
-                        return $path;
+                        $set('name', $meta['name']);
+                        $set('mime', $meta['mime']);
+                        $set('size', $meta['size']);
+                        return $meta['path'];
                     })
                     ->openable()
                     ->downloadable(),

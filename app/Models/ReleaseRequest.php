@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReleaseRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, CleansAttachedFiles;
 
     protected $fillable = [
         'user_id',
@@ -21,7 +22,21 @@ class ReleaseRequest extends Model
         'title',
         'body',
         'status',
+        'attachments',
+        'response',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'attachments' => 'array',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn(self $request) => static::deleteStoredFiles($request->attachments));
+    }
 
     public function user(): BelongsTo
     {

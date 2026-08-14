@@ -4,6 +4,7 @@
       class="h-full antialiased">
 <head>
     <script src="{{ asset('js/mode-manager.js') }}"></script>
+    <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -17,6 +18,7 @@
 @unless(View::hasSection('minimal_layout'))
     <x-dashboard.header/>
     @livewire(\App\Livewire\Dashboard\Countdown::class)
+    @livewire(\App\Livewire\Dashboard\EventReminder::class)
 @endunless
 
 <div id="content-shell">

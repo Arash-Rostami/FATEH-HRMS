@@ -41,5 +41,13 @@
                     class="w-12 h-7 bg-[var(--md-sys-color-surface-variant)] peer-focus:outline-none rounded-xl peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-xl after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--md-sys-color-primary)] shadow-inner"></div>
             </label>
         </div>
+
+        <!-- Reminder -->
+        <x-ui.forms.select label="یادآوری قبل از رویداد" name="form.remind_hours" wire:model="form.remindHours" icon="notifications">
+            <option value="">بدون یادآوری</option>
+            @foreach(\App\Models\Event::REMIND_HOURS_OPTIONS as $hours)
+                <option value="{{ $hours }}">{{ $hours }} ساعت قبل</option>
+            @endforeach
+        </x-ui.forms.select>
     </div>
 </x-ui.modals.action>

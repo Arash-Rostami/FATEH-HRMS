@@ -10,6 +10,7 @@ use App\Filament\Resources\FeedResource\RelationManagers\{CommentsRelationManage
 use App\Filament\Resources\FeedResource\Schemas\{FeedFormPresenter, FeedInfolistPresenter, FeedTablePresenter};
 use App\Models\Feed;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -22,11 +23,18 @@ use Illuminate\Support\Str;
 
 class FeedResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Feed::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-rss';
     protected static ?int $navigationSort = 2;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'newspaper', 'view' => 'filament.resources.feed.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'build', 'view' => 'filament.resources.feed.guide.admin-ops'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.feed.guide.list-filters'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.feed.guide.user'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {

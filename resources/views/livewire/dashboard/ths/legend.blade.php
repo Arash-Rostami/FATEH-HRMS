@@ -46,8 +46,15 @@
         <div x-show="role === '{{ $roleId }}'" x-cloak class="space-y-3">
             <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] px-1">{{ $sections['note'] }}</p>
             @foreach(array_slice($sections, 1) as $s)
+                @php
+                    $chipClasses = match ($s['color']) {
+                        'primary' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
+                        'tertiary' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
+                        'secondary' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+                    };
+                @endphp
                 <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-{{ $s['color'] }}-container)] text-[var(--md-sys-color-on-{{ $s['color'] }}-container)]">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chipClasses }}">
                         <span class="material-symbols-rounded text-[16px]">{{ $s['icon'] }}</span>
                     </div>
                     <div class="min-w-0">
@@ -65,6 +72,8 @@
             'وظیفه‌های تب «وظیفه‌ها» هم همین گفتگوی دوطرفه را دارند: فقط ایجادکننده و مسئول وظیفه می‌توانند در آن پیام بدهند.',
             'به‌محض تعیین مسئول رسیدگی، یک وظیفهٔ پیگیری متناظر هم در «وظیفه‌ها» برای درخواست‌دهنده و مسئول رسیدگی ساخته می‌شود؛ گفتگو همچنان فقط از طریق همین تیکت انجام می‌شود.',
             'گزینهٔ «پشتیبانی عمومی» در فرم ثبت تیکت به‌محض این‌که حداقل یک واحد حوزه‌های درخواست اختصاصی خودش را تنظیم کند، خودکار حذف می‌شود.',
+            'شناسهٔ هر تیکت به‌صورت «پیشوند-سال‌ماه-شماره» است؛ پیشوند برابر کدِ واحد هدف است (مثلاً TN-۲۶۰۸-۰۰۰۱) و با انتخاب «پشتیبانی عمومی» پیشوند T می‌شود.',
+            'هنگام بسته‌شدن تیکت، فیلد «نتیجه اقدام» به‌صورت خودکار از روی گفتگو ساخته و فقط‌خواندنی می‌شود؛ در پنل کاربر این فیلد دیده نمی‌شود ولی در خروجی اکسلِ ادمین هست.',
         ] as $note)
             <div class="flex items-start gap-2 px-1">
                 <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>

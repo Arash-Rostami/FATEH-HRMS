@@ -88,32 +88,26 @@
     </div>
 
     {{-- Contact List --}}
-    <div id="contact-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
+    <div id="contact-list" class="flex flex-col overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($contactList as $contact)
-            <div wire:key="contact-{{ $contact['id'] }}" x-on:click="selectContact({{ $contact['id'] }})"
+            <div wire:key="contact-{{ $contact['id'] }}" x-data="{ tagOpen: false }" x-on:click="selectContact({{ $contact['id'] }})"
                     x-on:keydown.enter.prevent="selectContact({{ $contact['id'] }})"
                     x-on:keydown.space.prevent="selectContact({{ $contact['id'] }})"
                     data-rf="people-{{ $contact['id'] }}" role="option" tabindex="0"
                     aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
+                    :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -1 : 0 }"
                 @class([
-                    'group ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeUserId !== $contact['id'],
                 ])>
 
-                <button type="button"
-                        x-on:click.stop="$store.sound.toggleMute({{ $contact['id'] }}, 'contact')"
-                        x-on:keydown.enter.stop
-                        x-on:keydown.space.stop
-                        :aria-pressed="$store.sound.isMuted({{ $contact['id'] }}, 'contact')"
-                        :aria-label="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'باصدا کردن مخاطب' : 'بی‌صدا کردن مخاطب'"
-                        :title="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'باصدا کردن مخاطب' : 'بی‌صدا کردن مخاطب'"
-                        class="absolute top-1.5 end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-[opacity,transform] duration-200 ease-out"
-                        :class="$store.sound.isMuted({{ $contact['id'] }}, 'contact')
-                                  ? 'opacity-100 scale-100 pointer-events-auto text-[var(--md-sys-color-primary)]'
-                                  : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto focus:opacity-100 focus:scale-100 focus:pointer-events-auto text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]'">
-                    <span class="material-symbols-rounded text-[14px]" aria-hidden="true" x-text="$store.sound.isMuted({{ $contact['id'] }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
-                </button>
+                @include('livewire.dashboard.messaging.sidebar-row-actions', [
+                    'id' => $contact['id'],
+                    'scope' => 'contact',
+                    'pinNoun' => 'گفتگو',
+                    'muteNoun' => 'مخاطب',
+                ])
 
                 <div class="relative flex-shrink-0">
                     <div @class([

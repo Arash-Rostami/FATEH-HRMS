@@ -5,6 +5,8 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\ThsResource\Schemas\TicketFormPresenter;
 use App\Filament\Resources\ThsResource\Schemas\TicketInfolistPresenter;
 use App\Filament\Resources\ThsResource\Schemas\TicketTablePresenter;
+use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
+use App\Models\Ticket;
 use App\Traits\FilamentActions;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
@@ -164,7 +166,11 @@ class TicketsRelationManager extends RelationManager
             ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
+                self::editAction()->after(function (Ticket $record) {
+                    if ($record->wasChanged('assigned_to')) {
+                        app(AssignTicketAction::class)->syncForAdmin($record, $record->assigned_to);
+                    }
+                }),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-ticket')

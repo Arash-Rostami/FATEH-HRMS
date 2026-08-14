@@ -1,8 +1,13 @@
 import clipboardMixin from "../mixins/clipboard.js";
+import persistentStateMixin from "../mixins/persistentState.js";
+
+const STORAGE_KEY = 'calculator_state';
+const MAX_HISTORY = 50;
 
 export default function calculator() {
     return {
         ...clipboardMixin(),
+        ...persistentStateMixin(),
         display: '',
         formattedDisplay: '',
         history: [],
@@ -19,6 +24,32 @@ export default function calculator() {
                     if (event.key === "Escape" && this.modal.classList.contains('flex')) this.minimize();
                 });
             }
+            this.restoreState();
+        },
+
+        restoreState() {
+            const raw = this._loadState(STORAGE_KEY);
+            if (!raw) return;
+
+            this.display = raw.display || '';
+            this.formattedDisplay = raw.formattedDisplay || '';
+            this.history = Array.isArray(raw.history) ? raw.history.slice(0, MAX_HISTORY) : [];
+            this.minimized = !!raw.minimized;
+            this.calculationDone = !!raw.calculationDone;
+        },
+
+        saveState() {
+            this._saveState(STORAGE_KEY, {
+                display: this.display,
+                formattedDisplay: this.formattedDisplay,
+                history: this.history,
+                minimized: this.minimized,
+                calculationDone: this.calculationDone,
+            });
+        },
+
+        clearState() {
+            this._clearState(STORAGE_KEY);
         },
         appendToDisplay(value) {
             const isOperator = ['/', '*', '+', '-'].includes(value);
@@ -32,6 +63,7 @@ export default function calculator() {
 
             this.display += value;
             this.format();
+            this.saveState();
         },
         format() {
             this.formattedDisplay = this.display.replace(/(?<!\.)\d+/g, num => num.replace(/\B(?=(\d{3})+(?!\d))/g, "'"));
@@ -49,11 +81,13 @@ export default function calculator() {
                     eq: equation,
                     res: this.formattedDisplay
                 });
+                if (this.history.length > MAX_HISTORY) this.history.length = MAX_HISTORY;
                 this.calculationDone = true;
             } catch (error) {
                 this.display = 'Error!';
                 this.formattedDisplay = 'Error!';
             }
+            this.saveState();
         },
         useHistory(val) {
             if (this.calculationDone) {
@@ -62,6 +96,7 @@ export default function calculator() {
             this.display += val.replace(/'/g, '');
             this.format();
             this.calculationDone = false;
+            this.saveState();
         },
         copyLedger() {
             if (this.history.length === 0) return;
@@ -78,21 +113,25 @@ export default function calculator() {
             this.display = '';
             this.formattedDisplay = '';
             this.calculationDone = false;
+            this.saveState();
         },
         minimize() {
             this.minimized = true;
             this.open = false;
             this.modal.classList.remove('flex');
             this.modal.classList.add('hidden');
+            this.saveState();
         },
         restore() {
             this.minimized = false;
             this.open = true;
             this.modal.classList.remove('hidden');
             this.modal.classList.add('flex');
+            this.saveState();
         },
         closeModal() {
             this.clearDisplay();
+            this.clearState();
             this.destroyed();
         },
         mounted() {

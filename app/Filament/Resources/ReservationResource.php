@@ -12,6 +12,7 @@ use App\Filament\Resources\ReservationResource\Schemas\ReservationInfolistPresen
 use App\Filament\Resources\ReservationResource\Schemas\ReservationTablePresenter;
 use App\Models\Reservation;
 use App\Traits\AuthorizesByPermission;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -28,11 +29,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReservationResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Reservation::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office';
     protected static ?int $navigationSort = 2;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.reservation.guide.overview'],
+        ['label' => 'وضعیت‌ها', 'icon' => 'flag', 'view' => 'filament.resources.reservation.guide.statuses'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.reservation.guide.admin-ops'],
+        ['label' => 'تقویم', 'icon' => 'calendar_today', 'view' => 'filament.resources.reservation.guide.calendar'],
+        ['label' => 'قابلیت‌های هوشمند', 'icon' => 'tips_and_updates', 'view' => 'filament.resources.reservation.guide.smart'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.reservation.guide.user'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {

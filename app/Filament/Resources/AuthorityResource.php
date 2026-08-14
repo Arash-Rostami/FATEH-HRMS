@@ -10,6 +10,7 @@ use App\Filament\Resources\AuthorityResource\Schemas\{AuthorityFormPresenter,
 use App\Models\Authority;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -21,11 +22,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuthorityResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Authority::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-shield-check';
     protected static ?int $navigationSort = 4;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'policy', 'view' => 'filament.resources.authority.guide.overview'],
+        ['label' => 'فیلدها و مقادیر', 'icon' => 'tune', 'view' => 'filament.resources.authority.guide.fields'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.authority.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.authority.guide.user'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {

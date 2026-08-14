@@ -18,6 +18,7 @@
 
         <div class="flex items-center gap-2 lg:gap-3">
             <x-dashboard.navbars.top.hamburger />
+            <x-dashboard.navbars.top.home />
         </div>
         <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1"></div>
 

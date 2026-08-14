@@ -166,7 +166,6 @@ class TicketFormPresenter
             ->required()
             ->disabledOn('edit')
             ->default(TicketPriority::Low->value)
-            ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.priority'));
     }
 
@@ -237,7 +236,6 @@ class TicketFormPresenter
             ->maxItems(3)
             ->disabledOn('edit')
             ->helperText(__('resources/ths/strings.hints.requester_files'))
-            ->disabledOn('edit')
             ->columnSpanFull();
     }
 
@@ -294,7 +292,13 @@ class TicketFormPresenter
             ->live()
             ->disabledOn('edit')
             ->validatedWhenNotDehydrated(false)
-            ->afterStateUpdated(function (callable $set) {
+            ->afterStateUpdated(function (Get $get, callable $set) {
+                $typeOptions = Ticket::getCustomRequestTypeOptions($get('extra.target_department'));
+
+                if (!array_key_exists($get('request_type'), $typeOptions)) {
+                    $set('request_type', array_key_first($typeOptions));
+                }
+
                 $set('request_area', null);
                 $set('assigned_to', null);
             });

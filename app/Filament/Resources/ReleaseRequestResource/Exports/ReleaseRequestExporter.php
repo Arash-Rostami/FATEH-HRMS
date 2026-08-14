@@ -28,6 +28,7 @@ class ReleaseRequestExporter extends Exporter
                 ->formatStateUsing(fn($state) => $state instanceof ReleaseRequestStatus
                     ? $state->getLabel()
                     : (ReleaseRequestStatus::tryFrom($state)?->getLabel() ?? $state)),
+            ExportColumn::make('response')->label(__('resources/release_request/strings.fields.response')),
             ExportColumn::make('user.name')->label(__('resources/release_request/strings.fields.user'))
                 ->state(fn($record) => $record->user?->name ?? __('resources/release_request/strings.deleted_user')),
             ExportColumn::make('created_at')->label(__('resources/release_request/strings.fields.created_at'))

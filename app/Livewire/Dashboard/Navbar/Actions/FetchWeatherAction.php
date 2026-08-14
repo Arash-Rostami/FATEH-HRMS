@@ -22,10 +22,15 @@ class FetchWeatherAction
         $city = Config::get('services.openweather.city', 'Tehran');
         $cacheKey = 'weather.' . Str::slug($city);
 
-        return Cache::flexible($cacheKey, [self::FRESH_SECONDS, self::STALE_SECONDS], fn() => $this->fetch($city));
+        try {
+            return Cache::flexible($cacheKey, [self::FRESH_SECONDS, self::STALE_SECONDS], fn() => $this->fetch($city));
+        } catch (\Exception $e) {
+            report($e);
+            return self::$default;
+        }
     }
 
-    private function fetch(string $city): array
+    protected function fetch(string $city): array
     {
         $keys = array_filter(explode(',', (string) Config::get('services.openweather.keys')));
         if (!$keys) return self::$default;
@@ -35,22 +40,20 @@ class FetchWeatherAction
 
         try {
             $response = (new Client(['timeout' => 5, 'connect_timeout' => 3]))->get($url);
-
-            if ($response->getStatusCode() !== 200) return self::$default;
-
-            $data = json_decode($response->getBody(), true);
-
-            return isset($data['weather'][0]['main'], $data['main']['temp'])
-                ? [
-                    'weather'     => $data['weather'][0]['main'],
-                    'temperature' => round($data['main']['temp']),
-                    'description' => $data['weather'][0]['description'] ?? '',
-                ]
-                : self::$default;
-
-        } catch (\Exception $e) {
-            report($e);
-            return self::$default;
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('OpenWeatherMap request failed: ' . get_class($e) . ' (' . $e->getCode() . ')');
         }
+
+        if ($response->getStatusCode() !== 200) return self::$default;
+
+        $data = json_decode($response->getBody(), true);
+
+        return isset($data['weather'][0]['main'], $data['main']['temp'])
+            ? [
+                'weather'     => $data['weather'][0]['main'],
+                'temperature' => round($data['main']['temp']),
+                'description' => $data['weather'][0]['description'] ?? '',
+            ]
+            : self::$default;
     }
 }

@@ -19,12 +19,15 @@ class Event extends Model
 
     public const MENU_STATE_EVENTS = ['updated', 'deleted'];
 
+    public const REMIND_HOURS_OPTIONS = [1, 2, 3, 6, 12, 24];
+
     protected $fillable = [
         'user_id',
         'title',
         'description',
         'date',
         'private',
+        'remind_hours',
         'countdown',
         'date_jalali',
         'date_time_part',
@@ -69,11 +72,37 @@ class Event extends Model
         return $this->belongsTo(User::class);
     }
 
+    public static function nextReminderFor(User $user): ?array
+    {
+        $event = static::query()
+            ->whereNotNull('remind_hours')
+            ->where('date', '>', now())
+            ->whereRaw('DATE_SUB(date, INTERVAL remind_hours HOUR) <= ?', [now()])
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('private', false)
+                    ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $user->id));
+            })
+            ->orderBy('date')
+            ->first(['id', 'title', 'date']);
+
+        if (!$event) {
+            return null;
+        }
+
+        return [
+            'id' => $event->id,
+            'title' => $event->title,
+            'event_at_iso' => $event->date->toIso8601String(),
+        ];
+    }
+
     protected function casts(): array
     {
         return [
             'date' => 'datetime',
             'private' => 'boolean',
+            'remind_hours' => 'integer',
             'countdown' => 'array',
         ];
     }

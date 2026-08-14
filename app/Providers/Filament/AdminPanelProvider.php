@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Livewire\Admin\ManagePreferences;
 use App\Services\FilamentMenuService;
+use App\Support\FaultTolerantGlobalSearchProvider;
 use App\Support\FilamentPanelCustomizer;
 use Filament\Enums\GlobalSearchPosition;
 use Filament\FontProviders\LocalFontProvider;
@@ -56,7 +57,7 @@ class AdminPanelProvider extends PanelProvider
                     UpdateLastSeen::class,
                 ])
                 ->maxContentWidth(Width::Full)
-                ->globalSearch(true, position: GlobalSearchPosition::Topbar)
+                ->globalSearch(FaultTolerantGlobalSearchProvider::class, position: GlobalSearchPosition::Topbar)
                 ->globalSearchFieldSuffix(fn(): ?string => match (Platform::detect()) {
                     Platform::Windows, Platform::Linux => 'Ctrl+K',
                     Platform::Mac => '⌘K',

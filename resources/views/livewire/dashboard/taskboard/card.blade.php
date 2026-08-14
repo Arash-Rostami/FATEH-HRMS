@@ -1,14 +1,16 @@
 @php
     $colState = $presenter->columnState($task['status']);
+    $urgency = $task['urgency_state'] ?? ['score' => 0.0, 'kind' => null, 'label' => null];
 @endphp
 
 <div
     data-rf="task-{{ $task['id'] }}"
-    :draggable="{{ $task['can_change_status'] ? 'true' : 'false' }}"
-    @dragstart="{{ $task['can_change_status'] ? 'handleDragStart($event, '. $task['id'] . ')' : 'event.preventDefault()' }}"
+    :draggable="{{ $task['can_change_status'] && !$task['is_archived'] ? 'true' : 'false' }}"
+    @dragstart="{{ $task['can_change_status'] && !$task['is_archived'] ? 'handleDragStart($event, '. $task['id'] . ')' : 'event.preventDefault()' }}"
     @dragend="handleDragEnd($event)"
-    class="group relative flex flex-col {{ $density === 'compact' ? 'gap-2 p-2.5 md:p-3 pt-5' : 'gap-3 p-4 md:p-5 pt-6' }} rounded-2xl animate-bubble-in {{ $task['status'] === 'pending' ? 'bg-[var(--md-sys-color-error-container)]/30 border-[var(--md-sys-color-error)] border-2 shadow-[0_0_15px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] animate-pulse-slow' : 'bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40' }} hover:-translate-y-1 transition-all duration-300 {{ $task['can_change_status'] ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80' }} active:scale-[0.98] select-none"
+    class="group relative flex flex-col gap-3 p-4 md:p-5 pt-6 taskboard-card rounded-2xl animate-bubble-in {{ $task['status'] === 'pending' ? 'bg-[var(--md-sys-color-error-container)]/30 border-[var(--md-sys-color-error)] border-2 shadow-[0_0_15px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] animate-pulse-slow' : 'bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/40' }} hover:-translate-y-1 transition-all duration-300 {{ $task['is_archived'] ? 'cursor-default' : ($task['can_change_status'] ? 'cursor-grab active:cursor-grabbing' : 'cursor-default opacity-80') }} active:scale-[0.98] select-none {{ $urgency['score'] > 0 ? 'taskboard-card--urgent' : '' }} {{ $task['is_archived'] ? 'opacity-70 grayscale' : '' }}"
     dir="rtl"
+    style="{{ $urgency['score'] > 0 ? '--urgency:' . $urgency['score'] . ';' : '' }}"
 >
     <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 md:w-40 h-[2px] rounded-b-full opacity-80 group-hover:opacity-100 transition-opacity bg-gradient-to-r {{ $colState['lightGradient'] }} animate-subtle-pulse" style="box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-{{ $colState['color'] }}) 40%, transparent);"></div>
 
@@ -28,7 +30,7 @@
             {{ superClean($task['title']) }}
         </h3>
 
-        @if($task['can_delete'] && !$task['ticket_id'])
+        @if($task['can_delete'] && !$task['ticket_id'] && !$task['is_archived'])
             <button
                 wire:click="deleteTask({{ $task['id'] }})"
                 class="opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] -m-2 p-2 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
@@ -38,7 +40,7 @@
             </button>
         @endif
 
-        @if($task['can_change_status'] && !$task['ticket_id'])
+        @if($task['can_change_status'] && !$task['ticket_id'] && !$task['is_archived'])
             <div x-data="{ open: false }" class="relative">
                 <button
                     @click="open = !open"
@@ -84,13 +86,13 @@
         @endif
     </div>
 
-    @if(!empty($task['description']) && $density !== 'compact')
-        <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed">
+    @if(!empty($task['description']))
+        <p class="taskboard-card-description text-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed">
             {{ superClean($task['description']) }}
         </p>
     @endif
 
-    @if($task['deadline'] || $task['ticket_id'] || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id()) || ($activeTab === 'assigned-tasks' && $task['assignee_name']))
+    @if($task['deadline'] || $task['ticket_id'] || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id()) || ($activeTab === 'assigned-tasks' && $task['assignee_name']) || $urgency['kind'] === 'idle')
         <div class="flex flex-wrap items-center gap-2">
             @if($task['ticket_id'])
                 <a
@@ -110,7 +112,7 @@
                         : 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]' }}"
                 >
                     <span class="material-symbols-rounded text-sm">schedule</span>
-                    <span class="tracking-wide">{{ $task['deadline_formatted'] }}</span>
+                    <span class="tracking-wide">{{ in_array($urgency['kind'], ['overdue', 'due'], true) ? $urgency['label'] : $task['deadline_formatted'] }}</span>
                 </div>
             @endif
 
@@ -131,6 +133,13 @@
                     </div>
                 @endif
             @endif
+
+            @if($urgency['kind'] === 'idle')
+                <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
+                    <span class="material-symbols-rounded text-sm">hourglass_top</span>
+                    <span>{{ $urgency['label'] }}</span>
+                </div>
+            @endif
         </div>
     @endif
 
@@ -145,6 +154,32 @@
         </div>
 
         <div class="flex items-center gap-1">
+            <x-ui.buttons.copy
+                :text="route('tasks', ['open' => $task['id']])"
+                message="لینک وظیفه کپی شد"
+                class="opacity-0 group-hover:opacity-100 transition-all duration-200"
+            />
+
+            @if($task['can_delete'] && $task['status'] === 'done' && !$task['is_archived'] && !$task['ticket_id'])
+                <button
+                    wire:click="archiveTask({{ $task['id'] }})"
+                    class="opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    title="آرشیو"
+                >
+                    <span class="material-symbols-rounded text-xl">archive</span>
+                </button>
+            @endif
+
+            @if($task['can_delete'] && $task['is_archived'])
+                <button
+                    wire:click="unarchiveTask({{ $task['id'] }})"
+                    class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-tertiary)] hover:bg-[var(--md-sys-color-tertiary-container)] hover:text-[var(--md-sys-color-on-tertiary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    title="خروج از آرشیو"
+                >
+                    <span class="material-symbols-rounded text-xl">unarchive</span>
+                </button>
+            @endif
+
             @if($task['is_delegator'] && $column !== 'done' && !$task['ticket_id'])
                 <button
                     wire:click="undoAssignment({{ $task['id'] }})"
@@ -155,7 +190,7 @@
                 </button>
             @endif
 
-            @if($task['can_change_status'])
+            @if($task['can_change_status'] && !$task['is_archived'])
                 <button
                     wire:click="editTask({{ $task['id'] }})"
                     class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
@@ -163,7 +198,7 @@
                 >
                     <span class="material-symbols-rounded text-xl">{{ $task['ticket_id'] ? 'visibility' : 'edit' }}</span>
                 </button>
-            @elseif($task['is_delegator'])
+            @elseif($task['is_delegator'] && !$task['is_archived'])
                 <button
                     wire:click="viewTask({{ $task['id'] }})"
                     class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"

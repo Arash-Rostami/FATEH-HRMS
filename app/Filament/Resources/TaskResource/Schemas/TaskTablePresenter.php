@@ -15,6 +15,29 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TaskTablePresenter
 {
+    public static function archivedAt(): TextColumn
+    {
+        return TextColumn::make('archived_at')
+            ->label(__('resources/task/strings.fields.archived_at'))
+            ->formatStateUsing(fn($state, $record) => $record->archivedLabel())
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->placeholder('—')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function archivedFilter(): TernaryFilter
+    {
+        return TernaryFilter::make('is_archived')
+            ->label(__('resources/task/strings.filters.archived'))
+            ->trueLabel(__('resources/task/strings.filters.archived'))
+            ->falseLabel(__('resources/task/strings.filters.not_archived'))
+            ->queries(
+                true: fn(Builder $query) => $query->whereNotNull('archived_at'),
+                false: fn(Builder $query) => $query->whereNull('archived_at'),
+            );
+    }
+
     public static function assignee(): TextColumn
     {
         return TextColumn::make('assignee.name')
@@ -165,6 +188,19 @@ class TaskTablePresenter
             ->label(__('resources/task/strings.fields.id'))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function isArchived(): IconColumn
+    {
+        return IconColumn::make('is_archived')
+            ->label(__('resources/task/strings.fields.is_archived'))
+            ->getStateUsing(fn($record) => $record->is_archived)
+            ->boolean()
+            ->trueIcon('heroicon-o-archive-box')
+            ->falseIcon('heroicon-o-minus')
+            ->trueColor('warning')
+            ->falseColor('gray')
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function isDelegated(): IconColumn

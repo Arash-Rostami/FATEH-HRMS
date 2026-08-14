@@ -10,6 +10,7 @@ use App\Filament\Resources\OnboardingResource\Schemas\{OnboardingFormPresenter,
 use App\Models\Onboarding;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
@@ -24,11 +25,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class OnboardingResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Onboarding::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 7;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'info', 'view' => 'filament.resources.onboarding.guide.overview'],
+        ['label' => 'محتوا و زبانه‌ها', 'icon' => 'edit_note', 'view' => 'filament.resources.onboarding.guide.content'],
+        ['label' => 'مخاطب و اولویت', 'icon' => 'groups', 'view' => 'filament.resources.onboarding.guide.audience'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.onboarding.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.onboarding.guide.user'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {

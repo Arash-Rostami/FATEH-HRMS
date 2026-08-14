@@ -12,6 +12,7 @@ use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
 use App\Models\Report;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -26,12 +27,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Report::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-presentation-chart-line';
     protected static ?int $navigationSort = 5;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'description', 'view' => 'filament.resources.report.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.report.guide.admin-ops'],
+        ['label' => 'زبانه‌های فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.report.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.report.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

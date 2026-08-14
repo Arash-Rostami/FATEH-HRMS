@@ -15,7 +15,9 @@ return new class extends Migration {
                 $table->string('type', 50)->default('recommendation');
                 $table->string('title', 191);
                 $table->text('body');
+                $table->json('attachments')->nullable();
                 $table->string('status', 30)->default('open');
+                $table->text('response')->nullable();
                 $table->timestamps();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');

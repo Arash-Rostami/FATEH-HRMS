@@ -7,7 +7,22 @@
 >
 
     <div class="pb-0 shrink-0">
-        <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال"/>
+        <x-ui.title icon="help" title="پرسش‌های متداول" :count="$this->totalFaqs" countLabel="سوال">
+            <x-slot:actions>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', { name: 'faqs-legend' })"
+                    title="راهنمای پرسش‌های متداول"
+                    class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        <x-ui.modals.dialog name="faqs-legend" title="راهنمای پرسش‌های متداول">
+            @include('livewire.dashboard.tab.faqs.legend')
+        </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
     </div>

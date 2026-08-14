@@ -16,6 +16,16 @@
     >
         <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
 
+            <div class="flex justify-end -mb-2">
+                <button type="button"
+                        @click="$dispatch('open-modal', { name: 'release-request-legend' })"
+                        title="راهنمای درخواست‌ها"
+                        class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
+                    <span class="material-symbols-rounded text-[16px]">help</span>
+                    راهنما
+                </button>
+            </div>
+
             <x-ui.buttons.tab-selector
                 :tabs="[
                     ['id' => 'submit', 'icon' => 'edit_note', 'label' => 'ثبت درخواست جدید'],
@@ -56,6 +66,44 @@
                 <x-ui.forms.input label="عنوان" name="form.title" wire:model="form.title" icon="title" required />
 
                 <x-ui.forms.textarea label="متن درخواست" name="form.body" wire:model="form.body" icon="notes" rows="5" required />
+
+                <div>
+                    <span class="block text-right text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]/70 mb-2">پیوست (اختیاری)</span>
+
+                    <input type="file" multiple wire:model="form.attachments"
+                           class="w-full text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] p-2.5 file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--md-sys-color-primary-container)] file:text-[var(--md-sys-color-on-primary-container)] file:text-xs file:font-bold"
+                    >
+
+                    <div wire:loading wire:target="form.attachments" class="text-xs text-[var(--md-sys-color-primary)] mt-2">
+                        در حال آپلود...
+                    </div>
+
+                    @if(!empty($form->attachments))
+                        <ul class="space-y-1.5 mt-2">
+                            @foreach($form->attachments as $index => $file)
+                                <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
+                                    <span class="flex items-center gap-1.5 text-[var(--md-sys-color-on-surface)] truncate">
+                                        <span class="material-symbols-rounded text-sm">upload_file</span>
+                                        {{ $file->getClientOriginalName() }}
+                                    </span>
+                                    <button type="button" wire:click="removeAttachment({{ $index }})"
+                                            class="text-[var(--md-sys-color-error)] flex items-center justify-center">
+                                        <span class="material-symbols-rounded text-sm">close</span>
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    @foreach(['attachments', 'attachments.*'] as $errorKey)
+                        @error($errorKey)
+                        <div class="flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-error)] mt-1.5">
+                            <span class="material-symbols-rounded text-sm">error</span>
+                            <span>{{ $message }}</span>
+                        </div>
+                        @enderror
+                    @endforeach
+                </div>
             @else
                 <div class="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
                     @forelse($this->myRequests as $item)
@@ -79,6 +127,34 @@
                             </div>
                             <p class="text-xs font-semibold text-[var(--md-sys-color-on-surface)] line-clamp-1" title="{{ $item->title }}">{{ $item->title }}</p>
                             <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1 line-clamp-2">{{ $item->body }}</p>
+
+                            @if(!empty($item->attachments))
+                                <div class="flex flex-wrap gap-1.5 mt-1.5">
+                                    @foreach($item->attachments as $attachment)
+                                        <a href="{{ asset('storage/' . $attachment['path']) }}" target="_blank"
+                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-container)] text-[10px] font-medium text-[var(--md-sys-color-primary)] hover:opacity-80 truncate max-w-[160px]">
+                                            <span class="material-symbols-rounded text-xs">attach_file</span>
+                                            {{ $attachment['name'] ?? basename($attachment['path']) }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if(filled($item->response))
+                                @php
+                                    $isRejected = $reqStatus === \App\Enums\ReleaseRequestStatus::Rejected;
+                                    $responseColor = $isRejected ? 'var(--md-sys-color-error)' : 'var(--md-sys-color-primary)';
+                                    $responseBg = $isRejected ? 'var(--md-sys-color-error-container)' : 'var(--md-sys-color-primary-container)';
+                                @endphp
+                                <div class="mt-1.5 rounded-lg border-r-2 px-3 py-2" style="border-color: {{ $responseColor }}; background: color-mix(in srgb, {{ $responseBg }} 30%, transparent);">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold mb-0.5" style="color: {{ $responseColor }};">
+                                        <span class="material-symbols-rounded text-xs">{{ $isRejected ? 'cancel' : 'forum' }}</span>
+                                        پاسخ
+                                    </div>
+                                    <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface)]">{{ $item->response }}</p>
+                                </div>
+                            @endif
+
                             <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-1.5 block">{{ toJalali($item->created_at, 'j F Y - H:i') }}</span>
                         </div>
                     @empty
@@ -101,5 +177,9 @@
 
         </div>
     </x-ui.modals.action>
+
+    <x-ui.modals.dialog name="release-request-legend" title="راهنمای درخواست‌ها">
+        @include('livewire.dashboard.release-request.legend')
+    </x-ui.modals.dialog>
 
 </div>

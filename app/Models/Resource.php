@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Traits\CleansAttachedFiles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Resource extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
 
     protected $fillable = [
         'name',
@@ -153,5 +154,10 @@ class Resource extends Model
             $this->name
         )
         );
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn(self $resource) => static::deleteStoredFiles($resource->getRawOriginal('image')));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Traits\HasPrunableStatus;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -13,14 +14,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class Channel extends Model
 {
     use HasFactory,
         SoftDeletes,
         Prunable,
-        HasPrunableStatus;
+        HasPrunableStatus,
+        CleansAttachedFiles;
 
     protected $fillable = [
         'name',
@@ -99,9 +100,7 @@ class Channel extends Model
             }
         });
 
-        static::forceDeleted(function (self $channel) {
-            Storage::disk('public')->deleteDirectory("channel_messages/{$channel->id}");
-        });
+        static::forceDeleted(fn(self $channel) => static::deleteStoredDirectory("channel_messages/{$channel->id}"));
     }
 
     protected function casts(): array

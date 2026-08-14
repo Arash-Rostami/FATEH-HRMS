@@ -66,7 +66,7 @@ class SkillsRelationManager extends RelationManager
                     ->formatStateUsing(fn (?SkillTier $state) => $state?->label() ?? '-')
                     ->icon(fn (?SkillTier $state) => $state?->heroicon())
                     ->color(fn (?SkillTier $state) => $state?->color() ?? 'gray')
-                    ->tooltip(fn () => 'تأییدشده: حداقل ' . SkillUser::ENDORSEMENT_SATURATION_CAP . ' تأیید همکار. فعال: استفاده در ' . SkillUser::ACTIVE_WINDOW_DAYS . ' روز اخیر. بدون استفاده: هیچ‌کدام. فقط برای مهارت‌های تأییدشده محاسبه می‌شود.'),
+                    ->tooltip(fn () => 'تأییدشده: حداقل ' . SkillUser::ENDORSEMENT_SATURATION_CAP . ' تأیید همکار. فعال: استفاده در ' . SkillUser::ACTIVE_WINDOW_DAYS . ' روز اخیر. آماده مشارکت: هیچ‌کدام. فقط برای مهارت‌های تأییدشده محاسبه می‌شود.'),
                 TextColumn::make('endorsements_count')
                     ->label(__('resources/skill/strings.fields.endorsements_count'))
                     ->formatStateUsing(fn (SkillUser $record) => $record->endorsementLabel())

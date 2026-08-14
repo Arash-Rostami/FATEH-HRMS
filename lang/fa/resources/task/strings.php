@@ -21,6 +21,8 @@ return [
         'created_at'    => 'تاریخ ایجاد',
         'updated_at'    => 'آخرین بروزرسانی',
         'deleted_at'    => 'تاریخ حذف',
+        'archived_at'   => 'تاریخ آرشیو',
+        'is_archived'   => 'آرشیو‌شده',
         'prune_status'  => 'وضعیت حذف خودکار',
 
         'department' => 'واحد سازمانی/دپارتمان',
@@ -73,6 +75,8 @@ return [
         'not_delegated'  => 'تفویض‌نشده',
         'overdue'        => 'سررسید گذشته',
         'pruning_soon'   => 'در آستانه حذف خودکار',
+        'archived'       => 'آرشیو‌شده',
+        'not_archived'   => 'غیر آرشیو',
         'deadline_range' => 'بازه سررسید',
         'date_from'      => 'از تاریخ',
         'date_until'     => 'تا تاریخ',

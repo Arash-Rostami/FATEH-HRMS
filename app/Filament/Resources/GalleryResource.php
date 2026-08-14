@@ -10,6 +10,7 @@ use App\Filament\Resources\GalleryResource\Schemas\{GalleryFormPresenter,
 use App\Models\Photo;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -21,12 +22,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class GalleryResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Photo::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-photo';
     protected static ?int $navigationSort = 4;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'photo_library', 'view' => 'filament.resources.gallery.guide.overview'],
+        ['label' => 'دسترسی و اشتراک', 'icon' => 'lock', 'view' => 'filament.resources.gallery.guide.visibility'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.gallery.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.gallery.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.gallery.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

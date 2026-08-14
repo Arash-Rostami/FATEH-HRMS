@@ -7,6 +7,7 @@ use App\Filament\Resources\SkillRequestResource\Schemas\Helper\RequestActions;
 use App\Filament\Resources\SkillRequestResource\Schemas\SkillRequestTablePresenter;
 use App\Models\SkillUser;
 use App\Traits\AuthorizesByPermission;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -17,12 +18,19 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SkillRequestResource extends Resource
 {
-    use FilamentFilters, RequestActions, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentFilters, RequestActions, AuthorizesByPermission;
 
     protected static ?string $model = SkillUser::class;
     protected static ?string $recordTitleAttribute = 'requested_name';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?int $navigationSort = 14;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'info', 'view' => 'filament.resources.skill_request.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill_request.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.skill_request.guide.list-tabs'],
+        ['label' => 'سطح‌بندی و تأیید همکاران', 'icon' => 'workspace_premium', 'view' => 'filament.resources.skill_request.guide.tier'],
+    ];
 
 
     public static function getEloquentQuery(): Builder

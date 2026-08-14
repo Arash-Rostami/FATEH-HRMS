@@ -3,12 +3,14 @@
 namespace App\Livewire\Dashboard\TaskBoard;
 
 use App\Livewire\Dashboard\TaskBoard\Actions\AddTaskReplyAction;
+use App\Livewire\Dashboard\TaskBoard\Actions\ArchiveTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\AssignTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkAssignTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkDeleteTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkMoveTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\CreateTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\DeleteTaskAction;
+use App\Livewire\Dashboard\TaskBoard\Actions\UnarchiveTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UndoTaskAssignmentAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UpdateTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UpdateTaskStatusAction;
@@ -47,6 +49,7 @@ class Main extends Component
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
     public bool $showAllDone = false;
+    public bool $showArchived = false;
 
     private const DONE_WINDOW_DAYS = 45;
 
@@ -55,7 +58,7 @@ class Main extends Component
     public array $staffMembers = [];
     public array $departmentOptions = [];
     public array $columns = ['todo', 'in-progress', 'pending', 'done'];
-    public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'user_id', 'assigned_to', 'ticket_id'];
+    public array $columnsToSelect = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'updated_at', 'archived_at', 'user_id', 'assigned_to', 'ticket_id'];
     public array $relationsToLoad = ['assignee:id,name', 'creator:id,name'];
     public string $search = '';
     public bool $selectionMode = false;
@@ -65,7 +68,6 @@ class Main extends Component
     public bool $isReadOnly = false;
 
     public array $selectedTasks = [];
-    public string $density = 'comfortable';
 
     public function assignTask(AssignTaskAction $action, int $taskId, ?int $userId): void
     {
@@ -292,6 +294,7 @@ class Main extends Component
             ));
 
         $doneWindow = $this->doneWindowScope();
+        $archivedScope = $this->archivedScope();
 
         $counts = (clone $baseQuery)
             ->whereIn('status', $this->columns)
@@ -299,19 +302,23 @@ class Main extends Component
             ->selectRaw('status, COUNT(*) as aggregate')
             ->pluck('aggregate', 'status');
 
-        $this->doneTotalCount['done'] = (int) ($counts->get('done', 0));
+        $this->doneTotalCount['done'] = (clone $baseQuery)
+            ->where('status', 'done')
+            ->tap($archivedScope)
+            ->count();
 
         foreach ($this->columns as $column) {
             $isDone = $column === 'done';
 
-            $this->totalCount[$column] = $isDone && $doneWindow
-                ? (clone $baseQuery)->where('status', 'done')->tap($doneWindow)->count()
+            $this->totalCount[$column] = $isDone
+                ? (clone $baseQuery)->where('status', 'done')->tap($archivedScope)->when($doneWindow, $doneWindow)->count()
                 : $counts->get($column, 0);
 
             $this->tasks[$column] = (clone $baseQuery)
                 ->where('status', $column)
+                ->when($isDone, $archivedScope)
                 ->when($isDone && $doneWindow, $doneWindow)
-                ->orderBy($isDone ? 'updated_at' : 'created_at', 'desc')
+                ->orderBy($isDone ? ($this->showArchived ? 'archived_at' : 'updated_at') : 'created_at', 'desc')
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
                 ->with($this->relationsToLoad)
@@ -322,13 +329,28 @@ class Main extends Component
 
     private function doneWindowScope(): ?callable
     {
-        if ($this->showAllDone || $this->search !== '') {
+        if ($this->showAllDone || $this->showArchived || $this->search !== '') {
             return null;
         }
 
         $threshold = now()->subDays(self::DONE_WINDOW_DAYS);
 
         return fn(Builder $query) => $query->where('updated_at', '>=', $threshold);
+    }
+
+    private function archivedScope(): callable
+    {
+        return function (Builder $query) {
+            if ($this->search !== '') {
+                return;
+            }
+
+            $query->when(
+                $this->showArchived,
+                fn(Builder $q) => $q->whereNotNull('archived_at'),
+                fn(Builder $q) => $q->whereNull('archived_at'),
+            );
+        };
     }
 
     public function mount(): void
@@ -341,8 +363,6 @@ class Main extends Component
             ->toArray();
 
         $this->departmentOptions = Department::getCachedOptions()->toArray();
-
-        $this->density = auth()->user()?->getPreference('taskboard_density', 'comfortable') ?? 'comfortable';
 
         $this->loadTasks();
     }
@@ -369,6 +389,35 @@ class Main extends Component
     public function toggleShowAllDone(): void
     {
         $this->showAllDone = !$this->showAllDone;
+        $this->showArchived = false;
+        $this->page['done'] = 1;
+        $this->loadTasks();
+    }
+
+    public function archiveTask(ArchiveTaskAction $action, int $taskId): void
+    {
+        if (!$action->execute($taskId)) {
+            return;
+        }
+
+        $this->loadTasks();
+        $this->dispatch('toast', message: 'وظیفه آرشیو شد.', type: 'success');
+    }
+
+    public function unarchiveTask(UnarchiveTaskAction $action, int $taskId): void
+    {
+        if (!$action->execute($taskId)) {
+            return;
+        }
+
+        $this->loadTasks();
+        $this->dispatch('toast', message: 'وظیفه از آرشیو خارج شد.', type: 'success');
+    }
+
+    public function toggleShowArchived(): void
+    {
+        $this->showArchived = !$this->showArchived;
+        $this->showAllDone = false;
         $this->page['done'] = 1;
         $this->loadTasks();
     }
@@ -408,24 +457,12 @@ class Main extends Component
             ->section('content');
     }
 
-    public function setDensity(string $density): void
-    {
-        if (!in_array($density, ['comfortable', 'compact'], true)) {
-            return;
-        }
-
-        $this->density = $density;
-
-        $user = auth()->user();
-        $user->setExtraValue('preferences.taskboard_density', $density);
-        $user->save();
-    }
-
     public function switchTab(string $tab): void
     {
         $this->activeTab = $tab;
         $this->page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
         $this->showAllDone = false;
+        $this->showArchived = false;
         $this->selectedTasks = [];
         $this->loadTasks();
     }

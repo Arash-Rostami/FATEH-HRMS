@@ -6,6 +6,7 @@ use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasNudgeTracking;
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feed extends Model
 {
-    use HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl;
+    use HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl, CleansAttachedFiles;
 
     public const NUDGE_KEY = 'feeds:nudge';
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -34,10 +35,11 @@ class Feed extends Model
     {
         parent::boot();
 
-        static::deleting(function ($feed) {
+        static::deleting(function (self $feed) {
             $feed->comments()->delete();
             $feed->reactions()->delete();
             $feed->polls()->delete();
+            static::deleteStoredFiles($feed->media_paths);
         });
     }
 

@@ -8,6 +8,7 @@ use App\Filament\Resources\EnergyResource\Pages\{ListEnergyTests, ViewEnergyTest
 use App\Filament\Resources\EnergyResource\Schemas\{EnergyTestInfolistPresenter, EnergyTestTablePresenter};
 use App\Models\EnergyTest;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -18,11 +19,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class EnergyTestResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = EnergyTest::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-bolt';
     protected static ?int $navigationSort = 3;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.energy.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.energy.guide.admin-ops'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.energy.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.energy.guide.user'],
+    ];
 
     public static function canCreate(): bool
     {

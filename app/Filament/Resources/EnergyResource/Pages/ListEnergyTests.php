@@ -15,9 +15,9 @@ class ListEnergyTests extends ListRecords
 
     protected static string $resource = EnergyTestResource::class;
 
-    protected function getHeaderActions(): array
+    protected function listHeaderActions(): array
     {
-        return [];
+        return [EnergyTestResource::setupGuideAction()];
     }
 
     public function getTabs(): array

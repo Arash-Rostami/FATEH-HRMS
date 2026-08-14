@@ -7,6 +7,7 @@ use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasUserHelpers;
 use App\Services\Dms\DmsKeyGrouper;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -23,6 +24,7 @@ class DMS extends Model
     use HasDepartmentHelpers;
     use HasDmsCountHelpers;
     use HasMenuState;
+    use CleansAttachedFiles;
 
 
     private static $statusMapping = [
@@ -234,6 +236,11 @@ class DMS extends Model
                 $document->reads()->update(['read' => false, 'read_count' => 0]);
                 $document->newQuery()->whereKey($document->getKey())->update(['combined_read_count' => 0]);
             }
+        });
+
+        static::deleting(function (DMS $document): void {
+            static::deleteStoredFiles($document->file);
+            static::deleteStoredFiles($document->extra_files);
         });
 
         static::deleted(function (DMS $document): void {

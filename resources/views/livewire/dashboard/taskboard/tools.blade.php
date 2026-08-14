@@ -18,18 +18,13 @@
 
         <button
             type="button"
-            wire:click="setDensity('{{ $density === 'compact' ? 'comfortable' : 'compact' }}')"
-            @class([
-                'ripple-effect flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--md-sys-color-primary)]',
-                'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' => $density === 'compact',
-                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => $density !== 'compact',
-            ])
-            title="{{ $density === 'compact' ? 'نمایش عادی' : 'نمایش فشرده' }}"
-            aria-label="{{ $density === 'compact' ? 'نمایش عادی' : 'نمایش فشرده' }}"
+            @click="$store.density.toggle()"
+            :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]': $store.density.compact, 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]': !$store.density.compact }"
+            :title="$store.density.compact ? 'نمایش عادی' : 'نمایش فشرده'"
+            :aria-label="$store.density.compact ? 'نمایش عادی' : 'نمایش فشرده'"
+            class="ripple-effect flex items-center justify-center shrink-0 w-10 h-10 rounded-xl transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--md-sys-color-primary)]"
         >
-            <span class="material-symbols-rounded text-xl">
-                {{ $density === 'compact' ? 'view_comfy' : 'view_compact' }}
-            </span>
+            <span class="material-symbols-rounded text-xl" x-text="$store.density.compact ? 'view_comfy' : 'view_compact'"></span>
         </button>
 
         <button

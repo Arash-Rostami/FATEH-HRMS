@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Photo extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
 
     protected $fillable = [
         'path',
@@ -76,5 +77,10 @@ class Photo extends Model
                 array_values(array_filter($this->path ?? [], fn($p) => !empty($p))),
             ),
         )->shouldCache();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn(self $photo) => static::deleteStoredFiles($photo->path));
     }
 }

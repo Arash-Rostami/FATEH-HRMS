@@ -36,6 +36,8 @@ class TaskExporter extends Exporter
                 ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
             ExportColumn::make('deleted_at')->label(__('resources/task/strings.fields.deleted_at'))
                 ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
+            ExportColumn::make('archived_at')->label(__('resources/task/strings.fields.archived_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
         ];
     }
 

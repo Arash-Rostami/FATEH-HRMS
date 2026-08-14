@@ -12,6 +12,7 @@ return new class extends Migration {
                 $table->bigIncrements('id');
                 $table->string('title', 191);
                 $table->boolean('private')->default(0);
+                $table->unsignedTinyInteger('remind_hours')->nullable();
                 $table->text('description')->nullable();
                 $table->json('countdown')->nullable();
                 $table->dateTime('date');

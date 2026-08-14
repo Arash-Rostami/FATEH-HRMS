@@ -8,6 +8,7 @@ use App\Models\Traits\HasPublicAssetUrl;
 use App\Models\Traits\HasReplies;
 use App\Models\Traits\HasTicketCountHelpers;
 use App\Models\Traits\HasTicketOptions;
+use App\Traits\CleansAttachedFiles;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -22,7 +23,8 @@ class Ticket extends Model
         HasPublicAssetUrl,
         HasReplies,
         HasTicketCountHelpers,
-        HasTicketOptions;
+        HasTicketOptions,
+        CleansAttachedFiles;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted'];
 
@@ -126,6 +128,12 @@ class Ticket extends Model
 
     protected static function booted(): void
     {
+        static::deleting(function (Ticket $ticket) {
+            static::deleteStoredFiles($ticket->attachment);
+            static::deleteStoredFiles($ticket->requester_files, ['file']);
+            static::deleteStoredFiles($ticket->assignee_files, ['file']);
+        });
+
         static::creating(function (Ticket $ticket) {
             $extra = $ticket->extra ?? [];
 

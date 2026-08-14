@@ -91,8 +91,11 @@ class ProfilePresenter
 
     public function position(User $user): string
     {
-        return Position::tryFrom($user->profile?->position ?? '')
-            ?->getLabel() ?? Position::Employee->getLabel();
+        $displayTitle = $user->profile?->detailsMap()->get('display_title');
+
+        return filled($displayTitle)
+            ? (string) $displayTitle
+            : (Position::tryFrom($user->profile?->position ?? '')?->getLabel() ?? Position::Employee->getLabel());
     }
 
     public function newBadgeVisible(): bool

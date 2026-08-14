@@ -10,7 +10,8 @@
         </x-slot:icon>
 
         <x-slot:heading>
-            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);">تایمر</p>
+            <p class="text-sm font-semibold leading-none" style="color:var(--md-sys-color-on-primary);"
+               x-text="reminderTitle ? 'یادآوری: ' + reminderTitle : 'تایمر'"></p>
             <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);"
                x-text="timer.running ? 'فعال ...' : 'متوقف'"></p>
         </x-slot:heading>
@@ -86,7 +87,7 @@
         <x-dashboard.navbars.dock
             show="minimized"
             on-click="restore()"
-            label-expr="timer.running ? 'در حال اجرا' : 'متوقف'"
+            label-expr="reminderTitle ? 'یادآوری: ' + reminderTitle : (timer.running ? 'در حال اجرا' : 'متوقف')"
             value-expr="formatSeconds(timer.seconds)"
             alarm="alarmInterval"
             restore-fn="restore()"

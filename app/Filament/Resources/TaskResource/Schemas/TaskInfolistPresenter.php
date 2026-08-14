@@ -13,6 +13,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskInfolistPresenter
 {
+    public static function archivedAt(): TextEntry
+    {
+        return TextEntry::make('archived_at')
+            ->label(__('resources/task/strings.fields.archived_at'))
+            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('archived_at', null))
+            ->placeholder('—')
+            ->color('gray')
+            ->icon('heroicon-o-archive-box')
+            ->hidden(fn($record) => !$record->archived_at);
+    }
+
     public static function actionSource(): TextEntry
     {
         return TextEntry::make('detail.action_source')

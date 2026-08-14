@@ -11,6 +11,7 @@ use App\Models\DMS;
 use App\Services\Dms\DmsKeyGrouper;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -23,12 +24,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class DmsResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = DMS::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-folder-open';
     protected static ?int $navigationSort = 1;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'description', 'view' => 'filament.resources.dms.guide.overview'],
+        ['label' => 'مالکیت و دسترسی', 'icon' => 'groups', 'view' => 'filament.resources.dms.guide.ownership'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.dms.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.dms.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.dms.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {
@@ -89,7 +98,7 @@ class DmsResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['title', 'code', 'version'];
+        return ['title', 'code', 'version', 'revision'];
     }
 
     public static function getModelLabel(): string

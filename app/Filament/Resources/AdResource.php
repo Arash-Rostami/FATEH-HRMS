@@ -14,6 +14,7 @@ use App\Filament\Resources\AdResource\Schemas\AdTablePresenter;
 use App\Models\Ad;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -28,12 +29,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Ad::class;
     protected static ?string $recordTitleAttribute = 'position';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-briefcase';
     protected static ?int $navigationSort = 5;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'campaign', 'view' => 'filament.resources.ad.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ad.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'view_list', 'view' => 'filament.resources.ad.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.ad.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

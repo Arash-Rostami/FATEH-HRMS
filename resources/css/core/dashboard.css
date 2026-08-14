@@ -804,6 +804,42 @@
         animation: reply-bar-in 0.25s cubic-bezier(0.2, 0, 0, 1) both;
         overflow: hidden;
     }
+
+    .app-density-compact .dms-doc-table tbody td {
+        @apply !py-0
+    }
+
+    .app-density-compact .taskboard-card {
+        @apply !gap-2 !p-2.5 !pt-5;
+    }
+
+    @media (min-width: 768px) {
+        .app-density-compact .taskboard-card {
+            @apply !p-3;
+        }
+    }
+
+    .app-density-compact .taskboard-column-list {
+        @apply !space-y-1.5;
+    }
+
+    .app-density-compact .taskboard-card-description {
+        @apply !hidden;
+    }
+
+    .taskboard-card--urgent::before {
+        content: '';
+        position: absolute;
+        inset-inline-start: 0;
+        top: 10px;
+        bottom: 10px;
+        width: 3px;
+        border-radius: 9999px;
+        background: color-mix(in srgb, var(--md-sys-color-primary) calc((1 - var(--urgency, 0)) * 100%), var(--md-sys-color-error));
+        box-shadow: 0 0 calc(var(--urgency, 0) * 14px) color-mix(in srgb, var(--md-sys-color-error) calc(var(--urgency, 0) * 55%), transparent);
+        opacity: 0.9;
+        pointer-events: none;
+    }
 }
 
 

@@ -75,7 +75,7 @@ class SkillUserPresenter
 
     public function lastUsedLabel(SkillUser $skillUser): string
     {
-        if (!$skillUser->last_used_at) return 'بدون سابقه استفاده';
+        if (!$skillUser->last_used_at) return 'هنوز فرصت به‌کارگیری آن پیش نیامده';
 
         return toJalaliRelative($skillUser->last_used_at);
     }

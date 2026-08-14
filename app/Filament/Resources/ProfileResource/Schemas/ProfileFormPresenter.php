@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
+use App\Enums\FavoriteColor;
 use App\Enums\ProfileDetailGroup;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
@@ -17,7 +18,6 @@ use App\Models\Skill;
 use App\Services\PersianDateFieldService;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\FilamentFormDivider;
-use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -216,7 +216,7 @@ class ProfileFormPresenter
                 TextInput::make('value_text')
                     ->label($label)
                     ->required(fn(Get $get): bool => filled($get('key')))
-                    ->maxLength(2000)
+                    ->maxLength(fn(Get $get): int => ProfileDetailCatalog::definition($get('key'))['max'] ?? 2000)
                     ->visible(fn(Get $get): bool => in_array(self::getDetailType($get('key')), ['text', 'url', 'email'])),
 
                 TextInput::make('value_number')
@@ -315,8 +315,11 @@ class ProfileFormPresenter
         return Repeater::make('favorite_colors')
             ->label(__('resources/profile/strings.form.favorite_colors'))
             ->schema([
-                ColorPicker::make('color')
+                Select::make('color')
                     ->label(__('resources/profile/strings.form.favorite_color_item'))
+                    ->options(FavoriteColor::class)
+                    ->native(false)
+                    ->required()
             ])
             ->grid(4)
             ->columns(1)

@@ -21,7 +21,12 @@ class BulkMoveTasksAction
             return 0;
         }
 
-        Task::whereIn('id', $tasks->modelKeys())->update(['status' => $status]);
+        $payload = ['status' => $status];
+        if ($status !== TaskStatus::Done->value) {
+            $payload['archived_at'] = null;
+        }
+
+        Task::whereIn('id', $tasks->modelKeys())->update($payload);
 
         DB::afterCommit(fn() => StateService::flush());
 

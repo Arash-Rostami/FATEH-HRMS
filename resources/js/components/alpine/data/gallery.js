@@ -1,30 +1,10 @@
-import { Fancybox } from "@fancyapps/ui";
-
-let fancyboxInitialized = false;
-
-const FANCYBOX_OPTIONS = {
-    Toolbar: {
-        display: {
-            left: ["infobar"],
-            middle: ["zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY"],
-            right: ["slideshow", "fullscreen", "download", "thumbs", "close"],
-        },
-    },
-    animated: true,
-    showClass: "f-fadeIn",
-    hideClass: "f-fadeOut",
-    Image: { zoom: true },
-    backdrop: true,
-    keyboard: true,
-    dragToClose: true,
-    infinite: true,
-    Carousel: { transition: "slide" },
-};
+import fancyboxMixin from "../mixins/fancybox.js";
 
 const PHOTO_SELECTOR = '[data-photo-id]';
 
 export default function gallery() {
     return {
+        ...fancyboxMixin(),
         activeId: null,
         loading: false,
         observer: null,
@@ -68,12 +48,6 @@ export default function gallery() {
                     });
                 }
             });
-        },
-
-        initFancybox() {
-            if (fancyboxInitialized) return;
-            fancyboxInitialized = true;
-            Fancybox.bind("[data-fancybox]", FANCYBOX_OPTIONS);
         },
 
         scrollNext() {

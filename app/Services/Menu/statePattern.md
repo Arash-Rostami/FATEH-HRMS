@@ -38,16 +38,16 @@ App\Services\Menu\
 ├── Notifications\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
-│   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion updated/deleted + Review created/updated
+│   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion created/updated/deleted + Review created/updated
 │   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted show=true  for=User::active()
 │   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
 │   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
 │   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
-│   ├── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/forceDeleted show=true  for=owner (User::active()->where('id', $subject->assigned_to ?? $subject->user_id), empty→collect())
-│   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted show=true  for=staged recipient (Ticket::currentActionRecipient(), empty→collect())
-│   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=isPendingFor($u)  for=DMS::pendingRecipients() (visible live + pending users)
+│   ├── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/restored/forceDeleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not owner)  for=owner + otherReplyParticipants([user_id, assigned_to])
+│   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not currentActionRecipient)  for=currentActionRecipient + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
+│   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
-│   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false
+│   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 └── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
@@ -97,20 +97,24 @@ all structurally identical (no per-user method, no sub-interface).
 `SharedEvents`, `TasksTodo`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`, `EnergyTestBadge`,
 `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`. `PendingSuggestions`
 calls `Suggestion::attentionRequired()->exists()` with no `$user` argument — but
-`scopeAttentionRequired()` (`HasSuggestionAlert.php:20-23`) defaults `$user ??= auth()->user()`
+`scopeAttentionRequired()` (`HasSuggestionAlert::scopeAttentionRequired`) defaults `$user ??= auth()->user()`
 internally, so it is **also per-user**, not global. Only `ActiveAds` (`Ad::active()->exists()`) and
 the date-branch of `SpecialDays` are genuinely global, no-user existence checks. Per-user indicators
 work because `StateService::get()` caches per user (`menu_state:v{ver}:u{id}`) and runs `isActive()`
 inside that per-user closure, so `auth()->user()` is available.
 
 > **`PendingSuggestions` condition, precisely (`HasSuggestionAlert::scopeAttentionRequired`)** —
-> returns no rows if the auth user has no `profile->department_id`. Otherwise: lights for a **CEO**
-> (`isCeo()`) when any suggestion is `stage = 'awaiting_decision'`; lights for a **department head**
-> (`isDeptHead()`) when either (a) a suggestion in `stage = 'dept_remarks'` targets their department
-> and their department hasn't yet submitted a review (`agree`/`disagree`/`neutral`), or (b) MA
-> referred a suggestion to their department (a review with `department_id = 'MA'` whose `referral`
-> JSON contains their dept) and their department's own review is still `complete = false`. For a
-> regular employee the inner query has no `orWhere`, so it never lights — by design.
+> returns no rows (`whereRaw('1=0')`) if the auth user has no `profile->department_id`. The scope
+> unions two role-guarded branches (the second with three query sub-conditions); a regular employee
+> matches neither, so it never lights — by design.
+> - **`isSeniorDecisionMaker()`** (a `chairman`/`ceo` top executive, OR — when no top executive
+>   exists org-wide — any MA-department user as fallback) lights on any `stage = 'awaiting_decision'`.
+> - **`isDeptHead() && !isTopExecutive()`** (a department head who is NOT chairman/ceo) lights on
+>   either (a) `stage = 'team_remarks'` routed to their dept (`departments->[0] = deptId`), or
+>   (b) `stage = 'dept_remarks'` targeting their dept (`whereJsonContains('departments', $deptId)`)
+>   whose dept hasn't yet submitted a review (`agree`/`disagree`/`neutral`), or (c) MA referred a
+>   suggestion to their dept (a review with `department_id = 'MA'` whose `referral` JSON contains
+>   their dept) and their dept's own review is still `complete = false`.
 > `PendingSuggestions` is action-based (clears only by submitting the review/decision, never by
 > merely viewing the Suggestions page), not global-status like `ActiveAds`.
 > `SuggestionNudge::show()` reuses `Suggestion::requiresAttentionFor($s, $user)` — one condition,
@@ -253,10 +257,11 @@ cache hits.
 
 - **Menu modal** — dot per item via `@js($menuState)[item.id]`; item ids come from the static
   `resources/js/components/alpine/data/menu.js` array (`*-controller` style). `ads-controller`,
-  `suggestion-controller`, `tasks-controller`, `ths-controller`, `dms-controller` have matching item
-  ids, so they render there. `shared-events`, `posts-controller`, `feeds`, `contacts-controller`,
-  `energy-controller`, `special-days` have **no** item id in `menu.js` → menu-invisible by design;
-  their surface is the sidebar tab (or no surface).
+  `suggestion-controller`, `tasks-controller`, `ths-controller`, `dms-controller`, `contacts-controller`,
+  `energy-controller` have matching item ids (`menu.js` lines for `contacts-controller`/`energy-controller`
+  verified 2026-08-13 — a prior revision of this doc incorrectly listed both as menu-invisible), so they
+  render there. `shared-events`, `posts-controller`, `feeds`, `special-days` have **no** item id in
+  `menu.js` → menu-invisible by design; their surface is the sidebar tab (or no surface).
 - **Sidebar tabs** — `Tabs::tabs()` entries may carry a `'badge' => '<indicator key>'` field (string
   **or** array of keys — see "Array `badge` slot" below). `navbars/right.blade.php` and
   `navbars/bottom.blade.php` render the ping dot when
@@ -266,8 +271,8 @@ cache hits.
   **both navbars are already wired**. The left rail (`navbars/left.blade.php`, hard-coded `/tasks`
   `/dms` `/ths`) has no indicators mapped and is untouched.
 - **Full-page routes without a sidebar tab** (`ads-controller`, `suggestion-controller`,
-  `tasks-controller`, `ths-controller`, `dms-controller`) stay menu-modal-only by design. Forcing a
-  dot onto an unrelated tab would mislabel the signal.
+  `tasks-controller`, `ths-controller`, `dms-controller`, `contacts-controller`, `energy-controller`)
+  stay menu-modal-only by design. Forcing a dot onto an unrelated tab would mislabel the signal.
 
 ---
 
@@ -410,10 +415,14 @@ Design choices:
   the new subject existed) gives "excluding the current item" semantics for free. `register()`
   captures the flag via `method_exists($nudge, 'badgeSuppressesCreate')` (default `true`). A nudge
   opts OUT by implementing `badgeSuppressesCreate(): bool { return false; }` — required only where
-  the badge condition is **not** a superset of the nudge condition: `SharedEventsNudge` (badge =
-  imminent ≤24h, nudge = any future event) and `ContactNudge` (badge = any unread, nudge = per-chat;
-  a new chat must still alert even when another chat already lit the badge). Gallery/Reports have no
-  matching badge row, so the guard is a no-op there.
+  the badge condition is **not** a superset of the nudge condition. Five opt-outs: `SharedEventsNudge`
+  (badge = imminent ≤24h, nudge = any future event), `ContactNudge` (badge = any unread, nudge =
+  per-chat; a new chat must still alert even when another chat already lit the badge), `DmsNudge` /
+  `ThsNudge` (a `Read`/`Reply` on an already-badge-lit doc/ticket must still CREATE a nudge for the
+  reply-participants the badge does not track), and `ChannelNudge` (nudge-only — no `Channel`
+  indicator badge exists, so CREATE must always fire). Gallery/Reports have no matching badge row, so
+  the guard is a no-op there; Ads/Posts/Feeds/Suggestion/Task keep the default because their badge is
+  a superset of the nudge.
 - **`subject` resolver** — lets a *foreign* trigger reconcile a *different* record's nudge. Review
   writes flip a Suggestion's attention but fire no `Suggestion` event; binding Review with
   `subject = $review->suggestion` and the **same key + item_id (suggestion id)** makes both triggers
@@ -430,19 +439,21 @@ declare several triggers sharing the same key.
 | `Ad` | created, updated, deleted | self | `$ad->active` | `User::active()->get()` |
 | `EventShare` | created, deleted | `$share->event` | owner → `hasShares && date>=now`; recipient → `date>=now` | `[owner] + current share recipients` |
 | `Event` | updated, deleted | self | same `SharedEventsNudge` class | same `SharedEventsNudge` class |
-| `Suggestion` | updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', …$s->departments])` |
+| `Suggestion` | created, updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', …$s->departments])` |
 | `Review` | created, updated | `$review->suggestion` | `Suggestion::requiresAttentionFor($s, $user)` | same `SuggestionNudge` class |
 | `Post` | created, updated, deleted | self | `true` | `User::active()->get()` |
 | `Feed` | created, updated, deleted | self | `true` | `User::active()->get()` |
 | `Photo` | created, updated, deleted | self | `true` | dept-scoped (`Photo::all_departments` + 'MA', empty→all active) |
 | `Report` | created, updated, deleted | self | `$report->active` | `User::active()->get()` |
-| `Task` | created, updated, deleted, forceDeleted | self | `true` | owner (`assigned_to ?? user_id`, empty→`collect()`) |
-| `Ticket` | created, updated, deleted | self | `true` | `Ticket::currentActionRecipient()` (empty→`collect()`) |
-| `DMS` | created, updated, deleted | self | `isPendingFor($u)` | `DMS::pendingRecipients()` |
-| `Read` | created, updated, deleted | `$read->dms` | `isPendingFor($u)` | `DMS::pendingRecipients()` |
+| `Task` | created, updated, deleted, restored, forceDeleted | self | `true` (false when `latestReply` is own & not owner) | owner (`assigned_to ?? user_id`) + `otherReplyParticipants([user_id, assigned_to])` |
+| `Reply` (Task) | created | `$reply->repliable` (repliable_type-guarded) | same `TaskNudge` class | same `TaskNudge` class |
+| `Ticket` | created, updated, deleted | self | `true` (false when `latestReply` is own & not currentActionRecipient) | `Ticket::currentActionRecipient()` + `otherReplyParticipants([requester_id, assigned_to])` |
+| `Reply` (Ticket) | created | `$reply->repliable` (repliable_type-guarded) | same `ThsNudge` class | same `ThsNudge` class |
+| `DMS` | created, updated, deleted | self | `true` | `DMS::pendingRecipients()` |
+| `Read` | created, updated, deleted | `$read->dms` | `true` | `DMS::pendingRecipients()` |
 | `Channel` | deleted, forceDeleted | self | `true` | invited∪unread (cleanup) |
 | `ChannelMessage` | created, deleted | `$msg->channel` | `true` | invited∪unread |
-| `Message` | created, updated, deleted | sender `User` | `true` | active recipients with unread (`unreadCountsFrom`) |
+| `Message` | created, updated, deleted, forceDeleted, restored | sender `User` | `true` | active recipients with unread (`unreadCountsFrom`) |
 
 - Suggestion + Review share `suggestion-controller:nudge`, `item_id = suggestion id`.
 - EventShare + Event share `shared-events:nudge`, `item_id = event id` (EventShare sets
@@ -767,22 +778,28 @@ change.
   `user_id = me AND assigned_to null`). A global `Task::where('status','todo')->exists()` would light
   everyone's dot regardless of their own tasks and is wrong. `TaskStatus::Todo` ('todo', label
   «انجام نشده»), the default on create.
-- **`TaskNudge`** — **owner-based**: `for = User::active()->where('id', $subject->assigned_to ?? $subject->user_id)->get()`
-  (empty → `collect()`). The recipient is the task's **owner** — assignee if set, else the creator
-  (matches `scopeForUser`'s ownership). Not broadcast: a task is personal. The earlier
-  assignee-only rule left unassigned tasks with **no** recipient — owner-based fixes that.
-  `show = true` (fire-once) — the badge carries the "still in todo" state, so the nudge need not
-  track status; a state-driven `show = status==='todo'` would auto-clear on todo→in-progress, but
-  the engine deletes the row when `show` flips false, so a todo→in-progress→back-to-todo cycle would
-  **resurface** a previously-dismissed nudge — a no-resurface violation; `show=true` avoids it.
-  `refresh = true` (title embeds `$subject->title`).
-- **Triggers** — `['created','updated','deleted','forceDeleted']`. `Task` uses `SoftDeletes`, so
-  `forceDeleted` is a distinct Eloquent event that `deleted` does **not** cover; without it a
-  force-deleted task's nudge row would orphan. `restored` is intentionally **not** in the nudge `on`
-  (restore does not re-nudge) but **is** in `MENU_STATE_EVENTS` so the badge still updates.
-  Soft-delete fires `deleted` and `Task::find()` then returns null (SoftDeletingScope) → reconcile
+- **`TaskNudge`** — **owner + reply-participants**: `for` pushes the owner
+  (`User::active()->where('id', $subject->assigned_to ?? $subject->user_id)`, empty → skip) then
+  merges `$subject->otherReplyParticipants([$subject->user_id, $subject->assigned_to])` — so a task
+  with a reply thread also nudges the other party, not just the owner. The earlier assignee-only
+  rule left unassigned tasks with **no** recipient; owner-based fixed that, reply-participants added
+  reply-awareness. `show` returns `false` when the latest reply is the user's **and** the user is not
+  the owner (no self-nudge for your own reply unless you own the task), else `true` — same
+  fire-once/no-resurface rationale (the badge carries the "still in todo" state; a state-driven
+  `show = status==='todo'` would resurface a dismissed nudge on a todo→in-progress→todo cycle).
+  `title`/`body` branch on ownership: owner gets «وظیفه جدید: …» / «وظیفه جدیدی به شما ارجاع داده
+  شده است…», a reply-participant gets «پاسخ جدید: …» / «پاسخ جدیدی برای وظیفه شما ثبت شده است…».
+  `refresh = true`.
+- **Triggers** — `['created','updated','deleted','restored','forceDeleted']` + `Reply{created}`
+  (`subject = $reply->repliable`, repliable_type-guarded to `Task`). `Task` uses `SoftDeletes`, so
+  `forceDeleted` is a distinct Eloquent event that `deleted` does **not** cover (without it a
+  force-deleted task's nudge row would orphan), and `restored` re-bumps the badge version for a
+  restored todo task. `restored` is also in `MENU_STATE_EVENTS` so the badge updates. Soft-delete
+  fires `deleted` and `Task::find()` then returns null (SoftDeletingScope) → reconcile
   blanket-deletes the rows. Reassignment works via `whereNotIn('notifiable_id', $ids)->delete()`
   (prunes the old assignee) + empty `for()` → blanket delete (unassign clears everyone).
+  `Reply{created}` reuses the same `TaskNudge` class (key + item_id = task id), so a reply
+  reconciles the task's existing rows.
 
 ### `ThsBadge` + `ThsNudge` — staged ticket routing (one row that migrates with status)
 
@@ -796,16 +813,24 @@ multiplies.
   member (via `User::highestRankingInDepartment()`, `HasProfileHierarchy`) is `$u`, **or** an
   `in-progress` ticket `assigned_to` `$u`. The requester is **not** an action recipient while waiting
   (no badge for them); they get the closing nudge instead.
-- **`ThsNudge`** — **staged**: `for = collect([$subject->currentActionRecipient()])` where
-  `Ticket::currentActionRecipient()` returns the single user responsible at the current status:
+- **`ThsNudge`** — **staged + reply-participants**: `for` pushes
+  `$subject->currentActionRecipient()` (the single user responsible at the current status:
   `open` → highest-ranking of the target department, `in-progress` → `assignee`, `closed` →
-  `requester`. The engine's `whereNotIn('notifiable_id', $ids)->delete()` is what makes the row
-  migrate: open→in-progress prunes the dept-head's row and creates the assignee's; in-progress→closed
-  prunes the assignee's and creates the requester's. `show = true` (recipient set encodes the stage).
-  `title`/`body` are `match($subject->status)`. `refresh = true`.
-- **Triggers** — `['created','updated','deleted']`. `Ticket` has **no `SoftDeletes`**, so
-  `forceDeleted` is not a valid event; a hard `deleted` is the only removal event and `Ticket::find()`
-  returning null blanket-deletes the row. `MENU_STATE_EVENTS` mirrors this.
+  `requester`) then merges `$subject->otherReplyParticipants([$subject->requester_id, $subject->assigned_to])`.
+  The engine's `whereNotIn('notifiable_id', $ids)->delete()` is what makes the staged row migrate
+  (open→in-progress prunes the dept-head's row and creates the assignee's; in-progress→closed prunes
+  the assignee's and creates the requester's); the reply-participant rows are additive on `Reply{created}`.
+  `show` returns `false` when the latest reply is the user's **and** the user is not the current
+  action recipient (no self-nudge for your own reply), else `true`. `title`/`body` branch on
+  `currentActionRecipient()?->is($user)`: the current recipient gets `match($subject->status)`
+  («تیکت جدید ارجاع‌شده به واحد شما» / «تیکت محول‌شده به شما» / «پاسخ تیکت ثبت شد» / …), a
+  reply-participant gets «پاسخ جدید: …». `refresh = true`. `badgeSuppressesCreate = false` — a
+  reply on an already-badge-lit ticket must still CREATE a nudge for the reply-participants the
+  badge does not track.
+- **Triggers** — `['created','updated','deleted']` + `Reply{created}` (`subject = $reply->repliable`,
+  repliable_type-guarded to `Ticket`). `Ticket` has **no `SoftDeletes`**, so `forceDeleted` is not a
+  valid event; a hard `deleted` is the only removal event and `Ticket::find()` returning null
+  blanket-deletes the row. `MENU_STATE_EVENTS` mirrors this.
 - **Auto open→in-progress on assignment** — wired in `TicketFormPresenter::assignedTo()`
   (`afterStateUpdated`: filled assignee + status open/null → `InProgress`; blank + InProgress →
   `Open`), matching the helper text «با انتخاب مسئول، وضعیت تیکت به «در حال بررسی» تغییر خودکار
@@ -857,7 +882,9 @@ id):
 - **`DmsBadge`** — **per-user**, `isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)`;
   lit while the user has any doc needing sign or read.
 - **`DmsNudge`** — **per-document**, `for = $subject->pendingRecipients()`,
-  `show = $subject->isPendingFor($user->id)`. `title`/`body` embed the doc's type label via the
+  `show = true` (pending filtering is already inside `for()`/`pendingRecipients()`, so `show` is
+  unconditional). `badgeSuppressesCreate = false` — a `Read` on an already-badge-lit doc must still
+  CREATE a nudge for the newly-pending recipient. `title`/`body` embed the doc's type label via the
   Filament lang strings (`__('resources/dms/strings/type.systematic')` / `non_systematic` →
   «سیستمی»/«غیر سیستمی») and flavor: `requiresSignFor` → «نیازمند تأیید», else «نیازمند مطالعه».
   `refresh = true` so signing rewrites the same row from «نیازمند تأیید» to «نیازمند مطالعه» (the
@@ -926,7 +953,38 @@ dispatch.
 
 ## Open items (flagged, not auto-fixed)
 
-(none — the `post` tab now carries `'badge' => 'posts-controller'`, surfacing `UnreadPosts`.)
+None currently — the `BadgeLegendCatalog` coverage gap below was closed 2026-08-13.
+
+### Closed 2026-08-13 — `BadgeLegendCatalog` coverage gap
+
+The 7 modules missing their own `<x-dashboard.modal.badge-legend>` shortcut (Ads, Suggestions,
+Calendar, Posts, Feeds, Gallery, Reports) now each carry a `notifications`-icon button
+(`title="راهنمای نشانگر اعلان"`), placed first in the `actions` slot ahead of the module's existing
+`help`-icon workflow/feature-legend button, per the DOM-order rule in `viewPattern.md` §8.5. Calendar
+passes both `shared-events` and `special-days` as its `items` array (its badge has two indicators);
+the other 6 pass a single-entry array for their own key. All 14 catalog entries are now reachable both
+from their own module and from `Profile`'s full-catalog reference.
+
+## Audit 2026-08-13 — `BadgeLegendCatalog` content accuracy pass
+
+Two stale/wrong content bugs found and fixed while cross-checking every catalog entry's Persian text
+against the actual model logic it describes (not just against this doc, since this doc itself had a
+stale claim — see below):
+
+- **`posts-controller`'s `clears`/`surface` named the wrong tab.** Said `«اطلاعات»` (a word meaning
+  "Information"); the real tab (`Tabs.php`) is labeled `«اعلانات»` ("Announcements") — similar-looking,
+  different word. Fixed to the correct label.
+- **`energy-controller`'s `lights`/`clears` described calendar-month timing** ("این ماه" / "همان ماه").
+  `EnergyTest::canSubmit()` (`app/Models/EnergyTest.php:78-84`) uses `now()->subDays(25)` — a rolling
+  25-day window, not a calendar month. This doc's own "`EnergyTestBadge`" section already documents
+  that the badge was deliberately moved OFF month-based logic (a prior bug: "across a month boundary
+  the badge could nag up to ~24 days with no way to act") — the catalog text was never updated after
+  that fix and kept describing the replaced behavior. Fixed to describe the 25-day window.
+- **This doc's own "Menu modal" surfaces list was also stale** — it claimed `contacts-controller` and
+  `energy-controller` have no `menu.js` item id ("menu-invisible by design"). Verified against
+  `resources/js/components/alpine/data/menu.js` (lines 14, 18): both DO have matching item ids and do
+  render a menu-modal dot, same as `ads-controller`/`suggestion-controller`/etc. Corrected above (the
+  two "Menu modal"/"Full-page routes" bullets under "Where the dot renders").
 
 ## Audit #16–#25 (unanimous A+B+me)
 

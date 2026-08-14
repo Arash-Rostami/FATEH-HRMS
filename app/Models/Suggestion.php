@@ -6,6 +6,7 @@ use App\Models\Traits\HasMenuState;
 use App\Models\Traits\HasStageHelpers;
 use App\Models\Traits\HasSuggestionAlert;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,8 @@ class Suggestion extends Model
     use HasMenuState,
         HasFactory,
         HasStageHelpers,
-        HasSuggestionAlert;
+        HasSuggestionAlert,
+        CleansAttachedFiles;
 
 
     public const PURPOSES = [
@@ -154,5 +156,10 @@ class Suggestion extends Model
         return Attribute::make(
             set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
         );
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn(self $suggestion) => static::deleteStoredFiles($suggestion->attachment));
     }
 }

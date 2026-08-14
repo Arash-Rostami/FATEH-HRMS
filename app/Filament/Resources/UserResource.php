@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Services\User\UserKeyGrouper;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -36,12 +37,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = User::class;
     protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 1;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'groups', 'view' => 'filament.resources.user.guide.overview'],
+        ['label' => 'دسترسی و نقش‌ها', 'icon' => 'shield_person', 'view' => 'filament.resources.user.guide.access'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.user.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.user.guide.admin-ops'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

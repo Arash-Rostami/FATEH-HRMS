@@ -5,11 +5,16 @@ namespace App\Livewire\Dashboard\Channel\Actions;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SendChannelMessageAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
+
     public function execute(ChannelMessageComposerForm $form, int $channelId): ChannelMessage
     {
         $form->validate();
@@ -68,20 +73,22 @@ class SendChannelMessageAction
 
     private function storeAttachments(array $attachments, int $channelId, int $messageId): array
     {
-        return collect($attachments)->map(function ($file) use ($channelId, $messageId) {
-            $name = time() . '_' . Str::random(10) . '.' . $file->extension();
-            $originalName = $file->getClientOriginalName();
-            $mime = $file->getMimeType();
-            $size = $file->getSize();
+        $stored = [];
 
-            $path = $file->storeAs("channel_messages/{$channelId}/{$messageId}", $name, 'public');
+        try {
+            foreach ($attachments as $file) {
+                $stored[] = static::storeAttachment(
+                    $file,
+                    "channel_messages/{$channelId}/{$messageId}",
+                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                );
+            }
+        } catch (\Throwable $e) {
+            static::deleteStoredFiles($stored);
 
-            return [
-                'path' => $path,
-                'name' => $originalName,
-                'mime' => $mime,
-                'size' => $size,
-            ];
-        })->values()->all();
+            throw $e;
+        }
+
+        return $stored;
     }
 }

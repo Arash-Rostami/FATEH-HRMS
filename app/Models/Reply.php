@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Reply extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
 
     protected $fillable = [
         'repliable_type',
@@ -35,5 +36,10 @@ class Reply extends Model
         return [
             'files' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(fn(self $reply) => static::deleteStoredFiles($reply->files));
     }
 }

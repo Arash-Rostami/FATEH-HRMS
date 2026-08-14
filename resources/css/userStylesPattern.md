@@ -51,13 +51,13 @@ Beyond MD3 roles, the HRMS requires distinct visual buckets for different data t
 The signature look of User Panel modals and cards relies on a specific `color-mix()` formula. The light-mode example below is the canonical pattern; the dark-mode block is the **one documented exception** to the §7 no-static-rgb rule — dark mode drops translucency for stark contrast and deep space, so a pure-black shadow is intentional here (matches `dashboard.css` lines 678/688).
 
 ```css
-.future-card {
+.modal-inner-card {
     background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
     border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
     box-shadow: 0 8px 32px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
 }
 
-.dark .future-card {
+.dark .modal-inner-card {
     background: var(--md-sys-color-surface);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
@@ -69,7 +69,7 @@ The signature look of User Panel modals and cards relies on a specific `color-mi
 
 ### 4.3 Shared component styling tokens (`<x-ui.empty>` + solid-button dropdown)
 The shared empty-state component and the solid-button dropdown used for single-dimension filters consume the same MD tokens as the rest of the system — no hardcoded colors:
-*   `<x-ui.empty>`: icon/text on `var(--md-sys-color-on-surface-variant)`, optional watermark on `var(--md-sys-color-surface-variant)`, animated icon via the existing `.animate-pulse` utility.
+*   `<x-ui.empty>`: icon/text on `var(--md-sys-color-on-surface-variant)`, optional watermark on `var(--md-sys-color-on-surface)` at `opacity-[0.04]` (the low opacity — not a surface-tier token — is what keeps the decorative watermark subordinate to the icon/text), animated icon via the existing `.animate-pulse` utility.
 *   Solid-button dropdown: active/open button = `var(--md-sys-color-primary)` background, idle = `var(--md-sys-color-surface-container-highest)`, popup container = `var(--md-sys-color-surface-container-high)`, option text = `var(--md-sys-color-on-surface-variant)`, divider = `var(--md-sys-color-outline-variant)`. Matches the reports card/list solid segmented-toggle vocabulary — one visual language across all filter controls.
 
 ---
@@ -122,4 +122,4 @@ Always use the pre-registered utilities rather than inline `@keyframes`:
 ---
 
 ## 8. Focus-flash bg underlay
-`.record-focus-flash` (toggled on a message/record row when `scrollToMessage`/focus lands on it) carries the outline ring + `record-focus-flash` keyframe, plus a theme-adaptive **bg underlay**: `background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);`. The underlay sits behind the bubble content (the class is on the row wrapper, the bubble is a nested div with its own bg), so it never clashes with the bubble's gradient/surface bg — it only tints the row's padding/gap area, reinforcing the ring without hardcoding a color. The 10% primary tint adapts to dark/light + theme switch automatically. General rule: any focus/flash highlight composes `color-mix` over `--md-sys-color-primary` (or the matching semantic token) — never a hardcoded hex/rgb.
+`.record-focus-flash` (toggled on a message/record row when `scrollToMessage`/focus lands on it) carries the outline ring + a theme-adaptive **bg underlay**: `background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);`. The underlay sits behind the bubble content (the class is on the row wrapper, the bubble is a nested div with its own bg), so it never clashes with the bubble's gradient/surface bg — it only tints the row's padding/gap area, reinforcing the ring without hardcoding a color. The 12% primary tint adapts to dark/light + theme switch automatically. General rule: any focus/flash highlight composes `color-mix` over `--md-sys-color-primary` (or the matching semantic token) — never a hardcoded hex/rgb.

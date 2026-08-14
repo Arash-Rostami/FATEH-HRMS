@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EventResource\Schemas;
 
+use App\Models\Event;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\{Repeater, Select, Textarea, TextInput, TimePicker, Toggle};
@@ -73,6 +74,18 @@ class EventFormPresenter
             ->nullable()
             ->required(fn($get) => (bool)$get('private'))
             ->visible(fn($get) => (bool)$get('private'));
+    }
+
+    public static function remindHours(): Select
+    {
+        return Select::make('remind_hours')
+            ->label(__('resources/event/strings.fields.remind_hours'))
+            ->helperText(__('resources/event/strings.fields.remind_hours_hint'))
+            ->options(collect(Event::REMIND_HOURS_OPTIONS)->mapWithKeys(
+                fn(int $hours) => [$hours => "{$hours} ساعت قبل"]
+            ))
+            ->native(false)
+            ->nullable();
     }
 
     public static function countdownEnabled(): Toggle

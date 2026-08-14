@@ -17,6 +17,7 @@ return new class extends Migration
                 $table->dateTime('deadline')->nullable();
                 $table->unsignedBigInteger('assigned_to')->nullable();
                 $table->unsignedBigInteger('user_id');
+                $table->timestamp('archived_at')->nullable()->index();
                 $table->timestamps();
                 $table->softDeletes();
                 $table->index('user_id', 'idx_user_id');

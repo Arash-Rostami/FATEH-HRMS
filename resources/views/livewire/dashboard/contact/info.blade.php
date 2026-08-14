@@ -27,8 +27,8 @@
                     class="rounded-lg" />
             </div>
             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $this->activeContact->name }}</p>
-            @if($this->activeContact->profile?->position)
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->position }}</p>
+            @if($this->activeContact->profile?->has_display_position)
+                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->display_position }}</p>
             @endif
         </div>
         <div class="space-y-3">

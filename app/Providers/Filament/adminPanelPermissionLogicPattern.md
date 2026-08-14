@@ -53,10 +53,12 @@ is the single evaluator and source of truth:
 if ($this->is_super_admin) {
     return !$this->isModuleExcluded($module);
 }
-return collect($this->abilities ?? [])
-    ->where('module', $module)
-    ->flatMap(fn($row) => $row['actions'] ?? [])
-    ->contains($action);
+foreach ($this->abilities ?? [] as $row) {
+    if (($row['module'] ?? null) === $module && in_array($action, $row['actions'] ?? [], true)) {
+        return true;
+    }
+}
+return false;
 ```
 
 **Tier 1 — Super-ish admin:** `is_super_admin = true`, scoped by `excluded_modules`
@@ -100,7 +102,7 @@ flushes the per-user permission cache on `saved`/`deleted`.
 
 ## Resource-level gating (`AuthorizesByPermission` trait)
 
-All 26 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
+All 28 resources in `app/Filament/Resources/*Resource.php` `use AuthorizesByPermission`.
 The trait maps every Filament authorization method to `permits($action)`:
 
 - `canViewAny / canView / canCreate / canEdit / canDelete / canRestore / canForceDelete …`
@@ -123,8 +125,9 @@ are editable only by super admins / developers.
 ## Validation rules
 
 - `App\Rules\SuperAdminExclusion` (`app/Rules/SuperAdminExclusion.php`) — fails when
-  `count(excluded_modules) > floor(20% × availableModules)`. Zero is allowed. Message
-  key: `resources/permission/strings.validation.exclusion_too_many`.
+  `count(excluded_modules) > max(1, floor(20% × availableModules))` (the `max(1, …)`
+  guard keeps a tiny module count from yielding 0). Zero is allowed. Message key:
+  `resources/permission/strings.validation.exclusion_too_many`.
 - Lockout guard — `abilities` Repeater `required` when `!is_super_admin`. Message key:
   `resources/permission/strings.validation.abilities_required`.
 - Per-module `actions` `required` (≥1 action per module) — Filament default message.
@@ -147,7 +150,7 @@ are editable only by super admins / developers.
   `Cache::get('user_admin_options')` returns `null` post-forget, yet the next
   `once()`-wrapped read in the same process still returns the stale pre-promotion
   list; the invalidation logic is correct, `once()` hides it). All four
-  `User::getCached*Options()` methods use bare `Cache::remember` for this.
+  `User::getCached*` option-list methods use bare `Cache::remember` for this.
 - `Permission::availableModules()` is the deliberate `once()`-wrapped exception:
   nothing calls `Cache::forget('permission_modules')` — the module list is a
   filesystem glob of `Resource.php` files, only changing at deploy time (opcache/
@@ -178,12 +181,13 @@ Regular admin with `abilities=[authority]`:
 \App\Models\User::find(5)->permits('authority', 'view');
 ```
 
-Exclusion rule bounds (26 modules → max 5 = `floor(0.20 × 26)`):
+Exclusion rule bounds (28 modules → max 5 = `floor(0.20 × 28)`):
 
 ```php
-(new \App\Rules\SuperAdminExclusion())->validate('x', [], $fail = null);
-(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 5), $f = null);
-(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 6), $f = null);
+$fail = fn(string $m) => throw new \RuntimeException($m);
+(new \App\Rules\SuperAdminExclusion())->validate('x', [], $fail);
+(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 5), $fail);
+(new \App\Rules\SuperAdminExclusion())->validate('x', range(1, 6), $fail);
 ```
 
 ## Things that are intentionally NOT touched

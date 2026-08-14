@@ -47,6 +47,7 @@ App/
     ├── AuthValidationRules.php
     ├── AuthorizesByPermission.php
     ├── FilamentActions.php
+    ├── FilamentAdminGuide.php
     ├── FilamentDateHandler.php
     ├── FilamentEditHeading.php
     ├── FilamentFilters.php
@@ -67,7 +68,7 @@ App/
 - **Pages are flexible**: a resource may have `Manage`, `Create`, `Edit`, `List`, and `View` pages.
 - **Actions are optional** and used only when a module needs reusable write operations.
 - **No Validators folder**: *simple* validation rules and messages stay inside each field method as fluent chain calls (`->required()`, `->maxLength()`, `->email()`, `->unique()` on a plain column, etc.). *Complex* validation — cross-field checks, DB-backed uniqueness beyond a plain column, business-rule thresholds — is extracted to `App\Rules\*` (a top-level, project-wide folder, not Filament-specific). See "Extracting validation logic to `App\Rules`" below for the criteria and the two established shapes.
-- **Shared cross-cutting behavior lives in Traits** (illustrative — the full `App/Traits/` set is listed in the tree above): `FilamentActions`, `FilamentFilters`, `AuthorizesByPermission`, `FilamentHeaderActions`, `FilamentPageBehavior`, and `FilamentEditHeading` (Edit pages only). The remaining traits (`AuthValidationRules`, `FilamentDateHandler`, `FilamentFormDivider`, `FilamentPreferences`, `FocusOnRecord`, `InteractsWithNotifications`) are narrower helpers documented in their own sections below.
+- **Shared cross-cutting behavior lives in Traits** (the core Filament-related `App/Traits/` are listed in the tree above; the folder also holds non-Filament helpers like `CleansAttachedFiles`/`StoresAttachedFiles` (Rules 67/68 below) and `ChatComposer` (documented in contactPattern.md/channelPattern.md)): `FilamentActions`, `FilamentFilters`, `AuthorizesByPermission`, `FilamentHeaderActions`, `FilamentPageBehavior`, `FilamentEditHeading` (Edit pages only), and `FilamentAdminGuide` (applied to all 28 resources — the `moduleGuide` modal; full spec in §3.4). The remaining traits (`AuthValidationRules`, `FilamentDateHandler`, `FilamentFormDivider`, `FilamentPreferences`, `FocusOnRecord`, `InteractsWithNotifications`) are narrower helpers documented in their own sections below.
 
 ---
 
@@ -352,6 +353,8 @@ Reference: `App\Rules\UniqueLiveDocument` — `(code, version)` must be unique a
 
 **Known gotcha — a rule attached to a `->visible()`-gated field can silently never fire in one direction.** If field A is only visible when field B is filled (`->visible(fn (Get $get) => filled($get('b')))`), and the same rule is attached to both A and B: (1) Filament excludes a hidden, non-`dehydratedWhenHidden()` field from `getValidationRules()` entirely, so A's copy of the rule never runs while A is hidden; (2) independently, Laravel's own validator skips any non-`ImplicitRule` custom rule when the *attached* field's own submitted value is blank — so B's copy also skips whenever B itself is blank. Net effect: the "A filled, B blank" direction can be structurally unreachable even though the rule code is correct. This isn't a bug in the rule — it's a property of `->visible()` + non-implicit rules — but check it explicitly when a cross-field rule involves a field that's conditionally hidden by its counterpart (confirmed on `App\Rules\ExtraRequiresInternalUrl` / `LinkFormPresenter::companyIps()`).
 
+**Known gotcha — constraining a field to a fixed enum/catalog can retroactively lock out unrelated saves on rows that already hold a stale, no-longer-valid value.** Swapping a free-form input (`ColorPicker`) for `Select::make(...)->options(EnumClass::class)` is the right minimal fix when a field should only ever hold one of N known values (`ProfileFormPresenter::favoriteColors()` → `App\Enums\FavoriteColor`, closing a bug where an off-catalog admin-set color was invisible to the user's own catalog-only checkbox UI). But Filament's `Select::getInValidationRuleValues()` builds `Rule::in([...])` from the option list, and for the field's *current* value, if it doesn't match any option, the resolved rule is `Rule::in([])` — an empty allow-list that rejects **any** value, not just the stale one. Net effect: a row that already carries a value outside the new catalog (from before the constraint existed) will fail validation the next time an admin opens Edit and saves, **even if they never touch that field** — blocking the whole save, not silently dropping the stale entry. Not a crash, no data loss, but worth an explicit prod audit for existing stale values before shipping this kind of fix (e.g. `Profile::whereNotNull('favorite_colors')->get()->filter(fn($p) => array_diff($p->favorite_colors, EnumClass::values())`) — confirmed zero such rows for `favorite_colors` at the time this was fixed). If any are found, cleaning them up needs explicit approval per the no-data-erase-without-approval policy; otherwise the forced-fix-on-next-edit behavior is an acceptable, self-healing side effect.
+
 ##### Packing virtual form fields into one JSON column
 
 When several form controls do not map 1:1 to model columns but must be persisted together inside one JSON/array column, expose them as **virtual** Filament fields (no matching model attribute) and pack/unpack them through the resource page mutators — the same mechanism already used for `FeedResource` media (`splitMediaPaths`/`mergeMediaPaths`) and poll settings (`unpackPollSettings`/`packPollSettings`):
@@ -470,6 +473,8 @@ since PHP's `json_decode` already normalizes both forms. The same fix direction 
 confirmed broken the same way (currently unverified, not yet reproduced against MariaDB for these
 two).
 
+**Sibling defect, same root cause, different mechanism:** `getBaseQuery()`'s free-text search (not the `activeFilter` tag matching above) independently hit a second bug from the identical `json_encode()`-ASCII-escapes-non-ASCII root cause — but via MySQL `LIKE`'s own backslash-escape handling stripping the `\uXXXX` sequences from a search pattern, not via `JSON_EXTRACT` path encoding. Fixed by switching every free-text clause to `INSTR()` (no escape-character semantics at all) instead of `LIKE`. Full writeup: `app/Livewire/livewirePattern.md` § "`getBaseQuery()` free-text search — `INSTR()`, not `LIKE`, for every free-text OR-clause".
+
 **Filtering a JSON array column that carries an "all/wildcard" sentinel** — if the column's
 semantics include a sentinel value meaning "matches everyone" (e.g. `owners` containing `"ALL"`),
 every `SelectFilter`/`Filter` that does `orWhereJsonContains(column, $specificValue)` must also
@@ -537,6 +542,8 @@ needs no migration, no new column, no new enum case. Admin side surfaces these u
 (`ListUsers::getTabs()` → `'hidden'` tab filtering `type = guest`) plus the pre-existing
 `typeFilter`. Note: `whereNot` excludes NULL-typed rows in SQL; safe here only because the schema
 defaults `type` to `'employee'`.
+
+**Same exclusion applies to org-wide headcount stats, not just the status board.** `ModuleAnalyticsWidget::usersData()`/`departmentsData()` originally counted every row in `users` with no `type` filter, so `UserType::Guest`/`UserType::VIP` inflated the admin dashboard's "users" and per-department headcount stats. Fixed with `->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])` — on the raw `DB::table('users')` query for `usersData()`, and inside a `withCount(['users' => fn($query) => ...])` closure for `departmentsData()` (`Department::users()` is `HasManyThrough` via `profiles`; neither `departments` nor `profiles` has a `type` column, so the closure's `type` reference is structurally unambiguous — always resolves to `users.type`). `VIP` is included here (unlike `scopeVisibleOnBoard`, which only excludes `Guest`) because these are org-wide *statistics*, not the status board's narrower "hide non-employees from the colleague list" concern — match the exclusion set to what the specific surface is actually counting, don't reflexively copy `scopeVisibleOnBoard`'s exact set.
 - `->filtersFormColumns(2)` — use 2-column filter layout when there are multiple filters
 - `->recordActions([...], RecordActionsPosition::AfterCells)` — always position after cells
 - `->groupedBulkActions([...])` — use `self::bulkActions(ExporterClass::class)` from `FilamentActions` trait
@@ -712,8 +719,7 @@ trait FilamentActions
     {
         return ViewAction::make()
             ->tooltip(__('resources/general/strings.table.action_view'))
-            ->iconButton()
-            ->slideOver();
+            ->iconButton();
     }
 
     public static function editAction(): EditAction
@@ -851,16 +857,23 @@ trait FilamentHeaderActions
 
     private function listHeaderActions(): array
     {
-        return [
+        $actions = [
             CreateAction::make()
                 ->icon('heroicon-o-sparkles')
                 ->label(__('resources/general/strings.table.action_create')),
         ];
+
+        $resource = static::getResource();
+        if (method_exists($resource, 'guideTabs') && !empty($resource::guideTabs())) {
+            array_unshift($actions, $resource::setupGuideAction());
+        }
+
+        return $actions;
     }
 }
 ```
 
-All `ListRecords` and `EditRecord` pages must use this trait rather than defining `getHeaderActions()` inline.
+`listHeaderActions()` auto-prepends the module-guide button (see §3.4) when the resource exposes a non-empty `guideTabs()`. All `ListRecords` and `EditRecord` pages must use this trait rather than defining `getHeaderActions()` inline. Pages that suppress the Create button (e.g. `canCreate() = false`) override `listHeaderActions()` and return `[ResourceClass::setupGuideAction()]` explicitly.
 
 #### 3.3 `FilamentPageBehavior`
 
@@ -887,6 +900,51 @@ trait FilamentPageBehavior
 ```
 
 All `CreateRecord` and `EditRecord` pages must use this trait.
+
+#### 3.4 `FilamentAdminGuide`
+
+Gives a resource a tabbed in-panel admin guide (foolproof usage/setup doc) with no inline Action code. The resource declares `protected static array $guide = [['label','icon','view'], …]` (one entry per tab); the trait exposes `guideTabs()`, `setupGuideAction()` (modalContent → shared `filament/components/admin-guide.blade.php`), and `guideEmptyStateActions()`. The wrapper renders an Alpine `x-data="{ tab: 0 }"` tab bar + a `max-h-[60vh]` scroll region that `@include`s each tab view — so each tab is a self-contained Blade fragment under `resources/views/filament/resources/<module>/guide/<tab>.blade.php` (NO modal chrome, NO tab bar inside partials). Styling matches `policy/legend.blade.php`: MD3 `--md-sys-color-*` tokens, `material-symbols-rounded`, `rounded-2xl` cards, `divide-y divide-[var(--md-sys-color-outline-variant)]`, RTL, `convertToPersian()` for digits. Lang keys live once in `resources/general/strings.php` under `guide.*` (label/heading/cancel).
+
+```php
+trait FilamentAdminGuide
+{
+    public static function guideTabs(): array
+    {
+        return property_exists(static::class, 'guide') ? static::$guide : [];
+    }
+
+    public static function setupGuideAction(): Action
+    {
+        return Action::make('moduleGuide')
+            ->label(__('resources/general/strings.guide.label'))
+            ->icon('heroicon-o-book-open')
+            ->modalHeading(static::getPluralModelLabel() . ' — ' . __('resources/general/strings.guide.heading'))
+            ->modalContent(fn() => view('filament.components.admin-guide', ['tabs' => static::guideTabs()]))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('resources/general/strings.guide.cancel'));
+    }
+
+    public static function guideEmptyStateActions(): array
+    {
+        return [static::setupGuideAction()];
+    }
+}
+```
+
+The trait does **not** declare `$guide` itself — a class cannot override a trait static property with a different default (PHP fatal: "the definition differs and is considered incompatible"). The `property_exists` guard lets a trait-using resource that forgot `$guide` degrade to "no guide" instead of fatalling. To wire: `use FilamentAdminGuide` on the resource + declare `$guide`; the header button auto-appears via §3.2. Empty-state opt-in: `->emptyStateActions(self::guideEmptyStateActions())` in `table()`.
+
+**Icon convention — admin panel vs user panel (stress this).** The two panels use different icon systems and must not be mixed:
+
+- **Admin (Filament) → Heroicons** (`heroicon-o-*` outline / `heroicon-m-*` mini / `heroicon-s-*` solid) for every Filament-native surface: actions, infolist entries, form fields, table columns, navigation, `Section` icons, widgets, resource `navigationIcon`, enum `getIcon()`. Filament's icon prop expects a Heroicons name.
+- **User panel (Livewire/Dashboard) → Google Material Symbols** (`material-symbols-rounded`) — the MD3 design language used across dashboard blade + `dashboard.css`.
+
+Never cross the streams: no Heroicons in user-panel blade; no Material Symbols names passed to Filament-native icon props.
+
+**One documented exception — custom rich-content admin blade inside a Filament modal.** The `FilamentAdminGuide` tab partials use `material-symbols-rounded`. This renders because the admin Vite theme `resources/css/core/filament.css` does `@import "material-symbols/rounded.css";` (line 6) and its base layer excludes the class from the sans override — `*:not(.material-symbols-rounded) { font-family: var(--font-sans) !important }` (line 73) — so the Google font loads inside Filament. Use Material Symbols here only where Heroicons lacks a suitable glyph (`event_repeat`, `hourglass_top`, `verified_user`, `center_focus_strong`, `tips_and_updates`, …); otherwise prefer Heroicons.
+
+**Material Symbols names must be real ligatures** — an invalid name renders as broken literal text, not a missing glyph. **Source of truth = the woff2 ligature table**, NOT `node_modules/material-symbols/index.d.ts` (the d.ts lists only current canonical names and omits legacy aliases like `done`, `email`, `phone`, `tips_and_updates`, `expand_more`, `remove_circle` that the font still renders fine — trusting the d.ts produces false positives and "fixes" working icons). A sorted 4167-entry list extracted from the installed `material-symbols-rounded.woff2` (v0.40.2) is committed at `.claude/material-symbols-ligatures.txt`. **Every** ligature used in a guide partial, legend, or `$guide` tab icon must be verified with `grep -xF "name" .claude/material-symbols-ligatures.txt` before saving — this is mandatory for the guide/legend pipeline (see §3.4 pipeline policy). Regenerate the file with fontTools if the package is upgraded (iterate GSUB → unwrap type-7 `ExtSubTable` → type-4 `ligatures` → rebuild strings from cmap-reversed glyph ids). Confirmed-NOT-in-font (never use): `shield_check`, `checklist_partial`, `event_share`, `event_add`, `widget` (singular — only `widgets` exists). Substitutions: `shield_check`→`verified_user`, `checklist_partial`→`rule`, `event_share`→`share`, `event_add`→`event`/`group_add`, `widget`→`widgets`. (`share_reviews` IS valid — do not "fix" it.)
+
+**Guide + legend are a MANDATORY pipeline step** (treated like doc-sync + test-coverage, never skipped): every admin Filament resource ships a `FilamentAdminGuide` (`$guide` array + partials under `resources/views/filament/resources/<x>/guide/*.blade.php`); every user-panel Livewire/Dashboard module ships a `legend.blade.php` (TaskBoard tabbed pattern — see livewirePattern.md "User-panel legend pattern"). Module on both sides → both surfaces (guide includes a «تجربهٔ کاربر» tab); one side only → that side only. Review must verify: real Material Symbols ligatures (per the file above), JIT-safe `match` for chip classes (never Blade interpolation inside `bg-[var(--md-sys-color-{{ }}-container)]` arbitrary-value brackets), no comments, `convertToPersian()` for digits, non-obvious nuggets only (no visual noise), and every claim traceable to actual code (no hallucination).
 
 ---
 
@@ -1266,12 +1324,12 @@ public static function createdAtFilter(): Filter
             ])
         ])
         ->query(fn(Builder $query, array $data) => $query
-            ->when($data['from'],  fn($q) => $q->whereDate('created_at', '>=', $data['from']))
-            ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
+            ->when($data['from'] ?? null,  fn($q) => $q->whereDate('created_at', '>=', $data['from']))
+            ->when($data['until'] ?? null, fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
         ->indicateUsing(function (array $data): array {
             $indicators = [];
-            if ($data['from'])  $indicators[] = __('...date_from')  . ': ' . $data['from'];
-            if ($data['until']) $indicators[] = __('...date_until') . ': ' . $data['until'];
+            if ($from = $data['from'] ?? null)  $indicators[] = __('...date_from')  . ': ' . $from;
+            if ($until = $data['until'] ?? null) $indicators[] = __('...date_until') . ': ' . $until;
             return $indicators;
         });
 }
@@ -1281,6 +1339,7 @@ public static function createdAtFilter(): Filter
 - Always the last filter in the list.
 - `->native(false)` is mandatory — forces the custom Jalali picker UI.
 - `->locale('fa')` activates Persian calendar.
+- Guard every `$data['from']`/`$data['until']` read with `?? null` in both `query` and `indicateUsing` — a single-sided range (only `from` or only `until`) throws `Undefined array key` without it.
 - `indicateUsing` must return human-readable active-filter chips so users can see the active range at a glance.
 
 ---
@@ -1293,7 +1352,7 @@ Located at `app/Traits/AuthorizesByPermission.php`. Applied on every resource. T
 trait AuthorizesByPermission
 {
     public static function canCreate(): bool          { return static::permits('create'); }
-    public static function canEdit(Model $r): bool    { return static::permits('edit'); }
+    public static function canEdit(Model $r): bool    { return static::permits('update'); }
     public static function canView(Model $r): bool    { return static::permits('view'); }
     public static function canDelete(Model $r): bool  { return static::permits('delete'); }
     public static function canViewAny(): bool          { return static::permits('view'); }
@@ -1310,10 +1369,13 @@ trait AuthorizesByPermission
     {
         $user = Auth::user();
         if (!$user) return false;
+        if ($user->isDeveloper()) return true;
         return (bool) Permission::forUser($user->id)?->can(static::moduleKey(), $action);
     }
 }
 ```
+
+`permits()` short-circuits to `true` for `isDeveloper()` users — the developer bypass that makes every `can*` pass with no `Permission` row (also relied on by `EnsureHasPermission` middleware and the test scaffold's `developer()` helper).
 
 **Module key derivation (automatic):**
 - `UserResource` → `'user'`
@@ -1478,9 +1540,9 @@ alert), documented in full at `app/Services/Menu/statePattern.md`. Do not confla
 That system's user-facing explainer — `<x-dashboard.modal.badge-legend>` (documented at
 `resources/views/viewPattern.md` §8.5) — is backed by a **single source of truth**,
 `App\Services\Menu\BadgeLegendCatalog`, keyed by each indicator's `getKey()`. There is exactly one
-master catalog (all 11 badges, grouped into themed tabs) in the actual Profile module
+master catalog (all 14 badges, grouped into themed tabs) in the actual Profile module
 (`resources/views/livewire/dashboard/profile.blade.php`), and per-module micro-legends in modules that
-have their own dedicated badge (currently TaskBoard, Ths). **Rule: never hand-write a badge row's copy
+have their own dedicated badge (currently the badge-bearing user-panel modules). **Rule: never hand-write a badge row's copy
 in more than one place.** A module's micro-legend must call `BadgeLegendCatalog::get('its-own-key')`;
 the master catalog must call `BadgeLegendCatalog::grouped()`. Both read the same row, so they cannot
 drift out of sync. If you add a badge to a new module, add its row to `BadgeLegendCatalog::all()` first,
@@ -1676,28 +1738,29 @@ Locale-conditional Yekan font via local provider:
 )
 ```
 
-### Brand logo (light/dark, per-tenant reversible) — see `config/tenantPattern.md`
+### Brand logo (light/dark, per-tenant reversible)
+
+Brand logo, favicon, preferences, and the login-page tenant background are all applied by `App\Support\FilamentPanelCustomizer::apply(Panel)` (called from `AdminPanelProvider`), not inline in the provider. The logo pair routes through one `logoHtml(bool $dark)` builder that resolves the actual file via the shared `tenantLogo($dark, 'admin')` helper (`app/Helpers/index.php`):
 
 ```php
-->brandLogo(fn() => $this->logoHtml(false))
-->darkModeBrandLogo(fn() => $this->logoHtml(true))
+->brandLogo(fn() => self::logoHtml(false))
+->darkModeBrandLogo(fn() => self::logoHtml(true))
 
-private function logoHtml(bool $dark): HtmlString
+private static function logoHtml(bool $dark): HtmlString
 {
-    $onLogin = request()->routeIs('filament.admin.auth.login');
-    $showDark = config('app.admin_reverse_logo') ? ($dark === $onLogin) : $dark;
-
-    $key = $showDark ? 'app.app_logo_dark' : 'app.app_logo_light';
-    // single <img> builder, both brandLogo()/darkModeBrandLogo() calls route through it
+    return new HtmlString(sprintf(
+        '<img src="%s" alt="%s" title="%s" style="height:2rem;width:auto;margin:auto" />',
+        e(asset(tenantLogo($dark, 'admin'))), e(config('app.name_en')), e(config('app.name_en'))
+    ));
 }
 ```
 
-`darkModeBrandLogo()` renders both images; Filament's CSS (`fi-logo-light`/`fi-logo-dark`, plain `dark:` Tailwind variants) toggles visibility off the `.dark` class on `<html>` — no JS needed beyond what's already wired by the app's own theme sync. Works even with `->darkMode(false)` since that flag doesn't gate the CSS. `config('app.admin_reverse_logo')` is a per-tenant flag (`config/tenants.php`): when `true`, the login page renders normally and the rest of the authenticated panel swaps light/dark (a legacy Persol quirk, preserved via the original `$dark === $onLogin` formula); when `false` (fateh), there's no swap anywhere, login included. Logo paths always come from `config('app.app_logo_light')` / `app_logo_dark`, never hardcoded — those in turn resolve per-tenant, see `config/tenantPattern.md`.
+`darkModeBrandLogo()` renders both images; Filament's CSS (`fi-logo-light`/`fi-logo-dark`, plain `dark:` Tailwind variants) toggles visibility off the `.dark` class on `<html>` — no JS needed beyond what's already wired by the app's own theme sync. Works even with `->darkMode(false)` since that flag doesn't gate the CSS. The per-tenant reverse-logo behavior (`admin_reverse_logo` in `config/tenants.php`) and the `admin_use_company_logo` short-circuit are both resolved inside `tenantLogo()` itself — when `admin_reverse_logo` is `true` (Persol), the login page renders normally and the rest of the authenticated panel swaps light/dark; when `false` (fateh), there's no swap anywhere. Logo paths never hardcoded — see `config/tenantPattern.md` for the full `tenantLogo()` contract.
 
 ### Global search
 
 ```php
-->globalSearch(true, position: GlobalSearchPosition::Topbar)
+->globalSearch(FaultTolerantGlobalSearchProvider::class, position: GlobalSearchPosition::Topbar)
 ->globalSearchFieldSuffix(fn(): ?string => match (Platform::detect()) {
     Platform::Windows, Platform::Linux => 'Ctrl+K',
     Platform::Mac => '⌘K',
@@ -1707,22 +1770,22 @@ private function logoHtml(bool $dark): HtmlString
 ->globalSearchDebounce('1000ms')
 ```
 
-Platform-aware keyboard shortcut suffix is shown next to the search field in the topbar.
+The custom `App\Support\FaultTolerantGlobalSearchProvider` (not Filament's stock `true`) wraps each per-resource search step in a try/catch so one throwing resource can't take down the whole bar — see Rule 65 for the full rationale. Platform-aware keyboard shortcut suffix is shown next to the search field in the topbar.
 
 ### User preferences
 
-Nine panel behaviors are controlled at runtime by the authenticated user's stored preferences:
+Nine panel behaviors are controlled at runtime by the authenticated user's stored preferences, applied by `FilamentPanelCustomizer::apply()` (the same customizer that handles the brand logo above):
 
 ```php
-->sidebarCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_collapsible', false))
-->sidebarFullyCollapsibleOnDesktop(fn() => $this->getPreference('sidebar_fully_collapsible', false))
-->breadcrumbs(fn() => $this->getPreference('breadcrumbs', true))
-->collapsibleNavigationGroups(fn() => $this->getPreference('collapsible_groups', true))
-->topNavigation(fn() => $this->getPreference('top_nav', false))
-->unsavedChangesAlerts(fn() => $this->getPreference('unsaved_changes_alerts', true))
-->topbar(fn() => $this->getPreference('topbar', true))
-->spa(fn() => $this->getPreference('spa_enabled', true))
-->userMenu(position: fn() => $this->getPreference('user_menu_topbar', false)
+->sidebarCollapsibleOnDesktop(fn() => self::pref('sidebar_collapsible', false))
+->sidebarFullyCollapsibleOnDesktop(fn() => self::pref('sidebar_fully_collapsible', false))
+->breadcrumbs(fn() => self::pref('breadcrumbs', true))
+->collapsibleNavigationGroups(fn() => self::pref('collapsible_groups', true))
+->topNavigation(fn() => self::pref('top_nav', false))
+->unsavedChangesAlerts(fn() => self::pref('unsaved_changes_alerts', true))
+->topbar(fn() => self::pref('topbar', true))
+->spa(fn() => self::pref('spa_enabled', true))
+->userMenu(position: fn() => self::pref('user_menu_topbar', false)
     ? UserMenuPosition::Topbar
     : UserMenuPosition::Sidebar)
 ```
@@ -1730,7 +1793,7 @@ Nine panel behaviors are controlled at runtime by the authenticated user's store
 Preferences are read from `Auth::user()->extra['preferences']` (a JSON column):
 
 ```php
-private function getPreference(string $key, mixed $default = false): mixed
+private static function pref(string $key, mixed $default = false): mixed
 {
     $preferences = Auth::check() ? (Auth::user()->extra['preferences'] ?? []) : [];
     return $preferences[$key] ?? $default;
@@ -1771,11 +1834,11 @@ Because the form's `KeyValue` only edits the `admin` bucket, `EditUser::mutateFo
 
 ## Helper functions used in Filament
 
-Global helper trait are autoloaded from `app/trait - FilamentFormDivider.php`. The most relevant ones in Filament context:
+Global helpers are autoloaded from `app/Helpers/index.php`; the `divider()` UI helper lives on the `App\Traits\FilamentFormDivider` trait (`app/Traits/FilamentFormDivider.php`), consumed by presenter classes. The most relevant ones in Filament context:
 
-### `ExampleFormPresenter::divider()`
+### `FilamentFormDivider::divider()`
 
-This is used in form presenter class and returns a `TextEntry` that renders as a full-width gradient divider line inside infolists:
+This is used in a presenter class and returns a `TextEntry` that renders as a full-width gradient divider line inside infolists:
 
 ```php
 function divider(): TextEntry
@@ -1899,7 +1962,7 @@ Field-level convention for the companion table itself: when an FK-like column st
 
 **38. TagsInput `->dehydrateStateUsing` must strip empty/whitespace tags before save.** TagsInput's default dehydrate only TRIMS tags; it does NOT filter empty ones, so `['']` persists to the DB. When storing arrays (IPs, tags), add `->dehydrateStateUsing(fn($state) => is_array($state) ? array_values(array_filter(array_map('trim', $state), fn($v) => $v !== '')) : $state)`. The Link model's read-time `array_filter` in `resolvedIsInternal()` is defense-in-depth, but the form should not persist junk in the first place.
 
-**39. A RelationManager (or Resource) calling `self::createdAtFilter()` (or any `FilamentFilters` helper) must `use App\Traits\FilamentFilters;` AND `use FilamentFilters;` — `FilamentActions` alone does NOT provide filters.** `createdAtFilter()` / `typeFilter()` / etc. live in `App\Traits\FilamentFilters`; `viewAction`/`editAction`/`deleteAction`/`bulkActions` live in `App\Traits\FilamentActions`. A class importing only `FilamentActions` and calling `self::createdAtFilter()` fatalles `Call to undefined method ...::createdAtFilter()` on filter-row render. Mirror `ChannelResource`: `use App\Traits\FilamentActions; use App\Traits\FilamentFilters;` + `use FilamentActions, FilamentFilters, AuthorizesByPermission;`. Reference: `ChannelMessagesRelationManager` shipped with only `FilamentActions` and fatalled until `FilamentFilters` was added.
+**39. A RelationManager (or Resource) calling `self::createdAtFilter()` (or any `FilamentFilters` helper) must `use App\Traits\FilamentFilters;` AND `use FilamentFilters;` — `FilamentActions` alone does NOT provide filters.** `createdAtFilter()` lives in `App\Traits\FilamentFilters` (it is the only method on that trait); module-specific filters like `typeFilter()` live on each resource's own `*TablePresenter`, not the trait. `viewAction`/`editAction`/`deleteAction`/`bulkActions` live in `App\Traits\FilamentActions`. A class importing only `FilamentActions` and calling `self::createdAtFilter()` fatalles `Call to undefined method ...::createdAtFilter()` on filter-row render. Mirror `ChannelResource`: `use App\Traits\FilamentActions; use App\Traits\FilamentFilters;` + `use FilamentActions, FilamentFilters, AuthorizesByPermission;`. Reference: `ChannelMessagesRelationManager` shipped with only `FilamentActions` and fatalled until `FilamentFilters` was added.
 
 **40. Attachment JSON has ONE canonical shape project-wide — `{path, name, mime, size}` — built at write time, never `{file: path}`.** Every model with a JSON/array attachment column (`Message.attachments`, `ChannelMessage.attachments`, `TaskDetail.attachments`) stores each item as: `path` = stored relative path on the public disk (`$file->store(...)`/`storeAs(...)`), `name` = `$file->getClientOriginalName()` (display only), `mime` = `$file->getMimeType()` (server-side `finfo`), `size` = `$file->getSize()`. Build it in the write Action's `storeAttachments()` — mirror `SendMessageAction`/`SendChannelMessageAction` verbatim; `Task`'s `CreateTaskAction`/`UpdateTaskAction` do too. Never store a bare path under a `file` key (the `Task` inconsistency that broke cross-module parity). Display reads `name` (always via Blade `{{ }}` — `name` is client-controlled; never `{!! !!}`) and links to `path`; the model's `forceDeleting`/`forceDeleted` hook deletes by `path`. `name` is display metadata — never feed it into a storage path or `Content-Disposition`.
 
@@ -1928,7 +1991,7 @@ Why `saveUploadedFileUsing` and NOT `afterStateUpdated`: `BaseFileUpload::saveUp
 
 **The RM soft-delete-scope gotcha:** a prune column/filter is meaningless on a query that hides soft-deleted rows — `deleted_at` is always `null` so the badge is always `—` and the filter returns zero rows. A Resource solves this at `getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class])` (Contact/Channel/Task already do); a RelationManager that adds the prune surface must do the **same** in its own `getEloquentQuery()` — and once trashed rows are visible, pair it with `self::restoreAction()` plus `self::deleteAction()->visible(fn($r) => !$r->trashed())` for parity with the Resource (trashed rows restorable, delete only on live rows). When the RM's base query may carry a join/alias, prefix the filter column with the real table name (`channel_messages.deleted_at`) to match the RM's own `defaultSort('channel_messages.created_at')` convention and avoid ambiguity. Reference: `ChannelMessagesRelationManager` (query drops `SoftDeletingScope`, `deleted_at` + `prune_status` columns, `pruning_soon` filter, restore/delete gated). Verdict on the inline-vs-trait question for the RM filter: inline in `table()` is correct here — the RM already inlines all its columns and has no Presenter; extracting to `FilamentFilters` would diverge from the Presenter-based reference and pollute a model-agnostic trait.
 
-**42. `$get('field')` on a Select bound to a backed enum returns the ENUM CASE, not the scalar value — never `(string)`-cast it.** A `Select` using `->options(SomeBackedEnum::class)` (a Filament `HasLabel` backed enum) hydrates field state to the **enum case instance** during the form lifecycle; it only dehydrates to the scalar on save. `$get('status')` yields a `DocumentStatus` object, not `'live'`. PHP does not auto-cast a backed enum via `(string)` — `(string)($get('status') ?? '')` throws `Error: Object of class … could not be converted to string` mid-validation and 500s the form (surfaces as "cannot upload file" because file-drop validation round-trips the whole form). Normalize: `$s = $get('status'); $s instanceof DocumentStatus ? $s->value : (string)($s ?? '')`. Applies to any rule/closure/`ValidationRule` constructor reading a sibling enum-backed Select via `Get` — feed it `->value`, never a cast. Reference: `DmsFormPresenter::uniqueLiveRule()` → `UniqueLiveDocument(string $status)`; the cast threw at `DmsFormPresenter.php:198` and broke DMS upload + create. Same family as Rule 23 (export columns humanize enums via `tryFrom($state)?->getLabel()`) and Rule 36 (a missing import silently fatalles a Presenter) — Filament hands you enum objects in more places than it advertises.
+**42. `$get('field')` on a Select bound to a backed enum returns the ENUM CASE, not the scalar value — never `(string)`-cast it.** A `Select` using `->options(SomeBackedEnum::class)` (a Filament `HasLabel` backed enum) hydrates field state to the **enum case instance** during the form lifecycle; it only dehydrates to the scalar on save. `$get('status')` yields a `DocumentStatus` object, not `'live'`. PHP does not auto-cast a backed enum via `(string)` — `(string)($get('status') ?? '')` throws `Error: Object of class … could not be converted to string` mid-validation and 500s the form (surfaces as "cannot upload file" because file-drop validation round-trips the whole form). Normalize: `$s = $get('status'); $s instanceof DocumentStatus ? $s->value : (string)($s ?? '')`. Applies to any rule/closure/`ValidationRule` constructor reading a sibling enum-backed Select via `Get` — feed it `->value`, never a cast. Reference: `DmsFormPresenter::uniqueLiveRule()` → `UniqueLiveDocument(string $status)`; the cast threw at `DmsFormPresenter::uniqueLiveRule()` and broke DMS upload + create. Same family as Rule 23 (export columns humanize enums via `tryFrom($state)?->getLabel()`) and Rule 36 (a missing import silently fatalles a Presenter) — Filament hands you enum objects in more places than it advertises.
 
 **43. `FileUpload->downloadable()` on the `public` disk renders as a plain `<a href>` to `Storage::url()` (→ `/storage/...`, served statically off the symlink) — it does NOT route through the admin panel and does NOT run `EnsureHasPermission`.** A click is a client-side anchor (`vendor/filament/forms/.../file-upload.js::getDownloadLink`), not a Livewire roundtrip. Don't assume panel auth gates a public-disk download — it bypasses `EnsureHasPermission` entirely; use a private disk + a streamed/signed route if access must be enforced. The infolist `asset('storage/'.$path)` link is the same static URL.
 
@@ -1962,13 +2025,42 @@ The admin "quick submit" modal (the user panel has its own Livewire modal; admin
 
 **57. A `Repeater` with a custom `saveRelationshipsUsing()`/`afterStateHydrated()`/`dehydrateStateUsing()` that flattens a list-of-pairs into a scalar map (or vice versa) is a reshape BOUNDARY — normalize defensively on both sides, and if a `RichEditor` shares the same column with a user-facing plain-text form, sanitize before rendering unescaped, never just un-escape.** Two hazards: (1) shape mismatch (nested array where a scalar is expected) crashes a typed Livewire `Form` property or hard-typed helper — coerce non-scalars to a joined string at the read boundary rather than trusting every writer (`Profile.about_me`, `Feed.poll_options`); (2) if the same column is also writable as plain text via a user-facing Livewire form (dual-authored, not admin-only), rendering it as unescaped HTML once a `RichEditor` is added is a stored-XSS hole — a user typing `<script>` gets it rendered unescaped to every viewer. Full decision table (shape-normalize guard vs. `Str::sanitizeHtml()` vs. `superClean()` for excerpts) in `livewirePattern.md` "Rendering text/HTML in Blade" — read it before adding a `RichEditor` to any column with (or might get) a plain-text writer, or before adding a custom reshape closure to any `Repeater`. Reference: `ProfileFormPresenter::aboutMe()`, `FeedFormPresenter::pollOptions()`, `SuggestionFormPresenter::description()` (dual-authored with `SuggestionForm::$descriptionSelf`), `CommentsRelationManager`'s `RichEditor` (dual-authored with the front-end comment composer).
 
+**61. Gating an enum case behind a dedicated Action (not a free `Select` option) needs a `selectableOptions()` enum helper that drops the case + `disabled()`/`->validatedWhenNotDehydrated(false)` on the Select for records already in that state (Rule 55) + the Action's own explicit permission gate — a bare `Action::make()` is NOT a `RecordAction` subclass and does not auto-enforce `canEdit()`/`canDelete()` the way `EditAction`/`DeleteAction` do.** A custom table Action gated only on record state (`->visible(fn($record) => $record->status !== Rejected)`) is reachable by any admin who can view the table, regardless of their `update` permission on that module — `->visible()` must ALSO check `Resource::canEdit($record)`, and the `->action()` closure should re-check with `abort_unless(Resource::canEdit($record), 403)` as defense-in-depth against a replayed/crafted action call bypassing a stale `visible` state. This was a real gap caught by `claude-reviewer` on `ReleaseRequestTablePresenter::reject()` (visibility checked only `status`, not permission) — fixed by adding `&& ReleaseRequestResource::canEdit($record)` to `visible()` and `abort_unless(ReleaseRequestResource::canEdit($record), 403)` inside `action()`, mirroring the pre-existing `SkillRequestResource`'s `RequestActions::rejectAction()` (which already does both checks via `self::canEdit()` since it's a trait mixed into the Resource itself, not a standalone class needing an explicit Resource reference). `ReleaseRequestStatus::selectableOptions()` mirrors `options()` but `->reject()`s `Rejected`, so `ReleaseRequestFormPresenter::status()` can never free-select it — the ONLY path to `Rejected` is `ReleaseRequestTablePresenter::reject()`'s dedicated Action. Without the `disabled()`+`validatedWhenNotDehydrated(false)` pair on the Select, re-saving ANY field on an already-rejected record would 422 with a spurious "selected value invalid" error (exactly Rule 55's mechanism — `selectableOptions()` narrows the `in:` validation list, and a stored `'rejected'` falls outside it). **Rule: "reject via a dedicated action, not a free Select option" is `selectableOptions()` (excludes the case) + `disabled()` on the record's own already-rejected state + `validatedWhenNotDehydrated(false)` + the Action's own `canEdit()` gate (`visible()` AND inside `action()`) — the mandatory-vs-optional question for any accompanying reason/response field is a separate, independent design decision (see the field-generalization note below), not part of the gating mechanism itself.**
+
+`ReleaseRequest` also carries a general-purpose `response` text column (renamed from an earlier `rejection_reason` — the original design coupled the field to the `Rejected` status only; it was generalized because an admin resolving/approving a request should be able to leave the same kind of note, not just when rejecting) — `ReleaseRequestFormPresenter::response()` is a plain, always-optional, always-editable `Textarea` wired into the regular Edit form for ANY status, independent of `status()`'s own disabled-when-rejected behavior; `ReleaseRequestTablePresenter::reject()`'s own `response` field is likewise `->nullable()`, not `->required()` — a rejection can exist with no note attached, by design. `ReleaseRequestInfolistPresenter::response()`/the user-panel history-tab callout are BOTH gated purely on `filled($record->response)`, never on `status === Rejected` — the same field is shown to the requesting user whenever an admin has written into it, regardless of which status it was written under, with color/icon (`danger`/`cancel` vs `primary`/`forum`) chosen by status only for presentation, not for whether the entry renders at all. **Rule: an admin-response field attached to a status-driven workflow should default to "always optional, always visible-to-the-affected-user when filled" unless there's a specific reason to couple it to one status — coupling it to a single status (as the original `rejection_reason` did) is a premature narrowing that has to be undone the moment the field turns out to be useful for other outcomes too.** The attachments Repeater on `ReleaseRequest` reuses the Task pattern verbatim (Rule 40: `FileUpload::make('path')->saveUploadedFileUsing(...)->set('name'/'mime'/'size')` + `Hidden` siblings, directory `release_request/attachments`) even though it's a plain JSON column with no relationship — the technique doesn't require a relationship context, only the shape does. User-panel mirror in `livewirePattern.md` "Response + attachments on user-submitted requests". Reference: `ReleaseRequestFormPresenter::status()`/`response()`/`attachments()`, `ReleaseRequestTablePresenter::reject()`, `ReleaseRequestInfolistPresenter::response()`.
+
+**62. Filament table row Actions never carry a visible text `->label()` — they are `->tooltip($label)->iconButton()`, the label surfacing only on hover.** This is the established convention for every row-level action in this codebase (`FilamentActions::viewAction()`/`editAction()`/`deleteAction()`/`restoreAction()` all use `tooltip()`+`iconButton()`, never `label()`); a custom table Action that skips `iconButton()` renders as a full labeled button inconsistent with its siblings in the same row. Header-level Actions (`CreateAction`, a custom "quick submit" modal trigger) are the opposite — they keep `->label()` since they're primary page-level CTAs, not row-icon-buttons; only ROW actions get the icon-only treatment. Reference: `ReleaseRequestTablePresenter::reject()` was originally built with `->label()` and no `iconButton()` — inconsistent with its `view`/`edit`/`delete` siblings on the same row — fixed to `->tooltip(...)->iconButton()`.
+
+**63. A record editable from MORE THAN ONE admin surface (a Resource's own Create/Edit pages AND a RelationManager elsewhere) needs its write side-effect wired on EVERY surface individually — a page-level `afterCreate`/`afterSave` hook does NOT cover a RelationManager's table `EditAction`, which has its own independent lifecycle.** `TicketsRelationManager` (mounted on `UserResource` — a user's "Tickets" tab) reuses `TicketFormPresenter::assignedTo()` in its `EditAction`'s form, but that action is a plain table action with no `after()` hook — assigning a ticket from there updated `assigned_to` correctly (Filament's default `EditAction` handler) but never called `AssignTicketAction::syncForAdmin()`, so the mirrored TaskBoard `Task` silently never got created/updated, even though the identical field on `ThsResource`'s own `CreateTicket::afterCreate()`/`EditTicket::afterSave()` had already been wired (and tested) correctly. Fix is to attach the same side-effect directly on that surface's action: `self::editAction()->after(function (Ticket $record) { if ($record->wasChanged('assigned_to')) { app(AssignTicketAction::class)->syncForAdmin($record, $record->assigned_to); } })` — a table action's `after()` closure receives the same already-`update()`d record instance as a page's `afterSave()`, so `wasChanged()` behaves identically. Distinct from Rule 46 (which moves a cross-write-path invariant into a model boot hook): that works for a pure validity constraint, but spawning a `Task` needs request-scoped construction (title/description built from the ticket, `TaskDetail::create`) that doesn't belong in a model boot hook and would also misfire from factories/seeders — so the fix here is "audit every admin surface that can write this field and wire the same call," not "move it to the model." **Rule: whenever a field gets a dedicated sync/side-effect hook on one Resource page, grep for every OTHER place that field is form-editable (RelationManagers especially) and wire the identical hook there too — don't assume the page lifecycle is the only entry point.** Reference: `TicketsRelationManager` (`app/Filament/Resources/UserResource/RelationManagers/TicketsRelationManager.php`), covered by `UserResourceTest::test_tickets_relation_manager_assigning_a_ticket_syncs_linked_taskboard_task` / `test_tickets_relation_manager_reassigning_updates_existing_linked_task_not_duplicate`.
+
+**64. A cascading `Select`'s `afterStateUpdated` must re-validate every DEPENDENT field's CURRENT value against its own newly-recomputed option set, not just clear the field one level below it in the chain.** `TicketFormPresenter::targetDepartment()` (department picker) feeds `requestType()`'s options (`Ticket::getCustomRequestTypeOptions($get('extra.target_department'))`, department-scoped via `HasTicketOptions`/`Department::ticket_options`), which in turn feeds `requestArea()`'s options. The department's `afterStateUpdated` only reset `request_area`/`assigned_to` (the two fields with no further options-dependency), leaving `request_type` holding whatever value it had before — if the new department's custom `ticket_options` no longer include that type, the Select renders blank/unselected while the underlying form state still carries the stale, now-invalid value. Fix mirrors the already-correct sibling implementation on the user-panel side (`Livewire\Dashboard\Ths\Main::updatedTicketTargetDepartment()`): explicitly recompute the dependent field's option set and reset it if the current value no longer exists in it, `$set` cascading down from there:
+```php
+->afterStateUpdated(function (Get $get, callable $set) {
+    $typeOptions = Ticket::getCustomRequestTypeOptions($get('extra.target_department'));
+    if (!array_key_exists($get('request_type'), $typeOptions)) {
+        $set('request_type', array_key_first($typeOptions));
+    }
+    $set('request_area', null);
+    $set('assigned_to', null);
+});
+```
+`$set()` does NOT re-trigger the target field's own `afterStateUpdated` (Filament's `Set` utility defaults `$shouldCallUpdatedHooks` to `false`), so this doesn't double-fire `requestType()`'s own reset-`request_area` callback — the explicit `$set('request_area', null)` right after is what actually clears it. **Rule: when field C's options depend on field B which depends on field A, changing A must re-validate B against A's new scope (reset if invalid) AND unconditionally reset C — don't just reset the leaf.** Reference: `TicketFormPresenter::targetDepartment()`, covered by `ThsResourceTest::test_create_ticket_target_department_change_resets_stale_request_type` / `test_create_ticket_target_department_change_keeps_request_type_when_still_valid`.
+
+**65. The admin panel's global search is wired through a custom `App\Support\FaultTolerantGlobalSearchProvider` (via `AdminPanelProvider`'s `->globalSearch(FaultTolerantGlobalSearchProvider::class, ...)`), NOT Filament's default `true` provider — because Filament's stock `DefaultGlobalSearchProvider::getResults()` loops every globally-searchable resource with no per-resource try/catch, so a single resource throwing (e.g. a bad `getGloballySearchableAttributes()` dot-notation attribute, or any framework/driver-version SQL quirk) takes down the ENTIRE global search bar for every admin, on every keystroke, sitewide.** Prompted by a production incident (`PermissionResource`'s `['user.name', 'user.email']` global search threw `SQLSTATE[42S22]: Unknown column 'user'` a handful of times — root cause traced to a probable stale `vendor/` deploy, not a bug in current code, but the underlying availability gap — one resource can crash search for all — was real and worth closing regardless). The custom provider mirrors `DefaultGlobalSearchProvider`'s logic except the ENTIRE per-resource pipeline — `canGloballySearch()`, `getGlobalSearchResults($query)`, and `count()`/`category()` — is wrapped in one `try/catch (Throwable)` per resource (not just the results call, which alone would still leave `canGloballySearch()` free to fatal the whole bar). `getGlobalSearchSort()` is called before the loop (inside `usort()`'s comparator) so it's isolated behind its own `safeSort()` helper, which catches and defaults to sort-weight `0` — a throwing sort comparator can't fatal `usort()` before the loop even starts, and the resource's own results still render normally, only its ordering degrades. A caught exception anywhere is `report()`-ed (so it still surfaces in logs/monitoring) and that resource is skipped for that search, while every other resource's results still render normally. The resource-iteration source is factored into an overridable `protected function getResources(): array { return Filament::getResources(); }` specifically so tests can inject fake resources without touching the live panel's registered resource list. **Rule: any panel-level extension point that fans out across all resources/models in a loop (global search, a future cross-resource bulk-export, etc.) should assume any single item can throw at ANY call site in its per-item pipeline — not just the "obvious" one — and must not let one bad actor take down the whole feature for everyone else; wrap the whole per-item block, report the exception, continue the loop.** Reference: `app/Support/FaultTolerantGlobalSearchProvider.php`, wired in `AdminPanelProvider::panel()`, covered by `tests/Feature/Support/FaultTolerantGlobalSearchProviderTest.php` (`test_admin_panel_uses_the_fault_tolerant_provider` — wiring; `test_it_skips_a_throwing_resource_and_still_returns_other_resources_results` — `getGlobalSearchResults()` throw; `test_it_skips_a_resource_that_throws_from_can_globally_search` — `canGloballySearch()` throw; `test_a_resource_that_throws_from_get_global_search_sort_still_returns_its_results` — `getGlobalSearchSort()` throw degrades ordering only, not availability — via fixture classes and the `getResources()` override seam).
+
+**66. Cross-panel convention (not yet applicable in admin, noted for when it becomes so): when a page header carries BOTH a notification/badge-legend button and a workflow/guide button, the notification button goes FIRST in DOM source order, the guide button SECOND — under RTL flex with no `row-reverse`, this renders left-to-right as guide-then-notification, the required visual order.** The admin panel currently has only a single "guide" concept per page (no separate badge/nudge-legend button — the badge/nudge system is user-panel-only, see `app/Services/Menu/statePattern.md`), so this rule has no live admin call site today. Documented here so that if the admin panel ever grows a second, distinct header button alongside an existing guide button, the ordering matches the user panel's already-established, verified-consistent convention rather than being decided ad hoc. Full detail + the RTL-flex reasoning: `resources/views/viewPattern.md` §8.5 ("DOM order when both buttons exist").
+
+**67. Physical-file cleanup on record deletion is centralized in `App\Traits\CleansAttachedFiles` — every model with a disk-stored attachment column uses it, never a bespoke `Storage::disk()->delete()` loop.** The trait exposes two protected statics: `deleteStoredFiles($value, array $pathKeys = ['path'])` (accepts a single path string, a flat array of path strings, or an array/`AsCollection`/`AsArrayObject` of associative items — pulls `$pathKeys` out of each associative item, e.g. `['file']` for `Ticket::requester_files`/`assignee_files`, `['url','thumbnail']` for `Onboarding::videos`) and `deleteStoredDirectory($directory)` (for whole-subtree deletes — `Channel`/`ChannelMessage`). Both are hard-wired to the `'public'` disk — every attachment column project-wide already uses it, so a disk parameter would be dead configurability, not real flexibility. Both filter every candidate path through an internal `isSafeStoredPath()` guard (rejects empty/absolute/`..`/scheme-prefixed strings, so a stray external URL or path-traversal value in a JSON column is never handed to the filesystem) and wrap the actual `Storage` call in try/catch → `Log::warning` rather than letting a disk failure abort the model's `deleting`/`forceDeleted` transaction. Wire it the same way every time: `use CleansAttachedFiles;` on the model, one line inside `booted()` on the correct event — SoftDeletes models hook `forceDeleted` (or `forceDeleting` if a *related* model's attachments must be read before cascade removes the row, e.g. `Task` reading `$task->detail->attachments`), non-SoftDeletes models hook `deleting`. Reference models: `Message`/`ChannelMessage`/`Channel`/`Task`/`ReleaseRequest` (already had bespoke cleanup, backfilled onto the trait for one source of truth), `Profile`/`DMS`/`Report`/`Ticket`/`Suggestion`/`Link`/`Post`/`Resource`/`Photo`/`Onboarding`/`Reply`/`Feed` (previously leaked orphaned files on delete — the record vanished but the file stayed on disk forever; fixed by adding the same one-line hook). **Rule: a new attachment/image/document column on any model gets its `booted()` cleanup hook in the same change that adds the column — never ship a write path without the matching delete path.**
+
+**68. The write-side counterpart is `App\Traits\StoresAttachedFiles` — one `storeAttachment($file, string $directory, ?callable $fileName = null): array` that returns the Rule-40 canonical `{path,name,mime,size}` shape, used ONLY at the sites that already produce exactly that shape.** `$fileName` is an optional per-call-site closure (`fn($file) => …`) — the trait does not impose one naming scheme; every consumer keeps its own existing filename generator (`SendMessageAction`/`SendChannelMessageAction`/`HasReplies::storeReplyFiles` use `time().'_'.Str::random(10).'.'.ext`, `TaskFormPresenter`/`ReleaseRequestFormPresenter` use their own `self::fileName()` with a `TASK-`/`RR-` prefix, `CreateTaskAction`/`UpdateTaskAction`/`SubmitReleaseRequestAction` pass no closure at all and get Laravel's default random name) — passing `null` uses plain `store()` instead of `storeAs()`. **Critical ordering, matched against a real production failure mode:** `$file->getClientOriginalName()`/`getMimeType()`/`getSize()` are read BEFORE `store()`/`storeAs()` runs, never after — reading file metadata off a `TemporaryUploadedFile` once it has already been moved to its final disk location is what caused production errors previously, which is why every hand-written call site already did it in that order; the trait preserves that ordering internally so no caller has to remember it. Sites that do NOT use this trait because their shape genuinely differs: `Ticket::requester_files`/`assignee_files` (`{file: path}` only, via Filament's `getUploadedFileNameForStorageUsing` — Filament handles the store itself, no metadata array needed), `Onboarding::videos`/`guides` (`{title,url,thumbnail/ext,size}` — extra sibling fields, not file metadata), `Profile::attachments` (`{key,category,path}` — no name/mime/size at all). Forcing those into the same 4-key shape would be a real schema/behavior change, not a refactor — don't. Reference: `app/Traits/StoresAttachedFiles.php`, wired into `SendMessageAction`/`SendChannelMessageAction`/`CreateTaskAction`/`UpdateTaskAction`/`SubmitReleaseRequestAction`/`HasReplies`/`TaskFormPresenter`/`ReleaseRequestFormPresenter`. The two call sites that already rolled back partially-stored files on failure (`SendMessageAction`, `HasReplies::storeReplyFiles`) also now call `deleteStoredFiles()` from `CleansAttachedFiles` (Rule 67) for that rollback instead of a raw `foreach { Storage::delete() }` — same outcome on success, and no longer risks a `Storage` exception during rollback masking the original error being rethrown.
+
 ## Admin panel feature-test convention — one `ResourceTest` per resource
 
-Every admin resource has ONE feature-test file `tests/Feature/Filament/<Module>ResourceTest.php` (28 files, one per resource — no standalone filter/helper-text files; those were folded in). The full skeleton + gotcha list lives in `.claude/tmp/admin-test-brief.md`; the load-bearing rules:
+Every admin resource has ONE feature-test file `tests/Feature/Filament/<Module>ResourceTest.php` (28 files, one per resource — no standalone filter/helper-text files; those were folded in). The load-bearing rules:
 
-- **Trait-level cover-gap tests live in `tests/Feature/Traits/` (mirrors `app/Traits/`, NOT the `Filament/` ResourceTest folder):** the per-resource `*ResourceTest` files only exercise the shared traits through the developer super-admin bypass, so each shared trait gets its OWN dedicated `tests/Feature/Traits/<Trait>Test.php` (namespace `Tests\Feature\Traits`) for its real contract — 9 files covering all 8 `App\Traits\Filament*` traits + `AuthorizesByPermission`. The DB-backed ones reuse the verbatim `useMysql()` + transaction + `developer()`/`admin()` scaffolding (identical to the ResourceTest skeleton below) and add `setLocale('fa')` wherever a `__()` string is asserted; the two pure-static factories (`FilamentFormDividerTest`, `FilamentActionsTest`) drop `useMysql()`/transactions/auth entirely (no DB dependency — keeping them would be dead weight the reviewer blocks). Coverage map: `FilamentEditHeadingTest` (format branch "ویرایش {label}: {title}" via a column-based resource + a composite `getRecordTitle` override, plus the `title === label` fallback to `getTitle()`; mounts a real Edit page, reads `$component->instance()->getHeading()`), `AuthorizesByPermissionTest` (`moduleKey()` incl. the `ResourceResource → "resource"` edge case, developer bypass, non-developer `role='admin'` denial WITHOUT a Permission row, granted-actions via `abilities=[['module'=>'post','actions'=>['view','create']]]`, unauthenticated denial), `FilamentPageBehaviorTest` (`getRedirectUrl`→index + `getCreatedNotificationTitle`/`getSavedNotificationTitle` fa strings — protected methods invoked via `ReflectionMethod::setAccessible(true)`), `FilamentFiltersTest` (`createdAtFilter` date-range `from`/`until` scoping via `filterTable('created_at', ['from'=>…,'until'=>…])`), `FilamentHeaderActionsTest` (`getHeaderActions` returns `['create']` on a List page, `['create','delete']` on an Edit page — reflection), `FilamentDateHandlerTest` (`mergeDeadline` joins `deadline_date`+`deadline_time`→`deadline` on Create, `mutateFormDataBeforeFill` splits on Edit, via the real `CreateTask`/`EditTask` consumers; assert on the RAW DB value, not the `datetime`-cast/Jalali accessor), `FilamentActionsTest` (every `public static` action factory — instance type + `getName()` + `isConfirmationRequired()`/`getExporter()`/`getLabel()`; do NOT invoke the `assign`/`unassign` action closures — they send Filament Notifications needing a Livewire session), `FilamentFormDividerTest` (`divider()` returns a `TextEntry` named `divider` with `getColumnSpan()['default'] === 'full'` — call via a consuming Presenter like `AdFormPresenter::divider()`, not the trait name), `FilamentPreferencesTest` (the `App\Livewire\Admin\ManagePreferences` page: `mount()` hydrates from `Auth::user()->extra['preferences']`, `save()` persists back, `getTogglesCount()` equals `count(getPreferenceFields())` — use `$component->set('data.field', …)` to mutate form state through Livewire's update lifecycle, not direct `instance()->data` writes). Heading assertions are ALSO embedded into the relevant resource's own ResourceTest (column-based: `PostResourceTest`; composite: `ReservationPolicyResourceTest`) via `assertStringContainsString($record->title|$type, (string) $component->instance()->getHeading())` so a regression in either the trait OR the per-resource `recordTitleAttribute`/`getRecordTitle` config is caught at the resource level too. **Bug surfaced + fixed by `FilamentFiltersTest`:** `FilamentFilters::createdAtFilter()` read `$data['from']`/`$data['until']` unguarded in both the `query` and `indicateUsing` closures, so a single-sided date range (only `from` or only `until`) threw `Undefined array key` under Laravel's warning→exception handler — fixed with `$data['from'] ?? null` / `$data['until'] ?? null` guards; `test_created_at_from_only_filter_works_without_until_key` locks the fix by passing only the `from` key.
+- **Trait-level cover-gap tests live in `tests/Feature/Traits/` (mirrors `app/Traits/`, NOT the `Filament/` ResourceTest folder):** the per-resource `*ResourceTest` files only exercise the shared traits through the developer super-admin bypass, so each shared trait gets its OWN dedicated `tests/Feature/Traits/<Trait>Test.php` (namespace `Tests\Feature\Traits`) for its real contract — 10 files covering all 9 `App\Traits\Filament*` traits + `AuthorizesByPermission`. The DB-backed ones reuse the verbatim `useMysql()` + transaction + `developer()`/`admin()` scaffolding (identical to the ResourceTest skeleton below) and add `setLocale('fa')` wherever a `__()` string is asserted; the two pure-static factories (`FilamentFormDividerTest`, `FilamentActionsTest`) drop `useMysql()`/transactions/auth entirely (no DB dependency — keeping them would be dead weight the reviewer blocks). Coverage map: `FilamentEditHeadingTest` (format branch "ویرایش {label}: {title}" via a column-based resource + a composite `getRecordTitle` override, plus the `title === label` fallback to `getTitle()`; mounts a real Edit page, reads `$component->instance()->getHeading()`), `AuthorizesByPermissionTest` (`moduleKey()` incl. the `ResourceResource → "resource"` edge case, developer bypass, non-developer `role='admin'` denial WITHOUT a Permission row, granted-actions via `abilities=[['module'=>'post','actions'=>['view','create']]]`, unauthenticated denial), `FilamentPageBehaviorTest` (`getRedirectUrl`→index + `getCreatedNotificationTitle`/`getSavedNotificationTitle` fa strings — protected methods invoked via `ReflectionMethod::setAccessible(true)`), `FilamentFiltersTest` (`createdAtFilter` date-range `from`/`until` scoping via `filterTable('created_at', ['from'=>…,'until'=>…])`), `FilamentHeaderActionsTest` (`getHeaderActions` returns `['create']` on a List page, `['create','delete']` on an Edit page — reflection), `FilamentDateHandlerTest` (`mergeDeadline` joins `deadline_date`+`deadline_time`→`deadline` on Create, `mutateFormDataBeforeFill` splits on Edit, via the real `CreateTask`/`EditTask` consumers; assert on the RAW DB value, not the `datetime`-cast/Jalali accessor), `FilamentActionsTest` (every `public static` action factory — instance type + `getName()` + `isConfirmationRequired()`/`getExporter()`/`getLabel()`; do NOT invoke the `assign`/`unassign` action closures — they send Filament Notifications needing a Livewire session), `FilamentFormDividerTest` (`divider()` returns a `TextEntry` named `divider` with `getColumnSpan()['default'] === 'full'` — call via a consuming Presenter like `AdFormPresenter::divider()`, not the trait name), `FilamentPreferencesTest` (the `App\Livewire\Admin\ManagePreferences` page: `mount()` hydrates from `Auth::user()->extra['preferences']`, `save()` persists back, `getTogglesCount()` equals `count(getPreferenceFields())` — use `$component->set('data.field', …)` to mutate form state through Livewire's update lifecycle, not direct `instance()->data` writes), `FilamentAdminGuideTest` (pure-static, mirrors `FilamentActionsTest` — no DB/transaction, `setLocale('fa')`; `guideTabs()` empty-fallback via an anonymous `use FilamentAdminGuide` host with no `$guide` → `[]`, `PostResource::guideTabs()` shape with `label`/`icon`/`view` keys + `view()->exists()` on each tab view, `setupGuideAction()` builds an `Action` named `moduleGuide` with `getModalSubmitAction() === null`, the `modalContent` closure is pulled via `ReflectionObject` walk to the `modalContent` property and invoked → rendered HTML contains every tab label + `material-symbols-rounded` + `dir="rtl"`, and `guideEmptyStateActions()` returns only that one action). Heading assertions are ALSO embedded into the relevant resource's own ResourceTest (column-based: `PostResourceTest`; composite: `ReservationPolicyResourceTest`) via `assertStringContainsString($record->title|$type, (string) $component->instance()->getHeading())` so a regression in either the trait OR the per-resource `recordTitleAttribute`/`getRecordTitle` config is caught at the resource level too. **Bug surfaced + fixed by `FilamentFiltersTest`:** `FilamentFilters::createdAtFilter()` read `$data['from']`/`$data['until']` unguarded in both the `query` and `indicateUsing` closures, so a single-sided date range (only `from` or only `until`) threw `Undefined array key` under Laravel's warning→exception handler — fixed with `$data['from'] ?? null` / `$data['until'] ?? null` guards; `test_created_at_from_only_filter_works_without_until_key` locks the fix by passing only the `from` key.
 
-- **Skeleton (copied verbatim across all 26 files):** `setUp` calls `useMysql()` (copies `.env` MySQL creds at runtime, `DB::purge('mysql')`, sets `mysql` default — no `RefreshDatabase`, migrations are MySQL-only under `database/migrations/migrated/`), then `DB::beginTransaction()`; `tearDown` does `DB::rollBack()`. A private `developer()` helper creates a `role='developer'` User + an `is_super_admin` Permission row — the developer bypass in `AuthorizesByPermission::permits()` (and `EnsureHasPermission` middleware) makes every `canViewAny/canCreate/canEdit/canDelete` pass without per-module ability rows. Auto-increment IDs are NOT reset between tests; create fresh factory rows inside the transaction.
+- **Skeleton (copied verbatim across all 28 files):** `setUp` calls `useMysql()` (copies `.env` MySQL creds at runtime, `DB::purge('mysql')`, sets `mysql` default — no `RefreshDatabase`, migrations are MySQL-only under `database/migrations/migrated/`), then `DB::beginTransaction()`; `tearDown` does `DB::rollBack()`. A private `developer()` helper creates a `role='developer'` User + an `is_super_admin` Permission row — the developer bypass in `AuthorizesByPermission::permits()` (and `EnsureHasPermission` middleware) makes every `canViewAny/canCreate/canEdit/canDelete` pass without per-module ability rows. Auto-increment IDs are NOT reset between tests; create fresh factory rows inside the transaction.
 - **DeleteAction namespace:** this Filament v5 install has UNIFIED actions — `callTableAction(\Filament\Actions\DeleteAction::class, $record)`. `Filament\Tables\Actions\DeleteAction` does NOT exist here (throws `ActionNotResolvableException`). The string form `callTableAction('delete', $record)` also works (resources register delete via the `FilamentActions` trait under name `delete`).
 - **`filterTable` second-arg shape** (`TestsFilters::filterTable` signature `$data = null` with auto-wrapping): bare scalar for `SelectFilter` (non-multiple) and `TernaryFilter` FALSE-case — `filterTable('gender','Male')`, `filterTable('active','0')` (string `'0'`, not `false` — `blank(false)` no-ops a TernaryFilter). BOOLEAN `true` for a `TernaryFilter` TRUE-case — `filterTable('has_users', true)`; string `'1'` lands in the else branch and silently fails to select the true query. ARRAY for multi-select — `filterTable('owners', ['departments'=>['MA']])`. NO second arg for a plain toggle `BaseFilter` — `filterTable('low_score')` sets `['isActive'=>true]`. Symptom of a wrong shape: `array_key_exists(): Argument #1 must be a valid array offset type` or a silent no-op — swap scalar↔array↔boolean↔none; the test run is the source of truth.
 - **RichEditor (Tiptap) quirk:** `->required()` does NOT register the `required` rule key in Livewire's validator (closure-based `getRequiredValidationRule` calls `$fail('validation.required')->translate()`), so `assertHasFormErrors(['field'=>'required'])` cannot match — use key-only `assertHasFormErrors(['field'])` or the message-string form `['field'=>'validation.required']`. The empty-Tiptap-doc value `{type:doc,content:[{type:paragraph,content:[]}]}` is what trips required (plain `''`/`null` does NOT). RichEditor stores HTML — DB assertions use `assertStringContainsString`, not exact match.

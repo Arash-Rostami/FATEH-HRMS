@@ -54,7 +54,7 @@ class SkillRequestTablePresenter
             ->formatStateUsing(fn(?SkillTier $state) => $state?->label() ?? '-')
             ->icon(fn(?SkillTier $state) => $state?->heroicon())
             ->color(fn(?SkillTier $state) => $state?->color() ?? 'gray')
-            ->tooltip(fn() => 'تأییدشده: حداقل ' . SkillUser::ENDORSEMENT_SATURATION_CAP . ' تأیید همکار. فعال: استفاده در ' . SkillUser::ACTIVE_WINDOW_DAYS . ' روز اخیر. بدون استفاده: هیچ‌کدام. فقط برای درخواست‌های تأییدشده محاسبه می‌شود.')
+            ->tooltip(fn() => 'تأییدشده: حداقل ' . SkillUser::ENDORSEMENT_SATURATION_CAP . ' تأیید همکار. فعال: استفاده در ' . SkillUser::ACTIVE_WINDOW_DAYS . ' روز اخیر. آماده مشارکت: هیچ‌کدام. فقط برای درخواست‌های تأییدشده محاسبه می‌شود.')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

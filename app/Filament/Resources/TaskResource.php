@@ -8,6 +8,7 @@ use App\Filament\Resources\TaskResource\Schemas\{TaskFormPresenter, TaskInfolist
 use App\Models\Task;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -24,12 +25,19 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaskResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Task::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-view-columns';
     protected static ?int $navigationSort = 1;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.task.guide.overview'],
+        ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.task.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.task.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.task.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {
@@ -174,6 +182,7 @@ class TaskResource extends Resource
                                     TaskInfolistPresenter::createdAt(),
                                     TaskInfolistPresenter::updatedAt(),
                                     TaskInfolistPresenter::deletedAt(),
+                                    TaskInfolistPresenter::archivedAt(),
                                     TaskInfolistPresenter::prunableWarning(),
                                 ])
                                 ->columnSpanFull()
@@ -214,6 +223,7 @@ class TaskResource extends Resource
                 TaskTablePresenter::id(),
                 TaskTablePresenter::title(),
                 TaskTablePresenter::status(),
+                TaskTablePresenter::isArchived(),
                 TaskTablePresenter::creator(),
                 TaskTablePresenter::assignee(),
                 TaskTablePresenter::isDelegated(),
@@ -226,6 +236,7 @@ class TaskResource extends Resource
                 TaskTablePresenter::state(),
                 TaskTablePresenter::responsibleUser(),
                 TaskTablePresenter::deletedAt(),
+                TaskTablePresenter::archivedAt(),
                 TaskTablePresenter::prunableWarning(),
                 TaskTablePresenter::createdAt(),
             ])
@@ -240,6 +251,7 @@ class TaskResource extends Resource
                 TaskTablePresenter::creatorFilter(),
                 TaskTablePresenter::assigneeFilter(),
                 TaskTablePresenter::delegatedFilter(),
+                TaskTablePresenter::archivedFilter(),
                 self::createdAtFilter(),
                 TaskTablePresenter::overdueFilter(),
                 TaskTablePresenter::pruningSoonFilter(),

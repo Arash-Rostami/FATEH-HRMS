@@ -98,6 +98,7 @@ class TasksRelationManager extends RelationManager
                 TaskTablePresenter::id(),
                 TaskTablePresenter::title(),
                 TaskTablePresenter::status(),
+                TaskTablePresenter::isArchived(),
                 TaskTablePresenter::assignee(),
                 TaskTablePresenter::isDelegated(),
                 TaskTablePresenter::deadline(),
@@ -112,6 +113,7 @@ class TasksRelationManager extends RelationManager
                 TrashedFilter::make(),
                 TaskTablePresenter::statusFilter(),
                 TaskTablePresenter::delegatedFilter(),
+                TaskTablePresenter::archivedFilter(),
                 TaskTablePresenter::overdueFilter(),
             ])
             ->filtersFormColumns(2)

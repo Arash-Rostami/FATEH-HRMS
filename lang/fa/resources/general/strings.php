@@ -4,6 +4,12 @@ return [
 
     'edit_heading' => 'ویرایش :label: :title',
 
+    'guide' => [
+        'label'   => 'راهنما',
+        'heading' => 'راهنما',
+        'cancel'  => 'بستن',
+    ],
+
     'table' => [
         'action_view' => 'مشاهده',
         'action_edit' => 'ویرایش',

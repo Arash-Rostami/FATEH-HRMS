@@ -14,6 +14,8 @@ use App\Livewire\Dashboard\Profile\Presentation\SkillPresenter;
 use App\Livewire\Dashboard\Profile\Presentation\SkillUserPresenter;
 use App\Models\Skill;
 use App\Models\SkillUser;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
@@ -93,6 +95,11 @@ class Skills extends Component
             $this->form->reset();
             unset($this->ownSkills);
             $this->dispatch('toast', message: 'درخواست مهارت ثبت شد و در انتظار تأیید است.', type: 'success');
+        } catch (ModelNotFoundException|QueryException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
@@ -127,6 +134,12 @@ class Skills extends Component
 
     public function markUsed(MarkSkillUsedAction $action): void
     {
+        $this->validate([
+            'markUsedContext' => 'nullable|string|max:255',
+        ], [
+            'markUsedContext.max' => 'توضیحات نباید بیشتر از ۲۵۵ کاراکتر باشد.',
+        ]);
+
         try {
             $action->execute(SkillUser::findOrFail($this->markUsedId), $this->markUsedContext ?: null);
             $this->markUsedId = null;
@@ -135,6 +148,11 @@ class Skills extends Component
             $this->dispatch('toast', message: 'زمان استفاده از مهارت ثبت شد.', type: 'success');
         } catch (HttpException $e) {
             throw $e;
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
@@ -148,6 +166,11 @@ class Skills extends Component
             unset($this->ownSkills);
         } catch (HttpException $e) {
             throw $e;
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
@@ -161,6 +184,11 @@ class Skills extends Component
             unset($this->ownSkills);
         } catch (HttpException $e) {
             throw $e;
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
@@ -175,6 +203,11 @@ class Skills extends Component
             $this->dispatch('toast', message: 'مهارت با موفقیت تأیید شد.', type: 'success');
         } catch (HttpException $e) {
             throw $e;
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
@@ -189,6 +222,11 @@ class Skills extends Component
             $this->dispatch('toast', message: 'تأیید شما لغو شد.', type: 'success');
         } catch (HttpException $e) {
             throw $e;
+        } catch (ModelNotFoundException $e) {
+            report($e);
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        } catch (\RuntimeException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');

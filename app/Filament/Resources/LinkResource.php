@@ -8,6 +8,7 @@ use App\Filament\Resources\LinkResource\Schemas\{LinkFormPresenter, LinkInfolist
 use App\Models\Link;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -18,12 +19,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class LinkResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = Link::class;
     protected static ?string $recordTitleAttribute = 'url_title';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-arrow-top-right-on-square';
     protected static ?int $navigationSort = 8;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.link.guide.overview'],
+        ['label' => 'مسیریابی هوشمند', 'icon' => 'alt_route', 'view' => 'filament.resources.link.guide.smart-routing'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.link.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.link.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

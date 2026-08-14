@@ -13,6 +13,7 @@ use App\Filament\Resources\ResourceResource\Schemas\ResourceInfolistPresenter;
 use App\Filament\Resources\ResourceResource\Schemas\ResourceTablePresenter;
 use App\Models\Resource as ResourceModel;
 use App\Traits\AuthorizesByPermission;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -27,11 +28,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class ResourceResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = ResourceModel::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 4;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.resource.guide.overview'],
+        ['label' => 'افزودن', 'icon' => 'add_circle', 'view' => 'filament.resources.resource.guide.adding'],
+        ['label' => 'ملاقات', 'icon' => 'person', 'view' => 'filament.resources.resource.guide.meeting'],
+        ['label' => 'دسترسی', 'icon' => 'key', 'view' => 'filament.resources.resource.guide.permissions'],
+        ['label' => 'چک‌لیست', 'icon' => 'checklist', 'view' => 'filament.resources.resource.guide.checklist'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {
@@ -187,6 +196,9 @@ class ResourceResource extends Resource
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ResourceExporter::class))
             ->emptyStateIcon('heroicon-o-bookmark')
+            ->emptyStateHeading(__('resources/resource/strings.empty.heading'))
+            ->emptyStateDescription(__('resources/resource/strings.empty.description'))
+            ->emptyStateActions([self::setupGuideAction()])
             ->defaultSort('name')
             ->striped();
     }

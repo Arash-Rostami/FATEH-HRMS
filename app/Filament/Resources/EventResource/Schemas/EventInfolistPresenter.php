@@ -60,6 +60,15 @@ class EventInfolistPresenter
             ->falseColor('success');
     }
 
+    public static function remindHours(): TextEntry
+    {
+        return TextEntry::make('remind_hours')
+            ->label(__('resources/event/strings.fields.remind_hours'))
+            ->formatStateUsing(fn(?int $state) => $state ? "{$state} ساعت قبل" : '—')
+            ->icon('heroicon-o-bell-alert')
+            ->color('gray');
+    }
+
     public static function title(): TextEntry
     {
         return TextEntry::make('title')

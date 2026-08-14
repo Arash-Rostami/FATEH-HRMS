@@ -15,9 +15,9 @@ class ListContacts extends ListRecords
 
     protected static string $resource = ContactResource::class;
 
-    protected function getHeaderActions(): array
+    protected function listHeaderActions(): array
     {
-        return [];
+        return [ContactResource::setupGuideAction()];
     }
 
     public function getTabs(): array

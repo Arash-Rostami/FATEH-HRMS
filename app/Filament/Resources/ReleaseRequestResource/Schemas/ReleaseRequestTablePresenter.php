@@ -4,12 +4,50 @@ namespace App\Filament\Resources\ReleaseRequestResource\Schemas;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use App\Filament\Resources\ReleaseRequestResource;
+use App\Models\ReleaseRequest;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Model;
 
 class ReleaseRequestTablePresenter
 {
+    public static function reject(): Action
+    {
+        return Action::make('reject')
+            ->tooltip(__('resources/release_request/strings.action.reject'))
+            ->icon('heroicon-o-x-circle')
+            ->color('danger')
+            ->iconButton()
+            ->visible(fn(ReleaseRequest $record) => $record->status !== ReleaseRequestStatus::Rejected->value
+                && ReleaseRequestResource::canEdit($record))
+            ->modalHeading(__('resources/release_request/strings.action.reject_heading'))
+            ->schema([
+                Textarea::make('response')
+                    ->label(__('resources/release_request/strings.fields.response'))
+                    ->nullable()
+                    ->maxLength(1000)
+                    ->rows(3)
+                    ->placeholder(__('resources/release_request/strings.placeholders.response')),
+            ])
+            ->action(function (ReleaseRequest $record, array $data): void {
+                abort_unless(ReleaseRequestResource::canEdit($record), 403);
+
+                $record->update([
+                    'status' => ReleaseRequestStatus::Rejected->value,
+                    'response' => $data['response'] ?? null,
+                ]);
+
+                Notification::make()
+                    ->title(__('resources/release_request/strings.notifications.rejected'))
+                    ->success()
+                    ->send();
+            });
+    }
+
     public static function createdAt(): TextColumn
     {
         return TextColumn::make('created_at')

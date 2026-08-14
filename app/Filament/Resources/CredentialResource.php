@@ -12,6 +12,7 @@ use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
 use App\Models\Credential;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -24,12 +25,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class CredentialResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Credential::class;
     protected static ?string $recordTitleAttribute = 'app_name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-key';
     protected static ?int $navigationSort = 6;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'vpn_key', 'view' => 'filament.resources.credential.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.credential.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.credential.guide.list-tabs'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

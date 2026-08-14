@@ -31,7 +31,7 @@ app/Services/Search/
 ├── Resources/
 │   ├── PostResource.php
 │   ├── FeedResource.php
-│   └── … (20 in total)
+│   └── … (21 in total)
 ├── ContentService.php
 └── NavigationService.php
 ```
@@ -39,7 +39,7 @@ app/Services/Search/
 - `Contracts/Searchable.php` — interface every content resource fulfils.
 - `Contracts/SearchContext.php` — immutable value object: normalized query + tokens.
 - `Contracts/SearchResource.php` — abstract base; ALL the shared search machinery.
-- `Resources/` — one tiny class per searchable module (20 in total).
+- `Resources/` — one tiny class per searchable module (21 in total).
 - `ContentService.php` — orchestrator: registry + ranking of resources.
 - `NavigationService.php` — the module-shortcut engine (static list).
 
@@ -125,7 +125,7 @@ The base calls `$this->scope()`, `$this->action()`, etc., so polymorphism runs e
 
 > **Permissions ⚠️** `scope()` MUST replicate the owning module's own listing query so the palette never surfaces a row the user couldn't otherwise see. A `null`/no-op scope means the resource is org-wide.
 >
-> **The mirror check runs both ways.** It's not enough to check `scope()` doesn't show a row the module hides — also check it doesn't *hide* a row the module's own policy grants. `TicketResource` originally only matched `requester_id = me OR assigned_to = me`, missing the department-head visibility into unassigned open tickets that `Ticket::scopeActionableBy()` (used by the Ths module's own "actionable" inbox) already grants. Fixed 2026-08-04 by adding the same open-ticket-targeted-at-my-department branch (see `TicketResource::scope()`), gated on `User::highestRankingInDepartment()` exactly like `scopeActionableBy()` is. Regression-covered by `test_ticket_search_resource_includes_open_department_tickets_for_department_head` / `_does_not_grant_department_visibility_to_a_non_head`. When writing or auditing a `scope()`, diff it against the owning module's own access-control method (policy, model scope, or listing query) rather than re-deriving the rule from scratch — that's where both of these bugs came from.
+> **The mirror check runs both ways.** Don't only check `scope()` doesn't show a row the module hides — also check it doesn't *hide* a row the module's own policy grants. `TicketResource` originally matched only `requester_id = me OR assigned_to = me`, missing the department-head visibility into unassigned open tickets that `Ticket::scopeActionableBy()` (the Ths module's own "actionable" inbox) already grants. Fixed 2026-08-04 by adding the same open-ticket-targeted-at-my-department branch, gated on `User::highestRankingInDepartment()` exactly like `scopeActionableBy()`. Regression-covered by `test_ticket_search_resource_includes_open_department_tickets_for_department_head` / `_does_not_grant_department_visibility_to_a_non_head`. When writing or auditing a `scope()`, diff it against the owning module's own access-control method (policy, model scope, or listing query) rather than re-deriving the rule from scratch.
 
 ---
 
@@ -172,7 +172,7 @@ match ($type) {
 ### Which engine emits what
 
 - **`NavigationService`** (module shortcuts) emits all four: `tab:`, `route:`, `url:`, `event:`.
-- **`ContentService`** (real records) **always emits `url:`** — every hit must deep-link to a specific record via `?open={id}`. The base provides three helpers that all produce a `url:` action:
+- **`ContentService`** (real records) **always emits `url:`** — every hit deep-links to a specific record. The base provides three helpers that all produce a `url:` action:
 
   ```php
   $this->tab('post', $id);
@@ -195,7 +195,7 @@ return 'url:' . route('channels', [
 
 - `?open={channelId}` is consumed by `FocusOnRecord` as usual (`#[Url] $open` → `focusRecord(channelId)` → `selectChannel`).
 - `?focus_msg={messageId}` is read by the channel component's `focusRecord()` via `request()->query('focus_msg')` (mount-only; no-op on later AJAX), which then calls `focusMessage(id)` — reusing the global `record-focus` standard with `type:'channel-message'`.
-- **Scope** — any message in a channel the user is a **member** of: `whereHas('channel', fn $q => $q->whereHas('members', fn $q2 => $q2->where('user_id', $me)))`. Membership excludes any channel the user is no longer a member of (so a hit's deep-link always opens); it does **not** additionally restrict by `sender_id` — a fellow member's message is just as findable as your own, matching the in-chat search bar (`SearchChannelMessagesAction`), which has never restricted by sender. An earlier version of this scope added `where('sender_id', $me)` on top of the membership check, silently narrowing global search to "messages I personally wrote" — safe (no leak, since it's the *stricter* direction) but wrong: it made global search find far less than the in-chat search already finds inside the same channel, with no error or indication anything was missing. Fixed 2026-08-04; regression-covered by `test_channel_message_search_resource_finds_any_fellow_members_message_action_and_title` / `_excludes_messages_from_channels_i_am_not_a_member_of` in `tests/Feature/Services/SearchServiceTest.php`.
+- **Scope** — any message in a channel the user is a **member** of: `whereHas('channel', fn $q => $q->whereHas('members', fn $q2 => $q2->where('user_id', $me)))`. Membership excludes channels the user left (so a hit's deep-link always opens); it does **not** additionally restrict by `sender_id` — a fellow member's message is as findable as your own, matching the in-chat search bar (`SearchChannelMessagesAction`), which has never restricted by sender. An earlier version added `where('sender_id', $me)` on top of membership — safe (no leak, *stricter* direction) but wrong: global search found less than the in-chat search in the same channel, with no error. Fixed 2026-08-04; regression-covered by `test_channel_message_search_resource_finds_any_fellow_members_message_action_and_title` / `_excludes_messages_from_channels_i_am_not_a_member_of` in `tests/Feature/Services/SearchServiceTest.php`.
 - The `type` (`'channel-message'`) is shared with the in-chat search's `data-rf="channel-message-{id}"` focus key, so both entry points reuse the same `scrollToRecord` + `.record-focus-flash` UX.
 
 ---

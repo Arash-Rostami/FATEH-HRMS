@@ -21,6 +21,8 @@ class Main extends Component
 {
     use FocusOnRecord;
 
+    private const HISTORY_QUERY_CAP = 500;
+
     #[Url(as: 'tab')]
     public $activeTab = 'seat';
     public $activeHistoryTab = 'upcoming';
@@ -556,7 +558,7 @@ class Main extends Component
             default => $query->upcoming()->orderBy('start_time'),
         };
 
-        return $query->get()
+        return $query->limit(self::HISTORY_QUERY_CAP)->get()
             ->groupBy(fn(Reservation $r) => $r->parent_id ?? $r->id)
             ->map(function ($group) {
                 $rep = $group->first();

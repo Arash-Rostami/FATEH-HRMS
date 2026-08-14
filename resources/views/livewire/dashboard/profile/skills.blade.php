@@ -116,6 +116,7 @@
                 label="در چه زمینه‌ای استفاده کردید؟ (اختیاری)"
                 rows="3"
                 icon="edit_note"
+                maxlength="255"
             />
             <div class="flex justify-end">
                 <x-ui.buttons.form type="submit" loading="markUsed" loading-text="در حال ثبت..." icon="check"

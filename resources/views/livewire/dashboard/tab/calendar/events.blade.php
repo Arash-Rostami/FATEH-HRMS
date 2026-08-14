@@ -101,10 +101,23 @@
                                 @endif
                             </div>
 
+                            @if(!empty($event['remind_hours']))
+                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/50 px-2 py-0.5 rounded-md"
+                                     title="یادآوری {{ $event['remind_hours'] }} ساعت قبل">
+                                    <span class="material-symbols-rounded text-[12px]">alarm</span>
+                                    <span>{{ $event['remind_hours'] }} ساعت قبل</span>
+                                </div>
+                            @endif
+
                             @if(!empty($event['is_shared']))
                                 <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-secondary)] bg-[var(--md-sys-color-secondary-container)]/50 px-2 py-0.5 rounded-md">
                                     <span class="material-symbols-rounded text-[12px]">group</span>
-                                    <span>مشترک</span>
+                                    <span>
+                                        مشترک
+                                        @if(!empty($event['shared_by_name']))
+                                            توسط {{ $event['shared_by_name'] }}
+                                        @endif
+                                    </span>
                                 </div>
                             @endif
 
@@ -119,7 +132,12 @@
                 </div>
 
                 @if($event['is_owner'] && !empty($event['is_reservation_linked']))
-                    <div class="absolute bottom-1 left-3 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                        <x-ui.buttons.copy
+                            :text="route('dashboard', ['tab' => 'calendar', 'open' => $event['id']])"
+                            message="لینک رویداد کپی شد"
+                            class="bg-[var(--md-sys-color-surface-container-highest)] !rounded-xl shadow-sm"
+                        />
                         <a
                             href="{{ route('reservation') }}"
                             class="flex items-center gap-1 px-2.5 py-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-tertiary)] shadow-sm hover:bg-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary)] transition-colors text-[11px] font-bold"
@@ -130,6 +148,11 @@
                     </div>
                 @elseif($event['is_owner'])
                     <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                        <x-ui.buttons.copy
+                            :text="route('dashboard', ['tab' => 'calendar', 'open' => $event['id']])"
+                            message="لینک رویداد کپی شد"
+                            class="bg-[var(--md-sys-color-surface-container-highest)] !rounded-xl shadow-sm"
+                        />
                         <button
                             wire:click="openShareModal({{ $event['id'] }})"
                             class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-secondary)] shadow-sm hover:bg-[var(--md-sys-color-secondary)] hover:text-[var(--md-sys-color-on-secondary)] transition-colors"

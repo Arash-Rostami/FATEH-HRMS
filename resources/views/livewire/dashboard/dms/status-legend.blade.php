@@ -32,4 +32,20 @@
             <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">این دو تایید جداگانه، معادل امضای دیجیتال است: تایید دریافت یعنی «سند را دیده‌ام»، تایید مطالعه یعنی «محتوای آن را خوانده و پذیرفته‌ام». تا هر دو ثبت نشود، سند در کارتابل به‌عنوان اقدام مورد نیاز باقی می‌ماند.</p>
         </div>
     </div>
+
+    <div class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2.5">
+        <p class="px-1 text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">نکات</p>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sync</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی را که قبلاً خوانده‌اید دوباره در کارتابل «اقدام مورد نیاز» دیدید، فایل یا توضیحات بازبینیِ آن به‌روزرسانی شده و تأیید شما بازنشانی شده است — باید نسخهٔ جدید را دوباره مطالعه و تأیید کنید.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sort</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اسنادِ تأییدنشده یا خوانده‌نشده خودکار بالای فهرست می‌آیند تا اقدام مورد نیاز از قلم نیفتد.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">link_off</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر فایل سند باز نمی‌شود (صفحهٔ ۴۰۴)، آن سند برای واحد شما منتشر نشده یا فعال نیست — دسترسی فایل از مسیر امن بررسی می‌شود.</p>
+        </div>
+    </div>
 </div>

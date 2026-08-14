@@ -11,6 +11,7 @@ use App\Filament\Resources\SuggestionResource\Schemas\{SuggestionFormPresenter,
 use App\Models\Suggestion;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -27,12 +28,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class SuggestionResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Suggestion::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-light-bulb';
     protected static ?int $navigationSort = 6;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'lightbulb', 'view' => 'filament.resources.suggestion.guide.overview'],
+        ['label' => 'چرخهٔ بررسی', 'icon' => 'account_tree', 'view' => 'filament.resources.suggestion.guide.workflow'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.suggestion.guide.admin-ops'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.suggestion.guide.list-filters'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.suggestion.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

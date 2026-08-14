@@ -15,7 +15,22 @@
                 title="اختیارات سازمانی"
                 :count="$this->totalCount"
                 countLabel="اختیار"
-        />
+        >
+            <x-slot:actions>
+                <button
+                        type="button"
+                        @click="$dispatch('open-modal', { name: 'authority-legend' })"
+                        title="راهنمای اختیارات سازمانی"
+                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                >
+                    <span class="material-symbols-rounded text-lg">help</span>
+                </button>
+            </x-slot:actions>
+        </x-ui.title>
+
+        <x-ui.modals.dialog name="authority-legend" title="راهنمای اختیارات سازمانی">
+            @include('livewire.dashboard.authority.legend')
+        </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
 

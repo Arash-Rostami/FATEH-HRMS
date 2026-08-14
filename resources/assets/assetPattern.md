@@ -18,7 +18,7 @@ resources/assets/
     └── <tenant>/     — per-tenant sequentially-numbered files, see below
 ```
 
-**Flat vs. nested:** single-use images (favicon, hero) live at `img/` root as the generic/platform-default fallback; thematic groups get a subfolder (`img/bg/`). Tenant subfolders (`img/<tenant>/`, `video/<tenant>/`) are the one exception to "max 2 levels" — they're a separate categorization axis (per-company branding), not a thematic group. Reserve subfolders for 5+ related assets otherwise.
+**Flat vs. nested:** single-use utility images (document icons, lock) live at `img/` root; thematic groups get a subfolder (`img/bg/`). The per-tenant role-file fallback strings in `config/tenants.php` also target `img/` root (`build/assets/img/logo.svg`, etc.) as the generic/platform-default fallback. Tenant subfolders (`img/<tenant>/`, `video/<tenant>/`) are the one exception to "max 2 levels" — they're a separate categorization axis (per-company branding), not a thematic group. Reserve subfolders for 5+ related assets otherwise.
 
 ## Tenant-scoped assets — see `config/tenantPattern.md` for the full mechanism
 
@@ -31,7 +31,7 @@ Onboarding a new tenant is purely additive: add the folder + files, add one `con
 
 ## Build Pipeline
 
-`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix.
+`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/build/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix.
 
 ```javascript
 viteStaticCopy({
@@ -65,7 +65,7 @@ viteStaticCopy({
     }
 </style>
 
-<audio x-ref="notification" src="{{ asset('build/assets/audio/notification.mp3') }}"></audio>
+<audio x-ref="notification" src="{{ asset('build/assets/audio/alarm.mp3') }}"></audio>
 <video src="{{ asset('build/assets/video/hero-bg.mp4') }}" autoplay muted loop></video>
 <script src="{{ asset('build/assets/js/lib/confetti.browser.min.js') }}"></script>
 ```
@@ -82,8 +82,7 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 
 | Asset Type | Location | Processing |
 |------------|----------|------------|
-| UI sound effects | `audio/ui/` | Copied as-is |
-| Notification tones | `audio/alerts/` | Copied as-is |
+| UI sound effects (alarm, outgoing, incoming) | `audio/` (flat) | Copied as-is |
 | Custom web fonts | `fonts/` | Copied as-is |
 | Vendored browser-global JS | `js/lib/` | Copied as-is (assigned to `window`, loaded via literal `<script src=asset(...)>`) |
 | Per-tenant brand logos/backgrounds/favicon | `img/<tenant>/` | Copied as-is; role-named, see Tenant-scoped assets above |
@@ -91,8 +90,6 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 | Hero/background images (non-tenant) | `img/` root or `img/bg/` | Copied as-is |
 | Icon system (SVG) | `img/icons/` | Potential future: sprite generation |
 | Per-tenant auth-page video playlist | `video/<tenant>/` | Copied as-is; sequentially numbered, see Tenant-scoped assets above |
-| Looping backgrounds (non-tenant) | `video/ambient/` | Copied as-is |
-| Tutorial content | `video/tutorials/` | Copied as-is |
 
 ## Anti-Patterns
 
@@ -105,24 +102,7 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 
 ## Service Worker Integration
 
-Static assets in `public/assets/` require explicit Workbox runtime-caching config:
-
-```javascript
-registerRoute(
-    ({ request }) => request.destination === 'image' ||
-                    request.destination === 'video' ||
-                    request.destination === 'font',
-    new CacheFirst({
-        cacheName: 'static-assets',
-        plugins: [
-            new ExpirationPlugin({
-                maxEntries: 100,
-                maxAgeSeconds: 365 * 24 * 60 * 60
-            })
-        ]
-    })
-)
-```
+`resources/js/sw.js` (custom `injectManifest`, via `vite-plugin-pwa`) precaches the static-asset tree via `precacheAndRoute(self.__WB_MANIFEST)`; the precache glob is `**/*.{js,css,html,ico,png,svg,woff,woff2}` (set in `vite.config.js` `VitePWA.workbox.globPatterns`). There is no runtime-caching route for `build/assets/` — assets are served from the precache on navigation, fall back to network otherwise.
 
 ---
 ```

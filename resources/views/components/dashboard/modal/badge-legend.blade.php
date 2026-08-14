@@ -1,7 +1,7 @@
 @props(['name', 'title' => 'راهنمای نشانگرهای اعلان', 'items' => [], 'groups' => []])
 
 <x-ui.modals.dialog :name="$name" :title="$title">
-    <div class="space-y-3">
+    <div class="space-y-3 max-h-[calc(50vh-112px)] overflow-y-auto pr-1">
         <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--tool-sapphire-bg)] px-4 py-3">
             <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface)]/50 text-[var(--tool-sapphire-color)]">
                 <span class="material-symbols-rounded text-[16px]">fiber_manual_record</span>
@@ -41,7 +41,7 @@
                 </div>
 
                 @foreach($groups as $group)
-                    <div x-show="tab === '{{ $group['id'] }}'" x-cloak class="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+                    <div x-show="tab === '{{ $group['id'] }}'" x-cloak class="space-y-2">
                         @foreach($group['items'] as $item)
                             <x-dashboard.modal.badge-legend-row :item="$item"/>
                         @endforeach
@@ -51,7 +51,7 @@
         @endif
 
         @if(count($items))
-            <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+            <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] px-1 mb-1">در این صفحه</p>
                 @foreach($items as $item)
                     <x-dashboard.modal.badge-legend-row :item="$item"/>

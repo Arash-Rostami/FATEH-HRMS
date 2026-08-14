@@ -1,4 +1,5 @@
 import clipboardMixin from "../mixins/clipboard.js";
+import persistentStateMixin from "../mixins/persistentState.js";
 
 const API_SERVERS = [
     'https://de2.api.radio-browser.info/json',
@@ -34,8 +35,11 @@ const GENRES = [
 ];
 
 export default function radio(id) {
+    const storageKey = `${id}_state`;
+
     return {
         ...clipboardMixin(),
+        ...persistentStateMixin(),
         open: false,
         minimized: false,
         playing: false,
@@ -51,17 +55,6 @@ export default function radio(id) {
 
         _windowRadioListener: null,
         _windowKeydownListener: null,
-
-        _get(key, def = {}) {
-            const raw = localStorage.getItem(`${id}_${key}`);
-            if (raw === null) return def;
-            try { return JSON.parse(raw); }
-            catch { return def; }
-        },
-
-        _set(key, val) {
-            localStorage.setItem(`${id}_${key}`, JSON.stringify(val));
-        },
 
         get statusClass() {
             return STATUS_CLASSES[this.status] || STATUS_CLASSES['آماده'];
@@ -81,7 +74,7 @@ export default function radio(id) {
         },
 
         init() {
-            const state = this._get('state', {});
+            const state = this._loadState(storageKey, {});
             this.currentGenre = state.genre || 'jazz';
             if (state.stationUrl) this.currentStationUrl = state.stationUrl;
             if (state.minimized) this.minimized = true;
@@ -195,10 +188,10 @@ export default function radio(id) {
             this.audio = new Audio();
             this.audio.preload = 'none';
 
-            const onPlay = () => { this.playing = true;  this.status = 'در حال پخش';     this.updateDisplay(); this.saveState(); };
-            const onStop = () => { this.playing = false; this.status = 'متوقف';           this.updateDisplay(); this.saveState(); };
+            const onPlay = () => { this.playing = true;  this.status = 'در حال پخش';     this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
+            const onStop = () => { this.playing = false; this.status = 'متوقف';           this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
             const onBuffer = () => {                      this.status = 'در حال بافر...'; this.updateDisplay(); };
-            const onError = () => { this.playing = false; this.status = 'خطا';             this.updateDisplay(); this.saveState(); };
+            const onError = () => { this.playing = false; this.status = 'خطا';             this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
 
             this.audio.addEventListener('playing', onPlay);
             this.audio.addEventListener('pause', onStop);
@@ -279,11 +272,12 @@ export default function radio(id) {
             if (this.playing && this.audio) this.audio.pause();
             this.open = false;
             this.minimized = false;
-            this.saveState();
+            this.currentStationUrl = '';
+            this._clearState(storageKey);
         },
 
         saveState() {
-            this._set('state', {
+            this._saveState(storageKey, {
                 stationUrl: this.currentStationUrl,
                 genre: this.currentGenre,
                 minimized: this.minimized

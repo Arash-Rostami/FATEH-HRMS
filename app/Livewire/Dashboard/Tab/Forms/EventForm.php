@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab\Forms;
 
+use App\Models\Event;
 use Closure;
 use Livewire\Form;
 use Morilog\Jalali\CalendarUtils;
@@ -21,6 +22,8 @@ class EventForm extends Form
     public string $time = '12:00';
 
     public bool $private = false;
+
+    public ?int $remindHours = null;
 
     public ?int $editingId = null;
 
@@ -67,6 +70,7 @@ class EventForm extends Form
             ],
             'time' => ['required', 'date_format:H:i'],
             'private' => ['boolean'],
+            'remindHours' => ['nullable', 'integer', 'in:' . implode(',', Event::REMIND_HOURS_OPTIONS)],
         ];
     }
 
@@ -86,6 +90,7 @@ class EventForm extends Form
             'time.required' => 'زمان الزامی است',
             'time.date_format' => 'زمان را به‌صورت ساعت:دقیقه وارد کنید',
             'description.string' => 'توضیحات باید متن باشد',
+            'remindHours.in' => 'مقدار یادآوری نامعتبر است',
             'description.max' => 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',
             'private.boolean' => 'مقدار حریم خصوصی نامعتبر است',
         ];

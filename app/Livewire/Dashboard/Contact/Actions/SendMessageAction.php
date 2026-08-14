@@ -4,12 +4,15 @@ namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Models\Message;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SendMessageAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function execute(MessageComposerForm $form, int $recipientId): Message
     {
         $form->validate();
@@ -28,9 +31,7 @@ class SendMessageAction
                     'reply_to_id'  => $this->resolveReplyToId($form->replyToId, $senderId, $recipientId),
                 ]);
             } catch (\Throwable $e) {
-                foreach ($stored as $item) {
-                    Storage::disk('public')->delete($item['path']);
-                }
+                static::deleteStoredFiles($stored);
 
                 throw $e;
             }
@@ -57,24 +58,14 @@ class SendMessageAction
 
         try {
             foreach ($attachments as $file) {
-                $name = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $originalName = $file->getClientOriginalName();
-                $mime = $file->getMimeType();
-                $size = $file->getSize();
-
-                $path = $file->storeAs("messages/{$senderId}", $name, 'public');
-
-                $stored[] = [
-                    'path' => $path,
-                    'name' => $originalName,
-                    'mime' => $mime,
-                    'size' => $size,
-                ];
+                $stored[] = static::storeAttachment(
+                    $file,
+                    "messages/{$senderId}",
+                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->getClientOriginalExtension()
+                );
             }
         } catch (\Throwable $e) {
-            foreach ($stored as $item) {
-                Storage::disk('public')->delete($item['path']);
-            }
+            static::deleteStoredFiles($stored);
 
             throw $e;
         }

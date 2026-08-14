@@ -38,7 +38,7 @@
         {{-- Label + value (hidden during alarm so alarm slot shows) --}}
         <div class="flex flex-col justify-center min-w-0" :class="{{ $alarm }} ? 'hidden' : ''">
             @if($labelExpr)
-                <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)]"
+                <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)] truncate"
                       x-text="{{ $labelExpr }}"></span>
             @else
                 <span class="text-[10px] font-medium leading-tight text-[var(--md-sys-color-outline)]">

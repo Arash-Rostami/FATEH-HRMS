@@ -59,7 +59,7 @@
                                 x-on:click.stop="$dispatch('open-about-me', {
                                     user: {
                                         name: {{ \Illuminate\Support\Js::from($user->name) }},
-                                        position: {{ \Illuminate\Support\Js::from($user->profile?->positionLabel ?? 'کارشناس') }},
+                                        position: {{ \Illuminate\Support\Js::from($user->profile?->displayPosition ?? 'کارشناس') }},
                                         image: {{ \Illuminate\Support\Js::from($user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl()) }},
                                         department: {{ \Illuminate\Support\Js::from($user->profile?->department?->displayLabel()) }},
                                         division: {{ \Illuminate\Support\Js::from($user->profile?->detailsMap()->get('unit')) }},
@@ -83,8 +83,8 @@
                         <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] truncate leading-tight" title="{{ $user->name }}">
                             {{ $user->name }}
                         </p>
-                        <p class="text-[10px] text-{{ $p->color() }}-500/90 truncate font-medium leading-tight" title="{{ $orgTitle ?: ($user->profile?->positionLabel ?? 'کارشناس') }}">
-                            {{ $user->profile?->positionLabel ?? 'کارشناس' }}
+                        <p class="text-[10px] text-{{ $p->color() }}-500/90 truncate font-medium leading-tight" title="{{ $orgTitle ?: ($user->profile?->displayPosition ?? 'کارشناس') }}">
+                            {{ $user->profile?->displayPosition ?? 'کارشناس' }}
                         </p>
                         @if($user->last_seen)
                             <p dir="rtl" class="text-[9px] text-[var(--md-sys-color-on-surface-variant)]/70 truncate pt-0.5">

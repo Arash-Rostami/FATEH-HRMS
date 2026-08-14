@@ -11,6 +11,7 @@ use App\Filament\Resources\SkillResource\Schemas\SkillTablePresenter;
 use App\Models\Skill;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -23,12 +24,19 @@ use Illuminate\Support\Collection;
 
 class SkillResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, FilamentAdminGuide, AuthorizesByPermission;
 
     protected static ?string $model = Skill::class;
     protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-bolt';
     protected static ?int $navigationSort = 13;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'bolt', 'view' => 'filament.resources.skill.guide.overview'],
+        ['label' => 'جستجوی تأمین‌نشده', 'icon' => 'auto_awesome', 'view' => 'filament.resources.skill.guide.ghost'],
+        ['label' => 'اشتراک نام و فعال‌سازی', 'icon' => 'verified_user', 'view' => 'filament.resources.skill.guide.collision'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.skill.guide.admin-ops'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

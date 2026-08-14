@@ -4,6 +4,10 @@ import registerBackgroundStore from './stores/background.js'
 import registerSoundStore from './stores/sound.js'
 import registerPushStore from './stores/push.js'
 import registerChromeStore from './stores/chrome.js'
+import registerDensityStore from './stores/density.js'
+import registerColVisibilityStore from './stores/colVisibility.js'
+import registerPinStore from './stores/pinned.js'
+import registerTaggedStore from './stores/tagged.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
@@ -53,6 +57,10 @@ export default function initAlpine() {
         registerSoundStore(Alpine)
         registerPushStore(Alpine)
         registerChromeStore(Alpine)
+        registerDensityStore(Alpine)
+        registerColVisibilityStore(Alpine)
+        registerPinStore(Alpine)
+        registerTaggedStore(Alpine)
 
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)

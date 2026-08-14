@@ -7,6 +7,7 @@ use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
 use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Department;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -150,7 +151,8 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     public function departmentsData(): array
     {
         $total = Department::getCachedModels()->count();
-        $ranked = Department::withCount('users')->orderByDesc('users_count')->orderBy('code')->get();
+        $ranked = Department::withCount(['users' => fn($query) => $query->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])])
+            ->orderByDesc('users_count')->orderBy('code')->get();
         $withUsers = $ranked->where('users_count', '>', 0)->count();
         $mostDense = $ranked->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
 
@@ -759,7 +761,9 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function usersData(): array
     {
-        $stats = DB::table('users')->selectRaw("
+        $stats = DB::table('users')
+            ->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])
+            ->selectRaw("
             COUNT(*) as total,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
             COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,

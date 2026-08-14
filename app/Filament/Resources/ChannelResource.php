@@ -9,6 +9,7 @@ use App\Filament\Resources\ChannelResource\Schemas\{ChannelFormPresenter, Channe
 use App\Models\Channel;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -21,12 +22,19 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ChannelResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Channel::class;
     protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?int $navigationSort = 8;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.channel.guide.overview'],
+        ['label' => 'نوع و دسترسی', 'icon' => 'lock', 'view' => 'filament.resources.channel.guide.type-access'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.channel.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.channel.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

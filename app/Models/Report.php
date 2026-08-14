@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
-    use HasFactory, HasPublicAssetUrl;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
 
     protected $fillable = [
         'user_id',
@@ -66,6 +67,14 @@ class Report extends Model
             get: fn(?string $value): ?string => $value,
             set: fn(?string $value): ?string => ContentSanitizerService::clean($value),
         );
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $report) {
+            static::deleteStoredFiles($report->cover_image);
+            static::deleteStoredFiles($report->file_path);
+        });
     }
 
     protected function fileType(): Attribute

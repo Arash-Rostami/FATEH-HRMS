@@ -12,6 +12,7 @@ use App\Filament\Resources\FAQResource\Schemas\FAQTablePresenter;
 use App\Models\FAQ;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -25,12 +26,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class FAQResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = FAQ::class;
     protected static ?string $recordTitleAttribute = 'question';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';
     protected static ?int $navigationSort = 9;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.faq.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.faq.guide.admin-ops'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_alt', 'view' => 'filament.resources.faq.guide.list-filters'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.faq.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

@@ -13,6 +13,7 @@ use App\Models\ReleaseRequest;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
+use App\Traits\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -23,12 +24,19 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ReleaseRequestResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = ReleaseRequest::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-sparkles';
     protected static ?int $navigationSort = 10;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.release_request.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.release_request.guide.admin-ops'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'tab', 'view' => 'filament.resources.release_request.guide.list-tabs'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.release_request.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {
@@ -40,6 +48,7 @@ class ReleaseRequestResource extends Resource
                     ReleaseRequestFormPresenter::type(),
                     ReleaseRequestFormPresenter::status(),
                     ReleaseRequestFormPresenter::userId(),
+                    ReleaseRequestFormPresenter::response(),
                 ])
                 ->columns(3)
                 ->columnSpanFull(),
@@ -50,6 +59,7 @@ class ReleaseRequestResource extends Resource
                 ->schema([
                     ReleaseRequestFormPresenter::title(),
                     ReleaseRequestFormPresenter::body(),
+                    ReleaseRequestFormPresenter::attachments(),
                 ])
                 ->columns(1)
                 ->columnSpanFull(),
@@ -93,9 +103,11 @@ class ReleaseRequestResource extends Resource
                     ReleaseRequestInfolistPresenter::id(),
                     ReleaseRequestInfolistPresenter::title(),
                     ReleaseRequestInfolistPresenter::body(),
+                    ReleaseRequestInfolistPresenter::attachments(),
                     ReleaseRequestInfolistPresenter::user(),
                     ReleaseRequestInfolistPresenter::type(),
                     ReleaseRequestInfolistPresenter::status(),
+                    ReleaseRequestInfolistPresenter::response(),
                     ReleaseRequestInfolistPresenter::createdAt(),
                 ])
                 ->columnSpanFull()
@@ -124,11 +136,13 @@ class ReleaseRequestResource extends Resource
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
+                ReleaseRequestTablePresenter::reject(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ReleaseRequestExporter::class))
             ->striped()
             ->emptyStateIcon('heroicon-o-sparkles')
+            ->emptyStateActions(self::guideEmptyStateActions())
             ->defaultSort('created_at', 'desc');
     }
 }

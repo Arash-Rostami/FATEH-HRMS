@@ -32,10 +32,17 @@ trait FilamentHeaderActions
 
     private function listHeaderActions(): array
     {
-        return [
+        $actions = [
             CreateAction::make()
                 ->icon('heroicon-o-sparkles')
                 ->label(__('resources/general/strings.table.action_create')),
         ];
+
+        $resource = static::getResource();
+        if (method_exists($resource, 'guideTabs') && !empty($resource::guideTabs())) {
+            array_unshift($actions, $resource::setupGuideAction());
+        }
+
+        return $actions;
     }
 }

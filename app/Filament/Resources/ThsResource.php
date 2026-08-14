@@ -9,6 +9,7 @@ use App\Filament\Resources\ThsResource\Schemas\{TicketFormPresenter, TicketInfol
 use App\Livewire\Dashboard\Ths\Workspace;
 use App\Models\Ticket;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Livewire;
@@ -23,12 +24,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThsResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentFilters, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Ticket::class;
     protected static ?string $recordTitleAttribute = 'request_subject';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-lifebuoy';
     protected static ?int $navigationSort = 2;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.ths.guide.overview'],
+        ['label' => 'زبانه‌ها و فیلترها', 'icon' => 'list_alt', 'view' => 'filament.resources.ths.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.ths.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.ths.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

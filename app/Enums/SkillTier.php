@@ -13,7 +13,7 @@ enum SkillTier: string
         return match ($this) {
             self::Endorsed => 'تأییدشده',
             self::Active => 'فعال',
-            self::Unused => 'بدون استفاده',
+            self::Unused => 'آماده مشارکت',
         };
     }
 

@@ -25,4 +25,9 @@ trait HasJalaliAdminLabels
     {
         return $this->adminDateLabel('deleted_at', $fallback);
     }
+
+    public function archivedLabel(?string $fallback = '—'): ?string
+    {
+        return $this->adminDateLabel('archived_at', $fallback);
+    }
 }

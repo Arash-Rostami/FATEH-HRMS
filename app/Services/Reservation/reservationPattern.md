@@ -1,5 +1,31 @@
 # Reservation — resource booking + calendar sync
 
+## `Main::historyReservations()` — SQL-level hard cap, not true pagination
+
+The user-panel history tabs (previous/cancelled/released/upcoming) fold recurring-series occurrences
+into one representative row (`groupBy(fn($r) => $r->parent_id ?? $r->id)`) with an accurate
+`series_count` — needing every occurrence of a series in PHP to count correctly, so the query can't
+`->limit($historyLimit)` at the SQL level the way `resources()`/`totalResources()` do. Before the fix
+this meant `$query->get()` had **no SQL limit at all**: `scopeCancelled()`/`scopePrevious()`/
+`scopeReleased()` carry no time window, so a long-tenured user's ENTIRE lifetime history in that status
+was fetched, hydrated (with `resource` eager-loaded), and grouped/mapped in PHP on every page load of
+the tab — only to discard everything past `$historyLimit` (5, +5 per "load more") via `->take()`.
+Confirmed via direct code read, not a log symptom.
+
+**Fix applied is a quick safety cap, not a true fix**: `private const HISTORY_QUERY_CAP = 500;`
+applied as `$query->limit(self::HISTORY_QUERY_CAP)->get()` before the PHP-side grouping. This bounds
+the worst case (truly unbounded growth) but does **not** make the tab genuinely paginated — every load
+still fetches up to 500 rows regardless of `$historyLimit`. **Known, accepted tradeoff**: if a single
+recurring series has more occurrences than fit before the 500-row cutoff (e.g. 500+ historical rows in
+one status where the cutoff lands mid-series), that series' `series_count` badge could undercount — a
+cosmetic edge case, not a functional bug, only reachable well past what any UI session realistically
+pages through. A real fix would push the series-grouping and counting into SQL (e.g. a
+`COALESCE(parent_id, id)` group-by + window function) so only `$historyLimit` rows are ever fetched —
+deliberately not done; flagged as a future architecture change if this tab's cost ever becomes real
+rather than theoretical. Regression test:
+`ReservationTest::test_history_query_applies_hard_ceiling_before_series_folding` (asserts the actual
+executed SQL contains `limit 500` via `DB::listen()`, not just that the component renders).
+
 ## `EventSyncService` — meeting bookings become one shared calendar Event, not two mirrored ones
 
 `Reservation::booted()` calls `EventSyncService::sync()` on every `saved` and `EventSyncService::purge()`
@@ -47,11 +73,9 @@ such that the name-match breaks — `purge()` no longer needs to load `resource.
 
 ### Timing — nudge vs. badge are decoupled, by the existing system's own design
 
-Sharing an event (i.e. booking a meeting) does **not** wait for proximity: the bell fires the moment the
-`EventShare` row is created, as long as the meeting is still in the future. The **badge** dot is the one
-gated on time — it only lights within a rolling 24h window before the meeting (see
-`app/Services/Menu/statePattern.md` § `SharedEvents`). This is existing, unmodified behavior; the
-reservation flow simply now participates in it.
+This decoupling is existing, unmodified behavior from `app/Services/Menu/statePattern.md` §
+`SharedEvents` — the reservation flow simply now participates in it rather than introducing new
+notification timing.
 
 ### Not yet backfilled
 

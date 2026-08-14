@@ -24,12 +24,16 @@
 
             <div class="flex flex-col">
                 <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-base tracking-tight">
-                    {{ $config['title'] }}
+                    {{ ($showArchived && $column === 'done') ? 'آرشیو' : $config['title'] }}
                 </h3>
                 <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-80">
                     {{ $taskCount }} مورد
-                    @if($column === 'done' && !$showAllDone && $search === '')
-                        <span class="text-[var(--md-sys-color-primary)]">· ۴۵ روز اخیر</span>
+                    @if($column === 'done' && $search === '')
+                        @if($showArchived)
+                            <span class="text-[var(--md-sys-color-tertiary)]">· آرشیو</span>
+                        @elseif(!$showAllDone)
+                            <span class="text-[var(--md-sys-color-primary)]">· ۴۵ روز اخیر</span>
+                        @endif
                     @endif
                 </span>
             </div>
@@ -38,16 +42,30 @@
         <div class="flex items-center gap-1">
             @if($column === 'done')
                 <button
-                    wire:click="toggleShowAllDone"
+                    wire:click="toggleShowArchived"
                     @class([
                         'ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center',
-                        'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $showAllDone,
-                        'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => !$showAllDone,
+                        'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]' => $showArchived,
+                        'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => !$showArchived,
                     ])
-                    title="{{ ($showAllDone || $search !== '') ? 'نمایش ۴۵ روز اخیر' : 'نمایش تمام موارد قدیمی‌تر' }}"
+                    title="{{ $showArchived ? 'نمایش انجام‌شده‌ها' : 'نمایش آرشیو' }}"
                 >
-                    <span class="material-symbols-rounded text-lg">{{ ($showAllDone || $search !== '') ? 'history_toggle_off' : 'history' }}</span>
+                    <span class="material-symbols-rounded text-lg">{{ $showArchived ? 'unarchive' : 'archive' }}</span>
                 </button>
+
+                @if(!$showArchived)
+                    <button
+                        wire:click="toggleShowAllDone"
+                        @class([
+                            'ripple-effect min-w-[36px] min-h-[36px] p-1.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center',
+                            'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $showAllDone,
+                            'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => !$showAllDone,
+                        ])
+                        title="{{ ($showAllDone || $search !== '') ? 'نمایش ۴۵ روز اخیر' : 'نمایش تمام موارد قدیمی‌تر' }}"
+                    >
+                        <span class="material-symbols-rounded text-lg">{{ ($showAllDone || $search !== '') ? 'history_toggle_off' : 'history' }}</span>
+                    </button>
+                @endif
             @endif
 
             <button
@@ -87,15 +105,18 @@
 
     <div x-show="!isCollapsed(col($el))" class="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
         <!-- Tasks Container -->
-        <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden rounded-2xl bg-[var(--md-sys-color-surface-variant)]/30 p-2 {{ $density === 'compact' ? 'space-y-1.5' : 'space-y-3' }} scroll-smooth container-scrollbar custom-scrollbar">
+        <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden rounded-2xl bg-[var(--md-sys-color-surface-variant)]/30 p-2 space-y-3 taskboard-column-list scroll-smooth container-scrollbar custom-scrollbar">
             @forelse($columnTasks as $task)
                 @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column])
             @empty
                 @php
-                    $windowActive = ($column === 'done') && !$showAllDone && ($search === '');
+                    $windowActive = ($column === 'done') && !$showAllDone && !$showArchived && ($search === '');
                     $olderExist = $windowActive && (($doneTotalCount['done'] ?? 0) > 0);
+                    $archiveEmpty = ($column === 'done') && $showArchived && ($search === '');
                 @endphp
-                @if($olderExist)
+                @if($archiveEmpty)
+                    <x-ui.empty icon="archive" title="مورد آرشیو شده‌ای نیست" description="وظایف انجام‌شده‌ی آرشیو‌شده اینجا نمایش داده می‌شوند" variant="list" />
+                @elseif($olderExist)
                     <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
                         <x-slot:slot>
                             <button

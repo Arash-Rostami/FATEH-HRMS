@@ -5,13 +5,21 @@ namespace App\Filament\Resources\SkillRequestResource\Pages;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\SkillRequestResource;
 use App\Models\SkillUser;
+use App\Traits\FilamentHeaderActions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListSkillRequests extends ListRecords
 {
+    use FilamentHeaderActions;
+
     protected static string $resource = SkillRequestResource::class;
+
+    protected function listHeaderActions(): array
+    {
+        return [SkillRequestResource::setupGuideAction()];
+    }
 
     public function getTabs(): array
     {

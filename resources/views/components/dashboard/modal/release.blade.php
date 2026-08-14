@@ -125,6 +125,22 @@
                                     @endforeach
                                 </ul>
                             </div>
+
+                            @if(!empty($checkpoint['fixes']))
+                                <div class="rounded-xl p-4 mt-3 border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/20">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                                            <span class="material-symbols-rounded text-sm" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">build_circle</span>
+                                        </div>
+                                        <h5 class="text-[10px] uppercase tracking-widest font-bold text-[var(--md-sys-color-on-surface-variant)]">رفع اشکالات و بهبودهای پایداری</h5>
+                                    </div>
+                                    <ul class="space-y-2">
+                                        @foreach($checkpoint['fixes'] as $fix)
+                                            {!! $releaseNoteItem('build_circle', 'secondary', $fix['title'], $fix['desc']) !!}
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 

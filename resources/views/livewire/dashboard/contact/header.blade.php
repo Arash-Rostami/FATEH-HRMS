@@ -34,8 +34,8 @@
             @endif
         </div>
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
-            @if($this->activeContact->profile?->position)
-                <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->position_label }}</span>
+            @if($this->activeContact->profile?->has_display_position)
+                <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->display_position }}</span>
                 <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
             @if($this->activeContact->profile?->department)

@@ -20,6 +20,10 @@ class MarkSkillUsedAction
             throw new \RuntimeException('فقط مهارت‌های تأییدشده را می‌توان به‌روزرسانی کرد.');
         }
 
+        if ($context !== null && mb_strlen($context) > 255) {
+            throw new \RuntimeException('توضیحات نباید بیشتر از ۲۵۵ کاراکتر باشد.');
+        }
+
         $row->last_used_at = now();
         $row->last_used_context = $context;
         $row->save();

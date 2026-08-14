@@ -9,6 +9,7 @@ use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyFormPresenter
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyTablePresenter;
 use App\Models\ReservationPolicy;
 use App\Traits\AuthorizesByPermission;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentActions;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -21,11 +22,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReservationPolicyResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, AuthorizesByPermission;
 
     protected static ?string $model = ReservationPolicy::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-shield-check';
     protected static ?int $navigationSort = 3;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.policy.guide.overview'],
+        ['label' => 'کلیدها', 'icon' => 'key', 'view' => 'filament.resources.policy.guide.keys'],
+        ['label' => 'قطع‌کننده', 'icon' => 'power_settings_new', 'view' => 'filament.resources.policy.guide.killswitch'],
+        ['label' => 'خطاها', 'icon' => 'error', 'view' => 'filament.resources.policy.guide.errors'],
+    ];
 
     public static function canCreate(): bool
     {

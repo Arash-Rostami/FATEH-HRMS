@@ -56,7 +56,7 @@ class Main extends Component
     public function activeContact(): ?User
     {
         return $this->activeUserId
-            ? User::with(['profile.department'])->find($this->activeUserId)
+            ? User::with(['profile.department', 'profile.details'])->find($this->activeUserId)
             : null;
     }
 

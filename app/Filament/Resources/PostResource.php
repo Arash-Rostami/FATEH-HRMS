@@ -8,6 +8,7 @@ use App\Filament\Resources\PostResource\Pages\{CreatePost, EditPost, ListPosts};
 use App\Filament\Resources\PostResource\Schemas\{PostFormPresenter, PostInfolistPresenter, PostTablePresenter};
 use App\Models\Post;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -21,12 +22,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Post::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
     protected static ?int $navigationSort = 1;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'campaign', 'view' => 'filament.resources.post.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.post.guide.admin-ops'],
+        ['label' => 'نشانگر و اعلان', 'icon' => 'notifications_active', 'view' => 'filament.resources.post.guide.badge-nudge'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.post.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

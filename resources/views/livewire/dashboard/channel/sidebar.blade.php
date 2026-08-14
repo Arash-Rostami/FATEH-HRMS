@@ -107,9 +107,9 @@
         </button>
     </div>
 
-    <div id="channel-list" class="flex-1 overflow-y-auto py-1 contact-scrollbar" role="listbox">
+    <div id="channel-list" class="flex flex-col overflow-y-auto py-1 contact-scrollbar" role="listbox">
         @forelse($channelList as $ch)
-            <div wire:key="channel-{{ $ch['id'] }}" x-on:click="selectChannel({{ $ch['id'] }})"
+            <div wire:key="channel-{{ $ch['id'] }}" x-data="{ tagOpen: false }" x-on:click="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.enter.prevent="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.space.prevent="selectChannel({{ $ch['id'] }})"
                     data-rf="channel-{{ $ch['id'] }}"
@@ -118,25 +118,19 @@
                     role="option"
                     tabindex="0"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"
+                    :style="{ order: $store.pinned.isPinned({{ $ch['id'] }}, 'channel') ? -1 : 0 }"
                 @class([
-                    'group ripple-effect relative w-full flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeChannelId === $ch['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeChannelId !== $ch['id'],
                 ])>
 
-                <button type="button"
-                        x-on:click.stop="$store.sound.toggleMute({{ $ch['id'] }}, 'channel')"
-                        x-on:keydown.enter.stop
-                        x-on:keydown.space.stop
-                        :aria-pressed="$store.sound.isMuted({{ $ch['id'] }}, 'channel')"
-                        :aria-label="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
-                        :title="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
-                        class="absolute top-1.5 end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-[opacity,transform] duration-200 ease-out"
-                        :class="$store.sound.isMuted({{ $ch['id'] }}, 'channel')
-                                  ? 'opacity-100 scale-100 pointer-events-auto text-[var(--md-sys-color-primary)]'
-                                  : 'opacity-0 scale-90 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto focus:opacity-100 focus:scale-100 focus:pointer-events-auto text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]'">
-                    <span class="material-symbols-rounded text-[14px]" aria-hidden="true" x-text="$store.sound.isMuted({{ $ch['id'] }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
-                </button>
+                @include('livewire.dashboard.messaging.sidebar-row-actions', [
+                    'id' => $ch['id'],
+                    'scope' => 'channel',
+                    'pinNoun' => 'کانال',
+                    'muteNoun' => 'کانال',
+                ])
 
                 <div class="relative flex-shrink-0">
                     <div @class([

@@ -66,7 +66,9 @@ class ResourceFormPresenter
             ->label(__('resources/resource/strings.fields.name'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/resource/strings.hints.name'));
+            ->helperText(fn(Get $get) => $get('type') === ResourceType::Meeting->value
+                ? __('resources/resource/strings.hints.name_meeting')
+                : __('resources/resource/strings.hints.name'));
     }
 
     public static function notes(): Textarea

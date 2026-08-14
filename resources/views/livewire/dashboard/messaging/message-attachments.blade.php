@@ -2,7 +2,7 @@
     <div @class(['flex flex-wrap gap-1.5', 'mt-2' => $msg['body'] !== ''])>
         @foreach($msg['attachments'] as $i => $att)
             @if($att['is_image'])
-                <a href="{{ $att['url'] }}" target="_blank" rel="noopener noreferrer"
+                <a href="{{ $att['url'] }}" data-fancybox="msg-{{ $msg['id'] }}" data-caption="{{ $att['name'] }}"
                    class="block w-32 h-32 rounded-lg overflow-hidden border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
                     <img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"
                          class="w-full h-full object-cover">

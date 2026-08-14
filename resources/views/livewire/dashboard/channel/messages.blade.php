@@ -142,7 +142,8 @@
                                   'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_1px_6px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent),inset_0_1px_0_color-mix(in_srgb,white_6%,transparent)]' => !$msg['is_mine'],
                                   'ring-2 ring-[var(--md-sys-color-tertiary)]' => $msg['mentions_you']
                               ])
-                             :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'">
+                             :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;border:none;box-shadow:none;padding:0'"
+                             :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? '!ring-2 !ring-[var(--md-sys-color-primary)]' : ''">
 
                             @if($msg['mentions_you'])
                                 <span class="mention-you">

@@ -15,6 +15,7 @@ use App\Filament\Resources\DepartmentResource\Schemas\DepartmentTablePresenter;
 use App\Models\Department;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -28,12 +29,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepartmentResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Department::class;
     protected static ?string $recordTitleAttribute = 'name';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?int $navigationSort = 3;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'apartment', 'view' => 'filament.resources.department.guide.overview'],
+        ['label' => 'ساختار و سلسله‌مراتب', 'icon' => 'account_tree', 'view' => 'filament.resources.department.guide.hierarchy'],
+        ['label' => 'گزینه‌های تیکت', 'icon' => 'confirmation_number', 'view' => 'filament.resources.department.guide.ticket-options'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.department.guide.admin-ops'],
+    ];
 
     public static function form(Schema $schema): Schema
     {

@@ -42,7 +42,7 @@ class ListTasks extends ListRecords
                     fn(Builder $query) => $query->where('status', TaskStatus::InProgress->value)
                 ),
 
-            'pending' => Tab::make(__('resources/task/strings.tabs.pending') ?? 'در انتظار')
+            'pending' => Tab::make(__('resources/task/strings.tabs.pending'))
                 ->icon('heroicon-o-pause-circle')
                 ->badge(fn() => $this->getStats()->pending_count ?: null)
                 ->badgeColor('danger')

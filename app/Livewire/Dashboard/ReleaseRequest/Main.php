@@ -8,11 +8,12 @@ use App\Livewire\Dashboard\ReleaseRequest\Forms\ReleaseRequestForm;
 use App\Models\ReleaseRequest;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class Main extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public ReleaseRequestForm $form;
     public bool $show = false;
@@ -52,6 +53,12 @@ class Main extends Component
     public function loadMore(): void
     {
         $this->perPage += 5;
+    }
+
+    public function removeAttachment(int $index): void
+    {
+        unset($this->form->attachments[$index]);
+        $this->form->attachments = array_values($this->form->attachments);
     }
 
     #[Computed]

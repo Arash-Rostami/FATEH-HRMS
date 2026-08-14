@@ -12,6 +12,7 @@ class ReleaseRequestForm extends Form
     public string $type = 'recommendation';
     public string $title = '';
     public string $body = '';
+    public array $attachments = [];
 
     public function rules(): array
     {

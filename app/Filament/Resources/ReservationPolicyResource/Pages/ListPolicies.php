@@ -14,6 +14,6 @@ class ListPolicies extends ListRecords
 
     protected function listHeaderActions(): array
     {
-        return [];
+        return [ReservationPolicyResource::setupGuideAction()];
     }
 }

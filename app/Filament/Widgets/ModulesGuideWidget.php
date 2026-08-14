@@ -67,6 +67,8 @@ class ModulesGuideWidget extends Widget
             'reports' => ['filament_icon' => 'heroicon-o-presentation-chart-line'],
             'links' => ['filament_icon' => 'heroicon-o-arrow-top-right-on-square'],
             'faq' => ['filament_icon' => 'heroicon-o-question-mark-circle'],
+            'notification-guide' => ['filament_icon' => 'heroicon-o-bell'],
+            'analytics' => ['filament_icon' => 'heroicon-o-chart-bar'],
             'profile' => ['filament_icon' => 'heroicon-o-identification'],
             'skills' => ['filament_icon' => 'heroicon-o-bolt'],
             'onboarding' => ['filament_icon' => 'heroicon-o-building-office-2'],
@@ -96,6 +98,7 @@ class ModulesGuideWidget extends Widget
             'gallery' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'از کامپوننت‌های آپلود فایل با قابلیت پیش‌نمایش تصویر (Image Previews) استفاده کنید. امکان Bulk Actions برای حذف یا تغییر وضعیت گروهی تصاویر بسیار کاربردی است.'],
             'links' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'لینک‌های دسترسی سریع را با آیکون‌های متناسب ثبت نمایید. از قابلیت مرتب‌سازی (Sorting) در جداول برای اولویت‌بندی نمایش ابزارها بهره بگیرید.'],
             'faq' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'پایگاه دانش را با دسته‌بندی‌های اصولی مدیریت کنید. فیلدهای Infolist به شما اجازه می‌دهد پیش‌نمایش دقیقی از نحوه نمایش پرسش‌ها به کاربران داشته باشید.'],
+            'notification-guide' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'محتوای این راهنما از طریق پنل ادمین قابل ویرایش نیست — برای افزودن یا اصلاح متن یک نشانگر، ردیف مربوطه را مستقیماً در کاتالوگ اختصاصی نشانگرها (App\\Services\\Menu\\BadgeLegendCatalog) ویرایش کنید.'],
             'ads' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'فرصت‌های شغلی را با جزئیات دقیق منتشر کنید. از طریق سوئیچ‌های Toggle وضعیت فعال یا بایگانی بودن فرصت‌ها را به‌سرعت در نمای جدول کنترل نمایید.'],
             'suggestion' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'جریان پیشنهادات را از طریق فیلترهای وضعیت (Status Filters) رهگیری کنید. امکان ثبت بازخورد و تصمیم‌گیری مدیریتی مستقیماً از بخش Infolist یا Action های سفارشی فراهم است.'],
             'contact' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'روند ارتباطات داخلی را پایش کنید. با استفاده از قابلیت جستجوی جامع (Global Search)، تاریخچه تعاملات و پیام‌های سیستمی را با دقت بررسی نمایید.'],
@@ -114,6 +117,7 @@ class ModulesGuideWidget extends Widget
             'documents' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'مدارک الزامی کاربران را کنترل کنید. از قابلیت‌های نمایش وضعیت با استفاده از آیکون‌ها و رنگ‌های مختلف (Badge Columns) برای رهگیری سریع تاییدیه اسناد استفاده کنید.'],
             'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اطلاعات کاربری و دسترسی‌های سازمانی را با امنیت بالا نگهداری کنید. فیلترهای پیشرفته برای رهگیری تاریخ انقضا و وضعیت اکانت‌های اختصاص‌یافته در دسترس است.'],
             'auth' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اختیارات تفویض‌شده را شفاف‌سازی کنید. مدیریت تاریخ‌های اعتبار از طریق فیلترهای زمانی و امکان تمدید گروهی با Bulk Actions تسهیل شده است.'],
+            'analytics' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. برای تغییر آمار نمایش‌داده‌شده، اطلاعات پروفایل و حساب کاربری پرسنل را در ماژول «وضعیت کاریر» به‌روزرسانی کنید.'],
         ];
     }
 }

@@ -4,6 +4,7 @@
         ['icon' => 'public', 'color' => 'sapphire', 'label' => 'رویداد عمومی', 'text' => 'همهٔ کاربران این رویداد را در تقویم خود می‌بینند.'],
         ['icon' => 'edit', 'color' => 'amethyst', 'label' => 'مالکیت و ویرایش', 'text' => 'دکمه‌های «اشتراک‌گذاری»، «ویرایش» و «حذف» فقط برای سازندهٔ رویداد نمایش داده می‌شوند؛ سایر کاربران فقط می‌بینند و نمی‌توانند تغییری اعمال کنند.'],
         ['icon' => 'event_seat', 'color' => 'sage', 'label' => 'از طریق رزرو', 'text' => 'رزرو یک منبع جلسه به‌صورت خودکار این رویداد را برای رزروکننده و طرف مقابل ایجاد و به اشتراک می‌گذارد؛ برای تغییر یا لغو آن باید از تب «رزرو» اقدام کنید.'],
+        ['icon' => 'alarm', 'color' => 'error', 'label' => 'یادآوری', 'text' => 'در صورت تنظیم یادآوری، از همان ساعت مشخص‌شده پیش از رویداد، شمارش معکوس در ابزار تایمر شما فعال می‌شود و در لحظهٔ شروع رویداد، زنگ هشدار به‌صدا درمی‌آید.'],
     ];
 @endphp
 
@@ -17,6 +18,7 @@
                 'gold' => 'bg-[var(--tool-gold-bg)] text-[var(--tool-gold-color)]',
                 'amethyst' => 'bg-[var(--tool-amethyst-bg)] text-[var(--tool-amethyst-color)]',
                 'sage' => 'bg-[var(--tool-sage-bg)] text-[var(--tool-sage-color)]',
+                'error' => 'bg-[var(--md-sys-color-error-container)]/50 text-[var(--md-sys-color-error)]',
             };
         @endphp
         <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">

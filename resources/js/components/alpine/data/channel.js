@@ -2,6 +2,7 @@ import maximizeMixin from "../mixins/maximize.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
+import fancyboxMixin from "../mixins/fancybox.js";
 
 const SCOPE = 'channel';
 const POLL_INTERVAL_MS = 10000;
@@ -26,6 +27,7 @@ export default function channel() {
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(),
+        ...fancyboxMixin(),
         channelCount: 0,
         editingOriginal: '',
         isEditing: false,
@@ -45,6 +47,7 @@ export default function channel() {
         _scrollRaf: null,
 
         init() {
+            this.initFancybox();
             const saved = localStorage.getItem('chat-settings');
             if (saved) {
                 try {

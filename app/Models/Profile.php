@@ -8,6 +8,7 @@ use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasDateHelpers;
 use App\Models\Traits\HasMenuState;
 use App\Services\ProfileDetailCatalog;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Illuminate\Support\Collection;
 
 class Profile extends Model
 {
-    use HasFactory, HasDateHelpers, HasImage, HasMenuState;
+    use HasFactory, HasDateHelpers, HasImage, HasMenuState, CleansAttachedFiles;
 
     protected $fillable = [
         'personnel_id',
@@ -136,6 +137,18 @@ class Profile extends Model
             ?? ($this->position ?: 'کارشناس');
     }
 
+    public function getDisplayPositionAttribute(): string
+    {
+        $displayTitle = $this->detailsMap()->get('display_title');
+
+        return filled($displayTitle) ? (string) $displayTitle : $this->position_label;
+    }
+
+    public function getHasDisplayPositionAttribute(): bool
+    {
+        return filled($this->position) || filled($this->detailsMap()->get('display_title'));
+    }
+
     protected function casts(): array
     {
         return [
@@ -147,5 +160,13 @@ class Profile extends Model
             'number_of_children' => 'integer',
             'about_me' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $profile) {
+            static::deleteStoredFiles($profile->image);
+            static::deleteStoredFiles($profile->attachments);
+        });
     }
 }

@@ -4,13 +4,16 @@ namespace App\Models\Traits;
 
 use App\Models\Reply;
 use App\Models\User;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 trait HasReplies
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function replies(): MorphMany
     {
         return $this->morphMany(Reply::class, 'repliable')->with('user')->oldest();
@@ -63,19 +66,14 @@ trait HasReplies
 
         try {
             foreach ($files as $file) {
-                $path = $file->storeAs($directory, time() . '_' . Str::random(10) . '.' . $file->extension(), 'public');
-
-                $stored[] = [
-                    'path' => $path,
-                    'name' => $file->getClientOriginalName(),
-                    'mime' => $file->getMimeType(),
-                    'size' => $file->getSize(),
-                ];
+                $stored[] = static::storeAttachment(
+                    $file,
+                    $directory,
+                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                );
             }
         } catch (\Throwable $e) {
-            foreach ($stored as $item) {
-                Storage::disk('public')->delete($item['path']);
-            }
+            static::deleteStoredFiles($stored);
 
             throw $e;
         }

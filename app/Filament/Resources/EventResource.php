@@ -8,7 +8,7 @@ use App\Traits\AuthorizesByPermission;
 use App\Filament\Resources\EventResource\Pages\{CreateEvent, EditEvent, ListEvents};
 use App\Filament\Resources\EventResource\Schemas\{EventFormPresenter, EventInfolistPresenter, EventTablePresenter};
 use App\Models\Event;
-use App\Traits\FilamentActions;
+use App\Traits\{FilamentActions, FilamentAdminGuide};
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -24,12 +24,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentActions, FilamentAdminGuide, AuthorizesByPermission;
 
     protected static ?string $model = Event::class;
     protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?int $navigationSort = 3;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'calendar_month', 'view' => 'filament.resources.event.guide.overview'],
+        ['label' => 'شمارش معکوس', 'icon' => 'hourglass_top', 'view' => 'filament.resources.event.guide.countdown'],
+        ['label' => 'فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.event.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.event.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.event.guide.user'],
+    ];
 
     public static function form(Schema $schema): Schema
     {
@@ -67,6 +75,7 @@ class EventResource extends Resource
                                 ->schema([
                                     EventFormPresenter::private(),
                                     EventFormPresenter::userId(),
+                                    EventFormPresenter::remindHours(),
                                 ])
                                 ->columns(1),
 
@@ -164,6 +173,7 @@ class EventResource extends Resource
                     EventInfolistPresenter::date(),
                     EventInfolistPresenter::user(),
                     EventInfolistPresenter::private(),
+                    EventInfolistPresenter::remindHours(),
                     EventInfolistPresenter::countdown(),
                     EventInfolistPresenter::title(),
                     EventInfolistPresenter::description(),

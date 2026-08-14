@@ -4,6 +4,8 @@ namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Task;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -12,6 +14,9 @@ use Morilog\Jalali\CalendarUtils;
 
 class CreateTaskAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
+
     public function execute(TaskForm $form): Task
     {
         $form->validate();
@@ -52,23 +57,19 @@ class CreateTaskAction
 
     private function storeAttachments(TaskForm $form): array
     {
-        return collect($form->attachments)
-            ->map(function ($file) {
-                $originalName = $file->getClientOriginalName();
-                $mime = $file->getMimeType();
-                $size = $file->getSize();
+        $stored = [];
 
-                $path = $file->store('task/attachments', 'public');
+        try {
+            foreach ($form->attachments as $file) {
+                $stored[] = static::storeAttachment($file, 'task/attachments');
+            }
+        } catch (\Throwable $e) {
+            static::deleteStoredFiles($stored);
 
-                return [
-                    'path' => $path,
-                    'name' => $originalName,
-                    'mime' => $mime,
-                    'size' => $size,
-                ];
-            })
-            ->values()
-            ->all();
+            throw $e;
+        }
+
+        return $stored;
     }
 
     private function validateAttachments(TaskForm $form): void

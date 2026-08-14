@@ -207,6 +207,7 @@ class Calendar extends Component
         $this->form->dateDay = $j->getDay();
         $this->form->time = $event->date->format('H:i');
         $this->form->private = (bool)$event->private;
+        $this->form->remindHours = $event->remind_hours;
 
         $this->isCreateModalOpen = true;
     }
@@ -406,7 +407,7 @@ class Calendar extends Component
             ]);
 
         $events = Event::query()
-            ->with('shares:user_id,event_id')
+            ->with(['shares' => fn($q) => $q->select('id', 'user_id', 'event_id', 'shared_by')->with('sharer:id,name')])
             ->whereDate('date', $gregorianDate)
             ->where(function ($q) {
                 $authId = Auth::id();
@@ -416,19 +417,27 @@ class Calendar extends Component
             })
             ->latest('date')
             ->get()
-            ->map(fn($event) => [
-                'id' => $event->id,
-                'type' => 'event',
-                'title' => $event->title,
-                'description' => $event->description,
-                'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
-                'is_owner' => $event->user_id === Auth::id(),
-                'private' => $event->private,
-                'is_shared' => $event->user_id !== Auth::id()
-                    && $event->shares->contains('user_id', Auth::id()),
-                'is_reservation_linked' => EventSyncService::isReservationEvent($event->description),
-                'reservation_id' => EventSyncService::reservationIdFrom($event->description),
-            ]);
+            ->map(function ($event) {
+                $isShared = $event->user_id !== Auth::id()
+                    && $event->shares->contains('user_id', Auth::id());
+
+                return [
+                    'id' => $event->id,
+                    'type' => 'event',
+                    'title' => $event->title,
+                    'description' => $event->description,
+                    'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
+                    'is_owner' => $event->user_id === Auth::id(),
+                    'private' => $event->private,
+                    'is_shared' => $isShared,
+                    'shared_by_name' => $isShared
+                        ? $event->shares->firstWhere('user_id', Auth::id())?->sharer?->name
+                        : null,
+                    'is_reservation_linked' => EventSyncService::isReservationEvent($event->description),
+                    'reservation_id' => EventSyncService::reservationIdFrom($event->description),
+                    'remind_hours' => $event->remind_hours,
+                ];
+            });
 
         $profiles = Profile::query()
             ->select('id', 'user_id', 'birthdate', 'start_date', 'image')

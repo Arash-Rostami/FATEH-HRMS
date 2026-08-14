@@ -48,6 +48,12 @@ class ListReleaseRequests extends ListRecords
                 ->badge(fn() => $this->getStats()->resolved_count ?: null)
                 ->badgeColor(ReleaseRequestStatus::Resolved->getColor())
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', ReleaseRequestStatus::Resolved->value)),
+
+            'rejected' => Tab::make(ReleaseRequestStatus::Rejected->getLabel())
+                ->icon(ReleaseRequestStatus::Rejected->getIcon())
+                ->badge(fn() => $this->getStats()->rejected_count ?: null)
+                ->badgeColor(ReleaseRequestStatus::Rejected->getColor())
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', ReleaseRequestStatus::Rejected->value)),
         ];
     }
 
@@ -57,14 +63,17 @@ class ListReleaseRequests extends ListRecords
             ->selectRaw("
                 SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) AS open_count,
                 SUM(CASE WHEN status = 'in_review' THEN 1 ELSE 0 END) AS in_review_count,
-                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) AS resolved_count
+                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) AS resolved_count,
+                SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected_count
             ")
             ->first());
     }
 
-    protected function getHeaderActions(): array
+    protected function listHeaderActions(): array
     {
         return [
+            ReleaseRequestResource::setupGuideAction(),
+
             Action::make('submitRequest')
                 ->label(__('resources/release_request/strings.action.submit'))
                 ->icon('heroicon-o-sparkles')

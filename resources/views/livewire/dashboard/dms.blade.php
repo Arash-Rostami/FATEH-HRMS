@@ -61,6 +61,8 @@
 
         </div>
 
+        @include('livewire.dashboard.dms.recent-docs')
+
         @include('livewire.dashboard.dms.pdf-viewer')
 
         <div class="space-y-6 relative z-10">

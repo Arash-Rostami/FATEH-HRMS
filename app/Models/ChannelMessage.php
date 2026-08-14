@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
 use App\Models\Traits\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,8 @@ class ChannelMessage extends Model
     use HasFactory,
         SoftDeletes,
         Prunable,
-        HasPrunableStatus;
+        HasPrunableStatus,
+        CleansAttachedFiles;
 
     protected $fillable = [
         'channel_id',
@@ -106,8 +108,6 @@ class ChannelMessage extends Model
 
     protected static function booted(): void
     {
-        static::forceDeleted(function (self $message) {
-            Storage::disk('public')->deleteDirectory("channel_messages/{$message->channel_id}/{$message->id}");
-        });
+        static::forceDeleted(fn(self $message) => static::deleteStoredDirectory("channel_messages/{$message->channel_id}/{$message->id}"));
     }
 }

@@ -11,6 +11,7 @@ use App\Filament\Resources\ContactResource\Schemas\{ContactFormPresenter,
 use App\Models\Message;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -24,11 +25,19 @@ use Illuminate\Support\Str;
 
 class ContactResource extends Resource
 {
-    use FilamentActions, FilamentFilters, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Message::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 7;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.contact.guide.overview'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.contact.guide.admin-ops'],
+        ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.contact.guide.list-tabs'],
+        ['label' => 'حذف و هرس خودکار', 'icon' => 'delete_sweep', 'view' => 'filament.resources.contact.guide.prune'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.contact.guide.user'],
+    ];
 
     public static function canCreate(): bool
     {

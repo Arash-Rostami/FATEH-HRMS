@@ -13,6 +13,7 @@ use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
 use App\Models\Profile;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -27,11 +28,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfileResource extends Resource
 {
-    use FilamentActions, AuthorizesByPermission;
+    use FilamentActions, AuthorizesByPermission, FilamentAdminGuide;
 
     protected static ?string $model = Profile::class;
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-identification';
     protected static ?int $navigationSort = 2;
+
+    protected static array $guide = [
+        ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.profile.guide.overview'],
+        ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.profile.guide.list-tabs'],
+        ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.profile.guide.admin-ops'],
+        ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.profile.guide.user'],
+    ];
 
     public static function getRecordTitle(?Model $record): ?string
     {

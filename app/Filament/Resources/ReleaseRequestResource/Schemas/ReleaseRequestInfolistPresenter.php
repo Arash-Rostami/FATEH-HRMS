@@ -4,11 +4,38 @@ namespace App\Filament\Resources\ReleaseRequestResource\Schemas;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Database\Eloquent\Model;
 
 class ReleaseRequestInfolistPresenter
 {
+    public static function attachments(): RepeatableEntry
+    {
+        return RepeatableEntry::make('attachments')
+            ->label(__('resources/release_request/strings.fields.attachments'))
+            ->schema([
+                TextEntry::make('path')
+                    ->hiddenLabel()
+                    ->formatStateUsing(fn($state) => __('resources/release_request/strings.fields.view_file'))
+                    ->url(fn($state) => $state ? asset('storage/' . $state) : null)
+                    ->openUrlInNewTab()
+                    ->color('primary')
+                    ->placeholder('—'),
+            ])
+            ->columnSpanFull();
+    }
+
+    public static function response(): TextEntry
+    {
+        return TextEntry::make('response')
+            ->label(__('resources/release_request/strings.fields.response'))
+            ->color(fn(?Model $record) => $record?->status === ReleaseRequestStatus::Rejected->value ? 'danger' : 'primary')
+            ->columnSpanFull()
+            ->visible(fn(?Model $record) => filled($record?->response))
+            ->placeholder('-');
+    }
+
     public static function body(): TextEntry
     {
         return TextEntry::make('body')

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 class Link extends Model
 {
     use HasFactory,
-        HasPublicAssetUrl;
+        HasPublicAssetUrl,
+        CleansAttachedFiles;
 
     protected $fillable = [
         'url',
@@ -31,6 +33,11 @@ class Link extends Model
     {
         static::saving(function (self $link) {
             $link->extra = $link->normalizedExtra();
+        });
+
+        static::deleting(function (self $link) {
+            static::deleteStoredFiles($link->image);
+            static::deleteStoredFiles($link->icon);
         });
     }
 

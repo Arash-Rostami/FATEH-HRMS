@@ -4,6 +4,17 @@
             'right-0 translate-x-[calc(100%+6px)]' => !$msg['is_mine']
         ])
      :class="openActionsId === {{ $msg['id'] }} ? 'opacity-100 scale-100' : ''">
+    <button x-on:click="$store.pinned.togglePin(@js($msg['id']), @js('message'))"
+            :aria-pressed="$store.pinned.isPinned(@js($msg['id']), @js('message'))"
+            :aria-label="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"
+            :title="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? @js('برداشتن نشان پیام') : @js('نشان کردن پیام')"
+            class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-90"
+            :class="$store.pinned.isPinned(@js($msg['id']), @js('message'))
+                      ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]'
+                      : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)]'">
+        <span class="material-symbols-rounded text-[15px]"
+              :class="$store.pinned.isPinned(@js($msg['id']), @js('message')) ? 'font-fill' : ''">bookmark</span>
+    </button>
     <button x-on:click="copyMessage($el.dataset.text)"
             data-text="{{ strip_tags($msg['body_html']) }}"
             class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
@@ -32,4 +43,13 @@
             <span class="material-symbols-rounded text-[15px]">delete</span>
         </button>
     @endif
+</div>
+
+<div x-show="$store.pinned.isPinned(@js($msg['id']), @js('message'))" x-cloak
+     @class([
+         'absolute top-0 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-md pointer-events-none',
+         'right-0 -translate-y-1/2 translate-x-1/2' => $msg['is_mine'],
+         'left-0 -translate-y-1/2 -translate-x-1/2' => !$msg['is_mine'],
+     ])>
+    <span class="material-symbols-rounded text-[12px] font-fill">bookmark</span>
 </div>

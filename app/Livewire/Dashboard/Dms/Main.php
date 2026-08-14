@@ -21,12 +21,21 @@ class Main extends Component
 
     private const FILTER_LABELS = ['type' => 'دسته بندی'];
 
+    private const SORT_COLUMNS = [
+        'updated' => 'updated_at',
+        'title' => 'title',
+        'code' => 'code',
+    ];
+
     private ?array $parsedActiveFilterCache = null;
 
     #[Url(as: 'tab')]
     public string $activeTab = 'systematic';
     public string $search = '';
     public ?string $activeFilter = 'all';
+    public string $sort = 'updated';
+    public string $sortDir = 'desc';
+    public ?string $pendingFilter = null;
     public int $perPage = 10;
     public bool $hasMorePages = true;
     #[Locked]
@@ -134,6 +143,53 @@ class Main extends Component
         $this->refreshReadState();
     }
 
+    public function sortBy(string $column): void
+    {
+        if (!array_key_exists($column, self::SORT_COLUMNS)) {
+            return;
+        }
+
+        if ($this->sort === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sort = $column;
+            $this->sortDir = 'asc';
+        }
+
+        $this->resetAndReload();
+    }
+
+    public function togglePendingFilter(string $which): void
+    {
+        if (!in_array($which, ['receive', 'read'], true)) {
+            return;
+        }
+
+        $this->pendingFilter = $this->pendingFilter === $which ? null : $which;
+        $this->resetAndReload();
+    }
+
+    public function clearPendingFilter(): void
+    {
+        if ($this->pendingFilter === null) {
+            return;
+        }
+
+        $this->pendingFilter = null;
+        $this->resetAndReload();
+    }
+
+    public function resetSort(): void
+    {
+        if ($this->sort === 'updated' && $this->sortDir === 'desc') {
+            return;
+        }
+
+        $this->sort = 'updated';
+        $this->sortDir = 'desc';
+        $this->resetAndReload();
+    }
+
     public function loadInitialDocs(): void
     {
         $ids = $this->matchingDocIds();
@@ -225,6 +281,7 @@ class Main extends Component
         $this->activeTab = $tab;
         $this->search = "";
         $this->activeFilter = "all";
+        $this->pendingFilter = null;
         $this->resetAndReload();
     }
 
@@ -270,16 +327,28 @@ class Main extends Component
 
     private function getBaseQuery(): Builder
     {
+        [$sortCol, $sortDir] = $this->validSort();
+
         return $this->visibleTabQuery()
-            ->when($this->search !== '', fn($query) => $query->where(fn($q) => $q
-                ->where('title', 'like', "%{$this->search}%")
-                ->orWhere('code', 'like', "%{$this->search}%")
-                ->orWhere('version', 'like', "%{$this->search}%")
-                ->orWhereJsonContains('extra->category', $this->search)
-                ->orWhereJsonContains('extra->Category', $this->search)
-                ->orWhereJsonContains('extra->type', $this->search)
-                ->orWhereJsonContains('extra->Type', $this->search)
-            ))
+            ->when($this->search !== '', function ($query) {
+                $needle = $this->search;
+                $escapedNeedle = trim(json_encode($needle), '"');
+
+                return $query->where(fn($q) => $q
+                    ->whereRaw('INSTR(title, ?) > 0', [$needle])
+                    ->orWhereRaw('INSTR(code, ?) > 0', [$needle])
+                    ->orWhereRaw('INSTR(version, ?) > 0', [$needle])
+                    ->orWhereRaw('INSTR(revision, ?) > 0', [$needle])
+                    ->orWhereJsonContains('extra->category', $needle)
+                    ->orWhereJsonContains('extra->Category', $needle)
+                    ->orWhereJsonContains('extra->type', $needle)
+                    ->orWhereJsonContains('extra->Type', $needle)
+                    ->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$needle])
+                    ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$needle])
+                    ->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$escapedNeedle])
+                    ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$escapedNeedle])
+                );
+            })
             ->when(
                 $this->activeFilter !== 'all' && $this->parsedActiveFilter()[0] === 'type',
                 function ($query) {
@@ -293,7 +362,30 @@ class Main extends Component
                     );
                 }
             )
-            ->latest('updated_at')->latest();
+            ->when($this->pendingFilter === 'receive', fn($query) => $query->whereNotIn('id', $this->confirmedDocs))
+            ->when($this->pendingFilter === 'read', fn($query) => $query->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs))
+            ->orderByRaw($this->readPriorityExpression(), [auth()->id()])
+            ->orderBy($sortCol, $sortDir)
+            ->orderBy('id', 'desc');
+    }
+
+    private function readPriorityExpression(): string
+    {
+        return "COALESCE(
+            (SELECT CASE WHEN read_count = 0 THEN 1 ELSE 2 END
+                FROM `reads`
+                WHERE `reads`.document_id = dms.id AND `reads`.user_id = ?
+                LIMIT 1),
+            0
+        ) ASC";
+    }
+
+    private function validSort(): array
+    {
+        $col = self::SORT_COLUMNS[$this->sort] ?? 'updated_at';
+        $dir = strtolower($this->sortDir) === 'asc' ? 'asc' : 'desc';
+
+        return [$col, $dir];
     }
 
     private function matchingDocIds(): array
