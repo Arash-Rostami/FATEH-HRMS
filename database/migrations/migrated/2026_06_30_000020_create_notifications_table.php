@@ -20,6 +20,7 @@ return new class extends Migration {
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
                 $table->primary('id');
+                $table->index('created_at', 'notifications_created_at_index');
                 $table->index(['notifiable_type', 'notifiable_id'], 'notifications_notifiable_type_notifiable_id_index');
                 $table->index(['notifiable_type', 'notifiable_id', 'read_at'], 'notifications_notifiable_read_index');
             });

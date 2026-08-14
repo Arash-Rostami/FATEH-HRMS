@@ -80,7 +80,7 @@ class ShareEventAction
         if (empty($ids)) return [];
 
         return User::query()
-            ->active()
+            ->visibleOnBoard()
             ->whereIn('id', $ids)
             ->pluck('id')
             ->all();

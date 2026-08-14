@@ -532,16 +532,22 @@ but scope to that one column at its JSON path. Reference: `app/Services/User/Use
   `resources/views/livewire/dashboard/tab/status/filters.blade.php` and the pre-existing precedent in
   the sibling `grid.blade.php`.
 
-**Visibility scope for the colleague-status board (`scopeVisibleOnBoard`)** — to hide a class of
-users from the "وضعیت همکاران" Livewire board while keeping them fully functional everywhere else
-(login, channels, tasks, reservations), add a named combo scope on the model rather than reusing
-`scopeActive` (which other call sites depend on). Reference: `User::scopeVisibleOnBoard()` =
-`active()->whereNot('type', UserType::Guest->value)`, used in `Status` Livewire's `stats()` and
-`users()`. `UserType::Guest` was a defined-but-unused enum case — repurposing it as the hide signal
-needs no migration, no new column, no new enum case. Admin side surfaces these users via a list tab
-(`ListUsers::getTabs()` → `'hidden'` tab filtering `type = guest`) plus the pre-existing
-`typeFilter`. Note: `whereNot` excludes NULL-typed rows in SQL; safe here only because the schema
-defaults `type` to `'employee'`.
+**Visibility scope for colleague pickers/lists (`scopeVisibleOnBoard`)** — to hide `UserType::Guest`
+from every surface that lists/selects "colleagues" (originally just the "وضعیت همکاران" Status
+board; as of 2026-08 also the Contact sidebar, Channel member picker, TaskBoard assignee picker,
+Calendar event-share picker, admin Task assignee, admin DMS owners — see `livewirePattern.md`/
+`contactPattern.md`), add a named combo scope on the model rather than reusing `scopeActive` (which
+other call sites — login, notification-recipient pools, per-user badges — still depend on staying
+Guest-inclusive). Reference: `User::scopeVisibleOnBoard()` = `active()->whereNot('type',
+UserType::Guest->value)`. `UserType::Guest` was a defined-but-unused enum case — repurposing it as
+the hide signal needs no migration, no new column, no new enum case. Admin side surfaces these users
+via a list tab (`ListUsers::getTabs()` → `'hidden'` tab filtering `type = guest`) plus the
+pre-existing `typeFilter`. Note: `whereNot` excludes NULL-typed rows in SQL; safe here only because
+the schema defaults `type` to `'employee'`. **Deliberately still Guest-inclusive**: login/auth,
+notification "nudge" recipient pools (`app/Services/Menu/Notifications/*.php`, incl. `DmsNudge` via
+`DMS::pendingRecipients()`), and any per-user badge/count keyed by the acting user's own id (e.g.
+`DMS::hasPendingFor($userId)`) — those answer "should this specific user be told/see their own
+state", not "who should appear in a colleague list", so they intentionally keep `scopeActive`.
 
 **Same exclusion applies to org-wide headcount stats, not just the status board.** `ModuleAnalyticsWidget::usersData()`/`departmentsData()` originally counted every row in `users` with no `type` filter, so `UserType::Guest`/`UserType::VIP` inflated the admin dashboard's "users" and per-department headcount stats. Fixed with `->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])` — on the raw `DB::table('users')` query for `usersData()`, and inside a `withCount(['users' => fn($query) => ...])` closure for `departmentsData()` (`Department::users()` is `HasManyThrough` via `profiles`; neither `departments` nor `profiles` has a `type` column, so the closure's `type` reference is structurally unambiguous — always resolves to `users.type`). `VIP` is included here (unlike `scopeVisibleOnBoard`, which only excludes `Guest`) because these are org-wide *statistics*, not the status board's narrower "hide non-employees from the colleague list" concern — match the exclusion set to what the specific surface is actually counting, don't reflexively copy `scopeVisibleOnBoard`'s exact set.
 - `->filtersFormColumns(2)` — use 2-column filter layout when there are multiple filters

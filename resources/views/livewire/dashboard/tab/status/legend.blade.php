@@ -63,6 +63,16 @@
         </div>
     </div>
 
+    <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--tool-gold-bg)] text-[var(--tool-gold-text)]">
+            <span class="material-symbols-rounded text-[16px]">celebration</span>
+        </div>
+        <div class="min-w-0">
+            <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">مناسبت‌های امروز</p>
+            <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">نوار بالای فهرست فقط وقتی نمایش داده می‌شود که تاریخ تولد یا استخدامِ ثبت‌شده در پروفایل یک همکار دقیقاً امروز باشد — نه یک روز نزدیک. کارمندان با وضعیت «پایان‌یافته» و کاربران نوع «مهمان» هرگز نمایش داده نمی‌شوند.</p>
+        </div>
+    </div>
+
     @if($showFilterHint)
         <div class="mt-4 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/40">
             <div class="flex items-start gap-2 px-1">

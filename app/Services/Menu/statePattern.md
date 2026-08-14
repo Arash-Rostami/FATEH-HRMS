@@ -955,6 +955,60 @@ dispatch.
 
 None currently — the `BadgeLegendCatalog` coverage gap below was closed 2026-08-13.
 
+## Pruning stale nudge rows — `notifications:prune-stale`
+
+Nudge rows (`:nudge` suffix) are one **per (record × user)**, and for records that permanently qualify
+(`show = true`: Post/Feed/Photo/Report/Ad) they are never deleted by `reconcile()` until the record
+itself is deleted — read *or* unread, they linger indefinitely. With broadcast nudges
+(`for = User::active()`) that is `#records × #users` and grows without bound. Badge rows (bare keys)
+are bounded (~one per indicator per user) and are **not** the bloat.
+
+`App\Console\Commands\PruneStaleNudges` (`notifications:prune-stale {--days=30}`) is the minimal,
+provably-safe closer, scheduled `->daily()->withoutOverlapping()` in `routes/console.php`:
+
+- Deletes `notifications` rows where `type = FilamentDatabaseNotification` AND
+  `data->menu_key LIKE '%nudge'` AND `created_at < now()->subDays($days)`. The `nudge` ending partitions
+  the namespace — every nudge key ends in `nudge` (the current `:nudge` suffix **and** the legacy
+  `:reply-nudge` suffix left by a refactored-away iteration — no source code writes `:reply-nudge` any
+  more; `TaskNudge`/`ThsNudge` now reuse the single `:nudge` key+item_id), and no bare badge key ends in
+  `nudge` (`ads-controller`, `dms-controller`, `shared-events`, `special-days`, …). `LIKE '%nudge'`
+  catches the whole nudge family in one predicate; the earlier `LIKE '%:nudge'` was too narrow and would
+  have left the legacy `:reply-nudge` rows behind.
+  (`data->menu_key` compiles to `json_unquote(json_extract(...))` on MySQL — `MySqlGrammar` line 572 —
+  so the unquoted value is what `LIKE` compares. **Practically verified on live data** (MySQL 5.7.24,
+  `DB_CONNECTION=mysql`): `LIKE '%nudge'` matched exactly the `:nudge` + `:reply-nudge` keys (all ending
+  `nudge`), `NOT LIKE '%nudge'` matched exactly the bare badge keys (none ending `nudge`), and the two
+  counts summed to the table total — a clean partition. Production runs MySQL 8.0+; the grammar emits
+  identical SQL on 5.7 and 8.0 and the predicate is ASCII-suffix-based, so collation differences are
+  irrelevant. This is also distinct from the `livewirePattern.md` LIKE+JSON bug family — that one is
+  free-text user input (LIKE metacharacter over-match + `\uXXXX`-escaped Persian needle + `\` escape
+  stripping); this is a static ASCII suffix with no user input and no escape surface.)
+- **Aligned to `HasNudgeTracking::FRESHNESS_DAYS` (30).** Every badge query (`hasUnreadFor`,
+  `seenIdsFor`, `isFresh`) already scopes `created_at >= now()->subDays(30)`, so a nudge row older
+  than the horizon feeds **zero** badge signal — it is only bell clutter (Filament's bell has no
+  freshness filter). Pruning it at 30 is therefore safe by construction, not a compromise.
+- **Guarded `--days`**: `< 1` is rejected with `Command::FAILURE` (no accidental `--days=0` mass
+  delete of every row with `created_at < now()`). `handle(): int` returns `SUCCESS`/`FAILURE`.
+- **No-resurface, deliberately bounded past the horizon.** A pruned `:nudge` row can only re-create
+  on a *future Eloquent event* for that same record (an edit) — `reconcile()` re-fetches, re-evaluates
+  `show`, and creates a fresh unread nudge. This is an accepted, bounded weakening of the no-resurface
+  guarantee for the >30-day window — the cost of bounding the table: a dismissed nudge may re-surface
+  **only** when its record is later edited past the horizon (a record never touched again never
+  re-surfaces), and the fresh row is itself pruned on the next cycle. Without this tradeoff, read nudge
+  rows would linger forever — exactly the bloat this command exists to bound. (Channel is genuinely
+  nudge-only — no badge indicator exists — and Contact/Dms/Ths/SharedEvents opt out of badge-overlap
+  suppression via `badgeSuppressesCreate = false` because their badge condition is not a superset of
+  the nudge condition, so CREATE is not skipped even when a bare-key badge row is present.)
+- **Backlog + ongoing in one mechanism.** The first scheduled run deletes the existing backlog
+  (everything older than the horizon) exactly as it keeps future growth bounded — no separate
+  one-off cleanup. For immediate relief without waiting for the cron tick, run
+  `php artisan notifications:prune-stale` once (optionally `--days=30`).
+- No migration, no engine change, no behavior change to `BadgeSyncService`/`NudgeService`/indicators.
+- **Tested** in `tests/Feature/Console/ConsoleCommandsTest.php` (4 cases): stale `:nudge` pruned while
+  fresh `:nudge` and stale bare-key badge row survive; `--days` window honored; legacy `:reply-nudge`
+  caught + its bare `:reply` sibling survives (locks the `LIKE '%nudge'` vs `LIKE '%:nudge'` choice);
+  `--days<1` guard returns FAILURE.
+
 ### Closed 2026-08-13 — `BadgeLegendCatalog` coverage gap
 
 The 7 modules missing their own `<x-dashboard.modal.badge-legend>` shortcut (Ads, Suggestions,

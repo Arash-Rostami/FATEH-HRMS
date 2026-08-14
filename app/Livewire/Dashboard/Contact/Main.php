@@ -87,6 +87,7 @@ class Main extends Component
             'id' => (int)$user->id,
             'name' => $user->name,
             'profile' => $user->profile?->toArray(),
+            'occasion' => $user->profile?->todaysOccasionType(),
             'unit' => $user->profile?->detailsMap()->get('unit'),
             'section' => $user->profile?->detailsMap()->get('section'),
             'last_message' => $lastMessages->get($user->last_message_id)?->toArray(),
@@ -356,7 +357,7 @@ class Main extends Component
     #[Computed]
     public function totalStaff(): int
     {
-        return User::active()->count();
+        return User::visibleOnBoard()->count();
     }
 
     #[Computed]

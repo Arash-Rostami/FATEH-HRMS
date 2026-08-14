@@ -35,7 +35,7 @@ class FetchContactsAction
             ->groupBy('contact_id');
 
         return User::with(['profile.department', 'profile.details'])
-            ->active()
+            ->visibleOnBoard()
             ->select('users.*', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'))
             ->leftJoinSub($lastMsgSub, 'lm', 'users.id', '=', 'lm.contact_id')
             ->leftJoinSub($unreadSub, 'uc', 'users.id', '=', 'uc.contact_id')

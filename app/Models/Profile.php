@@ -7,6 +7,7 @@ use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasDateHelpers;
 use App\Models\Traits\HasMenuState;
+use App\Models\Traits\HasOccasions;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use Illuminate\Support\Collection;
 
 class Profile extends Model
 {
-    use HasFactory, HasDateHelpers, HasImage, HasMenuState, CleansAttachedFiles;
+    use HasFactory, HasDateHelpers, HasImage, HasMenuState, HasOccasions, CleansAttachedFiles;
 
     protected $fillable = [
         'personnel_id',

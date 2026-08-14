@@ -7,6 +7,16 @@
             :count="array_sum($this->stats)"
             countLabel="نفر">
             <x-slot:actions>
+                @if(count($this->todaysOccasions))
+                    <button
+                        type="button"
+                        x-on:click="$refs.occasions?.scrollIntoView({ behavior: 'smooth', block: 'start' })"                        title="مشاهده مناسبت‌های امروز"
+                        class="flex items-center gap-1 px-2.5 h-8 rounded-lg text-[11px] font-bold bg-[var(--tool-gold-bg)] text-[var(--tool-gold-text)] hover:brightness-95 transition-all animate-pulse-slow"
+                    >
+                        <span class="material-symbols-rounded text-sm">celebration</span>
+                        {{ count($this->todaysOccasions) }}
+                    </button>
+                @endif
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'status-skill-legend' })"
@@ -22,6 +32,8 @@
     <x-ui.modals.dialog name="status-skill-legend" title="راهنمای نشان‌های سطح مهارت">
         @include('livewire.dashboard.tab.status.legend')
     </x-ui.modals.dialog>
+
+    @include('livewire.dashboard.tab.status.occasions')
 
     @include('livewire.dashboard.tab.status.filters')
 

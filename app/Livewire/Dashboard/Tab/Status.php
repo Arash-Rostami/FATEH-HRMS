@@ -189,6 +189,16 @@ class Status extends Component
     }
 
     #[Computed]
+    public function todaysOccasions(): array
+    {
+        return $this->users
+            ->map(fn(User $user) => ['user' => $user, 'type' => $user->profile?->todaysOccasionType()])
+            ->filter(fn(array $o) => $o['type'] !== null)
+            ->values()
+            ->all();
+    }
+
+    #[Computed]
     public function stats()
     {
         $counts = User::query()

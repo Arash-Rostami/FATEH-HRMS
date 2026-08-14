@@ -22,7 +22,7 @@ This doc is the **single source of truth** for every file, contract, rule, and g
 
 Everything flows from this:
 
-- **Sidebar list** = all active users (`FetchContactsAction` returns `User::active()` with `leftJoinSub` for last-message + unread; a user with no prior conversation still appears, with `last_message = null`, `unread_count = 0`). Contrast Channel, where the sidebar is your memberships only.
+- **Sidebar list** = all colleague-visible users (`FetchContactsAction` returns `User::visibleOnBoard()` — excludes `UserType::Guest`, same scope the Status board uses — with `leftJoinSub` for last-message + unread; a user with no prior conversation still appears, with `last_message = null`, `unread_count = 0`). Contrast Channel, where the sidebar is your memberships only.
 - **`selectContact`** guards only on `User::getCachedAllOptions()->has($userId)` (user exists/active) — no membership row, no `whereHas`. Silent `return` on fail (not a 403).
 - **Unread** = messages where `recipient_id = me`, `read_at IS NULL`, `deleted_at IS NULL`, counted per contact (`unreadSub` in `FetchContactsAction`).
 - **Marking read** = `MarkMessagesAsReadAction` sets `read_at` on the contact's inbound messages to me.
@@ -102,7 +102,7 @@ app/Livewire/Dashboard/Contact/
 │   ├── MessageComposerForm.php                         send form (body/attachments) + inline #[Validate]
 │   └── EditMessageForm.php                             edit form (editingBody) + inline #[Validate]
 ├── Actions/
-│   ├── FetchContactsAction.php                         sidebar list — UNION ALL sent+received → last_message_id; leftJoinSub unread; User::active()
+│   ├── FetchContactsAction.php                         sidebar list — UNION ALL sent+received → last_message_id; leftJoinSub unread; User::visibleOnBoard()
 │   ├── SendMessageAction.php                           DB::transaction send + attachment store + reply-link validation (drops out-of-conversation reply_to)
 │   ├── SaveEditAction.php                              edit (sender-scoped + 600s limit)
 │   ├── DeleteMessageAction.php                         soft-delete, returns snapshot for undo
@@ -164,7 +164,7 @@ resources/js/components/alpine/main.js                 import + Alpine.data('con
 - `lastMessageId(): ?int` — `collect(messages)->max('id')` (the edit & delete gate — only the absolute last message in the thread is editable/deletable).
 - `messageSearchResults(): array` — null-guards `activeUserId`, then `SearchMessagesAction(activeUserId, messageSearch, auth()->id())`.
 - `presenter(): ContactPresenter` — new instance (stateless).
-- `totalStaff(): int` — `User::active()->count()`.
+- `totalStaff(): int` — `User::visibleOnBoard()->count()`.
 
 ### 6.3 Lifecycle + methods (contract + do/don't)
 | Method | What it does | Rule |
@@ -207,7 +207,7 @@ All six are byte-identical to Channel's copies; Livewire reflects trait methods 
 
 | Action | Signature | Core contract |
 |---|---|---|
-| `FetchContactsAction` | `execute(int $viewerId, string $search, string $filter): Collection` | `UNION ALL` sent+received → per-contact `last_message_id`; `leftJoinSub` unread_count (`read_at IS NULL`); returns `User::active()` with `profile.department`/`profile.details`; covering-index-served (perf audit 2026-06) |
+| `FetchContactsAction` | `execute(int $viewerId, string $search, string $filter): Collection` | `UNION ALL` sent+received → per-contact `last_message_id`; `leftJoinSub` unread_count (`read_at IS NULL`); returns `User::visibleOnBoard()` (excludes `UserType::Guest`) with `profile.department`/`profile.details`; covering-index-served (perf audit 2026-06) |
 | `SendMessageAction` | `execute(MessageComposerForm, int $recipientId): Message` | `DB::transaction`; `Message::create`; attachment store; reads `$form->replyToId`; `resolveReplyToId` drops it if outside this conversation (`isValidContext` — sender/recipient pair both directions) |
 | `SaveEditAction` | `execute(EditMessageForm, int $messageId, int $editTimeLimit): bool` | sender-scoped (`sender_id = auth()->id()`) + 600s limit; false if window expired |
 | `DeleteMessageAction` | `execute(int $messageId, int $editTimeLimit): array\|bool\|null` | sender-scoped; soft-delete; returns snapshot for undo, or `false` if not found or edit window expired (`null` is in the declared type but never returned) |
@@ -402,7 +402,7 @@ The 2026-08 alignment pass made Contact mirror Channel's `@island` architecture 
 
 ### 16B. Similar (same intent, shape differs by 1:1-data-model necessity)
 
-- **Sidebar population** — Channel: your memberships (`whereHas channel_members`); Contact: all active users (`User::active()`, no gate — §2). Both use `FetchContactsAction`/`FetchChannelsAction` with `UNION ALL` + `leftJoinSub` + covering indexes.
+- **Sidebar population** — Channel: your memberships (`whereHas channel_members`); Contact: all colleague-visible users (`User::visibleOnBoard()`, no membership gate — §2). Both use `FetchContactsAction`/`FetchChannelsAction` with `UNION ALL` + `leftJoinSub` + covering indexes.
 - **Select guard** — Channel: membership exists; Contact: `User::getCachedAllOptions()->has($id)`. Both silent-`return` on fail (not 403).
 - **Polling legs** — both poll sidebar `refreshUnread` always; Contact ADDS `messages.refreshActive` when a conversation is open (D1, §3.2) because a 1:1 open thread must reflect incoming messages live. Channel's open pane re-renders on interaction only. Do NOT "fix" Contact back to sidebar-only.
 - **Edit & delete gates (aligned 2026-08-04)** — both modules identical: edit `can_edit && id === lastMessageId`, delete `can_delete && id === lastMessageId` (absolute last message only; edit/delete share the same window — in sync).

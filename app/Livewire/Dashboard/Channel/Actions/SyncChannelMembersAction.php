@@ -76,7 +76,7 @@ class SyncChannelMembersAction
         }
 
         return User::query()
-            ->active()
+            ->visibleOnBoard()
             ->whereIn('id', $ids)
             ->pluck('id')
             ->all();

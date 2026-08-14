@@ -129,7 +129,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     {
         return Cache::remember('user_active_options',
             now()->addHour(),
-            fn() => self::active()->orderBy('name')->pluck('name', 'id')
+            fn() => self::visibleOnBoard()->orderBy('name')->pluck('name', 'id')
         );
     }
 

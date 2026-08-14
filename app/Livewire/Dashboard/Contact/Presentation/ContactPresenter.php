@@ -30,6 +30,7 @@ class ContactPresenter
             'is_online' => (bool) ($c['is_online'] ?? false),
             'presence'  => ($c['presence'] ?? null) instanceof PresenceStatus ? $c['presence'] : null,
             'unread'    => $unread,
+            'occasion'  => $c['occasion'] ?? null,
             'last_message' => $last ? [
                 'body'       => Str::limit($last['body'], 30),
                 'time'       => toJalaliRelative($last['created_at'], short: true),
@@ -43,6 +44,11 @@ class ContactPresenter
     public function totalUnread(array $contacts): int
     {
         return array_sum(array_column($contacts, 'unread_count'));
+    }
+
+    public function totalOccasions(array $contacts): int
+    {
+        return collect($contacts)->filter(fn(array $c) => !empty($c['occasion']))->count();
     }
 
     public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit): array
