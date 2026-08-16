@@ -108,6 +108,7 @@ class Main extends Component
 
     public function getAuthorizedFile(string $filename): Response
     {
+        $filename = basename($filename);
         $doc = DMS::visibleToUser()->where('file', $filename)->first();
 
         if (!$doc) {
