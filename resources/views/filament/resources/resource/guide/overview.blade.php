@@ -57,7 +57,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">category</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">چهار نوع منبع</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">انواع منبع (پیش‌فرض)</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($types as $t)
@@ -85,6 +85,12 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">add_circle</span>
+                این چهار نوع محدودیت نیستند: کنار فیلد «نوع» در فرم افزودن/ویرایش منبع یک دکمهٔ «+» هست که با آن می‌توانید نوع تازه‌ای (نام، آیکون، رنگ، تمام‌روز یا ساعتی) بسازید؛ آن نوع بلافاصله یک زبانهٔ تازه در صفحهٔ رزرو کاربر می‌شود.
+            </p>
         </div>
     </div>
 

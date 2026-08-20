@@ -143,12 +143,9 @@
                                 {{ $contact['name'] }}
                             </span>
                             @if($contact['occasion'])
-                                @php
-                                    $occasionTone = \App\Models\Profile::occasionTone($contact['occasion']);
-                                @endphp
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium leading-none shrink-0 select-none {{ $occasionTone['chip'] ?? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' }}">
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium leading-none shrink-0 select-none {{ $contact['occasion_tone']['chip'] ?? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' }}">
                                     <span class="material-symbols-rounded text-[11px] shrink-0 leading-none animate-pulse-slow">auto_awesome</span>
-                                    <span>{{ $occasionTone['label'] }}</span>
+                                    <span>{{ $contact['occasion_tone']['label'] }}</span>
                                 </span>
                             @endif
                         </div>
@@ -180,9 +177,8 @@
                                 {{ $contact['last_message']['body'] }}
                             </p>
                         @else
-                            @php($orgTitle = collect([$contact['unit'] ?? null, $contact['section'] ?? null])->filter()->implode(' › '))
                             <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]"
-                               title="{{ $orgTitle }}">
+                               title="{{ $contact['org_title'] }}">
                                 {{ $contact['position'] }}
                             </p>
                         @endif

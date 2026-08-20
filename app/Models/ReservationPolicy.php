@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Services\Reservation\ValidationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,14 +27,6 @@ class ReservationPolicy extends Model
         ')->groupBy('resource_type');
 
         return $query->fromSub($sub, 'reservation_policies');
-    }
-
-    protected static function booted(): void
-    {
-        $flush = fn(self $policy) => app(ValidationService::class)->flushPolicyCache($policy->resource_type);
-
-        static::saved($flush);
-        static::deleted($flush);
     }
 
     protected function casts(): array

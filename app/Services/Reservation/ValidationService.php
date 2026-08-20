@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\ReservationPolicy;
 use App\Models\Resource;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\Reservation\Contracts\BookingContext;
 use App\Services\Reservation\Validators\ActiveLimit;
 use App\Services\Reservation\Validators\AllowedDays;
@@ -20,6 +21,7 @@ use App\Services\Reservation\Validators\FullDay;
 use App\Services\Reservation\Validators\Recurrence;
 use App\Services\Reservation\Validators\ResourceActive;
 use App\Services\Reservation\Validators\ResourceAvailability;
+use App\Services\Reservation\Validators\ResourceSchedule;
 use App\Services\Reservation\Validators\TimeWindow;
 use App\Services\Reservation\Validators\TypeActive;
 use App\Services\Reservation\Validators\UserActive;
@@ -39,6 +41,7 @@ class ValidationService
         FullDay::class => ['skip_admin' => true],
         Duration::class => ['skip_admin' => true],
         AllowedHours::class => ['skip_admin' => true],
+        ResourceSchedule::class => ['skip_admin' => true],
         Recurrence::class => ['skip_admin' => true],
         CancellationLimit::class => ['skip_admin' => true],
         ActiveLimit::class => ['skip_admin' => true],
@@ -46,10 +49,9 @@ class ValidationService
         UserConflict::class => ['skip_admin' => true],
     ];
 
-    public function flushPolicyCache(string $resourceType): void
+    public function flushPolicyCache(): void
     {
-        Cache::forget("reservation_policies_{$resourceType}");
-        Cache::forget('reservation_disabled_types');
+        ModelCacheVersion::bump(ReservationPolicy::class);
     }
 
     public function isTypeActive(string $resourceType): bool
@@ -59,7 +61,7 @@ class ValidationService
 
     public function disabledTypes(): array
     {
-        return Cache::remember('reservation_disabled_types', 3600,
+        return Cache::remember(ModelCacheVersion::key(ReservationPolicy::class, 'reservation_disabled_types'), 3600,
             fn() => collect(ResourceType::cases())
                 ->reject(fn(ResourceType $type) => $this->isTypeActive($type->value))
                 ->map(fn(ResourceType $type) => $type->value)
@@ -70,7 +72,7 @@ class ValidationService
 
     public function getPolicies(string $resourceType): array
     {
-        return Cache::remember("reservation_policies_{$resourceType}", 3600,
+        return Cache::remember(ModelCacheVersion::key(ReservationPolicy::class, "reservation_policies_{$resourceType}"), 3600,
             fn() => ReservationPolicy::where('resource_type', $resourceType)
                 ->pluck('value', 'key')
                 ->filter(fn($v) => $v !== null)

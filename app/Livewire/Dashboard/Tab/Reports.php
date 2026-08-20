@@ -5,10 +5,14 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Models\Department;
 use App\Models\Report;
 use App\Traits\FocusOnRecord;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
 use Livewire\Component;
 
+#[Isolate]
 class Reports extends Component
 {
     use FocusOnRecord;
@@ -20,11 +24,13 @@ class Reports extends Component
     public bool $showModal = false;
     public ?int $activeReportId = null;
 
+    private ?Collection $reportsPage = null;
+
     public function download($id)
     {
-        $report = Report::findOrFail($id);
+        $report = $this->visibleReportsQuery()->whereKey($id)->first();
 
-        if (!$report->active) {
+        if (!$report) {
             abort(403);
         }
 
@@ -48,23 +54,17 @@ class Reports extends Component
 
     public function focusRecord(int $id): void
     {
-        if (Report::where('active', 1)->whereKey($id)->exists()) {
+        if ($this->visibleReportsQuery()->whereKey($id)->exists()) {
             $this->activeReportId = $id;
             $this->showModal = true;
         }
     }
 
-    #[Computed]
-    public function hasMorePages()
-    {
-        return $this->scopedReportsQuery()->count() > $this->perPage;
-    }
-
     public function loadMore()
     {
         $this->perPage += 10;
-        unset($this->reports);
-        unset($this->hasMorePages);
+        $this->reportsPage = null;
+        unset($this->reports, $this->hasMorePages);
     }
 
     public function mount()
@@ -80,27 +80,48 @@ class Reports extends Component
     #[Computed]
     public function reports()
     {
-        return $this->scopedReportsQuery()
+        return $this->loadReportsPage()->take($this->perPage)->values();
+    }
+
+    #[Computed]
+    public function hasMorePages()
+    {
+        return $this->loadReportsPage()->count() > $this->perPage;
+    }
+
+    private function loadReportsPage(): Collection
+    {
+        return $this->reportsPage ??= $this->scopedReportsQuery()
             ->with(['department', 'user'])
+            ->orderByDesc('pinned')
             ->latest()
-            ->take($this->perPage)
+            ->take($this->perPage + 1)
             ->get();
     }
 
     protected function scopedReportsQuery()
     {
-        return Report::active()
-            ->when($this->search !== '', fn($q) => $q->where(fn($q) => $q->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%")))
-            ->when($this->activeFilter !== 'all', fn($q) => $q->where('department_id', $this->activeFilter));
+        return $this->visibleReportsQuery()
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($q) => $q->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%")))
+            ->when($this->activeFilter !== 'all', fn ($q) => $q->where('department_id', $this->activeFilter));
     }
 
-    #[Computed(seconds: 14400, cache: true)]
+    protected function visibleReportsQuery()
+    {
+        $dept = Auth::user()?->profile?->department_id;
+
+        return Report::active()
+            ->notExpired()
+            ->visibleTo($dept);
+    }
+
+    #[Computed]
     public function departments()
     {
-        $codes = Report::active()->whereNotNull('department_id')->pluck('department_id');
+        $codes = $this->visibleReportsQuery()->whereNotNull('department_id')->pluck('department_id');
 
         return Department::getCachedModels()
-            ->filter(fn($model, $code) => $codes->contains($code))
+            ->filter(fn ($model, $code) => $codes->contains($code))
             ->values();
     }
 
@@ -115,6 +136,6 @@ class Reports extends Component
     #[Computed]
     public function totalReports()
     {
-        return Report::active()->count();
+        return $this->visibleReportsQuery()->count();
     }
 }

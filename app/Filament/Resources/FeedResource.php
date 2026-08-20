@@ -42,7 +42,7 @@ class FeedResource extends Resource
             return null;
         }
 
-        return Str::limit($record->content ?? '', 60);
+        return Str::limit(stripHtml($record->content ?? ''), 60);
     }
 
     public static function form(Schema $schema): Schema
@@ -87,7 +87,7 @@ class FeedResource extends Resource
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return strip_tags(mb_substr($record->content ?? '', 0, 80));
+        return stripHtml(mb_substr($record->content ?? '', 0, 80));
     }
 
     public static function getGlobalSearchResultUrl(Model $record): string

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
+use App\Livewire\Dashboard\Profile\Actions\ResetDocumentStateAction;
+use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
 use App\Models\Traits\HasPublicAssetUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -43,5 +45,19 @@ class DocumentPresenter
             'military_service' => ['label' => 'کارت پایان خدمت یا معافیت', 'icon' => 'military_tech'],
             'insurance_record' => ['label' => 'کلیه سوابق بیمه', 'icon' => 'receipt_long'],
         ];
+    }
+
+    public function docStatus(Collection $parsedAttachments, ResetDocumentStateAction $resetAction, DocumentForm $form, string $key): array
+    {
+        $uploadedDoc = $parsedAttachments->firstWhere('key', $key);
+        return [
+            'uploadedDoc' => $uploadedDoc,
+            'status' => $uploadedDoc ? 'approved' : ($resetAction->hasFile($form, $key) ? 'pending' : 'empty'),
+        ];
+    }
+
+    public function customDocs(Collection $parsedAttachments): Collection
+    {
+        return $parsedAttachments->where('category', 'custom');
     }
 }

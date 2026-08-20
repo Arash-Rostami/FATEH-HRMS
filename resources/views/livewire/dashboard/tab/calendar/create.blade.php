@@ -17,6 +17,13 @@
             <x-ui.forms.input label="زمان" name="form.time" type="time" wire:model="form.time" class="text-center"/>
         </div>
 
+        <!-- Duration -->
+        <x-ui.forms.select label="مدت رویداد" name="form.durationMinutes" wire:model="form.durationMinutes" icon="schedule">
+            @foreach(\App\Models\Event::DURATION_MINUTES_OPTIONS as $minutes)
+                <option value="{{ $minutes }}">{{ $minutes >= 60 ? (intdiv($minutes, 60) . ' ساعت' . ($minutes % 60 ? ' و ' . ($minutes % 60) . ' دقیقه' : '')) : $minutes . ' دقیقه' }}</option>
+            @endforeach
+        </x-ui.forms.select>
+
         <!-- Description -->
         <x-ui.forms.textarea label="توضیحات تکمیلی" name="form.description" wire:model="form.description" rows="3" :maximizable="true"/>
 

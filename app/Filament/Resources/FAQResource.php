@@ -29,7 +29,6 @@ class FAQResource extends Resource
     use FilamentAdminGuide, FilamentActions, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = FAQ::class;
-    protected static ?string $recordTitleAttribute = 'question';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-question-mark-circle';
     protected static ?int $navigationSort = 9;
 
@@ -90,9 +89,18 @@ class FAQResource extends Resource
         ];
     }
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return stripHtml($record->question ?? '');
+    }
+
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return str(strip_tags($record->question))
+        return str(stripHtml($record->question))
             ->trim()
             ->limit(60);
     }

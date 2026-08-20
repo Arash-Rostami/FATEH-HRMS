@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Energy;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Livewire\Dashboard\Energy\Presentation\ChartPresenter;
 use App\Models\EnergyTest;
 use App\Models\User;
@@ -19,8 +20,10 @@ class Chart extends Component
         $cutoff = now()->subMonths(18);
 
         return EnergyTest::query()
-             ->where('user_id', '!=', $this->user->id) // Kept commented as per original
-            ->where(fn($q) => $q->where('completed_at', '>=', $cutoff)->orWhere('created_at', '>=', $cutoff))
+            ->join('users', 'users.id', '=', 'energy_tests.user_id')
+            ->where('users.type', '!=', UserType::Guest->value)
+            ->where('energy_tests.user_id', '!=', $this->user->id)
+            ->where(fn($q) => $q->where('energy_tests.completed_at', '>=', $cutoff)->orWhere('energy_tests.created_at', '>=', $cutoff))
             ->selectRaw('
                 COALESCE(AVG(mind_score), 0) as mind,
                 COALESCE(AVG(emotion_score), 0) as emotion,

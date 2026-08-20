@@ -50,8 +50,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($standardTypes as $key => $type)
                     @php
-                        $uploadedDoc = $parsedAttachments->firstWhere('key', $key);
-                        $status = $uploadedDoc ? 'approved' : ($resetAction->hasFile($form, $key) ? 'pending' : 'empty');
+                        $doc = $presenter->docStatus($parsedAttachments, $resetAction, $form, $key);
+                        $uploadedDoc = $doc['uploadedDoc'];
+                        $status = $doc['status'];
                     @endphp
 
                     <div
@@ -137,7 +138,7 @@
                 </button>
             </div>
 
-            @php $customDocs = $parsedAttachments->where('category', 'custom'); @endphp
+            @php $customDocs = $presenter->customDocs($parsedAttachments); @endphp
             @if($customDocs->count() > 0)
                 <div class="mt-6 pt-6 border-t border-[var(--md-sys-color-outline-variant)]/60">
                     <div class="flex items-center gap-2 mb-4">

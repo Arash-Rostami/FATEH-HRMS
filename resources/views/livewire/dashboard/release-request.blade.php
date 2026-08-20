@@ -108,21 +108,21 @@
                 <div class="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
                     @forelse($this->myRequests as $item)
                         @php
-                            $reqType = \App\Enums\ReleaseRequestType::from($item->type);
-                            $reqStatus = \App\Enums\ReleaseRequestStatus::from($item->status);
+                            $type = $this->presenter->typeMeta($item->type);
+                            $stat = $this->presenter->statusMeta($item->status);
                         @endphp
                         <div wire:key="release-request-{{ $item->id }}"
                              class="rounded-md border border-[var(--md-sys-color-outline-variant)]/40 p-3 bg-[var(--md-sys-color-surface)]/70 hover:bg-[var(--md-sys-color-surface-variant)]/40 transition-colors">
                             <div class="flex items-center justify-between gap-2 mb-1.5">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold"
-                                      style="background: color-mix(in srgb, {{ $reqType->getMaterialColor() }} 15%, transparent); color: {{ $reqType->getMaterialColor() }};">
-                                    <span class="material-symbols-rounded text-xs">{{ $reqType->getMaterialIcon() }}</span>
-                                    {{ $reqType->getLabel() }}
+                                      style="background: color-mix(in srgb, {{ $type['color'] }} 15%, transparent); color: {{ $type['color'] }};">
+                                    <span class="material-symbols-rounded text-xs">{{ $type['icon'] }}</span>
+                                    {{ $type['label'] }}
                                 </span>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold"
-                                      style="background: color-mix(in srgb, {{ $reqStatus->getMaterialColor() }} 15%, transparent); color: {{ $reqStatus->getMaterialColor() }};">
-                                    <span class="material-symbols-rounded text-xs">{{ $reqStatus->getMaterialIcon() }}</span>
-                                    {{ $reqStatus->getLabel() }}
+                                      style="background: color-mix(in srgb, {{ $stat['color'] }} 15%, transparent); color: {{ $stat['color'] }};">
+                                    <span class="material-symbols-rounded text-xs">{{ $stat['icon'] }}</span>
+                                    {{ $stat['label'] }}
                                 </span>
                             </div>
                             <p class="text-xs font-semibold text-[var(--md-sys-color-on-surface)] line-clamp-1" title="{{ $item->title }}">{{ $item->title }}</p>
@@ -141,14 +141,9 @@
                             @endif
 
                             @if(filled($item->response))
-                                @php
-                                    $isRejected = $reqStatus === \App\Enums\ReleaseRequestStatus::Rejected;
-                                    $responseColor = $isRejected ? 'var(--md-sys-color-error)' : 'var(--md-sys-color-primary)';
-                                    $responseBg = $isRejected ? 'var(--md-sys-color-error-container)' : 'var(--md-sys-color-primary-container)';
-                                @endphp
-                                <div class="mt-1.5 rounded-lg border-r-2 px-3 py-2" style="border-color: {{ $responseColor }}; background: color-mix(in srgb, {{ $responseBg }} 30%, transparent);">
-                                    <div class="flex items-center gap-1 text-[10px] font-bold mb-0.5" style="color: {{ $responseColor }};">
-                                        <span class="material-symbols-rounded text-xs">{{ $isRejected ? 'cancel' : 'forum' }}</span>
+                                <div data-response-box class="mt-1.5 rounded-lg border-r-2 px-3 py-2" style="border-color: {{ $stat['responseColor'] }}; background: color-mix(in srgb, {{ $stat['responseBg'] }} 30%, transparent);">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold mb-0.5" style="color: {{ $stat['responseColor'] }};">
+                                        <span class="material-symbols-rounded text-xs">{{ $stat['responseIcon'] }}</span>
                                         پاسخ
                                     </div>
                                     <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface)]">{{ $item->response }}</p>

@@ -24,7 +24,7 @@
         </div>
 
         <div x-show="show"
-             class="mb-6 relative transform rounded-2xl overflow-hidden glass-panel transition-all sm:w-full sm:max-w-2xl sm:mx-auto bg-[var(--md-sys-color-surface)]"
+             class="relative transform rounded-2xl overflow-hidden glass-panel transition-all sm:w-full sm:max-w-2xl sm:mx-auto bg-[var(--md-sys-color-surface)]"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"

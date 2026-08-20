@@ -15,8 +15,12 @@ return new class extends Migration {
                 $table->text('description');
                 $table->string('cover_image', 255)->nullable();
                 $table->string('department_id', 10)->nullable();
+                $table->json('departments')->nullable();
                 $table->string('file_path', 191);
                 $table->tinyInteger('active')->default(1);
+                $table->boolean('pinned')->default(false);
+                $table->date('report_date')->nullable();
+                $table->date('expires_at')->nullable();
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');

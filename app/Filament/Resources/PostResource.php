@@ -25,7 +25,6 @@ class PostResource extends Resource
     use FilamentActions, FilamentAdminGuide, FilamentFilters, AuthorizesByPermission;
 
     protected static ?string $model = Post::class;
-    protected static ?string $recordTitleAttribute = 'title';
     protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-megaphone';
     protected static ?int $navigationSort = 1;
 
@@ -82,9 +81,18 @@ class PostResource extends Resource
         ];
     }
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        return stripHtml($record->title ?? '');
+    }
+
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return strip_tags($record->title ?? '');
+        return stripHtml($record->title ?? '');
     }
 
     public static function getGlobalSearchResultUrl(Model $record): string

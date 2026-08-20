@@ -8,15 +8,20 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
+#[Isolate]
 class Gallery extends Component
 {
     use FocusOnRecord;
 
     #[Locked]
     public array $photoIds = [];
+
+    #[Locked]
+    public string $view = 'filmstrip';
 
     public ?int $selectedPhotoId = null;
 
@@ -63,9 +68,13 @@ class Gallery extends Component
 
     public function mount(): void
     {
+        $view = session('gallery_view_mode', 'filmstrip');
+        $this->view = in_array($view, ['filmstrip', 'wall'], true) ? $view : 'filmstrip';
+
         // FOCUS MODE: when arriving from the command palette with ?open={id},
         // show nothing but that single photo (respecting department visibility).
         if ($this->open && $this->getBaseQuery()->whereKey($this->open)->exists()) {
+            $this->view = 'filmstrip';
             $this->photoIds = [$this->open];
             $this->selectedPhotoId = $this->open;
             $this->hasMorePages = false;
@@ -74,6 +83,16 @@ class Gallery extends Component
 
         $this->open = null;
         $this->loadInitialPhotos();
+    }
+
+    public function toggleView(string $view): void
+    {
+        if (!in_array($view, ['filmstrip', 'wall'], true)) {
+            return;
+        }
+
+        $this->view = $view;
+        session(['gallery_view_mode' => $view]);
     }
 
     #[Computed]

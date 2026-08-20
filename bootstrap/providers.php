@@ -7,4 +7,5 @@ return [
     App\Providers\ViewServiceProvider::class,
     App\Providers\FilamentServiceProvider::class,
     App\Providers\NudgeServiceProvider::class,
+    App\Providers\ModelCacheServiceProvider::class,
 ];

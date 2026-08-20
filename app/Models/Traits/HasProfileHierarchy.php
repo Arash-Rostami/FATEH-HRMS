@@ -47,7 +47,13 @@ trait HasProfileHierarchy
             ->whereHas('profile', fn(Builder $q) => $q->whereIn('position', ['chairman', 'ceo']))
             ->exists();
 
-        return !$anyTopExecutiveExists && $this->isInDepartment('MA');
+        if ($anyTopExecutiveExists) return false;
+
+        $anyActiveMaUserExists = static::active()
+            ->whereHas('profile', fn(Builder $q) => $q->where('department_id', 'MA'))
+            ->exists();
+
+        return $this->isInDepartment($anyActiveMaUserExists ? 'MA' : 'MG');
     }
 
     public function isDeptHead(): bool

@@ -4,6 +4,7 @@ const RECENT_MAX = 6;
 export default function links() {
     return {
         recent: [],
+        view: 'rail',
 
         init() {
             try {
@@ -11,6 +12,16 @@ export default function links() {
             } catch (e) {
                 this.recent = [];
             }
+
+            this.view = this.$wire.get('view') || 'rail';
+        },
+
+        handleHotkey(event) {
+            const tag = event.target?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target?.isContentEditable) return;
+            const n = parseInt(event.key, 10);
+            if (isNaN(n) || n < 1 || n > 9) return;
+            this.$root.querySelector('[data-hotkey="' + n + '"]')?.click();
         },
 
         recordClick(item) {

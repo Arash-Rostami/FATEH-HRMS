@@ -112,6 +112,13 @@ class Link extends Model
             get: fn(?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['image'] ?? null),
         )->shouldCache();
     }
+
+    protected function iconUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn(?string $value, array $attributes) => static::resolvePublicAssetUrl($attributes['icon'] ?? null),
+        )->shouldCache();
+    }
 }
 
 

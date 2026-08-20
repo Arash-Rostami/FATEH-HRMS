@@ -11,6 +11,8 @@ return new class extends Migration {
             Schema::create('departments', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('code', 255)->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
+                $table->unsignedTinyInteger('level')->default(0);
+                $table->string('subordinate_to', 10)->nullable()->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
                 $table->string('name', 255)->collation('utf8mb4_persian_ci');
                 $table->string('description', 255)->collation('utf8mb4_persian_ci');
                 $table->json('units')->nullable();
@@ -22,6 +24,7 @@ return new class extends Migration {
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_persian_ci');
                 $table->unique('code', 'code');
+                $table->index('subordinate_to', 'departments_subordinate_to_index');
                 $table->index('ticket_options_length', 'departments_ticket_options_length_index');
             });
         }

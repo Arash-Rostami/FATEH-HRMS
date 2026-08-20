@@ -21,6 +21,8 @@ class EventForm extends Form
 
     public string $time = '12:00';
 
+    public int $durationMinutes = Event::DEFAULT_DURATION_MINUTES;
+
     public bool $private = false;
 
     public ?int $remindHours = null;
@@ -69,6 +71,7 @@ class EventForm extends Form
                 },
             ],
             'time' => ['required', 'date_format:H:i'],
+            'durationMinutes' => ['required', 'integer', 'in:' . implode(',', Event::DURATION_MINUTES_OPTIONS)],
             'private' => ['boolean'],
             'remindHours' => ['nullable', 'integer', 'in:' . implode(',', Event::REMIND_HOURS_OPTIONS)],
         ];
@@ -89,6 +92,9 @@ class EventForm extends Form
             'dateDay.max' => 'روز نامعتبر است',
             'time.required' => 'زمان الزامی است',
             'time.date_format' => 'زمان را به‌صورت ساعت:دقیقه وارد کنید',
+            'durationMinutes.required' => 'مدت رویداد الزامی است',
+            'durationMinutes.integer' => 'مدت رویداد باید عدد صحیح باشد',
+            'durationMinutes.in' => 'مدت رویداد نامعتبر است',
             'description.string' => 'توضیحات باید متن باشد',
             'remindHours.in' => 'مقدار یادآوری نامعتبر است',
             'description.max' => 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',

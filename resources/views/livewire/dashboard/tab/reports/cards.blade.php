@@ -44,7 +44,7 @@
                         'md:scale-[1.15] z-30': activeId == {{ $report->id }},
                         'md:scale-95 z-10': activeId != {{ $report->id }}
                     }"
-                    @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true"
+                    @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true"
                 >
                     {{-- Timeline dot --}}
                     <div
@@ -125,8 +125,14 @@
 
                         <div class="flex justify-between items-center pt-3 border-t border-[var(--md-sys-color-outline-variant)]/20 mt-3">
                             <div class="flex items-center gap-2">
+                                @if($report->pinned)
+                                    <span class="flex items-center gap-1 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] px-2 py-0.5 rounded-md text-[10px] font-bold">
+                                        <span class="material-symbols-rounded text-[12px] leading-none">bookmark</span>
+                                        سنجاق
+                                    </span>
+                                @endif
                                 <span dir="rtl" class="text-xs text-[var(--md-sys-color-on-surface-variant)] opacity-70">
-                                    {{ toJalali($report->created_at, 'j F Y') }}
+                                    {{ toJalali($report->report_date ?? $report->created_at, 'j F Y') }}
                                 </span>
                                 @if($report->updated_at && $report->updated_at->gt($report->created_at))
                                     <span class="flex items-center gap-1 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] px-2 py-0.5 rounded-md text-[10px] font-medium">
@@ -186,15 +192,6 @@
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>
     </div>
-
-    <x-ui.buttons.toggle
-        alpine="true"
-        alpineState="showTimeline"
-        @click="showTimeline = !showTimeline"
-        bordered="true"
-        xText="showTimeline ? 'مخفی کردن تایم‌لاین' : 'نمایش تایم‌لاین'"
-        class="glass-panel !border-transparent mr-auto hidden md:block"
-    />
 
 @else
     @if($this->search !== '' || $this->activeFilter !== 'all')

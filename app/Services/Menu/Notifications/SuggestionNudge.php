@@ -30,7 +30,7 @@ class SuggestionNudge implements MenuNudge
     public function for($subject)
     {
         return User::active()
-            ->whereHas('profile', fn($q) => $q->whereIn('department_id', array_merge(['MA'], $subject->departments ?? [])))
+            ->whereHas('profile', fn($q) => $q->whereIn('department_id', array_merge(['MA', 'MG'], $subject->departments ?? [])))
             ->get();
     }
 

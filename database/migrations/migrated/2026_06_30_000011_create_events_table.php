@@ -16,6 +16,7 @@ return new class extends Migration {
                 $table->text('description')->nullable();
                 $table->json('countdown')->nullable();
                 $table->dateTime('date');
+                $table->unsignedSmallInteger('duration_minutes')->nullable();
                 $table->unsignedBigInteger('user_id')->nullable();
                 $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();

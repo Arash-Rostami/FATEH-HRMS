@@ -1,4 +1,10 @@
 @if($this->feeds->isNotEmpty())
+    <div x-show="month && visibleCount === 0" x-cloak
+         class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
+        <span class="material-symbols-rounded text-5xl opacity-40">filter_alt_off</span>
+        <p class="text-sm font-medium opacity-80">موردی در این ماه یافت نشد</p>
+    </div>
+
     <div class="absolute top-1/2 left-0 right-0 h-px bg-[var(--md-sys-color-outline-variant)] opacity-20 -translate-y-1/2 z-0 hidden md:block"></div>
 
     <div
@@ -29,6 +35,7 @@
                     wire:key="feed-{{ $feed->id }}"
                     data-feed-id="{{ $feed->id }}"
                     data-feed="{{ $feed->id }}"
+                    x-show="!month || month === @js(toJalali($feed->created_at, 'F Y'))"
                     class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'scale-100 md:scale-[1.15]': activeId == {{ $feed->id }},
@@ -96,7 +103,7 @@
     </div>
 
     <template x-teleport="body">
-        <div x-show="!maximizedFeed" class="pointer-events-none">
+        <div x-show="!maximizedFeed && view === 'filmstrip'" x-cloak class="pointer-events-none">
             <button
                 type="button"
                 @click="scrollPrev"

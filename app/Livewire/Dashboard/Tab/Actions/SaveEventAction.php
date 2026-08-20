@@ -33,6 +33,7 @@ class SaveEventAction
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'date' => $gregorianDate,
+                'duration_minutes' => $validated['durationMinutes'],
                 'private' => $validated['private'],
                 'remind_hours' => $validated['remindHours'],
             ]

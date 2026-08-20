@@ -26,6 +26,8 @@ enum ReservationError: string
     case ResourceInactive   = 'ERR-020';
     case DataCorruption     = 'ERR-021';
     case TypeInactive       = 'ERR-022';
+    case ResourceDayNotAllowed  = 'ERR-023';
+    case ResourceHourNotAllowed = 'ERR-024';
 
     public static function legend(): array
     {
@@ -52,6 +54,8 @@ enum ReservationError: string
             'ERR-020' => ['policy' => '—', 'hint' => 'وضعیت منبع را از پنل مدیریت بررسی کنید'],
             'ERR-021' => ['policy' => '—', 'hint' => 'داده‌های پایگاه داده را بررسی کنید (ارتباط خودارجاعی)'],
             'ERR-022' => ['policy' => __('resources/policy/strings.fields.window_days') . ' / ' . __('resources/policy/strings.fields.window_hours'), 'hint' => 'این نوع منبع غیرفعال است؛ برای فعال‌سازی حداقل یکی از این دو مقدار را بزرگ‌تر از صفر تنظیم کنید'],
+            'ERR-023' => ['policy' => '—', 'hint' => 'روزهای در دسترسِ این منبع مشخص را از پنل مدیریت بررسی یا گسترش دهید'],
+            'ERR-024' => ['policy' => '—', 'hint' => 'بازهٔ ساعتی در دسترسِ این منبع مشخص را از پنل مدیریت بررسی یا گسترش دهید'],
         ];
     }
 
@@ -80,6 +84,8 @@ enum ReservationError: string
             self::ResourceInactive   => 'این منبع در حال حاضر در دسترس یا فعال نیست.',
             self::DataCorruption     => 'خطای سیستمی: ساختار داده‌ای این رزرو دچار مشکل شده است.',
             self::TypeInactive       => 'این نوع منبع در حال حاضر توسط مدیریت غیرفعال شده است.',
+            self::ResourceDayNotAllowed  => "این منبع در روز {$args[0]} قابل رزرو نیست.",
+            self::ResourceHourNotAllowed => "این منبع فقط بین ساعت {$args[0]} تا {$args[1]} قابل رزرو است.",
         };
 
         return "[{$this->value}] {$text}";

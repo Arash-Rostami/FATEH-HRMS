@@ -15,7 +15,7 @@
         ['icon' => 'forum', 'color' => 'primary', 'label' => 'باز', 'text' => 'ثبت‌شده و در انتظار بازبینی ادمین.'],
         ['icon' => 'schedule', 'color' => 'tertiary', 'label' => 'در حال بررسی', 'text' => 'ادمین در حال پیگیری است.'],
         ['icon' => 'check_circle', 'color' => 'secondary', 'label' => 'حل‌شده', 'text' => 'پایش کامل شده.'],
-        ['icon' => 'cancel', 'color' => 'error', 'label' => 'رد شد', 'text' => 'پایانی — پاسخ ادمین با قاب قرمز نمایش داده می‌شود.'],
+        ['icon' => 'cancel', 'color' => 'error', 'label' => 'عدم امکان', 'text' => 'پایانی — پاسخ ادمین با قاب قرمز نمایش داده می‌شود.'],
     ];
 
     $n3 = convertToPersian('3');

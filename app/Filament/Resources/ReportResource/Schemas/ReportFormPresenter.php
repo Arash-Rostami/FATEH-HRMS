@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
+use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -11,6 +12,7 @@ use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\FusedGroup;
 
 class ReportFormPresenter
 {
@@ -49,6 +51,50 @@ class ReportFormPresenter
             ->searchable()
             ->nullable()
             ->helperText(__('resources/report/strings.hints.department_id'));
+    }
+
+    public static function departments(): Select
+    {
+        return Select::make('departments')
+            ->label(__('resources/report/strings.fields.departments'))
+            ->options(fn() => Department::getCachedOptions()->toArray())
+            ->multiple()
+            ->searchable()
+            ->preload()
+            ->nullable()
+            ->columnSpan(2)
+            ->helperText(__('resources/report/strings.hints.departments'));
+    }
+
+    public static function pinned(): Toggle
+    {
+        return Toggle::make('pinned')
+            ->label(__('resources/report/strings.fields.pinned'))
+            ->default(false)
+            ->inline(false)
+            ->helperText(__('resources/report/strings.hints.pinned'));
+    }
+
+    public static function reportDate(): FusedGroup
+    {
+        return PersianDateFieldService::make(
+            prefix: 'report_date',
+            label: __('resources/report/strings.fields.report_date'),
+            required: false,
+            yearFrom: 1380,
+            fullWidth: true,
+        );
+    }
+
+    public static function expiresAt(): FusedGroup
+    {
+        return PersianDateFieldService::make(
+            prefix: 'expires_at',
+            label: __('resources/report/strings.fields.expires_at'),
+            required: false,
+            yearFrom: 1380,
+            fullWidth: true,
+        );
     }
 
     public static function description(): RichEditor

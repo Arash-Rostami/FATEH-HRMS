@@ -2,7 +2,7 @@
     @forelse ($this->reports as $report)
         <div wire:key="report-list-{{ $report->id }}"
              class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
-             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y')]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
+             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true">
 
             <div
                 class="w-full md:w-32 h-48 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0">
@@ -20,7 +20,13 @@
                             <span
                                 title="{{ $report->department?->tooltipLabel() }}"
                                 class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->displayLabel() ?? 'General' }}</span>
-                    <span dir="rtl">{{  toJalali($report->created_at, 'j F Y') }}</span>
+                    @if($report->pinned)
+                        <span class="flex items-center gap-1 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] px-2 py-0.5 rounded-md text-[10px] font-bold">
+                            <span class="material-symbols-rounded text-[12px] leading-none">bookmark</span>
+                            سنجاق
+                        </span>
+                    @endif
+                    <span dir="rtl">{{  toJalali($report->report_date ?? $report->created_at, 'j F Y') }}</span>
                     @if($report->updated_at && $report->updated_at->gt($report->created_at))
                         <span class="flex items-center gap-1 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] px-2 py-0.5 rounded-md text-[10px] font-medium">
                             <span class="material-symbols-rounded text-[12px] leading-none">edit</span>

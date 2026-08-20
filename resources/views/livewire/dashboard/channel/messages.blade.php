@@ -173,11 +173,9 @@
                                 <time class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 @if($msg['is_mine'])
                                     @php
-                                        $readerNames = array_map(fn($r) => $r['name'] ?? '—', $msg['readers']);
-                                        $shownReaders = array_slice($msg['readers'], 0, 3);
-                                        $extraReaders = max(0, $msg['read_count'] - count($shownReaders));
+                                        $rs = $this->presenter->readerSummary($msg);
                                     @endphp
-                                    <span class="flex items-center gap-1" title="{{ $msg['read_count'] > 0 ? 'خوانده توسط: ' . implode('، ', $readerNames) : 'ارسال شد' }}">
+                                    <span class="flex items-center gap-1" title="{{ $msg['read_count'] > 0 ? 'خوانده توسط: ' . implode('، ', $rs['names']) : 'ارسال شد' }}">
                                         @if($msg['is_read_by_all'])
                                             <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">done_all</span>
                                         @elseif($msg['is_read'])
@@ -185,16 +183,16 @@
                                         @else
                                             <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done</span>
                                         @endif
-                                        @if(count($shownReaders) > 0)
+                                        @if(count($rs['shown']) > 0)
                                             <span class="flex -space-x-1">
-                                                @foreach($shownReaders as $r)
+                                                @foreach($rs['shown'] as $r)
                                                     <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)]">
                                                         <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
                                                     </span>
                                                 @endforeach
                                             </span>
-                                            @if($extraReaders > 0)
-                                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-70" dir="ltr">+{{ $extraReaders }}</span>
+                                            @if($rs['extra'] > 0)
+                                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-70" dir="ltr">+{{ $rs['extra'] }}</span>
                                             @endif
                                         @endif
                                     </span>

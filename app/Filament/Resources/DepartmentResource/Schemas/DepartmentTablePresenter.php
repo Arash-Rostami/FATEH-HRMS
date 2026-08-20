@@ -65,6 +65,21 @@ class DepartmentTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function level(): TextColumn
+    {
+        return TextColumn::make('level')
+            ->label(__('resources/department/strings.fields.level'))
+            ->formatStateUsing(fn(int $state): string => __("resources/department/strings.fields.level_{$state}"))
+            ->badge()
+            ->color(fn(int $state): string => match ($state) {
+                0 => 'gray',
+                1 => 'success',
+                default => 'info',
+            })
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
     public static function name(): TextColumn
     {
         return TextColumn::make('name')
@@ -115,6 +130,16 @@ class DepartmentTablePresenter
             ->icon('heroicon-m-building-office')
             ->sortable(false)
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function subordinateTo(): TextColumn
+    {
+        return TextColumn::make('subordinate_to')
+            ->label(__('resources/department/strings.fields.subordinate_to'))
+            ->badge()
+            ->color('gray')
+            ->placeholder('-')
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function usersCount(): TextColumn

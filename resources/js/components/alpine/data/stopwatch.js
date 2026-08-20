@@ -1,12 +1,14 @@
 import persistentStateMixin from "../mixins/persistentState.js";
 
 const STORAGE_KEY = 'stopwatch_state';
+const DISMISSED_KEY = 'stopwatch_dismissed_reminder_id';
 
 export default function stopwatch(mp3) {
     return {
         ...persistentStateMixin(),
         timer: {running: false, seconds: 300},
         armedUntil: null,
+        armedReminderId: null,
         reminderTitle: null,
         customMins: null,
         alarm: mp3,
@@ -24,7 +26,9 @@ export default function stopwatch(mp3) {
                 });
             }
             this.restoreState();
-            if (window.__eventReminder) this.armReminder(window.__eventReminder);
+            if (window.__eventReminder && window.__eventReminder.id !== this._loadState(DISMISSED_KEY)) {
+                this.armReminder(window.__eventReminder);
+            }
             setInterval(() => {
                 if (this.timer.running && this.timer.seconds > 0) {
                     this.timer.seconds--;
@@ -76,7 +80,7 @@ export default function stopwatch(mp3) {
         clearState() {
             this._clearState(STORAGE_KEY);
         },
-        armReminder({eventAtIso, title}) {
+        armReminder({id, eventAtIso, title}) {
             if (this.timer.running) return;
 
             const target = new Date(eventAtIso).getTime();
@@ -84,6 +88,7 @@ export default function stopwatch(mp3) {
 
             const seconds = Math.max(0, Math.round((target - Date.now()) / 1000));
             this.timer.seconds = seconds;
+            this.armedReminderId = id ?? null;
             this.reminderTitle = title;
             this.minimized = true;
 
@@ -162,9 +167,11 @@ export default function stopwatch(mp3) {
         },
         closeModal() {
             this.stopAlarm();
+            if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
             this.timer.running = false;
             this.timer.seconds = 300;
             this.armedUntil = null;
+            this.armedReminderId = null;
             this.reminderTitle = null;
             this.clearState();
             this.destroyed();

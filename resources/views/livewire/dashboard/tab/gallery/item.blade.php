@@ -1,18 +1,9 @@
 @php
-    $transforms = [
-        ['z' => 'z-20', 'rotate' => 'rotate-6', 'hover' => 'group-hover:-translate-x-12 group-hover:-rotate-12'],
-        ['z' => 'z-10', 'rotate' => '-rotate-2', 'hover' => 'group-hover:translate-x-0 group-hover:rotate-3'],
-        ['z' => 'z-0', 'rotate' => 'rotate-3', 'hover' => 'group-hover:translate-x-12 group-hover:rotate-12'],
-    ];
-    $paths = $photo->image_urls;
-    $visibleImages = array_slice($paths, 0, 3);
-    $hiddenImages = array_slice($paths, 3);
-    $hiddenImageCount = count($paths) - count($visibleImages);
+    $c = $presenter->collageData($photo);
+    $visibleImages = $c['visibleImages'];
+    $hiddenImages = $c['hiddenImages'];
+    $hiddenImageCount = $c['hiddenImageCount'];
     $scope = $presenter?->scopeMeta($photo) ?? ['icon' => 'photo_library', 'label' => ''];
-    $isVideo = function (?string $url): bool {
-        if (empty($url)) return false;
-        return in_array(strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION)), ['mp4', 'webm', 'mov'], true);
-    };
 @endphp
 
 <div
@@ -64,8 +55,9 @@
         class="flex-1 relative flex items-center justify-center min-h-[168px] md:min-h-[232px] w-full perspective-1000 py-2">
         @foreach($visibleImages as $index => $url)
             @php
-                $t = $transforms[$index] ?? ['z' => 'z-0', 'rotate' => '', 'hover' => ''];
-                $video = $isVideo($url);
+                $cell = $presenter->collageCellData($index, $url);
+                $t = $cell['transform'];
+                $video = $cell['isVideo'];
             @endphp
             <a href="{{ $url }}"
                @if($video) data-type="html5video" @endif
@@ -122,13 +114,13 @@
     <div class="hidden">
         @foreach($hiddenImages as $url)
             <a href="{{ $url }}"
-               @if($isVideo($url)) data-type="html5video" @endif
+               @if(isVideo($url)) data-type="html5video" @endif
                data-fancybox="gallery-{{ $photo->id }}"></a>
         @endforeach
     </div>
 
     @if(!empty($photo->description))
-        @php $captionText = strip_tags($photo->description); @endphp
+        @php $captionText = $presenter->captionText($photo); @endphp
         <div class="mt-auto shrink-0 relative z-20 px-4 pb-4 pt-3 border-t border-[var(--md-sys-color-outline-variant)]/20">
             <div class="relative overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
                  :style="captionExpanded ? ('max-height:' + $el.scrollHeight + 'px') : 'max-height: 2.6rem'">

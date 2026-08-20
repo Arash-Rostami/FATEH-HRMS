@@ -11,6 +11,17 @@
         title="اخبار و فیدها"
         :count="$this->totalFeeds">
         <x-slot:actions>
+            @php
+                $months = $presenter->months($this->feeds, 'created_at');
+                $viewModes = [
+                    ['value' => 'filmstrip', 'icon' => 'view_carousel', 'title' => 'نوار فیلم'],
+                    ['value' => 'magazine', 'icon' => 'dashboard', 'title' => 'نمای مجله'],
+                ];
+            @endphp
+            <x-ui.buttons.view-toggle :modes="$viewModes" />
+            <x-ui.month-filter :months="$months" />
+            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'filmstrip'" x-cloak/>
+
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'feeds-badge-legend' })"
@@ -47,14 +58,11 @@
     </div>
 
 
-    @include('livewire.dashboard.tab.feeds.timeline')
+    <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0">
+        @include('livewire.dashboard.tab.feeds.timeline')
+    </div>
 
-    <x-ui.buttons.toggle
-        alpine="true"
-        alpineState="showTimeline"
-        @click="showTimeline = !showTimeline"
-        bordered="true"
-        xText="showTimeline ? 'مخفی کردن تایم‌لاین' : 'نمایش تایم‌لاین'"
-        class="glass-panel !border-transparent mr-auto hidden md:block"
-    />
+    <div x-show="view === 'magazine'" x-cloak class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-6">
+        @include('livewire.dashboard.tab.feeds.magazine')
+    </div>
 </div>

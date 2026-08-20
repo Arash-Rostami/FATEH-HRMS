@@ -2,18 +2,61 @@
 
 namespace App\Filament\Resources\DepartmentResource\Schemas;
 
+use App\Models\Department;
 use App\Models\Ticket;
+use App\Rules\NoCyclicDepartmentHierarchy;
 use App\Traits\FilamentFormDivider;
+use App\Traits\FilamentIconOptions;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Support\Facades\Cache;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 
 class DepartmentFormPresenter
 {
-    use FilamentFormDivider;
+    use FilamentFormDivider, FilamentIconOptions;
+
+    public static function level(): Select
+    {
+        return Select::make('level')
+            ->label(__('resources/department/strings.fields.level'))
+            ->options(fn(Get $get): array => filled($get('subordinate_to'))
+                ? [
+                    1 => __('resources/department/strings.fields.level_1'),
+                    2 => __('resources/department/strings.fields.level_2'),
+                ]
+                : [
+                    0 => __('resources/department/strings.fields.level_0'),
+                    1 => __('resources/department/strings.fields.level_1'),
+                    2 => __('resources/department/strings.fields.level_2'),
+                ])
+            ->native(false)
+            ->required()
+            ->default(0)
+            ->live()
+            ->helperText(__('resources/department/strings.hints.level'));
+    }
+
+    public static function subordinateTo(): Select
+    {
+        return Select::make('subordinate_to')
+            ->label(__('resources/department/strings.fields.subordinate_to'))
+            ->options(fn(Get $get): array => Department::getCachedOptions()->except($get('code'))->all())
+            ->searchable()
+            ->native(false)
+            ->nullable()
+            ->live()
+            ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                if ($state !== null && (int) $get('level') === 0) {
+                    $set('level', 1);
+                }
+            })
+            ->rules(fn(Get $get) => [new NoCyclicDepartmentHierarchy($get('code'))])
+            ->helperText(__('resources/department/strings.hints.subordinate_to'));
+    }
 
     public static function code(): TextInput
     {
@@ -77,11 +120,11 @@ class DepartmentFormPresenter
                 Select::make('icon')
                     ->label(__('resources/department/strings.fields.icon'))
                     ->helperText(__('resources/department/strings.hints.icon'))
-                    ->options(fn() => static::getAllIcons())
+                    ->options(fn() => static::curatedIconOptions())
                     ->native(false)
                     ->lazy()
                     ->allowHtml()
-                    ->getOptionLabelUsing(fn(string $value) => static::getIconOptionLabel($value)),
+                    ->getOptionLabelUsing(fn(string $value) => static::curatedIconOptionLabel($value)),
             ])
             ->columns(4)
             ->defaultItems(0)
@@ -98,38 +141,5 @@ class DepartmentFormPresenter
             ->placeholder(__('resources/department/strings.fields.units_placeholder'))
             ->helperText(__('resources/department/strings.hints.units'))
             ->splitKeys(['Enter', ',', ' ']);
-    }
-
-    private static function formatIconSvg(string $svg): string
-    {
-        $svg = preg_replace('/\s+(width|height)="[^"]*"/', '', $svg);
-
-        return str_replace('<svg', '<svg class="w-4 h-4"', $svg);
-    }
-
-    private static function getAllIcons(): array
-    {
-        return Cache::remember('department_all_icons', 86400, function () {
-            $options = [];
-            $files = glob(base_path('vendor/blade-ui-kit/blade-heroicons/resources/svg/*.svg'));
-
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    $name = basename($file, '.svg');
-                    $options["heroicon-{$name}"] = static::formatIconSvg(file_get_contents($file));
-                }
-            }
-
-            return $options;
-        });
-    }
-
-    private static function getIconOptionLabel(string $value): string
-    {
-        $name = str_replace('heroicon-', '', $value);
-        $name = preg_replace('/[^a-z0-9\-]/', '', $name);
-        $file = base_path("vendor/blade-ui-kit/blade-heroicons/resources/svg/{$name}.svg");
-
-        return static::formatIconSvg(file_exists($file) && is_file($file) ? file_get_contents($file) : '');
     }
 }

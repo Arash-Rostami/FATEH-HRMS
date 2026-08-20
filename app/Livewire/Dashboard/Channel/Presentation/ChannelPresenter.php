@@ -180,6 +180,16 @@ class ChannelPresenter
         }, array_values($messages), array_keys($messages));
     }
 
+    public function readerSummary(array $msg): array
+    {
+        $shown = array_slice($msg['readers'], 0, 3);
+        return [
+            'names' => array_map(fn($r) => $r['name'] ?? '—', $msg['readers']),
+            'shown' => $shown,
+            'extra' => max(0, $msg['read_count'] - count($shown)),
+        ];
+    }
+
     private function mentionify(string $linked, string $pattern): array
     {
         $parts = preg_split('/(<a\s[^>]*>.*?<\/a>)/us', $linked, -1, PREG_SPLIT_DELIM_CAPTURE);

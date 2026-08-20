@@ -18,7 +18,7 @@ class CreateSuggestionAction
     {
         $form->validate();
 
-        if (Auth::user()?->profile?->department_id === 'MA') {
+        if (in_array(Auth::user()?->profile?->department_id, ['MA', 'MG'], true)) {
             throw ValidationException::withMessages([
                 'form.title' => __('resources/suggestion/strings.errors.ma_restricted'),
             ]);

@@ -13,7 +13,7 @@
         از لیست سمت راست یک پیشنهاد انتخاب کنید یا پیشنهاد جدیدی ثبت نمایید.
     </p>
 
-    @if($this->authDeptCode !== 'MA')
+    @if(!in_array($this->authDeptCode, ['MA', 'MG'], true))
     <x-ui.buttons.form
             icon="add"
             wire:click="openCreate">

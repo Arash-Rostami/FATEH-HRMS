@@ -5,6 +5,9 @@
 
     <x-ui.title icon="show_chart" title="گزارشات" :count="$this->totalReports" countLabel="گزارش">
         <x-slot:actions>
+            <x-ui.buttons.view-toggle />
+            <x-ui.buttons.icon-toggle state="showTimeline" icon="timeline" title="نمایش/مخفی تایم‌لاین" x-show="view === 'card'" x-cloak />
+
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'reports-badge-legend' })"

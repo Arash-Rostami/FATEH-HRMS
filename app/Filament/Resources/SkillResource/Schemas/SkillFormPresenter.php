@@ -74,15 +74,22 @@ class SkillFormPresenter
             ->helperText(__('resources/skill/strings.hints.icon'))
             ->searchable()
             ->native(false)
+            ->allowHtml()
             ->options(fn (?Skill $record): array => collect(SkillIcon::cases())
-                ->mapWithKeys(fn (SkillIcon $icon) => [$icon->value => $icon->value])
+                ->mapWithKeys(fn (SkillIcon $icon) => [$icon->value => static::renderIconOption($icon->value)])
                 ->when(
                     filled($record?->icon) && !SkillIcon::tryFrom($record->icon),
-                    fn ($options) => $options->put($record->icon, $record->icon),
+                    fn ($options) => $options->put($record->icon, static::renderIconOption($record->icon)),
                 )
                 ->toArray())
+            ->getOptionLabelUsing(fn (?string $state): ?string => $state)
             ->default(SkillIcon::default()->value)
             ->nullable();
+    }
+
+    private static function renderIconOption(string $value): string
+    {
+        return '<div class="flex items-center gap-2"><span class="material-symbols-rounded text-[18px] leading-none">' . e($value) . '</span><span>' . e($value) . '</span></div>';
     }
 
     public static function isActive(): Toggle

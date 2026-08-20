@@ -7,9 +7,12 @@ use App\Models\Department;
 use App\Models\FAQ;
 use App\Traits\FocusOnRecord;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Isolate]
 class Faqs extends Component
 {
     use FocusOnRecord;
@@ -19,6 +22,9 @@ class Faqs extends Component
     public ?string $selectedCategory = null;
     public ?string $selectedDepartment = null;
     public int $perPage = 10;
+
+    #[Locked]
+    public string $view = 'card';
 
     #[Computed(seconds: 3600, cache: true, key: 'faq-categories')]
     public function categories()
@@ -85,9 +91,23 @@ class Faqs extends Component
 
     public function mount(): void
     {
+        $view = session('faqs_view_mode', 'card');
+        $this->view = in_array($view, ['card', 'list'], true) ? $view : 'card';
+
         if ($this->open) {
             $this->perPage = max($this->perPage, 50);
+            $this->view = 'card';
         }
+    }
+
+    public function toggleView(string $view): void
+    {
+        if (!in_array($view, ['card', 'list'], true)) {
+            return;
+        }
+
+        $this->view = $view;
+        session(['faqs_view_mode' => $view]);
     }
 
     public function render()

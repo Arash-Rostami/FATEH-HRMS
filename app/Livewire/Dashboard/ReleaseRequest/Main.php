@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\ReleaseRequest;
 use App\Enums\ReleaseRequestType;
 use App\Livewire\Dashboard\ReleaseRequest\Actions\SubmitReleaseRequestAction;
 use App\Livewire\Dashboard\ReleaseRequest\Forms\ReleaseRequestForm;
+use App\Livewire\Dashboard\ReleaseRequest\Presentation\ReleaseRequestPresenter;
 use App\Models\ReleaseRequest;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -86,5 +87,11 @@ class Main extends Component
     public function render()
     {
         return view('livewire.dashboard.release-request');
+    }
+
+    #[Computed]
+    public function presenter(): ReleaseRequestPresenter
+    {
+        return new ReleaseRequestPresenter();
     }
 }

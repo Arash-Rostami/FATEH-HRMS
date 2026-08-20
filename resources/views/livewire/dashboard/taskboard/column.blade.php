@@ -110,13 +110,11 @@
                 @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column])
             @empty
                 @php
-                    $windowActive = ($column === 'done') && !$showAllDone && !$showArchived && ($search === '');
-                    $olderExist = $windowActive && (($doneTotalCount['done'] ?? 0) > 0);
-                    $archiveEmpty = ($column === 'done') && $showArchived && ($search === '');
+                    $empty = $presenter->emptyStateFlags($column, $showAllDone, $showArchived, $search, $doneTotalCount);
                 @endphp
-                @if($archiveEmpty)
+                @if($empty['archiveEmpty'])
                     <x-ui.empty icon="archive" title="مورد آرشیو شده‌ای نیست" description="وظایف انجام‌شده‌ی آرشیو‌شده اینجا نمایش داده می‌شوند" variant="list" />
-                @elseif($olderExist)
+                @elseif($empty['olderExist'])
                     <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
                         <x-slot:slot>
                             <button

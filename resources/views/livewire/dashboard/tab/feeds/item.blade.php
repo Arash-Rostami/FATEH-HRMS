@@ -24,7 +24,7 @@
         @endif
 
         @if(!empty($feed?->content))
-            @php $feedContent = superClean($feed->content, PHP_INT_MAX); @endphp
+            @php $feedContent = $presenter->contentHtml($feed); @endphp
             <div x-data="{ expanded: false }" class="text-sm leading-[2] text-[var(--md-sys-color-on-surface)] text-right text-justify" dir="rtl">
                 <div class="relative overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
                      :style="expanded ? ('max-height:' + $el.scrollHeight + 'px') : 'max-height: 7rem'">

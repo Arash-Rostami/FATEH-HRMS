@@ -1,17 +1,3 @@
-@php
-    use App\Filament\Resources\ThsResource\Enums\TicketPriority;
-    $priorityMap = [
-        'low'    => ['color'=>'text-green-500', 'icon' => 'low_priority', 'title'=>TicketPriority::Low->getLabel()],
-        'medium' => ['color'=>'text-[var(--md-sys-color-primary)]', 'icon' => 'drag_handle', 'title'=>TicketPriority::Medium->getLabel()],
-        'high'   => ['color'=>'text-[var(--md-sys-color-error)]', 'icon' => 'priority_high', 'title'=>TicketPriority::High->getLabel()],
-    ];
-    $statusMap = [
-        'open'        => ['icon'=>'pending', 'color'=>'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]', 'title'=>'باز', 'pulse' => true],
-        'in-progress' => ['icon'=>'sync', 'color'=>'text-[var(--md-sys-color-tertiary)] bg-[var(--md-sys-color-tertiary-container)]', 'title'=>'در حال بررسی', 'spin' => true],
-        'closed'      => ['icon'=>'check_circle', 'color'=>'text-[var(--md-sys-color-secondary)] bg-[var(--md-sys-color-secondary-container)]', 'title'=>'بسته شده', 'pulse' => false],
-    ];
-@endphp
-
 <div class="overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm relative">
     <div class="overflow-x-auto w-full">
         <table class="min-w-full text-sm text-right whitespace-nowrap lg:whitespace-normal text-[var(--md-sys-color-on-surface)]">
@@ -69,8 +55,8 @@
             <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
                 @forelse($tickets as $ticket)
                     @php
-                        $prio = $priorityMap[$ticket->priority] ?? null;
-                        $stat = $statusMap[$ticket->status] ?? null;
+                        $prio = $presenter->priorityMeta($ticket->priority);
+                        $stat = $presenter->statusMeta($ticket->status);
                         $fId = $presenter->formatId($ticket->toArray());
                         $isMine = $ticket->requester_id === auth()->id();
                     @endphp
@@ -100,7 +86,7 @@
                                 <div
                                     dir="ltr"
                                     title="{{ jdate($ticket->completion_date ?? now()) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['color'] }}">
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['textColor'] }} {{ $stat['bg'] }}">
                                     <span
                                         class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
                                     {{ $stat['title'] }}

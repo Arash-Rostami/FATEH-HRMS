@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Contact\Presentation;
 
 use App\Enums\PresenceStatus;
+use App\Models\Profile;
 use App\Models\Traits\HasAvatar;
 use App\Models\Traits\HasPublicAssetUrl;
 use Carbon\Carbon;
@@ -31,6 +32,8 @@ class ContactPresenter
             'presence'  => ($c['presence'] ?? null) instanceof PresenceStatus ? $c['presence'] : null,
             'unread'    => $unread,
             'occasion'  => $c['occasion'] ?? null,
+            'occasion_tone' => $c['occasion'] ? Profile::occasionTone($c['occasion']) : null,
+            'org_title' => collect([$c['unit'] ?? null, $c['section'] ?? null])->filter()->implode(' › '),
             'last_message' => $last ? [
                 'body'       => Str::limit($last['body'], 30),
                 'time'       => toJalaliRelative($last['created_at'], short: true),

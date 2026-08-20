@@ -7,8 +7,11 @@ export default function share() {
         sharePopoverOpen: false,
         shareTitle: '',
         shareText: '',
+        view: 'card',
 
         init() {
+            this.view = this.$wire.get('view') || 'card';
+
             this.$watch('panelOpen', value => {
                 document.body.style.overflow = value ? 'hidden' : '';
             });

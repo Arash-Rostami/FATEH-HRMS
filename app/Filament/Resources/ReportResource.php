@@ -37,6 +37,7 @@ class ReportResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'description', 'view' => 'filament.resources.report.guide.overview'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.report.guide.admin-ops'],
+        ['label' => 'دسترسی و اشتراک', 'icon' => 'lock', 'view' => 'filament.resources.report.guide.visibility'],
         ['label' => 'زبانه‌های فهرست و فیلترها', 'icon' => 'filter_list', 'view' => 'filament.resources.report.guide.list-tabs'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.report.guide.user'],
     ];
@@ -55,8 +56,13 @@ class ReportResource extends Resource
                                 ->schema([
                                     ReportFormPresenter::title(),
                                     ReportFormPresenter::departmentId(),
+                                    ReportFormPresenter::departments(),
                                     ReportFormPresenter::userId(),
                                     ReportFormPresenter::active(),
+                                    ReportFormPresenter::pinned(),
+                                    ReportFormPresenter::divider(),
+                                    ReportFormPresenter::reportDate(),
+                                    ReportFormPresenter::expiresAt(),
                                     ReportFormPresenter::divider(),
                                     ReportFormPresenter::description(),
                                 ])
@@ -154,9 +160,13 @@ class ReportResource extends Resource
                     ReportInfolistPresenter::title(),
                     ReportInfolistPresenter::description(),
                     ReportInfolistPresenter::department(),
+                    ReportInfolistPresenter::audience(),
                     ReportInfolistPresenter::user(),
                     ReportInfolistPresenter::fileType(),
                     ReportInfolistPresenter::active(),
+                    ReportInfolistPresenter::pinned(),
+                    ReportInfolistPresenter::reportDate(),
+                    ReportInfolistPresenter::expiresAt(),
                     ReportInfolistPresenter::createdAt(),
                     ReportInfolistPresenter::updatedAt(),
                 ])
@@ -172,18 +182,25 @@ class ReportResource extends Resource
                 ReportTablePresenter::id(),
                 ReportTablePresenter::title(),
                 ReportTablePresenter::department(),
+                ReportTablePresenter::audience(),
                 ReportTablePresenter::user(),
                 ReportTablePresenter::fileType(),
                 ReportTablePresenter::active(),
+                ReportTablePresenter::pinned(),
+                ReportTablePresenter::reportDate(),
                 ReportTablePresenter::createdAt(),
             ])
             ->groups([
                 ReportTablePresenter::activeGroup(),
                 ReportTablePresenter::departmentGroup(),
+                ReportTablePresenter::pinnedGroup(),
             ])
             ->filters([
                 ReportTablePresenter::activeFilter(),
                 ReportTablePresenter::departmentFilter(),
+                ReportTablePresenter::visibilityFilter(),
+                ReportTablePresenter::pinnedFilter(),
+                ReportTablePresenter::reportDateRangeFilter(),
                 self::createdAtFilter(),
             ])
             ->filtersFormColumns(2)
@@ -192,7 +209,10 @@ class ReportResource extends Resource
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(ReportExporter::class))
+            ->groupedBulkActions([
+                ...self::bulkActions(ReportExporter::class),
+                ReportTablePresenter::shareWithDepartmentsBulkAction(),
+            ])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc')
             ->striped();

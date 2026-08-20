@@ -10,9 +10,10 @@
     @if(!$isNestedView)
         @auth
             @php
-                $authUser     = auth()?->user();
-                $authHasPhoto = !empty($authUser?->profile?->image);
-                $authOnline   = $authUser?->isOnline() ?? false;
+                $c = $presenter->composerState();
+                $authUser     = $c['authUser'];
+                $authHasPhoto = $c['authHasPhoto'];
+                $authOnline   = $c['authOnline'];
             @endphp
 
             <div class="shrink-0 mx-1 mt-1 mb-3 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[var(--md-sys-color-primary)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]">

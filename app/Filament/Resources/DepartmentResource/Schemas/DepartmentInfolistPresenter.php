@@ -37,6 +37,14 @@ class DepartmentInfolistPresenter
             ->placeholder('-');
     }
 
+    public static function level(): TextEntry
+    {
+        return TextEntry::make('level')
+            ->label(__('resources/department/strings.fields.level'))
+            ->formatStateUsing(fn(int $state): string => __("resources/department/strings.fields.level_{$state}"))
+            ->badge();
+    }
+
     public static function name(): TextEntry
     {
         return TextEntry::make('name')
@@ -58,6 +66,15 @@ class DepartmentInfolistPresenter
         return TextEntry::make('units')
             ->label(__('resources/department/strings.fields.units'))
             ->badge()
+            ->placeholder('-');
+    }
+
+    public static function subordinateTo(): TextEntry
+    {
+        return TextEntry::make('subordinate_to')
+            ->label(__('resources/department/strings.fields.subordinate_to'))
+            ->badge()
+            ->color('gray')
             ->placeholder('-');
     }
 

@@ -88,7 +88,13 @@ A `TableWidget` listing `Skill::ghost()` rows ordered by `search_count` (pruned 
 
 ## `ModuleAnalyticsWidget` — tabbed stats
 
-A custom `Widget` (not `StatsOverviewWidget`) rendering `livewire.admin.widgets.filament-analytics`. Holds `public string $activeTab` (Livewire tab state) and 24 `#[Computed(seconds: 300, cache: true)]` `{domain}Data()` builders returning arrays of `Filament\Widgets\StatsOverviewWidget\Stat`. `departmentsData()` reads `Department::getCachedModels()->count()` for the total + one `withCount('users')` (excluding `Guest`/`VIP` types) + collection filter. Lazy-loaded.
+A custom `Widget` (not `StatsOverviewWidget`) rendering `livewire.admin.widgets.filament-analytics`. Holds `public string $activeTab` (Livewire tab state) and 24 `#[Computed(seconds: 300, cache: true)]` `{domain}Data()` builders returning arrays of `Filament\Widgets\StatsOverviewWidget\Stat`. `departmentsData()` reads `Department::getCachedModels()->count()` for the total + one `withCount('users')` (excluding `Guest` type only — VIP counts) + collection filter. Lazy-loaded.
+
+## Guest-user exclusion convention
+
+Every org-wide aggregate touching `users`/`profiles` (both the 4 `Hr*Chart` widgets via `HrAnalyticsService`, `OperationalChart`/`StructuralChart`, `ModuleAnalyticsWidget`, `DepartmentAxis::topDepartments()`, and the user-panel `/analytics` page which rides `HrAnalyticsService`) must exclude `UserType::Guest` — matching `User::scopeVisibleOnBoard()`'s Guest-only rule. **VIP is not excluded** (narrowed from an earlier, inconsistent Guest+VIP pattern in `ModuleAnalyticsWidget` — deliberately unified to Guest-only everywhere). Any new aggregate joining `users`/`profiles` needs `->where('users.type', '!=', UserType::Guest->value)` (or the `whereNot`/`withCount` closure equivalent).
+
+**Ambiguous-column trap when adding the join:** a `profiles`-only query that adds `->join('users', ...)` can silently break any bare (unqualified) `id`/`created_at`/`status` reference, since both tables have those columns — MySQL throws `Column '...' in field list is ambiguous`. Qualify every such column (`profiles.id`, `energy_tests.created_at`, …) at the same time the join is added, not after a test catches it.
 
 ## Test convention — `tests/Feature/Filament/Widgets/`
 

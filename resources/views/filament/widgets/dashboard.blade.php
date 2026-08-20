@@ -1,4 +1,4 @@
-<div class="flex flex-wrap items-center gap-2 w-full px-2 py-2 min-h-14"
+<div class="fi-dashboard-heading-bar flex flex-wrap items-center gap-2 w-full px-2 py-2 min-h-14"
      dir="rtl">
 
     {{-- TYPESETTER --}}
@@ -86,7 +86,7 @@
             this.minutes = this.toPersian(String(now.getMinutes()).padStart(2, '0'));
         }
     }"
-            class="relative flex items-stretch select-none overflow-hidden rounded-xl w-auto sm:w-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0 sm:flex-shrink-0"
+            class="relative flex items-stretch select-none overflow-hidden rounded-xl md:ms-auto border border-[var(--md-sys-color-primary)]/[0.18] bg-[var(--md-sys-color-primary-container)] flex-shrink-0"
             dir="ltr">
 
             <div class="absolute inset-0 pointer-events-none opacity-[0.06] z-0"

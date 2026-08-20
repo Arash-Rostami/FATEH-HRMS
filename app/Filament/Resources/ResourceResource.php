@@ -13,12 +13,13 @@ use App\Filament\Resources\ResourceResource\Schemas\ResourceInfolistPresenter;
 use App\Filament\Resources\ResourceResource\Schemas\ResourceTablePresenter;
 use App\Models\Resource as ResourceModel;
 use App\Traits\AuthorizesByPermission;
-use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentActions;
+use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -42,40 +43,40 @@ class ResourceResource extends Resource
         ['label' => 'چک‌لیست', 'icon' => 'checklist', 'view' => 'filament.resources.resource.guide.checklist'],
     ];
 
-    public static function getRecordTitle(?Model $record): ?string
-    {
-        if (! $record) {
-            return null;
-        }
-
-        return $record->labeled_name;
-    }
-
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/resource/strings.form.section_main'))
-                ->icon('heroicon-o-archive-box')
+            Grid::make(['default' => 1, 'lg' => 2])
                 ->schema([
-                    ResourceFormPresenter::name(),
-                    ResourceFormPresenter::type(),
-                    ResourceFormPresenter::status(),
-                ])
-                ->columns(3),
-            Section::make(__('resources/resource/strings.form.section_metadata'))
-                ->icon('heroicon-o-adjustments-horizontal')
-                ->schema([
-                    ResourceFormPresenter::floor(),
-                    ResourceFormPresenter::extension(),
-                    ResourceFormPresenter::capacity(),
-                    ResourceFormPresenter::divider(),
-                    ResourceFormPresenter::notes(),
-                ])
-                ->columns(2),
-            Section::make(__('resources/resource/strings.form.section_image'))
-                ->icon('heroicon-o-photo')
-                ->schema([ResourceFormPresenter::image()])
-                ->columns(1),
+                    Section::make(__('resources/resource/strings.form.section_main'))
+                        ->icon('heroicon-o-archive-box')
+                        ->schema([
+                            ResourceFormPresenter::name(),
+                            Grid::make(2)->schema([
+                                ResourceFormPresenter::status(),
+                                ResourceFormPresenter::type(),
+                            ]),
+                            ResourceFormPresenter::image(),
+                            ResourceFormPresenter::divider(),
+                            ResourceFormPresenter::notes(),
+                        ])
+                        ->columns(1),
+                    Section::make(__('resources/resource/strings.form.section_metadata'))
+                        ->icon('heroicon-o-adjustments-horizontal')
+                        ->schema([
+                            ResourceFormPresenter::floor(),
+                            ResourceFormPresenter::unit(),
+                            ResourceFormPresenter::cardNumber(),
+                            ResourceFormPresenter::extension(),
+                            ResourceFormPresenter::capacity(),
+                            ResourceFormPresenter::availableDays(),
+                            ResourceFormPresenter::timeSlotStart(),
+                            ResourceFormPresenter::timeSlotEnd(),
+                            ResourceFormPresenter::divider(),
+                            ResourceFormPresenter::customMetadata(),
+                        ])
+                        ->columns(2),
+                ])->columnSpanFull(),
         ]);
     }
 
@@ -141,6 +142,15 @@ class ResourceResource extends Resource
         return __('resources/resource/strings.plural_label');
     }
 
+    public static function getRecordTitle(?Model $record): ?string
+    {
+        if (!$record) {
+            return null;
+        }
+
+        return $record->labeled_name;
+    }
+
     public static function getRelations(): array
     {
         return [ReservationsRelationManager::class];
@@ -158,8 +168,12 @@ class ResourceResource extends Resource
                     ResourceInfolistPresenter::reservationsCount(),
 
                     ResourceInfolistPresenter::floor(),
+                    ResourceInfolistPresenter::unit(),
+                    ResourceInfolistPresenter::cardNumber(),
                     ResourceInfolistPresenter::extension(),
                     ResourceInfolistPresenter::capacity(),
+                    ResourceInfolistPresenter::availableDays(),
+                    ResourceInfolistPresenter::timeSlots(),
                     ResourceInfolistPresenter::notes(),
 
                     ResourceInfolistPresenter::createdAt(),

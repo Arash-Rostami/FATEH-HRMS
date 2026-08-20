@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Concerns;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
 use Illuminate\Support\Facades\DB;
 
 trait DepartmentAxis
@@ -15,6 +16,8 @@ trait DepartmentAxis
         }
 
         $codes = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('department_id', DB::raw('COUNT(*) as cnt'))
             ->whereNotNull('department_id')
             ->groupBy('department_id')

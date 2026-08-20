@@ -3,6 +3,7 @@
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Livewire\Dashboard\Tab\Feeds;
+use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
 use App\Models\Feed;
 use App\Models\Poll;
@@ -328,7 +329,7 @@ class FeedsTest extends TestCase
         $this->assertDatabaseHas('reactions', [
             'user_id' => $user->id,
             'feed_id' => $feed->id,
-            'emoji' => '👍',
+            'emoji' => bin2hex('👍'),
         ]);
 
         Livewire::actingAs($user)
@@ -338,7 +339,7 @@ class FeedsTest extends TestCase
         $this->assertDatabaseMissing('reactions', [
             'user_id' => $user->id,
             'feed_id' => $feed->id,
-            'emoji' => '👍',
+            'emoji' => bin2hex('👍'),
         ]);
 
         Reaction::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id, 'emoji' => '👍']);
@@ -350,12 +351,12 @@ class FeedsTest extends TestCase
         $this->assertDatabaseHas('reactions', [
             'user_id' => $user->id,
             'feed_id' => $feed->id,
-            'emoji' => '❤️',
+            'emoji' => bin2hex('❤️'),
         ]);
         $this->assertDatabaseMissing('reactions', [
             'user_id' => $user->id,
             'feed_id' => $feed->id,
-            'emoji' => '👍',
+            'emoji' => bin2hex('👍'),
         ]);
     }
 
@@ -367,7 +368,7 @@ class FeedsTest extends TestCase
         Livewire::test(Feeds::class)
             ->call('toggleReaction', $feed->id, '👍');
 
-        $this->assertDatabaseMissing('reactions', ['feed_id' => $feed->id, 'emoji' => '👍']);
+        $this->assertDatabaseMissing('reactions', ['feed_id' => $feed->id, 'emoji' => bin2hex('👍')]);
     }
 
     public function test_vote_in_single_mode_replaces_previous_vote(): void
@@ -550,6 +551,33 @@ class FeedsTest extends TestCase
             ->assertSet('hasMorePages', true);
     }
 
+    public function test_month_filter_renders_when_feeds_have_created_at_dates(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 2);
+
+        Livewire::test(Feeds::class)
+            ->assertSee('calendar_month', false)
+            ->assertSee('همه ماه‌ها', false);
+    }
+
+    public function test_presenter_months_returns_unique_keys_sorted_desc_by_created_at(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $march = Feed::factory()->create(['user_id' => $user->id, 'created_at' => '2026-03-15 10:00:00']);
+        $march2 = Feed::factory()->create(['user_id' => $user->id, 'created_at' => '2026-03-20 10:00:00']);
+        $may = Feed::factory()->create(['user_id' => $user->id, 'created_at' => '2026-05-10 10:00:00']);
+
+        $feeds = collect([$march, $march2, $may]);
+        $months = (new \App\Livewire\Dashboard\Tab\Presentation\FeedPresenter())->months($feeds, 'created_at');
+
+        $this->assertCount(2, $months);
+        $this->assertSame(2, $months->pluck('key')->unique()->count());
+        $this->assertSame('2026-05-10', $months->first()['sort']->toDateString());
+    }
+
     public function test_reset_filters_clears_search_and_category(): void
     {
         $user = User::factory()->create(['status' => 'active']);
@@ -591,7 +619,7 @@ class FeedsTest extends TestCase
             ->assertSet('feedIds', [$target->id])
             ->assertSet('selectedFeedId', $target->id)
             ->assertSet('hasMorePages', false)
-            ->assertDispatched('record-focus', type: 'feeds', id: $target->id);
+            ->assertNotDispatched('record-focus');
     }
 
     public function test_mount_with_open_query_for_nonexistent_feed_falls_back_to_initial_load(): void
@@ -702,5 +730,85 @@ class FeedsTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    public function test_toggle_view_to_magazine_sets_view_and_persists_session(): void
+    {
+        $component = Livewire::test(Feeds::class)->call('toggleView', 'magazine');
+
+        $this->assertSame('magazine', $component->instance()->view);
+        $this->assertSame('magazine', session('feeds_view_mode'));
+    }
+
+    public function test_toggle_view_ignores_invalid_value(): void
+    {
+        $component = Livewire::test(Feeds::class)->call('toggleView', 'bogus');
+
+        $this->assertSame('filmstrip', $component->instance()->view);
+        $this->assertNull(session('feeds_view_mode'));
+    }
+
+    public function test_mount_restores_magazine_view_from_session(): void
+    {
+        session(['feeds_view_mode' => 'magazine']);
+
+        $component = Livewire::test(Feeds::class);
+
+        $this->assertSame('magazine', $component->instance()->view);
+    }
+
+    public function test_focus_record_loads_single_feed_and_forces_filmstrip(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        [$feed] = $this->createFeedsFor($user, 1);
+
+        $component = Livewire::test(Feeds::class);
+        $ok = $component->instance()->focusRecord($feed->id);
+
+        $this->assertTrue($ok);
+        $this->assertSame('filmstrip', $component->instance()->view);
+        $this->assertSame([$feed->id], $component->instance()->feedIds);
+        $this->assertSame($feed->id, $component->instance()->selectedFeedId);
+        $this->assertFalse($component->instance()->hasMorePages);
+    }
+
+    public function test_focus_record_ignores_nonexistent_id(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 1);
+
+        $component = Livewire::test(Feeds::class);
+        $viewBefore = $component->instance()->view;
+        $feedIdsBefore = $component->instance()->feedIds;
+        $openBefore = $component->instance()->open;
+
+        $ok = $component->instance()->focusRecord(99999999);
+
+        $this->assertFalse($ok);
+        $this->assertSame($viewBefore, $component->instance()->view);
+        $this->assertSame($feedIdsBefore, $component->instance()->feedIds);
+        $this->assertSame($openBefore, $component->instance()->open);
+    }
+
+    public function test_media_cell_data_increments_image_index_and_assigns_my_index()
+    {
+        $p = new FeedPresenter();
+        $imgIndex = 0;
+        $cell = $p->mediaCellData('http://x/y.png', $imgIndex);
+        $this->assertTrue($cell['isImage']);
+        $this->assertSame(0, $cell['myIndex']);
+        $this->assertSame(1, $imgIndex);
+
+        $cell2 = $p->mediaCellData('http://x/y.mp4', $imgIndex);
+        $this->assertFalse($cell2['isImage']);
+        $this->assertNull($cell2['myIndex']);
+        $this->assertSame(1, $imgIndex);
+
+        $cell3 = $p->mediaCellData('http://x/z.png', $imgIndex);
+        $this->assertTrue($cell3['isImage']);
+        $this->assertSame(1, $cell3['myIndex']);
+        $this->assertSame(2, $imgIndex);
     }
 }

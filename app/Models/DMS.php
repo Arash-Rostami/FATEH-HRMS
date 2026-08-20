@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Traits\HasDepartmentHelpers;
 use App\Models\Traits\HasDmsCountHelpers;
 use App\Models\Traits\HasMenuState;
@@ -32,10 +33,10 @@ class DMS extends Model
         'under_review' => 'در حال بررسی',
         'obsolete' => 'منسوخ شده',
     ];
-    private static $statusIconMapping = [
-        'live' => '<span class="material-symbols-rounded text-green-500">check_circle</span>',
-        'under_review' => '<span class="material-symbols-rounded text-yellow-500">hourglass_empty</span>',
-        'obsolete' => '<span class="material-symbols-rounded text-red-500">cancel</span>',
+    private static $statusColorMapping = [
+        'live' => 'text-green-500',
+        'under_review' => 'text-yellow-500',
+        'obsolete' => 'text-red-500',
     ];
 
     protected $table = 'dms';
@@ -66,7 +67,15 @@ class DMS extends Model
 
     public function getStatusIcon()
     {
-        return self::$statusIconMapping[$this->status] ?? $this->status;
+        $status = DocumentStatus::tryFrom($this->status);
+
+        if (!$status) {
+            return $this->status;
+        }
+
+        $color = self::$statusColorMapping[$this->status] ?? 'text-gray-500';
+
+        return '<span class="material-symbols-rounded ' . $color . '">' . $status->getMaterialIcon() . '</span>';
     }
 
     public function getStatusInFarsi()

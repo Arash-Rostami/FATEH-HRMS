@@ -52,6 +52,13 @@
     </div>
 
     <div class="p-6 flex-1 flex flex-col relative bg-[var(--md-sys-color-surface)]">
+        @if($resource->metadata['notes'] ?? null)
+            <div class="flex items-start gap-2 mb-4 px-1">
+                <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-primary)]">sticky_note_2</span>
+                <p class="text-[12px] leading-6 font-semibold text-[var(--md-sys-color-on-surface)]">{{ $resource->metadata['notes'] }}</p>
+            </div>
+        @endif
+
         <div class="relative mb-6">
             <div class="flex flex-nowrap gap-2 overflow-x-auto pb-2 custom-scrollbar mask-fade-right">
                 @foreach($resource->formatted_metadata as $item)
@@ -78,9 +85,9 @@
 
             <x-ui.buttons.submit
                 wire:click="book({{ $resource->id }})"
-                {{ $blocked ? 'disabled' : '' }}
+                :disabled="$blocked"
                 :target="'book('.$resource->id.')'"
-                :text="$activeTab === 'meeting' ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
+                :text="!(\App\Enums\ResourceType::tryFrom($activeTab)?->isFullDay() ?? true) ? 'ثبت زمان ('.convertToPersian($startTime).' - '.convertToPersian($endTime).')' : 'ثبت رزرو کامل'"
                 loadingText="در حال ثبت..."
                 icon="add_circle"
                 iconSize="text-[20px]"

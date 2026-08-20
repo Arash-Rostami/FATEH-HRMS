@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
@@ -94,6 +95,7 @@ class StructuralChart extends ChartWidget
                 DB::table('tasks')
                     ->join('users', 'tasks.assigned_to', '=', 'users.id')
                     ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->where('users.type', '!=', UserType::Guest->value)
                     ->whereIn('tasks.status', ['todo', 'in-progress'])
                     ->select('profiles.department_id as code', DB::raw('COUNT(*) as task_count'))
                     ->groupBy('profiles.department_id'),
@@ -106,6 +108,7 @@ class StructuralChart extends ChartWidget
                 DB::table('tickets')
                     ->join('users', 'tickets.assigned_to', '=', 'users.id')
                     ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->where('users.type', '!=', UserType::Guest->value)
                     ->whereIn('tickets.status', ['open', 'in-progress'])
                     ->select('profiles.department_id as code', DB::raw('COUNT(*) as ticket_count'))
                     ->groupBy('profiles.department_id'),
@@ -139,7 +142,9 @@ class StructuralChart extends ChartWidget
     public function getModuleFData(string $departmentCode): array
     {
         $query = DB::table('profiles')
-            ->select('gender', 'employment_status', DB::raw('COUNT(id) as count'))
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
+            ->select('gender', 'employment_status', DB::raw('COUNT(profiles.id) as count'))
             ->groupBy('gender', 'employment_status');
 
         if ($departmentCode) {
@@ -204,6 +209,8 @@ class StructuralChart extends ChartWidget
         $query = DB::table('departments')
             ->leftJoinSub(
                 DB::table('profiles')
+                    ->join('users', 'profiles.user_id', '=', 'users.id')
+                    ->where('users.type', '!=', UserType::Guest->value)
                     ->select('profiles.department_id as code', DB::raw('COUNT(*) as users_count'))
                     ->groupBy('profiles.department_id'),
                 'prof_agg',
@@ -215,6 +222,7 @@ class StructuralChart extends ChartWidget
                 DB::table('reports')
                     ->join('users', 'reports.user_id', '=', 'users.id')
                     ->join('profiles', 'users.id', '=', 'profiles.user_id')
+                    ->where('users.type', '!=', UserType::Guest->value)
                     ->select('profiles.department_id as code', DB::raw('COUNT(*) as reports_count'))
                     ->groupBy('profiles.department_id'),
                 'rep_agg',
@@ -249,6 +257,8 @@ class StructuralChart extends ChartWidget
     private function getModuleIData(string $departmentCode): array
     {
         $query = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereNotNull('start_date')
             ->where('employment_status', '!=', 'terminated');
 

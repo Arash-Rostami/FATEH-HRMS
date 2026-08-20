@@ -151,7 +151,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     public function departmentsData(): array
     {
         $total = Department::getCachedModels()->count();
-        $ranked = Department::withCount(['users' => fn($query) => $query->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])])
+        $ranked = Department::withCount(['users' => fn($query) => $query->where('type', '!=', UserType::Guest->value)])
             ->orderByDesc('users_count')->orderBy('code')->get();
         $withUsers = $ranked->where('users_count', '>', 0)->count();
         $mostDense = $ranked->first()?->displayLabel() ?? __('resources/dashboard/strings.analytics.departments.unknown');
@@ -205,6 +205,8 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     public function energyData(): array
     {
         $stats = DB::table('energy_tests')
+            ->join('users', 'users.id', '=', 'energy_tests.user_id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->selectRaw("
             COUNT(*) AS total,
             COALESCE(ROUND(AVG(overall_score), 1), 0) AS avg_overall,
@@ -484,7 +486,10 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function profilesData(): array
     {
-        $stats = DB::table('profiles')->selectRaw("
+        $stats = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
+            ->selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN employment_status = 'working' THEN 1 ELSE 0 END) as active_employees,
             SUM(CASE WHEN gender = 'female' THEN 1 ELSE 0 END) as females,
@@ -762,7 +767,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     public function usersData(): array
     {
         $stats = DB::table('users')
-            ->whereNotIn('type', [UserType::Guest->value, UserType::VIP->value])
+            ->where('type', '!=', UserType::Guest->value)
             ->selectRaw("
             COUNT(*) as total,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,

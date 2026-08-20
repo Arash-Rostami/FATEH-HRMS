@@ -13,6 +13,7 @@ class AuthorityInfolistPresenter
         return TextEntry::make('duty')
             ->label(__('resources/authority/strings.fields.duty'))
             ->getStateUsing(fn($record) => $record->details['duty'] ?? null)
+            ->html()
             ->placeholder('—')
             ->columnSpanFull();
     }

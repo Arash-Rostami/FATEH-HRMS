@@ -78,23 +78,15 @@
                                         class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
                                     <span
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">وضعیت</span>
-                                        @php
-                                            $s = $selectedTicket['status'];
-                                            $col = $s==='open' ? 'text-[var(--md-sys-color-primary)]' : ($s==='in-progress'?'text-[var(--md-sys-color-tertiary)]':'text-[var(--md-sys-color-secondary)]');
-                                            $lbl = $s==='open' ? 'باز' : ($s==='in-progress'?'در حال بررسی':'بسته شده');
-                                        @endphp
-                                        <span class="text-xs font-bold {{ $col }}">{{ $lbl }}</span>
+                                        @php $sm = $presenter->statusMeta($selectedTicket['status']); @endphp
+                                        <span class="text-xs font-bold {{ $sm['textColor'] ?? '' }}">{{ $sm['title'] ?? '—' }}</span>
                                     </div>
                                     <div
                                         class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
                                     <span
                                         class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">اولویت</span>
-                                        @php
-                                            $p = $selectedTicket['priority'];
-                                            $pCol = $p==='low'?'text-[var(--md-sys-color-primary)]':($p==='medium'?'text-[var(--md-sys-color-secondary)]':'text-[var(--md-sys-color-error)]');
-                                            $pLbl = \App\Filament\Resources\ThsResource\Enums\TicketPriority::tryFrom($p)?->getLabel() ?? '—';
-                                        @endphp
-                                        <span class="text-xs font-bold {{ $pCol }}">{{ $pLbl }}</span>
+                                        @php $pm = $presenter->priorityMeta($selectedTicket['priority']); @endphp
+                                        <span class="text-xs font-bold {{ $pm['color'] ?? '' }}">{{ $pm['title'] ?? '—' }}</span>
                                     </div>
                                     <div
                                         class="bg-[var(--md-sys-color-primary-container)] p-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 flex flex-col items-center justify-center text-center gap-1 shadow-sm">

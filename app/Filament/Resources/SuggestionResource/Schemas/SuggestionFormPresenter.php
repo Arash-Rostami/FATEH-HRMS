@@ -4,7 +4,7 @@ namespace App\Filament\Resources\SuggestionResource\Schemas;
 
 use App\Models\Department;
 use App\Models\Suggestion;
-use App\Rules\SuggestionSubmitterNotFromMa;
+use App\Rules\SuggestionSubmitterNotFromMaOrMg;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
@@ -154,7 +154,7 @@ class SuggestionFormPresenter
             ->helperText(__('resources/suggestion/strings.fields.user_locked'))
             ->preload()
             ->required()
-            ->rule(new SuggestionSubmitterNotFromMa())
+            ->rule(new SuggestionSubmitterNotFromMaOrMg())
             ->default(fn() => auth()->id());
     }
 }

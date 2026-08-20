@@ -68,7 +68,7 @@ class EditPolicy extends EditRecord
             ['value', 'updated_at']
         );
 
-        app(ValidationService::class)->flushPolicyCache($type);
+        app(ValidationService::class)->flushPolicyCache();
 
         return $record;
     }

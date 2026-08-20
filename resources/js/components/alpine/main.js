@@ -48,6 +48,7 @@ import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
 import feedReactions from "./data/feedReactions.js";
 import countdown from "./data/countdown.js";
+import { calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
@@ -101,5 +102,9 @@ export default function initAlpine() {
         Alpine.data('feedComposer', feedComposer)
         Alpine.data('feedReactions', feedReactions)
         Alpine.data('countdown', countdown)
+        Alpine.data('calendarDrag', calendarDrag)
+        Alpine.data('calendarNow', calendarNow)
+        Alpine.data('calendarResize', calendarResize)
+        Alpine.data('calendarView', calendarView)
     })
 }

@@ -12,7 +12,7 @@ class ProfileDetailCatalog
     public static function attributes(string $prefix = 'values'): array
     {
         $attrs = [];
-        foreach (self::definitions() as $key => $def) {
+        foreach (self::deffrominitions() as $key => $def) {
             $attrs["{$prefix}.{$key}"] = $def['label'];
         }
         return $attrs;

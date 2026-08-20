@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
 use Filament\Schemas\Schema;
@@ -85,6 +86,7 @@ class OperationalChart extends ChartWidget
         $energyAgg = DB::table('energy_tests')
             ->join('users', 'users.id', '=', 'energy_tests.user_id')
             ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('profiles.department_id as code', DB::raw('AVG(energy_tests.overall_score) as avg_energy'))
             ->where('energy_tests.completed_at', '>=', now()->subDays(30))
             ->groupBy('profiles.department_id');
@@ -92,6 +94,7 @@ class OperationalChart extends ChartWidget
         $tasksAgg = DB::table('tasks')
             ->join('users', 'users.id', '=', 'tasks.assigned_to')
             ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('profiles.department_id as code', DB::raw('COUNT(tasks.id) as pending_tasks'))
             ->whereIn('tasks.status', ['todo', 'in-progress'])
             ->groupBy('profiles.department_id');
@@ -132,6 +135,7 @@ class OperationalChart extends ChartWidget
             ->join('users as requester', 'tickets.requester_id', '=', 'requester.id')
             ->join('profiles as requester_profile', 'requester.id', '=', 'requester_profile.user_id')
             ->join('departments as creator_dept', 'requester_profile.department_id', '=', 'creator_dept.code')
+            ->where('requester.type', '!=', UserType::Guest->value)
             ->whereNotNull('tickets.completion_date')
             ->groupBy('creator_dept.code', 'creator_dept.name', 'creator_dept.description');
 

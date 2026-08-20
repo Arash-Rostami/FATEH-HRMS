@@ -1,7 +1,7 @@
 @props(['name', 'title' => 'راهنمای نشانگرهای اعلان', 'items' => [], 'groups' => []])
 
 <x-ui.modals.dialog :name="$name" :title="$title">
-    <div class="space-y-3 max-h-[calc(50vh-112px)] overflow-y-auto pr-1">
+    <div class="space-y-3">
         <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--tool-sapphire-bg)] px-4 py-3">
             <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface)]/50 text-[var(--tool-sapphire-color)]">
                 <span class="material-symbols-rounded text-[16px]">fiber_manual_record</span>

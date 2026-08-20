@@ -24,6 +24,22 @@ if (!function_exists('convertToPersian')) {
     }
 }
 
+if (!function_exists('stripHtml')) {
+    function stripHtml(?string $text): string
+    {
+        if (blank($text)) {
+            return '';
+        }
+
+        $text = strip_tags($text);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = str_replace(["\u{a0}", "\u{200b}", "\u{feff}"], ' ', $text);
+        $text = preg_replace('/\s+/u', ' ', $text);
+
+        return trim((string)$text);
+    }
+}
+
 if (!function_exists('superClean')) {
     function superClean(?string $text, int $limit = 100, bool $nl2br = false): string
     {
@@ -204,8 +220,8 @@ if (!function_exists('isVideo')) {
             return false;
         }
 
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        return in_array($extension, ['mp4', 'webm', 'ogg'], true);
+        $extension = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+        return in_array($extension, ['mp4', 'webm', 'ogg', 'mov'], true);
     }
 }
 

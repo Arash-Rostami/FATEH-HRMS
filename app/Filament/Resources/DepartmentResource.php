@@ -56,6 +56,9 @@ class DepartmentResource extends Resource
                     DepartmentFormPresenter::description(),
                     DepartmentFormPresenter::units(),
                     DepartmentFormPresenter::sections(),
+                    DepartmentFormPresenter::divider(),
+                    DepartmentFormPresenter::level(),
+                    DepartmentFormPresenter::subordinateTo(),
                     DepartmentFormPresenter::ticketOptions(),
                 ])
                 ->columnSpanFull()
@@ -144,6 +147,8 @@ class DepartmentResource extends Resource
                     DepartmentInfolistPresenter::description(),
                     DepartmentInfolistPresenter::units(),
                     DepartmentInfolistPresenter::sections(),
+                    DepartmentInfolistPresenter::level(),
+                    DepartmentInfolistPresenter::subordinateTo(),
                     DepartmentInfolistPresenter::createdAt(),
                     DepartmentInfolistPresenter::updatedAt(),
                 ])
@@ -162,6 +167,8 @@ class DepartmentResource extends Resource
                 DepartmentTablePresenter::description(),
                 DepartmentTablePresenter::units(),
                 DepartmentTablePresenter::sections(),
+                DepartmentTablePresenter::level(),
+                DepartmentTablePresenter::subordinateTo(),
                 DepartmentTablePresenter::usersCount(),
                 DepartmentTablePresenter::unitsCount(),
                 DepartmentTablePresenter::sectionsCount(),

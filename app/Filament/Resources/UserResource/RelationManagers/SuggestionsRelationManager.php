@@ -175,11 +175,15 @@ class SuggestionsRelationManager extends RelationManager
             ->modifyQueryUsing(fn(Builder $query) => $query->withReviewCounts())
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn(): bool => $this->getOwnerRecord()->profile?->department_id !== 'MA')
-                    ->using(fn(array $data): Suggestion => CreateSuggestion::createSuggestionRecord([
-                        ...$data,
-                        'user_id' => $this->getOwnerRecord()->id,
-                    ])),
+                    ->visible(fn(): bool => !in_array($this->getOwnerRecord()->profile?->department_id, ['MA', 'MG'], true))
+                    ->using(function (array $data): Suggestion {
+                        abort_if(in_array($this->getOwnerRecord()->profile?->department_id, ['MA', 'MG'], true), 403);
+
+                        return CreateSuggestion::createSuggestionRecord([
+                            ...$data,
+                            'user_id' => $this->getOwnerRecord()->id,
+                        ]);
+                    }),
             ])
             ->recordActions([
                 self::viewAction(),

@@ -11,7 +11,7 @@
             @foreach($this->todaysOccasions as $occasion)
                 @php
                     $user = $occasion['user'];
-                    $tone = \App\Models\Profile::occasionTone($occasion['type']);
+                    $tone = $occasion['tone'];
                 @endphp
 
                 <button

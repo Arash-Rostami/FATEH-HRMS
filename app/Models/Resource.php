@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Traits\HasResourceMetadata;
 use App\Traits\CleansAttachedFiles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Resource extends Model
 {
-    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles;
+    use HasFactory, HasPublicAssetUrl, CleansAttachedFiles, HasResourceMetadata;
 
     protected $fillable = [
         'name',
@@ -51,10 +52,24 @@ class Resource extends Model
 
     public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlap = false): Builder
     {
+        $isFullDay = ResourceType::tryFrom($type)?->isFullDay() ?? false;
+        $day = strtolower($start->englishDayOfWeek);
+
         return $query
             ->where('type', $type)
             ->where('status', 'active')
             ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
+            ->where(fn($q) => $q
+                ->whereNull('metadata->available_days')
+                ->orWhereJsonContains('metadata->available_days', $day)
+            )
+            ->when(!$isFullDay, fn($q) => $q->where(fn($q2) => $q2
+                ->whereNull('metadata->time_slots->start')
+                ->orWhere(fn($q3) => $q3
+                    ->where('metadata->time_slots->start', '<=', $start->format('H:i'))
+                    ->where('metadata->time_slots->end', '>=', $end->format('H:i'))
+                )
+            ))
             ->whereDoesntHave('reservations', fn($q) => $q
                 ->whereIn('status', $allowOverlap ? [ReservationStatus::Active->value] : [ReservationStatus::Active->value, ReservationStatus::Released->value])
                 ->where(fn($q) => $q
@@ -73,19 +88,11 @@ class Resource extends Model
             );
     }
 
-
-    protected function casts(): array
-    {
-        return [
-            'metadata' => 'array',
-        ];
-    }
-
     protected function displayImage(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->image ?: (
-            ResourceType::tryFrom($this->type) === ResourceType::Meeting
+            $this->type === 'meeting'
                 ? $this->relatedUser?->profile?->image
                 : null
             )
@@ -99,45 +106,6 @@ class Resource extends Model
                 ? self::resolvePublicAssetUrl($this->display_image)
                 : null
         )->shouldCache();
-    }
-
-    protected function formattedMetadata(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                static $config = [
-                    'floor' => [
-                        'icon' => 'layers',
-                        'label' => 'طبقه ',
-                        'class' => '',
-                    ],
-                    'extension' => [
-                        'icon' => 'call',
-                        'label' => '',
-                        'class' => 'font-mono tracking-wider',
-                    ]
-                ];
-
-                $items = [];
-                $metadata = $this->metadata;
-                if (!is_array($metadata) || $metadata === []) return [];
-
-
-                foreach ($metadata as $key => $value) {
-                    $base = $config[$key] ?? [
-                        'icon' => null,
-                        'label' => str($key)->headline()->finish(' : '),
-                        'class' => '',
-                    ];
-
-                    $items[] = (object)array_merge($base, [
-                        'value' => convertToPersian($value) ?? $value
-                    ]);
-                }
-
-                return array_reverse($items);
-            }
-        );
     }
 
     protected function icon(): Attribute
@@ -159,5 +127,11 @@ class Resource extends Model
     protected static function booted(): void
     {
         static::deleting(fn(self $resource) => static::deleteStoredFiles($resource->getRawOriginal('image')));
+        static::deleted(function (self $resource): void {
+            if (! static::where('type', $resource->type)->exists()) {
+                ReservationPolicy::where('resource_type', $resource->type)->delete();
+                ResourceType::forgetCache();
+            }
+        });
     }
 }

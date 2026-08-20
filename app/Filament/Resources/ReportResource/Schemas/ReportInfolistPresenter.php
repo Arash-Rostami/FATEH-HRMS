@@ -22,6 +22,25 @@ class ReportInfolistPresenter
             ->falseColor('danger');
     }
 
+    public static function audience(): TextEntry
+    {
+        return TextEntry::make('audience')
+            ->label(__('resources/report/strings.fields.audience'))
+            ->placeholder(__('resources/report/strings.filters.visibility_public'))
+            ->badge()
+            ->color(fn($record) => $record->is_public ? 'success' : ($record->audience_departments->count() > 1 ? 'info' : 'warning'))
+            ->icon(fn($record) => $record->is_public
+                ? 'heroicon-o-globe-alt'
+                : ($record->audience_departments->count() > 1 ? 'heroicon-o-users' : 'heroicon-o-lock-closed'))
+            ->getStateUsing(function ($record) {
+                $models = $record->audience_departments;
+                if ($models->isEmpty()) {
+                    return null;
+                }
+                return $models->map(fn($d) => $d->displayLabel())->join('، ');
+            });
+    }
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
@@ -51,6 +70,14 @@ class ReportInfolistPresenter
             ->columnSpanFull();
     }
 
+    public static function expiresAt(): TextEntry
+    {
+        return TextEntry::make('expires_at')
+            ->label(__('resources/report/strings.fields.expires_at'))
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->color(fn($state) => $state && $state < now() ? 'danger' : 'gray')
+            ->placeholder('-');
+    }
 
     public static function fileType(): TextEntry
     {
@@ -62,6 +89,26 @@ class ReportInfolistPresenter
                 'docx', 'doc' => 'info',
                 default => 'gray'
             });
+    }
+
+    public static function pinned(): IconEntry
+    {
+        return IconEntry::make('pinned')
+            ->label(__('resources/report/strings.fields.pinned'))
+            ->boolean()
+            ->trueIcon('heroicon-o-bookmark')
+            ->falseIcon('heroicon-o-bookmark')
+            ->trueColor('warning')
+            ->falseColor('gray');
+    }
+
+    public static function reportDate(): TextEntry
+    {
+        return TextEntry::make('report_date')
+            ->label(__('resources/report/strings.fields.report_date'))
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->color('gray')
+            ->placeholder('-');
     }
 
     public static function thumbnail(): ImageEntry

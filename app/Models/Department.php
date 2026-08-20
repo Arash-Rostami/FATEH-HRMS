@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasDepartmentLabel;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use RuntimeException;
 
 class Department extends Model
 {
@@ -25,19 +27,59 @@ class Department extends Model
         'ticket_options',
         'units',
         'sections',
+        'level',
+        'subordinate_to',
     ];
     protected $primaryKey = 'code';
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $department) {
+            if ($department->subordinate_to !== null && (int) $department->level === 0) {
+                $department->level = 1;
+            }
+
+            if (static::wouldCreateCycle($department->code, $department->subordinate_to)) {
+                throw new RuntimeException('Department hierarchy cannot reference itself or form a cycle.');
+            }
+        });
+    }
+
+    public static function wouldCreateCycle(?string $code, ?string $subordinateTo): bool
+    {
+        if ($code === null || $subordinateTo === null) {
+            return false;
+        }
+
+        if ($subordinateTo === $code) {
+            return true;
+        }
+
+        $models = static::getCachedModels();
+        $visited = [];
+        $current = $subordinateTo;
+
+        while ($current !== null) {
+            if ($current === $code || isset($visited[$current])) {
+                return true;
+            }
+
+            $visited[$current] = true;
+            $current = $models->get($current)?->subordinate_to;
+        }
+
+        return false;
+    }
 
     public static function anyHasCustomTicketOptions(): bool
     {
-        return once(fn() => Cache::remember(
-            'department_any_has_ticket_options',
+        return Cache::remember(
+            ModelCacheVersion::key(self::class, 'department_any_has_ticket_options'),
             now()->addYear(),
             fn() => self::excludingEmptyTicketOptions()->exists()
-        ));
+        );
     }
 
     public function authorities(): HasMany
@@ -52,27 +94,27 @@ class Department extends Model
 
     public static function getCachedModels(): Collection
     {
-        return once(fn() => Cache::remember('department_models',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'department_models'),
             now()->addYear(),
-            fn() => self::all()->keyBy('code'))
+            fn() => self::all()->keyBy('code')
         );
     }
 
     public static function getCachedOptions(): Collection
     {
-        return once(fn() => Cache::remember('department_options_v2',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'department_options_v2'),
             now()->addYear(),
-            fn() => self::orderBy('name')->get()->mapWithKeys(fn($d) => [$d->code => $d->displayLabel()]))
+            fn() => self::orderBy('name')->get()->mapWithKeys(fn($d) => [$d->code => $d->displayLabel()])
         );
     }
 
     public static function getCachedOptionsExcludingEmptyTickets(): Collection
     {
-        return once(fn() => Cache::remember(
-            'department_options_with_tickets_v2',
+        return Cache::remember(
+            ModelCacheVersion::key(self::class, 'department_options_with_tickets_v2'),
             now()->addYear(),
             fn() => self::excludingEmptyTicketOptions()->orderBy('name')->get()->mapWithKeys(fn($d) => [$d->code => $d->displayLabel()])
-        ));
+        );
     }
 
     public function photos(): HasMany
@@ -135,23 +177,11 @@ class Department extends Model
         return $this->hasManyThrough(User::class, Profile::class, 'department_id', 'id', 'code', 'user_id');
     }
 
-    protected static function booted(): void
-    {
-        $forgetCache = function () {
-            Cache::forget('department_options_v2');
-            Cache::forget('department_options_with_tickets_v2');
-            Cache::forget('department_models');
-            Cache::forget('department_any_has_ticket_options');
-        };
-
-        static::saved($forgetCache);
-        static::deleted($forgetCache);
-    }
-
     protected function casts(): array
     {
         return [
             'ticket_options' => 'array',
+            'level' => 'integer',
         ];
     }
 

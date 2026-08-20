@@ -2,6 +2,7 @@
 
 namespace App\Models\Traits;
 
+use App\Enums\ResourceTypeIcon;
 use App\Models\Department;
 use Illuminate\Support\Facades\Blade;
 
@@ -82,7 +83,17 @@ trait HasTicketOptions
 
     public static function getCustomMaterialIconForArea(?string $area, ?string $departmentCode = null): string
     {
-        return self::extractCustomIcon($area, $departmentCode) ?? self::getMaterialIconForArea($area);
+        $custom = self::extractCustomIcon($area, $departmentCode);
+
+        if ($custom !== null) {
+            $materialIcon = ResourceTypeIcon::tryFrom($custom)?->getMaterialIcon();
+
+            if ($materialIcon !== null) {
+                return $materialIcon;
+            }
+        }
+
+        return self::getMaterialIconForArea($area);
     }
 
     public static function getCustomRequestAreaLabel(string $requestType, string $requestArea, ?string $departmentCode = null): string

@@ -8,16 +8,8 @@
                     <th colspan="7" class="px-5 pb-3 pt-2">
                         <div class="flex justify-end border-b border-[var(--md-sys-color-outline-variant)]/30 bg-transparent" @click.stop>
                             @php
-                                $sortIsDefault = $sort === 'updated' && $sortDir === 'desc';
-                                $columns = [
-                                    'title'  => 'عنوان سند',
-                                    'code'   => 'نسخه',
-                                    'dept'   => 'واحد(های) ذی نفع',
-                                    'status' => 'وضعیت',
-                                    'details'=> 'جزییات',
-                                    'desc'   => 'توضیحات',
-                                    'action' => 'مشاهده و تایید',
-                                ];
+                                $columns = $this->presenter->columns();
+                                $sortIsDefault = $this->presenter->sortIsDefault($sort, $sortDir);
                             @endphp
                             <div class="inline-flex items-center gap-1">
                                 <button type="button"
@@ -132,18 +124,14 @@
                 <tbody>
                 @forelse($this->docs as $doc)
                     @php
-                        $isConfirmed = in_array($doc->id, $this->confirmedDocs);
-                        $isRead = in_array($doc->id, $this->readDocs);
-                        $cat = optional($doc->extra)['category'] ?? optional($doc->extra)['Category'];
-                        $extraDetails = collect($doc->extra ?? [])->except(['category', 'Category', 'type', 'Type', 'users']);
-                        $cleanTitle = superClean($doc->title ?? 'بدون عنوان');
-
-                        $statusColor = !$isConfirmed
-                            ? 'var(--md-sys-color-error)'
-                            : (($isConfirmed && !$isRead)
-                                ? 'var(--md-sys-color-tertiary)'
-                                : 'var(--md-sys-color-primary)');
-                        $deptLabels = $doc->getDepartmentTooltipLabels();
+                        $r = $this->presenter->rowState($doc, $this->confirmedDocs, $this->readDocs);
+                        $isConfirmed = $r['isConfirmed'];
+                        $isRead = $r['isRead'];
+                        $cat = $r['cat'];
+                        $extraDetails = $r['extraDetails'];
+                        $cleanTitle = $r['cleanTitle'];
+                        $statusColor = $r['statusColor'];
+                        $deptLabels = $r['deptLabels'];
                     @endphp
 
                     <tr wire:key="dms-doc-{{ $doc->id }}"
@@ -205,7 +193,7 @@
 
                         <td data-col="code" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle font-mono text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
                             @php
-                                $versionPopover = !empty($doc->created_at) || !empty($doc->updated_at);
+                                $versionPopover = $this->presenter->versionPopover($doc);
                             @endphp
                             @if($versionPopover)
                                 <div x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-center">
@@ -256,7 +244,7 @@
                         </td>
 
                         <td data-col="details" class="min-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle">
-                            @if($extraDetails->count() > 1)
+                            @if($extraDetails->count() > 0)
                                 <div x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
                                     <button type="button" @click="open = !open"
                                             title="نمایش جزییات"
@@ -298,13 +286,7 @@
                                 @if ($doc->file)
                                     @php
                                         $renditions = $doc->renditions();
-                                        $extIcon = fn(?string $e): array => match(strtolower($e ?? '')) {
-                                            'pdf'                => ['picture_as_pdf', 'سند PDF', 'bg-[var(--md-sys-color-error-container)]', 'text-[var(--md-sys-color-on-error-container)]'],
-                                            'xlsx', 'xls', 'csv' => ['table_chart', 'فایل اکسل', 'bg-[var(--md-sys-color-tertiary-container)]', 'text-[var(--md-sys-color-on-tertiary-container)]'],
-                                            'docx', 'doc'        => ['description', 'سند Word', 'bg-[var(--md-sys-color-primary-container)]', 'text-[var(--md-sys-color-on-primary-container)]'],
-                                            default              => ['insert_drive_file', 'فایل ضمیمه', 'bg-[var(--md-sys-color-surface-variant)]', 'text-[var(--md-sys-color-on-surface-variant)]'],
-                                        };
-                                        $primaryIcon = $extIcon(pathinfo($doc->file, PATHINFO_EXTENSION));
+                                        $primaryIcon = $this->presenter->extensionIcon(pathinfo($doc->file, PATHINFO_EXTENSION));
                                     @endphp
 
                                     @if ($isConfirmed)
@@ -326,18 +308,15 @@
                                                      class="mt-1 flex flex-col gap-1 rounded-xl border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] p-1 shadow-xl">
                                                     @foreach ($renditions as $rendition)
                                                         @php
-                                                            $ri = $extIcon($rendition['ext']);
-                                                            $rRoute = $rendition['path'] === $doc->file
-                                                                ? route('secure-file', $rendition['path'])
-                                                                : route('secure-extra-file', $rendition['path']);
+                                                            $ri = $this->presenter->renditionData($rendition, $doc->file);
                                                         @endphp
-                                                        <a href="{{ $rRoute }}"
+                                                        <a href="{{ $ri['route'] }}"
                                                            target="_blank"
                                                            wire:click="incrementRead({{ $doc->id }})"
                                                            x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-right transition-colors hover:bg-[var(--md-sys-color-primary)]/10">
-                                                            <span class="material-symbols-rounded text-[16px] {{ $ri[3] }}">{{ $ri[0] }}</span>
-                                                            <span class="flex-1 text-[11px] font-semibold text-[var(--md-sys-color-on-surface)]">{{ $ri[1] }}</span>
+                                                            <span class="material-symbols-rounded text-[16px] {{ $ri['text'] }}">{{ $ri['icon'] }}</span>
+                                                            <span class="flex-1 text-[11px] font-semibold text-[var(--md-sys-color-on-surface)]">{{ $ri['label'] }}</span>
                                                             <span class="text-[9px] font-mono uppercase text-[var(--md-sys-color-on-surface-variant)]/70" dir="ltr">{{ $rendition['ext'] ?: '—' }}</span>
                                                         </a>
                                                     @endforeach
@@ -348,15 +327,15 @@
                                                target="_blank"
                                                wire:click="incrementRead({{ $doc->id }})"
                                                x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
-                                               class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm transition-all duration-200 hover:opacity-80 {{ $primaryIcon[2] }} {{ $primaryIcon[3] }}">
-                                                <span class="material-symbols-rounded text-[15px]">{{ $primaryIcon[0] }}</span>
-                                                <span class="text-[11px] font-semibold">{{ $primaryIcon[1] }}</span>
+                                               class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm transition-all duration-200 hover:opacity-80 {{ $primaryIcon['bg'] }} {{ $primaryIcon['text'] }}">
+                                                <span class="material-symbols-rounded text-[15px]">{{ $primaryIcon['icon'] }}</span>
+                                                <span class="text-[11px] font-semibold">{{ $primaryIcon['label'] }}</span>
                                             </a>
                                         @endif
                                     @else
-                                        <div class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm {{ $primaryIcon[2] }} {{ $primaryIcon[3] }}">
-                                            <span class="material-symbols-rounded text-[15px]">{{ $primaryIcon[0] }}</span>
-                                            <span class="text-[11px] font-semibold">{{ $primaryIcon[1] }}</span>
+                                        <div class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm {{ $primaryIcon['bg'] }} {{ $primaryIcon['text'] }}">
+                                            <span class="material-symbols-rounded text-[15px]">{{ $primaryIcon['icon'] }}</span>
+                                            <span class="text-[11px] font-semibold">{{ $primaryIcon['label'] }}</span>
                                         </div>
                                     @endif
                                 @endif

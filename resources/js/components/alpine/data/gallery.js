@@ -1,16 +1,17 @@
 import fancyboxMixin from "../mixins/fancybox.js";
+import monthFilterMixin from "../mixins/monthFilter.js";
 
 const PHOTO_SELECTOR = '[data-photo-id]';
 
 export default function gallery() {
     return {
         ...fancyboxMixin(),
+        ...monthFilterMixin(PHOTO_SELECTOR),
         activeId: null,
         loading: false,
         observer: null,
         showTimeline: false,
-        month: '',
-        visibleCount: 0,
+        view: 'filmstrip',
         previewTimer: null,
 
         _isDestroyed: false,
@@ -21,6 +22,8 @@ export default function gallery() {
 
         init() {
             this._isDestroyed = false;
+            this.view = this.$wire.get('view') || 'filmstrip';
+            this.watchMonth();
 
             this.$nextTick(() => {
                 this.setupScrollListener();
@@ -32,8 +35,6 @@ export default function gallery() {
                     this.updateActiveItem();
                 }, 100);
             });
-
-            this.$watch('month', () => this.$nextTick(() => this.refreshVisible()));
 
             this._morphHook = Livewire.hook('morph', ({ component }) => {
                 if (this._isDestroyed) return;
@@ -60,15 +61,6 @@ export default function gallery() {
             const timeline = this.$refs.timeline;
             if (!timeline) return;
             timeline.scrollBy({ left: timeline.offsetWidth, behavior: 'smooth' });
-        },
-
-        refreshVisible() {
-            let n = 0;
-            const elements = this.$root.querySelectorAll(PHOTO_SELECTOR);
-            for (let i = 0, len = elements.length; i < len; i++) {
-                if (elements[i].offsetParent !== null) n++;
-            }
-            this.visibleCount = n;
         },
 
         setupScrollListener() {

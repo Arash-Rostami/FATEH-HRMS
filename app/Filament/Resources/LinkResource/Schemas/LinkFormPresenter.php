@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\LinkResource\Schemas;
 
 use Closure;
+use App\Enums\LinkIcon;
 use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Models\Link;
 use App\Rules\ExtraRequiresInternalUrl;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
@@ -60,13 +62,36 @@ class LinkFormPresenter
             ->helperText(__('resources/link/strings.hints.icon'));
     }
 
-    public static function iconDescription(): Textarea
+    public static function iconDescription(): Select
     {
-        return Textarea::make('icon_description')
+        return Select::make('icon_description')
             ->label(__('resources/link/strings.fields.icon_description'))
-            ->rows(2)
-            ->maxLength(500)
-            ->helperText(__('resources/link/strings.hints.icon_description'));
+            ->helperText(__('resources/link/strings.hints.icon_description'))
+            ->searchable()
+            ->native(false)
+            ->allowHtml()
+            ->options(fn(?Link $record): array => static::curatedIconOptions($record))
+            ->getOptionLabelUsing(fn(?string $state): ?string => $state !== null
+                ? (LinkIcon::tryFrom($state)?->getLabel() ?? $state)
+                : null)
+            ->nullable();
+    }
+
+    private static function curatedIconOptions(?Link $record): array
+    {
+        $options = collect(LinkIcon::cases())
+            ->mapWithKeys(fn(LinkIcon $icon) => [$icon->value => static::renderCuratedIconOption($icon->value, $icon->getLabel())]);
+
+        if (filled($record?->icon_description) && !LinkIcon::tryFrom($record->icon_description)) {
+            $options->put($record->icon_description, static::renderCuratedIconOption($record->icon_description, $record->icon_description));
+        }
+
+        return $options->all();
+    }
+
+    private static function renderCuratedIconOption(string $value, string $label): string
+    {
+        return '<div class="flex items-center gap-2"><span class="material-symbols-rounded text-[18px] leading-none">' . e($value) . '</span><span>' . e($label) . '</span></div>';
     }
 
     public static function image(): FileUpload

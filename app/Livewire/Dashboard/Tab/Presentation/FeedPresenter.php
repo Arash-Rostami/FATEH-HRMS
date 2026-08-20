@@ -5,10 +5,13 @@ namespace App\Livewire\Dashboard\Tab\Presentation;
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Comment;
 use App\Models\Feed;
+use App\Traits\HasTimelineMonths;
 use Illuminate\Database\Eloquent\Model;
 
 class FeedPresenter
 {
+    use HasTimelineMonths;
+
     public function categoryValue(mixed $category): string
     {
         return (string) (($category?->value ?? $category) ?? '');
@@ -111,6 +114,74 @@ class FeedPresenter
             'images' => $images,
             'cols'   => $cols,
             'rows'   => (int) ceil($count / $cols),
+        ];
+    }
+
+    public function mediaCellData(string $url, int &$imgIndex): array
+    {
+        $isImage = !isVideo($url);
+        $myIndex = $isImage ? $imgIndex : null;
+        if ($isImage) {
+            $imgIndex++;
+        }
+
+        return [
+            'isImage'  => $isImage,
+            'myIndex'  => $myIndex,
+            'cellClass' => 'relative group overflow-hidden w-full h-full' . ($isImage ? ' cursor-zoom-in' : ''),
+        ];
+    }
+
+    public function contentHtml(Feed $feed): string
+    {
+        return $feed->content ? superClean($feed->content, PHP_INT_MAX) : '';
+    }
+
+    public function magazineData(Feed $feed): array
+    {
+        $media         = $feed->media_urls ?? [];
+        $flags         = $this->feedFlags($feed);
+        $commentCount  = (int) ($feed->comments_count ?? 0);
+        $reactionCount = $feed->reactions->count();
+        $barColors     = [
+            'bg-[var(--md-sys-color-primary)]',
+            'bg-[var(--tool-sapphire-bg)]',
+            'bg-[var(--tool-gold-bg)]',
+            'bg-[var(--tool-amethyst-bg)]',
+        ];
+
+        return [
+            'monthKey'      => toJalali($feed->created_at, 'F Y'),
+            'dateLabel'     => toJalali($feed->created_at, 'j F Y'),
+            'relLabel'      => toJalaliRelative($feed->created_at),
+            'media'         => $media,
+            'lead'          => $media[0] ?? null,
+            'snippet'       => $this->contentHtml($feed),
+            'flags'         => $flags,
+            'commentCount'  => $commentCount,
+            'reactionCount' => $reactionCount,
+            'hasEngagement' => $commentCount > 0 || $reactionCount > 0 || $flags['isPoll'],
+            'barClass'      => $barColors[abs(crc32((string) ($feed->category ?? ''))) % 4],
+        ];
+    }
+
+    public function reactionState(Feed $feed): array
+    {
+        $userReaction = $feed->reactions->firstWhere('user_id', auth()->id());
+
+        return [
+            'selectedEmoji' => $userReaction?->emoji,
+        ];
+    }
+
+    public function composerState(): array
+    {
+        $authUser = auth()?->user();
+
+        return [
+            'authUser'     => $authUser,
+            'authHasPhoto' => !empty($authUser?->profile?->image),
+            'authOnline'   => $authUser?->isOnline() ?? false,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -34,14 +35,14 @@ class Skill extends Model
 
     public static function cachedActiveCatalog(): Collection
     {
-        return once(fn() => Cache::remember(
-            'skill_active_catalog',
+        return Cache::remember(
+            ModelCacheVersion::key(self::class, 'skill_active_catalog'),
             now()->addDay(),
             fn() => self::activeCatalog()
                 ->orderBy('category')
                 ->orderBy('name')
                 ->get(['id', 'name', 'name_en', 'category'])
-        ));
+        );
     }
 
     public function members(): BelongsToMany
@@ -81,11 +82,6 @@ class Skill extends Model
                 throw new \RuntimeException('این مهارت توسط کاربران اتخاب شده و قابل حذف نیست.');
             }
         });
-
-        $forgetCache = fn() => Cache::forget('skill_active_catalog');
-
-        static::saved($forgetCache);
-        static::deleted($forgetCache);
     }
 
     protected function casts(): array

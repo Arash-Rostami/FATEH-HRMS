@@ -13,8 +13,8 @@
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"
         >
-            @if($isProfileTab)
-                <x-slot:actions>
+            <x-slot:actions>
+                @if($isProfileTab)
                     <button
                         type="button"
                         @click="$dispatch('open-modal', { name: 'profile-badge-legend' })"
@@ -31,8 +31,17 @@
                     >
                         <span class="material-symbols-rounded text-lg">help</span>
                     </button>
-                </x-slot:actions>
-            @endif
+                @else
+                    <button
+                        type="button"
+                        @click="$dispatch('open-modal', { name: 'onboarding-legend' })"
+                        title="راهنمای آنبوردینگ"
+                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
+                    >
+                        <span class="material-symbols-rounded text-lg">help</span>
+                    </button>
+                @endif
+            </x-slot:actions>
         </x-ui.title>
 
         @if($isProfileTab)
@@ -46,6 +55,10 @@
                 :groups="$badgeLegendGroups"
             />
         @endif
+
+        <x-ui.modals.dialog name="onboarding-legend" title="راهنمای آنبوردینگ">
+            @include('livewire.dashboard.profile.onboarding-legend')
+        </x-ui.modals.dialog>
 
         <div class="w-full flex flex-col gap-5">
             @if($isProfileTab)

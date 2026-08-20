@@ -2,23 +2,18 @@
     <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
         @forelse($this->users as $user)
             @php
-                $p = presence($user->presence);
-                $obscured = $p->isObscured();
-                $sms = $user->sms_number;
-                $ext = $user->getTodaysDeskExtension();
-                $reserved = $user->getTodaysReservationsLabel();
-                $skillTier = ($skillId !== null && $user->skill_tier_endorsements_count !== null)
-                    ? (new \App\Models\SkillUser([
-                        'endorsements_count' => $user->skill_tier_endorsements_count,
-                        'last_used_at' => $user->skill_tier_last_used_at,
-                    ]))->stateTier()
-                    : null;
-                $hasBar = $obscured || $sms || $ext || $reserved || $skillTier !== null;
-                $hasCall = !$obscured && ($sms || $ext);
-                $deptName = $user->profile?->department?->displayLabel();
-                $unitName = $user->profile?->detailsMap()->get('unit');
-                $sectionName = $user->profile?->detailsMap()->get('section');
-                $orgTitle = collect([$deptName, $unitName, $sectionName])->filter()->implode(' › ');
+                $d = $statusPresenter->gridData($user, $skillId);
+                $p = $d['p'];
+                $obscured = $d['obscured'];
+                $sms = $d['sms'];
+                $ext = $d['ext'];
+                $reserved = $d['reserved'];
+                $summary = $d['summary'];
+                $skillTier = $d['skillTier'];
+                $hasBar = $d['hasBar'];
+                $hasCall = $d['hasCall'];
+                $orgTitle = $d['orgTitle'];
+                $aboutPayload = $d['aboutPayload'];
             @endphp
 
             <x-ui.decor.status :status="$p" wire:key="user-{{ $user->id }}-{{ $p->effectType() }}"
@@ -56,18 +51,7 @@
                                        border-2 border-[var(--md-sys-color-surface)] shadow-sm animate-pulse-slow hover:scale-110 transition-transform z-20"
                                 title="درباره من"
                                 wire:click="openAboutMe({{ $user->id }})"
-                                x-on:click.stop="$dispatch('open-about-me', {
-                                    user: {
-                                        name: {{ \Illuminate\Support\Js::from($user->name) }},
-                                        position: {{ \Illuminate\Support\Js::from($user->profile?->displayPosition ?? 'کارشناس') }},
-                                        image: {{ \Illuminate\Support\Js::from($user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl()) }},
-                                        department: {{ \Illuminate\Support\Js::from($user->profile?->department?->displayLabel()) }},
-                                        division: {{ \Illuminate\Support\Js::from($user->profile?->detailsMap()->get('unit')) }},
-                                        section: {{ \Illuminate\Support\Js::from($user->profile?->detailsMap()->get('section')) }},
-                                        favoriteColors: {{ \Illuminate\Support\Js::from($user->profile?->favorite_colors ?? []) }}
-                                    },
-                                    aboutMe: {{ \Illuminate\Support\Js::from(collect($user->profile?->about_me ?? [])->map(fn($v) => is_array($v) ? implode(', ', array_map(fn($x) => is_array($x) ? implode(', ', $x) : $x, $v)) : $v)->toArray()) }}
-                                })">
+                                x-on:click.stop="$dispatch('open-about-me', {{ \Illuminate\Support\Js::from($aboutPayload) }})">
                                 <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
                             </button>
                         @endif
@@ -121,7 +105,7 @@
                         @endif
 
                         @if(($ext || $reserved) && !$obscured)
-                            <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface)]/60 text-{{ $p->color() }}-500" title="{{ $reserved ? 'رزرو امروز: ' . $reserved : 'داخلی: ' . $ext }}">
+                            <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface)]/60 text-{{ $p->color() }}-500" title="{{ $summary ? 'رزرو امروز: ' . $summary : ($reserved ? 'رزرو امروز: ' . $reserved : 'داخلی: ' . $ext) }}">
                                 <span class="material-symbols-rounded text-[12px]">domain</span>
                                 @if($ext)
                                     <span class="text-[10px] font-bold tabular-nums">{{ $ext }}</span>

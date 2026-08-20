@@ -1,7 +1,7 @@
 <div class="flex items-center gap-2 justify-between">
     @php
-        $userReaction = $feed->reactions->firstWhere('user_id', auth()->id());
-        $selectedEmoji = $userReaction?->emoji;
+        $r = $presenter->reactionState($feed);
+        $selectedEmoji = $r['selectedEmoji'];
     @endphp
 
     <div class="flex-shrink-0 flex items-center gap-1 h-9 px-2.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)]">

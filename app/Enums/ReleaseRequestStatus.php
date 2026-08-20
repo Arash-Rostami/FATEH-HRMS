@@ -19,7 +19,7 @@ enum ReleaseRequestStatus: string implements HasColor, HasIcon, HasLabel
             self::Open     => 'باز',
             self::InReview => 'در حال بررسی',
             self::Resolved => 'حل‌شده',
-            self::Rejected => 'رد شد',
+            self::Rejected => 'عدم امکان',
             default        => ucfirst(str_replace('_', ' ', $this->value)),
         };
     }

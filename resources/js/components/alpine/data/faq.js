@@ -10,11 +10,13 @@ const WRAPPED_MATCH = `<mark class="${HIGHLIGHT_CLASS}">$1</mark>`;
 export default function faq() {
     return {
         active: null,
+        view: 'card',
         _cachedNeedle: null,
         _cachedRegex: null,
 
         init() {
             this.active = this.$wire.get('open');
+            this.view = this.$wire.get('view') || 'card';
         },
 
         toggle(id) {

@@ -50,5 +50,4 @@ Route::middleware(['auth'])->group(function () {
             'message' => 'DB memory refreshed!', 'timestamp' => now()->toDateTimeString(),
         ]);
     });
-
 });

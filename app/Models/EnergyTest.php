@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Traits\HasMenuState;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +34,7 @@ class EnergyTest extends Model
         return static::query()
             ->when($lastMonth, fn($q) => $q->where('completed_at', '>=', now()->subDays(30)))
             ->join('users', 'energy_tests.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
             ->leftJoin('departments', 'profiles.department_id', '=', 'departments.code')
             ->select(
@@ -46,7 +49,7 @@ class EnergyTest extends Model
     public static function getAverageScoresForUser(int $userId): array
     {
         return Cache::remember(
-            "energy_tests.user_averages.{$userId}",
+            ModelCacheVersion::key(self::class, "user_averages.{$userId}"),
             now()->addHour(),
             function () use ($userId): array {
                 $row = static::query()
@@ -87,17 +90,6 @@ class EnergyTest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-
-    protected static function booted(): void
-    {
-        $forgetCache = fn(self $test) => Cache::forget(
-            "energy_tests.user_averages.{$test->user_id}"
-        );
-
-        static::saved($forgetCache);
-        static::deleted($forgetCache);
     }
 
 

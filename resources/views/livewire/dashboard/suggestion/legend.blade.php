@@ -1,15 +1,19 @@
 @php
     $pills = [
-        ['id' => 'stages', 'icon' => 'route', 'label' => 'مراحل و خودکارسازی'],
-        ['id' => 'roles', 'icon' => 'group', 'label' => 'نقش‌ها و اقدام‌ها'],
+        ['id' => 'stages', 'icon' => 'route', 'label' => 'مراحل'],
+        ['id' => 'auto', 'icon' => 'auto_mode', 'label' => 'خودکارسازی'],
+        ['id' => 'roles', 'icon' => 'group', 'label' => 'نقش‌ها'],
         ['id' => 'notes', 'icon' => 'info', 'label' => 'نکات'],
     ];
 
-    $stages = [
+    $flowStages = [
         ['icon' => 'hourglass_empty', 'label' => 'ارسال شده', 'code' => 'pending', 'hint' => 'ثبت اولیه؛ هنوز هیچ واحدی بازخورد نداده.'],
         ['icon' => 'group', 'label' => 'منتظر هم‌تیمی‌ها', 'code' => 'team_remarks', 'hint' => 'واحد ثبت‌کننده هنوز بازخورد نداده.'],
         ['icon' => 'corporate_fare', 'label' => 'منتظر ذینفعان', 'code' => 'dept_remarks', 'hint' => 'بازخورد ثبت‌کننده ثبت شده ولی یکی از واحدهای ذی‌نفع هنوز پاسخ نداده.'],
         ['icon' => 'gavel', 'label' => 'منتظر تصمیم', 'code' => 'awaiting_decision', 'hint' => 'همه پاسخ داده‌اند؛ منتظر تصمیم مدیریت ارشد.'],
+    ];
+
+    $outcomeStages = [
         ['icon' => 'check_circle', 'label' => 'پذیرفته شده', 'code' => 'accepted', 'hint' => 'مدیریت ارشد پذیرفت. اگر واحدی ارجاع شده باشد، تا تکمیل همه در این مرحله می‌ماند.'],
         ['icon' => 'cancel', 'label' => 'پذیرفته نشده', 'code' => 'rejected', 'hint' => 'مدیریت ارشد رد کرد. پایان مسیر.'],
         ['icon' => 'find_in_page', 'label' => 'نیازمند تکمیل', 'code' => 'under_review', 'hint' => 'درخواست تکمیل مجدد — نه رد شدن. با ثبت بازخورد جدید، مرحله دوباره محاسبه می‌شود.'],
@@ -49,7 +53,7 @@
     ];
 @endphp
 
-<div x-data="{ tab: 'stages', role: 'submitter' }">
+<div x-data="{ tab: 'stages', stageSub: 'flow', role: 'submitter' }">
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($pills as $pill)
             <button
@@ -66,22 +70,62 @@
         @endforeach
     </div>
 
-    <div x-show="tab === 'stages'" x-cloak class="space-y-3">
-        @foreach($stages as $s)
-            <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">
-                    <span class="material-symbols-rounded text-[16px]">{{ $s['icon'] }}</span>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap mb-0.5">
-                        <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $s['label'] }}</p>
-                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
-                    </div>
-                    <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $s['hint'] }}</p>
-                </div>
-            </div>
-        @endforeach
+    <div x-show="tab === 'stages'" x-cloak>
+        <div class="flex p-1 mb-4 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+            @foreach([
+                ['id' => 'flow', 'icon' => 'route', 'label' => 'در جریان'],
+                ['id' => 'outcome', 'icon' => 'flag', 'label' => 'نتیجه'],
+            ] as $sub)
+                <button
+                    type="button"
+                    @click="stageSub = '{{ $sub['id'] }}'"
+                    :class="stageSub === '{{ $sub['id'] }}'
+                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
+                        : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
+                    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[12px] font-bold transition-all duration-200"
+                >
+                    <span class="material-symbols-rounded text-[17px]">{{ $sub['icon'] }}</span>
+                    {{ $sub['label'] }}
+                </button>
+            @endforeach
+        </div>
 
+        <div x-show="stageSub === 'flow'" x-cloak class="space-y-3">
+            @foreach($flowStages as $s)
+                <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">
+                        <span class="material-symbols-rounded text-[16px]">{{ $s['icon'] }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $s['label'] }}</p>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
+                        </div>
+                        <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $s['hint'] }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div x-show="stageSub === 'outcome'" x-cloak class="space-y-3">
+            @foreach($outcomeStages as $s)
+                <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)]">
+                        <span class="material-symbols-rounded text-[16px]">{{ $s['icon'] }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $s['label'] }}</p>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
+                        </div>
+                        <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $s['hint'] }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div x-show="tab === 'auto'" x-cloak class="space-y-3">
         @foreach($auto as $a)
             <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-tertiary-container)]/30 px-4 py-3">
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">

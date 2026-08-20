@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Dms;
 
 use App\Livewire\Dashboard\Dms\Actions\ConfirmReadAction;
+use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Models\DMS;
 use App\Models\Read;
 use App\Traits\FocusOnRecord;
@@ -268,6 +269,12 @@ class Main extends Component
         return view('livewire.dashboard.dms')
             ->extends('layouts.app')
             ->section('content');
+    }
+
+    #[Computed]
+    public function presenter(): DmsPresenter
+    {
+        return new DmsPresenter();
     }
 
     public function restoreAfterFocus(): void

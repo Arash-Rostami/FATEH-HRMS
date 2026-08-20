@@ -17,10 +17,10 @@
 
     @foreach($items as $url)
         @php
-            $isImage = !isVideo($url);
-            $myIndex = $isImage ? $imgIndex : null;
-            if ($isImage) $imgIndex++;
-            $cellClass = 'relative group overflow-hidden w-full h-full' . ($isImage ? ' cursor-zoom-in' : '');
+            $cell = $presenter->mediaCellData($url, $imgIndex);
+            $isImage = $cell['isImage'];
+            $myIndex = $cell['myIndex'];
+            $cellClass = $cell['cellClass'];
         @endphp
 
         <div

@@ -51,19 +51,17 @@
                 </div>
             </div>
 
-            @if($totalOccasions > 0)
-                <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors hover:bg-[var(--md-sys-color-surface-container-high)]">
-                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-12 4.872v1.27c0 1.135.845 2.098 1.976 2.192a48.424 48.424 0 008.048 0c1.131-.094 1.976-1.057 1.976-2.192v-1.27m-12 0c1.355.11 2.697.166 4.024.166m7.952-1.436c.016.48.024.96.024 1.436m-12 0c0-.476.008-.956.024-1.436m0 0a48.667 48.667 0 007.952 0" />
-                        </svg>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">رویدادها</span>
-                        <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ number_format($totalOccasions) }}</span>
-                    </div>
+            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors hover:bg-[var(--md-sys-color-surface-container-high)]">
+                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-12 4.872v1.27c0 1.135.845 2.098 1.976 2.192a48.424 48.424 0 008.048 0c1.131-.094 1.976-1.057 1.976-2.192v-1.27m-12 0c1.355.11 2.697.166 4.024.166m7.952-1.436c.016.48.024.96.024 1.436m-12 0c0-.476.008-.956.024-1.436m0 0a48.667 48.667 0 007.952 0" />
+                    </svg>
                 </div>
-            @endif
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">رویدادها</span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ number_format($totalOccasions) }}</span>
+                </div>
+            </div>
 
         </div>
     </div>

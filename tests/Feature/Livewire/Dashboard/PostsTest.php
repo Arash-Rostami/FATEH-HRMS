@@ -291,4 +291,21 @@ class PostsTest extends TestCase
             'updated_at' => now(),
         ]);
     }
+
+    public function test_toggle_view_sets_and_persists_view_choice(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($user)->test(Posts::class)->assertSet('view', 'card')->call('toggleView', 'list')->assertSet('view', 'list');
+        Livewire::actingAs($user)->test(Posts::class)->assertSet('view', 'list');
+    }
+
+    public function test_toggle_view_ignores_unsupported_value(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+
+        Livewire::actingAs($user)->test(Posts::class)
+            ->call('toggleView', 'list')->assertSet('view', 'list')
+            ->call('toggleView', 'grid')->assertSet('view', 'list');
+    }
 }

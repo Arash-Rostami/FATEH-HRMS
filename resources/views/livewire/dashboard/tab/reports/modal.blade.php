@@ -41,7 +41,7 @@
 
                         <span class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/85 shadow-sm">
                             <span class="material-symbols-rounded text-[14px] text-white/90">calendar_month</span>
-                            <span class="font-medium" x-text="activeReport.created_at_formatted"></span>
+                            <span class="font-medium" x-text="activeReport.report_date_formatted ?? activeReport.created_at_formatted"></span>
                         </span>
                     </div>
 

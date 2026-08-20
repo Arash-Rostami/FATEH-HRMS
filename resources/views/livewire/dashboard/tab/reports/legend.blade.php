@@ -1,16 +1,23 @@
 @php
     $tabs = [
-        ['id' => 'access', 'icon' => 'visibility', 'label' => 'نما و دسترسی'],
-        ['id' => 'timeline', 'icon' => 'view_carousel', 'label' => 'فیلتر و تایم‌لاین'],
+        ['id' => 'views', 'icon' => 'visibility', 'label' => 'نماها'],
+        ['id' => 'sharing', 'icon' => 'share', 'label' => 'اشتراک و انقضا'],
+        ['id' => 'timeline', 'icon' => 'view_carousel', 'label' => 'تایم‌لاین'],
         ['id' => 'notes', 'icon' => 'info', 'label' => 'نکات'],
     ];
 
-    $accessRows = [
+    $viewRows = [
         ['icon' => 'slideshow', 'color' => 'primary', 'label' => 'نمای کارتی', 'text' => 'در دسکتاپ، گزارش‌ها به‌صورت کارت‌های اسکرولِ افقی با snap نمایش داده می‌شوند. کارتِ فعال ۱.۱۵ برابر بزرگ‌تر می‌شود و تاریخ/نوع فایل کنار آن می‌نشیند.'],
         ['icon' => 'view_list', 'color' => 'secondary', 'label' => 'نمای لیستی', 'text' => 'نمای فشرده‌تر با تصویر بندانگشتی کنار عنوان. دکمهٔ grid_view / view_list نما را عوض می‌کند و انتخاب در جلسه ذخیره می‌شود.'],
         ['icon' => 'phone_iphone', 'color' => 'tertiary', 'label' => 'موبایل خودکار', 'text' => 'در صفحه‌های زیر ۷۶۸ پیکسل، سیستم به‌صورت خودکار به نمای لیستی سوییچ می‌کند — کارت در موبایل نمایش داده نمی‌شود.'],
         ['icon' => 'open_in_full', 'color' => 'primary', 'label' => 'جزئیات و لایت‌باکس', 'text' => 'کلیک روی کارت یک پنجرهٔ کشویی (slideOver) با تصویر جلد، بدنهٔ گزارش و دکمهٔ دانلود باز می‌کند. کلیک روی تصویر، لایت‌باکسِ تمام‌صفحه را باز می‌کند.'],
-        ['icon' => 'download', 'color' => 'secondary', 'label' => 'دانلود فقط فعال', 'text' => 'دانلود فایل اصلی (PDF/Word) با دکمهٔ دانلود. گزارش‌های غیرفعال هرگز در زبانه ظاهر نمی‌شوند و دانلود آن‌ها با ۴۰۳ مسدود است.'],
+    ];
+
+    $sharingRows = [
+        ['icon' => 'share', 'color' => 'primary', 'label' => 'دسترسی به واحدها', 'text' => 'هر گزارش می‌تواند «عمومی» (در دسترس همه) یا محدود به چند واحد باشد. اگر واحد شما در فهرستِ مخاطبانِ گزارش نباشد، آن گزارش برای شما نمایش داده نمی‌شود.'],
+        ['icon' => 'bookmark', 'color' => 'secondary', 'label' => 'سنجاق‌شده', 'text' => 'گزارش‌های مهم توسط ادمین «سنجاق» می‌شوند و در صدر فهرست (بالای ترتیبِ تاریخ) می‌نشینند و با نشانِ «سنجاق» شناسایی می‌شوند.'],
+        ['icon' => 'event_busy', 'color' => 'tertiary', 'label' => 'انقضای خودکار', 'text' => 'اگر برای گزارش تاریخ انقضا تعیین شده باشد، پس از آن تاریخ به‌صورت خودکار از زبانه مخفی می‌شود (بدون حذف).'],
+        ['icon' => 'download', 'color' => 'secondary', 'label' => 'دانلودِ ایمن', 'text' => 'دانلود فایل اصلی (PDF/Word) با دکمهٔ دانلود. گزارش‌های غیرفعال، منقضی‌شده یا خارج از دسترسی واحدِ شما هرگز در زبانه ظاهر نمی‌شوند و دانلود آن‌ها با ۴۰۳ مسدود است.'],
         ['icon' => 'edit', 'color' => 'tertiary', 'label' => 'نشانِ «به‌روز شده»', 'text' => 'اگر گزارش پس از انتشار ویرایش شده باشد (updated_at بزرگتر از created_at)، نشانِ «به‌روز شده» روی کارت ظاهر می‌شود.'],
     ];
 
@@ -22,14 +29,15 @@
     ];
 
     $notes = [
-        'فقط گزارش‌های «فعال» در این زبانه ظاهر می‌شوند — غیرفعال‌ها هرگز به کاربر نمایش داده نمی‌شوند.',
+        'فقط گزارش‌های «فعال»، «منقضی‌نشده» و در دسترسِ واحدِ شما در این زبانه ظاهر می‌شوند — بقیه هرگز به کاربر نمایش داده نمی‌شوند.',
+        'تاریخ کنار هر گزارش، «تاریخ گزارش» (دوره‌ای که گزارش به آن تعلق دارد) است؛ اگر تعریف نشده باشد، تاریخ بارگذاری نشان داده می‌شود.',
         'فایل‌های قابل دانلود فقط PDF یا Word هستند (pdf/doc/docx)؛ سایر فرمت‌ها پذیرفته نمی‌شوند.',
         'اگر تصویر جلد تعریف نشده باشد، پیش‌نمایش از روی فرمت فایل ساخته می‌شود (pdf.png / doc.png / report.png) و کش می‌شود — همیشه یک تصویر می‌بینید.',
         'زبانه از طریق پالت دستور یا شورتکاتِ «گزارشات» در داشبورد باز می‌شود و آیکون آن show_chart است.',
     ];
 @endphp
 
-<div x-data="{ tab: 'access' }">
+<div x-data="{ tab: 'views' }">
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $tab)
             <button
@@ -46,9 +54,31 @@
         @endforeach
     </div>
 
-    <div x-show="tab === 'access'" x-cloak class="space-y-2">
+    <div x-show="tab === 'views'" x-cloak class="space-y-3">
         <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] px-1 mb-1">گزارش‌ها به دو نما (کارتی/لیستی) نمایش داده می‌شوند؛ کلیک روی هر کارت جزئیات کامل را باز می‌کند.</p>
-        @foreach($accessRows as $row)
+        @foreach($viewRows as $row)
+            @php
+                $chipClasses = match ($row['color']) {
+                    'primary' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
+                    'secondary' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+                    'tertiary' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
+                };
+            @endphp
+            <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chipClasses }}">
+                    <span class="material-symbols-rounded text-[16px]">{{ $row['icon'] }}</span>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">{{ $row['label'] }}</p>
+                    <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $row['text'] }}</p>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <div x-show="tab === 'sharing'" x-cloak class="space-y-3">
+        <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] px-1 mb-1">دسترسی، سنجاق، انقضا و دانلود — هر کدام قانون خاص خود را دارند.</p>
+        @foreach($sharingRows as $row)
             @php
                 $chipClasses = match ($row['color']) {
                     'primary' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',

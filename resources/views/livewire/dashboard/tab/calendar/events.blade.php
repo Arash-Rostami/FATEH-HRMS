@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col p-4 md:p-6 overflow-hidden bg-[var(--md-sys-color-surface)]">
+<div class="h-full flex flex-col p-4 md:p-6 overflow-hidden bg-transparent">
     @php $d = $this->activeDate; @endphp
     <div class="flex items-center justify-between mb-5 shrink-0 gap-4">
         <div class="flex items-center gap-3.5 min-w-0">
@@ -12,42 +12,46 @@
                     </h3>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]/80">public</span>
-                    <span dir="ltr" class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)]/90 tabular-nums tracking-widest uppercase mt-0.5">
+                    <span class="material-symbols-rounded text-[14px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_80%,transparent)]">public</span>
+                    <span dir="ltr" class="text-xs font-semibold text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_90%,transparent)] tabular-nums tracking-widest uppercase mt-0.5">
                     {{ $d['gregorian'] }}
                 </span>
                 </div>
             </div>
         </div>
-        <div class="flex flex-col items-center justify-center min-w-[3rem] px-3.5 py-2 bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shrink-0">
-        <span class="text-base font-black text-[var(--md-sys-color-primary)] leading-none">
-            {{ count($this->selectedDayEvents) }}
-        </span>
+        <div class="flex flex-col items-center justify-center min-w-[3rem] px-3.5 py-2 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container)_80%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] rounded-2xl shrink-0">
+            <span class="text-base font-black text-[var(--md-sys-color-primary)] leading-none">
+                {{ count($this->selectedDayEvents) }}
+            </span>
         </div>
     </div>
 
     <div class="flex-1 overflow-y-auto space-y-3 pr-1 -mr-2 scrollbar-hide hover:scrollbar-default">
         @forelse($this->selectedDayEvents as $event)
+            @php
+                $rangeLabel = $presenter->dayEventRangeLabel($event);
+            @endphp
             <div
                 wire:key="event-{{ $event['id'] }}"
                 data-rf="calendar-{{ $event['id'] }}"
-                class="group relative bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container-high)] rounded-[1.25rem] p-4 transition-all duration-200 border border-[var(--md-sys-color-outline-variant)]/30 hover:shadow-md hover:border-[var(--md-sys-color-primary)]/30"
+                class="group relative bg-[color-mix(in_srgb,var(--md-sys-color-surface)_60%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] rounded-[1.25rem] p-4 transition-all duration-300 border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] hover:border-[color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)] slide-up"
+                style="animation-delay: {{ $loop->index * 0.05 }}s"
             >
                 <div class="flex gap-4">
                     <div class="shrink-0 relative">
                         @if(!empty($event['avatar']))
-                            <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[var(--md-sys-color-surface-variant)]">
+                            <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_80%,transparent)]">
                             @if(($event['type'] ?? '') === 'birthday')
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center border border-white shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--tool-amethyst-container,var(--md-sys-color-tertiary-container))] text-[var(--tool-amethyst-on-container,var(--md-sys-color-on-tertiary-container))] rounded-xl flex items-center justify-center border border-[var(--md-sys-color-surface)] shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 </div>
                             @elseif(($event['type'] ?? '') === 'anniversary')
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center border border-white shadow-sm">
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--tool-gold-container,var(--md-sys-color-secondary-container))] text-[var(--tool-gold-on-container,var(--md-sys-color-on-secondary-container))] rounded-xl flex items-center justify-center border border-[var(--md-sys-color-surface)] shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">celebration</span>
                                 </div>
                             @endif
                         @else
-                            <div class="w-12 h-12 rounded-[1rem] {{ getEventStyles($event['type'] ?? '') }} flex items-center justify-center transition-colors">
+                            <div class="w-12 h-12 rounded-[1rem] {{ getEventStyles($event['type'] ?? '') }} flex items-center justify-center transition-colors duration-300">
                                 @if(($event['type'] ?? '') === 'birthday')
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">cake</span>
                                 @elseif(($event['type'] ?? '') === 'anniversary')
@@ -66,23 +70,23 @@
                             <h4 class="font-bold text-[var(--md-sys-color-on-surface)] break-words min-w-0 flex-1 text-sm md:text-base">
                                 {{ $event['title'] }}
                             </h4>
-                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/50 px-2 py-1 rounded-lg shrink-0">
-                                {{ convertToPersian($event['time']) }}
+                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_50%,transparent)] px-2 py-1 rounded-lg shrink-0">
+                                {{ $rangeLabel }}
                             </span>
                         </div>
 
                         @php $eventDescription = $event['description'] ?? ''; @endphp
                         @if($eventDescription !== '')
                             <div x-data="{ expanded: false }" class="text-xs md:text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed opacity-90">
-                                <div class="relative overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                                <div class="relative overflow-hidden transition-[max-height] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                                      :style="expanded ? ('max-height:' + $el.scrollHeight + 'px') : 'max-height: 3rem'">
                                     {{ $eventDescription }}
                                     @if(mb_strlen($eventDescription) > 55)
-                                        <div x-show="!expanded" x-transition.opacity.duration.200ms class="absolute bottom-0 inset-x-0 h-5 pointer-events-none bg-gradient-to-t from-[var(--md-sys-color-surface)] group-hover:from-[var(--md-sys-color-surface-container-high)] to-transparent"></div>
+                                        <div x-show="!expanded" x-transition.opacity.duration.200ms class="absolute bottom-0 inset-x-0 h-5 pointer-events-none bg-gradient-to-t from-[color-mix(in_srgb,var(--md-sys-color-surface)_60%,transparent)] group-hover:from-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] to-transparent"></div>
                                     @endif
                                 </div>
                                 @if(mb_strlen($eventDescription) > 55)
-                                    <button type="button" @click.stop="expanded = !expanded" class="text-[var(--md-sys-color-primary)] text-[11px] font-medium mt-1 inline-flex items-center gap-1 select-none rounded-lg px-2 py-0.5 -mx-2 transition-colors duration-200 hover:bg-[var(--md-sys-color-primary-container)]/50 hover:text-[var(--md-sys-color-on-primary-container)]">
+                                    <button type="button" @click.stop="expanded = !expanded" class="text-[var(--md-sys-color-primary)] text-[11px] font-medium mt-1 inline-flex items-center gap-1 select-none rounded-lg px-2 py-0.5 -mx-2 transition-colors duration-200 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_50%,transparent)] hover:text-[var(--md-sys-color-on-primary-container)]">
                                         <span class="material-symbols-rounded text-[13px] transition-transform duration-300" :class="expanded ? 'rotate-180' : ''">expand_more</span>
                                         <span x-text="expanded ? 'بستن' : 'مشاهده بیشتر'"></span>
                                     </button>
@@ -91,7 +95,7 @@
                         @endif
 
                         <div class="flex items-center gap-3 mt-3">
-                            <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-outline)] bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded-md">
+                            <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-outline)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_80%,transparent)] px-2 py-0.5 rounded-md">
                                 @if($event['private'])
                                     <span class="material-symbols-rounded text-[12px]">lock</span>
                                     <span>خصوصی</span>
@@ -102,7 +106,7 @@
                             </div>
 
                             @if(!empty($event['remind_hours']))
-                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-error)] bg-[var(--md-sys-color-error-container)]/50 px-2 py-0.5 rounded-md"
+                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-error)] bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] px-2 py-0.5 rounded-md"
                                      title="یادآوری {{ $event['remind_hours'] }} ساعت قبل">
                                     <span class="material-symbols-rounded text-[12px]">alarm</span>
                                     <span>{{ $event['remind_hours'] }} ساعت قبل</span>
@@ -110,7 +114,7 @@
                             @endif
 
                             @if(!empty($event['is_shared']))
-                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-secondary)] bg-[var(--md-sys-color-secondary-container)]/50 px-2 py-0.5 rounded-md">
+                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-secondary)] bg-[color-mix(in_srgb,var(--md-sys-color-secondary-container)_50%,transparent)] px-2 py-0.5 rounded-md">
                                     <span class="material-symbols-rounded text-[12px]">group</span>
                                     <span>
                                         مشترک
@@ -122,7 +126,7 @@
                             @endif
 
                             @if(!empty($event['is_reservation_linked']))
-                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-tertiary)] bg-[var(--md-sys-color-tertiary-container)]/50 px-2 py-0.5 rounded-md">
+                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-tertiary)] bg-[color-mix(in_srgb,var(--md-sys-color-tertiary-container)_50%,transparent)] px-2 py-0.5 rounded-md">
                                     <span class="material-symbols-rounded text-[12px]">event_seat</span>
                                     <span>از طریق رزرو</span>
                                 </div>
@@ -132,7 +136,7 @@
                 </div>
 
                 @if($event['is_owner'] && !empty($event['is_reservation_linked']))
-                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                         <x-ui.buttons.copy
                             :text="route('dashboard', ['tab' => 'calendar', 'open' => $event['id']])"
                             message="لینک رویداد کپی شد"
@@ -140,14 +144,14 @@
                         />
                         <a
                             href="{{ route('reservation') }}"
-                            class="flex items-center gap-1 px-2.5 py-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-tertiary)] shadow-sm hover:bg-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary)] transition-colors text-[11px] font-bold"
+                            class="flex items-center gap-1 px-2.5 py-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-tertiary)] shadow-sm hover:bg-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary)] transition-colors duration-200 text-[11px] font-bold"
                         >
                             <span class="material-symbols-rounded text-[16px]">open_in_new</span>
                             <span>مشاهده رزرو</span>
                         </a>
                     </div>
                 @elseif($event['is_owner'])
-                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                    <div class="absolute bottom-1 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                         <x-ui.buttons.copy
                             :text="route('dashboard', ['tab' => 'calendar', 'open' => $event['id']])"
                             message="لینک رویداد کپی شد"
@@ -155,20 +159,20 @@
                         />
                         <button
                             wire:click="openShareModal({{ $event['id'] }})"
-                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-secondary)] shadow-sm hover:bg-[var(--md-sys-color-secondary)] hover:text-[var(--md-sys-color-on-secondary)] transition-colors"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-secondary)] shadow-sm hover:bg-[var(--md-sys-color-secondary)] hover:text-[var(--md-sys-color-on-secondary)] transition-colors duration-200"
                             title="اشتراک‌گذاری"
                         >
                             <span class="material-symbols-rounded text-[16px]">share</span>
                         </button>
                         <button
                             wire:click="editEvent({{ $event['id'] }})"
-                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-xl text-[var(--md-sys-color-primary)] shadow-sm hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-colors duration-200"
                         >
                             <span class="material-symbols-rounded text-[16px]">edit</span>
                         </button>
                         <button
                             wire:click="confirmDelete({{ $event['id'] }})"
-                            class="px-2 pt-2 bg-[var(--md-sys-color-error-container)] rounded-xl text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors"
+                            class="px-2 pt-2 bg-[var(--md-sys-color-error-container)] rounded-xl text-[var(--md-sys-color-on-error-container)] shadow-sm hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] transition-colors duration-200"
                         >
                             <span class="material-symbols-rounded text-[16px]">delete</span>
                         </button>

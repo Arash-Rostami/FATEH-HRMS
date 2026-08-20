@@ -103,7 +103,7 @@ class ResourceTablePresenter
     {
         return SelectFilter::make('type')
             ->label(__('resources/resource/strings.filters.type'))
-            ->options(ResourceType::class);
+            ->options(fn() => ResourceType::pluck());
     }
 
     public static function typeGroup(): Group

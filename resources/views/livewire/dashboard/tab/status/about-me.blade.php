@@ -84,6 +84,25 @@
                         </template>
                     </div>
 
+                    @if($this->aboutMeDirectReports->isNotEmpty())
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-bold text-[var(--md-sys-color-primary)] uppercase tracking-widest flex items-center gap-1.5">
+                                <span class="material-symbols-rounded text-[15px]">account_tree</span>
+                                زیرمجموعه‌ها
+                                <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] text-[10px] font-bold tabular-nums">{{ convertToPersian($this->aboutMeDirectReports->count()) }}</span>
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($this->aboutMeDirectReports as $report)
+                                    @include('livewire.dashboard.tab.status.node', ['user' => $report, 'tier' => 'member', 'key' => 'orgc-report-' . $report->id])
+                                @endforeach
+                            </div>
+                            <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]/80 leading-6 flex items-center gap-1.5">
+                                <span class="material-symbols-rounded text-[13px] opacity-70">info</span>
+                                سلسله بر اساس رتبهٔ شغلی درون دپارتمان مشتق شده است؛ برای دیدن جزئیات هر همکار روی کارتش بزنید.
+                            </p>
+                        </div>
+                    @endif
+
                     <div x-show="aboutMe.bio"
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 translate-y-4"

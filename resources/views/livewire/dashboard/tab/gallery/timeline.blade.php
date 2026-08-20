@@ -1,52 +1,4 @@
-@php($months = $presenter->months($this->photos))
-
 @if($this->photos->isNotEmpty())
-
-    @if($months->isNotEmpty())
-        <div x-data="{ open: false }" @click.outside="open = false" class="absolute left-4 top-10 z-40 hidden md:block">
-            <div
-                class="hidden md:flex bg-[var(--md-sys-color-surface-container-high)] p-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm">
-                <button
-                    title="فیلتر تاریخ"
-                    @click="open = !open"
-                    class="flex items-center gap-2 h-10 px-3 rounded-xl text-xs font-medium transition-all duration-300 border shadow-sm"
-                    :class="open || month
-                    ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-transparent'
-                    : 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] border-[var(--md-sys-color-outline-variant)]/40 hover:bg-[var(--md-sys-color-surface-variant)]'"
-                >
-                    <span class="material-symbols-rounded text-[18px]">calendar_month</span>
-                    <span class="material-symbols-rounded text-[16px] transition-transform duration-200"
-                          :class="open ? 'rotate-180' : ''">expand_more</span>
-                </button>
-            </div>
-
-            <div
-                x-show="open"
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-100"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
-                x-cloak
-                class="absolute top-full mt-0 left-0 min-w-[10rem] bg-[var(--md-sys-color-surface-container-highest)] rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 shadow-lg p-1 flex flex-col gap-0.5"
-            >
-                <button
-                    @click="month = ''; open = false"
-                    :class="!month ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
-                    class="px-3 h-9 rounded-lg text-xs font-medium text-right transition-colors duration-150"
-                >همه ماه‌ها
-                </button>
-                @foreach($months as $m)
-                    <button
-                        @click="month = @js($m['key']); open = false"
-                        :class="month === @js($m['key']) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]'"
-                        class="px-3 h-9 rounded-lg text-xs font-medium text-right transition-colors duration-150"
-                    >{{ $m['key'] }}</button>
-                @endforeach
-            </div>
-        </div>
-    @endif
 
     <div x-show="month && visibleCount === 0" x-cloak
          class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">
@@ -148,7 +100,7 @@
     </div>
 
     <template x-teleport="body">
-        <div class="pointer-events-none">
+        <div x-show="view === 'filmstrip'" x-cloak class="pointer-events-none">
             <button
                 type="button"
                 @click="scrollPrev"

@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Enums\PresenceStatus;
-use App\Enums\ResourceType;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Traits\HasAvatar as HasImage;
 use App\Models\Traits\HasProfileHierarchy;
+use App\Services\Cache\ModelCacheVersion;
+use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use App\Services\User\UserKeyGrouper;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
@@ -23,7 +24,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
-class User extends Authenticatable implements HasAvatar, FilamentUser
+class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAutomaticCacheVersioning
 {
     use HasFactory,
         Notifiable,
@@ -32,6 +33,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     protected static ?array $todaysDeskCache = null;
     protected static ?array $todaysReservationsCache = null;
+    protected static ?array $todaysStatusSummaryCache = null;
 
     protected $fillable = [
         'name',
@@ -127,7 +129,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public static function getCachedActiveOptions(): Collection
     {
-        return Cache::remember('user_active_options',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'user_active_options'),
             now()->addHour(),
             fn() => self::visibleOnBoard()->orderBy('name')->pluck('name', 'id')
         );
@@ -136,7 +138,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     /** Admin-role users only — permission rows are an admin-only concept (developers are super by role, users can't reach the panel). */
     public static function getCachedAdminOptions(): Collection
     {
-        return Cache::remember('user_admin_options',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'user_admin_options'),
             now()->addHours(6),
             fn() => self::where('role', 'admin')->orderBy('name')->pluck('name', 'id')
         );
@@ -144,7 +146,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public static function getCachedAllOptions(): Collection
     {
-        return Cache::remember('user_all_options',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'user_all_options'),
             now()->addHours(6),
             fn() => self::orderBy('name')->pluck('name', 'id')
         );
@@ -152,7 +154,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     public static function getCachedNames(): Collection
     {
-        return Cache::remember('user_names_map',
+        return Cache::remember(ModelCacheVersion::key(self::class, 'user_names_map'),
             now()->addHour(),
             fn() => self::orderBy('name')->pluck('name', 'id')
         );
@@ -198,6 +200,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         return static::$todaysReservationsCache[$this->id] ?? null;
     }
 
+    public function getTodaysStatusSummary(): ?string
+    {
+        return static::$todaysStatusSummaryCache[$this->id] ?? null;
+    }
+
     public static function primeTodaysDeskCache(): void
     {
         if (static::$todaysDeskCache !== null) {
@@ -205,13 +212,20 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
         }
 
         $reservations = Reservation::forToday()
-            ->whereHas('resource', fn(Builder $q) => $q->whereIn('type', [ResourceType::Seat->value, ResourceType::Car->value]))
+            ->whereHas('resource', fn(Builder $q) => $q->whereIn('type', ['seat', 'car', 'meeting']))
             ->with('resource:id,type,name,metadata')
             ->get(['id', 'user_id', 'resource_id']);
 
         static::$todaysDeskCache = $reservations
             ->mapWithKeys(fn(Reservation $r) => [
                 $r->user_id => Arr::get((array) $r->resource?->metadata, 'extension'),
+            ])
+            ->filter()
+            ->all();
+
+        static::$todaysStatusSummaryCache = $reservations
+            ->mapWithKeys(fn(Reservation $r) => [
+                $r->user_id => $r->resource?->status_summary,
             ])
             ->filter()
             ->all();
@@ -227,6 +241,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     {
         static::$todaysDeskCache = null;
         static::$todaysReservationsCache = null;
+        static::$todaysStatusSummaryCache = null;
     }
 
     public function hasElevatedRole(): bool
@@ -424,18 +439,13 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
 
     protected static function booted(): void
     {
-        $keys = ['user_active_options', 'user_all_options', 'user_names_map', 'user_admin_options'];
-        $forget = function () use ($keys) {
-            foreach ($keys as $key) {
-                Cache::forget($key);
-            }
-        };
+        $bump = fn() => ModelCacheVersion::bump(self::class);
 
-        static::created(fn() => $forget());
-        static::saved(fn(self $u) => $u->wasChanged(['name', 'role', 'status']) && $forget());
+        static::created(fn() => $bump());
+        static::saved(fn(self $u) => $u->wasChanged(['name', 'role', 'status', 'type']) && $bump());
         static::saved(fn() => self::forgetDynamicGroupCache());
-        static::deleted(function () use ($forget) {
-            $forget();
+        static::deleted(function () use ($bump) {
+            $bump();
             self::forgetDynamicGroupCache();
         });
     }

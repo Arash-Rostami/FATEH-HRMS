@@ -108,7 +108,8 @@ inside that per-user closure, so `auth()->user()` is available.
 > unions two role-guarded branches (the second with three query sub-conditions); a regular employee
 > matches neither, so it never lights — by design.
 > - **`isSeniorDecisionMaker()`** (a `chairman`/`ceo` top executive, OR — when no top executive
->   exists org-wide — any MA-department user as fallback) lights on any `stage = 'awaiting_decision'`.
+>   exists org-wide — any active MA-department user, OR — when neither a top executive nor an active
+>   MA user exists — any MG-department user as final fallback) lights on any `stage = 'awaiting_decision'`.
 > - **`isDeptHead() && !isTopExecutive()`** (a department head who is NOT chairman/ceo) lights on
 >   either (a) `stage = 'team_remarks'` routed to their dept (`departments->[0] = deptId`), or
 >   (b) `stage = 'dept_remarks'` targeting their dept (`whereJsonContains('departments', $deptId)`)
@@ -439,7 +440,7 @@ declare several triggers sharing the same key.
 | `Ad` | created, updated, deleted | self | `$ad->active` | `User::active()->get()` |
 | `EventShare` | created, deleted | `$share->event` | owner → `hasShares && date>=now`; recipient → `date>=now` | `[owner] + current share recipients` |
 | `Event` | updated, deleted | self | same `SharedEventsNudge` class | same `SharedEventsNudge` class |
-| `Suggestion` | created, updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', …$s->departments])` |
+| `Suggestion` | created, updated, deleted | self | `Suggestion::requiresAttentionFor($s, $user)` | `User::active()->whereHas('profile', department_id ∈ ['MA', 'MG', …$s->departments])` |
 | `Review` | created, updated | `$review->suggestion` | `Suggestion::requiresAttentionFor($s, $user)` | same `SuggestionNudge` class |
 | `Post` | created, updated, deleted | self | `true` | `User::active()->get()` |
 | `Feed` | created, updated, deleted | self | `true` | `User::active()->get()` |

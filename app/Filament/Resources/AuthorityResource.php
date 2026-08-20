@@ -97,7 +97,7 @@ class AuthorityResource extends Resource
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return strip_tags($record->details['duty'] ?? '—');
+        return stripHtml($record->details['duty'] ?? '—');
     }
 
     public static function getGlobalSearchResultUrl(Model $record): string

@@ -73,7 +73,7 @@
         <div class="mb-8 animate-slide-up-fade flex flex-col gap-6">
             <x-ui.placeholder/>
 
-            @includeWhen($activeTab == 'meeting','livewire.dashboard.reservation.time')
+            @includeWhen(!(\App\Enums\ResourceType::tryFrom($activeTab)?->isFullDay() ?? true), 'livewire.dashboard.reservation.time')
 
             @includeWhen($activeTab === 'seat' || $activeTab === 'spot','livewire.dashboard.reservation.filter')
 

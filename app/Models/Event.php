@@ -21,11 +21,20 @@ class Event extends Model
 
     public const REMIND_HOURS_OPTIONS = [1, 2, 3, 6, 12, 24];
 
+    public const DURATION_MINUTES_OPTIONS = [15, 30, 45, 60, 90, 120, 180, 240, 480];
+
+    public const DEFAULT_DURATION_MINUTES = 30;
+
+    public const MIN_DURATION_MINUTES = 15;
+
+    public const MAX_DURATION_MINUTES = 480;
+
     protected $fillable = [
         'user_id',
         'title',
         'description',
         'date',
+        'duration_minutes',
         'private',
         'remind_hours',
         'countdown',
@@ -101,6 +110,7 @@ class Event extends Model
     {
         return [
             'date' => 'datetime',
+            'duration_minutes' => 'integer',
             'private' => 'boolean',
             'remind_hours' => 'integer',
             'countdown' => 'array',

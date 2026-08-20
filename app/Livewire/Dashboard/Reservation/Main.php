@@ -247,7 +247,7 @@ class Main extends Component
     {
         $slots = $this->availableTimeSlots;
 
-        if ($this->activeTab !== ResourceType::Meeting->value || empty($slots)) {
+        if ((ResourceType::tryFrom($this->activeTab)?->isFullDay() ?? true) || empty($slots)) {
             return ['states' => [], 'first' => null];
         }
 
@@ -401,7 +401,7 @@ class Main extends Component
     #[Computed]
     public function selectedDuration(): ?array
     {
-        if ($this->activeTab !== ResourceType::Meeting->value) {
+        if (ResourceType::tryFrom($this->activeTab)?->isFullDay() ?? true) {
             return null;
         }
 
@@ -439,7 +439,7 @@ class Main extends Component
             return 'به سقف لغو ماهانه رسیده‌اید — ثبت رزرو جدید موقتاً مسدود است';
         }
 
-        if ($this->activeTab !== ResourceType::Meeting->value) {
+        if (ResourceType::tryFrom($this->activeTab)?->isFullDay() ?? true) {
             return null;
         }
 

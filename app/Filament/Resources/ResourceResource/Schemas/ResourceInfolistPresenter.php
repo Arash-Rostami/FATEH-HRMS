@@ -10,10 +10,27 @@ use Filament\Support\Enums\TextSize;
 
 class ResourceInfolistPresenter
 {
+    public static function availableDays(): TextEntry
+    {
+        return TextEntry::make('metadata.available_days')
+            ->label(__('resources/resource/strings.fields.available_days'))
+            ->formatStateUsing(fn($state) => is_array($state)
+                ? collect($state)->map(fn($day) => __("resources/policy/strings.days.{$day}"))->implode('، ')
+                : $state)
+            ->placeholder('—');
+    }
+
     public static function capacity(): TextEntry
     {
         return TextEntry::make('metadata.capacity')
             ->label(__('resources/resource/strings.fields.capacity'))
+            ->placeholder('—');
+    }
+
+    public static function cardNumber(): TextEntry
+    {
+        return TextEntry::make('metadata.card')
+            ->label(__('resources/resource/strings.fields.card_number'))
             ->placeholder('—');
     }
 
@@ -69,6 +86,23 @@ class ResourceInfolistPresenter
             ->badge()
             ->formatStateUsing(fn(string $state) => ResourceStatus::tryFrom($state)?->getLabel() ?? $state)
             ->color(fn(string $state) => ResourceStatus::tryFrom($state)?->getColor() ?? 'gray');
+    }
+
+    public static function timeSlots(): TextEntry
+    {
+        return TextEntry::make('metadata.time_slots')
+            ->label(__('resources/resource/strings.fields.time_slot_start') . ' - ' . __('resources/resource/strings.fields.time_slot_end'))
+            ->state(fn($record) => isset($record->metadata['time_slots']['start'], $record->metadata['time_slots']['end'])
+                ? $record->metadata['time_slots']['start'] . ' - ' . $record->metadata['time_slots']['end']
+                : null)
+            ->placeholder('—');
+    }
+
+    public static function unit(): TextEntry
+    {
+        return TextEntry::make('metadata.unit')
+            ->label(__('resources/resource/strings.fields.unit'))
+            ->placeholder('—');
     }
 
     public static function type(): TextEntry

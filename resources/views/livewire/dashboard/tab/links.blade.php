@@ -1,10 +1,17 @@
 <div
         x-data="links"
+        @keydown.window="handleHotkey($event)"
         class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-y-auto overflow-x-hidden space-y-6 pb-6 custom-scrollbar"
         dir="rtl">
 
+    @php($viewModes = [
+        ['value' => 'rail', 'icon' => 'view_carousel', 'title' => 'نمای ریلی'],
+        ['value' => 'launch', 'icon' => 'apps', 'title' => 'نمای صفحه‌انداز'],
+    ])
+
     <x-ui.title icon="open_in_new" title="لینک‌ها و مسیرهای دیجیتال سازمان" :count="$this->totalLinks" countLabel="لینک">
         <x-slot:actions>
+            <x-ui.buttons.view-toggle :modes="$viewModes" />
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'links-legend' })"
@@ -22,10 +29,18 @@
 
     @include('components.dashboard.header.focus-chip')
 
-    @include('livewire.dashboard.tab.links.smart')
+    @include('livewire.dashboard.tab.links.filters')
 
-    @include('livewire.dashboard.tab.links.internal')
+    <div x-show="view === 'rail'" x-cloak class="space-y-6">
+        @include('livewire.dashboard.tab.links.smart')
 
-    @include('livewire.dashboard.tab.links.external')
+        @include('livewire.dashboard.tab.links.internal')
+
+        @include('livewire.dashboard.tab.links.external')
+    </div>
+
+    <div x-show="view === 'launch'" x-cloak>
+        @include('livewire.dashboard.tab.links.launch')
+    </div>
 
 </div>

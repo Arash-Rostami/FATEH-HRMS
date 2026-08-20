@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,7 +70,7 @@ class Permission extends Model
 
     public static function cacheKey(int $userId): string
     {
-        return "user_permission:{$userId}";
+        return ModelCacheVersion::key(self::class, "user_permission:{$userId}");
     }
 
     public function can(string $module, string $action): bool
@@ -108,9 +109,6 @@ class Permission extends Model
 
     protected static function booted(): void
     {
-        $flush = fn(self $m) => Cache::forget(self::cacheKey($m->user_id));
-
-        // Null the inactive side: super ignores abilities, non-super ignores excluded_modules.
         static::saving(function (self $m) {
             if ($m->is_super_admin) {
                 $m->abilities = null;
@@ -118,9 +116,6 @@ class Permission extends Model
                 $m->excluded_modules = null;
             }
         });
-
-        static::saved($flush);
-        static::deleted($flush);
     }
 
     protected function casts(): array

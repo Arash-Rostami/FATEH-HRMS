@@ -93,4 +93,57 @@
             </div>
         </div>
     </div>
+
+    <div class="flex items-center gap-3 px-1 pt-2">
+        <span class="material-symbols-rounded text-[24px] text-[var(--md-sys-color-primary)]">stacked_bar_chart</span>
+        <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">سلسله‌مراتبِ خودِ واحدها در نمودار سازمانی — جدا از رتبهٔ پرسنل بالا</p>
+    </div>
+    <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
+        جدول بالا نشان می‌دهد «چه کسی رئیسِ یک واحد است»؛ این بخش نشان می‌دهد «خودِ واحدها در نمودار سازمانی کجا نمایش داده می‌شوند» — دو مفهوم کاملاً مستقل، هرکدام با فیلدهای خودشان.
+
+    </p>
+
+    <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-primary-container)] flex items-center gap-2">
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-primary-container)]">layers</span>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-primary-container)]">فیلد «سطح نمایش در نمودار سازمانی» (level)</p>
+        </div>
+        <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
+            <div class="flex items-start gap-4 p-4 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] shrink-0"><span class="text-[13px] font-black font-mono">۰</span></span>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">این واحد اصلاً در نمودار سازمانی نمایش داده نمی‌شود — حالت پیش‌فرض برای واحدهای تازه. برای نمایش، سطح را به ۱ یا ۲ تغییر دهید.</p>
+            </div>
+            <div class="flex items-start gap-4 p-4 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shrink-0"><span class="text-[13px] font-black font-mono">۱</span></span>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">یک ردیف زیر رأس سازمان (رئیس هیئت مدیره/مدیرعامل) نمایش داده می‌شود.</p>
+            </div>
+            <div class="flex items-start gap-4 p-4 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shrink-0"><span class="text-[13px] font-black font-mono">۲</span></span>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">دو ردیف زیر رأس سازمان، در ردیفِ جداگانهٔ «سطح ۲» نمایش داده می‌شود.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">account_tree</span>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">فیلد «زیرمجموعه واحد» (subordinate_to)</p>
+        </div>
+        <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
+            <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shrink-0"><span class="material-symbols-rounded text-[20px]">subdirectory_arrow_left</span></span>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">اگر واحدی زیرمجموعهٔ واحد دیگری تعریف شود، به‌جای گرفتن ردیف مستقل، به‌صورت تودرتو زیر همان واحد والد نمایش داده می‌شود — سطح (level) آن دیگر نمی‌تواند ۰ باشد و در صورت انتخاب زیرمجموعه، سطح ۰ به‌طور خودکار به ۱ اصلاح می‌شود.</p>
+            </div>
+            <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shrink-0"><span class="material-symbols-rounded text-[20px]">block</span></span>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">یک واحد نمی‌تواند زیرمجموعهٔ خودش یا زیرمجموعهٔ یکی از زیرمجموعه‌های خودش باشد (چرخه) — سامانه این حالت را رد می‌کند.</p>
+            </div>
+        </div>
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)]">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">lightbulb</span>
+                رئیس هیئت مدیره و مدیرعامل بر اساس سمت (رتبهٔ ۱) همیشه در رأس نمودار می‌مانند، مستقل از سطح یا زیرمجموعهٔ واحدشان — حتی اگر واحد «مدیریت» (کد MA) سطح ۱ یا ۲ داشته باشد، این دو نفر داخل کارت آن واحد تکرار نمی‌شوند.
+            </p>
+        </div>
+    </div>
 </div>

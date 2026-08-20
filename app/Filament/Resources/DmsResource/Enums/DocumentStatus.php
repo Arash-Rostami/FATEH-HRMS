@@ -30,6 +30,15 @@ enum DocumentStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
+    public function getMaterialIcon(): string
+    {
+        return match ($this) {
+            self::Live => 'check_circle',
+            self::UnderReview => 'hourglass_empty',
+            self::Obsolete => 'cancel',
+        };
+    }
+
     public function getLabel(): string
     {
         return match ($this) {

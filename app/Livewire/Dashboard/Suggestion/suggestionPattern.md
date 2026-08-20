@@ -30,11 +30,13 @@ The submitter only writes the suggestion itself; departments are expected to rev
 
 No rows are created for other stakeholder departments up front in this pipeline — they get their placeholder-free entry the normal way, via `SubmitFeedbackAction::execute()` (`Review::updateOrCreate`) once the suggestion actually reaches `dept_remarks` for them.
 
-### 2.3 `MA`-department users cannot submit suggestions at all
+### 2.3 `MA`/`MG`-department users cannot submit suggestions at all
 
-Because `syncStage()` (§3) reads *any* review row with `department_id === 'MA'` as the senior-decision-maker's verdict, an MA-department manager submitting their own suggestion had their pre-agreed home-department review misread as the final decision — auto-`accepted` in the same request, zero real review. Rather than reworking `syncStage()`'s MA-detection, creation itself is blocked for MA-department users, in both panels:
-- User panel: `CreateSuggestionAction::execute()` throws `ValidationException` if `Auth::user()?->profile?->department_id === 'MA'`; the create-suggestion buttons (`list.blade.php`, `placeholder.blade.php`) are also hidden for MA users.
-- Admin panel: `CreateSuggestion::createSuggestionRecord()` — the single shared creation path (§7) — throws the same guard for the resolved submitter, before opening its `DB::transaction()`. `SuggestionsRelationManager`'s `CreateAction` is `->visible()`-gated when the owner record's department is `MA` (UI-only; the server-side guard is the real boundary).
+`MA` is blocked because `syncStage()` (§3) reads *any* review row with `department_id === 'MA'` as the senior-decision-maker's verdict — an MA-department manager submitting their own suggestion had their pre-agreed home-department review misread as the final decision — auto-`accepted` in the same request, zero real review. `MG` carries no such data-collision risk (`syncStage()` never special-cases `MG`), but as of the MA→MG `isSeniorDecisionMaker()` fallback tier (§4), an MG user could otherwise submit a suggestion and later decide it themselves under the no-chairman/ceo-and-no-active-MA fallback — a conflict-of-interest surface deliberately closed the same way. Rather than reworking `syncStage()`'s MA-detection, creation itself is blocked for both MA- and MG-department users, in both panels:
+- User panel: `CreateSuggestionAction::execute()` throws `ValidationException` if `Auth::user()?->profile?->department_id` is `MA` or `MG`; the create-suggestion buttons (`list.blade.php`, `placeholder.blade.php`) are also hidden for MA/MG users.
+- Admin panel: the `user_id` field's `SuggestionSubmitterNotFromMaOrMg` rule (`SuggestionFormPresenter`) blocks form submission for an MA/MG-department submitter before `CreateSuggestion::createSuggestionRecord()` — the single shared creation path (§7) — ever runs. `SuggestionsRelationManager`'s `CreateAction` is `->visible()`-gated when the owner record's department is `MA` or `MG`, AND its `->using()` closure re-checks with `abort_if(..., 403)` before calling `createSuggestionRecord()` — defense-in-depth against a replayed/crafted action call bypassing a stale `visible` state (same `visible()` + server-recheck shape used elsewhere in the admin panel, e.g. `ReleaseRequestTablePresenter`, `RequestActions`).
+
+Note: `departments[]` (the stakeholder-department multi-select) still filters out only `MA`, not `MG` (`CreateSuggestionAction::mergeDepartments()`, `CreateSuggestion::createSuggestionRecord()`, `EditSuggestion`) — that filter exists solely because `MA` is the reserved decision-row sentinel; tagging `MG` as a stakeholder department carries no such collision, so it stays selectable.
 
 This means `departments[0] === 'MA'` can no longer occur on any *newly created* suggestion — the case described below (§2.3.1) is now legacy-data-only, preserved for suggestions created before this guard shipped.
 
@@ -83,7 +85,11 @@ MA review feedback = anything else → awaiting_decision
 ### Position-based authority (`HasProfileHierarchy`)
 
 - `isTopExecutive()` — `position` is literally `chairman` or `ceo`. Used to **exclude** top executives from `canGiveFeedback` (they decide, they don't give department feedback) and from the `team_remarks`/`dept_remarks` branch of the badge scope (§5).
-- `isSeniorDecisionMaker()` — `isTopExecutive()` OR (no chairman/ceo exists anywhere among active users AND the user is in the `MA` department). The MA-department fallback exists **only** for installations that haven't assigned a chairman/ceo position yet; the moment any active user holds one of those positions, the legacy department-based path stops applying to everyone else in MA. This is a live `exists()` check (not cached) — cheap, since it's only evaluated when a decision-eligible view renders.
+- `isSeniorDecisionMaker()` — 3-tier fallback, evaluated as a live `exists()` check (not cached) since it's only hit when a decision-eligible view renders:
+  1. `isTopExecutive()` — position is `chairman`/`ceo`. If any active user anywhere holds either position, only they qualify.
+  2. Else, if any active user is in the `MA` department, MA-department membership qualifies.
+  3. Else (no chairman/ceo AND no active MA user), MG-department membership qualifies instead.
+  Tiers 2/3 exist **only** for installations that haven't assigned a chairman/ceo yet; the moment any active user holds one of those positions, both department-based paths stop applying to everyone else.
 - `isCeo()` (legacy, `department === 'MA'`) is **unchanged** and still used elsewhere in the app outside the Suggestion module — do not conflate it with `isSeniorDecisionMaker()`.
 
 ---

@@ -1,4 +1,5 @@
 import maximizeMixin from "../mixins/maximize.js";
+import monthFilterMixin from "../mixins/monthFilter.js";
 
 const FEED_SELECTOR = '[data-feed]';
 const FEED_ID_SELECTOR = '[data-feed-id]';
@@ -8,10 +9,12 @@ const OBSERVER_ROOT_MARGIN = '200px';
 
 export default () => ({
     ...maximizeMixin(),
+    ...monthFilterMixin(FEED_SELECTOR),
     activeId: null,
     loading: false,
     observer: null,
     showTimeline: false,
+    view: 'filmstrip',
     maximizedFeed: null,
 
     _isDestroyed: false,
@@ -30,11 +33,14 @@ export default () => ({
 
     init() {
         this._isDestroyed = false;
+        this.view = this.$wire.get('view') || 'filmstrip';
+        this.watchMonth();
 
         this.$nextTick(() => {
             this.setupScrollListener();
             this.setupInfiniteScroll();
             this.updateActiveItem();
+            this.refreshVisible();
         });
 
         this._morphHook = Livewire.hook('morph', ({ el }) => {
@@ -43,6 +49,7 @@ export default () => ({
                 this.$nextTick(() => {
                     this.updateActiveItem();
                     this.observeTrigger();
+                    this.refreshVisible();
                 });
             }
         });
@@ -74,6 +81,15 @@ export default () => ({
             console.error(e);
         } finally {
             this.loading = false;
+        }
+    },
+
+    async focusFeed(id) {
+        try {
+            await this.$wire.focusRecord(id);
+            this.view = 'filmstrip';
+        } catch (e) {
+            console.error(e);
         }
     },
 

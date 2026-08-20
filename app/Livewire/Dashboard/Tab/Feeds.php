@@ -15,16 +15,21 @@ use App\Models\Feed;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+#[Isolate]
 class Feeds extends Component
 {
     use FocusOnRecord;
 
     #[Locked]
     public array $feedIds = [];
+
+    #[Locked]
+    public string $view = 'filmstrip';
 
     public ?int $selectedFeedId = null;
     public array $newComments = [];
@@ -151,13 +156,41 @@ class Feeds extends Component
         unset($this->feeds);
     }
 
+    public function focusRecord(int $id): bool
+    {
+        if (!Feed::whereKey($id)->exists()) {
+            return false;
+        }
+        $this->view = 'filmstrip';
+        $this->open = $id;
+        $this->feedIds = [$id];
+        $this->selectedFeedId = $id;
+        $this->hasMorePages = false;
+        $this->assetsLoaded = true;
+        unset($this->feeds);
+        return true;
+    }
+
+    public function toggleView(string $view): void
+    {
+        if (!in_array($view, ['filmstrip', 'magazine'], true)) {
+            return;
+        }
+        $this->view = $view;
+        session(['feeds_view_mode' => $view]);
+    }
+
     public function mount(MarkFeedsAsReadAction $markFeedsAsReadAction): void
     {
+        $view = session('feeds_view_mode', 'filmstrip');
+        $this->view = in_array($view, ['filmstrip', 'magazine'], true) ? $view : 'filmstrip';
+
         if (Auth::id()) {
             $markFeedsAsReadAction->execute(Auth::id());
         }
 
         if ($this->open && Feed::whereKey($this->open)->exists()) {
+            $this->view = 'filmstrip';
             $this->feedIds = [$this->open];
             $this->selectedFeedId = $this->open;
             $this->hasMorePages = false;

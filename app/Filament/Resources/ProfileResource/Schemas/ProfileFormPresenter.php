@@ -180,6 +180,7 @@ class ProfileFormPresenter
             ->options(fn() => Department::getCachedOptions()->toArray())
             ->searchable()
             ->native(false)
+            ->required()
             ->helperText(__('resources/profile/strings.hints.department_id'));
     }
 

@@ -42,6 +42,7 @@ export default class FilamentMenuManager {
                         const response = await fetch('/reset');
                         if (!response.ok) throw new Error();
                         notify('کش سرور بازنشانی شد', 'success');
+                        setTimeout(() => location.reload(), 1200);
                     } catch {
                         notify('بازنشانی کش سرور ناموفق بود', 'danger');
                     } finally {

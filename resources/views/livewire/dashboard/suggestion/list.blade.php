@@ -8,7 +8,7 @@
             count="{{ $this->perPage }}"
         />
 
-        @if($this->authDeptCode !== 'MA')
+        @if(!in_array($this->authDeptCode, ['MA', 'MG'], true))
         <x-ui.buttons.form
             class="w-full justify-center gap-2 hover:brightness-95 active:scale-[0.97] transition-all glow-sm"
             icon="add"

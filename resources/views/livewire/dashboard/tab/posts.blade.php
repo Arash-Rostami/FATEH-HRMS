@@ -2,10 +2,12 @@
     class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-hidden flex flex-col gap-6"
     dir="rtl"
     x-data="share()"
+    wire:ignore.self
     @open-post-panel.window="panelOpen = true"
 >
     <x-ui.title icon="campaign" title="اعلانات‌" :count="$this->totalPosts">
         <x-slot:actions>
+            <x-ui.buttons.view-toggle />
             <button
                 type="button"
                 @click="$dispatch('open-modal', { name: 'posts-badge-legend' })"
@@ -37,10 +39,24 @@
     @include('components.dashboard.header.focus-chip')
 
 
-    <div class="flex-1 w-full relative overflow-hidden flex flex-col lg:flex-row gap-6">
-        @include('livewire.dashboard.tab.posts.pinned')
+    <div class="flex-1 w-full relative overflow-hidden flex flex-col gap-6">
+        <div x-show="view === 'card'" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="flex-1 w-full relative overflow-hidden flex flex-col lg:flex-row gap-6">
+            @include('livewire.dashboard.tab.posts.pinned')
 
-        @include('livewire.dashboard.tab.posts.grid')
+            @include('livewire.dashboard.tab.posts.grid')
+        </div>
+
+        <div x-show="view === 'list'" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="flex-1 w-full overflow-hidden">
+            @include('livewire.dashboard.tab.posts.list')
+        </div>
 
         @if($this->selectedPost)
             @include('livewire.dashboard.tab.posts.details')

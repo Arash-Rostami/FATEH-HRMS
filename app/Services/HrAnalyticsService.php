@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\PresenceStatus;
 use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\Position;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Filament\Widgets\Concerns\DepartmentAxis;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,8 @@ class HrAnalyticsService
     public function getHrAData(): array
     {
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('position', 'gender', DB::raw('COUNT(*) as count'))
             ->groupBy('position', 'gender')
             ->get();
@@ -78,6 +81,8 @@ class HrAnalyticsService
     public function getHrBData(): array
     {
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('degree', 'gender', DB::raw('COUNT(*) as count'))
             ->groupBy('degree', 'gender')
             ->get();
@@ -141,7 +146,7 @@ class HrAnalyticsService
     public function getHrCData(): array
     {
         $rows = DB::table(DB::raw(
-            '(SELECT gender, TIMESTAMPDIFF(YEAR, birthdate, NOW()) AS age FROM profiles WHERE birthdate IS NOT NULL) p'
+            "(SELECT profiles.gender, TIMESTAMPDIFF(YEAR, profiles.birthdate, NOW()) AS age FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.birthdate IS NOT NULL) p"
         ))->select('gender', DB::raw("
             SUM(CASE WHEN age < 25 THEN 1 ELSE 0 END) as b1,
             SUM(CASE WHEN age BETWEEN 25 AND 34 THEN 1 ELSE 0 END) as b2,
@@ -198,6 +203,8 @@ class HrAnalyticsService
     public function getHrDData(): array
     {
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('marital_status', 'gender', DB::raw('COUNT(*) as count'))
             ->groupBy('marital_status', 'gender')
             ->get();
@@ -248,6 +255,8 @@ class HrAnalyticsService
     public function getHrEData(): array
     {
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->select('position', 'degree', DB::raw('COUNT(*) as count'))
             ->groupBy('position', 'degree')
             ->get();
@@ -299,7 +308,7 @@ class HrAnalyticsService
 
     public function getHrFData(): array
     {
-        $rows = DB::table(DB::raw("(SELECT degree, TIMESTAMPDIFF(YEAR, birthdate, NOW()) AS age FROM profiles WHERE birthdate IS NOT NULL) AS p"))
+        $rows = DB::table(DB::raw("(SELECT profiles.degree, TIMESTAMPDIFF(YEAR, profiles.birthdate, NOW()) AS age FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.birthdate IS NOT NULL) AS p"))
             ->select('degree', DB::raw("
                 SUM(CASE WHEN age < 25 THEN 1 ELSE 0 END) as b1,
                 SUM(CASE WHEN age BETWEEN 25 AND 34 THEN 1 ELSE 0 END) as b2,
@@ -360,7 +369,7 @@ class HrAnalyticsService
 
     public function getHrGData(): array
     {
-        $rows = DB::table(DB::raw("(SELECT position, TIMESTAMPDIFF(YEAR, start_date, NOW()) AS tenure FROM profiles WHERE start_date IS NOT NULL) AS p"))
+        $rows = DB::table(DB::raw("(SELECT profiles.position, TIMESTAMPDIFF(YEAR, profiles.start_date, NOW()) AS tenure FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.start_date IS NOT NULL) AS p"))
             ->select('position', DB::raw("
                 SUM(CASE WHEN tenure < 1 THEN 1 ELSE 0 END) as t1,
                 SUM(CASE WHEN tenure BETWEEN 1 AND 3 THEN 1 ELSE 0 END) as t2,
@@ -401,6 +410,8 @@ class HrAnalyticsService
     public function getHrHData(): array
     {
         $topFields = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereNotNull('field')
             ->where('field', '!=', '')
             ->select('field', DB::raw('COUNT(*) as cnt'))
@@ -411,6 +422,8 @@ class HrAnalyticsService
             ->all();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereNotNull('field')
             ->where('field', '!=', '')
             ->select('position', 'field', DB::raw('COUNT(*) as count'))
@@ -471,6 +484,8 @@ class HrAnalyticsService
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->select('department_id', 'position', DB::raw('COUNT(*) as count'))
             ->groupBy('department_id', 'position')
@@ -492,6 +507,8 @@ class HrAnalyticsService
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->select('department_id', 'gender', DB::raw('COUNT(*) as count'))
             ->groupBy('department_id', 'gender')
@@ -513,6 +530,8 @@ class HrAnalyticsService
 
         $rows = DB::query()->fromSub(function ($q) use ($codes) {
             $q->from('profiles')
+                ->join('users', 'profiles.user_id', '=', 'users.id')
+                ->where('users.type', '!=', UserType::Guest->value)
                 ->whereIn('department_id', $codes)
                 ->whereNotNull('birthdate')
                 ->select('department_id', DB::raw('TIMESTAMPDIFF(YEAR, birthdate, NOW()) AS age'));
@@ -562,6 +581,8 @@ class HrAnalyticsService
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->select('department_id', 'employment_status', DB::raw('COUNT(*) as count'))
             ->groupBy('department_id', 'employment_status')
@@ -583,6 +604,8 @@ class HrAnalyticsService
         [$codes, $labels] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->select(
                 'department_id',
@@ -619,6 +642,7 @@ class HrAnalyticsService
 
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('profiles.department_id', $codes)
             ->select('profiles.department_id', 'users.presence', DB::raw('COUNT(*) as count'))
             ->groupBy('profiles.department_id', 'users.presence')
@@ -669,6 +693,7 @@ class HrAnalyticsService
 
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('profiles.department_id', $codes)
             ->select('profiles.department_id', DB::raw("
                 SUM(CASE WHEN users.status = 'active' THEN 1 ELSE 0 END) as active,
@@ -703,6 +728,8 @@ class HrAnalyticsService
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->whereNotNull('birthdate')
             ->whereNotNull('start_date')
@@ -732,6 +759,8 @@ class HrAnalyticsService
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
+            ->join('users', 'profiles.user_id', '=', 'users.id')
+            ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('department_id', $codes)
             ->where(fn($q) => $q->whereNull('field')->orWhere('field', ''))
             ->select('department_id', DB::raw('COUNT(*) as count'))

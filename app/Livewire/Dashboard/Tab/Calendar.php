@@ -3,13 +3,14 @@
 namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Actions\DeleteEventAction;
+use App\Livewire\Dashboard\Tab\Actions\MoveEventAction;
+use App\Livewire\Dashboard\Tab\Actions\ResizeEventAction;
 use App\Livewire\Dashboard\Tab\Actions\SaveEventAction;
 use App\Livewire\Dashboard\Tab\Actions\ShareEventAction;
 use App\Livewire\Dashboard\Tab\Forms\EventForm;
+use App\Livewire\Dashboard\Tab\Presentation\CalendarPresenter;
 use App\Models\Event;
-use App\Models\Profile;
 use App\Models\User;
-use App\Services\HolidayService;
 use App\Services\Menu\StateService;
 use App\Services\Reservation\EventSyncService;
 use App\Traits\FocusOnRecord;
@@ -17,17 +18,23 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
+#[Isolate]
 class Calendar extends Component
 {
     use FocusOnRecord;
 
     public EventForm $form;
-    public int $currentYear;
-    public int $currentMonth;
+    public string $navigationDate;
+    #[Locked]
+    public string $view = 'month';
+    public string $miniMonthDate;
+    public bool $hideFriday = false;
     public string $selectedDate;
     public bool $isCreateModalOpen = false;
     public ?int $deletingEventId = null;
@@ -36,116 +43,64 @@ class Calendar extends Component
     public ?int $sharingEventId = null;
     public array $shareRecipientIds = [];
 
+    private ?CalendarPresenter $presenter = null;
+
     #[Computed]
     public function activeDate(): array
     {
-        try {
-            $jalali = Jalalian::fromFormat('Y-m-d', $this->selectedDate);
-        } catch (Throwable $e) {
-            $jalali = Jalalian::now();
-        }
-
-        return [
-            'jalali' => $jalali->format('l، d F Y'),
-            'gregorian' => $jalali->toCarbon()->format('D, d M Y'),
-            'isToday' => $jalali->format('Y-m-d') === Jalalian::now()->format('Y-m-d'),
-        ];
+        return $this->presenter()->activeDate($this->selectedDate);
     }
 
     #[Computed]
     public function calendarDays(): array
     {
-        $days = [];
+        return $this->presenter()->monthDays($this->navigationDate, $this->selectedDate);
+    }
 
-        try {
-            $firstDay = new Jalalian($this->currentYear, $this->currentMonth, 1);
-            $daysInMonth = $firstDay->getMonthDays();
-            $startDayOfWeek = $firstDay->getDayOfWeek();
+    #[Computed]
+    public function currentMonthName(): string
+    {
+        return $this->presenter()->currentMonthName($this->navigationDate);
+    }
 
-            $startDate = $firstDay->toCarbon()->startOfDay();
-            $endDate = clone $startDate;
-            $endDate->addDays($daysInMonth - 1)->endOfDay();
-        } catch (Throwable $e) {
-            return [];
-        }
+    #[Computed]
+    public function rangeLabel(): string
+    {
+        return $this->presenter()->rangeLabel($this->navigationDate, $this->view);
+    }
 
-        $monthEvents = Event::query()
-            ->with('shares:user_id,event_id')
-            ->whereBetween('date', [$startDate, $endDate])
-            ->where(function ($q) {
-                $authId = Auth::id();
-                $q->where('user_id', $authId)
-                    ->orWhere('private', false)
-                    ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $authId));
-            })
-            ->get()
-            ->groupBy(fn($e) => Jalalian::fromCarbon($e->date)->format('Y-m-d'));
+    #[Computed]
+    public function miniMonthDays(): array
+    {
+        return $this->presenter()->monthDays($this->miniMonthDate, $this->selectedDate);
+    }
 
-        $profiles = Profile::select('id', 'birthdate', 'start_date')
-            ->whereNotNull('birthdate')
-            ->orWhereNotNull('start_date')
-            ->get();
+    #[Computed]
+    public function rangeEvents(): array
+    {
+        return $this->presenter()->rangeEvents($this->navigationDate, $this->view);
+    }
 
-        $birthdays = $profiles->pluck('birthdate')->filter()->map(fn($d) => $d->format('m-d'))->flip();
-        $anniversaries = $profiles->pluck('start_date')->filter()->map(fn($d) => $d->format('m-d'))->flip();
+    #[Computed]
+    public function weekLabels(): array
+    {
+        return $this->presenter()->weekLabels();
+    }
 
-        for ($i = 0; $i < $startDayOfWeek; $i++) {
-            $days[] = null;
-        }
+    public function gridData(string $scope): array
+    {
+        return $this->presenter()->gridData($this->navigationDate, $scope, $this->rangeEvents);
+    }
 
-        $todayStr = Jalalian::now()->format('Y-m-d');
-        $currentDate = clone $startDate;
+    public function agendaItems(string $scope): array
+    {
+        return $this->presenter()->agendaItems($this->navigationDate, $scope, $this->rangeEvents);
+    }
 
-        $authId = Auth::id();
-        $now = now();
-        $imminentEnd = (clone $now)->addDay();
-        $isShared = fn(Event $e) => $e->user_id === $authId
-            ? $e->shares->isNotEmpty()
-            : $e->shares->contains('user_id', $authId);
-
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            try {
-                $dateString = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
-                $mdKey = $currentDate->format('m-d');
-
-                $dayEvents = $monthEvents->get($dateString);
-                $hasEvent = $dayEvents !== null;
-                $hasBirthday = $birthdays->has($mdKey);
-                $hasAnniversary = $anniversaries->has($mdKey);
-                $dayHolidays = HolidayService::getHolidaysForDate($dateString);
-                $hasHoliday = $dayHolidays !== [];
-
-                $hasShared = $hasEvent && $dayEvents->contains($isShared);
-                $hasImminentShared = $hasShared && $dayEvents->contains(
-                    fn(Event $e) => $isShared($e) && $e->date >= $now && $e->date <= $imminentEnd
-                );
-
-                $eventCount = ($hasEvent ? $dayEvents->count() : 0) +
-                    ($hasBirthday ? 1 : 0) +
-                    ($hasAnniversary ? 1 : 0);
-
-                $days[] = [
-                    'day' => $day,
-                    'date' => $dateString,
-                    'isToday' => $dateString === $todayStr,
-                    'isSelected' => $dateString === $this->selectedDate,
-                    'hasEvents' => $hasEvent,
-                    'hasBirthday' => $hasBirthday,
-                    'hasAnniversary' => $hasAnniversary,
-                    'eventCount' => $eventCount,
-                    'hasShared' => $hasShared,
-                    'hasImminentShared' => $hasImminentShared,
-                    'hasHoliday' => $hasHoliday,
-                    'holidayTitle' => $hasHoliday ? $dayHolidays[0]['title'] : null,
-                ];
-
-                $currentDate->addDay();
-            } catch (Throwable $e) {
-                $days[] = null;
-            }
-        }
-
-        return $days;
+    #[Computed]
+    public function selectedDayEvents(): Collection
+    {
+        return $this->presenter()->selectedDayEvents($this->selectedDate);
     }
 
     public function confirmDelete(int $eventId): void
@@ -159,16 +114,6 @@ class Calendar extends Component
             'params' => $eventId,
             'type' => 'non-livewire'
         ]);
-    }
-
-    #[Computed]
-    public function currentMonthName(): string
-    {
-        try {
-            return (new Jalalian($this->currentYear, $this->currentMonth, 1))->format('F Y');
-        } catch (Throwable $e) {
-            return '';
-        }
     }
 
     public function deleteEvent(int $eventId): void
@@ -208,6 +153,7 @@ class Calendar extends Component
         $this->form->time = $event->date->format('H:i');
         $this->form->private = (bool)$event->private;
         $this->form->remindHours = $event->remind_hours;
+        $this->form->durationMinutes = $event->duration_minutes ?: Event::DEFAULT_DURATION_MINUTES;
 
         $this->isCreateModalOpen = true;
     }
@@ -218,18 +164,20 @@ class Calendar extends Component
 
         if ($event) {
             $jalali = Jalalian::fromCarbon($event->date);
-            $this->currentYear = $jalali->getYear();
-            $this->currentMonth = $jalali->getMonth();
+            $this->navigationDate = $jalali->format('Y-m-d');
             $this->selectedDate = $jalali->format('Y-m-d');
+            $this->invalidateNavigationComputeds();
         }
     }
 
     public function goToToday(): void
     {
         $now = Jalalian::now();
-        $this->currentYear = $now->getYear();
-        $this->currentMonth = $now->getMonth();
-        $this->selectedDate = $now->format('Y-m-d');
+        $today = $now->format('Y-m-d');
+        $this->navigationDate = $today;
+        $this->selectedDate = $today;
+        $this->miniMonthDate = $today;
+        $this->invalidateNavigationComputeds();
     }
 
     public function mount(): void
@@ -237,23 +185,38 @@ class Calendar extends Component
         StateService::markViewed('calendar');
 
         $now = Jalalian::now();
+        $today = $now->format('Y-m-d');
 
-        if (!isset($this->currentYear)) {
-            $this->currentYear = $now->getYear();
-            $this->currentMonth = $now->getMonth();
+        if (!isset($this->navigationDate)) {
+            $this->navigationDate = $today;
+        }
+
+        if (!isset($this->miniMonthDate)) {
+            $this->miniMonthDate = $today;
         }
 
         if (!isset($this->selectedDate)) {
-            $this->selectedDate = $now->format('Y-m-d');
+            $this->selectedDate = $today;
+        }
+
+        $persisted = session('calendar_view_mode');
+        if (in_array($persisted, ['month', 'week', 'day'], true)) {
+            $this->view = $persisted;
         }
     }
 
-    public function nextMonth(): void
+    public function nextPeriod(): void
     {
-        if (++$this->currentMonth > 12) {
-            $this->currentMonth = 1;
-            $this->currentYear++;
+        $j = Jalalian::fromFormat('Y-m-d', $this->navigationDate);
+
+        if ($this->view === 'month') {
+            $this->navigationDate = $j->addMonths(1)->format('Y-m-d');
+        } else {
+            $days = $this->view === 'week' ? 7 : 1;
+            $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->addDays($days))->format('Y-m-d');
         }
+
+        $this->invalidateNavigationComputeds();
     }
 
     public function openCreateModal(): void
@@ -262,17 +225,23 @@ class Calendar extends Component
         $this->isCreateModalOpen = true;
     }
 
-    public function prevMonth(): void
+    public function prevPeriod(): void
     {
-        if (--$this->currentMonth < 1) {
-            $this->currentMonth = 12;
-            $this->currentYear--;
+        $j = Jalalian::fromFormat('Y-m-d', $this->navigationDate);
+
+        if ($this->view === 'month') {
+            $this->navigationDate = $j->subMonths(1)->format('Y-m-d');
+        } else {
+            $days = $this->view === 'week' ? 7 : 1;
+            $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->subDays($days))->format('Y-m-d');
         }
+
+        $this->invalidateNavigationComputeds();
     }
 
     public function render()
     {
-        return view('livewire.dashboard.tab.calendar');
+        return view('livewire.dashboard.tab.calendar', ['presenter' => $this->presenter()]);
     }
 
     public function saveEvent(SaveEventAction $action): void
@@ -286,6 +255,80 @@ class Calendar extends Component
 
         $this->isCreateModalOpen = false;
         $this->form->resetForm($this->selectedDate);
+    }
+
+    public function selectDate(string $jalaliYmd): void
+    {
+        $this->selectedDate = $jalaliYmd;
+        $this->invalidateNavigationComputeds();
+    }
+
+    public function toggleView(string $view): void
+    {
+        if (!in_array($view, ['month', 'week', 'day'], true)) {
+            return;
+        }
+
+        $this->view = $view;
+        session(['calendar_view_mode' => $view]);
+        $this->invalidateNavigationComputeds();
+    }
+
+    public function moveEvent(int $id, ?string $dateJalali, ?string $timePart, string $clientMtime): array
+    {
+        $result = app(MoveEventAction::class)->execute($id, $dateJalali, $timePart, $clientMtime);
+
+        return $this->handleGridActionResult(
+            $result,
+            $id,
+            'رویداد جابجا شد.',
+            'تاریخ یا زمان نامعتبر است.',
+            'جابجایی ناموفق بود.',
+            'revert-event-',
+        );
+    }
+
+    public function resizeEvent(int $id, int $durationMinutes, string $clientMtime): array
+    {
+        $result = app(ResizeEventAction::class)->execute($id, $durationMinutes, $clientMtime);
+
+        return $this->handleGridActionResult(
+            $result,
+            $id,
+            'مدت رویداد به‌روزرسانی شد.',
+            'مدت نامعتبر است.',
+            'تغییر مدت ناموفق بود.',
+            'revert-resize-',
+        );
+    }
+
+    private function handleGridActionResult(
+        array $result,
+        int $id,
+        string $successMessage,
+        string $invalidInputMessage,
+        string $fallbackMessage,
+        string $revertEventPrefix,
+    ): array {
+        if ($result['ok']) {
+            $this->dispatch('toast', message: $successMessage, type: 'success');
+            return $result;
+        }
+
+        $reasonToasts = [
+            'not_owner' => 'شما مالک این رویداد نیستید.',
+            'locked' => 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.',
+            'invalid_input' => $invalidInputMessage,
+            'stale' => 'رویداد توسط کاربر دیگری تغییر کرد؛ تغییر شما برگردانده شد.',
+            'rate_limited' => 'درخواست بیش از حد؛ کمی صبر کنید.',
+        ];
+
+        $reason = $result['reason'] ?? 'invalid_input';
+        $this->dispatch('toast', message: $reasonToasts[$reason] ?? $fallbackMessage, type: 'error');
+
+        $this->dispatch($revertEventPrefix . $id, $result['revertTo'] ?? []);
+
+        return $result;
     }
 
     #[Computed]
@@ -375,108 +418,13 @@ class Calendar extends Component
         $this->shareRecipientIds = [];
     }
 
-    public function selectDate(string $date): void
+    private function presenter(): CalendarPresenter
     {
-        $this->selectedDate = $date;
+        return $this->presenter ??= new CalendarPresenter();
     }
 
-    #[Computed]
-    public function selectedDayEvents(): Collection
+    private function invalidateNavigationComputeds(): void
     {
-        if (!$this->selectedDate) {
-            return collect();
-        }
-
-        try {
-            $gregorianDate = Jalalian::fromFormat('Y-m-d', $this->selectedDate)->toCarbon();
-            $month = $gregorianDate->month;
-            $day = $gregorianDate->day;
-        } catch (Throwable $e) {
-            return collect();
-        }
-
-        $holidays = collect(HolidayService::getHolidaysForDate($this->selectedDate))
-            ->map(fn($holiday, $index) => [
-                'id' => 'holiday-' . $index,
-                'type' => 'holiday',
-                'title' => $holiday['title'],
-                'description' => $holiday['type'] . (($holiday['hijri'] ?? null) ? ' · ' . $holiday['hijri'] : ''),
-                'time' => '00:00',
-                'is_owner' => false,
-                'private' => false,
-            ]);
-
-        $events = Event::query()
-            ->with(['shares' => fn($q) => $q->select('id', 'user_id', 'event_id', 'shared_by')->with('sharer:id,name')])
-            ->whereDate('date', $gregorianDate)
-            ->where(function ($q) {
-                $authId = Auth::id();
-                $q->where('user_id', $authId)
-                    ->orWhere('private', false)
-                    ->orWhereHas('shares', fn($sq) => $sq->where('user_id', $authId));
-            })
-            ->latest('date')
-            ->get()
-            ->map(function ($event) {
-                $isShared = $event->user_id !== Auth::id()
-                    && $event->shares->contains('user_id', Auth::id());
-
-                return [
-                    'id' => $event->id,
-                    'type' => 'event',
-                    'title' => $event->title,
-                    'description' => $event->description,
-                    'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
-                    'is_owner' => $event->user_id === Auth::id(),
-                    'private' => $event->private,
-                    'is_shared' => $isShared,
-                    'shared_by_name' => $isShared
-                        ? $event->shares->firstWhere('user_id', Auth::id())?->sharer?->name
-                        : null,
-                    'is_reservation_linked' => EventSyncService::isReservationEvent($event->description),
-                    'reservation_id' => EventSyncService::reservationIdFrom($event->description),
-                    'remind_hours' => $event->remind_hours,
-                ];
-            });
-
-        $profiles = Profile::query()
-            ->select('id', 'user_id', 'birthdate', 'start_date', 'image')
-            ->with('user:id,name')
-            ->where(function ($q) use ($month, $day) {
-                $q->where(function ($q1) use ($month, $day) {
-                    $q1->whereMonth('birthdate', $month)->whereDay('birthdate', $day);
-                })->orWhere(function ($q2) use ($month, $day) {
-                    $q2->whereMonth('start_date', $month)->whereDay('start_date', $day);
-                });
-            })->get();
-
-        $birthdays = $profiles->filter(fn($p) => $p->birthdate?->month === $month && $p->birthdate?->day === $day)
-            ->map(fn($p) => [
-                'id' => 'birthday-' . $p->id,
-                'type' => 'birthday',
-                'title' => 'تولد ' . ($p->user->name ?? 'کاربر'),
-                'description' => 'تولد مبارک!',
-                'time' => '00:00',
-                'is_owner' => false,
-                'private' => false,
-                'avatar' => $p->getImageUrl(),
-            ]);
-
-        $anniversaries = $profiles->filter(fn($p) => $p->start_date?->month === $month && $p->start_date?->day === $day)
-            ->map(function ($p) use ($gregorianDate) {
-                $years = $p->start_date->diffInYears($gregorianDate);
-                return [
-                    'id' => 'anniversary-' . $p->id,
-                    'type' => 'anniversary',
-                    'title' => ($years > 0 ? $years . 'مین ' : '') . 'سالگرد همکاری ' . ($p->user->name ?? 'کاربر'),
-                    'description' => 'سالگرد همکاری مبارک!',
-                    'time' => '00:00',
-                    'is_owner' => false,
-                    'private' => false,
-                    'avatar' => $p->getImageUrl(),
-                ];
-            });
-
-        return collect()->concat($holidays)->concat($events)->concat($birthdays)->concat($anniversaries);
+        unset($this->rangeEvents, $this->calendarDays, $this->rangeLabel, $this->currentMonthName);
     }
 }

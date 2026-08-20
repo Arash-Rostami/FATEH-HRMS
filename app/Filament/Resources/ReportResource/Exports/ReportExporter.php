@@ -33,6 +33,12 @@ class ReportExporter extends Exporter
                 ->label(__('resources/report/strings.export.department'))
                 ->state(fn($record) => $record->department?->displayLabel() ?? '-'),
 
+            ExportColumn::make('audience')
+                ->label(__('resources/report/strings.export.audience'))
+                ->state(fn($record) => $record->audience_departments->isEmpty()
+                    ? __('resources/report/strings.filters.visibility_public')
+                    : $record->audience_departments->map(fn($d) => $d->displayLabel())->join('، ')),
+
             ExportColumn::make('user.name')
                 ->label(__('resources/report/strings.export.user')),
 
@@ -44,6 +50,20 @@ class ReportExporter extends Exporter
                 ->formatStateUsing(fn(bool $state): string => $state
                     ? __('resources/report/strings.filters.active_active')
                     : __('resources/report/strings.filters.active_inactive')),
+
+            ExportColumn::make('pinned')
+                ->label(__('resources/report/strings.export.pinned'))
+                ->formatStateUsing(fn($state): string => $state
+                    ? __('resources/report/strings.filters.pinned_only')
+                    : __('resources/report/strings.filters.pinned_not')),
+
+            ExportColumn::make('report_date')
+                ->label(__('resources/report/strings.export.report_date'))
+                ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-'),
+
+            ExportColumn::make('expires_at')
+                ->label(__('resources/report/strings.export.expires_at'))
+                ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-'),
 
             ExportColumn::make('created_at')
                 ->label(__('resources/report/strings.export.created_at'))

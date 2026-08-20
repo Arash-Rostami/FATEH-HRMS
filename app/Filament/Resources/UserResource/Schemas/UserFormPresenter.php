@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserResource\Schemas;
 
 use App\Enums\PresenceStatus;
+use App\Enums\ResourceType;
 use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
@@ -59,13 +60,10 @@ class UserFormPresenter
             ->addable(true)
             ->deletable(true)
             ->reorderable(false)
-            ->default([
-                ['key' => 'all', 'value' => false],
-                ['key' => 'car', 'value' => false],
-                ['key' => 'seat', 'value' => true],
-                ['key' => 'spot', 'value' => true],
-                ['key' => 'meeting', 'value' => true],
-            ])
+            ->default(fn() => array_merge(
+                [['key' => 'all', 'value' => false]],
+                collect(ResourceType::cases())->map(fn(ResourceType $type) => ['key' => $type->value, 'value' => true])->all()
+            ))
             ->afterStateHydrated(function (Repeater $component, $state): void {
                 $set = static::normalizeBookingState($state);
 

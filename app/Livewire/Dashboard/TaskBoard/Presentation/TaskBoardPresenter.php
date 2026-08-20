@@ -22,6 +22,16 @@ class TaskBoardPresenter
         return $this->columnConfig()[$status] ?? $this->columnConfig()['todo'];
     }
 
+    public function emptyStateFlags(string $column, bool $showAllDone, bool $showArchived, string $search, array $doneTotalCount): array
+    {
+        $windowActive = $column === 'done' && !$showAllDone && !$showArchived && $search === '';
+        return [
+            'windowActive' => $windowActive,
+            'olderExist' => $windowActive && (($doneTotalCount['done'] ?? 0) > 0),
+            'archiveEmpty' => $column === 'done' && $showArchived && $search === '',
+        ];
+    }
+
     public function defaultTaskFormTab(array $tabs, ViewErrorBag $errors): string
     {
         foreach ($tabs as $tab) {
