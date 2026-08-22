@@ -16,6 +16,7 @@
         "laravel/horizon": "^5.48",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^4.1",
+        "mokhosh/filament-jalali": "^6.0",
         "morilog/jalali": "^3.5"
     },
     "require-dev": {

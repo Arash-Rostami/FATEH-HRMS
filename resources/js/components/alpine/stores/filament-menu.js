@@ -50,6 +50,16 @@ export default class FilamentMenuManager {
                     }
                 },
 
+                async toggleCalendar() {
+                    try {
+                        const response = await fetch('/toggle-calendar');
+                        if (!response.ok) throw new Error();
+                        location.reload();
+                    } catch {
+                        notify('تغییر تقویم ناموفق بود', 'danger');
+                    }
+                },
+
                 async toggleFullscreen() {
                     try {
                         if (document.fullscreenElement) {

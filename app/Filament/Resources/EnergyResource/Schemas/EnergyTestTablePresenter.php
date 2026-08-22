@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\EnergyResource\Schemas;
 
-use Filament\Forms\Components\DatePicker;
+use App\Traits\FilamentFilters;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\IconPosition;
@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class EnergyTestTablePresenter
 {
+    use FilamentFilters;
+
     public static function completedAt(): TextColumn
     {
         return TextColumn::make('completed_at')
@@ -38,18 +40,13 @@ class EnergyTestTablePresenter
 
     public static function dateRangeFilter(): Filter
     {
-        return Filter::make('completed_at_range')
-            ->label(__('resources/energy/strings.filters.date_range'))
-            ->schema([
-                Grid::make(2)->schema([
-                    DatePicker::make('from')->native(false)->label(__('resources/energy/strings.filters.date_from')),
-                    DatePicker::make('until')->native(false)->label(__('resources/energy/strings.filters.date_until')),
-                ])
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'], fn($query, $v) => $query->whereDate('completed_at', '>=', $v))
-                ->when($data['until'], fn($query, $v) => $query->whereDate('completed_at', '<=', $v))
-            );
+        return self::jalaliDateRangeFilter(
+            'completed_at_range',
+            'completed_at',
+            __('resources/energy/strings.filters.date_range'),
+            __('resources/energy/strings.filters.date_from'),
+            __('resources/energy/strings.filters.date_until'),
+        );
     }
 
     public static function emotionScore(): TextColumn

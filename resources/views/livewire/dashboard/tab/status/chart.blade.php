@@ -25,7 +25,7 @@
             </div>
 
             @if($hasApex)
-                <div class="orgc-apex-row" dir="rtl">
+                <div class="orgc-apex-row">
                     @foreach($apex as $user)
                         @include('livewire.dashboard.tab.status.node', [
                             'user' => $user,
@@ -41,7 +41,7 @@
             @endif
 
             @if($hasDepts)
-                <div class="orgc-depts {{ $hasApex ? 'orgc-depts--bus' : '' }}" dir="rtl">
+                <div class="orgc-depts {{ $hasApex ? 'orgc-depts--bus' : '' }}">
                     @foreach($depts as $d)
                         @include('livewire.dashboard.tab.status.dept-node', ['d' => $d])
                     @endforeach

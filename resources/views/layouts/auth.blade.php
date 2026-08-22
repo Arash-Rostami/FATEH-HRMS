@@ -5,29 +5,71 @@
           isDark: document.documentElement.classList.contains('dark'),
           videoBrightness: localStorage.getItem('video-brightness') || 60,
           useVideo: localStorage.getItem('use-video') !== 'false',
-          videoIndex: 0,
           videos: [
                 @foreach(config('app.videos', []) as $video)
                 '{{ asset($video) }}',
                 @endforeach
           ],
-          playNext() {
-            const nextIndex = (this.videoIndex + 1) % this.videos.length;
-            const link = document.createElement('link');
-            link.rel = 'prefetch';
-            link.href = this.videos[nextIndex];
-            document.head.appendChild(link);
-
-            this.videoIndex = nextIndex;
-            this.$nextTick(() => {
-                this.$refs.bgVideo.load();
-                this.$refs.bgVideo.play();
-            });
-        }
+          active: 0,
+          curIdx: 0,
+          nextIdx: 0,
+          triggered: false,
+          fade: 1.2,
+          rate: 0.5,
+          initVideo() {
+              if (!this.videos.length) { this.useVideo = false; return; }
+              if (!this.useVideo) return;
+              this.active = 0;
+              this.triggered = false;
+              this.curIdx = Math.floor(Math.random() * this.videos.length);
+              this.$nextTick(() => {
+                  const v = this.$refs.v0;
+                  if (!v) return;
+                  v.preload = 'auto';
+                  v.src = this.videos[this.curIdx];
+                  v.playbackRate = this.rate;
+                  v.play().catch(() => {});
+                  this.preroll(1);
+              });
+          },
+          preroll(b) {
+              const pool = this.videos.map((_, i) => i).filter(i => i !== this.curIdx);
+              this.nextIdx = pool.length ? pool[Math.floor(Math.random() * pool.length)] : this.curIdx;
+              const el = this.$refs['v' + b];
+              if (!el) return;
+              el.preload = 'auto';
+              el.src = this.videos[this.nextIdx];
+          },
+          check(i) {
+              if (i !== this.active || this.triggered) return;
+              const el = this.$refs['v' + i];
+              if (!el.duration) return;
+              if ((el.duration - el.currentTime) / el.playbackRate <= this.fade) this.swap(i);
+          },
+          swap(i) {
+              if (this.triggered || i !== this.active) return;
+              this.triggered = true;
+              const next = i ? 0 : 1;
+              const el = this.$refs['v' + next];
+              el.playbackRate = this.rate;
+              el.play().then(() => {
+                  this.$refs['v' + i].pause();
+                  this.active = next;
+                  this.curIdx = this.nextIdx;
+                  setTimeout(() => this.triggered = false, this.fade * 1000);
+                  setTimeout(() => this.preroll(i), this.fade * 1000 + 50);
+              }).catch(() => this.triggered = false);
+          }
       }"
       x-init="
           $watch('videoBrightness', val => localStorage.setItem('video-brightness', val));
-          $watch('useVideo', val => localStorage.setItem('use-video', val));
+          $watch('useVideo', val => {
+              localStorage.setItem('use-video', val);
+              if (!val) {
+                  ['v0','v1'].forEach(r => { const el = $refs[r]; if (el) el.pause(); });
+              }
+          });
+          initVideo();
       ">
 <head>
 
@@ -41,30 +83,34 @@
 
 
 <div class="fixed inset-0 z-0 bg-black overflow-hidden pointer-events-none h-screen">
-    <template x-if="useVideo">
-        <video x-ref="bgVideo" autoplay muted playsinline disablepictureinpicture preload="metadata"
+    <div class="w-full h-full relative" x-show="useVideo" x-cloak>
+        <video x-ref="v0" muted playsinline preload="none" disablepictureinpicture
                oncontextmenu="return false" controlslist="nodownload noplaybackrate"
-               class="w-full h-full object-cover scale-110 select-none"
-               :style="`filter: brightness(${videoBrightness}%)`"
-               @ended="playNext">
-            <source :src="videos[videoIndex]" type="video/mp4">
-        </video>
-    </template>
+               class="absolute inset-0 w-full h-full object-cover object-center select-none transition-opacity duration-[1200ms] will-change-[opacity]"
+               :class="active===0 ? 'opacity-100' : 'opacity-0'"
+               @timeupdate="check(0)" @ended="swap(0)"></video>
+        <video x-ref="v1" muted playsinline preload="none" disablepictureinpicture
+               oncontextmenu="return false" controlslist="nodownload noplaybackrate"
+               class="absolute inset-0 w-full h-full object-cover object-center select-none transition-opacity duration-[1200ms] will-change-[opacity]"
+               :class="active===1 ? 'opacity-100' : 'opacity-0'"
+               @timeupdate="check(1)" @ended="swap(1)"></video>
+        <div class="absolute inset-0 bg-black pointer-events-none"
+             :style="`opacity: ${(100 - videoBrightness) / 100}`"></div>
+    </div>
 
-    <template x-if="!useVideo">
-        <div class="w-full h-full"
-             :style="`filter: brightness(${videoBrightness}%)`">
-            <img
-                src="{{ asset(config('app.background_image')) }}"
-                alt="Background"
-                fetchpriority="high"
-                decoding="async"
-                class="w-full h-full object-cover will-change-transform animate-kenburns"
-            >
-        </div>
-    </template>
+    <div class="w-full h-full" x-show="!useVideo || !videos.length" x-cloak
+         :style="`filter: brightness(${videoBrightness}%)`">
+        <img
+            src="{{ asset(config('app.background_image')) }}"
+            alt="Background"
+            fetchpriority="high"
+            decoding="async"
+            class="w-full h-full object-cover will-change-transform animate-kenburns"
+        >
+    </div>
 
     <div
+
         class="absolute inset-0 bg-[var(--md-sys-color-primary)]/10 mix-blend-overlay transition-colors duration-500"></div>
     <div
         class="absolute inset-0 bg-gradient-to-l from-black/80 via-black/20 to-transparent dark:from-black/95 dark:via-black/50 dark:to-transparent"></div>
@@ -97,7 +143,7 @@
             x-cloak>
             <div
                 class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 border border-gray-200 dark:border-white/10 shadow-2xl transition-all">
-                <button @click="useVideo = !useVideo"
+                <button @click="useVideo = !useVideo; useVideo && initVideo()"
                         class="group relative w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all">
                     <span class="material-symbols-rounded text-[22px]" x-text="useVideo ? 'image' : 'movie'"></span>
                     <x-ui.modals.tooltip position="left">

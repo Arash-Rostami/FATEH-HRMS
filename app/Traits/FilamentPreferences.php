@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Auth;
 
 trait FilamentPreferences
 {
+    public const RECORDS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
     public ?array $data = [];
 
     public function form(Schema $schema): Schema
@@ -78,13 +80,15 @@ trait FilamentPreferences
                 ->label('نوار کناری تاشو')
                 ->helperText('امکان جمع کردن منوی کناری برای فضای بیشتر.')
                 ->onIcon('heroicon-o-bars-3-bottom-right')
-                ->offIcon('heroicon-o-x-mark'),
+                ->offIcon('heroicon-o-x-mark')
+                ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
 
             Toggle::make('sidebar_fully_collapsible')
                 ->label('جمع شدن کامل')
                 ->helperText('منوی کناری به طور کامل مخفی شود.')
                 ->onIcon('heroicon-o-arrows-pointing-in')
-                ->offIcon('heroicon-o-arrows-pointing-out'),
+                ->offIcon('heroicon-o-arrows-pointing-out')
+                ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
 
             Toggle::make('breadcrumbs')
                 ->label('نمایش مسیر راهنما')
@@ -108,13 +112,31 @@ trait FilamentPreferences
                 ->label('منوی بالا')
                 ->helperText('انتقال منوی اصلی به قسمت بالای صفحه.')
                 ->onIcon('heroicon-o-window')
-                ->offIcon('heroicon-o-window'),
+                ->offIcon('heroicon-o-window')
+                ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
 
             Toggle::make('topbar')
                 ->label('نمایش نوار بالا')
                 ->helperText('نمایش یا مخفی‌سازی کامل نوار بالای پنل.')
                 ->onIcon('heroicon-o-bars-3')
-                ->offIcon('heroicon-o-bars-3'),
+                ->offIcon('heroicon-o-bars-3')
+                ->reactive()
+                ->default(true),
+
+            Toggle::make('topbar_pinned')
+                ->label('اتو هاید نوار بالا')
+                ->helperText('در حالت غیرفعال، نوار بالا خودکار مخفی و با هاور آشکار می‌شود (فقط دسکتاپ).')
+                ->onIcon('heroicon-o-map-pin')
+                ->offIcon('heroicon-o-map-pin')
+                ->default(true)
+                ->disabled(fn (Get $get) => !$get('topbar')),
+
+            Toggle::make('nav_dock')
+                ->label('نوار ناوبری به حالت داک پایین')
+                ->helperText('نمایش منو به‌صورت نوار شناور در پایین صفحه به‌جای نوار کناری (دسکتاپ).')
+                ->onIcon('heroicon-o-view-columns')
+                ->offIcon('heroicon-o-bars-3')
+                ->reactive(),
 
             Toggle::make('user_menu_topbar')
                 ->label('منوی کاربر در نوار بالا')
@@ -135,6 +157,28 @@ trait FilamentPreferences
                 ->offIcon('heroicon-o-chart-bar-square')
                 ->default(true),
 
+            Toggle::make('persian_dates')
+                ->label('تقویم شمسی در فیلترها')
+                ->helperText('نمایش تقویم شمسی به‌جای میلادی در فیلترهای بازه تاریخ.')
+                ->onIcon('heroicon-o-calendar-days')
+                ->offIcon('heroicon-o-calendar')
+                ->default(true),
+
+            Slider::make('records_per_page')
+                ->label('تعداد ردیف در هر صفحه')
+                ->helperText('تعداد پیش‌فرض رکوردها در جداول سراسر پنل مدیریت.')
+                ->range(minValue: 0, maxValue: count(self::RECORDS_PER_PAGE_OPTIONS) - 1)
+                ->step(1)
+                ->live()
+                ->rtl()
+                ->pips()
+                ->pipsFormatter(RawJs::make('(' . json_encode(self::RECORDS_PER_PAGE_OPTIONS) . ')[$value]'))
+                ->extraAttributes(['style' => 'transform: scale(0.8); transform-origin: center;'])
+                ->behavior([Behavior::Tap, Behavior::Drag, Behavior::SmoothSteps])
+                ->default(0)
+                ->afterStateHydrated(fn (Slider $component, ?int $state) => $component->state(($index = array_search($state, self::RECORDS_PER_PAGE_OPTIONS, true)) !== false ? $index : 0))
+                ->dehydrateStateUsing(fn (?int $state) => self::RECORDS_PER_PAGE_OPTIONS[$state] ?? 25)
+                ->beforeContent(fn (Get $get): string => (self::RECORDS_PER_PAGE_OPTIONS[(int) ($get('records_per_page') ?? 0)] ?? 25) . ' ردیف'),
 
             Toggle::make('screen_saver')
                 ->label('اسکرین سیور')

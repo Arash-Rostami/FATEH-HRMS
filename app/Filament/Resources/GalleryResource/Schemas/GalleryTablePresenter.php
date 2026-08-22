@@ -3,8 +3,7 @@
 namespace App\Filament\Resources\GalleryResource\Schemas;
 
 use App\Models\Department;
-use Filament\Forms\Components\DatePicker;
-use Filament\Schemas\Components\Grid;
+use App\Traits\FilamentFilters;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -16,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class GalleryTablePresenter
 {
+    use FilamentFilters;
+
     public static function createdAt(): TextColumn
     {
         return TextColumn::make('created_at')
@@ -87,18 +88,13 @@ class GalleryTablePresenter
 
     public static function eventDateRangeFilter(): Filter
     {
-        return Filter::make('event_date_range')
-            ->label(__('resources/gallery/strings.filters.event_date_range'))
-            ->schema([
-                Grid::make(2)->schema([
-                    DatePicker::make('from')->native(false)->label(__('resources/gallery/strings.filters.date_from')),
-                    DatePicker::make('until')->native(false)->label(__('resources/gallery/strings.filters.date_until'))
-                ])
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'], fn($query, $v) => $query->whereDate('event_date', '>=', $v))
-                ->when($data['until'], fn($query, $v) => $query->whereDate('event_date', '<=', $v))
-            );
+        return self::jalaliDateRangeFilter(
+            'event_date_range',
+            'event_date',
+            __('resources/gallery/strings.filters.event_date_range'),
+            __('resources/gallery/strings.filters.date_from'),
+            __('resources/gallery/strings.filters.date_until'),
+        );
     }
 
     public static function id(): TextColumn

@@ -1312,32 +1312,42 @@ Located at `app/Traits/FilamentFilters.php`. Applied on every resource alongside
 use FilamentActions, FilamentFilters, AuthorizesByPermission;
 ```
 
-Provides the shared `createdAtFilter()` method — a date-range filter with Persian Jalali date pickers that all resources use in their `->filters([])` table call.
+Provides `createdAtFilter()` plus the generalized `jalaliDateRangeFilter(string $name, string $column, string $label, string $fromLabel, string $untilLabel): Filter` builder every module-specific date-range filter now routes through — never hand-roll a second `Grid::make(2)->schema([DatePicker::make('from'), DatePicker::make('until')])` block for a different column.
 
 ```php
 public static function createdAtFilter(): Filter
 {
-    return Filter::make('created_at')
-        ->label(__('resources/general/strings.filters.date_range'))
+    return self::jalaliDateRangeFilter(
+        'created_at', 'created_at',
+        __('resources/general/strings.filters.date_range'),
+        __('resources/general/strings.filters.date_from'),
+        __('resources/general/strings.filters.date_until'),
+    );
+}
+
+public static function jalaliDateRangeFilter(string $name, string $column, string $label, string $fromLabel, string $untilLabel): Filter
+{
+    $persian = Auth::user()?->getPreference('persian_dates', true) ?? true;
+
+    return Filter::make($name)
+        ->label($label)
         ->schema([
             Grid::make(2)->schema([
                 DatePicker::make('from')
-                    ->native(false)
-                    ->locale('fa')
-                    ->label(__('resources/general/strings.filters.date_from')),
+                    ->when($persian, fn (DatePicker $p) => $p->jalali(), fn (DatePicker $p) => $p->native(false))
+                    ->label($fromLabel),
                 DatePicker::make('until')
-                    ->native(false)
-                    ->locale('fa')
-                    ->label(__('resources/general/strings.filters.date_until')),
+                    ->when($persian, fn (DatePicker $p) => $p->jalali(), fn (DatePicker $p) => $p->native(false))
+                    ->label($untilLabel),
             ])
         ])
-        ->query(fn(Builder $query, array $data) => $query
-            ->when($data['from'] ?? null,  fn($q) => $q->whereDate('created_at', '>=', $data['from']))
-            ->when($data['until'] ?? null, fn($q) => $q->whereDate('created_at', '<=', $data['until'])))
-        ->indicateUsing(function (array $data): array {
+        ->query(fn (Builder $query, array $data) => $query
+            ->when($data['from'] ?? null, fn ($q) => $q->whereDate($column, '>=', $data['from']))
+            ->when($data['until'] ?? null, fn ($q) => $q->whereDate($column, '<=', $data['until'])))
+        ->indicateUsing(function (array $data) use ($persian, $fromLabel, $untilLabel): array {
             $indicators = [];
-            if ($from = $data['from'] ?? null)  $indicators[] = __('...date_from')  . ': ' . $from;
-            if ($until = $data['until'] ?? null) $indicators[] = __('...date_until') . ': ' . $until;
+            if ($from = $data['from'] ?? null) $indicators[] = $fromLabel . ': ' . ($persian ? jdateOnly($from) : $from);
+            if ($until = $data['until'] ?? null) $indicators[] = $untilLabel . ': ' . ($persian ? jdateOnly($until) : $until);
             return $indicators;
         });
 }
@@ -1345,10 +1355,11 @@ public static function createdAtFilter(): Filter
 
 **Rules:**
 - Always the last filter in the list.
-- `->native(false)` is mandatory — forces the custom Jalali picker UI.
-- `->locale('fa')` activates Persian calendar.
+- `->native(false)` alone does **not** give a Jalali calendar — Filament's stock `DateTimePicker::getLocale()` falls back to `config('app.locale')` and there is no Jalali conversion anywhere in Filament core. `->locale('fa')` only translates flatpickr-style day/month *labels*; the grid underneath stays Gregorian. Real Jalali rendering requires the `mokhosh/filament-jalali` package (composer dependency, `^6.0`) and its `.jalali()` macro on `DatePicker` — it internally calls `->native(false)` itself, registers a dedicated Alpine component (`public/js/mokhosh/filament-jalali/...`, published via `php artisan filament:assets`), and swaps in a real Jalali calendar widget.
+- The Gregorian/Jalali choice is a per-admin preference (`persian_dates`, default **on** — see the User preferences section below), not hardcoded. `->when($persian, fn ($p) => $p->jalali(), fn ($p) => $p->native(false))` is the toggle point; the `else` branch keeps `->native(false)` so the picker UI stays consistent either way.
+- Module-specific date-range filters on a different column all delegate to `jalaliDateRangeFilter()` rather than duplicating the shape: `EnergyTestTablePresenter::dateRangeFilter()` (`completed_at`), `EventTablePresenter::dateRangeFilter()` (`date`), `ReportTablePresenter::reportDateRangeFilter()` (`report_date`), `GalleryTablePresenter::eventDateRangeFilter()` (`event_date`) — each is now a one-line wrapper, and each presenter class adds `use FilamentFilters;` to reach the shared method. Adding a new date-range filter anywhere in the admin panel should always call `self::jalaliDateRangeFilter(...)`, never rebuild the DatePicker pair by hand — otherwise it silently falls outside the `persian_dates` toggle.
 - Guard every `$data['from']`/`$data['until']` read with `?? null` in both `query` and `indicateUsing` — a single-sided range (only `from` or only `until`) throws `Undefined array key` without it.
-- `indicateUsing` must return human-readable active-filter chips so users can see the active range at a glance.
+- `indicateUsing` must return human-readable active-filter chips so users can see the active range at a glance, formatted through `jdateOnly()` (not the raw ISO string) when `persian_dates` is on.
 
 ---
 
@@ -1810,6 +1821,15 @@ private static function pref(string $key, mixed $default = false): mixed
     return $preferences[$key] ?? $default;
 }
 ```
+
+**Not every preference is a Panel fluent method.** Four newer toggles live in the same `getPreferenceFields()` array and `user.extra['preferences']` JSON but are consumed by other mechanisms, since Filament's `Panel` has no native fluent method for them:
+
+- `persian_dates` (default **on**) — read directly by `FilamentFilters::jalaliDateRangeFilter()` (see that section above), not by `FilamentPanelCustomizer`.
+- `records_per_page` (Slider, index-mapped to `FilamentPreferences::RECORDS_PER_PAGE_OPTIONS = [10, 25, 50, 100]`, default index `0` = 10) — consumed by a single global `Table::configureUsing()` hook registered in `App\Providers\FilamentServiceProvider::registerTableDefaults()`, which applies to **every** Filament table/widget app-wide: `$table->paginationPageOptions([10, 25, 50, 100])->defaultPaginationPageOption(fn () => Auth::user()?->getPreference('records_per_page', 25) ?? 25)`. A table that calls its own `->defaultPaginationPageOption()`/`->paginated([...])` explicitly (e.g. `UnmetSkillDemandTable`, fixed at `10`) still wins — `configureUsing` only sets the base default, per-table calls made afterward override it. **Trap:** never reference a trait constant via the trait's own name from another class (`FilamentPreferences::RECORDS_PER_PAGE_OPTIONS` from `FilamentServiceProvider`) — PHP 8.2 trait constants are only accessible through a class that actually `use`s the trait; doing it from outside throws `Error: Cannot access trait constant ... directly` on every table mount (confirmed live, 2026-08-22). Keep the options list as a plain literal in `FilamentServiceProvider` instead of cross-referencing the trait.
+- `nav_dock` (default **off**) and `topbar_pinned` (default **on**) — pure CSS/JS layout toggles with no Filament Panel equivalent at all. Applied via a class added to `<html>` at `PanelsRenderHook::HEAD_START` in `FilamentServiceProvider::registerThemeBootstrap()` (`nav-dock-bottom`, `topbar-pinned`), styled in `resources/css/core/filament.css` under `@media (min-width: 1024px)` blocks (desktop-only):
+  - `nav_dock` CSS-repositions Filament's *existing* `.fi-sidebar` into a floating bottom dock (fixed, centered, row-flex, labels/header/footer hidden) rather than building a separate component — ported from the sibling `BMS-CM` project's `fi-custom.css`. Because Fateh's own `.fi-sidebar-item > a` carries vertical-sidebar sizing (`w-[70%]`, `px-4 py-3`), the dock block must also reset `width: auto` + a smaller `padding` on that selector, or icons render lost inside oversized, still-padded buttons — a gap BMS-CM's own CSS never needed since it doesn't have Fateh's custom item sizing.
+  - `topbar_pinned` off makes `.fi-topbar-ctn` a fixed, mostly-offscreen strip that slides fully into view on `:hover`/`:focus-within` (pure CSS transform + transition, no JS for the show/hide itself). One JS file, `resources/js/core/topbar-autohide.js` (registered as both a Vite `input` entry in `vite.config.js` and a `SCRIPTS_BEFORE` render hook in `registerCoreScripts()`), briefly adds `topbar-force-hidden` after `livewire:navigated` so the topbar doesn't flash open during an SPA page transition.
+  - Because `nav_dock` replaces the sidebar and `top_nav` moves the sidebar's contents to the top, the two are mutually exclusive: `sidebar_collapsible`, `sidebar_fully_collapsible`, and `top_nav` all carry `->disabled(fn (Get $get) => (bool) $get('nav_dock'))`. Likewise `topbar_pinned` only makes sense when the topbar is actually shown: `->disabled(fn (Get $get) => !$get('topbar'))`. The toggle each depends on (`nav_dock`, `topbar`) must be `->reactive()` for the dependent field's `disabled()` closure to update live while the Preferences form is open, without a page reload.
 
 ### `extra` two-bucket protection (User model)
 

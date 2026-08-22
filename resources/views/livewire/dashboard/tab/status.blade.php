@@ -1,5 +1,4 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] flex flex-col gap-4"
-     dir="rtl"
      x-data="{
         view: @js($view),
         collapsed: {},

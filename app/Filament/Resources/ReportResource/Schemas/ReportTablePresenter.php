@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
+use App\Traits\FilamentFilters;
 use Filament\Actions\BulkAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Grid;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -20,6 +19,8 @@ use Illuminate\Support\Collection;
 
 class ReportTablePresenter
 {
+    use FilamentFilters;
+
     public static function active(): IconColumn
     {
         return IconColumn::make('active')
@@ -182,17 +183,13 @@ class ReportTablePresenter
 
     public static function reportDateRangeFilter(): Filter
     {
-        return Filter::make('report_date_range')
-            ->label(__('resources/report/strings.filters.report_date_range'))
-            ->schema([
-                Grid::make(2)->schema([
-                    DatePicker::make('from')->native(false)->label(__('resources/report/strings.filters.date_from')),
-                    DatePicker::make('until')->native(false)->label(__('resources/report/strings.filters.date_until')),
-                ]),
-            ])
-            ->query(fn(Builder $query, array $data) => $query
-                ->when($data['from'] ?? null, fn($q, $v) => $q->whereDate('report_date', '>=', $v))
-                ->when($data['until'] ?? null, fn($q, $v) => $q->whereDate('report_date', '<=', $v)));
+        return self::jalaliDateRangeFilter(
+            'report_date_range',
+            'report_date',
+            __('resources/report/strings.filters.report_date_range'),
+            __('resources/report/strings.filters.date_from'),
+            __('resources/report/strings.filters.date_until'),
+        );
     }
 
     public static function shareWithDepartmentsBulkAction(): BulkAction

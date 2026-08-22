@@ -52,6 +52,13 @@
                 <x-ui.modals.tooltip text="بازنشانی کش سرور" position="bottom"/>
             </button>
 
+            @php($persianDates = auth()->user()?->getPreference('persian_dates', true))
+            <button type="button" @click="$store.filamentMenu.toggleCalendar()"
+                    class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition snap-start snap-always hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
+                <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100">{{ $persianDates ? 'calendar_month' : 'public' }}</span>
+                <x-ui.modals.tooltip :text="$persianDates ? 'تقویم شمسی — کلیک برای میلادی' : 'تقویم میلادی — کلیک برای شمسی'" position="bottom"/>
+            </button>
+
             <button type="button" @click="window.filamentMenu.showShortcuts()"
                     class="group relative shrink-0 flex w-10 h-10 items-center justify-center rounded-xl active:scale-95 transition snap-start snap-always hover:bg-[var(--md-sys-color-on-primary)]/10 text-[var(--md-sys-color-primary-container)]">
                 <span class="material-symbols-rounded text-[22px] opacity-80 group-hover:opacity-100">keyboard_command_key</span>

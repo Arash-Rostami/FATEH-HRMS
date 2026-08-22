@@ -17,6 +17,7 @@ export default defineConfig({
 
                 'resources/js/core/theme-manager.js',
                 'resources/js/core/filament.js',
+                'resources/js/core/topbar-autohide.js',
                 'resources/js/components/alpine/stores/filament-menu.js',
             ],
             refresh: true,

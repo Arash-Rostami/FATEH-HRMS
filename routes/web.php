@@ -18,6 +18,7 @@ use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
 use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
 use App\Livewire\Dashboard\Ths\Main as Ths;
+use App\Http\Controllers\ToggleCalendarController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -40,9 +41,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', ResetPassword::class)->name('password.reset');
 });
 
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', VerifyNotice::class)->name('verification.notice');
+    Route::get('/toggle-calendar', ToggleCalendarController::class);
     Route::get('/dashboard', Tabs::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');

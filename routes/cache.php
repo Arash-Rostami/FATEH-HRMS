@@ -31,6 +31,8 @@ Route::middleware(['auth'])->group(function () {
         ]);
     });
 
+
+
     Route::get('/reset', function () {
         abort_unless(auth()->user()->isAdmin() || auth()->user()->isDeveloper(), 403);
 
