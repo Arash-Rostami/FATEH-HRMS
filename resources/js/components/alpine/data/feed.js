@@ -5,14 +5,13 @@ const FEED_SELECTOR = '[data-feed]';
 const FEED_ID_SELECTOR = '[data-feed-id]';
 const DESKTOP_BREAKPOINT = 768;
 const SCROLL_THROTTLE_MS = 50;
-const OBSERVER_ROOT_MARGIN = '200px';
+const COLLAPSE_MS = 300;
 
 export default () => ({
     ...maximizeMixin(),
     ...monthFilterMixin(FEED_SELECTOR),
     activeId: null,
     loading: false,
-    observer: null,
     showTimeline: false,
     view: 'filmstrip',
     maximizedFeed: null,
@@ -38,7 +37,6 @@ export default () => ({
 
         this.$nextTick(() => {
             this.setupScrollListener();
-            this.setupInfiniteScroll();
             this.updateActiveItem();
             this.refreshVisible();
         });
@@ -48,28 +46,10 @@ export default () => ({
             if (this.$root?.contains(el)) {
                 this.$nextTick(() => {
                     this.updateActiveItem();
-                    this.observeTrigger();
                     this.refreshVisible();
                 });
             }
         });
-    },
-
-    setupInfiniteScroll() {
-        this.observer = new IntersectionObserver((entries) => {
-            if (entries[0]?.isIntersecting) this.loadMore();
-        }, {
-            root: null,
-            threshold: 0,
-            rootMargin: OBSERVER_ROOT_MARGIN,
-        });
-        this.observeTrigger();
-    },
-
-    observeTrigger() {
-        if (!this.observer) return;
-        this.observer.disconnect();
-        if (this.$refs.loadTrigger) this.observer.observe(this.$refs.loadTrigger);
     },
 
     async loadMore() {
@@ -103,6 +83,22 @@ export default () => ({
         const timeline = this.$refs.timeline;
         if (!timeline) return;
         timeline.scrollBy({ left: timeline.offsetWidth, behavior: 'smooth' });
+    },
+
+    revealComments(el, feedId, alreadyLoaded) {
+        const scroller = el?.closest('.scrollbar-hover-reveal');
+        if (!scroller) return;
+        const scroll = () => {
+            if (this._isDestroyed) return;
+            scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
+        };
+        if (alreadyLoaded) {
+            setTimeout(scroll, COLLAPSE_MS);
+            return;
+        }
+        this.$wire.openComments(feedId)
+            .then(() => this.$nextTick(() => setTimeout(scroll, COLLAPSE_MS)))
+            .catch((e) => console.error(e));
     },
 
     setupScrollListener() {
@@ -175,11 +171,6 @@ export default () => ({
         if (timeline && this._scrollListener) {
             timeline.removeEventListener('scroll', this._scrollListener);
             this._scrollListener = null;
-        }
-
-        if (this.observer) {
-            this.observer.disconnect();
-            this.observer = null;
         }
     }
 });

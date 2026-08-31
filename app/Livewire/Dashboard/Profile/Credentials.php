@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Profile;
 
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -12,6 +13,11 @@ class Credentials extends Component
     use FocusOnRecord;
 
     public string $search = '';
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.credentials-placeholder');
+    }
 
     #[Computed]
     public function credentials()

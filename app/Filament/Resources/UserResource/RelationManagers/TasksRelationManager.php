@@ -37,9 +37,8 @@ class TasksRelationManager extends RelationManager
                 ->icon('heroicon-o-calendar')
                 ->schema([
                     TaskFormPresenter::deadlineDate(),
-                    TaskFormPresenter::deadlineTime(),
                 ])
-                ->columns(2),
+                ->columns(1),
 
             Section::make(__('resources/task/strings.form.section_content'))
                 ->icon('heroicon-o-document-text')
@@ -93,7 +92,7 @@ class TasksRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator', 'project']))
             ->columns([
                 TaskTablePresenter::id(),
                 TaskTablePresenter::title(),
@@ -103,6 +102,7 @@ class TasksRelationManager extends RelationManager
                 TaskTablePresenter::isDelegated(),
                 TaskTablePresenter::deadline(),
                 TaskTablePresenter::description(),
+                TaskTablePresenter::linkedProject(),
                 TaskTablePresenter::deletedAt(),
                 TaskTablePresenter::createdAt(),
             ])

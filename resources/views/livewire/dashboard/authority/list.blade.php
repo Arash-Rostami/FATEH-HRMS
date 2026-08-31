@@ -35,7 +35,7 @@
                 </div>
 
                 @if($approved)
-                    <span class="hidden sm:inline text-[10px] font-medium px-2 py-0.5 rounded {{ $badge['class'] }}">
+                    <span class="hidden sm:inline text-[10px] font-medium px-2 py-0.5 rounded-md {{ $badge['class'] }}">
                         {{ $badge['label'] }}
                     </span>
                 @endif
@@ -59,7 +59,7 @@
                                     <span
                                         class="text-[10px] uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]">تفویض مصوب</span>
                                     <span
-                                        class="text-[10px] font-semibold px-2 py-0.5 rounded {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                                        class="text-[10px] font-semibold px-2 py-0.5 rounded-md {{ $badge['class'] }}">{{ $badge['label'] }}</span>
                                 </div>
                             @endif
                             @if($coDelegate)

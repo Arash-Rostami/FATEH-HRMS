@@ -42,6 +42,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('comments')
             ->label(__('resources/suggestion/strings.fields.comments'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -91,6 +92,7 @@ class SuggestionInfolistPresenter
             ->label(__('resources/suggestion/strings.fields.description'))
             ->prose()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -133,6 +135,7 @@ class SuggestionInfolistPresenter
             ->label(__('resources/suggestion/strings.fields.referral_actions'))
             ->placeholder('—')
             ->getStateUsing(fn($record): ?string => $record->reviews?->firstWhere('department_id', 'MA')?->actions)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -250,6 +253,7 @@ class SuggestionInfolistPresenter
             ->label(__('resources/suggestion/strings.fields.title'))
             ->size(TextSize::Large)
             ->weight('bold')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

@@ -15,6 +15,7 @@ class PostInfolistPresenter
         return TextEntry::make('body')
             ->label(__('resources/post/strings.fields.body'))
             ->html()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -55,6 +56,7 @@ class PostInfolistPresenter
             ->html()
             ->size(TextSize::Large)
             ->weight(FontWeight::Bold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

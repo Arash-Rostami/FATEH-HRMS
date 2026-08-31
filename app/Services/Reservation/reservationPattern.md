@@ -111,3 +111,71 @@ resolves `open` against `Resource::find($id)` (for highlighting a bookable resou
 `Reservation::find($id)` — there is no UI wiring today to scroll to/highlight one specific past reservation
 by id. `selectedDayEvents()` still exposes `reservation_id` per event for a future such deep-link; until
 that's built, the link only routes to the reservation module's landing page.
+
+## Long-hold (range) booking mode — one record, continuous span
+
+A continuous hold of a resource (e.g. "reserve this seat for a whole year") is stored as **one** `Reservation` row with `start_time` today and `end_time` months/years ahead. No new column, no migration — `end_time` is already a `timestamp`. Range mode is **elevated-only (admin or developer) by construction**: only the Filament admin form (`ReservationFormPresenter`) — reachable by both `admin` and `developer` roles (`User::canAccessPanel` returns `true` for both; `developer` is super-by-role and bypasses `AuthorizesByPermission`) — exposes a free `end_time`; the user panel derives `end` from `selectedDuration` (minutes, bounded by `max_duration_minutes`), so a regular user can never produce a multi-day span.
+
+### Deriving `isRange` — duration, not calendar-span
+
+`BookingContext::isRange()` and `Reservation::isRange()` both compute `!is_full_day && start->diffInDays(end) >= 1`. This is a **>=24h elapsed** check, deliberately not a calendar-day (`isSameDay`) check: a legitimate short overnight slot (22:00→01:00, ~3h, crosses midnight) returns `diffInDays ≈ 0.08` → **not** range → stays under the normal intraday validators (`Duration` max/min, `AllowedHours`). Only holds ≥ ~1 day become range. A year is 365 days → range.
+
+### Validators relaxed vs. kept in range mode
+
+In range mode these **early-return** (a continuous hold isn't bound to working hours/days or intraday caps): `Duration`, `AllowedHours`, `ResourceSchedule`, `AllowedDays`, and the `window_days`/`window_hours` future-cap inside `TimeWindow`. `TimeWindow`'s **past-start guard is kept** even in range (no backdated starts).
+
+These **stay enforced** in range: `ResourceAvailability` (the per-resource double-book guard — the seat is exclusively held for the whole span; nobody else can book it), `TypeActive`, `ResourceActive`, `FullDay`, `Recurrence`, `UserActive`, `BookingPermission`. `UserConflict` is **skipped** in range: it is per-(user, resource-type) and would lock the user out of *every* same-type booking for the year; `ResourceAvailability` already prevents true per-resource double-booking, so the per-type lockout serves no purpose for an elevated-assigned (admin or developer) hold.
+
+`ActiveLimit` (`max_per_user`) counts a range **once**, in its start month — elevated-authoritative (admin or developer) ranges are exempt from the monthly cap for later months (documented, accepted).
+
+### Form guards (`ReservationFormPresenter::isRangeState`)
+
+When the form's `start_time`/`end_time` form a range (`!is_full_day && diffInDays >= 1`): the `is_full_day` toggle is `disabled()` (with `->dehydrated()` so `false` persists) — you can't flip a range to full-day; `is_recurring` + `recur_pattern` + `recur_count` are `disabled()` and hidden — you can't combine range + recurring (which would otherwise make `GenerateSeriesAction` shift the year-long `end` per child into overlapping year-long holds). `end_time` and `start_time` pickers carry `->maxDate(now()->addYears(10))` to reject absurd spans.
+
+### Page hooks
+
+`CreateReservation::afterCreate` guards `GenerateSeriesAction` with `!$this->record->isRange()`. `EditReservation::mutateFormDataBeforeSave` forces `is_full_day = false` for a range and only applies the same-day `startOfDay/endOfDay` pin when **not** range — so editing a range never truncates it to a single day.
+
+### Event sync — no meeting event for a range
+
+`EventSyncService::sync` routes a range through the same `purge()` branch as a non-meeting/non-active reservation: no `Event::updateOrCreate` (a seat/desk hold is not a calendar meeting), and the `DB::afterCommit` `countdown:active`/`StateService::flush` still runs. The countdown is `Event::activeCountdownEvent()`-driven, not reservation-`end_time`-driven, so a far `end_time` never produces a "525600 minutes remaining" artifact.
+
+### Cancel / partial release — one record, whole-only by design
+
+A range hold is one record. **Whole-cancel** (status → cancelled) and **shorten** (move `end_time` earlier) both work in one step. **Release** (`releaseAction`) on an **ongoing** range (start in the past) truncates `end_time` to now and sets status `released` — the remainder of the span is freed for others; on a **future** range (not yet started) it sets status `released` only (does *not* free — use cancel to free a not-yet-started hold). A mid-range **single day/time-slot cannot be excluded** from within the one record — there is no per-day exception mechanism. To free a mid-span gap: truncate `end_time` to the gap start, then create a second reservation for the remainder (two records). This is the accepted tradeoff vs. the 365-discrete-records approach (which silently truncated on `window_days`/`max_per_user`/non-working-days and lied about coverage). If real per-day blackouts inside a span are later required, a child `reservation_exceptions` table is the documented extension point — not built.
+
+### Rendering
+
+`Reservation::displayTime` shows the end **date** when end is on a later day than start (`date • H:i تا end_date H:i`), covering the user-panel history card (`history.blade.php` uses `$reservation->display_time`). The admin list table gained an `endTime()` column (`toJalaliSmart`, toggleable, hidden by default).
+
+## Admin form date handling — shared `PersianDateFieldService` + `FilamentDateHandler`
+
+The reservation admin form is now consistent with the other 6 Filament modules (Task, Ths, Event, Gallery, Profile, Report): date/datetime fields use `PersianDateFieldService` (Jalali year/month/day dropdowns → hidden `Y-m-d`) + a native `type('time')` TextInput, merged by the `FilamentDateHandler` trait — **no raw `DatePicker`/`DateTimePicker`**. `ReservationFormPresenter` was the last holdout.
+
+- `start_time`/`end_time` are split in the form as `{field}_date` (`PersianDateFieldService::make`, `fullWidth: true`, `yearTo: now+10y`) + `{field}_time` (TextInput, default 09:00/17:00). `end_time_date`/`end_time_time` are `visible` only when `!is_full_day`; `start_time_date` is always visible (full-day needs the start date; end is implicit `endOfDay`).
+- `ReservationResource\Pages\CreateReservation` and `EditReservation` `use FilamentDateHandler` with `datetimeFields() = [start_time, end_time]` (`default_time '00:00'`).
+- **Lifecycle gotcha (do not regress):** the merge + validation + isFull-day/range normalization all happen inside `mutateFormDataBeforeCreate`/`mutateFormDataBeforeSave` (which receive the `$data` that is actually persisted via `handleRecordCreation`/`handleRecordUpdate`). There is **no `beforeCreate`/`beforeSave`** — those hooks read `$this->data` which, for Create, is NOT the same array as the persisted `$data`, so validating there would see un-merged split fields (`start_time` null) and diverge from what is saved. Keep the merge+validate+normalize in the `mutateFormDataBefore*` method.
+- Carbon `startOfDay()`/`endOfDay()` mutate in place — in the isFull-day branch use `$start->startOfDay()` then `$end = $start->copy()->endOfDay()` (copy before endOfDay) so `validateEdit` receives `$start=00:00:00`, not the mutated `23:59:59`.
+- `isRangeState(Get)` (form guard) reads `start_time_date`/`end_time_date` (the hidden assembled values), not `start_time`/`end_time` (those only exist post-merge).
+- Range `maxDate(now+10y)` became `PersianDateFieldService`'s `yearTo: Jalalian::now()->getYear() + 10` (the service's native cap, not a chained `->maxDate`).
+- Strings: `fields.start_time_time` / `fields.end_time_time` added to `lang/fa/resources/reservation/strings.php`.
+
+## Range is elevated-only (admin or developer) — server-side guard in `BookAction`
+
+Range mode is elevated-only (admin or developer) **by construction** (only the Filament admin form exposes a free `end_time`; the user panel derives `end` from `selectedDuration` bounded by `max_duration_minutes`). As defense-in-depth against a misconfigured `max_duration_minutes >= 1440` (which would let a regular user pick a 24h+ duration and create a range), `BookAction::execute` (user-panel entry point, called only from `Reservation\Main::book()`) rejects up front using `hasElevatedRole()` (admin **or** developer — developers are not blocked):
+
+```php
+if (!$user->hasElevatedRole() && !$isFullDay && $start->diffInDays($end) >= 1) {
+    throw new \Exception('رزرو بلندمدت فقط از طریق پنل ادمین قابل ثبت است.');
+}
+```
+
+`Main::book()` catches the exception and toasts the message (no 500). This guard lives in `BookAction`, NOT in the shared `ValidationService` pipeline, because `validateBooking` runs with `enforceAllRules=true` on elevated create too — a shared `skip_admin` rule would still run for elevated users (admin or developer) on create (the `skip_admin` optimization only applies to `validateEdit`) and wrongly reject elevated ranges. The user-panel-only `BookAction` is the correct place. Test: `RangeBookingTest::test_book_action_rejects_range_for_non_admin`.
+
+## Range length cap — `max_range_days` policy + `RangeDuration` validator
+
+The intraday `Duration` (`max_duration_minutes`) is skipped in range mode (a continuous hold isn't an 8h meeting), so without a separate cap a 20-day hold sails through. The `max_range_days` policy (per resource type, in `reservation_policies`, configurable in `ReservationPolicyResource` form next to `max_per_user`) closes that gap: the `RangeDuration` validator (registered in `ValidationService::$bookingRules` with `skip_admin => false`, so admin create **and** edit are both bound) rejects a range whose `start->diffInDays(end) > max_range_days` with `ReservationError::RangeTooLong` (ERR-025, "حداکثر مدت رزرو بلندمدت N روز است"). Unset/`null` ⇒ no cap. Only applies in range mode (`isRange()` early-return for ≤1-day). This also bounds the 24h threshold discontinuity from the range side. Tests: `RangeBookingTest::test_range_duration_*` (blocks exceeding, allows within, no-cap-when-unset, ignored-for-non-range).
+
+## Release on a range — truncate ongoing, not future
+
+`releaseAction` is range-aware: an **ongoing** range (`isRange() && start_time->isPast()`) is truncated to `end_time = now()` + `status = released` — the remainder of the span is freed for others (the `start_time->isPast()` guard prevents `end_time < start_time` for a not-yet-started range, which would be an invalid record). A **future** range (start in the future) falls back to the existing `status = released` only — it does *not* free the resource (use cancel for that), matching the existing intraday release semantics (released still blocks unless `allow_overlap_release`). Note the prior guide text claiming release "frees the resource" was inaccurate for intraday (it only frees when `allow_overlap_release` is on) — the statuses + admin-ops guide hints were rectified to match the actual `ResourceAvailability` behavior (`released` blocks unless `allow_overlap_release`). Tests: `ReservationResourceTest::test_release_truncates_ongoing_range_to_free_resource`, `test_release_does_not_truncate_future_range`.

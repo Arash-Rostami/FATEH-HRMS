@@ -97,8 +97,25 @@
         <div
             class="w-full sm:w-64 bg-[var(--md-sys-color-primary-container)]/50 rounded-xl p-4 border border-[var(--md-sys-color-outline-variant)]/30">
             <div class="flex justify-between items-end mb-2">
-                <span class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
+                <span class="text-xs font-semibold text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider flex items-center gap-1">
                     تکمیل پروفایل
+                    @if(!empty($missingFields))
+                        <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-64" surface="default">
+                            <x-slot:trigger>
+                                <span class="material-symbols-rounded text-[14px] normal-case tracking-normal font-normal text-[var(--md-sys-color-primary)]">info</span>
+                            </x-slot:trigger>
+                            <x-slot:body>
+                                <div class="px-3 py-2.5 text-xs leading-relaxed text-[var(--md-sys-color-on-surface)] normal-case">
+                                    <p class="font-bold mb-1.5">فیلدهای ناقص:</p>
+                                    <ul class="space-y-1 list-disc pr-4">
+                                        @foreach($missingFields as $field)
+                                            <li dir="auto">{{ $field }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </x-slot:body>
+                        </x-ui.hover-popover>
+                    @endif
                 </span>
                 <span class="text-lg font-bold text-[var(--md-sys-color-primary)]">
                     {{ (int) ($completion ?? 0) }}%

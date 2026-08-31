@@ -14,7 +14,7 @@ class Duration implements BookingRule
             ReservationError::InvalidTimeRange->throw();
         }
 
-        if ($context->isFullDay) return;
+        if ($context->isFullDay || $context->isRange()) return;
 
         $minutes = $context->start->diffInMinutes($context->end);
         $min = $context->policies['min_duration_minutes'] ?? null;

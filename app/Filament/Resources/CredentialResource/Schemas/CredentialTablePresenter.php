@@ -21,6 +21,7 @@ class CredentialTablePresenter
             ->weight(FontWeight::Bold)
             ->icon('heroicon-m-squares-2x2')
             ->color('primary')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

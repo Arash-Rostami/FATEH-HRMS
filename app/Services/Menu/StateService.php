@@ -7,6 +7,8 @@ use App\Services\Menu\Indicators\EnergyTestBadge;
 use App\Services\Menu\Indicators\PendingSuggestions;
 use App\Services\Menu\Indicators\SharedEvents;
 use App\Services\Menu\Indicators\SpecialDays;
+use App\Services\Menu\Indicators\TasksImminent;
+use App\Services\Menu\Indicators\TasksPendingApproval;
 use App\Services\Menu\Indicators\TasksTodo;
 use App\Services\Menu\Indicators\ThsBadge;
 use App\Services\Menu\Indicators\UnreadFeeds;
@@ -29,6 +31,8 @@ class StateService
         UnreadFeeds::class,
         SpecialDays::class,
         TasksTodo::class,
+        TasksImminent::class,
+        TasksPendingApproval::class,
         UnreadMessages::class,
         EnergyTestBadge::class,
         ThsBadge::class,

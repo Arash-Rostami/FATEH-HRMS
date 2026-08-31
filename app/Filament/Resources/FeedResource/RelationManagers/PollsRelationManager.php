@@ -67,6 +67,7 @@ class PollsRelationManager extends RelationManager
                 TextEntry::make('choices')
                     ->label(__('resources/feed/strings.fields.poll_option'))
                     ->getStateUsing(fn (Poll $record): string => $this->resolveChoices($record))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
                     ->size(TextSize::Medium),
 
                 TextEntry::make('votes_count')
@@ -116,7 +117,8 @@ class PollsRelationManager extends RelationManager
                     ->getStateUsing(fn (Poll $record): string => $this->resolveChoices($record))
                     ->limit(80)
                     ->tooltip(fn (Poll $record): ?string => ($c = $this->resolveChoices($record)) !== '—' ? $c : null)
-                    ->wrap(),
+                    ->wrap()
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']),
 
                 TextColumn::make('votes_count')
                     ->label(__('resources/feed/strings.poll.votes_count'))

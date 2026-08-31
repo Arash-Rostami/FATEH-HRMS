@@ -3,10 +3,9 @@
     $channelList = $p->sidebar($this->channels, auth()->id());
     $totalUnread = $p->totalUnread($this->channels);
     $allChannelIds = collect($channelList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
+    $visibleChannelList = array_slice($channelList, 0, $channelsLimit);
+    $hasMoreChannels = count($channelList) > $channelsLimit;
 @endphp
-@foreach($this->mentionToasts as $mt)
-    <span wire:key="mention-toast-{{ $mt['message_id'] }}" class="hidden" data-mention-toast="{{ $mt['channel_id'] }}" data-msg-id="{{ $mt['message_id'] }}" data-sender-name="{{ $mt['sender_name'] }}" data-channel-name="{{ $mt['channel_name'] }}"></span>
-@endforeach
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
     'hidden' => $mobileShowChat,
@@ -24,7 +23,18 @@
                 </div>
                 <div>
                     <h1 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)]">کانال‌ها</h1>
-                    <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">کانال‌های موضوعی</p>
+                    @php
+                        $listCount = count($channelList);
+                        $openCount = count(array_filter($channelList, fn($c) => ($c['type'] ?? '') === 'open'));
+                        $privateCount = $listCount - $openCount;
+                        $summaryParts = $listCount ? array_merge([convertToPersian((string) $listCount) . ' کانال'], array_filter([
+                            $openCount ? convertToPersian((string) $openCount) . ' عمومی' : '',
+                            $privateCount ? convertToPersian((string) $privateCount) . ' خصوصی' : '',
+                        ])) : [];
+                    @endphp
+                    <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="تفکیک کانال‌های شما بر اساس نوع">
+                        {{ $listCount ? implode(' · ', $summaryParts) : 'کانال‌های موضوعی' }}
+                    </p>
                 </div>
             </div>
             <div class="flex items-center gap-1.5">
@@ -108,13 +118,11 @@
     </div>
 
     <div id="channel-list" class="flex flex-col overflow-y-auto py-1 contact-scrollbar" role="listbox">
-        @forelse($channelList as $ch)
+        @forelse($visibleChannelList as $ch)
             <div wire:key="channel-{{ $ch['id'] }}" x-data="{ tagOpen: false }" x-on:click="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.enter.prevent="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.space.prevent="selectChannel({{ $ch['id'] }})"
                     data-rf="channel-{{ $ch['id'] }}"
-                    data-channel-id="{{ $ch['id'] }}"
-                    data-channel-name="{{ $ch['name'] }}"
                     role="option"
                     tabindex="0"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"
@@ -125,12 +133,7 @@
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeChannelId !== $ch['id'],
                 ])>
 
-                @include('livewire.dashboard.messaging.sidebar-row-actions', [
-                    'id' => $ch['id'],
-                    'scope' => 'channel',
-                    'pinNoun' => 'کانال',
-                    'muteNoun' => 'کانال',
-                ])
+                <x-ui.row-actions :id="$ch['id']" scope="channel" pin-noun="کانال" mute-noun="کانال"/>
 
                 <div class="relative flex-shrink-0">
                     <div @class([
@@ -186,6 +189,12 @@
                             </p>
                         @endif
 
+                        @if(!empty($ch['members_count']))
+                            <span class="flex-shrink-0 inline-flex items-center gap-0.5 text-[10px] font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="تعداد اعضا">
+                                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ convertToPersian((string) $ch['members_count']) }}
+                            </span>
+                        @endif
+
                         @if($ch['unread'])
                             <span class="flex-shrink-0 min-w-[18px] h-[18px] px-1 rounded-md text-[10px] font-bold
                                          flex items-center justify-center
@@ -199,5 +208,10 @@
         @empty
             <x-ui.empty icon="campaign" title="کانالی یافت نشد" variant="search" />
         @endforelse
+
+        @if($hasMoreChannels)
+            <x-ui.buttons.load-more action="loadMoreChannels" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
+                                     class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
+        @endif
     </div>
 </aside>

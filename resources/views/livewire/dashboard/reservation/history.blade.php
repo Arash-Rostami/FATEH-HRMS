@@ -69,6 +69,19 @@
                                 </span>
                             @endif
                         </span>
+                        @if($activeHistoryTab === 'cancelled' && ($reservation->cancel_reason || $reservation->cancelledBy))
+                            <span class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 opacity-90 min-w-0">
+                                <span class="material-symbols-rounded text-[13px] shrink-0 opacity-70">info</span>
+                                <span class="truncate" title="{{ $reservation->cancelReasonLabel() }}">
+                                    @if($reservation->cancelReasonLabel())
+                                        {{ $reservation->cancelReasonLabel() }}@if($reservation->cancelledBy) · @endif
+                                    @endif
+                                    @if($reservation->cancelledBy)
+                                        لغو توسط {{ $reservation->cancelledBy->name }}
+                                    @endif
+                                </span>
+                            </span>
+                        @endif
                     </div>
                 </div>
 

@@ -68,6 +68,7 @@ class ReservationPolicyResource extends Resource
                 ->icon('heroicon-o-cog-6-tooth')
                 ->schema([
                     PolicyFormPresenter::maxPerUser(),
+                    PolicyFormPresenter::maxRangeDays(),
                     PolicyFormPresenter::maxCancelCount(),
 
                     PolicyFormPresenter::divider(),

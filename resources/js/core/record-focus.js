@@ -1,36 +1,32 @@
 export default function initRecordFocus() {
     document.addEventListener('livewire:init', () => {
         window.Livewire.on('record-focus', (payload) => {
-            const data = Array.isArray(payload) ? payload[0] : payload;
-            if (!data || data.id == null || !data.type) return;
+            const data = Array.isArray(payload) ? payload[0] : payload
+            if (!data || data.id == null || !data.type) return
 
-            // Let Alpine components react immediately (set activeId / open / flip).
-            window.dispatchEvent(new CustomEvent('record-focus', {
-                detail: {type: String(data.type), id: Number(data.id)},
-            }));
+            const type = String(data.type)
+            const id = Number(data.id)
 
-            scrollToRecord(`${data.type}-${data.id}`);
-        });
-    });
+            window.dispatchEvent(new CustomEvent('record-focus', { detail: { type, id } }))
+            scrollToRecord(`${type}-${id}`)
+        })
+    })
 }
+
+const MAX_ATTEMPTS = 40
+const RETRY_MS = 75
+const escapeCSS = window.CSS?.escape ? (v) => CSS.escape(v) : (v) => v.replace(/"/g, '\\"')
 
 function scrollToRecord(key, attempt = 0) {
-    const el = document.querySelector(`[data-rf="${cssEscape(key)}"]`);
+    const el = document.querySelector(`[data-rf="${escapeCSS(key)}"]`)
 
     if (!el) {
-        // Up to ~3s: wait for navigate / lazy load / pagination to render the row.
-        if (attempt < 40) {
-            setTimeout(() => scrollToRecord(key, attempt + 1), 75);
-        }
-        return;
+        if (attempt < MAX_ATTEMPTS) setTimeout(() => scrollToRecord(key, attempt + 1), RETRY_MS)
+        return
     }
 
-    document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
-    el.style.animation = 'none';
-    el.scrollIntoView({behavior: 'smooth', block: 'center'});
-    el.classList.add('record-focus-flash');
-}
-
-function cssEscape(value) {
-    return window.CSS && CSS.escape ? CSS.escape(value) : value.replace(/"/g, '\\"');
+    document.querySelectorAll('.record-focus-flash').forEach((n) => n.classList.remove('record-focus-flash'))
+    el.style.animation = 'none'
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.classList.add('record-focus-flash')
 }

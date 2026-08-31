@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Ths\Actions;
 
+use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Livewire\Dashboard\Ths\Presentation\TicketPresenter;
 use App\Models\Task;
 use App\Models\Ticket;
@@ -39,9 +40,23 @@ class AssignTicketAction
     private function syncLinkedTask(Ticket $ticket, ?int $assigneeId): void
     {
         $task = Task::where('ticket_id', $ticket->id)->first();
+        $priority = $this->mapTicketPriority($ticket);
 
         if ($task) {
-            $task->update(['assigned_to' => $assigneeId]);
+            $payload = ['assigned_to' => $assigneeId];
+
+            if ($task->priority?->value !== $priority) {
+                $payload['priority'] = $priority;
+                $payload['rank'] = Task::rankForPriority(
+                    $task->project_id,
+                    $task->assigned_to ?? $task->user_id,
+                    $task->status,
+                    $priority,
+                    $task->id
+                );
+            }
+
+            $task->update($payload);
             return;
         }
 
@@ -56,9 +71,20 @@ class AssignTicketAction
             'user_id' => $ticket->requester_id,
             'assigned_to' => $assigneeId,
             'ticket_id' => $ticket->id,
+            'priority' => $priority,
+            'rank' => Task::rankForPriority(null, $assigneeId, 'todo', $priority),
         ]);
 
         $task->detail()->create([]);
+    }
+
+    private function mapTicketPriority(Ticket $ticket): string
+    {
+        return match ($ticket->priority) {
+            'high' => TaskPriority::High->value,
+            'medium' => TaskPriority::Medium->value,
+            default => TaskPriority::Low->value,
+        };
     }
 
     private function buildTaskDescription(Ticket $ticket): string

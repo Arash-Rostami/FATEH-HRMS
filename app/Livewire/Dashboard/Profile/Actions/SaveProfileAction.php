@@ -4,18 +4,14 @@ namespace App\Livewire\Dashboard\Profile\Actions;
 
 use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 use App\Models\Profile;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Morilog\Jalali\Jalalian;
 
 class SaveProfileAction
 {
-    /**
-     * Execute the profile save operation.
-     *
-     * @param ProfileForm $form
-     * @return array{profile: Profile, imagePath: string|null}
-     */
+    use CleansAttachedFiles, StoresAttachedFiles;
     public function execute(ProfileForm $form): array
     {
         $form->validate();
@@ -44,7 +40,7 @@ class SaveProfileAction
         $oldImage = $profile->image;
         $imagePath = null;
         if ($form->image) {
-            $imagePath = $form->image->store('profiles/images', 'public');
+            $imagePath = static::storeAttachment($form->image, 'profiles/images')['path'];
             $profile->image = $imagePath;
         }
 
@@ -54,14 +50,14 @@ class SaveProfileAction
             $profile->save();
         } catch (\Throwable $e) {
             if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
+                static::deleteStoredFiles($imagePath);
             }
 
             throw $e;
         }
 
         if ($imagePath && $oldImage) {
-            Storage::disk('public')->delete($oldImage);
+            static::deleteStoredFiles($oldImage);
         }
 
         $user->setRelation('profile', $profile);

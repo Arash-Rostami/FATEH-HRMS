@@ -16,6 +16,8 @@ class TimeWindow implements BookingRule
             ReservationError::PastBooking->throw();
         }
 
+        if ($context->isRange()) return;
+
         $windowDays = $context->policies['window_days'] ?? null;
         $windowHours = $context->policies['window_hours'] ?? 0;
 

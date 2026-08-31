@@ -1,57 +1,44 @@
 import maximizeMixin from "../mixins/maximize.js";
+import kanbanDragMixin from "../mixins/kanbanDrag.js";
+import taskFormMixin from "../mixins/taskForm.js";
+import spotlightMixin from "../mixins/spotlight.js";
 import settings from "./settings.js";
 
 const COLUMN_SELECTOR = "[data-column]";
 const COLLAPSED_STORAGE_PREFIX = "taskboard-collapsed-";
-
-const DRAG_EFFECT_MOVE = "move";
-const DRAG_DATA_TEXT = "text/plain";
-
-const OPACITY_WHILE_DRAGGING = "0.5";
-const OPACITY_NORMAL = "1";
+const FAVORITES_STORAGE_KEY = "taskboard-favorites";
+const FILTERS_OPEN_STORAGE_KEY = "taskboard-filters-open";
+const SWIPE_HINT_STORAGE_KEY = "taskboard-swipe-hint-dismissed";
 
 export default function taskboard() {
-    return {
+    const board = {
         ...maximizeMixin(),
+        ...kanbanDragMixin(),
+        ...spotlightMixin({ storageKey: "taskboard-spotlight" }),
 
-        dragTask: null,
-        isDragging: false,
         maximizedColumn: null,
         collapsed: {},
+        favorites: [],
+        showFavoritesOnly: false,
+        filtersOpen: false,
+        swipeHintDismissed: false,
 
-        toggleMaximize(name) {
-            this.maximizedColumn = this.maximizedColumn === name ? null : name;
-            this.applyMaximize(!!this.maximizedColumn);
-        },
-
-        col(el) {
-            return el?.closest(COLUMN_SELECTOR)?.dataset.column;
-        },
-
-        isCollapsed(name) {
-            return this.collapsed[name] === true;
-        },
-
-        toggleCollapsed(name) {
-            this.collapsed[name] = !this.isCollapsed(name);
-
-            localStorage.setItem(
-                COLLAPSED_STORAGE_PREFIX + name,
-                this.collapsed[name] ? "1" : "0"
-            );
-        },
+        _favSet: null,
 
         init() {
-            this.$watch("dragTask", value => {
-                this.isDragging = !!value;
-            });
+            this.loadFavorites();
+            this.initKanbanDrag();
+            this.initSpotlight();
+            this.filtersOpen = localStorage.getItem(FILTERS_OPEN_STORAGE_KEY) === "1";
+            this.swipeHintDismissed = localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === "1";
 
-            for (const el of document.querySelectorAll(COLUMN_SELECTOR)) {
-                const name = el.dataset.column;
+            const columns = document.querySelectorAll(COLUMN_SELECTOR);
+
+            for (let i = 0, len = columns.length; i < len; i++) {
+                const name = columns[i].dataset.column;
 
                 if (name && this.collapsed[name] === undefined) {
-                    this.collapsed[name] =
-                        localStorage.getItem(COLLAPSED_STORAGE_PREFIX + name) === "1";
+                    this.collapsed[name] = localStorage.getItem(COLLAPSED_STORAGE_PREFIX + name) === "1";
                 }
             }
         },
@@ -60,40 +47,95 @@ export default function taskboard() {
             return settings().initPattern();
         },
 
-        handleDragStart(event, taskId) {
-            this.dragTask = taskId;
+        loadFavorites() {
+            const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
 
-            event.dataTransfer.effectAllowed = DRAG_EFFECT_MOVE;
-            event.dataTransfer.setData(DRAG_DATA_TEXT, taskId);
+            if (!stored) {
+                this.favorites = [];
+                this._favSet = new Set();
+                return;
+            }
 
-            event.target.style.opacity = OPACITY_WHILE_DRAGGING;
+            try {
+                this.favorites = JSON.parse(stored) || [];
+            } catch {
+                this.favorites = [];
+            }
+
+            this._favSet = new Set(this.favorites);
         },
 
-        handleDragEnd(event) {
-            this.dragTask = null;
-            this.isDragging = false;
-
-            event.target.style.opacity = OPACITY_NORMAL;
+        isFavorite(id) {
+            return this._favSet.has(id);
         },
 
-        handleDragOver(event) {
-            if (!this.dragTask) return;
+        toggleFavorite(id) {
+            if (this._favSet.has(id)) {
+                this._favSet.delete(id);
+                const current = this.favorites;
+                const next = [];
+                for (let i = 0, len = current.length; i < len; i++) {
+                    const fav = current[i];
+                    if (fav !== id) next.push(fav);
+                }
+                this.favorites = next;
+            } else {
+                this._favSet.add(id);
+                this.favorites.push(id);
+            }
 
-            event.preventDefault();
-            event.dataTransfer.dropEffect = DRAG_EFFECT_MOVE;
+            try {
+                localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(this.favorites));
+            } catch {}
         },
 
-        handleDrop(event, status) {
-            if (!this.dragTask) return;
-
-            event.preventDefault();
-
-            const taskId = this.dragTask;
-
-            this.$wire.updateTaskStatus(taskId, status);
-
-            this.dragTask = null;
-            this.isDragging = false;
+        toggleFavoritesOnly() {
+            this.showFavoritesOnly = !this.showFavoritesOnly;
         },
+
+        toggleFilters() {
+            this.filtersOpen = !this.filtersOpen;
+            try { localStorage.setItem(FILTERS_OPEN_STORAGE_KEY, this.filtersOpen ? "1" : "0"); } catch {}
+        },
+
+        dismissSwipeHint() {
+            this.swipeHintDismissed = true;
+            try { localStorage.setItem(SWIPE_HINT_STORAGE_KEY, "1"); } catch {}
+        },
+
+        toggleMaximize(name) {
+            if (this.maximizedColumn === name) {
+                this.maximizedColumn = null;
+                this.applyMaximize(false);
+                return;
+            }
+            this.maximizedColumn = name;
+            this.clearSpotlight();
+            this.applyMaximize(!!name);
+        },
+
+        afterSpotlightChange() {
+            if (this.spotlightColumn && this.maximizedColumn) {
+                this.maximizedColumn = null;
+                this.applyMaximize(false);
+            }
+        },
+
+        isCollapsed(name) {
+            return this.collapsed[name] === true;
+        },
+
+        toggleCollapsed(name) {
+            const isNowCollapsed = !this.isCollapsed(name);
+
+            this.collapsed[name] = isNowCollapsed;
+
+            try {
+                localStorage.setItem(COLLAPSED_STORAGE_PREFIX + name, isNowCollapsed ? "1" : "0");
+            } catch {}
+        },
+
     };
+
+    return Object.defineProperties(board, Object.getOwnPropertyDescriptors(taskFormMixin()));
 }

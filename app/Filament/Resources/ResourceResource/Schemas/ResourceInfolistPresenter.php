@@ -60,6 +60,7 @@ class ResourceInfolistPresenter
     {
         return TextEntry::make('name')
             ->label(__('resources/resource/strings.fields.name'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->weight(FontWeight::Bold)->size(TextSize::Large);
     }
 
@@ -67,6 +68,7 @@ class ResourceInfolistPresenter
     {
         return TextEntry::make('metadata.notes')
             ->label(__('resources/resource/strings.fields.notes'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()->placeholder('—');
     }
 

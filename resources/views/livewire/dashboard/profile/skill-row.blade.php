@@ -78,25 +78,21 @@
     @if($canEndorse)
         <div class="shrink-0 flex items-center">
             @if($hasEndorsed)
-                <button type="button"
+                <x-ui.buttons.form type="button"
                         wire:click="revokeEndorsement({{ $skillUser->id }})"
-                        wire:loading.attr="disabled"
-                        wire:target="revokeEndorsement({{ $skillUser->id }})"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-tertiary)] disabled:opacity-50 transition-all duration-150">
-                    <span class="material-symbols-rounded text-[16px]" wire:loading.remove wire:target="revokeEndorsement({{ $skillUser->id }})">thumb_up</span>
-                    <span class="material-symbols-rounded text-[16px] animate-spin" wire:loading wire:target="revokeEndorsement({{ $skillUser->id }})">progress_activity</span>
-                    <span>تأییدشده</span>
-                </button>
+                        loading="revokeEndorsement({{ $skillUser->id }})"
+                        icon="thumb_up"
+                        class="!h-auto !px-3 !py-1.5 !gap-1.5 rounded-lg text-xs font-semibold bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary)] hover:text-[var(--md-sys-color-on-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-tertiary)]">
+                    تأییدشده
+                </x-ui.buttons.form>
             @else
-                <button type="button"
+                <x-ui.buttons.form type="button"
                         wire:click="endorse({{ $skillUser->id }})"
-                        wire:loading.attr="disabled"
-                        wire:target="endorse({{ $skillUser->id }})"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] disabled:opacity-50 transition-all duration-150">
-                    <span class="material-symbols-rounded text-[16px]" wire:loading.remove wire:target="endorse({{ $skillUser->id }})">thumb_up</span>
-                    <span class="material-symbols-rounded text-[16px] animate-spin" wire:loading wire:target="endorse({{ $skillUser->id }})">progress_activity</span>
-                    <span>تأیید مهارت</span>
-                </button>
+                        loading="endorse({{ $skillUser->id }})"
+                        icon="thumb_up"
+                        class="!h-auto !px-3 !py-1.5 !gap-1.5 rounded-lg text-xs font-semibold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
+                    تأیید مهارت
+                </x-ui.buttons.form>
             @endif
         </div>
     @endif

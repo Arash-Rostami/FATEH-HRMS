@@ -31,6 +31,7 @@ class ReleaseRequestInfolistPresenter
         return TextEntry::make('response')
             ->label(__('resources/release_request/strings.fields.response'))
             ->color(fn(?Model $record) => $record?->status === ReleaseRequestStatus::Rejected->value ? 'danger' : 'primary')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->visible(fn(?Model $record) => filled($record?->response))
             ->placeholder('-');
@@ -42,6 +43,7 @@ class ReleaseRequestInfolistPresenter
             ->label(__('resources/release_request/strings.fields.body'))
             ->html()
             ->formatStateUsing(fn(?string $state): string => $state === null ? '' : nl2br(e($state)))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }
@@ -83,6 +85,7 @@ class ReleaseRequestInfolistPresenter
     {
         return TextEntry::make('title')
             ->label(__('resources/release_request/strings.fields.title'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }

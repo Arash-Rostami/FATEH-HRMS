@@ -15,6 +15,10 @@ class BookAction
 
     public function execute(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null): Reservation
     {
+        if (!$user->hasElevatedRole() && !$isFullDay && $start->diffInDays($end) >= 1) {
+            throw new \Exception('رزرو بلندمدت فقط از طریق پنل ادمین قابل ثبت است.');
+        }
+
         $this->validator->validateBooking($user, $resource, $start, $end, $isFullDay, $recurrence);
 
         return DB::transaction(function () use ($user, $resource, $start, $end, $isFullDay, $recurrence) {

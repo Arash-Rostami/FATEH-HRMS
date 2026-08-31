@@ -3,6 +3,8 @@
     $contactList     = $p->sidebar($this->contacts, auth()->id());
     $totalUnread     = $p->totalUnread($this->contacts);
     $allContactIds   = collect($contactList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
+    $visibleContactList = array_slice($contactList, 0, $contactsLimit);
+    $hasMoreContacts = count($contactList) > $contactsLimit;
 @endphp
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
@@ -95,7 +97,7 @@
 
     {{-- Contact List --}}
     <div id="contact-list" class="flex flex-col overflow-y-auto py-1 contact-scrollbar" role="listbox">
-        @forelse($contactList as $contact)
+        @forelse($visibleContactList as $contact)
             <div wire:key="contact-{{ $contact['id'] }}" x-data="{ tagOpen: false }"
                  x-on:click="selectContact({{ $contact['id'] }})"
                  x-on:keydown.enter.prevent="selectContact({{ $contact['id'] }})"
@@ -109,12 +111,7 @@
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeUserId !== $contact['id'],
                 ])>
 
-                @include('livewire.dashboard.messaging.sidebar-row-actions', [
-                    'id' => $contact['id'],
-                    'scope' => 'contact',
-                    'pinNoun' => 'گفتگو',
-                    'muteNoun' => 'مخاطب',
-                ])
+                <x-ui.row-actions :id="$contact['id']" scope="contact" pin-noun="گفتگو" mute-noun="مخاطب"/>
 
                 <div class="relative flex-shrink-0">
                     <div @class([
@@ -196,5 +193,10 @@
         @empty
             <x-ui.empty icon="person_search" title="کاربری یافت نشد" variant="search"/>
         @endforelse
+
+        @if($hasMoreContacts)
+            <x-ui.buttons.load-more action="loadMoreContacts" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
+                                     class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
+        @endif
     </div>
 </aside>

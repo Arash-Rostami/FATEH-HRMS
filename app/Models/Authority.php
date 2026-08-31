@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasModelCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 class Authority extends Model
 {
-    use HasFactory;
+    use HasModelCache,
+        HasFactory;
 
     protected $fillable = [
         'department_id',
@@ -53,6 +56,25 @@ class Authority extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function cachedCount(): int
+    {
+        return static::cached('count', fn () => static::query()->count());
+    }
+
+    public static function cachedDepartments(): Collection
+    {
+        return static::cached('departments', function () {
+            $codes = static::query()->whereNotNull('department_id')->distinct()->pluck('department_id');
+            $models = Department::getCachedModels();
+
+            return Department::getCachedOptions()
+                ->keys()
+                ->filter(fn($code) => $codes->contains($code))
+                ->map(fn($code) => $models->get($code))
+                ->values();
+        });
     }
 
     protected function casts(): array

@@ -4,10 +4,15 @@ namespace App\Livewire\Dashboard\Ths\Actions;
 
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Models\Ticket;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Str;
+use Throwable;
 
 class SubmitTicketAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function execute(TicketForm $form): void
     {
         $form->validate();
@@ -31,10 +36,29 @@ class SubmitTicketAction
 
     private function storeFiles(array $files): array
     {
-        return collect($files)->map(function ($file) {
-            $name = time() . '_' . Str::random(10) . '.' . $file->extension();
-            $path = $file->storeAs('ticket/requester', $name, 'public');
-            return ['file' => $path];
-        })->values()->all();
+        $stored = [];
+
+        try {
+            foreach ($files as $file) {
+                $meta = static::storeAttachment(
+                    $file,
+                    'ticket/requester',
+                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                );
+
+                $stored[] = [
+                    'file' => $meta['path'],
+                    'name' => $meta['name'],
+                    'mime' => $meta['mime'],
+                    'size' => $meta['size'],
+                ];
+            }
+        } catch (Throwable $e) {
+            static::deleteStoredFiles(collect($stored)->pluck('file')->all());
+
+            throw $e;
+        }
+
+        return $stored;
     }
 }

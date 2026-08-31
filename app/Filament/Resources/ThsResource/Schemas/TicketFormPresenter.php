@@ -164,7 +164,6 @@ class TicketFormPresenter
             ->label(__('resources/ths/strings.fields.priority'))
             ->options(TicketPriority::class)
             ->required()
-            ->disabledOn('edit')
             ->default(TicketPriority::Low->value)
             ->helperText(__('resources/ths/strings.hints.priority'));
     }

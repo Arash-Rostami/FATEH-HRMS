@@ -5,8 +5,10 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
 use Illuminate\Support\Facades\Config;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
+#[Lazy]
 class Home extends Component
 {
 
@@ -27,5 +29,10 @@ class Home extends Component
             'stats' => $presenter->stats(),
             'shortcuts' => $presenter->shortcuts(),
         ]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.home.placeholder');
     }
 }

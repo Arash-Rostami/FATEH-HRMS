@@ -6,11 +6,15 @@ use App\Filament\Resources\TaskResource\Exports\TaskExporter;
 use App\Filament\Resources\TaskResource\Pages\{CreateTask, EditTask, ListTasks};
 use App\Filament\Resources\TaskResource\Schemas\{TaskFormPresenter, TaskInfolistPresenter, TaskTablePresenter};
 use App\Models\Task;
+use App\Services\ProjectTask\ApproveTaskAction;
+use App\Support\TaskAccessPolicy;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -37,6 +41,7 @@ class TaskResource extends Resource
         ['label' => 'زبانه‌های فهرست', 'icon' => 'tab', 'view' => 'filament.resources.task.guide.list-tabs'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.task.guide.admin-ops'],
         ['label' => 'تجربهٔ کاربر', 'icon' => 'visibility', 'view' => 'filament.resources.task.guide.user'],
+        ['label' => 'پروژه و فعالیت‌ها', 'icon' => 'workspaces', 'view' => 'filament.resources.task.guide.project-activity'],
     ];
 
     public static function form(Schema $schema): Schema
@@ -61,9 +66,8 @@ class TaskResource extends Resource
                                 ->icon('heroicon-o-calendar')
                                 ->schema([
                                     TaskFormPresenter::deadlineDate(),
-                                    TaskFormPresenter::deadlineTime(),
                                 ])
-                                ->columns(2),
+                                ->columns(1),
 
                             Section::make(__('resources/task/strings.form.section_content'))
                                 ->icon('heroicon-o-document-text')
@@ -93,7 +97,22 @@ class TaskResource extends Resource
                                     TaskFormPresenter::collaborators(),
                                     TaskFormPresenter::responsibleUserId(),
                                     TaskFormPresenter::state(),
+                                    TaskFormPresenter::meta(),
                                     TaskFormPresenter::attachments(),
+                                    TaskFormPresenter::checklist(),
+                                ])
+                                ->columns(2),
+                        ]),
+
+                    Tab::make(__('resources/task/strings.form.tab_project'))
+                        ->icon('heroicon-o-rectangle-stack')
+                        ->schema([
+                            Section::make(__('resources/task/strings.form.section_project'))
+                                ->icon('heroicon-o-rectangle-stack')
+                                ->schema([
+                                    TaskFormPresenter::projectId(),
+                                    TaskFormPresenter::priority(),
+                                    TaskFormPresenter::labels(),
                                 ])
                                 ->columns(2),
                         ]),
@@ -107,7 +126,7 @@ class TaskResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScope(SoftDeletingScope::class)
-            ->with(['creator', 'assignee', 'detail', 'detail.department', 'detail.responsibleUser']);
+            ->with(['creator', 'assignee', 'detail', 'detail.department', 'detail.responsibleUser', 'project']);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -171,6 +190,7 @@ class TaskResource extends Resource
                                 ->hiddenLabel()
                                 ->schema([
                                     TaskInfolistPresenter::status(),
+                                    TaskInfolistPresenter::approval(),
                                     TaskInfolistPresenter::creator(),
                                     TaskInfolistPresenter::assignee(),
                                     TaskInfolistPresenter::delegatedIcon(),
@@ -181,6 +201,7 @@ class TaskResource extends Resource
 
                                     TaskInfolistPresenter::createdAt(),
                                     TaskInfolistPresenter::updatedAt(),
+                                    TaskInfolistPresenter::lastTouchedBy(),
                                     TaskInfolistPresenter::deletedAt(),
                                     TaskInfolistPresenter::archivedAt(),
                                     TaskInfolistPresenter::prunableWarning(),
@@ -205,10 +226,33 @@ class TaskResource extends Resource
                                     TaskInfolistPresenter::collaborators(),
                                     TaskInfolistPresenter::responsibleUser(),
                                     TaskInfolistPresenter::state(),
+                                    TaskInfolistPresenter::meta(),
                                     TaskInfolistPresenter::attachments(),
                                 ])
                                 ->columnSpanFull()
                                 ->columns(2),
+                        ]),
+
+                    Tab::make(__('resources/task/strings.form.tab_project'))
+                        ->icon('heroicon-o-rectangle-stack')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([
+                                    TaskInfolistPresenter::linkedProject(),
+                                    TaskInfolistPresenter::priority(),
+                                    TaskInfolistPresenter::labels(),
+                                    TaskInfolistPresenter::checklistCompletion(),
+                                ])
+                                ->columnSpanFull()
+                                ->columns(2),
+
+                            Section::make(__('resources/task/strings.infolist.section_activity'))
+                                ->icon('heroicon-o-chat-bubble-left-right')
+                                ->schema([
+                                    TaskInfolistPresenter::activityStream(),
+                                ])
+                                ->columnSpanFull(),
                         ]),
                 ])
                 ->columnSpanFull()
@@ -232,11 +276,16 @@ class TaskResource extends Resource
                 TaskTablePresenter::department(),
                 TaskTablePresenter::unit(),
                 TaskTablePresenter::project(),
+                TaskTablePresenter::linkedProject(),
+                TaskTablePresenter::priority(),
+                TaskTablePresenter::labels(),
                 TaskTablePresenter::scheme(),
                 TaskTablePresenter::state(),
                 TaskTablePresenter::responsibleUser(),
                 TaskTablePresenter::deletedAt(),
                 TaskTablePresenter::archivedAt(),
+                TaskTablePresenter::approvedAt(),
+                TaskTablePresenter::meta(),
                 TaskTablePresenter::prunableWarning(),
                 TaskTablePresenter::createdAt(),
             ])
@@ -255,9 +304,33 @@ class TaskResource extends Resource
                 self::createdAtFilter(),
                 TaskTablePresenter::overdueFilter(),
                 TaskTablePresenter::pruningSoonFilter(),
+                TaskTablePresenter::linkedProjectFilter(),
+                TaskTablePresenter::priorityFilter(),
             ])
             ->filtersFormColumns(2)
             ->recordActions([
+                Action::make('approve')
+                    ->label(__('resources/task/strings.actions.approve'))
+                    ->icon('heroicon-o-check-badge')
+                    ->iconButton()
+                    ->color('success')
+                    ->tooltip(__('resources/task/strings.actions.approve'))
+                    ->visible(fn($record) => $record->isPendingApproval()
+                        && TaskAccessPolicy::canApprove($record, auth()->user()))
+                    ->action(function (Model $record) {
+                        if (app(ApproveTaskAction::class)->execute($record, auth()->user())) {
+                            Notification::make()
+                                ->success()
+                                ->title(__('resources/task/strings.notifications.approved'))
+                                ->send();
+                        }
+                    }),
+                Action::make('tasksheet')
+                    ->label('مشاهده تسک‌شیت')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->iconButton()
+                    ->url(fn($record) => route('tasksheet', ['user' => $record->assigned_to ?? $record->user_id]))
+                    ->openUrlInNewTab(),
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction()->visible(fn($record) => !$record->trashed()),

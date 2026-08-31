@@ -8,11 +8,14 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
 #[Isolate]
+#[Lazy]
 class Reports extends Component
 {
     use FocusOnRecord;
@@ -70,6 +73,11 @@ class Reports extends Component
     public function mount()
     {
         $this->view = session('reports_view_mode', 'card');
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.tab.reports.placeholder');
     }
 
     public function render()

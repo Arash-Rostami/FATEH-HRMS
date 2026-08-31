@@ -224,6 +224,7 @@ class ReportTablePresenter
             ->sortable()
             ->searchable()
             ->limit(45)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

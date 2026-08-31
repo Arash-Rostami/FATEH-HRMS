@@ -8,9 +8,7 @@ const notify = (title, type, body = null, duration = null) => {
     if (typeof window.FilamentNotification !== 'function') return;
     const n = new window.FilamentNotification().title(title);
     if (body) n.body(body);
-    if (type === 'success') n.success();
-    else if (type === 'danger') n.danger();
-    else if (type === 'warning') n.warning();
+    n[type]?.();
     if (duration) n.duration(duration);
     n.send();
 };
@@ -112,8 +110,6 @@ export default class FilamentMenuManager {
 
     registerKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
-            const isInput = INPUT_TAGS.has(e.target.tagName) || e.target.isContentEditable;
-
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 const submitBtn = document.querySelector('button[type="submit"]');
                 if (submitBtn) {
@@ -123,57 +119,60 @@ export default class FilamentMenuManager {
                 return;
             }
 
-            if (isInput) return;
+            if (INPUT_TAGS.has(e.target.tagName) || e.target.isContentEditable) return;
 
-            if (e.key === '?') {
-                e.preventDefault();
-                this.showShortcuts();
-            }
-
-            if (e.key === '/') {
-                const searchInput = document.querySelector('input[type="search"]');
-                if (searchInput) {
+            switch (e.key) {
+                case '?':
                     e.preventDefault();
-                    searchInput.focus();
+                    this.showShortcuts();
+                    break;
+
+                case '/': {
+                    const searchInput = document.querySelector('input[type="search"]');
+                    if (searchInput) {
+                        e.preventDefault();
+                        searchInput.focus();
+                    }
+                    break;
                 }
-            }
 
-            if (e.key === 'F11') {
-                e.preventDefault();
-                if (window.Alpine) {
-                    window.Alpine.store('filamentMenu').toggleFullscreen();
-                }
-            }
-
-            if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                window.history.forward();
-            }
-
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                window.history.back();
-            }
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
-                const page = parseInt(params.get('page')) || 1;
-                params.set('page', page + 1);
-                url.search = params.toString();
-                this.navigate(url.toString());
-            }
-
-            if (e.key === 'ArrowUp') {
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
-                const page = parseInt(params.get('page')) || 1;
-                if (page > 1) {
+                case 'F11':
                     e.preventDefault();
-                    params.set('page', page - 1);
+                    window.Alpine?.store('filamentMenu')?.toggleFullscreen();
+                    break;
+
+                case 'ArrowRight':
+                    e.preventDefault();
+                    window.history.forward();
+                    break;
+
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    window.history.back();
+                    break;
+
+                case 'ArrowDown': {
+                    e.preventDefault();
+                    const url = new URL(window.location.href);
+                    const params = new URLSearchParams(url.search);
+                    const page = parseInt(params.get('page')) || 1;
+                    params.set('page', page + 1);
                     url.search = params.toString();
                     this.navigate(url.toString());
+                    break;
+                }
+
+                case 'ArrowUp': {
+                    const url = new URL(window.location.href);
+                    const params = new URLSearchParams(url.search);
+                    const page = parseInt(params.get('page')) || 1;
+                    if (page > 1) {
+                        e.preventDefault();
+                        params.set('page', page - 1);
+                        url.search = params.toString();
+                        this.navigate(url.toString());
+                    }
+                    break;
                 }
             }
         });

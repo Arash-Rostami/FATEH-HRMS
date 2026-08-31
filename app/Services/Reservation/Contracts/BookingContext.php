@@ -18,4 +18,9 @@ final class BookingContext
         public readonly ?array $recurrence = null,
         public readonly ?int $excludeId = null,
     ) {}
+
+    public function isRange(): bool
+    {
+        return !$this->isFullDay && $this->start->diffInDays($this->end) >= 1;
+    }
 }

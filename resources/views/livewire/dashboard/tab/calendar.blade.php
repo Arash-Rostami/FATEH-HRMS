@@ -105,12 +105,12 @@
                     <span class="font-bold text-base">رویداد جدید</span>
                 </button>
 
-                <div class="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_50%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+                <div class="min-h-0 flex-1 overflow-y-auto scrollbar-hover-reveal rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-surface)_50%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
                     @include('livewire.dashboard.tab.calendar.events')
                 </div>
             </div>
 
-            <div class="min-h-0 overflow-y-auto p-4 md:p-6 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_40%,transparent)]">
+            <div class="min-h-0 overflow-y-auto scrollbar-hover-reveal p-4 md:p-6 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_40%,transparent)]">
                 @include('livewire.dashboard.tab.calendar.view-header')
                 @include('livewire.dashboard.tab.calendar.month')
             </div>

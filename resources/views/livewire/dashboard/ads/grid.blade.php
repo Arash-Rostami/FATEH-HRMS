@@ -19,6 +19,12 @@
                         {{-- top accent bar — positions relative to this label --}}
                         <div class="absolute top-0 inset-x-0 h-[3px] bg-[var(--md-sys-color-primary)] shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] z-20"></div>
 
+                        @if($ad->created_at?->gt(now()->subHours(48)))
+                            <span class="absolute top-2.5 end-4 z-30 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] shadow-sm" title="ثبت‌شده در ۴۸ ساعت گذشته">
+                                <span class="material-symbols-rounded text-[14px] font-fill">star</span>
+                            </span>
+                        @endif
+
                         {{-- header --}}
                         <div class="px-6 py-4 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] flex items-center gap-3">
                             <div class="shrink-0 w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
@@ -64,8 +70,8 @@
                                                 <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">info</span>
                                                 <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $k }}:</h4>
                                             </div>
-                                            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify">
-                                                {!! strip_tags((string) $v) !!}
+                                            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                                {{ strip_tags((string) $v) }}
                                             </p>
                                         </div>
                                     @endif
@@ -104,8 +110,8 @@
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">work_history</span>
                                     <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سابقه کار:</h4>
                                 </div>
-                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify">
-                                    {!! strip_tags($ad->experience) !!}
+                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                    {{ strip_tags($ad->experience ?? '') }}
                                 </p>
                             </div>
 
@@ -114,8 +120,8 @@
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">psychology</span>
                                     <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مهارت‌ها:</h4>
                                 </div>
-                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify">
-                                    {!! strip_tags($ad->skill) !!}
+                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                    {{ strip_tags($ad->skill ?? '') }}
                                 </p>
                             </div>
                         </div>

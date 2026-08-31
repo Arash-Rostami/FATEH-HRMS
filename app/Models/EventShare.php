@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasMenuState;
+use App\Models\Concerns\HasMenuState;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

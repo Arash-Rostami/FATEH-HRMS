@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Profile;
 use App\Livewire\Dashboard\Profile\Actions\SaveAboutAction;
 use App\Livewire\Dashboard\Profile\Forms\AboutForm;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class About extends Component
@@ -12,6 +13,11 @@ class About extends Component
     public AboutForm $form;
     public array $extraAnswers = [];
     private const CORE_KEYS = ['bio', 'movies', 'music', 'hobbies', 'food', 'sports'];
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.about-placeholder');
+    }
 
 
     public function mount(): void

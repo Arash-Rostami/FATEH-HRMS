@@ -23,6 +23,7 @@ class UserInfolistPresenter
     {
         return TextEntry::make('name')
             ->label(__('resources/user/strings.infolist.name'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->weight('bold')
             ->badge()
             ->color('primary');
@@ -131,6 +132,7 @@ class UserInfolistPresenter
                     ->color('slate'),
                 TextEntry::make('value')
                     ->label(__('resources/user/strings.infolist.extra_value'))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
                     ->placeholder('-')
                     ->color('zinc'),
             ])

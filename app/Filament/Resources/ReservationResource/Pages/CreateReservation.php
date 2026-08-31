@@ -7,32 +7,29 @@ use App\Filament\Resources\ReservationResource\Actions\GenerateSeriesAction;
 use App\Models\Resource;
 use App\Models\User;
 use App\Services\Reservation\ValidationService;
-use App\Traits\FilamentPageBehavior;
+use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateReservation extends CreateRecord
 {
-    use FilamentPageBehavior;
+    use FilamentPageBehavior, FilamentDateHandler;
 
     protected static string $resource = ReservationResource::class;
 
-    protected function afterCreate(): void
+    protected function datetimeFields(): array
     {
-        $state = $this->form->getRawState();
-        if (!empty($state['is_recurring'])) {
-            app(GenerateSeriesAction::class)->execute(
-                $this->record,
-                $state['recur_pattern'] ?? 'daily',
-                (int)($state['recur_count'] ?? 4)
-            );
-        }
+        return [
+            ['field' => 'start_time', 'default_time' => '00:00'],
+            ['field' => 'end_time', 'default_time' => '00:00'],
+        ];
     }
 
-    protected function beforeCreate(): void
+    protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data = $this->form->getState();
+        $data = $this->mergeDeadline($data);
+
         $user = User::find($data['user_id'] ?? null);
         $resource = Resource::find($data['resource_id'] ?? null);
 
@@ -41,7 +38,7 @@ class CreateReservation extends CreateRecord
                 ->danger()
                 ->send();
             $this->halt();
-            return;
+            return $data;
         }
 
         $isFullDay = (bool)($data['is_full_day'] ?? false);
@@ -58,8 +55,8 @@ class CreateReservation extends CreateRecord
             : Carbon::parse($data['end_time']);
 
         if ($isFullDay) {
-            $this->data['start_time'] = $start->toDateTimeString();
-            $this->data['end_time'] = $end->toDateTimeString();
+            $data['start_time'] = $start->toDateTimeString();
+            $data['end_time'] = $end->toDateTimeString();
         }
 
         try {
@@ -67,6 +64,20 @@ class CreateReservation extends CreateRecord
         } catch (\Exception $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
+        }
+
+        return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        $state = $this->form->getRawState();
+        if (!empty($state['is_recurring']) && !$this->record->isRange()) {
+            app(GenerateSeriesAction::class)->execute(
+                $this->record,
+                $state['recur_pattern'] ?? 'daily',
+                (int)($state['recur_count'] ?? 4)
+            );
         }
     }
 }

@@ -30,6 +30,7 @@ class ProfileInfolistPresenter
             ->schema([
                 TextEntry::make('skill_name')
                     ->label(__('resources/skill/strings.fields.skill'))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
                     ->weight('bold'),
                 TextEntry::make('status')
                     ->label(__('resources/skill/strings.fields.status'))
@@ -87,6 +88,7 @@ class ProfileInfolistPresenter
                     ->weight('medium'),
                 TextEntry::make('value')
                     ->label(__('resources/profile/strings.infolist.about_me_value'))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
                     ->placeholder('-'),
             ])
             ->columns(2)
@@ -110,9 +112,11 @@ class ProfileInfolistPresenter
                     ->color(fn($state): string|array => ProfileDetailGroup::tryFrom($state)?->getColor() ?? 'gray'),
                 TextEntry::make('label')
                     ->label(__('resources/profile/strings.infolist.detail_key'))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
                     ->weight('medium'),
                 TextEntry::make('display_value')
                     ->label(__('resources/profile/strings.infolist.detail_value'))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
                     ->placeholder('-'),
             ])
             ->columns(3)
@@ -124,6 +128,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('accessibility')
             ->label(__('resources/profile/strings.infolist.accessibility'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -132,6 +137,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('address')
             ->label(__('resources/profile/strings.infolist.address'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -219,6 +225,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('unit')
             ->label(__('resources/profile/strings.infolist.unit'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->visible(fn(?Model $record): bool => filled($record?->detailsMap()->get('unit')))
             ->formatStateUsing(fn(?Model $record): string => (string) $record?->detailsMap()->get('unit'));
     }
@@ -228,6 +235,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('section')
             ->label(__('resources/profile/strings.infolist.section'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->visible(fn(?Model $record): bool => filled($record?->detailsMap()->get('section')))
             ->formatStateUsing(fn(?Model $record): string => (string) $record?->detailsMap()->get('section'));
     }
@@ -244,6 +252,7 @@ class ProfileInfolistPresenter
     {
         return TextEntry::make('emergency_relationship')
             ->label(__('resources/profile/strings.infolist.emergency_relationship'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('-');
     }
 
@@ -295,6 +304,7 @@ class ProfileInfolistPresenter
     {
         return TextEntry::make('field')
             ->label(__('resources/profile/strings.infolist.field'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('-');
     }
 
@@ -343,6 +353,7 @@ class ProfileInfolistPresenter
     {
         return TextEntry::make('insurance')
             ->label(__('resources/profile/strings.infolist.insurance'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('-');
     }
 
@@ -351,6 +362,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('interests')
             ->label(__('resources/profile/strings.infolist.interests'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -398,7 +410,7 @@ class ProfileInfolistPresenter
         return TextEntry::make('position')
             ->label(__('resources/profile/strings.infolist.position'))
             ->badge()
-            ->formatStateUsing(fn(string $state): string => Position::tryFrom($state)?->getLabel() ?? $state)
+            ->formatStateUsing(fn(string $state, $record): string => $record->display_position ?: (Position::tryFrom($state)?->getLabel() ?? $state))
             ->color(fn(string $state): string => Position::tryFrom($state)?->getColor() ?? 'gray');
     }
 

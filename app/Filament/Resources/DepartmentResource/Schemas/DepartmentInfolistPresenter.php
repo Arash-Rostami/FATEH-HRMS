@@ -33,6 +33,7 @@ class DepartmentInfolistPresenter
     {
         return TextEntry::make('description')
             ->label(__('resources/department/strings.fields.description'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }
@@ -49,6 +50,7 @@ class DepartmentInfolistPresenter
     {
         return TextEntry::make('name')
             ->label(__('resources/department/strings.fields.name'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->size(TextSize::Small)
             ->weight(FontWeight::Bold);
     }

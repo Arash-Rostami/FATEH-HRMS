@@ -123,7 +123,12 @@ class PermissionsRelationManager extends RelationManager
                 PermissionTablePresenter::superOnlyFilter(),
                 self::createdAtFilter(),
             ])
-            ->headerActions([CreateAction::make()])
+            ->headerActions([
+                CreateAction::make()
+                    ->icon('heroicon-o-sparkles')
+                    ->label(__('resources/permission/strings.label'))
+                    ->visible(fn (): bool => blank($this->getOwnerRecord()->permissions)),
+            ])
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),

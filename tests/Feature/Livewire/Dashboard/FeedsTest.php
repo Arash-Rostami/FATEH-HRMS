@@ -21,6 +21,7 @@ class FeedsTest extends TestCase
         parent::setUp();
         $this->useMysql();
         DB::beginTransaction();
+        Livewire::withoutLazyLoading();
     }
 
     protected function tearDown(): void
@@ -73,6 +74,7 @@ class FeedsTest extends TestCase
 
     public function test_feeds_render_successfully(): void
     {
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertStatus(200);
     }
@@ -84,6 +86,7 @@ class FeedsTest extends TestCase
         $feeds = $this->createFeedsFor($user, 5);
         $expected = [$feeds[4]->id, $feeds[3]->id, $feeds[2]->id];
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSet('hasMorePages', true)
             ->assertSet('feedIds', fn ($ids) => $ids === $expected)
@@ -96,6 +99,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 6);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSet('hasMorePages', true)
             ->call('loadMore')
@@ -112,6 +116,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 2);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSet('hasMorePages', false)
             ->assertSet('feedIds', fn ($ids) => count($ids) === 2)
@@ -125,6 +130,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 4);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSet('totalFeeds', 4);
     }
@@ -133,6 +139,7 @@ class FeedsTest extends TestCase
     {
         $this->cleanSlate();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertStatus(200)
             ->assertSet('feedIds', [])
@@ -147,6 +154,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create(['user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->set('newComments.' . $feed->id, 'This is a test comment')
@@ -168,6 +176,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $user->id]);
         $parentComment = Comment::factory()->create(['feed_id' => $feed->id, 'user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->set('replyComments.' . $parentComment->id, 'This is a reply')
@@ -189,6 +198,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $user->id]);
         $comment = Comment::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('deleteComment', $comment->id);
@@ -204,6 +214,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $otherUser->id]);
         $comment = Comment::factory()->create(['user_id' => $otherUser->id, 'feed_id' => $feed->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('deleteComment', $comment->id);
@@ -218,6 +229,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $user->id]);
         $comment = Comment::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id, 'content' => 'Old content']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('startEditing', $comment->id)
@@ -241,11 +253,13 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $otherUser->id]);
         $comment = Comment::factory()->create(['user_id' => $otherUser->id, 'feed_id' => $feed->id, 'content' => 'Original content']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('startEditing', $comment->id)
             ->assertSet('editingCommentId', null);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->set('editingCommentId', $comment->id)
@@ -265,6 +279,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create(['user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->set('newComments.' . $feed->id, '')
@@ -281,6 +296,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create(['user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('addComment', $feed->id)
@@ -296,6 +312,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $user->id]);
         $parentComment = Comment::factory()->create(['feed_id' => $feed->id, 'user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('addComment', $feed->id, $parentComment->id)
@@ -309,6 +326,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->set('newComments.' . $feed->id, 'trying as guest')
             ->call('addComment', $feed->id);
@@ -322,6 +340,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create(['user_id' => $user->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('toggleReaction', $feed->id, '👍');
@@ -332,6 +351,7 @@ class FeedsTest extends TestCase
             'emoji' => bin2hex('👍'),
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('toggleReaction', $feed->id, '👍');
@@ -344,6 +364,7 @@ class FeedsTest extends TestCase
 
         Reaction::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id, 'emoji' => '👍']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('toggleReaction', $feed->id, '❤️');
@@ -365,6 +386,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->call('toggleReaction', $feed->id, '👍');
 
@@ -381,6 +403,7 @@ class FeedsTest extends TestCase
             'poll_options' => ['single', '1', '1', 'Option A', 'Option B', 'Option C'],
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('vote', $feed->id, 0)
@@ -405,6 +428,7 @@ class FeedsTest extends TestCase
             'poll_options' => ['single', '1', '1', 'Option A', 'Option B'],
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('vote', $feed->id, 0)
@@ -423,6 +447,7 @@ class FeedsTest extends TestCase
             'poll_options' => ['multiple', '1', '1', 'Option A', 'Option B'],
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('vote', $feed->id, 0)
@@ -449,6 +474,7 @@ class FeedsTest extends TestCase
             'poll_options' => ['single', '1', '1', 'A', 'B', 'C'],
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('vote', $feed->id, 5)
@@ -465,6 +491,7 @@ class FeedsTest extends TestCase
             'poll_options' => ['single', '1', '1', 'A', 'B'],
         ]);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->call('vote', $feed->id, 0);
 
@@ -479,6 +506,7 @@ class FeedsTest extends TestCase
         Feed::factory()->create(['user_id' => $user->id, 'content' => 'laravel tips']);
         Feed::factory()->create(['user_id' => $user->id, 'content' => 'unrelated post']);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->set('search', 'laravel')
             ->assertSet('feedIds', fn ($ids) => count($ids) === 2)
@@ -493,6 +521,7 @@ class FeedsTest extends TestCase
         $matchB = Feed::factory()->create(['user_id' => $user->id, 'content' => 'has 0 in it too']);
         $nomatch = Feed::factory()->create(['user_id' => $user->id, 'content' => 'no match here']);
 
+        Livewire::withoutLazyLoading();
         $ids = Livewire::test(Feeds::class)
             ->set('search', '0')
             ->get('feedIds');
@@ -512,6 +541,7 @@ class FeedsTest extends TestCase
         Feed::factory()->create(['user_id' => $user->id, 'content' => 'beta three', 'created_at' => now()->subMinutes(3)]);
         Feed::factory()->create(['user_id' => $user->id, 'content' => 'beta four', 'created_at' => now()->subMinutes(2)]);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->call('loadMore')
             ->assertSet('feedIds', fn ($ids) => count($ids) === 4)
@@ -530,6 +560,7 @@ class FeedsTest extends TestCase
         Feed::factory()->create(['user_id' => $user->id, 'category' => 'Event']);
         Feed::factory()->create(['user_id' => $user->id, 'category' => 'Event']);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->call('filterByCategory', 'Poll')
             ->assertSet('selectedCategory', 'Poll')
@@ -543,6 +574,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 4);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->call('filterByCategory', 'Poll')
             ->assertSet('selectedCategory', 'Poll')
@@ -557,6 +589,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 2);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSee('calendar_month', false)
             ->assertSee('همه ماه‌ها', false);
@@ -584,6 +617,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 5);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->set('search', 'feed')
             ->call('filterByCategory', 'Poll')
@@ -599,6 +633,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $feed = Feed::factory()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertSet('openedCommentFeeds', [])
             ->call('openComments', $feed->id)
@@ -664,6 +699,7 @@ class FeedsTest extends TestCase
         $middle = Comment::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id, 'parent_id' => $root->id]);
         $leaf = Comment::factory()->create(['user_id' => $user->id, 'feed_id' => $feed->id, 'parent_id' => $middle->id]);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->call('deleteComment', $middle->id);
@@ -682,6 +718,7 @@ class FeedsTest extends TestCase
         $this->insertFeedNudge($user, $feedA->id);
         $this->insertFeedNudge($user, $feedB->id);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Feeds::class)
             ->assertStatus(200);
@@ -703,6 +740,7 @@ class FeedsTest extends TestCase
         $feed = Feed::factory()->create(['user_id' => $user->id]);
         $this->insertFeedNudge($user, $feed->id);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)->assertStatus(200);
 
         $this->assertNull(
@@ -734,6 +772,7 @@ class FeedsTest extends TestCase
 
     public function test_toggle_view_to_magazine_sets_view_and_persists_session(): void
     {
+        Livewire::withoutLazyLoading();
         $component = Livewire::test(Feeds::class)->call('toggleView', 'magazine');
 
         $this->assertSame('magazine', $component->instance()->view);
@@ -742,6 +781,7 @@ class FeedsTest extends TestCase
 
     public function test_toggle_view_ignores_invalid_value(): void
     {
+        Livewire::withoutLazyLoading();
         $component = Livewire::test(Feeds::class)->call('toggleView', 'bogus');
 
         $this->assertSame('filmstrip', $component->instance()->view);
@@ -752,6 +792,7 @@ class FeedsTest extends TestCase
     {
         session(['feeds_view_mode' => 'magazine']);
 
+        Livewire::withoutLazyLoading();
         $component = Livewire::test(Feeds::class);
 
         $this->assertSame('magazine', $component->instance()->view);
@@ -763,6 +804,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         [$feed] = $this->createFeedsFor($user, 1);
 
+        Livewire::withoutLazyLoading();
         $component = Livewire::test(Feeds::class);
         $ok = $component->instance()->focusRecord($feed->id);
 
@@ -779,6 +821,7 @@ class FeedsTest extends TestCase
         $this->cleanSlate();
         $this->createFeedsFor($user, 1);
 
+        Livewire::withoutLazyLoading();
         $component = Livewire::test(Feeds::class);
         $viewBefore = $component->instance()->view;
         $feedIdsBefore = $component->instance()->feedIds;

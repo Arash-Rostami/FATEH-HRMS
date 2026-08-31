@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Profile\Presentation\DetailsPresenter;
 use App\Services\ProfileDetailCatalog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 
@@ -16,6 +17,11 @@ class Details extends Component
     public DetailsForm $form;
 
     public bool $hasProfile = false;
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.details-placeholder');
+    }
 
     public function mount(): void
     {

@@ -27,10 +27,24 @@
             :clearable="true"
             class="max-w-md mx-auto"
         />
+
+        <x-ui.buttons.form
+            wire:click="setAttentionOnly({{ $this->attentionOnly ? 'false' : 'true' }})"
+            loading="setAttentionOnly"
+            icon="notification_important"
+            @class([
+                'w-full justify-center !text-[12px] !h-10',
+                '!bg-[var(--md-sys-color-error-container)] !text-[var(--md-sys-color-on-error-container)] !border-[var(--md-sys-color-error)]/40 border' => $this->attentionOnly,
+                '' => ! $this->attentionOnly,
+            ])
+            title="نمایش فقط پیشنهادهایی که پاسخ یا اقدام شما را می‌خواهند"
+        >
+            فقط نیازمند اقدام من
+        </x-ui.buttons.form>
     </div>
 
     {{-- LIST --}}
-    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
+    <div class="flex-1 overflow-y-auto p-3 space-y-2" id="suggestionsList">
 
         @forelse($this->suggestions as $item)
             @php($p = $this->presenter($item))
@@ -59,6 +73,12 @@
                     </span>
 
                     <div class="flex items-center gap-2">
+                        @php([$prioBg, $prioOn, $prioIcon, $prioLabel] = $p->priorityConfig())
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 bg-[var(--md-sys-color-{{ $prioBg }})] text-[var(--md-sys-color-{{ $prioOn }})]"
+                              title="اولویت: {{ $prioLabel }}">
+                            <span class="material-symbols-rounded !text-[13px]">{{ $prioIcon }}</span>{{ $prioLabel }}
+                        </span>
+
                         @if($p->requiresMyAction())
                             <x-ui.notification-badge />
                         @endif
@@ -142,14 +162,8 @@
             <x-ui.empty icon="inbox" title="موردی یافت نشد" variant="list" />
         @endforelse
 
-        <div wire:loading wire:target="search" class="p-4 text-center justify-center">
-            <span class="material-symbols-rounded animate-spin text-base align-middle ml-1
-                         text-[var(--md-sys-color-primary)]">
-                progress_activity
-            </span>
-            <span class="text-sm text-[var(--md-sys-color-on-surface-variant)]">
-                در حال جستجو...
-            </span>
+        <div wire:loading wire:target="search" class="p-4 flex justify-center">
+            <x-ui.loaders.spin-badge text="در حال جستجو..."/>
         </div>
 
     </div>

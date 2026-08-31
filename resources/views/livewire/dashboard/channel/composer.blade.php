@@ -35,6 +35,7 @@
                         class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12.5px] font-medium text-[var(--md-sys-color-on-surface)] transition-colors text-start">
                     <span class="material-symbols-rounded text-[15px] flex-shrink-0 text-[var(--md-sys-color-primary)]">alternate_email</span>
                     <span class="truncate" x-text="name"></span>
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="$wire.mentionMemberPresence[name]?.presence_class" :title="$wire.mentionMemberPresence[name]?.presence_label"></span>
                 </button>
             </template>
             <p x-show="mentionOpen && mentionMatches.length === 0" class="px-2.5 py-2 text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-60">کاربری یافت نشد</p>
@@ -102,17 +103,16 @@
                       aria-live="polite"></span>
             </div>
 
-            <button x-on:click.prevent="sendMessage"
+            <x-ui.buttons.form x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled" wire:target="send"
-                    data-loading:class="opacity-50"
-                    class="flex-shrink-0 w-9 h-9 order-2 md:order-4 rounded-xl flex items-center justify-center transition-all hover:brightness-110 hover:-translate-y-0.5 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                    :class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
+                    loading="send"
+                    class="flex-shrink-0 w-9 h-9 p-0 order-2 md:order-4 rounded-xl hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                    x-bind:class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
                         ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
                         : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
                     aria-label="ارسال پیام">
                 <span wire:loading.remove wire:target="send" class="material-symbols-rounded text-[18px] font-fill rotate-180">send</span>
-                <span wire:loading wire:target="send" class="material-symbols-rounded text-[18px] animate-spin">progress_activity</span>
-            </button>
+            </x-ui.buttons.form>
 
             <div class="basis-full h-0 order-3 md:hidden"></div>
 

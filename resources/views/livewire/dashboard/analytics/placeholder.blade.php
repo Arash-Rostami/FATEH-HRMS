@@ -1,12 +1,13 @@
-<div class="w-full h-full flex flex-col gap-5 lg:gap-6 animate-pulse" dir="rtl" role="status" aria-label="در حال بارگذاری تحلیل‌های سازمانی">
-    <div class="flex flex-wrap gap-2">
-        @for ($i = 0; $i < 4; $i++)
-            <div class="h-10 w-40 rounded-2xl bg-[var(--md-sys-color-surface-variant)]/40"></div>
-        @endfor
-    </div>
+<div dir="rtl" class="w-full h-full px-4 py-4 md:px-6 md:py-8" role="status" aria-label="در حال بارگذاری تحلیل‌های سازمانی">
+    <div class="max-w-[88rem] mx-auto page-wrapper flex flex-col gap-5 lg:gap-6">
+        <x-ui.loaders.skeleton.bar width="w-48" height="h-7"/>
 
-    <div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm min-h-[420px] flex flex-col items-center justify-center gap-3">
-        <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)] animate-spin" aria-hidden="true">progress_activity</span>
-        <p class="text-sm text-[var(--md-sys-color-on-surface-variant)]">در حال بارگذاری تحلیل‌های منابع انسانی…</p>
+        <div class="flex flex-wrap gap-2">
+            @for ($i = 0; $i < 4; $i++)
+                <x-ui.loaders.skeleton.bar width="w-40" height="h-10"/>
+            @endfor
+        </div>
+
+        <x-ui.loaders.skeleton.card :lines="1" class="min-h-[420px] flex-1"/>
     </div>
 </div>

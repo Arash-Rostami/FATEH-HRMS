@@ -4,14 +4,14 @@ namespace App\Livewire\Dashboard\Contact\Presentation;
 
 use App\Enums\PresenceStatus;
 use App\Models\Profile;
-use App\Models\Traits\HasAvatar;
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasAvatar;
+use App\Traits\BuildsChatBubbles;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class ContactPresenter
 {
-    use HasAvatar, HasPublicAssetUrl;
+    use HasAvatar, BuildsChatBubbles;
 
     public function sidebar(array $contacts, int $authId): array
     {
@@ -27,15 +27,15 @@ class ContactPresenter
             'id'       => $c['id'],
             'name'     => $c['name'],
             'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null),
-            'position' => $c['profile']['position'] ?? 'عضو سازمان',
+            'position' => $c['display_position'] ?? ($c['profile']['position'] ?? 'عضو سازمان'),
             'is_online' => (bool) ($c['is_online'] ?? false),
             'presence'  => ($c['presence'] ?? null) instanceof PresenceStatus ? $c['presence'] : null,
             'unread'    => $unread,
             'occasion'  => $c['occasion'] ?? null,
-            'occasion_tone' => $c['occasion'] ? Profile::occasionTone($c['occasion']) : null,
+            'occasion_tone' => ($c['occasion'] ?? null) ? Profile::occasionTone($c['occasion']) : null,
             'org_title' => collect([$c['unit'] ?? null, $c['section'] ?? null])->filter()->implode(' › '),
             'last_message' => $last ? [
-                'body'       => Str::limit($last['body'], 30),
+                'body'       => Str::limit(trim((string) $last['body']) !== '' ? $last['body'] : (filled($last['attachments'] ?? []) ? 'پیوست' : ''), 30),
                 'time'       => toJalaliRelative($last['created_at'], short: true),
                 'datetime'   => $last['created_at'],
                 'is_mine'    => (int) ($last['sender_id'] ?? 0) === $authId,
@@ -54,7 +54,19 @@ class ContactPresenter
         return collect($contacts)->filter(fn(array $c) => !empty($c['occasion']))->count();
     }
 
-    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit): array
+    public function firstUnreadId(array $messages, int $authId): ?int
+    {
+        foreach ($messages as $m) {
+            if ((int) ($m['sender_id'] ?? 0) !== $authId
+                && empty($m['read_at']) && empty($m['deleted_at'])) {
+                return (int) ($m['id'] ?? 0);
+            }
+        }
+
+        return null;
+    }
+
+    public function messageGroup(string $date, array $messages, int $authId, int $editTimeLimit, ?int $firstUnreadId = null): array
     {
         $label = Carbon::parse($date)->isToday()
             ? 'امروز'
@@ -65,15 +77,15 @@ class ContactPresenter
         return [
             'date'  => $date,
             'label' => $label,
-            'messages' => $this->messages($messages, $authId, $editTimeLimit),
+            'messages' => $this->messages($messages, $authId, $editTimeLimit, $firstUnreadId),
         ];
     }
 
-    public function messages(array $messages, int $authId, int $editTimeLimit): array
+    public function messages(array $messages, int $authId, int $editTimeLimit, ?int $firstUnreadId = null): array
     {
         $total = count($messages);
 
-        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit) {
+        return array_map(function (array $msg, int $i) use ($messages, $total, $authId, $editTimeLimit, $firstUnreadId) {
             $senderId = (int) ($msg['sender_id'] ?? 0);
             $isMine   = $senderId === $authId;
             $prev     = $i > 0 ? $messages[$i - 1] : null;
@@ -92,6 +104,7 @@ class ContactPresenter
                 'is_last'    => $isLast,
                 'is_edited'  => (bool) ($msg['is_edited'] ?? false),
                 'is_read'    => !empty($msg['read_at']),
+                'is_new_messages' => $firstUnreadId !== null && (int) ($msg['id'] ?? 0) === $firstUnreadId,
                 'read_at_label' => !empty($msg['read_at']) ? toJalali($msg['read_at'], 'Y/m/d H:i') : null,
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
@@ -104,55 +117,5 @@ class ContactPresenter
                 'animation_delay' => $i * 0.04,
             ];
         }, array_values($messages), array_keys($messages));
-    }
-
-    private function replyPreview(?array $replyTo): ?array
-    {
-        if (!$replyTo) {
-            return null;
-        }
-
-        return [
-            'sender_name' => $replyTo['sender']['name'] ?? 'ناشناس',
-            'body'        => Str::limit($replyTo['body'] ?? '', 50),
-        ];
-    }
-
-    private function bubbleRadius(bool $isMine, bool $isFirst, bool $isLast): string
-    {
-        if ($isMine) {
-            return match (true) {
-                $isFirst && $isLast => 'rounded-2xl',
-                $isFirst            => 'rounded-2xl rounded-bl-md',
-                $isLast             => 'rounded-2xl rounded-tl-md',
-                default             => 'rounded-2xl rounded-l-md',
-            };
-        }
-
-        return match (true) {
-            $isFirst && $isLast => 'rounded-2xl',
-            $isFirst            => 'rounded-2xl rounded-br-md',
-            $isLast             => 'rounded-2xl rounded-tr-md',
-            default             => 'rounded-2xl rounded-r-md',
-        };
-    }
-
-    private function attachments(array $attachments): array
-    {
-        return collect($attachments)->map(fn(array $file) => [
-            ...$file,
-            'url' => self::resolvePublicAssetUrl($file['path']),
-            'size_label' => number_format(($file['size'] ?? 0) / 1024, 1) . ' KB',
-            'is_image' => str_starts_with($file['mime'] ?? '', 'image/'),
-        ])->all();
-    }
-
-    private function linkify(string $text): string
-    {
-        return preg_replace(
-            '/(https?:\/\/[^\s<]+)/',
-            '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 opacity-90 hover:opacity-100 transition-opacity">$1</a>',
-            $text
-        );
     }
 }

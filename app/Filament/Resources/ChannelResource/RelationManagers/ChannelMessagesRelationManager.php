@@ -69,6 +69,7 @@ class ChannelMessagesRelationManager extends RelationManager
                     ->label(__('resources/channel/strings.fields.body'))
                     ->getStateUsing(fn($record) => mb_substr(strip_tags((string) ($record->body ?? '')), 0, 77))
                     ->limit(80)
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: false),
 

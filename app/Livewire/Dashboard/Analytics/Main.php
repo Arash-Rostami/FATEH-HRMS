@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Analytics;
 
 use App\Livewire\Dashboard\Analytics\Presentation\AnalyticsPresenter;
 use App\Services\HrAnalyticsService;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -38,6 +39,12 @@ class Main extends Component
         ];
     }
 
+    #[Computed(seconds: 300, cache: true)]
+    public function chartFreshness(): string
+    {
+        return now()->toIso8601String();
+    }
+
     public function placeholder(): View
     {
         return view('livewire.dashboard.analytics.placeholder')
@@ -47,9 +54,12 @@ class Main extends Component
 
     public function render(): View
     {
+        $age = (int) round(max(0, now()->diffInMinutes(Carbon::parse($this->chartFreshness))));
+
         return view('livewire.dashboard.analytics', [
             'chartData' => $this->chartData,
             'presenter' => new AnalyticsPresenter(),
+            'snapshotAge' => $age,
         ])->extends('layouts.app')->section('content');
     }
 }

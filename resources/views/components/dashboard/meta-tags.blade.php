@@ -31,13 +31,10 @@
 <meta property="twitter:description" content="{{ config('app.slogan_en') }}">
 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet"
-      href="/build/assets/material-symbols/rounded.css"
-      media="print"
-      onload="this.media='all'">
-<noscript>
-    <link rel="stylesheet" href="/build/assets/material-symbols/rounded.css">
-</noscript>
+<link rel="preload"
+      href="/build/assets/material-symbols/material-symbols-rounded.woff2"
+      as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/build/assets/material-symbols/rounded.css">
 
 <script type="application/ld+json">
 

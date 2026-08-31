@@ -381,7 +381,7 @@
             transform: translateX(-50%) !important;
             height: auto !important;
             width: max-content !important;
-            max-width: calc(100vw - 2rem) !important;
+            max-width: 80vw !important;
             flex-direction: row !important;
             border-radius: 1rem !important;
             border: 1px solid var(--md-sys-color-outline-variant) !important;
@@ -457,7 +457,7 @@
             transition-delay: 0s;
         }
 
-        html.topbar-force-hidden .fi-topbar-ctn {
+        html.topbar-force-hidden:not(.topbar-pinned) .fi-topbar-ctn {
             transform: translate3d(0, calc(-100% + 10px), 0) !important;
             transition-delay: 0s !important;
         }

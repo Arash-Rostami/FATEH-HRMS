@@ -4,20 +4,18 @@ namespace App\Livewire\Dashboard\Profile\Actions;
 
 use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
 use App\Models\Profile;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class UploadStandardDocumentAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function __construct(
         private ResetDocumentStateAction $resetAction
     ) {}
 
-    /**
-     * Execute standard document upload.
-     *
-     * @return array{success: bool, path: string|null, error: string|null}
-     */
     public function execute(DocumentForm $form, string $key, string $pendingFileName): array
     {
         $uploadedFile = $this->resetAction->getFile($form, $key);
@@ -37,7 +35,7 @@ class UploadStandardDocumentAction
             }
 
             $fileName = "doc_standard_{$key}_{$timestamp}.{$extension}";
-            $newPath = $uploadedFile->storeAs("profiles/docs/{$userProfile->getDocsPathToken()}", $fileName, 'public');
+            $newPath = static::storeAttachment($uploadedFile, "profiles/docs/{$userProfile->getDocsPathToken()}", $fileName)['path'];
 
             $currentAttachments = collect($userProfile->attachments ?? []);
             $oldPaths = $currentAttachments
@@ -56,9 +54,8 @@ class UploadStandardDocumentAction
 
             $userProfile->save();
 
-            $oldPaths->each(fn ($path) => Storage::disk('public')->delete($path));
+            static::deleteStoredFiles($oldPaths);
 
-            // Reset the file from form after successful upload
             $this->resetAction->removeFile($form, $key);
 
             return ['success' => true, 'path' => $newPath, 'error' => null];

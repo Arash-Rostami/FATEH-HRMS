@@ -91,6 +91,7 @@ class ReleaseRequestTablePresenter
             ->label(__('resources/release_request/strings.fields.title'))
             ->limit(60)
             ->tooltip(fn($state) => strlen((string) $state) > 60 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

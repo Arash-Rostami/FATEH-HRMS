@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Enums\TaskActivityType;
+use App\Models\Concerns\HasPublicAssetUrl;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,8 @@ class Reply extends Model
         'user_id',
         'body',
         'files',
+        'type',
+        'payload',
     ];
 
     public function repliable(): MorphTo
@@ -31,10 +34,22 @@ class Reply extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function projectId(): ?int
+    {
+        return match ($this->repliable_type) {
+            Project::class => $this->repliable_id,
+            Task::class => $this->repliable?->project_id,
+            default => null,
+        };
+    }
+
     protected function casts(): array
     {
         return [
             'files' => 'array',
+            'payload' => 'array',
+            'reactions' => 'array',
+            'type' => TaskActivityType::class,
         ];
     }
 

@@ -11,10 +11,12 @@ use App\Models\Suggestion;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -25,6 +27,7 @@ class Main extends Component
     public int $perPage = 5;
     public string $panel = 'empty';
     public string $search = '';
+    public bool $attentionOnly = false;
     public ?int $selectedId = null;
     public bool $showWorkflowModal = false;
 
@@ -80,11 +83,19 @@ class Main extends Component
         return new SuggestionPresenter($suggestion);
     }
 
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.suggestion.lazy-placeholder')
+            ->extends('layouts.app')
+            ->section('content');
+    }
+
     public function render()
     {
         return view('livewire.dashboard.suggestion', [
             'rules' => Suggestion::RULES,
             'purposes' => Suggestion::PURPOSES,
+            'priorities' => Suggestion::PRIORITIES,
             'reviewFeedback' => Review::FEEDBACKS,
             'workFlow' => SuggestionPresenter::workflowSteps()
         ])->extends('layouts.app')->section('content');
@@ -133,20 +144,28 @@ class Main extends Component
             ->with(['user.profile.department', 'reviews'])
             ->selectRaw('*, JSON_LENGTH(departments) as departments_count')
             ->withReviewCounts()
-            ->when($this->search !== '', function ($q) {
+            ->when($this->attentionOnly, fn($q) => $q->attentionRequired())
+            ->when($this->search !== '', fn($q) => $q->where(function ($w) {
                 $term = "%{$this->search}%";
-                $q->where('title', 'like', $term)
+                $w->where('title', 'like', $term)
                     ->orWhereRaw(
                         "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
                         [$term]
                     );
-            })
-            ->latest()
+            }))
+            ->orderByRaw("FIELD(priority, 'high', 'medium', 'low')")
+            ->orderByDesc('created_at')
             ->paginate($this->perPage);
     }
 
     public function updatedSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function setAttentionOnly(bool $value): void
+    {
+        $this->attentionOnly = $value;
         $this->resetPage();
     }
 

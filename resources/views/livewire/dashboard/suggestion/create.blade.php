@@ -51,7 +51,7 @@
                 </div>
 
                 <div>
-                    <x-ui.forms.select class="text-xs pb-3 h-[14rem]" label="واحدهای ذی‌نفع" name="form.departments" icon="corporate_fare" multiple wire:model.live="form.departments">
+                    <x-ui.forms.select class="text-xs pb-3 h-[14rem]" label="واحدهای ذی‌نفع" name="form.departments" icon="corporate_fare" multiple wire:model="form.departments">
                         @foreach($this->availableDepartments as $code => $name)
                             <option value="{{ $code }}">{{ $name }}</option>
                         @endforeach
@@ -110,6 +110,36 @@
                     <p class="mt-2 text-xs text-[var(--md-sys-color-error)]">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
+
+            <div class="mt-6 space-y-1.5">
+                <label
+                    class="text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">flag</span>
+                    اولویت پیگیری
+                </label>
+                <div class="grid grid-cols-3 gap-1.5 h-11">
+                    @foreach([
+                        'low'    => [\App\Models\Suggestion::PRIORITIES['low'],    'low_priority',  '--md-sys-color-secondary', '--md-sys-color-secondary-container', '--md-sys-color-on-secondary-container', '100%'],
+                        'medium' => [\App\Models\Suggestion::PRIORITIES['medium'], 'drag_handle',   '--md-sys-color-tertiary',  '--md-sys-color-tertiary-container',  '--md-sys-color-on-tertiary-container',  '100%'],
+                        'high'   => [\App\Models\Suggestion::PRIORITIES['high'],   'priority_high', '--md-sys-color-error',     '--md-sys-color-error',               '--md-sys-color-on-error',               '15%'],
+                    ] as $val => [$label, $icon, $border, $bg, $text, $bgOpacity])
+                        <label class="cursor-pointer" x-data>
+                            <input type="radio" wire:model="form.priority" value="{{ $val }}" class="sr-only">
+                            <div
+                                class="h-11 flex flex-col items-center justify-center rounded-xl border text-[10px] font-bold gap-0.5 transition-all hover:border-[var(--md-sys-color-outline)]"
+                                :style="$wire.form.priority === '{{ $val }}'
+                                 ? 'border-color:var({{ $border }});background-color:color-mix(in srgb,var({{ $bg }}) {{ $bgOpacity }},transparent);color:var({{ $text }})'
+                                 : 'border-color:var(--md-sys-color-outline-variant);background-color:var(--md-sys-color-surface-container-low);color:var(--md-sys-color-on-surface-variant)'">
+                                <span class="material-symbols-rounded text-[16px]">{{ $icon }}</span>
+                                {{ $label }}
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+                @error('form.priority')
+                <p class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </x-ui.forms.card>
     </div>

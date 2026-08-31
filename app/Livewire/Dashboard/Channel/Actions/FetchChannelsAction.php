@@ -25,11 +25,16 @@ class FetchChannelsAction
             ->where('channel_members.user_id', $viewerId)
             ->groupBy('channel_members.channel_id');
 
+        $membersSub = DB::table('channel_members')
+            ->selectRaw('channel_id, COUNT(*) as members_count')
+            ->groupBy('channel_id');
+
         return Channel::query()
-            ->select('channels.*', 'channel_members.entered_at', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'))
+            ->select('channels.*', 'channel_members.entered_at', 'lm.last_message_id', DB::raw('COALESCE(uc.unread_count, 0) as unread_count'), DB::raw('COALESCE(mc.members_count, 0) as members_count'))
             ->join('channel_members', 'channels.id', '=', 'channel_members.channel_id')
             ->leftJoinSub($lastMsgSub, 'lm', 'channels.id', '=', 'lm.channel_id')
             ->leftJoinSub($unreadSub, 'uc', 'channels.id', '=', 'uc.channel_id')
+            ->leftJoinSub($membersSub, 'mc', 'channels.id', '=', 'mc.channel_id')
             ->where('channel_members.user_id', $viewerId)
             ->when(filled($search), fn($q) => $q->where(fn($g) => $g->where('channels.name', 'LIKE', "%{$search}%")->orWhere('channels.slug', 'LIKE', "%{$search}%")))
             ->when($filter === 'unread', fn($q) => $q->where('uc.unread_count', '>', 0))

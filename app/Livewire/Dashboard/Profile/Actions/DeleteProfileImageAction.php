@@ -3,16 +3,12 @@
 namespace App\Livewire\Dashboard\Profile\Actions;
 
 use App\Models\Profile;
+use App\Traits\CleansAttachedFiles;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class DeleteProfileImageAction
 {
-    /**
-     * Delete the user's profile image.
-     *
-     * @return bool True if image was deleted, false if no image existed
-     */
+    use CleansAttachedFiles;
     public function execute(): bool
     {
         $profile = Auth::user()->profile;
@@ -21,7 +17,7 @@ class DeleteProfileImageAction
             return false;
         }
 
-        Storage::disk('public')->delete($profile->image);
+        static::deleteStoredFiles($profile->image);
 
         $profile->image = null;
         $profile->save();

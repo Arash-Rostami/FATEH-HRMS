@@ -95,10 +95,9 @@
                         <div
                             class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[var(--md-sys-color-outline-variant)] shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-[var(--md-sys-color-primary)]/50">
                             <x-ui.avatar :image="$form->image ?? null" :existingImage="$existingImage"/>
-                            <div wire:loading wire:target="form.image"
-                                 class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                                <x-ui.loaders.spinner size="sm" class="text-white"/>
-                            </div>
+                        </div>
+                        <div wire:loading.delay wire:target="form.image">
+                            <x-ui.loaders.bar/>
                         </div>
 
                         <label for="profile-image-upload"

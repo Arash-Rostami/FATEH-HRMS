@@ -11,12 +11,15 @@ use App\Models\Resource;
 use App\Services\Reservation\ValidationService;
 use App\Traits\FocusOnRecord;
 use Carbon\Carbon;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -549,7 +552,7 @@ class Main extends Component
     #[Computed]
     public function historyReservations()
     {
-        $query = Reservation::forUser(auth()->id())->with('resource');
+        $query = Reservation::forUser(auth()->id())->with(['resource', 'cancelledBy:id,name']);
 
         match ($this->activeHistoryTab) {
             'previous' => $query->previous()->orderByDesc('start_time'),
@@ -622,6 +625,13 @@ class Main extends Component
         $now = Jalalian::now();
         $this->currentYear = $now->getYear();
         $this->currentMonth = $now->getMonth();
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.reservation.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
     }
 
     public function render()

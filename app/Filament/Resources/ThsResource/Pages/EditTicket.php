@@ -27,7 +27,7 @@ class EditTicket extends EditRecord
 
     protected function afterSave(): void
     {
-        if (!$this->record->wasChanged('assigned_to')) {
+        if (!$this->record->wasChanged(['assigned_to', 'priority'])) {
             return;
         }
 

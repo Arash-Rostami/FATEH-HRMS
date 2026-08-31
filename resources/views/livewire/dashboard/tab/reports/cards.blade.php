@@ -182,10 +182,15 @@
             @endforeach
 
             @if($this->hasMorePages)
-                <div x-ref="loadTriggerCard"
-                     wire:key="loader-{{ $this->reports->count() }}"
-                     class="shrink-0 w-full md:w-24 h-full snap-center flex items-center justify-center opacity-60">
-                    <x-ui.loaders.spinner/>
+                <div wire:key="loader-{{ $this->reports->count() }}"
+                     class="shrink-0 w-full md:w-24 h-full snap-center flex items-center justify-center">
+                    <x-ui.buttons.load-more
+                        action="loadMore"
+                        text="بارگذاری بیشتر"
+                        loading-text="در حال دریافت..."
+                        icon="expand_more"
+                        class="font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+                    />
                 </div>
             @endif
 

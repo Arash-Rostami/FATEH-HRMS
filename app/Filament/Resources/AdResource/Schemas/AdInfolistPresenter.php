@@ -24,6 +24,7 @@ class AdInfolistPresenter
         return TextEntry::make('certificate')
             ->label(__('resources/ad/strings.fields.certificate'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -41,6 +42,7 @@ class AdInfolistPresenter
         return TextEntry::make('experience')
             ->label(__('resources/ad/strings.fields.experience'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -89,7 +91,8 @@ class AdInfolistPresenter
     {
         return TextEntry::make('position')
             ->label(__('resources/ad/strings.fields.position'))
-            ->placeholder('-');
+            ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']);
     }
 
     public static function skill(): TextEntry
@@ -97,6 +100,7 @@ class AdInfolistPresenter
         return TextEntry::make('skill')
             ->label(__('resources/ad/strings.fields.skill'))
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

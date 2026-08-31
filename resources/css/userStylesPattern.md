@@ -43,6 +43,9 @@ Beyond MD3 roles, the HRMS requires distinct visual buckets for different data t
 
 *Guideline:* for a badge, chart, or indicator, choose one of these semantic Tool token sets rather than arbitrarily picking a primary color.
 
+### 3.3 Extended MD3 role tokens — `success` / `warning` (added 2026-08-27)
+MD3 ships `primary/secondary/tertiary/error` role tokens but **not** `success`/`warning`. This app extends the role set in `theme.css` with `--md-sys-color-success[-container]/-on-success-container` and `--md-sys-color-warning[-container]/-on-warning-container`, each defined for **both** `:root` (light) and `:root.dark` (dark) — emerald `#10b981` / amber `#f59e0b` light bases with inverted container pairs in dark (mirroring the `error` token's four-tier shape). They are **role tokens, not Tool tokens**: use them for the semantic meaning (success = start/done-good, warning = change/attention) the same way `error` is used for deadlines/danger — the Project calendar lifecycle legend (start=success, change=warning, deadline=error, completed=primary) consumes exactly these four, so a day-cell icon, its legend chip, and its list-view marker all read the same color across light/dark without a per-call `color-mix`. The existing `--tool-sage-*`/`--tool-gold-*` palettes (§3.2) remain the choice for arbitrary badges/charts where the meaning is "growth" or "pending" but not a lifecycle role; `success`/`warning` are reserved for cases that pair explicitly with `error`/`primary` as a 4-state set.
+
 ---
 
 ## 4. Crafting the UI: Layouts & Components (`dashboard.css`)
@@ -65,7 +68,7 @@ The signature look of User Panel modals and cards relies on a specific `color-mi
 
 ### 4.2 Accessibility & Interactive States
 *   **Focus Rings:** `*:focus-visible` is globally overridden to a thick, offset primary ring. Never disable this.
-*   **Scrollbars:** custom thin scrollbars tinted with the primary color at 20% opacity so they blend into the active theme.
+*   **Scrollbars:** hidden by default, revealed on hover — the global reset in `dashboard.css` sets `scrollbar-width: none` on all elements and switches to a thin primary-tinted bar only while hovered (`*:hover`). This applies to every scroll container (bare `overflow-auto`, compound `container-scrollbar.custom-scrollbar`, `msg-scrollbar`/`contact-scrollbar`); `scrollbar-hide`/`custom-scrollbar` stay permanently hidden via more-specific rules. Never add inline `style="scrollbar-width: thin; …"` overrides — they break the hover-reveal default on Firefox.
 
 ### 4.3 Shared component styling tokens (`<x-ui.empty>` + solid-button dropdown)
 The shared empty-state component and the solid-button dropdown used for single-dimension filters consume the same MD tokens as the rest of the system — no hardcoded colors:
@@ -123,3 +126,9 @@ Always use the pre-registered utilities rather than inline `@keyframes`:
 
 ## 8. Focus-flash bg underlay
 `.record-focus-flash` (toggled on a message/record row when `scrollToMessage`/focus lands on it) carries the outline ring + a theme-adaptive **bg underlay**: `background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);`. The underlay sits behind the bubble content (the class is on the row wrapper, the bubble is a nested div with its own bg), so it never clashes with the bubble's gradient/surface bg — it only tints the row's padding/gap area, reinforcing the ring without hardcoding a color. The 12% primary tint adapts to dark/light + theme switch automatically. General rule: any focus/flash highlight composes `color-mix` over `--md-sys-color-primary` (or the matching semantic token) — never a hardcoded hex/rgb.
+
+## 9. Layout containment on high-churn scroll/interaction regions
+
+`contain: layout` — never `paint`/`content`/`strict`, which clip any child that overflows the container's bounds and would break tooltips/dropdowns/drag-ghost previews — added to `.calendar-day-column` (the per-day event-pill wrapper in `livewire/dashboard/tab/calendar/week.blade.php`/`day.blade.php`, which drag/resize mutates frequently). `contain: layout` has zero visual effect on its own in isolation — it only limits how far the browser needs to propagate a layout recalculation when something inside changes.
+
+**Real gotcha, caught in review before shipping — `contain: layout` (like `transform`/`filter`) makes the element a new containing block for any `position: fixed`/`absolute` descendant.** `#msg-viewport` (the chat message list, `channel.js`/`contact.js`, see `resources/js/scriptPattern.md` §10) was also a candidate for this containment, but `contact/messages.blade.php` nests its "scroll to bottom" FAB (`class="fixed bottom-28 left-8 ..."`) *inside* `#msg-viewport` — containing that element would have silently re-anchored the FAB to the scrolling pane instead of the browser viewport, a real visual regression. (Channel's equivalent FAB is a `position: absolute` sibling of `#msg-viewport`, so it would have been unaffected — the two modules aren't structured identically here.) `#msg-viewport` was left uncontained rather than restructuring the blade to move the FAB out first. **Rule: before adding `contain: layout` (or `transform`/`filter`) to any container, grep it and its descendants for `position: fixed`/`absolute` — a contained/transformed ancestor changes where those descendants anchor.**

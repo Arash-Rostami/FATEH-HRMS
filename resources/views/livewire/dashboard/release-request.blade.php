@@ -74,8 +74,8 @@
                            class="w-full text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] p-2.5 file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--md-sys-color-primary-container)] file:text-[var(--md-sys-color-on-primary-container)] file:text-xs file:font-bold"
                     >
 
-                    <div wire:loading wire:target="form.attachments" class="text-xs text-[var(--md-sys-color-primary)] mt-2">
-                        در حال آپلود...
+                    <div wire:loading.delay wire:target="form.attachments">
+                        <x-ui.loaders.bar/>
                     </div>
 
                     @if(!empty($form->attachments))
@@ -83,7 +83,11 @@
                             @foreach($form->attachments as $index => $file)
                                 <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
                                     <span class="flex items-center gap-1.5 text-[var(--md-sys-color-on-surface)] truncate">
-                                        <span class="material-symbols-rounded text-sm">upload_file</span>
+                                        @if(str_starts_with($file->getMimeType() ?? '', 'image/'))
+                                            <img src="{{ $file->temporaryUrl() }}" class="w-5 h-5 rounded object-cover flex-shrink-0" alt="">
+                                        @else
+                                            <span class="material-symbols-rounded text-sm">upload_file</span>
+                                        @endif
                                         {{ $file->getClientOriginalName() }}
                                     </span>
                                     <button type="button" wire:click="removeAttachment({{ $index }})"
@@ -105,7 +109,7 @@
                     @endforeach
                 </div>
             @else
-                <div class="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1" style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
+                <div class="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-hover-reveal pr-1">
                     @forelse($this->myRequests as $item)
                         @php
                             $type = $this->presenter->typeMeta($item->type);
@@ -131,11 +135,19 @@
                             @if(!empty($item->attachments))
                                 <div class="flex flex-wrap gap-1.5 mt-1.5">
                                     @foreach($item->attachments as $attachment)
-                                        <a href="{{ asset('storage/' . $attachment['path']) }}" target="_blank"
-                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-container)] text-[10px] font-medium text-[var(--md-sys-color-primary)] hover:opacity-80 truncate max-w-[160px]">
-                                            <span class="material-symbols-rounded text-xs">attach_file</span>
-                                            {{ $attachment['name'] ?? basename($attachment['path']) }}
-                                        </a>
+                                        @php($isImage = str_starts_with($attachment['mime'] ?? '', 'image/'))
+                                        @if($isImage)
+                                            <a href="{{ asset('storage/' . $attachment['path']) }}" data-fancybox="release-request-{{ $item->id }}" data-caption="{{ $attachment['name'] ?? '' }}"
+                                               class="block w-14 h-14 rounded-md overflow-hidden border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+                                                <img src="{{ asset('storage/' . $attachment['path']) }}" alt="{{ $attachment['name'] ?? '' }}" loading="lazy" class="w-full h-full object-cover">
+                                            </a>
+                                        @else
+                                            <a href="{{ asset('storage/' . $attachment['path']) }}" target="_blank"
+                                               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--md-sys-color-surface-container)] text-[10px] font-medium text-[var(--md-sys-color-primary)] hover:opacity-80 truncate max-w-[160px]">
+                                                <span class="material-symbols-rounded text-xs">attach_file</span>
+                                                {{ $attachment['name'] ?? basename($attachment['path']) }}
+                                            </a>
+                                        @endif
                                     @endforeach
                                 </div>
                             @endif

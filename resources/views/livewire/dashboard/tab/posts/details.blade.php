@@ -48,14 +48,14 @@
                         </span>
                     </div>
 
-                    <h1 class="mt-4 max-w-4xl text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)] sm:text-4xl">
-                        {{ superClean($selectedPost->title, 200) }}
+                    <h1 class="rich-colors mt-4 max-w-4xl text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)] sm:text-4xl">
+                        {!! renderInline($selectedPost->title, 200) !!}
                     </h1>
                 </div>
             </div>
 
             <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-transparent px-5 py-6 sm:px-8 sm:py-8">
-                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] post-body" dir="rtl">
+                <div class="prose prose-lg max-w-none leading-relaxed prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] post-body rich-colors" dir="rtl">
                     {!! $selectedPost->body !!}
                 </div>
             </div>
@@ -130,6 +130,6 @@
             </template>
         </div>
     @else
-        <x-ui.loaders.spinner/>
+        <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>
     @endif
 </x-ui.modals.slideover>

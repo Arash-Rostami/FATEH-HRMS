@@ -4,7 +4,7 @@ namespace App\Livewire\Dashboard\Profile\Presentation;
 
 use App\Livewire\Dashboard\Profile\Actions\ResetDocumentStateAction;
 use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasPublicAssetUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 

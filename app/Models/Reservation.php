@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CancelReason;
 use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
@@ -36,6 +37,13 @@ class Reservation extends Model
     public function cancelledBy()
     {
         return $this->belongsTo(User::class, 'cancelled_by_id');
+    }
+
+    public function cancelReasonLabel(): ?string
+    {
+        return $this->cancel_reason
+            ? (CancelReason::tryFrom($this->cancel_reason)?->getLabel() ?? $this->cancel_reason)
+            : null;
     }
 
     public function occurrences()
@@ -97,6 +105,14 @@ class Reservation extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function isRange(): bool
+    {
+        return !$this->is_full_day
+            && $this->start_time
+            && $this->end_time
+            && $this->start_time->diffInDays($this->end_time) >= 1;
+    }
+
     protected static function booted(): void
     {
         static::saving(function (self $reservation) {
@@ -139,9 +155,15 @@ class Reservation extends Model
                 }
 
                 $startTime = convertToPersian(toJalali($start, 'H:i'));
+
+                if ($start->isSameDay($end)) {
+                    return $date . ' • ' . $startTime . ' تا ' . convertToPersian(toJalali($end, 'H:i'));
+                }
+
+                $endDate = convertToPersian(toJalali($end, 'Y/m/d'));
                 $endTime = convertToPersian(toJalali($end, 'H:i'));
 
-                return $date . ' • ' . $startTime . ' تا ' . $endTime;
+                return $date . ' • ' . $startTime . ' تا ' . $endDate . ' ' . $endTime;
             }
         );
     }

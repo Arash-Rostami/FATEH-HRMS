@@ -8,14 +8,18 @@ use App\Models\DMS;
 use App\Models\Read;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\Response;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -49,12 +53,26 @@ class Main extends Component
     }
 
     #[Computed]
+    protected function userReads(): Collection
+    {
+        return Read::where('user_id', auth()->id())->get(['document_id', 'read', 'read_count']);
+    }
+
+    #[Computed]
     public function confirmedDocs(): array
     {
-        return Read::where('user_id', auth()->id())
+        return $this->userReads
             ->where('read', true)
             ->pluck('document_id')
             ->unique()
+            ->toArray();
+    }
+
+    #[Computed]
+    public function readCounts(): array
+    {
+        return $this->userReads
+            ->pluck('read_count', 'document_id')
             ->toArray();
     }
 
@@ -239,7 +257,7 @@ class Main extends Component
     #[Computed]
     public function readDocs(): array
     {
-        return Read::where('user_id', auth()->id())
+        return $this->userReads
             ->where('read', true)
             ->where('read_count', '>', 0)
             ->pluck('document_id')
@@ -262,6 +280,13 @@ class Main extends Component
         return $this->visibleTabQuery()
             ->whereNotIn('id', $this->confirmedDocs)
             ->count();
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.dms.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
     }
 
     public function render()
@@ -441,7 +466,7 @@ class Main extends Component
 
     private function refreshReadState(): void
     {
-        unset($this->confirmedDocs, $this->readDocs);
+        unset($this->userReads, $this->confirmedDocs, $this->readDocs, $this->readCounts);
     }
 
     private function resetAndReload(): void

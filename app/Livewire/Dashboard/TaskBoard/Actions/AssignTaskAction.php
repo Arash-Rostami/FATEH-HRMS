@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Support\TaskAccessPolicy;
 use Filament\Notifications\Notification;
 
 class AssignTaskAction
@@ -12,7 +13,7 @@ class AssignTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !$task->can_change_status || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canChangeStatus($task, auth()->user()) || $task->ticket_id) {
             return null;
         }
 

@@ -40,6 +40,7 @@ final class PersianDateFieldService
         ?int                    $yearTo = null,
         private readonly bool   $fullWidth = false,
         private readonly bool   $gap = true,
+        private readonly mixed  $carrierRule = null,
     )
     {
         $this->label = $label ?: __("resources/profile/strings.form.{$prefix}");
@@ -71,9 +72,10 @@ final class PersianDateFieldService
         ?int   $yearTo = null,
         bool   $fullWidth = false,
         bool   $gap = true,
+        mixed  $carrierRule = null,
     ): FusedGroup
     {
-        return (new self($prefix, $label, $required, $yearFrom, $yearTo, $fullWidth, $gap))->build();
+        return (new self($prefix, $label, $required, $yearFrom, $yearTo, $fullWidth, $gap, $carrierRule))->build();
     }
 
     private static function assemble(mixed $year, mixed $month, mixed $day): ?string
@@ -141,6 +143,7 @@ final class PersianDateFieldService
     {
         return Hidden::make($prefix)
             ->dehydrated(true)
+            ->when($this->carrierRule !== null, fn (Hidden $field) => $field->rule($this->carrierRule))
             ->afterStateHydrated(function (callable $set, mixed $state) use ($prefix): void {
                 if (blank($state)) {
                     return;

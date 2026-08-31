@@ -1,7 +1,7 @@
 <div
         dir="rtl"
         class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
-        style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;"
+       
 >
     <div class="max-w-[88rem] mx-auto page-wrapper">
 
@@ -28,7 +28,7 @@
         </x-ui.modals.dialog>
 
         <section class="w-full flex flex-col gap-5 lg:gap-6"
-                 x-data="analyticsChart(@js($chartData), @js($presenter->chartConfig()), @js($presenter->categories()))"
+                 x-data="analytics(@js($chartData), @js($presenter->chartConfig()), @js($presenter->categories()))"
                  x-init="init()">
 
             <div class="flex flex-wrap gap-2">
@@ -52,6 +52,11 @@
                             <span class="material-symbols-rounded text-base" aria-hidden="true">{{ $cat['icon'] }}</span>
                         </div>
                         <h2 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">{{ $cat['label'] }}</h2>
+                        <span class="text-[10.5px] font-medium text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 ms-auto opacity-80"
+                              title="داده‌ها در اسنپ‌شات ۵ دقیقه‌ای کش می‌شوند؛ این برچسب قدمت اسنپ‌شات جاری است.">
+                            <span class="material-symbols-rounded text-[13px]" aria-hidden="true">update</span>
+                            بروزرسانی: {{ $snapshotAge === 0 ? 'لحظاتی پیش' : convertToPersian((string) $snapshotAge).' دقیقه پیش' }}
+                        </span>
                     </header>
 
                     <div class="flex flex-wrap gap-2 px-5 pt-4 shrink-0">

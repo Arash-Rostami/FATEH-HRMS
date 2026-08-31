@@ -37,6 +37,7 @@
                                                 <div dir="rtl" class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                                                     <template x-for="item in pageItems" :key="item.id">
                                                         <a :href="item.disabled ? '#' : (item.href === '-' ? '#' : item.href)"
+                                                           :data-module="item.module"
                                                            :target="item.disabled || item.href === '-' ? '_self' : '_blank'"
                                                            rel="noopener"
                                                            :aria-disabled="item.disabled ? 'true' : 'false'"

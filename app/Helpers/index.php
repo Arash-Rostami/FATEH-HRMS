@@ -63,32 +63,71 @@ if (!function_exists('renderComment')) {
             return '';
         }
 
+        static $cache = [];
+        if (count($cache) >= 256) {
+            $cache = [];
+        }
+        $key = md5($text . '|' . $limit);
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
         $text = html_entity_decode((string)$text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = preg_replace('/[ \t]+/u', ' ', $text);
         $text = Str::limit(trim($text), $limit);
         $text = preg_replace('/\*\*(.+?)\*\*/su', '<strong>$1</strong>', $text);
         $text = Str::sanitizeHtml((string)$text);
 
-        return nl2br($text, false);
+        return $cache[$key] = nl2br($text, false);
     }
 }
 
-if (!function_exists('jdate')) {
-    function jdate(mixed $date = null): Jalalian
+if (!function_exists('renderInline')) {
+    function renderInline(?string $html, int $limit = 0): string
     {
-        if (blank($date)) {
-            return Jalalian::now();
+        if (blank($html)) {
+            return '';
         }
 
-        try {
-            $instance = $date instanceof CarbonInterface
-                ? $date
-                : Carbon::parse($date);
-
-            return Jalalian::fromCarbon($instance);
-        } catch (\Throwable $e) {
-            return Jalalian::now();
+        static $cache = [];
+        if (count($cache) >= 256) {
+            $cache = [];
         }
+        $key = md5($html . '|' . $limit);
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        $src = strip_tags((string) $html, '<span><a><strong><em><u><b><i><br>');
+
+        if ($limit > 0) {
+            $parts = preg_split('/(<(?:[^>"\']|"[^"]*"|\'[^\']*\')*>)/u', $src, -1, PREG_SPLIT_DELIM_CAPTURE);
+            if ($parts !== false) {
+                $out = '';
+                $visible = 0;
+                foreach ($parts as $i => $part) {
+                    if ($i % 2 === 1) {
+                        $out .= $part;
+                        continue;
+                    }
+                    if ($visible >= $limit) {
+                        break;
+                    }
+                    $remaining = $limit - $visible;
+                    $partLen = mb_strlen($part, 'UTF-8');
+                    if ($partLen <= $remaining) {
+                        $out .= $part;
+                        $visible += $partLen;
+                    } else {
+                        $out .= mb_substr($part, 0, $remaining, 'UTF-8');
+                        $visible = $limit;
+                    }
+                }
+                $src = $out;
+            }
+        }
+
+        return $cache[$key] = Str::sanitizeHtml($src);
     }
 }
 
@@ -151,7 +190,8 @@ if (!function_exists('shortGreeting')) {
 if (!function_exists('quotes')) {
     function quotes(): array
     {
-        return app(QuoteService::class)->all();
+        static $quotes;
+        return $quotes ??= app(QuoteService::class)->all();
     }
 }
 
@@ -380,19 +420,31 @@ if (!function_exists('disabledReservationTypes')) {
 if (!function_exists('tenantAsset')) {
     function tenantAsset(string $tenant, string $type, string $role, ?string $fallback = null): ?string
     {
-        $matches = glob(resource_path("assets/{$type}/{$tenant}/{$role}.*")) ?: [];
+        static $cache = [];
+        $pattern = "{$type}/{$tenant}/{$role}";
+        if (array_key_exists($pattern, $cache)) {
+            return $cache[$pattern] ?? $fallback;
+        }
 
-        return $matches ? "build/assets/{$type}/{$tenant}/" . basename($matches[0]) : $fallback;
+        $matches = glob(resource_path("assets/{$type}/{$tenant}/{$role}.*")) ?: [];
+        $cache[$pattern] = $matches ? "build/assets/{$type}/{$tenant}/" . basename($matches[0]) : null;
+
+        return $cache[$pattern] ?? $fallback;
     }
 }
 
 if (!function_exists('tenantVideos')) {
     function tenantVideos(string $tenant): array
     {
+        static $cache = [];
+        if (array_key_exists($tenant, $cache)) {
+            return $cache[$tenant];
+        }
+
         $files = glob(resource_path("assets/video/{$tenant}/*.*")) ?: [];
         natsort($files);
 
-        return array_map(
+        return $cache[$tenant] = array_map(
             fn(string $file): string => "build/assets/video/{$tenant}/" . basename($file),
             array_values($files)
         );

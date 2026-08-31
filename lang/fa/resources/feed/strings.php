@@ -6,8 +6,8 @@ return [
     'nav_group'         => 'محتوا و ارتباطات',
 
     'fields' => [
-        'user'            => 'کامنت گذار',
-        'creator'            => 'ثبت کننده',
+        'user'            => 'کامنت‌گذار',
+        'creator'            => 'ثبت‌کننده',
         'category'        => 'دسته‌بندی',
         'content'         => 'محتوا',
         'poll_options'    => 'گزینه‌های نظرسنجی',
@@ -24,7 +24,7 @@ return [
         'comments_count'  => 'نظرات',
         'reactions_count' => 'واکنش‌ها',
         'polls_count'     => 'آرای نظرسنجی',
-        'replies_count'   => 'تعداد  پاسخ به نظر ',
+        'replies_count'   => 'تعداد پاسخ به نظر',
         'emoji'           => 'ایموجی',
         'in_reply_to'     => 'پاسخ به',
         'top_level_comment' => 'نظر اصلی',
@@ -81,7 +81,7 @@ return [
     'poll' => [
         'vote_unit'   => 'رأی',
         'total_votes' => 'کل آرا',
-        'voter'       => 'رأی دهنده',
+        'voter'       => 'رأی‌دهنده',
         'votes_count' => 'تعداد آرا',
         'mode_single'    => 'تک‌انتخابی',
         'mode_multiple'  => 'چندانتخابی',

@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasNudgeTracking;
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasModelCache;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasNudgeTracking;
+use App\Models\Concerns\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -12,10 +13,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Feed extends Model
 {
-    use HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl, CleansAttachedFiles;
+    use HasModelCache, HasFactory, HasMenuState, HasNudgeTracking, HasPublicAssetUrl, CleansAttachedFiles;
 
     public const NUDGE_KEY = 'feeds:nudge';
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -128,6 +130,11 @@ class Feed extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function cachedCategories(): Collection
+    {
+        return static::cached('categories', fn () => static::query()->whereNotNull('category')->where('category', '!=', '')->distinct()->orderBy('category')->pluck('category'));
     }
 
     protected function casts(): array

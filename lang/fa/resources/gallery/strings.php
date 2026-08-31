@@ -32,7 +32,7 @@ return [
         'visibility' => 'دسترسی',
         'private' => 'خصوصی (واحد سازمانی)',
         'public' => 'عمومی',
-        'shared_type' => 'نوع اشتراک گذاری',
+        'shared_type' => 'نوع اشتراک‌گذاری',
         'single_department' => 'تک واحدی',
         'multiple_departments' => 'چند واحدی (مشترک)',
         'event_date_range' => 'بازه تاریخ رویداد',

@@ -1,5 +1,5 @@
 <div
-    class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-hidden flex flex-col gap-6"
+    class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-8rem)] lg:max-h-[calc(100svh-6rem)] relative overflow-hidden flex flex-col gap-6"
     dir="rtl"
     x-data="share()"
     wire:ignore.self

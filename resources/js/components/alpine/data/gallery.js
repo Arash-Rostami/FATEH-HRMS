@@ -1,15 +1,12 @@
-import fancyboxMixin from "../mixins/fancybox.js";
 import monthFilterMixin from "../mixins/monthFilter.js";
 
 const PHOTO_SELECTOR = '[data-photo-id]';
 
 export default function gallery() {
     return {
-        ...fancyboxMixin(),
         ...monthFilterMixin(PHOTO_SELECTOR),
         activeId: null,
         loading: false,
-        observer: null,
         showTimeline: false,
         view: 'filmstrip',
         previewTimer: null,
@@ -27,8 +24,6 @@ export default function gallery() {
 
             this.$nextTick(() => {
                 this.setupScrollListener();
-                this.setupIntersectionObserver();
-                this.initFancybox();
                 this.refreshVisible();
 
                 this._initTimeout = setTimeout(() => {
@@ -42,10 +37,6 @@ export default function gallery() {
                     this.$nextTick(() => {
                         this.updateActiveItem();
                         this.refreshVisible();
-                        if (this.$refs.loadTrigger && this.observer) {
-                            this.observer.disconnect();
-                            this.observer.observe(this.$refs.loadTrigger);
-                        }
                     });
                 }
             });
@@ -75,24 +66,6 @@ export default function gallery() {
             };
 
             container.addEventListener('scroll', this._scrollListener, { passive: true });
-        },
-
-        setupIntersectionObserver() {
-            if (this.observer) this.observer.disconnect();
-
-            this.observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !this.loading && this.$wire.hasMorePages) {
-                    this.loadMore();
-                }
-            }, {
-                root: this.$refs.timeline,
-                threshold: 0.1,
-                rootMargin: '0px 200px 0px 200px'
-            });
-
-            if (this.$refs.loadTrigger) {
-                this.observer.observe(this.$refs.loadTrigger);
-            }
         },
 
         updateActiveItem() {
@@ -194,11 +167,6 @@ export default function gallery() {
             if (timeline && this._scrollListener) {
                 timeline.removeEventListener('scroll', this._scrollListener);
                 this._scrollListener = null;
-            }
-
-            if (this.observer) {
-                this.observer.disconnect();
-                this.observer = null;
             }
         }
     }

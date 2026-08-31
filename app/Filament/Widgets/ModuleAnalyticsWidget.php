@@ -24,7 +24,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     use InteractsWithSchemas;
 
     protected static bool $isLazy = true;
-    protected static ?int $sort = 6;
+    protected static ?int $sort = -1;
     public string $activeTab = 'users';
     protected string $view = 'livewire.admin.widgets.filament-analytics';
     protected int|string|array $columnSpan = 'full';
@@ -365,10 +365,14 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'galleries' => count($this->galleriesData),
             'links' => count($this->linksData),
             'onboardings' => count($this->onboardingsData),
+            'permissions' => count($this->permissionsData),
             'posts' => count($this->postsData),
             'profiles' => count($this->profilesData),
+            'projects' => count($this->projectsData),
             'support' => count($this->releaseRequestsData),
+            'reservation_policies' => count($this->reservationPoliciesData),
             'reservations' => count($this->reservationsData),
+            'resources' => count($this->resourcesData),
             'skills' => count($this->skillsData),
             'suggestions' => count($this->suggestionsData),
             'tasks' => count($this->tasksData),
@@ -403,8 +407,12 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'ths' => ['icon' => 'heroicon-o-ticket', 'label' => __('resources/ths/strings.plural_label')],
             'channels' => ['icon' => 'heroicon-o-chat-bubble-left-right', 'label' => __('resources/channel/strings.plural_label')],
             'reservations' => ['icon' => 'heroicon-o-map-pin', 'label' => __('resources/reservation/strings.plural_label')],
+            'resources' => ['icon' => 'heroicon-o-archive-box', 'label' => __('resources/resource/strings.plural_label')],
+            'reservation_policies' => ['icon' => 'heroicon-o-adjustments-horizontal', 'label' => __('resources/policy/strings.plural_label')],
             'skills' => ['icon' => 'heroicon-o-sparkles', 'label' => __('resources/skill/strings.plural_label')],
             'support' => ['icon' => 'heroicon-o-lifebuoy', 'label' => __('resources/release_request/strings.plural_label')],
+            'permissions' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/permission/strings.plural_label')],
+            'projects' => ['icon' => 'heroicon-o-rectangle-stack', 'label' => __('resources/project/strings.plural_label')],
         ];
     }
 
@@ -462,6 +470,32 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function permissionsData(): array
+    {
+        $stats = DB::table('permissions')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN is_super_admin = 1 THEN 1 ELSE 0 END) as super_admins,
+            SUM(CASE WHEN abilities IS NOT NULL AND JSON_LENGTH(abilities) > 0 THEN 1 ELSE 0 END) as with_abilities,
+            SUM(CASE WHEN excluded_modules IS NOT NULL AND JSON_LENGTH(excluded_modules) > 0 THEN 1 ELSE 0 END) as with_exclusions
+        ")->first();
+
+        return [
+            Stat::make(__('resources/permission/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-shield-check')
+                ->color('primary'),
+            Stat::make(__('resources/permission/strings.fields.is_super_admin'), $stats->super_admins)
+                ->icon('heroicon-o-star')
+                ->color('warning'),
+            Stat::make(__('resources/dashboard/strings.analytics.permissions.with_abilities'), $stats->with_abilities)
+                ->icon('heroicon-o-check-badge')
+                ->color('success'),
+            Stat::make(__('resources/permission/strings.fields.excluded_modules'), $stats->with_exclusions)
+                ->icon('heroicon-o-no-symbol')
+                ->color('danger'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function postsData(): array
     {
         $stats = DB::table('posts')->selectRaw("
@@ -506,6 +540,32 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make(__('resources/ad/strings.gender.any'), $stats->males . ' ┆ ' . $stats->females)
                 ->icon('heroicon-o-users')
                 ->color('info'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function projectsData(): array
+    {
+        $stats = DB::table('projects')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN deleted_at IS NULL AND archived_at IS NULL THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived,
+            SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) as deleted
+        ")->first();
+
+        return [
+            Stat::make(__('resources/project/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-rectangle-stack')
+                ->color('primary'),
+            Stat::make(__('resources/dashboard/strings.analytics.projects.active'), $stats->active)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/dashboard/strings.analytics.projects.archived'), $stats->archived)
+                ->icon('heroicon-o-archive-box')
+                ->color('warning'),
+            Stat::make(__('resources/dashboard/strings.analytics.projects.deleted'), $stats->deleted)
+                ->icon('heroicon-o-trash')
+                ->color('danger'),
         ];
     }
 
@@ -559,6 +619,28 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function reservationPoliciesData(): array
+    {
+        $stats = DB::table('reservation_policies')->selectRaw("
+            COUNT(*) as total,
+            COUNT(DISTINCT resource_type) as resource_types,
+            COUNT(DISTINCT `key`) as distinct_keys
+        ")->first();
+
+        return [
+            Stat::make(__('resources/policy/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-adjustments-horizontal')
+                ->color('primary'),
+            Stat::make(__('resources/dashboard/strings.analytics.policies.resource_types'), $stats->resource_types)
+                ->icon('heroicon-o-archive-box')
+                ->color('info'),
+            Stat::make(__('resources/dashboard/strings.analytics.policies.distinct_keys'), $stats->distinct_keys)
+                ->icon('heroicon-o-key')
+                ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function reservationsData(): array
     {
         $stats = DB::table('reservations')->selectRaw("
@@ -581,6 +663,28 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make(__('resources/dashboard/strings.analytics.reservations.cancelled'), $stats->cancelled)
                 ->icon('heroicon-o-x-circle')
                 ->color('danger'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
+    public function resourcesData(): array
+    {
+        $stats = DB::table('resources')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+            COUNT(DISTINCT type) as distinct_types
+        ")->first();
+
+        return [
+            Stat::make(__('resources/resource/strings.plural_label'), $stats->total)
+                ->icon('heroicon-o-archive-box')
+                ->color('primary'),
+            Stat::make(__('resources/dashboard/strings.analytics.resources.active'), $stats->active)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+            Stat::make(__('resources/dashboard/strings.analytics.resources.distinct_types'), $stats->distinct_types)
+                ->icon('heroicon-o-squares-2x2')
+                ->color('info'),
         ];
     }
 
@@ -650,10 +754,14 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'galleries' => $this->galleriesData,
             'links' => $this->linksData,
             'onboardings' => $this->onboardingsData,
+            'permissions' => $this->permissionsData,
             'posts' => $this->postsData,
             'profiles' => $this->profilesData,
+            'projects' => $this->projectsData,
             'support' => $this->releaseRequestsData,
+            'reservation_policies' => $this->reservationPoliciesData,
             'reservations' => $this->reservationsData,
+            'resources' => $this->resourcesData,
             'skills' => $this->skillsData,
             'suggestions' => $this->suggestionsData,
             'tasks' => $this->tasksData,
@@ -772,8 +880,8 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             COUNT(*) as total,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
             COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,
-            COUNT(CASE WHEN last_seen >= ? OR presence = ? THEN 1 END) as online
-        ", [now()->subMinutes(15), PresenceStatus::Onsite->value])->first();
+            COUNT(CASE WHEN presence IN (?, ?) AND last_seen >= ? THEN 1 END) as online
+        ", [PresenceStatus::Onsite->value, PresenceStatus::Remote->value, now()->subMinutes(15)])->first();
 
         return [
             Stat::make(__('resources/dashboard/strings.analytics.users.total'), $stats->total)

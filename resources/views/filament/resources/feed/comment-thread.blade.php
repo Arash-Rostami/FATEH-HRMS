@@ -24,7 +24,7 @@
             </div>
 
             <div class="text-sm leading-relaxed text-gray-700 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&_ul]:my-2 [&_ol]:my-2 break-words">
-                {!! superClean($getRecord()->content) !!}
+                {!! renderComment($getRecord()->content) !!}
             </div>
         </div>
     </div>

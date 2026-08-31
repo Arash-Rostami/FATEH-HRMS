@@ -38,7 +38,7 @@
                     x-show="!month || month === @js(toJalali($feed->created_at, 'F Y'))"
                     class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
-                        'scale-100 md:scale-[1.15]': activeId == {{ $feed->id }},
+                        'scale-100 md:scale-[1.08]': activeId == {{ $feed->id }},
                         'scale-95 opacity-100': activeId != {{ $feed->id }},
                         'max-widget-column !opacity-100': maximizedFeed === feed($el)
                     }"
@@ -76,7 +76,7 @@
                             class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
                             :class="activeId == {{ $feed->id }} ? '!opacity-100' : ''"
                         >
-                            <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
+                            <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]" title="{{ toJalali($feed->created_at) }}">
                                 {{ toJalaliRelative($feed->created_at) }}
                             </span>
                         </div>
@@ -90,11 +90,17 @@
 
             @if($hasMorePages)
                 <div
-                    x-ref="loadTrigger"
                     wire:key="loader-{{ count($feedIds) }}"
-                    class="shrink-0 w-full md:w-24 h-24 md:h-full snap-center flex items-center justify-center opacity-60"
+                    class="shrink-0 w-full md:w-32 h-24 md:h-full snap-center flex items-center justify-center"
                 >
-                    <x-ui.loaders.spinner/>
+                    <x-ui.buttons.load-more
+                        action="loadMore"
+                        text="بارگذاری بیشتر"
+                        loading-text="در حال دریافت..."
+                        icon="expand_more"
+                        icon-size="text-sm"
+                        class="whitespace-nowrap text-[11px] font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-3 py-2 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md"
+                    />
                 </div>
             @endif
 

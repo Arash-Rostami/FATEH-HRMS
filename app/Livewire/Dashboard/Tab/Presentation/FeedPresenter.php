@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\Feed;
 use App\Traits\HasTimelineMonths;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class FeedPresenter
 {
@@ -134,7 +135,7 @@ class FeedPresenter
 
     public function contentHtml(Feed $feed): string
     {
-        return $feed->content ? superClean($feed->content, PHP_INT_MAX) : '';
+        return $feed->content ? Str::sanitizeHtml($feed->content) : '';
     }
 
     public function magazineData(Feed $feed): array

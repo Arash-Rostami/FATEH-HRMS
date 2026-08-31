@@ -6,11 +6,14 @@ use App\Livewire\Dashboard\Authority\Presentation\AuthorityPresenter;
 use App\Models\Authority;
 use App\Models\Department;
 use App\Traits\FocusOnRecord;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -46,17 +49,10 @@ class Main extends Component
         return $this->departments->firstWhere('code', $this->activeDept);
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'authority-departments')]
+    #[Computed]
     public function departments()
     {
-        $codes = Authority::query()->whereNotNull('department_id')->distinct()->pluck('department_id');
-        $models = Department::getCachedModels();
-
-        return Department::getCachedOptions()
-            ->keys()
-            ->filter(fn($code) => $codes->contains($code))
-            ->map(fn($code) => $models->get($code))
-            ->values();
+        return Authority::cachedDepartments();
     }
 
     public function loadMore(): void
@@ -79,6 +75,13 @@ class Main extends Component
         ])->extends('layouts.app')->section('content');
     }
 
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.authority.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
+    }
+
     public function setDept(string $code): void
     {
         $this->open = null;
@@ -91,10 +94,10 @@ class Main extends Component
         $this->activeTab = $tab;
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'authority-global-count')]
+    #[Computed]
     public function totalCount(): int
     {
-        return Authority::count();
+        return Authority::cachedCount();
     }
 
     public function updatedSearch(): void

@@ -268,6 +268,7 @@ class TicketTablePresenter
             ->label(__('resources/ths/strings.fields.subject'))
             ->limit(50)
             ->tooltip(fn($state) => $state)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: true);
     }

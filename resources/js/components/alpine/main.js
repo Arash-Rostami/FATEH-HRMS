@@ -8,6 +8,7 @@ import registerDensityStore from './stores/density.js'
 import registerColVisibilityStore from './stores/colVisibility.js'
 import registerPinStore from './stores/pinned.js'
 import registerTaggedStore from './stores/tagged.js'
+import registerActivityReactionPickerStore from './stores/activityReactionPicker.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
@@ -32,18 +33,9 @@ import links from "./data/links.js";
 import gallery from "./data/gallery.js";
 import report from "./data/report.js";
 import filters from "./data/filters.js";
-import taskboard from "./data/taskboard.js";
-import profile from "./data/profile.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
-import dms from "./data/dms.js";
-import ths from "./data/ths.js";
-import reservation from "./data/reservation.js";
 import radio from "./data/radio.js";
-import contact from "./data/contact.js";
-import channel from "./data/channel.js";
-import energyChart from "./data/energyChart.js";
-import analyticsChart from "./data/analyticsChart.js";
 import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
 import feedReactions from "./data/feedReactions.js";
@@ -62,6 +54,7 @@ export default function initAlpine() {
         registerColVisibilityStore(Alpine)
         registerPinStore(Alpine)
         registerTaggedStore(Alpine)
+        registerActivityReactionPickerStore(Alpine)
 
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
@@ -86,18 +79,9 @@ export default function initAlpine() {
         Alpine.data('gallery', gallery)
         Alpine.data('report', report)
         Alpine.data('filters', filters)
-        Alpine.data('taskboard', taskboard)
-        Alpine.data('profile', profile)
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)
-        Alpine.data('dms', dms)
-        Alpine.data('ths', ths)
-        Alpine.data('reservation', reservation)
         Alpine.data('radio', radio)
-        Alpine.data('contact', contact)
-        Alpine.data('channel', channel)
-        Alpine.data('energyChart', energyChart)
-        Alpine.data('analyticsChart', analyticsChart)
         Alpine.data('ambient', ambient)
         Alpine.data('feedComposer', feedComposer)
         Alpine.data('feedReactions', feedReactions)

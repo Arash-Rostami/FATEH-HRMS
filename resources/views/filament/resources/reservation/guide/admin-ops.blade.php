@@ -18,7 +18,7 @@
         [
             'icon' => 'autorenew',
             'label' => 'آزادسازی',
-            'hint' => 'دکمهٔ «آزادسازی» فقط روی رزروهای «فعال» ظاهر می‌شود. با تأیید، وضعیت مستقیماً به «آزادشده» (released) تغییر می‌کند — منبع برای رزروهای دیگر آزاد می‌شود ولی رزرو در سوابق می‌ماند و همچنان علیه سقف ماهانهٔ کاربر می‌شمارد. کاربر دیگر نمی‌تواند آن را لغو کند.',
+            'hint' => 'دکمهٔ «آزادسازی» فقط روی رزروهای «فعال» ظاهر می‌شود. با تأیید، وضعیت به «آزادشده» (released) تغییر می‌کند، رزرو در سوابق می‌ماند، علیه سقف ماهانه می‌شمارد و کاربر دیگر نمی‌تواند آن را لغو کند. رفتارِ آزادسازی بسته به نوع رزرو فرق می‌کند: برای رزروهای بلندمدتِ در‌حال‌انجام، تاریخ پایان به همین لحظه کوتاه می‌شود و باقی‌ماندهٔ بازه برای رزروهای دیگر آزاد می‌گردد. برای رزروهای ساعتی، منبع فقط در صورت فعال‌بودنِ «مجوز رزرو در زمان آزادشده» (در قوانین رزرو) آزاد می‌شود؛ در غیر این صورت وضعیت آزادشده می‌ماند ولی منبع همچنان اشغال است. برای رزرو بلندمدتِ آینده (هنوز شروع‌نشده) به جای آزادسازی، «لغو رزرو» را بزنید.',
         ],
         [
             'icon' => 'delete',
@@ -74,6 +74,39 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+    </div>
+
+    <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">event_available</span>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">رزرو بلندمدت (ماهانه/سالانه)</p>
+        </div>
+        <div class="p-5 flex flex-col gap-2.5">
+            <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium">
+                برای اشغالِ پیوستهٔ یک منبع (مثلاً میز کارِ یک نفر برای یک سال)، در فرم «ایجاد/ویرایش» گزینهٔ «تمام‌روز» را خاموش بگذارید و «شروع» را امروز و «پایان» را تا ۱۰ سال آینده انتخاب کنید. کل بازه به‌عنوان <span class="font-bold text-[var(--md-sys-color-on-surface)]">یک رکورد</span> ذخیره می‌شود و منبع برای کل مدت روی نامِ آن کاربر قفل می‌شود — هیچ‌کس دیگر نمی‌تواند همان منبع را در این بازه رزرو کند.
+            </p>
+            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">
+                وقتی «پایان» بیش از یک روز بعد از «شروع» باشد، گزینهٔ «تکراری» و «تمام‌روز» خودکار غیرفعال می‌شوند (رزرو بلندمدت با تکرار قابل ترکیب نیست) و سقفِ ساعاتِ کاری دیگر اعمال نمی‌شود چون این یک تخصیصِ پیوسته است، نه یک جلسهٔ ساعتی. طول بازه با مقدار «حداکثر مدت رزرو بلندمدت (روز)» در قوانین رزرو محدود می‌شود (خالی = بدون محدودیت)؛ رزروی که طول‌تر از آن باشد رد می‌شود.
+            </p>
+        </div>
+        <div class="px-5 py-3.5 bg-[var(--md-sys-color-surface-container-lowest)] border-t border-[var(--md-sys-color-outline-variant)] flex flex-col gap-1.5">
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">info</span>
+                لغو = کل بازه یک‌جا؛ کوتاه‌سازی = «پایان» را عقب بکشید؛ آزادسازی = پایانِ رزروِ در‌حال‌انجام را به همین لحظه کوتاه می‌کند و باقی‌مانده آزاد می‌شود.
+            </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">cancel</span>
+                برای رزرو بلندمدتِ آینده (هنوز شروع‌نشده) از «لغو رزرو» استفاده کنید، نه آزادسازی.
+            </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">block</span>
+                یک روز/ساعتِ وسطِ بازه را نمی‌توان مستثنی کرد — برای آزادکردنِ بازهٔ میانی، «پایان» را تا شروع آن بازه کوتاه کنید و سپس یک رزرو دوم برای ادامه بسازید.
+            </p>
+            <p class="text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-2">
+                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">person_lock</span>
+                این امکان فقط در پنل ادمین است؛ کاربر در پنل خود فقط رزروی ساعتی/تمام‌روز می‌سازد.
+            </p>
         </div>
     </div>
 

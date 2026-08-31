@@ -19,8 +19,9 @@ class Weather extends Component
     public function placeholder()
     {
         return <<<'HTML'
-        <div class="flex items-center justify-center w-full h-full opacity-50">
-            <span class="material-symbols-rounded animate-spin text-[18px]">progress_activity</span>
+        <div class="flex items-center gap-2">
+            <div class="w-[18px] h-[18px] rounded-full bg-[var(--md-sys-color-on-primary)]/25 animate-pulse"></div>
+            <div class="w-8 h-3 rounded bg-[var(--md-sys-color-on-primary)]/25 animate-pulse"></div>
         </div>
         HTML;
     }

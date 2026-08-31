@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasUserHelpers;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasUserHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

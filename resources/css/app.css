@@ -5,6 +5,7 @@
 @import './core/theme.css';
 @import './core/animation.css';
 @import './core/dashboard.css';
+@import './core/color.css';
 @import './core/notification.css';
 @import './core/ambient.css';
 

@@ -28,6 +28,7 @@ enum ReservationError: string
     case TypeInactive       = 'ERR-022';
     case ResourceDayNotAllowed  = 'ERR-023';
     case ResourceHourNotAllowed = 'ERR-024';
+    case RangeTooLong           = 'ERR-025';
 
     public static function legend(): array
     {
@@ -56,6 +57,7 @@ enum ReservationError: string
             'ERR-022' => ['policy' => __('resources/policy/strings.fields.window_days') . ' / ' . __('resources/policy/strings.fields.window_hours'), 'hint' => 'این نوع منبع غیرفعال است؛ برای فعال‌سازی حداقل یکی از این دو مقدار را بزرگ‌تر از صفر تنظیم کنید'],
             'ERR-023' => ['policy' => '—', 'hint' => 'روزهای در دسترسِ این منبع مشخص را از پنل مدیریت بررسی یا گسترش دهید'],
             'ERR-024' => ['policy' => '—', 'hint' => 'بازهٔ ساعتی در دسترسِ این منبع مشخص را از پنل مدیریت بررسی یا گسترش دهید'],
+            'ERR-025' => ['policy' => __('resources/policy/strings.fields.max_range_days'), 'hint' => 'مقدار را افزایش داده یا فیلد را خالی بگذارید'],
         ];
     }
 
@@ -86,6 +88,7 @@ enum ReservationError: string
             self::TypeInactive       => 'این نوع منبع در حال حاضر توسط مدیریت غیرفعال شده است.',
             self::ResourceDayNotAllowed  => "این منبع در روز {$args[0]} قابل رزرو نیست.",
             self::ResourceHourNotAllowed => "این منبع فقط بین ساعت {$args[0]} تا {$args[1]} قابل رزرو است.",
+            self::RangeTooLong => "حداکثر مدت رزرو بلندمدت {$args[0]} روز است.",
         };
 
         return "[{$this->value}] {$text}";

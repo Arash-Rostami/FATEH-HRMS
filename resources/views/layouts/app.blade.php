@@ -6,8 +6,30 @@
     <script src="{{ asset('js/mode-manager.js') }}"></script>
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
+    <x-dashboard.module-chunks/>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+        $moduleChunk = match(request()->route()?->getName()) {
+            'dms' => 'dms',
+            'ths' => 'ths',
+            'tasks' => 'taskboard',
+            'projects' => 'project',
+            'channels' => 'channel',
+            'contact' => 'contact',
+            'reservation' => 'reservation',
+            'profile' => 'profile',
+            'analytics' => 'analytics',
+            'energy' => 'energy',
+            'tasksheet' => 'tasksheet',
+            'tasksheet.shared' => 'tasksheet',
+            default => null,
+        };
+        $viteEntries = ['resources/css/app.css', 'resources/js/app.js'];
+        if ($moduleChunk) {
+            $viteEntries[] = "resources/js/components/alpine/modules/{$moduleChunk}.js";
+        }
+    @endphp
+    @vite($viteEntries)
     @filamentStyles
     @livewireStyles
 </head>
@@ -19,6 +41,7 @@
     <x-dashboard.header/>
     @livewire(\App\Livewire\Dashboard\Countdown::class)
     @livewire(\App\Livewire\Dashboard\EventReminder::class)
+    @livewire(\App\Livewire\Dashboard\Edge::class)
 @endunless
 
 <div id="content-shell">

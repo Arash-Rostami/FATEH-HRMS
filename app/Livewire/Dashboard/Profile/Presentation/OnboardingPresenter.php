@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Dashboard\Profile\Presentation;
 
-use App\Models\Traits\HasExtraCatalog;
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasExtraCatalog;
+use App\Models\Concerns\HasPublicAssetUrl;
 use ArrayObject;
 use Illuminate\Support\Collection;
 

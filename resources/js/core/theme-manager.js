@@ -7,6 +7,8 @@ const THEME_META_SELECTOR = 'meta[name="theme-color"]';
 const THEME_COLOR_PROPERTY = '--md-sys-color-primary';
 const SYNC_EVENT_NAME = 'theme-system-updated';
 
+const root = document.documentElement;
+
 export default class ThemeManager {
     static initialized = false;
     static _mediaQuery = null;
@@ -67,18 +69,14 @@ export default class ThemeManager {
 
     static applyThemeDOM(theme) {
         if (theme === 'default') {
-            document.documentElement.removeAttribute('data-theme');
+            root.removeAttribute('data-theme');
         } else {
-            document.documentElement.setAttribute('data-theme', theme);
+            root.setAttribute('data-theme', theme);
         }
     }
 
     static applyModeDOM(mode) {
-        if (mode === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        root.classList.toggle('dark', mode === 'dark');
     }
 
     static setTheme(theme) {
@@ -104,7 +102,7 @@ export default class ThemeManager {
         const meta = document.querySelector(THEME_META_SELECTOR);
         if (!meta) return;
 
-        const value = getComputedStyle(document.documentElement)
+        const value = getComputedStyle(root)
             .getPropertyValue(THEME_COLOR_PROPERTY)
             .trim();
 
@@ -112,11 +110,12 @@ export default class ThemeManager {
     }
 
     static syncStore(forcedTheme = null, forcedMode = null) {
-        if (!window.Alpine || !window.Alpine.store('appTheme')) return;
+        const store = window.Alpine?.store('appTheme');
+        if (!store) return;
 
         const theme = forcedTheme || this.getUserTheme();
         const mode = forcedMode || this.getUserMode();
-        window.Alpine.store('appTheme').updateState(theme, mode);
+        store.updateState(theme, mode);
     }
 
     static dispatchSyncEvent() {

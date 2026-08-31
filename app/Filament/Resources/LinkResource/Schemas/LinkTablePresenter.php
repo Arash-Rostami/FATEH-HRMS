@@ -122,6 +122,7 @@ class LinkTablePresenter
             ->label(__('resources/link/strings.fields.url_title'))
             ->searchable()
             ->sortable()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 }

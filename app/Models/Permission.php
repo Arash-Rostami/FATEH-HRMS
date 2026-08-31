@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class Permission extends Model
 {
@@ -114,6 +115,12 @@ class Permission extends Model
                 $m->abilities = null;
             } else {
                 $m->excluded_modules = null;
+            }
+        });
+
+        static::creating(function (self $permission) {
+            if (static::where('user_id', $permission->user_id)->exists()) {
+                throw new RuntimeException(__('resources/permission/strings.validation.duplicate'));
             }
         });
     }

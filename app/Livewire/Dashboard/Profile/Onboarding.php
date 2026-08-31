@@ -4,11 +4,17 @@ namespace App\Livewire\Dashboard\Profile;
 
 use App\Livewire\Dashboard\Profile\Presentation\OnboardingPresenter;
 use App\Models\Onboarding as OnboardingModel;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Onboarding extends Component
 {
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.onboarding-placeholder');
+    }
+
     #[Computed(persist: true)]
     public function onboarding(): ?OnboardingModel
     {

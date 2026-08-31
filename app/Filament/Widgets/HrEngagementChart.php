@@ -11,7 +11,6 @@ use Filament\Widgets\ChartWidget\Concerns\HasFiltersSchema;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
-use Livewire\Attributes\Computed;
 
 class HrEngagementChart extends ChartWidget
 {
@@ -66,25 +65,21 @@ class HrEngagementChart extends ChartWidget
         ));
     }
 
-    #[Computed(seconds: 300, cache: true)]
     public function getHrNData(): array
     {
         return app(HrAnalyticsService::class)->getHrNData();
     }
 
-    #[Computed(seconds: 300, cache: true)]
     public function getHrOData(): array
     {
         return app(HrAnalyticsService::class)->getHrOData();
     }
 
-    #[Computed(seconds: 300, cache: true)]
     public function getHrPData(): array
     {
         return app(HrAnalyticsService::class)->getHrPData();
     }
 
-    #[Computed(seconds: 300, cache: true)]
     public function getHrQData(): array
     {
         return app(HrAnalyticsService::class)->getHrQData();

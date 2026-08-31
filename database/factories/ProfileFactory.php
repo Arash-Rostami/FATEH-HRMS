@@ -14,7 +14,7 @@ class ProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'user_id' => User::factory(),
             'department_id' => Department::inRandomOrder()->value('code') ?? Department::first()?->code ?? 'HR',
             'personnel_id' => fake()->unique()->numerify('PC-######'),
             'gender' => fake()->randomElement(['female', 'male']),

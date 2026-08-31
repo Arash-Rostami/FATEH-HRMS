@@ -50,7 +50,8 @@ class OnboardingInfolistPresenter
             ->schema([
                 TextEntry::make('title')
                     ->label(__('resources/onboarding/strings.repeater.guide_title'))
-                    ->weight(FontWeight::SemiBold),
+                    ->weight(FontWeight::SemiBold)
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']),
 
                 TextEntry::make('ext')
                     ->label(__('resources/onboarding/strings.repeater.guide_ext'))
@@ -94,6 +95,7 @@ class OnboardingInfolistPresenter
             ->label(__('resources/onboarding/strings.fields.mission'))
             ->html()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -103,6 +105,7 @@ class OnboardingInfolistPresenter
             ->label(__('resources/onboarding/strings.fields.schedule'))
             ->html()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -130,7 +133,8 @@ class OnboardingInfolistPresenter
             ->schema([
                 TextEntry::make('title')
                     ->label(__('resources/onboarding/strings.repeater.video_title'))
-                    ->weight(FontWeight::SemiBold),
+                    ->weight(FontWeight::SemiBold)
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']),
 
                 TextEntry::make('duration')
                     ->label(__('resources/onboarding/strings.repeater.video_duration'))
@@ -155,6 +159,7 @@ class OnboardingInfolistPresenter
             ->label(__('resources/onboarding/strings.fields.vision'))
             ->html()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -163,6 +168,7 @@ class OnboardingInfolistPresenter
         return TextEntry::make('welcome')
             ->label(__('resources/onboarding/strings.fields.welcome'))
             ->html()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 }

@@ -2,22 +2,28 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
+use Closure;
+use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Department;
 use App\Models\User;
+use App\Rules\ProjectDeadlineCap;
+use App\Rules\TaskLabelLength;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
 use App\Traits\StoresAttachedFiles;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -86,6 +92,31 @@ class TaskFormPresenter
             ->columnSpanFull();
     }
 
+    public static function checklist(): Repeater
+    {
+        return Repeater::make('checklist')
+            ->label(__('resources/task/strings.fields.checklist'))
+            ->schema([
+                TextInput::make('text')
+                    ->label(__('resources/task/strings.fields.checklist_item'))
+                    ->maxLength(255)
+                    ->nullable(),
+                Toggle::make('done')
+                    ->label(__('resources/task/strings.fields.checklist_done')),
+                TextInput::make('weight')
+                    ->label(__('resources/task/strings.fields.checklist_weight'))
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->default(0)
+                    ->nullable(),
+            ])
+            ->default([])
+            ->nullable()
+            ->helperText(__('resources/task/strings.hints.checklist') . ' ' . __('resources/task/strings.hints.checklist_weight'))
+            ->columnSpanFull();
+    }
+
     public static function collaborators(): Select
     {
         return Select::make('collaborators')
@@ -105,23 +136,9 @@ class TaskFormPresenter
             required: false,
             yearFrom: 1400,
             fullWidth: false,
+            carrierRule: fn(Get $get, $record) => new ProjectDeadlineCap($get('project_id') ?: $record?->project_id),
         )->columnSpanFull()
             ->helperText(__('resources/task/strings.hints.deadline_date'));
-    }
-
-    public static function deadlineTime(): TextInput
-    {
-        return TextInput::make('deadline_time')
-            ->label(__('resources/task/strings.fields.deadline_time'))
-            ->type('time')
-            ->default('17:00')
-            ->afterStateHydrated(function (TextInput $component, $record) {
-                if (!$record?->deadline) return;
-                $component->state(Carbon::parse($record->deadline)->format('H:i'));
-            })
-            ->nullable()
-            ->helperText(__('resources/task/strings.hints.deadline_time'))
-            ->columnSpanFull();
     }
 
     public static function departmentId(): Select
@@ -156,6 +173,57 @@ class TaskFormPresenter
             ->maxLength(255)
             ->nullable()
             ->helperText(__('resources/task/strings.hints.project'));
+    }
+
+    public static function projectId(): Select
+    {
+        return Select::make('project_id')
+            ->label(__('resources/task/strings.fields.project_id'))
+            ->relationship('project', 'name')
+            ->searchable()
+            ->preload()
+            ->nullable()
+            ->helperText(__('resources/task/strings.hints.project_id'));
+    }
+
+    public static function labels(): TagsInput
+    {
+        return TagsInput::make('labels')
+            ->label(__('resources/task/strings.fields.labels'))
+            ->rules(['array', 'max:10', new TaskLabelLength()])
+            ->nullable()
+            ->helperText(__('resources/task/strings.hints.labels'));
+    }
+
+    public static function meta(): KeyValue
+    {
+        return KeyValue::make('meta')
+            ->label(__('resources/task/strings.fields.meta'))
+            ->keyLabel(__('resources/task/strings.fields.meta_key'))
+            ->valueLabel(__('resources/task/strings.fields.meta_value'))
+            ->rule(self::metaKeyPattern())
+            ->helperText(__('resources/task/strings.hints.meta'))
+            ->columnSpanFull();
+    }
+
+    public static function metaKeyPattern(): Closure
+    {
+        return fn() => function (string $attribute, mixed $value, Closure $fail) {
+            foreach (array_keys($value ?? []) as $key) {
+                if (!preg_match('/^[a-z0-9_]+$/', (string) $key)) {
+                    $fail(__('resources/task/strings.validation.meta_key'));
+                }
+            }
+        };
+    }
+
+    public static function priority(): Select
+    {
+        return Select::make('priority')
+            ->label(__('resources/task/strings.fields.priority'))
+            ->options(TaskPriority::class)
+            ->nullable()
+            ->helperText(__('resources/task/strings.hints.priority'));
     }
 
     public static function responsibleUserId(): Select
@@ -204,7 +272,27 @@ class TaskFormPresenter
             ->options(TaskStatus::class)
             ->required()
             ->default(TaskStatus::Todo->value)
+            ->rule(self::doneRequiresState())
             ->helperText(__('resources/task/strings.hints.status'));
+    }
+
+    public static function doneRequiresState(): Closure
+    {
+        return fn(Get $get, $record) => function (string $attribute, mixed $value, Closure $fail) use ($get, $record) {
+            if ($value !== TaskStatus::Done->value) {
+                return;
+            }
+
+            if (!empty($get('detail.state'))) {
+                return;
+            }
+
+            if ($record && $record->status === TaskStatus::Done->value) {
+                return;
+            }
+
+            $fail(__('resources/task/strings.validation.done_requires_state'));
+        };
     }
 
     public static function title(): TextInput

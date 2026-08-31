@@ -17,6 +17,7 @@ use App\Services\Search\Resources\MessageResource;
 use App\Services\Search\Resources\OnboardingResource;
 use App\Services\Search\Resources\PeopleResource;
 use App\Services\Search\Resources\PostResource;
+use App\Services\Search\Resources\ProjectResource;
 use App\Services\Search\Resources\ReportResource;
 use App\Services\Search\Resources\ReservationResource;
 use App\Services\Search\Resources\SkillSearchResource;
@@ -45,6 +46,7 @@ class ContentService
         DmsResource::class,
         TicketResource::class,
         TaskResource::class,
+        ProjectResource::class,
         SuggestionResource::class,
         AdResource::class,
         ReservationResource::class,

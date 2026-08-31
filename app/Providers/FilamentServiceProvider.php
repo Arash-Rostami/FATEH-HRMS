@@ -39,7 +39,7 @@ class FilamentServiceProvider extends ServiceProvider
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
             fn (): string => view('components.ui.loaders.screen-saver')->render()
-                . view('components.ui.loaders.spinner')->render()
+                . view('components.ui.loaders.page-transition')->render()
         );
     }
 
@@ -49,6 +49,7 @@ class FilamentServiceProvider extends ServiceProvider
             'resources/js/core/theme-manager.js',
             'resources/js/core/filament.js',
             'resources/js/core/topbar-autohide.js',
+            'resources/js/core/nav-dock.js',
             'resources/js/components/alpine/stores/filament-menu.js',
         ];
 
@@ -66,7 +67,8 @@ class FilamentServiceProvider extends ServiceProvider
         Table::configureUsing(function (Table $table): void {
             $table
                 ->paginationPageOptions([10, 25, 50, 100])
-                ->defaultPaginationPageOption(fn (): int => (int) (Auth::user()?->getPreference('records_per_page', 25) ?? 25));
+                ->defaultPaginationPageOption(fn (): int => (int) (Auth::user()?->getPreference('records_per_page', 25) ?? 25))
+                ->reorderableColumns();
         });
     }
 
@@ -77,16 +79,22 @@ class FilamentServiceProvider extends ServiceProvider
             function (): string {
                 $user = Auth::user();
 
+                $navDock = (bool) ($user?->getPreference('nav_dock', false));
+                $topbarPinned = (bool) ($user?->getPreference('topbar_pinned', true) ?? true);
+
                 $classes = array_filter([
-                    $user?->getPreference('nav_dock', false) ? 'nav-dock-bottom' : null,
-                    ($user?->getPreference('topbar_pinned', true) ?? true) ? 'topbar-pinned' : null,
+                    $navDock ? 'nav-dock-bottom' : null,
+                    $topbarPinned ? 'topbar-pinned' : null,
                 ]);
 
                 $script = '<script src="' . asset('js/mode-manager.js') . '"></script>';
 
-                if ($classes) {
-                    $script .= '<script>document.documentElement.classList.add(...' . json_encode(array_values($classes)) . ')</script>';
-                }
+                // localStorage lets topbar-autohide.js resync these classes on every wire:navigate — see that file
+                $script .= '<script>'
+                    . 'localStorage.setItem("nav-dock-bottom", ' . json_encode($navDock) . ');'
+                    . 'localStorage.setItem("topbar-pinned", ' . json_encode($topbarPinned) . ');'
+                    . 'document.documentElement.classList.add(...' . json_encode(array_values($classes)) . ')'
+                    . '</script>';
 
                 return $script;
             }

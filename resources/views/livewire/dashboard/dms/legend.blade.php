@@ -1,6 +1,6 @@
 <div wire:loading.delay
      class="absolute inset-0 z-50 flex items-center justify-center rounded-2xl bg-[var(--md-sys-color-surface)]/55 backdrop-blur-[1px]">
-    <div class="h-9 w-9 animate-spin rounded-full border-2 border-[var(--md-sys-color-primary)]/20 border-b-[var(--md-sys-color-primary)]"></div>
+    <x-ui.loaders.spin-badge text="در حال به‌روزرسانی..."/>
 </div>
 
 @if($this->receivePendingCount > 0 || $this->readPendingCount > 0)

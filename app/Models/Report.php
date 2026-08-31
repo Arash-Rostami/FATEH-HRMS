@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;

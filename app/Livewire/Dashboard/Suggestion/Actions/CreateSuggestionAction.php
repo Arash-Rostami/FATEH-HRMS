@@ -8,12 +8,17 @@ use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Menu\StateService;
 use App\Support\SuggestionAccessPolicy;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateSuggestionAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function execute(SuggestionForm $form): void
     {
         $form->validate();
@@ -41,8 +46,15 @@ class CreateSuggestionAction
                 'departments' => $this->mergeDepartments($form, $authDeptCode),
                 'purpose'     => $form->purpose,
                 'rule'        => $form->rule,
-                'attachment'  => $form->attachment?->store('suggestions', 'public'),
+                'attachment'  => $form->attachment
+                    ? static::storeAttachment(
+                        $form->attachment,
+                        'suggestions',
+                        fn ($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                    )['path']
+                    : null,
                 'self_fill'   => $form->selfFill,
+                'priority'    => $form->priority,
                 'stage'       => 'pending',
                 'user_id'     => Auth::id(),
             ]);

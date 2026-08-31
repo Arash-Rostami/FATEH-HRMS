@@ -5,14 +5,16 @@ namespace App\Livewire\Dashboard\Tab;
 use App\Livewire\Dashboard\Tab\Actions\MarkPostAsReadAction;
 use App\Models\Post;
 use App\Traits\FocusOnRecord;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Isolate]
+#[Lazy]
 class Posts extends Component
 {
     use FocusOnRecord;
@@ -29,6 +31,11 @@ class Posts extends Component
     {
         $view = session('posts_view_mode', 'card');
         $this->view = in_array($view, ['card', 'list'], true) ? $view : 'card';
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.tab.posts.placeholder');
     }
 
     public function render()
@@ -59,7 +66,7 @@ class Posts extends Component
     #[On('select-post')]
     public function selectPost(int $id, MarkPostAsReadAction $action): void
     {
-        $this->selectedPost = Cache::remember("dashboard.posts.item.{$id}", 3600, fn () => Post::with('user')->find($id));
+        $this->selectedPost = Post::cachedItem($id);
 
         $userId = auth()->id();
 
@@ -70,14 +77,10 @@ class Posts extends Component
         $this->dispatch('open-post-panel');
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'dashboard.posts.pins')]
+    #[Computed]
     public function pins()
     {
-        return Post::with('user')
-            ->where('pinned', 1)
-            ->latest()
-            ->take(1)
-            ->get();
+        return Post::cachedPins();
     }
 
     #[Computed]

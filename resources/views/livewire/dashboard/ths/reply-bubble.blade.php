@@ -2,7 +2,7 @@
     $isMine = $reply->user_id === auth()->id();
 @endphp
 
-<div wire:key="reply-{{ $reply->id }}" class="flex items-start gap-2.5 {{ $isMine ? 'flex-row-reverse' : '' }}">
+<div wire:key="reply-{{ $reply->id }}" class="flex items-start gap-2.5 {{ $isMine ? 'flex-row-reverse' : '' }} {{ ($animateIn ?? false) ? 'animate-slide-up-fade' : '' }}">
     <div class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold shadow-sm"
          @class([
              'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' => $isMine,
@@ -28,11 +28,22 @@
         @if(!empty($reply->files))
             <div class="flex flex-wrap gap-1.5 mt-2">
                 @foreach($reply->files as $file)
-                    <a href="{{ \App\Models\Reply::resolvePublicAssetUrl($file['path'] ?? null) }}" target="_blank"
-                       class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] bg-[var(--md-sys-color-surface)]/60 hover:bg-[var(--md-sys-color-surface)] transition">
-                        <span class="material-symbols-rounded text-[13px]">attachment</span>
-                        {{ $file['name'] ?? 'فایل' }}
-                    </a>
+                    @php
+                        $url = \App\Models\Reply::resolvePublicAssetUrl($file['path'] ?? null);
+                        $isImage = str_starts_with($file['mime'] ?? '', 'image/');
+                    @endphp
+                    @if($isImage)
+                        <a href="{{ $url }}" data-fancybox="reply-{{ $reply->id }}" data-caption="{{ $file['name'] ?? '' }}"
+                           class="block w-20 h-20 rounded-lg overflow-hidden border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+                            <img src="{{ $url }}" alt="{{ $file['name'] ?? '' }}" loading="lazy" class="w-full h-full object-cover">
+                        </a>
+                    @else
+                        <a href="{{ $url }}" target="_blank"
+                           class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] bg-[var(--md-sys-color-surface)]/60 hover:bg-[var(--md-sys-color-surface)] transition">
+                            <span class="material-symbols-rounded text-[13px]">attachment</span>
+                            {{ $file['name'] ?? 'فایل' }}
+                        </a>
+                    @endif
                 @endforeach
             </div>
         @endif

@@ -13,12 +13,15 @@ use App\Support\TicketAccessPolicy;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -122,6 +125,13 @@ class Main extends Component
         ));
     }
 
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.ths.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
+    }
+
     public function render()
     {
         return view('livewire.dashboard.ths', [
@@ -188,6 +198,7 @@ class Main extends Component
     {
         return Ticket::query()
             ->with('assignee', 'requester')
+            ->withCount('replies')
             ->actionableBy(auth()->user())
             ->orderByDesc('created_at')
             ->paginate($this->inboxPerPage, ['*'], 'inboxPage');
@@ -198,6 +209,7 @@ class Main extends Component
     {
         return Ticket::query()
             ->with('assignee')
+            ->withCount('replies')
             ->where('requester_id', auth()->id())
             ->when($this->ticketSearch, fn($q) => $q->where(function ($sub) {
                 $term = "%{$this->ticketSearch}%";

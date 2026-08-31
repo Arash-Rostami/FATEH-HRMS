@@ -36,6 +36,7 @@ Composed into multiple **Presenter** classes (stateless, `new Presenter()` per r
 | `BuildsChatBubbles` (62 ln) | `ChannelPresenter`, `ContactPresenter`, `ProjectPresenter` | `bubbleRadius()`, `attachments()`, `linkify()`, `replyPreview()` — the four universal chat-bubble primitives |
 | `BuildsMessageGroups` (133 ln, `use BuildsChatBubbles`) | `ChannelPresenter`, `ProjectPresenter` — **deliberately NOT** `ContactPresenter` (its `read_at`-boolean read model and lack of `@mention` don't fit the per-member-cursor `readersMap` shape this trait assumes; see `contactPattern.md` §16C.5) | `messageGroup()`, `messages()` (per-message view row: is_mine/is_first/is_last/can_edit/can_delete/readers/mentions_you), `readerSummary()` |
 | `HasTimelineMonths` (18 ln) | Timeline-style module presenters (Links/Gallery/Feeds — see `project_timeline_modules_second_view`) | `months()` — buckets a collection into distinct "Month Year" labels, sorted desc |
+| `RiskEscalationChip` | `ProjectPresenter`, `TasksheetPresenter`, `TicketPresenter` (Ths) | `riskToneClasses(string $tone)` — the success→warning→error chip-tone primitive extracted from `ProjectPresenter`'s header risk/deadline chips so `TasksheetPresenter`'s project-health chip and `TicketPresenter`'s `deadlineChip()` reuse the exact same escalation classes, not a second copy; see `app/Livewire/Dashboard/Tasksheet/tasksheetPattern.md` |
 
 **Rule for this category:** before composing a new one of these into a fourth presenter, re-check the assumptions the trait bakes in (e.g. `BuildsMessageGroups`'s per-member cursor) actually hold for the new consumer — Contact's exclusion above is the proof this isn't automatic.
 
@@ -45,19 +46,21 @@ Mixed into Eloquent models, not Livewire components or Presenters. Static or ins
 | Trait | What it holds |
 |---|---|
 | `CleansAttachedFiles` (101 ln) | `deleteStoredFiles()`, `deleteStoredDirectory()` — safe (path-traversal-guarded) storage cleanup called from a model's `forceDeleted`/`deleted` boot hook. Used by `Channel`, `ChannelMessage`, etc. |
-| `StoresAttachedFiles` (34 ln) | `storeAttachment()` — normalizes an `UploadedFile` into the canonical `{path, name, mime, size}` shape (see `project_attachment_writers_footprint` memory) |
+| `StoresAttachedFiles` | `storeAttachment()` — normalizes an `UploadedFile` into the canonical `{path, name, mime, size}` shape (see `project_attachment_writers_footprint` memory); `storeAttachments(array $files, string $directory)` — batch wrapper with rollback (`deleteStoredFiles` on partial failure). **Composition requirement:** the rollback calls `CleansAttachedFiles::deleteStoredFiles()`, so any class calling `storeAttachments()` must use both concerns (every current caller does). |
 
 ### 2.4 Cross-domain mixins (Auth / Filament — out of scope for the Livewire-dashboard modules, listed for completeness)
 `AuthValidationRules`, `AuthorizesByPermission` (the one-true-admin-model `permits()` gate — see `skillsPattern.md`'s "Ownership-bypass" note), `InteractsWithNotifications`, and the ten `Filament*` traits (`FilamentActions`, `FilamentAdminGuide`, `FilamentDateHandler`, `FilamentEditHeading`, `FilamentFilters`, `FilamentFormDivider`, `FilamentHeaderActions`, `FilamentIconOptions`, `FilamentPageBehavior`, `FilamentPreferences`) are admin-panel/Resource/Page mixins governed by `app/Filament/filamentPattern.md`, not this doc.
 
 ### 2.5 Small single-concern helper traits
-Sometimes a trait exists purely to DRY two Actions in the *same* module without becoming a full Service (§ of `servicePattern.md` — no second module needs it, no non-Livewire caller exists). Example: `ResolvesTaskDeadline` (25 ln) — a private `resolveDeadline(TaskForm $form): ?Carbon` shared between TaskBoard's create/update Actions, converting the form's Jalali Y/M/D fields into a Carbon instant. This is legitimately a trait-sized helper, not a Service-in-waiting — promote it only if a second module needs the same Jalali-field-triple-to-Carbon conversion.
+Sometimes a trait exists purely to DRY two Actions in the *same* module without becoming a full Service (§ of `servicePattern.md` — no second module needs it, no non-Livewire caller exists). Example: `ResolvesTaskDeadline` — two private methods shared between the create/update Task Actions: `resolveDeadline(TaskForm $form): ?Carbon` (the form's Jalali Y/M/D fields into a Carbon instant, always at 12:00:00) and `guardProjectDeadline(?Carbon $deadline, ?Project $project): void` (rejects a deadline past the project's `deadline` setting with the `form.deadline` validation error — both Actions call it, the update path included, so the cap can't be dodged by editing). This is legitimately a trait-sized helper, not a Service-in-waiting — promote it only if a second module needs the same conversion/guard.
 
 ---
 
 ## 3. Where traits live (convention differs from Actions/Services)
 
 Unlike Actions (nested per-module under `app/Livewire/Dashboard/{Module}/Actions/`) and Services (grouped per-domain under `app/Services/{Domain}/`), **traits live flat in `app/Traits/`** regardless of how many modules consume them — even a trait used by exactly one module today (e.g. a future TaskBoard-only Livewire mixin) still goes in `app/Traits/`, not inside the module folder. This is existing, consistent convention — don't nest a new trait under a Livewire module folder to "match" the Actions pattern.
+
+**The one exception: Eloquent-only model traits live in `app/Models/Concerns/`** (namespace `App\Models\Concerns`), not `app/Traits/` — and every file there is named `Has*` (`HasModelCache`, `HasReplies`, `HasMenuState`, …). A trait consumed **only** by classes under `app/Models/` goes there; cross-domain traits that models share with Filament/Resource classes (e.g. `CleansAttachedFiles`, `StoresAttachedFiles`, consumed by both `App\Models\*` and `App\Filament\*`) stay in `app/Traits/` under this doc's rules.
 
 ---
 

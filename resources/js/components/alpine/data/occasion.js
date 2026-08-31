@@ -59,24 +59,29 @@ export default function occasion() {
 
         animate() {
             if (!this.ctx || !this.show) return;
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            const ctx = this.ctx;
+            const canvas = this.canvas;
+            const particles = Alpine.raw(this.particles);
 
-            this.particles.forEach((p) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0, len = particles.length; i < len; i++) {
+                const p = particles[i];
                 p.y += p.speed;
                 p.angle += p.spin;
 
-                if (p.y > this.canvas.height) {
+                if (p.y > canvas.height) {
                     p.y = -10;
-                    p.x = Math.random() * this.canvas.width;
+                    p.x = Math.random() * canvas.width;
                 }
 
-                this.ctx.save();
-                this.ctx.translate(p.x, p.y);
-                this.ctx.rotate((p.angle * Math.PI) / 180);
-                this.ctx.fillStyle = p.color;
-                this.ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-                this.ctx.restore();
-            });
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.angle * Math.PI) / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            }
 
             this.animationId = requestAnimationFrame(() => this.animate());
         }

@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -29,6 +30,11 @@ class Skills extends Component
     #[Locked]
     public ?int $markUsedId = null;
     public string $markUsedContext = '';
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.skills-placeholder');
+    }
 
     public function mount(): void
     {

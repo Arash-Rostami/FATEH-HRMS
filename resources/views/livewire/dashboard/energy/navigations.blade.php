@@ -44,24 +44,17 @@
             </button>
         @else
             {{-- Submit Button --}}
-            <button
+            <x-ui.buttons.form
+                type="button"
                 wire:click="submitTest"
-                :disabled="!canSubmit"
+                :disabled="!$canSubmit"
                 title="ثبت "
-                wire:loading.attr="disabled"
-                @class([
-                    'group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl shadow-md transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-tertiary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--md-sys-color-surface)]',
-                    'bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] shadow-[var(--md-sys-color-tertiary)]/20 hover:brightness-105 hover:shadow-lg hover:shadow-[var(--md-sys-color-tertiary)]/30 active:scale-[0.98]',
-                    'disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100'
-                ])
+                loading="submitTest"
+                icon="check_circle"
+                class="group px-6 py-2.5 text-sm font-semibold rounded-xl shadow-md focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-tertiary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--md-sys-color-surface)] bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] shadow-[var(--md-sys-color-tertiary)]/20 hover:brightness-105 hover:shadow-lg hover:shadow-[var(--md-sys-color-tertiary)]/30 active:scale-[0.98] disabled:shadow-none disabled:hover:brightness-100"
             >
-                <span wire:loading wire:target="submitTest" class="material-symbols-rounded text-[18px] animate-spin"
-                      aria-hidden="true">progress_activity</span>
-                <span wire:loading.remove wire:target="submitTest" class="flex items-center gap-2">
-                    <span>ثبت پاسخ‌ها</span>
-                    <span class="material-symbols-rounded text-[18px]">check_circle</span>
-                </span>
-            </button>
+                ثبت پاسخ‌ها
+            </x-ui.buttons.form>
         @endif
     </div>
 </div>

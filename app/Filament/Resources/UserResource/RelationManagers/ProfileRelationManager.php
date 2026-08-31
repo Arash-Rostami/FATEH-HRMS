@@ -6,6 +6,7 @@ use App\Filament\Resources\ProfileResource\Schemas\ProfileFormPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
 use App\Traits\FilamentActions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -206,28 +207,19 @@ class ProfileRelationManager extends RelationManager
                 ProfileTablePresenter::startDate(),
                 ProfileTablePresenter::createdAt(),
             ])
-            ->groups([
-                ProfileTablePresenter::departmentGroup(),
-                ProfileTablePresenter::positionGroup(),
-                ProfileTablePresenter::employmentStatusGroup(),
-                ProfileTablePresenter::employmentTypeGroup(),
-                ProfileTablePresenter::genderGroup(),
+            ->searchable(false)
+            ->headerActions([
+                CreateAction::make()
+                    ->icon('heroicon-o-sparkles')
+                    ->label(__('resources/profile/strings.navigation.singular'))
+                    ->visible(fn (): bool => blank($this->getOwnerRecord()->profile)),
             ])
-            ->filters([
-                ProfileTablePresenter::employmentStatusFilter(),
-                ProfileTablePresenter::employmentTypeFilter(),
-                ProfileTablePresenter::genderFilter(),
-                ProfileTablePresenter::degreeFilter(),
-                ProfileTablePresenter::departmentFilter(),
-            ])
-            ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->striped()
-            ->emptyStateIcon('heroicon-o-bookmark')
-            ->defaultSort('id', 'desc');
+            ->emptyStateIcon('heroicon-o-bookmark');
     }
 }

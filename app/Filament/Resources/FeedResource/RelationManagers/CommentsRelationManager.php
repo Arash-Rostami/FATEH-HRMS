@@ -78,6 +78,7 @@ class CommentsRelationManager extends RelationManager
                     ->html()
                     ->limit(50)
                     ->tooltip(fn($record) => strip_tags($record->content ?? ''))
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
                     ->searchable(),
 
                 TextColumn::make('replies_count')

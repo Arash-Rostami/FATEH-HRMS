@@ -11,6 +11,7 @@ class SkillInfolistPresenter
     {
         return TextEntry::make('name')
             ->label(__('resources/skill/strings.fields.name'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->weight('bold');
     }
 
@@ -18,6 +19,7 @@ class SkillInfolistPresenter
     {
         return TextEntry::make('name_en')
             ->label(__('resources/skill/strings.fields.name_en'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->placeholder('-');
     }
 
@@ -56,6 +58,7 @@ class SkillInfolistPresenter
     {
         return TextEntry::make('description')
             ->label(__('resources/skill/strings.fields.description'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }

@@ -12,6 +12,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
 use Morilog\Jalali\Jalalian;
+use App\Enums\ReservationStatus;
+use App\Enums\ResourceType;
+use App\Models\Reservation;
+use Carbon\Carbon;
 
 class CalendarPresenter
 {
@@ -25,6 +29,8 @@ class CalendarPresenter
     private array $rangeCache = [];
     private ?Collection $profilesWithDatesCache = null;
     private ?array $holidaysAllCache = null;
+    private ?Collection $userReservationsCache = null;
+    private ?array $userReservationsRange = null;
 
     public function activeDate(string $selectedDate): array
     {
@@ -76,7 +82,7 @@ class CalendarPresenter
         try {
             $range = $this->range($navDateYmd, $view);
         } catch (Throwable $e) {
-            return ['byDay' => [], 'allDayEntries' => []];
+            return ['byDay' => [], 'allDayEntries' => [], 'spanningReservations' => []];
         }
 
         $authId = $this->authId();
@@ -103,6 +109,7 @@ class CalendarPresenter
             $byDay[$key][] = [
                 'id' => $event->id,
                 'type' => 'event',
+                'is_full_day' => false,
                 'title' => $event->title,
                 'description' => $event->description,
                 'time' => $eventJalali->format('H:i'),
@@ -122,26 +129,94 @@ class CalendarPresenter
             ];
         }
 
+        $existingResIds = [];
+        foreach ($byDay as $pills) {
+            foreach ($pills as $p) {
+                if (!empty($p['is_reservation_linked']) && !empty($p['reservation_id'])) {
+                    $existingResIds[$p['reservation_id']] = true;
+                }
+            }
+        }
+        foreach ($this->userReservationsByDay($range->start, $range->end) as $key => $reservations) {
+            foreach ($reservations as $reservation) {
+                if (isset($existingResIds[$reservation->id])) {
+                    continue;
+                }
+                $byDay[$key][] = $this->reservationPill($reservation);
+            }
+        }
+
+        $spanningReservations = [];
+        if ($view === 'week') {
+            foreach ($this->userReservationsSpanning($range->start, $range->end) as $spanning) {
+                if (isset($existingResIds[$spanning['reservation_id']])) {
+                    continue;
+                }
+                $spanningReservations[] = $spanning;
+            }
+        }
+
+        $gridStart = CalendarLayout::GRID_START_MINUTES;
+        $gridEnd = CalendarLayout::DAY_END_MINUTES;
+        $fullDayMinutes = $gridEnd - $gridStart;
+
         foreach ($byDay as $key => $pills) {
-            $reservation = array_filter(
-                $pills,
-                fn($p) => !empty($p['is_reservation_linked'])
-            );
-            $timed = array_filter(
-                $pills,
-                fn($p) => empty($p['is_reservation_linked'])
-                    && $p['start_minutes'] >= CalendarLayout::GRID_START_MINUTES
-                    && $p['start_minutes'] < CalendarLayout::DAY_END_MINUTES
-            );
-            $byDay[$key] = array_merge(
-                CalendarLayout::pack(array_values($timed)),
-                array_values($reservation)
-            );
+            if ($view === 'day') {
+                $timed = array_filter(
+                    $pills,
+                    fn($p) => empty($p['is_full_day'])
+                        && empty($p['is_multi_day'])
+                        && ($p['start_minutes'] ?? 0) >= $gridStart
+                        && ($p['start_minutes'] ?? 0) < $gridEnd
+                );
+                $allDayRes = array_filter(
+                    $pills,
+                    fn($p) => !empty($p['is_reservation_linked'])
+                        && (!empty($p['is_full_day']) || !empty($p['is_multi_day']))
+                );
+                $allDayRes = array_map(
+                    fn($p) => array_merge($p, ['start_minutes' => $gridStart, 'duration_minutes' => $fullDayMinutes]),
+                    array_values($allDayRes)
+                );
+                $outOfGrid = array_filter(
+                    $pills,
+                    fn($p) => empty($p['is_full_day'])
+                        && empty($p['is_multi_day'])
+                        && (($p['start_minutes'] ?? 0) < $gridStart || ($p['start_minutes'] ?? 0) >= $gridEnd)
+                );
+                $byDay[$key] = array_merge(
+                    CalendarLayout::pack(array_merge(array_values($timed), $allDayRes)),
+                    array_values($outOfGrid)
+                );
+            } else {
+                $banner = array_filter(
+                    $pills,
+                    fn($p) => !empty($p['is_reservation_linked'])
+                        && empty($p['is_multi_day'])
+                        && (
+                            !empty($p['is_full_day'])
+                            || ($p['start_minutes'] ?? 0) < $gridStart
+                            || ($p['start_minutes'] ?? 0) >= $gridEnd
+                        )
+                );
+                $timed = array_filter(
+                    $pills,
+                    fn($p) => empty($p['is_full_day'])
+                        && empty($p['is_multi_day'])
+                        && ($p['start_minutes'] ?? 0) >= $gridStart
+                        && ($p['start_minutes'] ?? 0) < $gridEnd
+                );
+                $byDay[$key] = array_merge(
+                    CalendarLayout::pack(array_values($timed)),
+                    array_values($banner)
+                );
+            }
         }
 
         return [
             'byDay' => $byDay,
             'allDayEntries' => $this->buildAllDayEntries($range),
+            'spanningReservations' => $spanningReservations,
         ];
     }
 
@@ -168,7 +243,7 @@ class CalendarPresenter
         $allReservations = [];
         foreach ($byDay as $pills) {
             foreach ($pills as $p) {
-                if (!empty($p['is_reservation_linked'])) {
+                if (!empty($p['is_reservation_linked']) && !isset($p['col'])) {
                     $allReservations[] = $p;
                 }
             }
@@ -185,9 +260,9 @@ class CalendarPresenter
             $dayPills = $byDay[$jKey] ?? [];
             $enriched = [];
             foreach ($dayPills as $p) {
-                $enriched[] = empty($p['is_reservation_linked'])
+                $enriched[] = $view === 'day'
                     ? $this->withGeometry($p, $gridHeight)
-                    : $p;
+                    : (empty($p['is_full_day']) ? $this->withGeometry($p, $gridHeight) : $p);
             }
 
             $daysMeta[] = [
@@ -206,6 +281,22 @@ class CalendarPresenter
             $daysMeta[] = $this->emptyDayMeta($navigationDate, $todayKey);
         }
 
+        $spanningReservations = [];
+        if ($view === 'week' && !empty($rangeEvents['spanningReservations'])) {
+            $jKeyIndex = array_flip(array_map(fn($m) => $m['jKey'], $daysMeta));
+            $totalCols = count($daysMeta) ?: 1;
+            foreach ($rangeEvents['spanningReservations'] as $s) {
+                $startIdx = $jKeyIndex[$s['start_jkey']] ?? 0;
+                $endIdx = $jKeyIndex[$s['end_jkey']] ?? ($totalCols - 1);
+                if ($endIdx < $startIdx) {
+                    $endIdx = $startIdx;
+                }
+                $s['col_start'] = $startIdx;
+                $s['col_span'] = $endIdx - $startIdx + 1;
+                $spanningReservations[] = $s;
+            }
+        }
+
         return [
             'daysMeta' => $daysMeta,
             'hourOffsets' => $hourOffsets,
@@ -216,6 +307,7 @@ class CalendarPresenter
             'endHour' => self::END_HOUR,
             'iconByType' => self::ICON_BY_TYPE,
             'allReservations' => $allReservations,
+            'spanningReservations' => $spanningReservations,
         ];
     }
 
@@ -307,6 +399,7 @@ class CalendarPresenter
                 return [
                     'id' => $event->id,
                     'type' => 'event',
+                    'is_full_day' => false,
                     'title' => $event->title,
                     'description' => $event->description,
                     'time' => Jalalian::fromCarbon($event->date)->format('H:i'),
@@ -353,7 +446,25 @@ class CalendarPresenter
                 ];
             });
 
-        return collect()->concat($holidays)->concat($events)->concat($birthdays)->concat($anniversaries);
+        $existingResIds = [];
+        foreach ($events as $ev) {
+            if (!empty($ev['is_reservation_linked']) && !empty($ev['reservation_id'])) {
+                $existingResIds[$ev['reservation_id']] = true;
+            }
+        }
+
+        $monthStart = $gregorianDate->copy()->startOfMonth();
+        $monthEnd = $gregorianDate->copy()->endOfMonth();
+        $dayReservations = collect($this->userReservationsByDay($monthStart, $monthEnd)[$selectedDate] ?? [])
+            ->filter(fn(Reservation $r) => !isset($existingResIds[$r->id]))
+            ->map(fn(Reservation $r) => $this->reservationPill($r));
+
+        return collect()
+            ->concat($holidays)
+            ->concat($events)
+            ->concat($dayReservations)
+            ->concat($birthdays)
+            ->concat($anniversaries);
     }
 
     public function eventBlockData(array $event): array
@@ -365,13 +476,18 @@ class CalendarPresenter
         $heightPx = (int) ($event['height'] ?? 30);
         $leftPct = (float) ($event['left_pct'] ?? 0);
         $widthPct = (float) ($event['width_pct'] ?? 100);
-        $showEndTime = $event['duration_minutes'] > 30;
-        $cappedDuration = min($event['duration_minutes'], 1440 - $event['start_minutes']);
-        $endMinutes = $event['start_minutes'] + $cappedDuration;
-        $endTime = sprintf('%02d:%02d', intdiv($endMinutes, 60), $endMinutes % 60);
-        $rangeLabel = $showEndTime
-            ? convertToPersian($event['time']) . '–' . convertToPersian($endTime)
-            : convertToPersian($event['time']);
+        $isFullDayBlock = !empty($event['is_full_day']) || !empty($event['is_multi_day']);
+        if ($isFullDayBlock) {
+            $rangeLabel = convertToPersian('تمام روز');
+        } else {
+            $showEndTime = $event['duration_minutes'] > 30;
+            $cappedDuration = min($event['duration_minutes'], 1440 - $event['start_minutes']);
+            $endMinutes = $event['start_minutes'] + $cappedDuration;
+            $endTime = sprintf('%02d:%02d', intdiv($endMinutes, 60), $endMinutes % 60);
+            $rangeLabel = $showEndTime
+                ? convertToPersian($event['time']) . '–' . convertToPersian($endTime)
+                : convertToPersian($event['time']);
+        }
 
         return [
             'locked' => $locked,
@@ -404,10 +520,18 @@ class CalendarPresenter
             $miniLabel = $miniJ->format('F Y');
             $prevMonth = $miniJ->subMonths(1)->format('Y-m-d');
             $nextMonth = $miniJ->addMonths(1)->format('Y-m-d');
+            $prevYear = $miniJ->subYears(1)->format('Y-m-d');
+            $nextYear = $miniJ->addYears(1)->format('Y-m-d');
+            $yearLabel = $miniJ->format('Y');
+            $monthLabel = $miniJ->format('F');
         } catch (Throwable $e) {
             $miniLabel = '';
             $prevMonth = $miniMonthDate;
             $nextMonth = $miniMonthDate;
+            $prevYear = $miniMonthDate;
+            $nextYear = $miniMonthDate;
+            $yearLabel = '';
+            $monthLabel = '';
         }
 
         return [
@@ -415,12 +539,121 @@ class CalendarPresenter
             'miniLabel' => $miniLabel,
             'prevMonth' => $prevMonth,
             'nextMonth' => $nextMonth,
+            'prevYear' => $prevYear,
+            'nextYear' => $nextYear,
+            'yearLabel' => $yearLabel,
+            'monthLabel' => $monthLabel,
         ];
     }
 
     private function authId(): ?int
     {
         return once(fn () => Auth::id());
+    }
+
+    private function userReservationsByDay(Carbon $start, Carbon $end): array
+    {
+        $start = $start->copy()->startOfDay();
+        $end = $end->copy()->endOfDay();
+
+        if ($this->userReservationsCache === null
+            || $this->userReservationsRange === null
+            || $start < $this->userReservationsRange[0]
+            || $end > $this->userReservationsRange[1]
+        ) {
+            $this->userReservationsCache = Reservation::query()
+                ->forUser($this->authId() ?? 0)
+                ->where('status', ReservationStatus::Active->value)
+                ->where('end_time', '>=', $start)
+                ->where('start_time', '<=', $end)
+                ->with('resource:id,name,type')
+                ->get();
+            $this->userReservationsRange = [$start, $end];
+        }
+
+        $byDay = [];
+        foreach ($this->userReservationsCache as $reservation) {
+            $resStart = $reservation->start_time?->startOfDay();
+            $resEnd = $reservation->end_time?->endOfDay();
+            if (!$resStart || !$resEnd) {
+                continue;
+            }
+            $cursor = $resStart->greaterThan($start) ? $resStart->copy() : $start->copy();
+            $loopEnd = $resEnd->lessThan($end) ? $resEnd : $end;
+            while ($cursor <= $loopEnd) {
+                $byDay[Jalalian::fromCarbon($cursor)->format('Y-m-d')][] = $reservation;
+                $cursor->addDay();
+            }
+        }
+
+        return $byDay;
+    }
+
+    private function userReservationsSpanning(Carbon $start, Carbon $end): array
+    {
+        $this->userReservationsByDay($start, $end);
+
+        $spanning = [];
+        foreach ($this->userReservationsCache as $reservation) {
+            if (!$reservation->start_time || !$reservation->end_time || $reservation->start_time->isSameDay($reservation->end_time)) {
+                continue;
+            }
+            $spanning[] = $this->spanningPill($reservation);
+        }
+
+        return $spanning;
+    }
+
+    private function spanningPill(Reservation $reservation): array
+    {
+        $type = $reservation->resource?->type;
+        $resolved = $type !== null ? ResourceType::tryFrom($type) : null;
+        $typeLabel = $resolved?->getLabel() ?? $type ?? 'منبع نامشخص';
+        $resourceName = $reservation->resource?->name ?? 'منبع نامشخص';
+
+        return [
+            'id' => 'res-' . $reservation->id,
+            'reservation_id' => $reservation->id,
+            'title' => "{$typeLabel} · {$resourceName}",
+            'is_full_day' => (bool) $reservation->is_full_day,
+            'start_jkey' => Jalalian::fromCarbon($reservation->start_time->copy()->startOfDay())->format('Y-m-d'),
+            'end_jkey' => Jalalian::fromCarbon($reservation->end_time->copy()->startOfDay())->format('Y-m-d'),
+        ];
+    }
+
+    private function reservationPill(Reservation $reservation): array
+    {
+        $type = $reservation->resource?->type;
+        $resolved = $type !== null ? ResourceType::tryFrom($type) : null;
+        $typeLabel = $resolved?->getLabel() ?? $type ?? 'منبع نامشخص';
+        $resourceName = $reservation->resource?->name ?? 'منبع نامشخص';
+        $isFullDay = (bool) $reservation->is_full_day;
+        $start = $reservation->start_time;
+        $isMultiDay = $start && $reservation->end_time && !$start->isSameDay($reservation->end_time);
+        $time = $isFullDay ? 'تمام روز' : ($start ? toJalali($start, 'H:i') : '00:00');
+        $startMinutes = $isFullDay ? 0 : (($start?->hour ?? 0) * 60 + ($start?->minute ?? 0));
+        $duration = $isFullDay ? 0 : (int) ($start && $reservation->end_time ? $start->diffInMinutes($reservation->end_time) : 0);
+
+        return [
+            'id' => 'res-' . $reservation->id,
+            'type' => 'event',
+            'title' => "{$typeLabel} · {$resourceName}",
+            'description' => '',
+            'time' => $time,
+            'start_minutes' => $startMinutes,
+            'duration_minutes' => $duration,
+            'is_owner' => true,
+            'private' => true,
+            'is_shared' => false,
+            'shared_by_name' => null,
+            'is_reservation_linked' => true,
+            'is_full_day' => $isFullDay,
+            'is_multi_day' => $isMultiDay,
+            'reservation_id' => $reservation->id,
+            'remind_hours' => null,
+            'locked' => true,
+            'mtime' => $reservation->updated_at?->toIso8601String(),
+        ];
     }
 
     private function todayKey(): string
@@ -526,6 +759,17 @@ class CalendarPresenter
             ->get()
             ->groupBy(fn($e) => Jalalian::fromCarbon($e->date)->format('Y-m-d'));
 
+        $resEventIdsByDay = [];
+        foreach ($monthEvents as $dayKey => $events) {
+            foreach ($events as $e) {
+                $rid = EventSyncService::reservationIdFrom($e->description);
+                if ($rid !== null) {
+                    $resEventIdsByDay[$dayKey][$rid] = true;
+                }
+            }
+        }
+        $reservationsByDay = $this->userReservationsByDay($startDate, $endDate);
+
         $profiles = $this->getProfilesWithDates();
         $birthdays = $profiles->pluck('birthdate')->filter()->map(fn($d) => $d->format('m-d'))->flip();
         $anniversaries = $profiles->pluck('start_date')->filter()->map(fn($d) => $d->format('m-d'))->flip();
@@ -565,12 +809,23 @@ class CalendarPresenter
                     ($hasBirthday ? 1 : 0) +
                     ($hasAnniversary ? 1 : 0);
 
+                $dayReservations = $reservationsByDay[$dateString] ?? [];
+                $resCount = 0;
+                foreach ($dayReservations as $r) {
+                    if (!isset($resEventIdsByDay[$dateString][$r->id])) {
+                        $resCount++;
+                    }
+                }
+                $hasReservations = $resCount > 0;
+                $eventCount += $resCount;
+
                 $days[] = [
                     'day' => $day,
                     'date' => $dateString,
                     'isToday' => $dateString === $todayStr,
                     'isSelected' => $dateString === $selectedDate,
                     'hasEvents' => $hasEvent,
+                    'hasReservations' => $hasReservations,
                     'hasBirthday' => $hasBirthday,
                     'hasAnniversary' => $hasAnniversary,
                     'eventCount' => $eventCount,

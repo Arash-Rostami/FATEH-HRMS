@@ -20,12 +20,14 @@ use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Models\User;
+use App\Services\ProjectTask\TasksheetShareService;
 use App\Services\User\UserKeyGrouper;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -249,6 +251,26 @@ class UserResource extends Resource
             ])
             ->filtersFormColumns(2)
             ->recordActions([
+                Action::make('tasksheet')
+                    ->label('مشاهده تسک‌شیت')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->iconButton()
+                    ->url(fn($record) => route('tasksheet', ['user' => $record->id]))
+                    ->openUrlInNewTab(),
+                Action::make('shareTasksheet')
+                    ->label('اشتراک‌گذاری تسک‌شیت با مدیر')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->iconButton()
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        $result = app(TasksheetShareService::class)
+                            ->shareWithManager($record, requestedBy: auth()->user());
+
+                        Notification::make()
+                            ->title($result['message'])
+                            ->{$result['success'] ? 'success' : 'warning'}()
+                            ->send();
+                    }),
                 self::viewAction(),
                 self::editAction(),
                 self::deleteAction(),

@@ -31,7 +31,7 @@ app/Services/Search/
 ├── Resources/
 │   ├── PostResource.php
 │   ├── FeedResource.php
-│   └── … (21 in total)
+│   └── … (22 in total)
 ├── ContentService.php
 └── NavigationService.php
 ```
@@ -39,7 +39,7 @@ app/Services/Search/
 - `Contracts/Searchable.php` — interface every content resource fulfils.
 - `Contracts/SearchContext.php` — immutable value object: normalized query + tokens.
 - `Contracts/SearchResource.php` — abstract base; ALL the shared search machinery.
-- `Resources/` — one tiny class per searchable module (21 in total).
+- `Resources/` — one tiny class per searchable module (22 in total).
 - `ContentService.php` — orchestrator: registry + ranking of resources.
 - `NavigationService.php` — the module-shortcut engine (static list).
 

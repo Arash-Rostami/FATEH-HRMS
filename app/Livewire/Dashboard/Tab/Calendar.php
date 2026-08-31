@@ -19,12 +19,14 @@ use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
 #[Isolate]
+#[Lazy]
 class Calendar extends Component
 {
     use FocusOnRecord;
@@ -158,6 +160,11 @@ class Calendar extends Component
         $this->isCreateModalOpen = true;
     }
 
+    public function reservationHint(): void
+    {
+        $this->dispatch('toast', message: 'این رزرو از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر یا لغو آن به تب «رزرو» مراجعه کنید.', type: 'error');
+    }
+
     public function focusRecord(int $id): void
     {
         $event = Event::find($id);
@@ -178,6 +185,28 @@ class Calendar extends Component
         $this->selectedDate = $today;
         $this->miniMonthDate = $today;
         $this->invalidateNavigationComputeds();
+    }
+
+    public function goToDate(string $jalaliYmd): void
+    {
+        $this->selectedDate = $jalaliYmd;
+        $this->navigationDate = $jalaliYmd;
+        $this->miniMonthDate = $jalaliYmd;
+        $this->invalidateNavigationComputeds();
+        unset($this->miniMonthDays);
+    }
+
+    public function stepMiniMonth(int $deltaMonths): void
+    {
+        try {
+            $j = Jalalian::fromFormat('Y-m-d', $this->miniMonthDate);
+            $this->miniMonthDate = $deltaMonths >= 0
+                ? $j->addMonths($deltaMonths)->format('Y-m-d')
+                : $j->subMonths(abs($deltaMonths))->format('Y-m-d');
+        } catch (Throwable $e) {
+            return;
+        }
+        unset($this->miniMonthDays);
     }
 
     public function mount(): void
@@ -216,6 +245,7 @@ class Calendar extends Component
             $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->addDays($days))->format('Y-m-d');
         }
 
+        $this->selectedDate = $this->navigationDate;
         $this->invalidateNavigationComputeds();
     }
 
@@ -236,12 +266,18 @@ class Calendar extends Component
             $this->navigationDate = Jalalian::fromCarbon($j->toCarbon()->subDays($days))->format('Y-m-d');
         }
 
+        $this->selectedDate = $this->navigationDate;
         $this->invalidateNavigationComputeds();
     }
 
     public function render()
     {
         return view('livewire.dashboard.tab.calendar', ['presenter' => $this->presenter()]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.calendar.placeholder');
     }
 
     public function saveEvent(SaveEventAction $action): void
@@ -270,6 +306,7 @@ class Calendar extends Component
         }
 
         $this->view = $view;
+        $this->navigationDate = $this->selectedDate;
         session(['calendar_view_mode' => $view]);
         $this->invalidateNavigationComputeds();
     }
@@ -425,6 +462,6 @@ class Calendar extends Component
 
     private function invalidateNavigationComputeds(): void
     {
-        unset($this->rangeEvents, $this->calendarDays, $this->rangeLabel, $this->currentMonthName);
+        unset($this->rangeEvents, $this->calendarDays, $this->rangeLabel, $this->currentMonthName, $this->activeDate, $this->selectedDayEvents);
     }
 }

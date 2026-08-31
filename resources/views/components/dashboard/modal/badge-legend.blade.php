@@ -23,12 +23,14 @@
         </div>
 
         @if(count($groups))
-            <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40" x-data="{ tab: '{{ $groups[0]['id'] }}' }">
+            @php($firstSubgroups = $groups[0]['subgroups'] ?? [])
+            <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40"
+                 x-data="{ tab: '{{ $groups[0]['id'] }}', sub: '{{ $firstSubgroups[0]['id'] ?? '' }}' }">
                 <div class="flex flex-wrap gap-1 p-1 mb-4 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
                     @foreach($groups as $group)
                         <button
                             type="button"
-                            @click="tab = '{{ $group['id'] }}'"
+                            @click="tab = '{{ $group['id'] }}'@if(!empty($group['subgroups'])); sub = '{{ $group['subgroups'][0]['id'] }}'@endif"
                             :class="tab === '{{ $group['id'] }}'
                                 ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
                                 : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
@@ -41,10 +43,37 @@
                 </div>
 
                 @foreach($groups as $group)
-                    <div x-show="tab === '{{ $group['id'] }}'" x-cloak class="space-y-2">
-                        @foreach($group['items'] as $item)
-                            <x-dashboard.modal.badge-legend-row :item="$item"/>
-                        @endforeach
+                    <div x-show="tab === '{{ $group['id'] }}'" x-cloak>
+                        @if(!empty($group['subgroups']))
+                            <div class="flex flex-wrap gap-1 p-1 mb-3 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+                                @foreach($group['subgroups'] as $subgroup)
+                                    <button
+                                        type="button"
+                                        @click="sub = '{{ $subgroup['id'] }}'"
+                                        :class="sub === '{{ $subgroup['id'] }}'
+                                            ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
+                                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
+                                        class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-200"
+                                    >
+                                        <span class="material-symbols-rounded text-[15px]">{{ $subgroup['icon'] }}</span>
+                                        {{ $subgroup['label'] }}
+                                    </button>
+                                @endforeach
+                            </div>
+                            @foreach($group['subgroups'] as $subgroup)
+                                <div x-show="sub === '{{ $subgroup['id'] }}'" x-cloak class="space-y-2">
+                                    @foreach($subgroup['items'] as $item)
+                                        <x-dashboard.modal.badge-legend-row :item="$item"/>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="space-y-2">
+                                @foreach($group['items'] as $item)
+                                    <x-dashboard.modal.badge-legend-row :item="$item"/>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>

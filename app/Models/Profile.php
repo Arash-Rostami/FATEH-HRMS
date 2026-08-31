@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Enums\ProfileDetailGroup;
 use App\Filament\Resources\ProfileResource\Enums\Position;
-use App\Models\Traits\HasAvatar as HasImage;
-use App\Models\Traits\HasDateHelpers;
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasOccasions;
+use App\Models\Concerns\HasAvatar as HasImage;
+use App\Models\Concerns\HasDateHelpers;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasOccasions;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class Profile extends Model
 {
@@ -168,6 +169,12 @@ class Profile extends Model
         static::deleting(function (self $profile) {
             static::deleteStoredFiles($profile->image);
             static::deleteStoredFiles($profile->attachments);
+        });
+
+        static::creating(function (self $profile) {
+            if (static::where('user_id', $profile->user_id)->exists()) {
+                throw new RuntimeException(__('resources/profile/strings.validation.duplicate'));
+            }
         });
     }
 }

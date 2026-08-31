@@ -1,4 +1,4 @@
-@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد'])
+@props(['label', 'name', 'disabled' => false, 'icon' => null, 'searchable' => false, 'options' => [], 'emptyText' => 'موردی یافت نشد', 'columnHint' => null])
 @php($objectMode = $searchable && filled($options) && !is_string(\Illuminate\Support\Arr::first($options)))
 
 <div
@@ -93,9 +93,9 @@
     @endif
 
     @if(!$searchable)
-        <label for="{{ $name }}" class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">{{ $label }}</label>
+        <label for="{{ $name }}" @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }}">{{ $label }}</label>
     @else
-        <label class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }} pointer-events-none">{{ $label }}</label>
+        <label @if($columnHint) title="نام فیلد در پایگاه‌داده: {{ $columnHint }}" @endif class="md3-label {{ $icon ? 'peer-placeholder-shown:right-10 peer-focus:right-4' : 'right-4' }} pointer-events-none">{{ $label }}</label>
     @endif
 
     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[var(--md-sys-color-on-surface-variant)]">

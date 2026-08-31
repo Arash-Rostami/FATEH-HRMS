@@ -56,6 +56,7 @@ class ResourceTablePresenter
             ->label(__('resources/resource/strings.fields.name'))
             ->searchable()
             ->sortable()->searchable()->weight(FontWeight::Bold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

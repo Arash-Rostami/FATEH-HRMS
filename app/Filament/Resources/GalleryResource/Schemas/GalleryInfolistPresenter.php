@@ -43,6 +43,7 @@ class GalleryInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/gallery/strings.fields.description'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -110,6 +111,7 @@ class GalleryInfolistPresenter
             ->label(__('resources/gallery/strings.fields.title'))
             ->size(TextSize::Medium)
             ->weight(FontWeight::Bold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

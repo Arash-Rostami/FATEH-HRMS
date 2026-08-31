@@ -22,6 +22,9 @@ class SuggestionForm extends Form
     #[Validate('required|array|min:1')]
     public array $rule = [];
 
+    #[Validate('required|in:low,medium,high')]
+    public string $priority = 'medium';
+
     #[Validate('nullable|file|mimes:pdf,png,jpg|max:10240')]
     public $attachment = null;
 
@@ -52,6 +55,7 @@ class SuggestionForm extends Form
             'departments' => 'واحدها',
             'purpose' => 'هدف',
             'rule' => 'قوانین',
+            'priority' => 'اولویت',
             'attachment' => 'پیوست',
         ];
     }
@@ -73,6 +77,8 @@ class SuggestionForm extends Form
             'rule.required' => 'انتخاب قوانین الزامی است.',
             'rule.array' => 'قوانین باید به صورت آرایه باشند.',
             'rule.min' => 'حداقل یک قانون باید انتخاب شود.',
+            'priority.required' => 'انتخاب اولویت الزامی است.',
+            'priority.in' => 'اولویت انتخابی معتبر نیست.',
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
             'attachment.mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
             'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',

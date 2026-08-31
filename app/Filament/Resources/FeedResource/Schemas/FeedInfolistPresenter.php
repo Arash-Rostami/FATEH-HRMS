@@ -34,6 +34,7 @@ class FeedInfolistPresenter
         return TextEntry::make('content')
             ->label(__('resources/feed/strings.fields.content'))
             ->html()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -99,7 +100,7 @@ class FeedInfolistPresenter
                     ),
                 ])->values()->all();
             })
-            ->schema([TextEntry::make('option')->hiddenLabel()->html()->columnSpanFull()])
+            ->schema([TextEntry::make('option')->hiddenLabel()->html()->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])->columnSpanFull()])
             ->visible(fn($record) => ($record->category?->value ?? $record->category) === FeedCategory::Poll->value)
             ->columnSpanFull();
     }

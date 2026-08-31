@@ -1,6 +1,6 @@
 @php
     $badge = $presenter->badge($faq);
-    $questionText = $presenter->questionText($faq);
+    $questionHtml = renderInline($faq->question ?: 'بدون عنوان', 300);
 @endphp
 
 <div
@@ -15,8 +15,8 @@
 
             <div class="flex flex-col gap-1.5 min-w-0 text-right">
                 <h3 id="faq-q-{{ $faq->id }}"
-                    x-html="highlight($el.textContent)"
-                    class="m-0 text-base font-bold leading-snug transition-colors duration-300 text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-primary)]">{{ $questionText }}</h3>
+                    x-html="highlightHtml(@js($questionHtml))"
+                    class="rich-colors m-0 text-base font-bold leading-snug transition-colors duration-300 text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-primary)]">{!! $questionHtml !!}</h3>
 
                 <div class="flex flex-wrap items-center gap-2 text-[11px] opacity-80 text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="px-2 py-0.5 font-medium rounded-md bg-[var(--md-sys-color-surface-variant)]">{{ $faq->category }}</span>
@@ -53,7 +53,7 @@
             <div class="grid grid-cols-[3px_1fr] gap-x-4">
                 <div class="rounded-full bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]" aria-hidden="true"></div>
                 <div
-                    class="max-w-none text-sm leading-7 text-justify prose prose-sm prose-p:text-[var(--md-sys-color-on-surface)] prose-a:text-[var(--md-sys-color-primary)]"
+                    class="max-w-none text-sm leading-7 text-justify prose prose-sm prose-p:text-[var(--md-sys-color-on-surface)] prose-a:text-[var(--md-sys-color-primary)] rich-colors"
                     dir="rtl"
                     x-html="highlightHtml(@js(str_replace('<a ', "<a target='_blank' class='hover:underline font-medium decoration-[color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)] underline-offset-4 hover:decoration-[var(--md-sys-color-primary)] transition-all duration-300' ", $faq->answer)))"
                 ></div>

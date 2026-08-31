@@ -11,7 +11,7 @@ return [
         'overall_score' => 'امتیاز کلی',
         'mind_score' => '🧠ذهن ',
         'emotion_score' => '❤️احساس',
-        'physique_score' => '🏋️‍♂جسم ️',
+        'physique_score' => '🏋️‍♂️ جسم',
         'soul_score' => '✨روح ',
         'month_index' => 'ماه',
         'answers' => 'خلاصه پاسخ‌ها',
@@ -44,7 +44,7 @@ return [
         'out_of_100' => 'از 20',
         'dimension_averages' => 'میانگین ابعاد',
         'low_scores' => ' پرخطر',
-        'above_12' => 'بالای 12',
+        'above_12' => 'بالای ۱۲',
         'last_month' => 'ماه اخیر',
     ],
 

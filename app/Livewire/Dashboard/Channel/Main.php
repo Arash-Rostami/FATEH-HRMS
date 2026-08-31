@@ -25,19 +25,23 @@ use App\Models\ChannelMessage;
 use App\Models\User;
 use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Js;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 #[Isolate]
+#[Lazy]
 class Main extends Component
 {
     use ChatComposer, FocusOnRecord, WithFileUploads;
@@ -52,6 +56,7 @@ class Main extends Component
     public string $search = '';
     public string $messageSearch = '';
     public string $filter = 'all';
+    public int $channelsLimit = 30;
     public bool $browseMode = false;
     public bool $createMode = false;
     public bool $mobileShowChat = false;
@@ -112,6 +117,7 @@ class Main extends Component
                 'type' => $ch->type->value,
                 'owner_id' => $ch->owner_id,
                 'is_entered' => !empty($ch->entered_at),
+                'members_count' => (int)($ch->members_count ?? 0),
                 'unread_count' => (int)($ch->unread_count ?? 0),
                 'last_message' => $last ? [
                     'body' => $last->body,
@@ -134,6 +140,53 @@ class Main extends Component
                 'type' => $ch->type->value,
                 'owner_name' => $ch->owner?->name ?? '—',
             ])->values()->all();
+    }
+
+    #[Computed]
+    public function pendingInvitees(): array
+    {
+        $channel = $this->activeChannel;
+        if (!$channel || (int) $channel->owner_id !== (int) auth()->id()) {
+            return [];
+        }
+
+        $ids = Channel::invitedUserIds((int) $channel->id);
+        if (!$ids) {
+            return [];
+        }
+
+        return User::query()
+            ->whereIn('users.id', $ids)
+            ->leftJoin('edges', fn($j) => $j->on('edges.user_id', '=', 'users.id')
+                ->where('edges.edge_key', 'channels-controller:nudge')
+                ->where('edges.subject_type', Channel::class)
+                ->where('edges.subject_id', (int) $channel->id)
+                ->whereNotNull('edges.dismissed_at'))
+            ->select('users.id', 'users.name')
+            ->selectRaw('(edges.user_id IS NULL) AS cancellable')
+            ->orderBy('users.name')
+            ->get()
+            ->map(fn(User $u) => [
+                'id' => (int) $u->id,
+                'name' => $u->name,
+                'cancellable' => (bool) $u->cancellable,
+            ])
+            ->all();
+    }
+
+    public function cancelInvite(LeaveChannelAction $action, int $channelId, int $userId): void
+    {
+        if ($channelId !== $this->activeChannelId
+            || !in_array($userId, array_column($this->pendingInvitees, 'id'))) {
+            return;
+        }
+
+        if (!$action->execute($channelId, $userId)) {
+            return;
+        }
+
+        unset($this->pendingInvitees);
+        $this->dispatch('show-toast', message: 'دعوت لغو شد', type: 'info');
     }
 
     #[Computed]
@@ -225,82 +278,46 @@ class Main extends Component
     }
 
     #[Computed]
-    public function mentionMemberMap(): array
+    protected function channelMembersForMentions(): Collection
     {
         if (!$this->activeChannel) {
-            return [];
+            return collect();
         }
 
+        return $this->activeChannel->memberUsers()
+            ->select('users.id', 'users.name', 'users.presence')
+            ->orderBy('users.name')
+            ->get();
+    }
+
+    #[Computed]
+    public function mentionMemberMap(): array
+    {
         $map = [];
-        foreach ($this->activeChannel->memberUsers()->select('users.id', 'users.name')->orderBy('users.name')->get() as $user) {
+        foreach ($this->channelMembersForMentions as $user) {
             $map[$user->name][] = (int) $user->id;
         }
 
         return $map;
     }
 
+    #[Computed]
+    public function mentionMemberPresence(): array
+    {
+        $out = [];
+        foreach ($this->channelMembersForMentions as $user) {
+            $out[$user->name] = [
+                'presence_label' => $user->presence?->label(),
+                'presence_class' => $user->presence?->activeClass(),
+            ];
+        }
+
+        return $out;
+    }
+
     public function loadMentionMemberNames(): void
     {
         $this->mentionMemberNames = array_keys($this->mentionMemberMap);
-    }
-
-    #[Computed]
-    public function mentionToasts(): array
-    {
-        $authId = (int) auth()->id();
-        $authName = auth()->user()?->name;
-        if (!$authName) {
-            return [];
-        }
-
-        $channelIds = Channel::withoutTrashed()
-            ->whereHas('memberUsers', fn($q) => $q->where('users.id', $authId))
-            ->pluck('id');
-        if ($channelIds->isEmpty()) {
-            return [];
-        }
-
-        $likeName = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $authName);
-
-        $rows = ChannelMessage::withoutTrashed()
-            ->whereIn('channel_messages.channel_id', $channelIds)
-            ->where('channel_messages.sender_id', '!=', $authId)
-            ->where('channel_messages.body', 'like', '%' . $likeName . '%')
-            ->leftJoin('channel_members', function ($j) use ($authId) {
-                $j->on('channel_members.channel_id', '=', 'channel_messages.channel_id')
-                    ->where('channel_members.user_id', '=', $authId);
-            })
-            ->whereRaw('channel_messages.id > COALESCE(channel_members.last_read_message_id, 0)')
-            ->orderByDesc('channel_messages.id')
-            ->limit(200)
-            ->get(['channel_messages.id', 'channel_messages.channel_id', 'channel_messages.sender_id', 'channel_messages.body']);
-
-        $pattern = '/(?<![\w@])@' . preg_quote($authName, '/') . '(?![\p{L}\p{N}_])/u';
-        $latest = [];
-        foreach ($rows as $m) {
-            if (!preg_match($pattern, (string) $m->body)) {
-                continue;
-            }
-            $cid = (int) $m->channel_id;
-            if (!isset($latest[$cid]) || (int) $m->id > $latest[$cid]->id) {
-                $latest[$cid] = $m;
-            }
-        }
-
-        if (!$latest) {
-            return [];
-        }
-
-        $senders = User::whereIn('id', array_map(fn($m) => (int) $m->sender_id, $latest))
-            ->pluck('name', 'id');
-        $names = Channel::withoutTrashed()->whereIn('id', array_keys($latest))->pluck('name', 'id');
-
-        return array_map(fn($m) => [
-            'channel_id' => (int) $m->channel_id,
-            'channel_name' => $names[$m->channel_id] ?? '—',
-            'message_id' => (int) $m->id,
-            'sender_name' => $senders[$m->sender_id] ?? '—',
-        ], array_values($latest));
     }
 
     #[Computed]
@@ -348,7 +365,7 @@ class Main extends Component
 
         $this->markRead($channelId);
 
-        unset($this->channels, $this->messages, $this->activeChannel, $this->mentionMemberMap, $this->mentionToasts);
+        unset($this->channels, $this->messages, $this->activeChannel, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
     }
 
     public function focusRecord(int $channelId): bool
@@ -436,13 +453,24 @@ class Main extends Component
 
     public function refreshUnread(): void
     {
-        unset($this->channels, $this->mentionToasts);
+        unset($this->channels);
     }
 
     public function setFilter(string $filter): void
     {
         $this->filter = $filter;
-        unset($this->channels, $this->mentionToasts);
+        $this->channelsLimit = 30;
+        unset($this->channels);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->channelsLimit = 30;
+    }
+
+    public function loadMoreChannels(): void
+    {
+        $this->channelsLimit += 30;
     }
 
     public function toggleBrowse(): void
@@ -510,7 +538,7 @@ class Main extends Component
         $this->messageSearch = '';
         $this->composer->reset();
         $this->edit->reset();
-        unset($this->channels, $this->messages, $this->activeChannel, $this->joinableChannels);
+        unset($this->channels, $this->messages, $this->activeChannel, $this->joinableChannels, $this->pendingInvitees);
     }
 
     public function replyTo(int $messageId): void
@@ -556,7 +584,7 @@ class Main extends Component
             $this->editingMsg = null;
             $this->focusAnchorId = null;
             $this->focusOlder = 5;
-            unset($this->messages, $this->channels, $this->mentionToasts);
+            unset($this->messages, $this->channels);
             $this->dispatch('message-sent');
         } catch (ValidationException $e) {
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
@@ -608,7 +636,7 @@ class Main extends Component
     {
         $action->execute($channelId, auth()->id());
         $this->browseMode = false;
-        unset($this->channels, $this->joinableChannels, $this->mentionToasts);
+        unset($this->channels, $this->joinableChannels);
         $this->selectChannel($channelId);
     }
 
@@ -626,7 +654,7 @@ class Main extends Component
             $this->focusOlder = 5;
             $this->messageSearch = '';
         }
-        unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->mentionMemberMap, $this->mentionToasts);
+        unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
         $this->dispatch('show-toast', message: 'از کانال خارج شدید', type: 'info');
     }
 
@@ -662,7 +690,7 @@ class Main extends Component
 
         $this->isManageMembersOpen = false;
         $this->memberRecipientIds = [];
-        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->mentionMemberMap, $this->mentionToasts);
+        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
 
         if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
             $this->dispatch('show-toast', message: 'اعضای کانال به‌روزرسانی شد', type: 'success');
@@ -695,6 +723,11 @@ class Main extends Component
     public function render()
     {
         return view('livewire.dashboard.channel')->layout('layouts.app');
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.channel.placeholder')->layout('layouts.app');
     }
 
     protected function recordFocusType(): string

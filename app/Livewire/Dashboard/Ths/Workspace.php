@@ -82,6 +82,13 @@ class Workspace extends Component
         $this->replyForm->reset();
         unset($this->ticket);
         $this->dispatch('toast', message: 'پاسخ شما ثبت شد.', type: 'success');
+        $this->dispatch('ths-reply-posted');
+    }
+
+    public function removeReplyAttachment(int $index): void
+    {
+        unset($this->replyForm->files[$index]);
+        $this->replyForm->files = array_values($this->replyForm->files);
     }
 
     public function assign(AssignTicketAction $action): void

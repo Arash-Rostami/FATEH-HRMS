@@ -1,8 +1,6 @@
 const REPORT_ID_SELECTOR = '[data-report-id]';
 const MOBILE_BREAKPOINT = 768;
 const INIT_TIMER_DELAY = 100;
-const INTERSECTION_THRESHOLD = 0.1;
-const INTERSECTION_ROOT_MARGIN = '0px 200px 0px 200px';
 const SCROLLER_SELECTOR = '.overflow-y-auto';
 const FILTER_SELECTOR = '[x-data^="filters"]';
 const SCROLL_TOP_THRESHOLD = 30;
@@ -17,7 +15,6 @@ export default function report() {
         activeId: null,
         showTimeline: false,
         loading: false,
-        observer: null,
 
         _isDestroyed: false,
         _enforce: null,
@@ -49,7 +46,6 @@ export default function report() {
             this.$nextTick(() => {
                 this.setupScrollListener();
                 this.setupFilterCompact();
-                this.setupIntersectionObserver();
                 this._initTimer = setTimeout(() => this.updateActiveItem(), INIT_TIMER_DELAY);
 
                 this._observer = new MutationObserver(() => {
@@ -66,11 +62,7 @@ export default function report() {
             this._morphHook = Livewire.hook('morph', ({ component, el }) => {
                 if (this._isDestroyed) return;
                 if (component.id === this.$wire.__instance.id) {
-                    this.$nextTick(() => {
-                        if (this.$refs.loadTriggerCard) {
-                            this.setupIntersectionObserver();
-                        }
-                    });
+                    this.$nextTick(() => this.updateActiveItem());
                 }
             });
         },
@@ -108,11 +100,6 @@ export default function report() {
                 this._observer = null;
             }
 
-            if (this.observer) {
-                this.observer.disconnect();
-                this.observer = null;
-            }
-
             if (this._timelineEl && this._timelineHandler) {
                 this._timelineEl.removeEventListener('scroll', this._timelineHandler);
                 this._timelineEl = null;
@@ -136,23 +123,6 @@ export default function report() {
                 this._timelineRaf = window.requestAnimationFrame(() => this.updateActiveItem());
             };
             container.addEventListener('scroll', this._timelineHandler, { passive: true });
-        },
-
-        setupIntersectionObserver() {
-            if (!this.$refs.loadTriggerCard) return;
-            if (this.observer) this.observer.disconnect();
-
-            this.observer = new IntersectionObserver((entries) => {
-                if (entries[0]?.isIntersecting && !this.loading && this.$wire.hasMorePages) {
-                    this.loadMore();
-                }
-            }, {
-                root: this.$refs.timeline,
-                threshold: INTERSECTION_THRESHOLD,
-                rootMargin: INTERSECTION_ROOT_MARGIN
-            });
-
-            this.observer.observe(this.$refs.loadTriggerCard);
         },
 
         async loadMore() {

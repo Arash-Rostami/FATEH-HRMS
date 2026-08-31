@@ -48,6 +48,7 @@ class AdTablePresenter
             ->limit(60)
             ->tooltip(fn($record) => $record->certificate)
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -69,6 +70,7 @@ class AdTablePresenter
             ->limit(60)
             ->tooltip(fn($record) => $record->experience)
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -154,6 +156,7 @@ class AdTablePresenter
             ->searchable()
             ->sortable()
             ->placeholder(__('resources/ad/strings.fields.position_empty'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
@@ -164,6 +167,7 @@ class AdTablePresenter
             ->limit(60)
             ->tooltip(fn($record) => $record->skill)
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: true);
     }
 }

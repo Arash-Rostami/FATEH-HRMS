@@ -23,12 +23,15 @@ use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Js;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\View\View;
 
 #[Isolate]
+#[Lazy]
 class Main extends Component
 {
     use ChatComposer, FocusOnRecord, WithFileUploads;
@@ -38,6 +41,7 @@ class Main extends Component
     public ?int $activeUserId = null;
     public string $search = '';
     public string $filter = 'all';
+    public int $contactsLimit = 30;
     public bool $mobileShowChat = false;
     #[Locked]
     public int $editTimeLimit = 600;
@@ -51,6 +55,8 @@ class Main extends Component
     #[Locked]
     public int $focusOlder = 5;
     public bool $hasOlder = false;
+    #[Locked]
+    public ?int $newMessagesAnchorId = null;
 
     #[Computed]
     public function activeContact(): ?User
@@ -69,6 +75,7 @@ class Main extends Component
         $this->focusOlder = 5;
         $this->hasOlder = false;
         $this->messagesLimit = 10;
+        $this->newMessagesAnchorId = null;
         $this->resetAllStates();
     }
 
@@ -87,6 +94,7 @@ class Main extends Component
             'id' => (int)$user->id,
             'name' => $user->name,
             'profile' => $user->profile?->toArray(),
+            'display_position' => $user->profile?->display_position,
             'occasion' => $user->profile?->todaysOccasionType(),
             'unit' => $user->profile?->detailsMap()->get('unit'),
             'section' => $user->profile?->detailsMap()->get('section'),
@@ -302,6 +310,11 @@ class Main extends Component
         return view('livewire.dashboard.contact')->layout('layouts.app');
     }
 
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.contact.placeholder')->layout('layouts.app');
+    }
+
     public function saveEdit(SaveEditAction $action, int $editingId): void
     {
         if (!$action->execute($this->edit, $editingId, $this->editTimeLimit)) {
@@ -326,6 +339,8 @@ class Main extends Component
         $this->hasOlder = false;
         $this->invalidateMessageCache();
         $this->resetAllStates();
+
+        $this->newMessagesAnchorId = $this->presenter->firstUnreadId($this->messages, auth()->id());
 
         $this->markRead($userId);
 
@@ -352,7 +367,21 @@ class Main extends Component
         }
     }
 
-    public function setFilter(string $filter): void { $this->filter = $filter; }
+    public function setFilter(string $filter): void
+    {
+        $this->filter = $filter;
+        $this->contactsLimit = 30;
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->contactsLimit = 30;
+    }
+
+    public function loadMoreContacts(): void
+    {
+        $this->contactsLimit += 30;
+    }
 
     #[Computed]
     public function totalStaff(): int

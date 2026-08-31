@@ -5,7 +5,7 @@ namespace App\Livewire\Dashboard\Suggestion\Presentation;
 use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasPublicAssetUrl;
 use Illuminate\Support\Collection;
 
 class SuggestionPresenter
@@ -37,9 +37,9 @@ class SuggestionPresenter
     ];
     private const DEFAULT_STAGE_META = ['surface-variant', 'on-surface-variant', 'info'];
     private const PRIORITY_META = [
-        'low' => ['surface-variant', 'on-surface-variant', 'arrow_drop_down', 'کم'],
-        'medium' => ['secondary-container', 'on-secondary-container', 'commit', 'متوسط'],
-        'high' => ['error-container', 'on-error-container', 'arrow_drop_up', 'زیاد'],
+        'low' => ['surface-variant', 'on-surface-variant', 'low_priority', 'کم'],
+        'medium' => ['secondary-container', 'on-secondary-container', 'drag_handle', 'متوسط'],
+        'high' => ['error-container', 'on-error-container', 'priority_high', 'زیاد'],
     ];
     private const DEFAULT_PRIORITY = 'low';
     private const FEEDBACK_STYLES = [
@@ -61,6 +61,12 @@ class SuggestionPresenter
     public function attachmentUrl(): ?string
     {
         return $this->suggestion->attachment ? self::resolvePublicAssetUrl($this->suggestion->attachment) : null;
+    }
+
+    public function attachmentIsImage(): bool
+    {
+        return $this->suggestion->attachment
+            && in_array(strtolower(pathinfo($this->suggestion->attachment, PATHINFO_EXTENSION)), ['png', 'jpg', 'jpeg', 'webp'], true);
     }
 
     public function currentStep(): int

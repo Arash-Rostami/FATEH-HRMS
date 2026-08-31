@@ -18,8 +18,6 @@ const MSG_TEXTAREA_ID = 'msg-ta';
 const TOTAL_UNREAD_ATTR = 'data-total-unread';
 const DATA_SENDER_NAME_ATTR = 'data-sender-name';
 const DATA_RF_MESSAGE_PREFIX = 'channel-message';
-const SEEN_INVITES_KEY = 'channel-seen-invites';
-const MENTION_SEEN_KEY = 'channel-mention-seen';
 
 export default function channel() {
     return {
@@ -29,13 +27,11 @@ export default function channel() {
         ...chatBase(),
         ...fancyboxMixin(),
         channelCount: 0,
+        cancelInviteeId: null,
         editingOriginal: '',
         isEditing: false,
         editingMsgId: null,
         editingBody: '',
-        inviteToasts: [],
-        seenChannelIds: [],
-        _firstVisit: false,
         quoteChip: {visible: false, x: 0, y: 0, id: 0, sender: '', snippet: ''},
         activeSender: null,
         chipsVisible: true,
@@ -43,7 +39,6 @@ export default function channel() {
         mentionOpen: false,
         mentionQuery: '',
         mentionActiveIndex: 0,
-        mentionToasts: [],
         _scrollRaf: null,
 
         init() {
@@ -58,17 +53,6 @@ export default function channel() {
             }
             this.syncChannelCount();
             this.syncPushNotify();
-            const seenKey = SEEN_INVITES_KEY;
-            const stored = localStorage.getItem(seenKey);
-            if (stored === null) {
-                this._firstVisit = true;
-                this.seenChannelIds = [];
-            } else {
-                this._firstVisit = false;
-                try { this.seenChannelIds = JSON.parse(stored) || []; } catch (e) { this.seenChannelIds = []; }
-            }
-            this.$nextTick(() => this.syncInviteToasts());
-            this.$nextTick(() => this.syncMentionToasts());
             this.startPolling();
             this._onVisibility = () => document.hidden ? this.stopPolling() : this.startPolling();
             document.addEventListener('visibilitychange', this._onVisibility);
@@ -183,7 +167,7 @@ export default function channel() {
 
         startPolling() {
             if (this._timer) return;
-            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncInviteToasts(); this.syncMentionToasts(); this.syncPushNotify(); }), POLL_INTERVAL_MS);
+            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncPushNotify(); }), POLL_INTERVAL_MS);
         },
 
         destroy() {
@@ -210,29 +194,6 @@ export default function channel() {
                 this.$store.push.notify('پیام جدید', 'یک کانال پیام جدید دارد', SCOPE);
             }
             this._lastUnread = now;
-        },
-
-        syncInviteToasts() {
-            const els = document.querySelectorAll('[data-channel-id]');
-            const current = [];
-            const names = {};
-            els.forEach(el => {
-                const id = parseInt(el.dataset.channelId);
-                if (id) { current.push(id); names[id] = el.dataset.channelName || ''; }
-            });
-            if (this._firstVisit) {
-                this.seenChannelIds = current;
-                this._firstVisit = false;
-                this.saveSeenChannelIds();
-                return;
-            }
-            const seen = new Set(this.seenChannelIds);
-            const toastIds = new Set(this.inviteToasts.map(t => t.id));
-            current.forEach(id => {
-                if (!seen.has(id) && !toastIds.has(id)) {
-                    this.inviteToasts.push({id, name: names[id]});
-                }
-            });
         },
 
         get mentionMatches() {
@@ -303,90 +264,6 @@ export default function channel() {
             this.mentionQuery = '';
             this.$wire.set('composer.body', next);
             this.$nextTick(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = at + 1 + insert.length; });
-        },
-
-        syncMentionToasts() {
-            const els = document.querySelectorAll('[data-mention-toast]');
-            const seen = this.loadMentionSeen();
-            const byChannel = {};
-            els.forEach(el => {
-                const cid = parseInt(el.dataset.mentionToast);
-                const mid = parseInt(el.dataset.msgId) || 0;
-                if (!cid || !mid || mid <= (seen[cid] || 0)) return;
-                if (!byChannel[cid] || mid > byChannel[cid].message_id) {
-                    byChannel[cid] = {
-                        channel_id: cid,
-                        message_id: mid,
-                        sender_name: el.dataset.senderName || '',
-                        channel_name: el.dataset.channelName || '',
-                    };
-                }
-            });
-            this.mentionToasts = Object.values(byChannel);
-        },
-
-        loadMentionSeen() {
-            try { return JSON.parse(localStorage.getItem(MENTION_SEEN_KEY) || '{}') || {}; }
-            catch (e) { return {}; }
-        },
-
-        advanceMentionSeen(cid, mid) {
-            if (!cid || !mid) return;
-            const seen = this.loadMentionSeen();
-            if ((seen[cid] || 0) < mid) {
-                seen[cid] = mid;
-                try { localStorage.setItem(MENTION_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
-            }
-        },
-
-        openMentionToast(t) {
-            if (!t || !t.channel_id) return;
-            this.advanceMentionSeen(t.channel_id, t.message_id);
-            this.replyingTo = null;
-            this.activeSender = null;
-            this.isEditing = false;
-            this.editingMsgId = null;
-            this.editingBody = '';
-            this.editingOriginal = '';
-            this.deletingId = null;
-            this.openActionsId = null;
-            this.searchMessages = false;
-            this.$wire.cancelReply();
-            this.$wire.$island('messages').selectChannel(t.channel_id)
-                .then(() => this.$wire.$island('sidebar').refreshUnread())
-                .then(() => this.$nextTick(() => this.scrollToMessage(t.message_id)))
-                .catch(() => {});
-        },
-
-        dismissMentionToast(t) {
-            if (!t || !t.channel_id) return;
-            this.advanceMentionSeen(t.channel_id, t.message_id);
-            this.mentionToasts = this.mentionToasts.filter(x => x.channel_id !== t.channel_id);
-        },
-
-        markSeen(id) {
-            if (!id) return;
-            if (!this.seenChannelIds.includes(id)) {
-                this.seenChannelIds.push(id);
-                this.saveSeenChannelIds();
-            }
-            this.inviteToasts = this.inviteToasts.filter(t => t.id !== id);
-        },
-
-        saveSeenChannelIds() {
-            try { localStorage.setItem(SEEN_INVITES_KEY, JSON.stringify(this.seenChannelIds)); } catch (e) {}
-        },
-
-        acceptInvite(id) {
-            this.markSeen(id);
-        },
-
-        declineInvite(id) {
-            this.inviteToasts = this.inviteToasts.filter(t => t.id !== id);
-            this.$wire.$island('messages').leaveChannel(id)
-                .then(() => this.$wire.$island('sidebar').refreshUnread())
-                .then(() => this.syncChannelCount())
-                .catch(() => {});
         },
 
         toggleActions(id) {
@@ -506,9 +383,6 @@ export default function channel() {
             if (!id) return;
             if (!confirm('از این کانال خارج می‌شوید؟')) return;
             this.searchMessages = false;
-            const idx = this.seenChannelIds.indexOf(id);
-            if (idx > -1) { this.seenChannelIds.splice(idx, 1); this.saveSeenChannelIds(); }
-            this.inviteToasts = this.inviteToasts.filter(t => t.id !== id);
             this.$wire.$island('messages').leaveChannel(id)
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
                 .then(() => this.syncChannelCount())
@@ -520,7 +394,6 @@ export default function channel() {
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
                 .then(() => {
                     this.syncChannelCount();
-                    this.markSeen(this.$wire.activeChannelId);
                 });
         },
 
@@ -530,7 +403,6 @@ export default function channel() {
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
                 .then(() => {
                     this.syncChannelCount();
-                    this.markSeen(id);
                 })
                 .catch(() => {});
         },
@@ -589,6 +461,19 @@ export default function channel() {
             this.editingBody = '';
             this.editingOriginal = '';
             this.deletingId = id;
+        },
+
+        confirmCancelInvite(id) {
+            this.cancelInviteeId = id;
+        },
+
+        async doCancelInvite(channelId, userId) {
+            try {
+                await this.$wire.$island('messages').cancelInvite(channelId, userId);
+                this.$wire.$island('sidebar').refreshUnread();
+            } finally {
+                this.cancelInviteeId = null;
+            }
         },
 
         async sendMessage() {

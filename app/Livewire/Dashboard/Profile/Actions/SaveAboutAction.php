@@ -16,9 +16,11 @@ class SaveAboutAction
             ->filter(fn($v, $k) => filled($k) && !is_array($v))
             ->toArray();
 
+        $current = Profile::where('user_id', Auth::id())->value('about_me') ?? [];
+
         return Profile::updateOrCreate(
             ['user_id' => Auth::id()],
-            ['about_me' => array_merge($extra, $form->getAboutMeData())]
+            ['about_me' => array_merge($current, $extra, $form->getAboutMeData())]
         );
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -13,13 +14,21 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => fake()->sentence(),
-            'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(['todo', 'in-progress', 'done']),
-            'deadline' => now()->addDays(fake()->numberBetween(1, 10)),
-            'user_id' => User::inRandomOrder()->value('id') ?? User::factory(),
-            'assigned_to' => User::inRandomOrder()->value('id') ?? User::factory(),
+            'title' => $this->faker->sentence(),
+            'description' => $this->faker->paragraph(),
+            'status' => $this->faker->randomElement(['todo', 'in-progress', 'pending', 'done']),
+            'deadline' => $this->faker->optional()->dateTimeBetween('now', '+1 month'),
+            'user_id' => User::factory(),
+            'assigned_to' => User::factory(),
+            'ticket_id' => null,
+            'archived_at' => null,
+            'project_id' => null,
         ];
+    }
+
+    public function forProject(Project $project): static
+    {
+        return $this->state(fn() => ['project_id' => $project->id]);
     }
 
     /**
@@ -60,6 +69,13 @@ class TaskFactory extends Factory
         return $this->state([
             'updated_at' => now()->modify($relative),
             'created_at' => now()->modify($relative),
+        ]);
+    }
+
+    public function archived(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'archived_at' => now(),
         ]);
     }
 }

@@ -2,6 +2,10 @@
 
 namespace App\Services\Cache;
 
+use Closure;
+use DateInterval;
+use DateTimeInterface;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -9,6 +13,28 @@ use Throwable;
 class ModelCacheVersion
 {
     private const PREFIX = 'model_cache_version';
+
+    public static function remember(string $modelClass, string $suffix, DateTimeInterface|DateInterval $ttl, Closure $callback): mixed
+    {
+        return Cache::remember(self::key($modelClass, $suffix), $ttl, $callback);
+    }
+
+    public static function rememberGlobal(string $key, Closure $callback, DateTimeInterface|DateInterval|null $ttl = null): mixed
+    {
+        return Cache::remember($key, $ttl ?? now()->addSeconds(self::defaultSeconds()), $callback);
+    }
+
+    public static function defaultSeconds(): int
+    {
+        return (int) config('app.cache_ttl', 300);
+    }
+
+    public static function viewerSeconds(): int
+    {
+        $pref = (int) (Auth::user()?->extra['preferences']['cache_ttl'] ?? 0);
+
+        return max(self::defaultSeconds(), min(3600, $pref));
+    }
 
     public static function bump(string $modelClass): void
     {

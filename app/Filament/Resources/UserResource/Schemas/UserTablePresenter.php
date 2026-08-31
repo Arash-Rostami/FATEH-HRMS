@@ -83,6 +83,7 @@ class UserTablePresenter
             ->label(__('resources/user/strings.table.name'))
             ->sortable()
             ->searchable()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false)
             ->color('primary');
     }

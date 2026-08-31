@@ -80,6 +80,7 @@ class SkillTablePresenter
         return TextColumn::make('name')
             ->label(__('resources/skill/strings.fields.name'))
             ->weight(FontWeight::Bold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);

@@ -5,10 +5,13 @@ namespace App\Livewire\Dashboard\Profile;
 use App\Livewire\Dashboard\Profile\Presentation\ProfilePresenter;
 use App\Services\Menu\BadgeLegendCatalog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
+#[Lazy]
 class Main extends Component
 {
     #[Url(as: 'tab')]
@@ -27,6 +30,7 @@ class Main extends Component
         return view('livewire.dashboard.profile', [
             'user'           => $user,
             'completion'     => $presenter->completion($user),
+            'missingFields'  => $presenter->missingFieldLabels($user),
             'avatarImage'    => $presenter->avatarUrl($user),
             'position'       => $presenter->position($user),
             'departmentName' => $presenter->departmentName($user),
@@ -43,6 +47,13 @@ class Main extends Component
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
     }
 
     #[Computed]

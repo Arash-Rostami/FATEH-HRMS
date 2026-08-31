@@ -41,6 +41,24 @@ $rows = Cache::remember(
 
 // Manually bumping (ONLY needed for bulk/raw writes — see below):
 ModelCacheVersion::bump(ReservationPolicy::class);
+
+// Tier V via the HasModelCache trait (model owns a cached*() method):
+//   class Post { use HasModelCache;
+//       public static function cachedPins(): Collection {
+//           return static::cached('pins', fn () => static::where('pinned', 1)->latest()->take(1)->get());
+//       }
+//   }   // key = {Post}:v{version}:pins — auto-orphans on Post save/delete; TTL defaults to defaultSeconds()
+//   cachedForUser($userId, $suffix, $cb) bakes u{userId}: into the suffix and uses viewerSeconds().
+
+// Tier T global — cross-model aggregate, no version token, 300s config default:
+ModelCacheVersion::rememberGlobal('op:module_a:{dept}', fn () => /* … */);
+//   = Cache::remember($key, now()->addSeconds(ModelCacheVersion::defaultSeconds()), $cb)
+//   For per-dept/per-user Tier T, bake the arg into the key yourself ( Livewire #[Computed(cache:true)]
+//   is dead on a directly-called method — see app/Models/modelPattern.md "the one principle" ).
+
+// TTL resolvers (config-driven, env APP_CACHE_TTL, default 300):
+ModelCacheVersion::defaultSeconds();  // global/shared analytics
+ModelCacheVersion::viewerSeconds();   // max(default, min(3600, user pref seconds)) — user-scoped caches only
 ```
 
 `bump()`/`version()` are both wrapped in try/catch + `Log::warning` internally — a cache-store hiccup during a bump **never** breaks the save/delete that triggered it, and a failed version read falls back to `'0'` rather than throwing (matches this project's established `CleansAttachedFiles`-style "never let cache/storage failure break the primary operation" convention).

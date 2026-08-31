@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasPublicAssetUrl;
+use App\Models\Concerns\HasModelCache;
+use App\Models\Concerns\HasPublicAssetUrl;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class Link extends Model
 {
-    use HasFactory,
+    use HasModelCache,
+        HasFactory,
         HasPublicAssetUrl,
         CleansAttachedFiles;
 
@@ -73,6 +76,16 @@ class Link extends Model
     public function scopeSorted($query)
     {
         return $query->orderBy('sequence');
+    }
+
+    public static function cachedExternal(): Collection
+    {
+        return static::cached('external', fn () => static::external()->orderBy('sequence')->get());
+    }
+
+    public static function cachedInternal(): Collection
+    {
+        return static::cached('internal', fn () => static::internal()->orderBy('sequence')->get());
     }
 
     public function resolvedIsInternal(?string $ip = null): bool

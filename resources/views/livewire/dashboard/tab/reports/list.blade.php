@@ -19,7 +19,7 @@
                     class="flex items-center justify-center md:justify-start gap-3 text-xs text-[var(--md-sys-color-outline)]">
                             <span
                                 title="{{ $report->department?->tooltipLabel() }}"
-                                class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->displayLabel() ?? 'General' }}</span>
+                                class="bg-[var(--md-sys-color-surface-container-high)] px-2 py-0.5 rounded-md text-[var(--md-sys-color-on-surface-variant)]">{{ $report->department?->displayLabel() ?? 'General' }}</span>
                     @if($report->pinned)
                         <span class="flex items-center gap-1 bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] px-2 py-0.5 rounded-md text-[10px] font-bold">
                             <span class="material-symbols-rounded text-[12px] leading-none">bookmark</span>

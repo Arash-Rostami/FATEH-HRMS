@@ -17,14 +17,12 @@
         <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">{{ $item['label'] }}</p>
         <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
             <span class="font-bold">روشن می‌شود:</span> {{ $item['lights'] }}
-        </p>
-        <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="mx-1 opacity-40">·</span>
             <span class="font-bold">خاموش می‌شود:</span> {{ $item['clears'] }}
+            @isset($item['surface'])
+                <span class="mx-1 opacity-40">·</span>
+                <span class="font-bold">محل نمایش:</span> {{ $item['surface'] }}
+            @endisset
         </p>
-        @isset($item['surface'])
-            <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="font-bold">کجا دیده می‌شود:</span> {{ $item['surface'] }}
-            </p>
-        @endisset
     </div>
 </div>

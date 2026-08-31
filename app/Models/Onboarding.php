@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasExtraCatalog;
+use App\Models\Concerns\HasExtraCatalog;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsCollection;

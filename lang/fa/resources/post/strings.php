@@ -2,9 +2,9 @@
 
 return [
     'label'             => 'اعلانات',
-    'plural_label'      => 'اعلانات‌',
+    'plural_label'      => 'اعلانات',
     'nav_group'         => 'محتوا و ارتباطات',
-    'nav_badge_tooltip' => 'تعداد اعلانات‌ سنجاق‌شده',
+    'nav_badge_tooltip' => 'تعداد اعلانات سنجاق‌شده',
 
     'fields' => [
         'title'        => 'عنوان',

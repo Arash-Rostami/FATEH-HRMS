@@ -201,7 +201,8 @@ class ProfileTablePresenter
     {
         return TextColumn::make('position')
             ->label(__('resources/profile/strings.table.position'))
-            ->formatStateUsing(fn(string $state): string => Position::tryFrom($state)?->getLabel() ?? $state)
+            ->formatStateUsing(fn(string $state, $record): string => $record->display_position ?: (Position::tryFrom($state)?->getLabel() ?? $state))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->color(fn(string $state): string => Position::tryFrom($state)?->getColor() ?? 'gray')
             ->icon(fn(string $state): string => Position::tryFrom($state)?->getIcon() ?? '')
             ->sortable()

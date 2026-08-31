@@ -1,6 +1,6 @@
 <div
     class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
-    style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;"
+   
     dir="rtl"
     x-data="ths()"
     @keydown.escape.window="if(max) toggleMaximize(null)"
@@ -91,7 +91,9 @@
                     />
                 </div>
 
-                @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
+                @if($activeTab === 'log')
+                    @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
+                @endif
             </div>
         </div>
     </div>

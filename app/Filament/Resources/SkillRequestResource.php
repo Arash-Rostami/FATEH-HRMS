@@ -7,6 +7,7 @@ use App\Filament\Resources\SkillRequestResource\Schemas\Helper\RequestActions;
 use App\Filament\Resources\SkillRequestResource\Schemas\SkillRequestTablePresenter;
 use App\Models\SkillUser;
 use App\Traits\AuthorizesByPermission;
+use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
 use App\Traits\FilamentFilters;
 use BackedEnum;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SkillRequestResource extends Resource
 {
-    use FilamentAdminGuide, FilamentFilters, RequestActions, AuthorizesByPermission;
+    use FilamentAdminGuide, FilamentActions, FilamentFilters, RequestActions, AuthorizesByPermission;
 
     protected static ?string $model = SkillUser::class;
     protected static ?string $recordTitleAttribute = 'requested_name';

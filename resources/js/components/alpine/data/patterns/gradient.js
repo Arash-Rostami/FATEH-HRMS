@@ -40,7 +40,7 @@ export default {
             };
         };
 
-        themeObserver = new MutationObserver(() => { colors = getThemeColors(); });
+        themeObserver = new MutationObserver(() => { colors = getThemeColors(); buildGradients(); });
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
@@ -49,6 +49,16 @@ export default {
             { amp: 65, freq: 0.0010, spd: 0.0012, base: 0.82, op: 0.12 },
             { amp: 35, freq: 0.0020, spd: 0.0005, base: 0.88, op: 0.25 }
         ];
+
+        let waveGradients = [];
+        const buildGradients = () => {
+            waveGradients = wavesArray.map(wave => {
+                const gradient = ctx.createLinearGradient(0, 0, w, h);
+                gradient.addColorStop(0, `rgba(${colors.primary}, ${wave.op * 1.2})`);
+                gradient.addColorStop(1, `rgba(${colors.tertiary}, ${wave.op * 0.1})`);
+                return gradient;
+            });
+        };
 
         const resize = () => {
             w = innerWidth;
@@ -62,6 +72,7 @@ export default {
             mouse.ty = h / 2;
             mouse.x = mouse.tx;
             mouse.y = mouse.ty;
+            buildGradients();
         };
 
         resizeHandler = () => {
@@ -101,10 +112,7 @@ export default {
                 ctx.beginPath();
                 ctx.moveTo(0, h);
 
-                const gradient = ctx.createLinearGradient(0, 0, w, h);
-                gradient.addColorStop(0, `rgba(${colors.primary}, ${wave.op * 1.2})`);
-                gradient.addColorStop(1, `rgba(${colors.tertiary}, ${wave.op * 0.1})`);
-                ctx.fillStyle = gradient;
+                ctx.fillStyle = waveGradients[i];
 
                 for (let x = 0; x <= w + 40; x += 40) {
                     const phase = time * wave.spd + x * wave.freq + mousePhase;

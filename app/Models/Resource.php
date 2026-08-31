@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
-use App\Models\Traits\HasPublicAssetUrl;
-use App\Models\Traits\HasResourceMetadata;
+use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasResourceMetadata;
 use App\Traits\CleansAttachedFiles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;

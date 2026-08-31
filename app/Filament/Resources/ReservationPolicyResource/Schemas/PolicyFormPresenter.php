@@ -122,6 +122,17 @@ class PolicyFormPresenter
             ->placeholder('۱');
     }
 
+    public static function maxRangeDays(): TextInput
+    {
+        return TextInput::make('max_range_days')
+            ->label(__('resources/policy/strings.fields.max_range_days'))
+            ->helperText(__('resources/policy/strings.hints.max_range_days'))
+            ->validationAttribute(__('resources/policy/strings.fields.max_range_days'))
+            ->numeric()
+            ->minValue(1)
+            ->placeholder('۱۰');
+    }
+
     public static function minDurationMinutes(): TextInput
     {
         return TextInput::make('min_duration_minutes')

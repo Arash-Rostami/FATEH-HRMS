@@ -1,5 +1,4 @@
-const CHANNELS_KEY = 'chat-muted-channels';
-const CONTACTS_KEY = 'chat-muted-contacts';
+const KEYS = {channel: 'chat-muted-channels', contact: 'chat-muted-contacts', project: 'chat-muted-projects'};
 const OUTGOING_SOUND_SELECTOR = '[data-outgoing-sound]';
 const OUTGOING_VOLUME = 0.35;
 
@@ -7,11 +6,13 @@ export default (Alpine) => {
     Alpine.store('sound', {
         mutedChannels: [],
         mutedContacts: [],
+        mutedProjects: [],
         _audio: null,
 
         init() {
-            this.mutedChannels = this._load(CHANNELS_KEY);
-            this.mutedContacts = this._load(CONTACTS_KEY);
+            this.mutedChannels = this._load(KEYS.channel);
+            this.mutedContacts = this._load(KEYS.contact);
+            this.mutedProjects = this._load(KEYS.project);
         },
 
         _load(key) {
@@ -30,11 +31,11 @@ export default (Alpine) => {
         },
 
         _set(scope) {
-            return scope === 'contact' ? this.mutedContacts : this.mutedChannels;
+            return scope === 'contact' ? this.mutedContacts : (scope === 'project' ? this.mutedProjects : this.mutedChannels);
         },
 
         _key(scope) {
-            return scope === 'contact' ? CONTACTS_KEY : CHANNELS_KEY;
+            return KEYS[scope] ?? KEYS.channel;
         },
 
         isMuted(id, scope = 'channel') {

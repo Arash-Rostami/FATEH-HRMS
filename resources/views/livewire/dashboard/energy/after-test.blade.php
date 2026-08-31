@@ -15,6 +15,17 @@
                     برای مشاهده‌ی نتایج تب <strong>نتایج</strong> را باز کنید.
                 </p>
             </div>
+            @if($this->cooldownDays !== null)
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-xs font-bold"
+                     title="دورهٔ خنک‌سازی ۲۵ روزه است">
+                    <span class="material-symbols-rounded text-[16px]">hourglass_bottom</span>
+                    @if($this->cooldownDays === 0)
+                        ثبت دورهٔ بعدی: امروز
+                    @else
+                        تا ثبت دورهٔ بعدی: {{ convertToPersian((string) $this->cooldownDays) }} روز
+                    @endif
+                </div>
+            @endif
             <button @click="activeTab='chart'"
                     class="flex items-center gap-2 mt-2 px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-sm font-bold transition-all hover:brightness-95 active:scale-[0.97]">
                 <span class="material-symbols-rounded text-[18px]">bar_chart</span>

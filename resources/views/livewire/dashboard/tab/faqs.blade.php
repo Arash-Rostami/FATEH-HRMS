@@ -35,7 +35,7 @@
         class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative bg-[var(--md-sys-color-surface-container-lowest)]">
         <div wire:loading.delay
              class="absolute inset-0 bg-[var(--md-sys-color-surface-container-lowest)]/50 z-50 flex items-center justify-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--md-sys-color-primary)]"></div>
+            <x-ui.loaders.spin-badge text="در حال فیلتر کردن..."/>
         </div>
 
         <div x-show="view === 'card'" x-cloak

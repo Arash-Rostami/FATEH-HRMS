@@ -88,18 +88,17 @@
                       aria-live="polite"></span>
             </div>
 
-            <button x-on:click.prevent="sendMessage"
+            <x-ui.buttons.form x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled" wire:target="send"
-                    class="flex-shrink-0 w-9 h-9 order-2 md:order-4 rounded-xl flex items-center justify-center transition-all hover:brightness-110 hover:-translate-y-0.5 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                    :class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
+                    loading="send"
+                    class="flex-shrink-0 w-9 h-9 p-0 order-2 md:order-4 rounded-xl hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                    x-bind:class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
                         ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
                         : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
                     aria-label="ارسال پیام">
                 <span wire:loading.remove wire:target="send"
                       class="material-symbols-rounded text-[18px] font-fill rotate-180">send</span>
-                <span wire:loading wire:target="send"
-                      class="material-symbols-rounded text-[18px] animate-spin">progress_activity</span>
-            </button>
+            </x-ui.buttons.form>
 
             <div class="basis-full h-0 order-3 md:hidden"></div>
 

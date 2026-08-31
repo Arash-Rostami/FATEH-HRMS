@@ -1,4 +1,5 @@
 export default function countdown({dateIso, messages, mood, confetti}) {
+    const targetMs = Date.parse(dateIso);
     return {
         days: '۰۰',
         hours: '۰۰',
@@ -66,8 +67,7 @@ export default function countdown({dateIso, messages, mood, confetti}) {
         },
 
         computeRemaining() {
-            const parsed = Date.parse(dateIso);
-            return Number.isFinite(parsed) ? Math.max(0, Math.floor((parsed - Date.now()) / 1000)) : 0;
+            return Number.isFinite(targetMs) ? Math.max(0, Math.floor((targetMs - Date.now()) / 1000)) : 0;
         },
 
         fireZeroCelebration() {

@@ -32,11 +32,11 @@
                     <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $ch['description'] ?: 'بدون توضیحات' }}</p>
                     <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)] mt-0.5">مدیر: {{ $ch['owner_name'] }}</p>
                 </div>
-                <button x-on:click="joinChannel({{ $ch['id'] }})" wire:loading.attr="disabled" wire:target="joinChannel({{ $ch['id'] }})"
-                        class="flex-shrink-0 px-4 py-2 rounded-lg text-[11px] font-semibold transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-                    <span wire:loading.remove wire:target="joinChannel({{ $ch['id'] }})">پیوستن</span>
-                    <span wire:loading wire:target="joinChannel({{ $ch['id'] }})" class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
-                </button>
+                <x-ui.buttons.form x-on:click="joinChannel({{ $ch['id'] }})" wire:loading.attr="disabled" wire:target="joinChannel({{ $ch['id'] }})"
+                        loading="joinChannel({{ $ch['id'] }})"
+                        class="flex-shrink-0 px-4 py-2 h-auto rounded-lg text-[11px] font-semibold transition-all hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
+                    پیوستن
+                </x-ui.buttons.form>
             </div>
         @empty
             <x-ui.empty icon="campaign" title="کانال عمومی‌ای برای پیوستن وجود ندارد" variant="default" />

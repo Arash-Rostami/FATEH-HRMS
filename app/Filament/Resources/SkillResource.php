@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SkillResource\Pages\CreateSkill;
 use App\Filament\Resources\SkillResource\Pages\EditSkill;
 use App\Filament\Resources\SkillResource\Pages\ListSkills;
+use App\Filament\Resources\SkillResource\RelationManagers\MembersRelationManager;
 use App\Filament\Resources\SkillResource\Schemas\SkillFormPresenter;
 use App\Filament\Resources\SkillResource\Schemas\SkillInfolistPresenter;
 use App\Filament\Resources\SkillResource\Schemas\SkillTablePresenter;
@@ -85,6 +86,11 @@ class SkillResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('resources/skill/strings.plural_label');
+    }
+
+    public static function getRelations(): array
+    {
+        return [MembersRelationManager::class];
     }
 
     public static function infolist(Schema $schema): Schema

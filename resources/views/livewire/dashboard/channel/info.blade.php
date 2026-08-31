@@ -35,7 +35,7 @@
             @if($header['description'])
                 <div class="px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)]">
                     <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mb-1">توضیحات</p>
-                    <p class="text-xs leading-relaxed text-[var(--md-sys-color-on-surface)]">{{ $header['description'] }}</p>
+                    <p class="text-xs leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface)]">{{ $header['description'] }}</p>
                 </div>
             @endif
             <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
@@ -54,6 +54,59 @@
             </div>
         </div>
         @if($isOwner)
+            @php $pendingInvitees = $this->pendingInvitees; @endphp
+            @if($pendingInvitees)
+                <div class="px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)]">
+                    <p class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] mb-2 flex items-center gap-1" title="کاربرانی که توسط شما دعوت شده‌اند اما هنوز یک‌بار وارد کانال نشده‌اند">
+                        <span class="material-symbols-rounded text-[13px]" aria-hidden="true">hourglass_top</span>
+                        در انتظار ورود ({{ convertToPersian((string) count($pendingInvitees)) }})
+                    </p>
+                    <div class="space-y-1.5">
+                        @foreach($pendingInvitees as $invitee)
+                            <div class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-secondary-container)_40%,transparent)]">
+                                <div class="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]" aria-hidden="true">
+                                    {{ mb_substr($invitee['name'], 0, 1) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[12px] font-medium truncate text-[var(--md-sys-color-on-surface)]">{{ $invitee['name'] }}</p>
+                                    @if($invitee['cancellable'])
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">دعوت‌شده · منتظر نخستین ورود</p>
+                                    @else
+                                        <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-80">دعوت دریافت شده و قابل لغو نیست</p>
+                                    @endif
+                                </div>
+                                @if($invitee['cancellable'])
+                                    <div x-show="cancelInviteeId === {{ $invitee['id'] }}" style="display: none;" class="flex items-center gap-1 flex-shrink-0">
+                                        <button type="button" x-on:click="cancelInviteeId = null"
+                                                class="px-2 py-1 rounded-lg text-[10px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)]"
+                                                title="انصراف از لغو">
+                                            انصراف
+                                        </button>
+                                        <button type="button" x-on:click="doCancelInvite({{ $header['id'] }}, {{ $invitee['id'] }})"
+                                                wire:loading.attr="disabled" wire:target="cancelInvite"
+                                                class="px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-150 hover:brightness-110 active:scale-95 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]"
+                                                title="لغو این دعوت">
+                                            لغو دعوت
+                                        </button>
+                                    </div>
+                                    <button x-show="cancelInviteeId !== {{ $invitee['id'] }}" style="display: none;" type="button"
+                                            x-on:click="confirmCancelInvite({{ $invitee['id'] }})"
+                                            class="w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center transition-all active:scale-90 text-[var(--md-sys-color-error)] bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] hover:!bg-[var(--md-sys-color-error-container)]"
+                                            title="لغو دعوت" aria-label="لغو دعوت {{ $invitee['name'] }}">
+                                        <span class="material-symbols-rounded text-[15px]" aria-hidden="true">close</span>
+                                    </button>
+                                @else
+                                    <span class="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] opacity-60 cursor-not-allowed bg-[var(--md-sys-color-surface-variant)]"
+                                          title="این کاربر دعوت را دریافت کرده و دیگر قابل لغو نیست">
+                                        <span class="material-symbols-rounded text-[15px]" aria-hidden="true">mark_email_read</span>
+                                    </span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-2 opacity-80">با نخستین ورودشان، از این فهرست حذف می‌شوند.</p>
+                </div>
+            @endif
             <button x-on:click="openManageMembers({{ $header['id'] }})" type="button"
                     class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:brightness-110 active:scale-95 bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
                 <span class="material-symbols-rounded text-[18px]">group_add</span>

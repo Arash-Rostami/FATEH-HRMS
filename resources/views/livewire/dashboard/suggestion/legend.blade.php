@@ -29,7 +29,7 @@
     $roles = [
         'submitter' => [
             'note' => 'شما پیشنهاد را ثبت کرده‌اید (غیر از واحد مدیریت ارشد).',
-            ['icon' => 'edit_note', 'label' => 'ثبت و تکمیل شخصی', 'text' => 'فرم ثبت شامل عنوان، شرح، اهداف، قواعد، واحدهای ذی‌نفع و پیوست است. واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه می‌شود. با پرچم «تکمیل شخصی» می‌توانید پیش‌فرض بازخورد همهٔ واحدها را هم پر کنید.'],
+            ['icon' => 'edit_note', 'label' => 'ثبت و تکمیل شخصی', 'text' => 'فرم ثبت شامل عنوان، شرح، قواعد، اهداف، اولویت پیگیری، واحدهای ذی‌نفع و پیوست است. واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه می‌شود. با پرچم «تکمیل شخصی» می‌توانید پیش‌فرض بازخورد همهٔ واحدها را هم پر کنید.'],
             ['icon' => 'visibility', 'label' => 'پایش', 'text' => 'شما روند بررسی را در صفحهٔ جزئیات می‌بینید — تایم‌لاین، وضعیت هر واحد و بازخوردها. مگر آنکه سرپرست واحد باشید، اقدام فعالی از شما انتظار نمی‌رود.'],
         ],
         'head' => [
@@ -48,6 +48,9 @@
         'شناسهٔ هر پیشنهاد به‌صورت SN-YYYYMMDD-NNNNNN است — با جستجوی «SN-» هم در پنل کاربری و هم ادمین یافت می‌شود.',
         'واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه و واحد MA از آن حذف می‌شود؛ در زمان ساخت یک ردیف بررسی برای واحد ثبت‌کننده ساخته می‌شود.',
         'نشان اعلان روی کارت فهرست یعنی واحد شما از شما انتظار پاسخ دارد (requiresMyAction) — نه اعلان عمومی.',
+        'دکمهٔ «فقط نیازمند اقدام من» زیرِ جستجو، فهرست را به همان کارت‌هایی محدود می‌کند که نشان اعلان می‌گیرند — نتیجه برای همهٔ نقش‌ها (پاسخ واحد، تکمیل اقدام، تصمیم ارشد) بر اساس تک‌مبنای نشانِ اعلان محاسبه می‌شود و سرویس‌سمت است، نه محلی. راهنمای هر کارت نیز اولویت (کم/متوسط/زیاد) را با همان رنگ جزئیات نشان می‌دهد.',
+        'فهرست پیشنهادها اولویت‌محور است: «زیاد» همیشه بالای «متوسط» و «کم» می‌نشیند و درون هر سطح، تازه‌ترین‌ها اول‌اند — پس اولویتِ بالا یعنی زودتر دیده و رسیدگی می‌شود. اولویت را خودِ ثبت‌کننده هنگام ثبت انتخاب می‌کند و ادمین می‌تواند بعداً تغییرش دهد.',
+        'با انتخاب یک پیشنهاد، اسکلتِ جزئیات بلافاصله جای پنل خالی می‌نشیند (نه لودر سراسری) و پس از رسیدن پاسخ، جزئیات واقعی با اسکلت خودش ادامه می‌دهد — یعنی هیچ لحظهٔ «هیچ‌چیز» دیده نمی‌شود.',
         'مرحلهٔ پیشنهاد دستی عوض نمی‌شود؛ syncStage با هر بازخورد جدید آن را از روی وضعیت همهٔ بازخوردها محاسبه می‌کند.',
         'جدول برترین‌ها بالای صفحه، سه کاربر برتر را بر اساس تعداد پیشنهادهای پذیرفته‌شده نشان می‌دهد.',
     ];
@@ -99,7 +102,7 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap mb-0.5">
                             <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $s['label'] }}</p>
-                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
                         </div>
                         <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $s['hint'] }}</p>
                     </div>
@@ -116,7 +119,7 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap mb-0.5">
                             <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $s['label'] }}</p>
-                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-lg bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $s['code'] }}</span>
                         </div>
                         <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $s['hint'] }}</p>
                     </div>

@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
-use App\Models\Traits\HasDepartmentHelpers;
-use App\Models\Traits\HasDmsCountHelpers;
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasUserHelpers;
+use App\Models\Concerns\HasDepartmentHelpers;
+use App\Models\Concerns\HasDmsCountHelpers;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasUserHelpers;
 use App\Services\Dms\DmsKeyGrouper;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;

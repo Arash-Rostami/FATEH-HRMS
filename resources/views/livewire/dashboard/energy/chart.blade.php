@@ -181,5 +181,63 @@
             </div>
 
         </div>
+
+        @if(count($personalHistory))
+            <div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
+                 x-data="{ open: false }">
+                <button type="button" @click="open = !open"
+                        class="w-full px-5 py-4 flex items-center gap-3 text-right">
+                    <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
+                        <span class="material-symbols-rounded text-base" aria-hidden="true">history</span>
+                    </div>
+                    <h2 class="text-sm font-semibold text-[var(--md-sys-color-on-surface)]">پاسخ‌نامه‌های من</h2>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                        {{ convertToPersian((string) count($personalHistory)) }}
+                    </span>
+                    @php
+                        $bestEntry = collect($personalHistory)->sortByDesc('overall')->first();
+                        $worstEntry = collect($personalHistory)->sortBy('overall')->first();
+                    @endphp
+                    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)]/60 text-[var(--md-sys-color-on-primary-container)]"
+                          title="بهترین امتیاز کل پاسخ‌نامه‌های شما">
+                        <span class="material-symbols-rounded text-[13px]" aria-hidden="true">arrow_upward</span>
+                        بهترین کل: {{ convertToPersian((string) $bestEntry['overall']) }} ({{ toJalali($bestEntry['completed_at'], 'j F Y') }})
+                    </span>
+                    @if(count($personalHistory) > 1)
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-error-container)]/60 text-[var(--md-sys-color-on-error-container)] opacity-90"
+                              title="کم‌امتیازترین امتیاز کل پاسخ‌نامه‌های شما">
+                            <span class="material-symbols-rounded text-[13px]" aria-hidden="true">arrow_downward</span>
+                            کم‌امتیازترین: {{ convertToPersian((string) $worstEntry['overall']) }} ({{ toJalali($worstEntry['completed_at'], 'j F Y') }})
+                        </span>
+                    @endif
+                    <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform mr-auto"
+                          :class="open && 'rotate-180'">expand_more</span>
+                </button>
+                <div x-show="open" x-cloak class="px-5 pb-5 space-y-2">
+                    @foreach($personalHistory as $entry)
+                        <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] p-4">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)]">
+                                    {{ toJalali($entry['completed_at'], 'j F Y') }}
+                                </span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
+                                    کل: {{ convertToPersian((string) $entry['overall']) }}
+                                </span>
+                            </div>
+                            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">
+                                @foreach($entry['choices'] as $cat => $text)
+                                    @if($text)
+                                        <span class="inline-block me-3">
+                                            <b>{{ $presenter->formatSectionTitle($sections[$cat] ?? $cat) }}:</b>
+                                            {{ $text }}
+                                        </span>
+                                    @endif
+                                @endforeach
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     @endif
 </section>

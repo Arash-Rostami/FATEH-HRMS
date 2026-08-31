@@ -12,6 +12,7 @@ class ChannelInfolistPresenter
     {
         return TextEntry::make('name')
             ->label(__('resources/channel/strings.fields.name'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->icon('heroicon-o-chat-bubble-left-right');
     }
 
@@ -28,6 +29,7 @@ class ChannelInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/channel/strings.fields.description'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

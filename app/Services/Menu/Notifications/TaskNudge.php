@@ -2,6 +2,7 @@
 
 namespace App\Services\Menu\Notifications;
 
+use App\Enums\TaskActivityType;
 use App\Models\Reply;
 use App\Models\Task;
 use App\Models\User;
@@ -12,6 +13,10 @@ class TaskNudge implements MenuNudge
 {
     public function body($subject, User $user): string
     {
+        if ($this->isCompletionReply($subject)) {
+            return 'وظیفهٔ شما به پایان رسید؛ برای مشاهده به برد وظایف مراجعه کنید.';
+        }
+
         $ownerId = $subject->assigned_to ?? $subject->user_id;
 
         if ((int)$user->id === (int)$ownerId) {
@@ -19,6 +24,14 @@ class TaskNudge implements MenuNudge
         }
 
         return 'پاسخ جدیدی برای وظیفه شما ثبت شده است؛ برای مشاهده به برد وظایف مراجعه کنید.';
+    }
+
+    private function isCompletionReply($subject): bool
+    {
+        $latestReply = $subject->latestReply();
+
+        return $latestReply?->type === TaskActivityType::StatusChange
+            && ($latestReply->payload['to'] ?? null) === 'done';
     }
 
     public function for($subject): Collection
@@ -36,7 +49,24 @@ class TaskNudge implements MenuNudge
             $recipients = $recipients->merge(User::active()->whereIn('id', $otherPartyIds)->get());
         }
 
+        $recipients = $recipients->merge($this->collaboratorRecipients($subject));
+
         return $recipients->unique('id')->values();
+    }
+
+    private function collaboratorRecipients(Task $task): Collection
+    {
+        if (!$task->latestReply()) {
+            return collect();
+        }
+
+        $collaboratorIds = collect($task->detail?->collaborators ?? [])->filter();
+
+        if ($collaboratorIds->isEmpty()) {
+            return collect();
+        }
+
+        return User::active()->whereIn('id', $collaboratorIds)->get();
     }
 
     public function getKey(): string
@@ -63,6 +93,10 @@ class TaskNudge implements MenuNudge
 
     public function title($subject, User $user): string
     {
+        if ($this->isCompletionReply($subject)) {
+            return 'وظیفه تکمیل شد: ' . $subject->title;
+        }
+
         $ownerId = $subject->assigned_to ?? $subject->user_id;
 
         return (int)$user->id === (int)$ownerId

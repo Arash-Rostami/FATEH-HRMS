@@ -45,6 +45,7 @@ class ContactTablePresenter
             ->limit(80)
             ->html()
             ->tooltip(fn($state) => strlen($state ?? '') > 80 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

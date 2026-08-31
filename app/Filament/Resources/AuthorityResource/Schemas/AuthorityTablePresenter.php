@@ -90,6 +90,7 @@ class AuthorityTablePresenter
             ->html()
             ->limit(60)
             ->tooltip(fn($state) => strlen($state) > 60 ? strip_tags($state) : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Isolate]
+#[Lazy]
 class Gallery extends Component
 {
     use FocusOnRecord;
@@ -113,6 +115,11 @@ class Gallery extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.gallery', ['presenter' => new GalleryPresenter()]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.gallery.placeholder');
     }
 
     /** Called by FocusOnRecord::clearFocus() when the user taps "show all". */

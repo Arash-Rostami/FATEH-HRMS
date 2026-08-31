@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Enums\TicketError;
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasPublicAssetUrl;
-use App\Models\Traits\HasReplies;
-use App\Models\Traits\HasTicketCountHelpers;
-use App\Models\Traits\HasTicketOptions;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasReplies;
+use App\Models\Concerns\HasTicketCountHelpers;
+use App\Models\Concerns\HasTicketOptions;
 use App\Traits\CleansAttachedFiles;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;

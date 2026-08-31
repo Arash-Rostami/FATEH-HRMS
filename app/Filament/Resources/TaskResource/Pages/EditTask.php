@@ -15,7 +15,7 @@ class EditTask extends EditRecord
     protected function datetimeFields(): array
     {
         return [
-            ['field' => 'deadline', 'default_time' => '00:00'],
+            ['field' => 'deadline', 'default_time' => '12:00'],
         ];
     }
 

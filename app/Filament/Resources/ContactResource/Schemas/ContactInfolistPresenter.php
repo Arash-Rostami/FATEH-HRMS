@@ -51,6 +51,7 @@ class ContactInfolistPresenter
     {
         return TextEntry::make('body')
             ->label(__('resources/contact/strings.fields.body'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

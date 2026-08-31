@@ -1,6 +1,6 @@
 <div dir="rtl"
      x-data="taskboard()"
-     @keydown.escape.window="if(maximizedColumn) toggleMaximize(null)"
+     @keydown.escape.window="if(maximizedColumn) toggleMaximize(null); else if(spotlightColumn) clearSpotlight()"
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade container-scrollbar custom-scrollbar">
 
     <x-ui.modals.max-backdrop state="maximizedColumn" close="toggleMaximize(null)"/>
@@ -42,23 +42,25 @@
 
         @include('components.dashboard.header.focus-chip')
 
-
         <x-ui.buttons.tab-selector
-            :active-tab="$activeTab"
+            active-tab="tasks"
             :tabs="[
-            ['id' => 'my-tasks', 'icon' => 'person', 'label' => 'وظایف من'],
-            ['id' => 'assigned-tasks', 'icon' => 'assignment_ind', 'label' => 'محول شده']
-        ]"/>
-
+                ['id' => 'tasks', 'label' => 'برد وظایف', 'icon' => 'dashboard', 'route' => route('tasks')],
+                ['id' => 'projects', 'label' => 'پروژه‌ها', 'icon' => 'workspaces', 'route' => route('projects')],
+            ]"
+        />
+        
 
         @include('livewire.dashboard.taskboard.tools')
 
 
         <div
-            class="flex flex-col md:flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 pt-2 snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0">
+            class="spotlight-strip flex flex-col md:flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 pt-2 snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0"
+            :class="{ 'is-spotlight-on': spotlightColumn }">
             @foreach($columns as $column)
                 <div
-                    class="snap-center shrink-0 w-full sm:w-[calc(100%-2rem)] md:w-1/3 md:flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-0 max-w-full md:max-w-md">
+                    class="spotlight-item snap-center shrink-0 w-full sm:w-[calc(100%-2rem)] md:w-1/3 md:flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-0 max-w-full md:max-w-md"
+                    :class="{ 'is-spotlight': spotlightColumn === @js($column) }">
                     @include('livewire.dashboard.taskboard.column', ['column' => $column])
                 </div>
             @endforeach

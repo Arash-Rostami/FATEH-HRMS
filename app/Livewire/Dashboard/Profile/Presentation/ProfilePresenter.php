@@ -29,6 +29,24 @@ class ProfilePresenter
         return (int)round(($filled / count($fields)) * 100);
     }
 
+    public function missingFieldLabels(User $user): array
+    {
+        $labels = [
+            'gender' => 'جنسیت', 'marital_status' => 'وضعیت تاهل', 'id_card_number' => 'شماره ملی',
+            'degree' => 'مدرک تحصیلی', 'field' => 'رشته تحصیلی', 'birthdate' => 'تاریخ تولد',
+            'cellphone' => 'تلفن همراه', 'address' => 'آدرس', 'department_id' => 'واحد',
+            'insurance' => 'شماره بیمه', 'emergency_phone' => 'تلفن ضروری',
+        ];
+
+        $profile = $user->profile;
+        if (!$profile) return array_values($labels);
+
+        return collect($labels)
+            ->reject(fn($label, $field) => $profile->{$field} !== null && $profile->{$field} !== '')
+            ->values()
+            ->all();
+    }
+
     public function departmentName(User $user): string
     {
         return $user->profile?->department?->displayLabel() ?? 'واحد عمومی';
@@ -107,12 +125,12 @@ class ProfilePresenter
     {
         return [
             'info' => ['label' => 'اطلاعات فردی', 'icon' => 'person', 'sub' => 'مشخصات و تماس', 'title' => 'ویرایش اطلاعات فردی', 'component' => 'dashboard.profile.info', 'key' => 'tab-info', 'lazy' => false],
-            'details' => ['label' => 'اطلاعات تکمیلی', 'icon' => 'list_alt', 'sub' => 'سوابق و جزئیات', 'title' => 'اطلاعات تکمیلی پرسنلی', 'component' => 'dashboard.profile.details', 'key' => 'tab-details', 'lazy' => true],
-            'skills' => ['label' => 'استعدادها', 'icon' => 'military_tech', 'sub' => 'مهارت‌ها و تخصص‌ها', 'title' => 'استعدادها و مهارت‌ها', 'component' => 'dashboard.profile.skills', 'key' => 'tab-skills', 'lazy' => true, 'isNew' => $this->newBadgeVisible()],
-            'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => true],
-            'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'cloud_upload', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => true],
-            'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'vpn_key', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => true],
-            'onboarding' => ['label' => 'آنبوردینگ', 'icon' => 'apartment', 'sub' => 'آشنایی با شرکت', 'title' => 'آنبوردینگ (آشنایی با شرکت)', 'component' => 'dashboard.profile.onboarding', 'key' => 'tab-onboarding', 'lazy' => true],
+            'details' => ['label' => 'اطلاعات تکمیلی', 'icon' => 'list_alt', 'sub' => 'سوابق و جزئیات', 'title' => 'اطلاعات تکمیلی پرسنلی', 'component' => 'dashboard.profile.details', 'key' => 'tab-details', 'lazy' => 'on-load'],
+            'skills' => ['label' => 'استعدادها', 'icon' => 'military_tech', 'sub' => 'مهارت‌ها و تخصص‌ها', 'title' => 'استعدادها و مهارت‌ها', 'component' => 'dashboard.profile.skills', 'key' => 'tab-skills', 'lazy' => 'on-load', 'isNew' => $this->newBadgeVisible()],
+            'about' => ['label' => 'درباره من', 'icon' => 'psychology', 'sub' => 'بیوگرافی و علایق', 'title' => 'درباره من', 'component' => 'dashboard.profile.about', 'key' => 'tab-about', 'lazy' => 'on-load'],
+            'documents' => ['label' => 'مدارک و اسناد', 'icon' => 'cloud_upload', 'sub' => 'آپلود فایل‌ها', 'title' => 'مدیریت مدارک و مستندات', 'component' => 'dashboard.profile.documents', 'key' => 'tab-docs', 'lazy' => 'on-load'],
+            'credentials' => ['label' => 'دسترسی و امنیتی', 'icon' => 'vpn_key', 'sub' => 'مجوزها و رمزها', 'title' => 'مشاهده دسترسی‌ها', 'component' => 'dashboard.profile.credentials', 'key' => 'tab-creds', 'lazy' => 'on-load'],
+            'onboarding' => ['label' => 'آنبوردینگ', 'icon' => 'apartment', 'sub' => 'آشنایی با شرکت', 'title' => 'آنبوردینگ (آشنایی با شرکت)', 'component' => 'dashboard.profile.onboarding', 'key' => 'tab-onboarding', 'lazy' => 'on-load'],
         ];
     }
 }

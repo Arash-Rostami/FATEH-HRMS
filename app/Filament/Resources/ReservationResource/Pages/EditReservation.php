@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReservationResource\Pages;
 
 use App\Filament\Resources\ReservationResource;
 use App\Services\Reservation\ValidationService;
+use App\Traits\FilamentDateHandler;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
@@ -13,16 +14,35 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditReservation extends EditRecord
 {
-    use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions;
+    use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions, FilamentDateHandler;
 
     protected static string $resource = ReservationResource::class;
 
-    protected function beforeSave(): void
+    protected function datetimeFields(): array
     {
-        $data = $this->data;
-        $start = Carbon::parse($data['start_time']);
-        $end = Carbon::parse($data['end_time']);
+        return [
+            ['field' => 'start_time', 'default_time' => '00:00'],
+            ['field' => 'end_time', 'default_time' => '00:00'],
+        ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data = $this->mergeDeadline($data);
+
         $isFullDay = (bool)($data['is_full_day'] ?? false);
+        $start = Carbon::parse($data['start_time']);
+        $end = filled($data['end_time'] ?? null) ? Carbon::parse($data['end_time']) : $start->copy()->endOfDay();
+        $isRange = !$isFullDay && $start->diffInDays($end) >= 1;
+
+        if ($isRange) {
+            $data['is_full_day'] = false;
+        } elseif ($isFullDay) {
+            $start->startOfDay();
+            $end = $start->copy()->endOfDay();
+            $data['start_time'] = $start->toDateTimeString();
+            $data['end_time'] = $end->toDateTimeString();
+        }
 
         try {
             app(ValidationService::class)->validateEdit(
@@ -35,14 +55,6 @@ class EditReservation extends EditRecord
         } catch (\Exception $e) {
             Notification::make()->title($e->getMessage())->danger()->send();
             $this->halt();
-        }
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        if ((bool)($data['is_full_day'] ?? false)) {
-            $data['start_time'] = Carbon::parse($data['start_time'])->startOfDay()->toDateTimeString();
-            $data['end_time'] = Carbon::parse($data['start_time'])->endOfDay()->toDateTimeString();
         }
 
         return $data;

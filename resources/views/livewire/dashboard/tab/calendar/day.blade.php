@@ -51,7 +51,7 @@
         <div class="flex-1 relative" style="height: {{ $gridHeight }}px">
             <div
                 wire:key="day-col-{{ $meta['jKey'] }}"
-                class="relative border-l border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] h-full"
+                class="calendar-day-column relative border-l border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] h-full"
                 data-date="{{ $meta['jKey'] }}"
                 data-hour-height="{{ $hourHeight }}"
             >
@@ -61,7 +61,7 @@
 
                 @foreach($meta['dayPills'] as $pill)
                     @php
-                        if (!empty($pill['is_reservation_linked']) || !isset($pill['top'], $pill['height'], $pill['left_pct'], $pill['width_pct'])) {
+                        if (!isset($pill['top'], $pill['height'], $pill['left_pct'], $pill['width_pct'])) {
                             continue;
                         }
                     @endphp

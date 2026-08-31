@@ -36,7 +36,7 @@
                             ما</p>
                     </div>
                 </div>
-                <div class="p-6 onb-prose">
+                <div class="p-6 onb-prose rich-colors">
                     {!! $onboarding->welcome !!}
                 </div>
             </section>
@@ -132,7 +132,7 @@
                             </div>
                             <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ماموریت ما</h3>
                         </header>
-                        <div class="p-6 onb-prose">
+                        <div class="p-6 onb-prose rich-colors">
                             {!! $onboarding->mission !!}
                         </div>
                     </section>
@@ -149,7 +149,7 @@
                             </div>
                             <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">چشم‌انداز ما</h3>
                         </header>
-                        <div class="p-6 onb-prose">
+                        <div class="p-6 onb-prose rich-colors">
                             {!! $onboarding->vision !!}
                         </div>
                     </section>
@@ -190,7 +190,7 @@
                                     <span class="material-symbols-rounded text-[24px]">{{ $guide['icon'] }}</span>
                                 </div>
                                 <span
-                                    class="absolute -bottom-1 -left-1 text-[10px] font-bold px-1.5 py-0.5 rounded {{ $guide['badge_class'] }}">
+                                    class="absolute -bottom-1 -left-1 text-[10px] font-bold px-1.5 py-0.5 rounded-lg {{ $guide['badge_class'] }}">
                                 {{ strtoupper($guide['ext']) }}
                             </span>
                             </div>
@@ -234,7 +234,7 @@
                         <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">برنامه زمانی آنبوردینگ</p>
                     </div>
                 </header>
-                <div class="p-6 onb-prose">
+                <div class="p-6 onb-prose rich-colors">
                     {!! $onboarding->schedule !!}
                 </div>
             </section>
@@ -283,7 +283,7 @@
                                         <span class="text-[10px] font-normal text-[var(--md-sys-color-outline)]">({{ $extra['key'] }})</span>
                                     @endif
                                 </h4>
-                                <div class="onb-prose">{!! $extra['content'] !!}</div>
+                                <div class="onb-prose rich-colors">{!! $extra['content'] !!}</div>
                             </div>
                         </div>
                     @endforeach

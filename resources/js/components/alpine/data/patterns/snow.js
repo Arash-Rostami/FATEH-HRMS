@@ -43,11 +43,53 @@ export default {
         themeObserver.observe(document.documentElement, {attributes: true, attributeFilter: ['class', 'data-theme']});
         colors = getThemeColors();
 
-        // style 0: 6-arm with mid-branches
-        // style 1: 6-arm with tip-forks
-        // style 2: 8-arm simple star
-        // style 3: 6-arm with both mid-branches and tip-forks (complex)
         const colorKeys = ['onPrimary', 'container', 'primary'];
+
+        const buildFlake = (r, style) => {
+            const arms = style === 2 ? 8 : 6;
+            const step = (Math.PI * 2) / arms;
+            const path = new Path2D();
+
+            for (let j = 0; j < arms; j++) {
+                const a = step * j;
+                const cos = Math.cos(a), sin = Math.sin(a);
+
+                path.moveTo(0, 0);
+                path.lineTo(cos * r, sin * r);
+
+                if (style === 0 || style === 3) {
+                    const mx = cos * r * 0.5, my = sin * r * 0.5;
+                    const blen = r * 0.32;
+                    path.moveTo(mx, my);
+                    path.lineTo(mx + Math.cos(a + Math.PI / 3) * blen, my + Math.sin(a + Math.PI / 3) * blen);
+                    path.moveTo(mx, my);
+                    path.lineTo(mx + Math.cos(a - Math.PI / 3) * blen, my + Math.sin(a - Math.PI / 3) * blen);
+                }
+
+                if (style === 1 || style === 3) {
+                    const tx = cos * r, ty = sin * r;
+                    const flen = r * 0.28;
+                    path.moveTo(tx, ty);
+                    path.lineTo(tx + Math.cos(a + Math.PI / 4) * flen, ty + Math.sin(a + Math.PI / 4) * flen);
+                    path.moveTo(tx, ty);
+                    path.lineTo(tx + Math.cos(a - Math.PI / 4) * flen, ty + Math.sin(a - Math.PI / 4) * flen);
+                }
+
+                if (style === 2) {
+                    const mx = cos * r * 0.55, my = sin * r * 0.55;
+                    const blen = r * 0.22;
+                    path.moveTo(mx, my);
+                    path.lineTo(mx + Math.cos(a + Math.PI / 4) * blen, my + Math.sin(a + Math.PI / 4) * blen);
+                    path.moveTo(mx, my);
+                    path.lineTo(mx + Math.cos(a - Math.PI / 4) * blen, my + Math.sin(a - Math.PI / 4) * blen);
+                }
+            }
+
+            const dot = new Path2D();
+            dot.arc(0, 0, r * 0.1, 0, Math.PI * 2);
+
+            return { path, dot };
+        };
 
         flakes = Array.from({ length: 110 }, () => ({
             x:     Math.random() * 1.4 - 0.2,
@@ -63,6 +105,7 @@ export default {
             style: Math.floor(Math.random() * 4),
             color: colorKeys[Math.floor(Math.random() * 3)]
         }));
+        flakes.forEach(s => Object.assign(s, buildFlake(s.r, s.style)));
 
         const resize = () => {
             w = innerWidth; h = innerHeight;
@@ -81,57 +124,6 @@ export default {
 
         visibilityHandler = () => { visible = document.visibilityState === 'visible'; if (visible) draw(); };
         document.addEventListener('visibilitychange', visibilityHandler);
-
-        const drawFlake = (r, style) => {
-            const arms = style === 2 ? 8 : 6;
-            const step = (Math.PI * 2) / arms;
-
-            ctx.beginPath();
-            for (let j = 0; j < arms; j++) {
-                const a = step * j;
-                const cos = Math.cos(a), sin = Math.sin(a);
-
-                // main arm
-                ctx.moveTo(0, 0);
-                ctx.lineTo(cos * r, sin * r);
-
-                if (style === 0 || style === 3) {
-                    // mid-point side branches
-                    const mx = cos * r * 0.5, my = sin * r * 0.5;
-                    const blen = r * 0.32;
-                    ctx.moveTo(mx, my);
-                    ctx.lineTo(mx + Math.cos(a + Math.PI / 3) * blen, my + Math.sin(a + Math.PI / 3) * blen);
-                    ctx.moveTo(mx, my);
-                    ctx.lineTo(mx + Math.cos(a - Math.PI / 3) * blen, my + Math.sin(a - Math.PI / 3) * blen);
-                }
-
-                if (style === 1 || style === 3) {
-                    // tip forks
-                    const tx = cos * r, ty = sin * r;
-                    const flen = r * 0.28;
-                    ctx.moveTo(tx, ty);
-                    ctx.lineTo(tx + Math.cos(a + Math.PI / 4) * flen, ty + Math.sin(a + Math.PI / 4) * flen);
-                    ctx.moveTo(tx, ty);
-                    ctx.lineTo(tx + Math.cos(a - Math.PI / 4) * flen, ty + Math.sin(a - Math.PI / 4) * flen);
-                }
-
-                if (style === 2) {
-                    // mid-dot bridge for 8-arm
-                    const mx = cos * r * 0.55, my = sin * r * 0.55;
-                    const blen = r * 0.22;
-                    ctx.moveTo(mx, my);
-                    ctx.lineTo(mx + Math.cos(a + Math.PI / 4) * blen, my + Math.sin(a + Math.PI / 4) * blen);
-                    ctx.moveTo(mx, my);
-                    ctx.lineTo(mx + Math.cos(a - Math.PI / 4) * blen, my + Math.sin(a - Math.PI / 4) * blen);
-                }
-            }
-            ctx.stroke();
-
-            // center dot
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2);
-            ctx.fill();
-        };
 
         const draw = () => {
             if (!visible) { animationId = requestAnimationFrame(draw); return; }
@@ -165,7 +157,8 @@ export default {
                 ctx.fillStyle = c;
                 ctx.lineWidth = s.r * 0.13;
                 ctx.lineCap = 'round';
-                drawFlake(s.r, s.style);
+                ctx.stroke(s.path);
+                ctx.fill(s.dot);
                 ctx.restore();
             }
 

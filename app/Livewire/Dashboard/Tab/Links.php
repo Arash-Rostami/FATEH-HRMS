@@ -8,10 +8,12 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Isolate]
+#[Lazy]
 class Links extends Component
 {
     use FocusOnRecord;
@@ -36,10 +38,10 @@ class Links extends Component
         return $this->filterBySearch($this->externalLinksSource);
     }
 
-    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.external')]
+    #[Computed]
     public function externalLinksSource()
     {
-        return Link::external()->orderBy('sequence')->get();
+        return Link::cachedExternal();
     }
 
     #[Computed]
@@ -56,10 +58,10 @@ class Links extends Component
         return $this->filterBySearch($this->internalLinksSource);
     }
 
-    #[Computed(seconds: 7200, cache: true, key: 'dashboard.links.internal')]
+    #[Computed]
     public function internalLinksSource()
     {
-        return Link::internal()->orderBy('sequence')->get();
+        return Link::cachedInternal();
     }
 
     private function filterBySearch(Collection $links): Collection
@@ -116,6 +118,11 @@ class Links extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.links', ['linkPresenter' => new LinkPresenter()]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.links.placeholder');
     }
 
     #[Computed]

@@ -15,7 +15,7 @@ class TaskExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        return $query->with(['creator', 'assignee']);
+        return $query->with(['creator', 'assignee', 'project']);
     }
 
     public static function getColumns(): array
@@ -29,9 +29,16 @@ class TaskExporter extends Exporter
                 ->state(fn($record) => TaskStatus::tryFrom($record->status)?->getLabel() ?? $record->status),
             ExportColumn::make('creator.name')->label(__('resources/task/strings.fields.creator')),
             ExportColumn::make('assignee.name')->label(__('resources/task/strings.fields.assignee')),
+            ExportColumn::make('project.name')->label(__('resources/task/strings.fields.project_id')),
+            ExportColumn::make('priority')
+                ->label(__('resources/task/strings.fields.priority'))
+                ->state(fn($record) => $record->priority?->getLabel() ?? '—'),
+            ExportColumn::make('labels')
+                ->label(__('resources/task/strings.fields.labels'))
+                ->state(fn($record) => implode('، ', $record->labels ?? [])),
             ExportColumn::make('deadline')
                 ->label(__('resources/task/strings.fields.deadline'))
-                ->state(fn($record) => $record->deadline ? toJalaliSmart($record->deadline) : '-'),
+                ->state(fn($record) => $record->deadline ? toJalali($record->deadline, 'Y/m/d') : '-'),
             ExportColumn::make('created_at')->label(__('resources/task/strings.fields.created_at'))
                 ->formatStateUsing(fn($state) => $state ? toJalaliSmart($state) : '—'),
             ExportColumn::make('deleted_at')->label(__('resources/task/strings.fields.deleted_at'))

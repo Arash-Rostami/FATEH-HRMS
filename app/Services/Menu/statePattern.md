@@ -1,8 +1,9 @@
 # StateLogic — the `App\Services\Menu` notification system
 
-The single reference for the **entire** menu notification mechanism: two coexisting signals that
-share one storage (Filament's `notifications` table) but never touch each other. Read this before
-editing anything in `App\Services\Menu`, adding an indicator, or wiring a new nudge trigger.
+The single reference for the **entire** menu notification mechanism: three coexisting signals.
+Signals 1 and 2 share one storage (Filament's `notifications` table) but never touch each other;
+Signal 3 owns its own `edges` table. Read this before editing anything in `App\Services\Menu`,
+adding an indicator, wiring a new nudge trigger, or adding a toast.
 
 - **Signal 1 — Badge / dot** (`StateService` + `BadgeSyncService` + `Indicators\*`): the permanent,
   aggregate status dot on a menu item. One row **per indicator**. **Pull** — reconciled on menu
@@ -10,12 +11,19 @@ editing anything in `App\Services\Menu`, adding an indicator, or wiring a new nu
 - **Signal 2 — Record nudge / bell** (`NudgeService` + `ReconcileNudge` + `NudgeServiceProvider`):
   a one-time, dismissable bell entry. One row **per qualifying record**. **Push** — reconciled on
   the record's Eloquent event. Never resurfaces once dismissed.
+- **Signal 3 — Edge / toast** (`EdgeService` + `ReconcileEdge` + `EdgeServiceProvider` + `Toasts\*`):
+  a persistent, dismissible floating card. One row **per (toast × user × subject)**. **Push** to
+  materialize (reconciled on the Eloquent event into the `edges` table), **pull** to render (read on
+  page load). Dismissible with a **developer-defined duration per toast** (default forever). See
+  the "Signal 3 — Edge / toast" section below.
 
-Both write rows into the same `notifications` table with `type = FilamentDatabaseNotification` and
+Signals 1 and 2 write rows into the same `notifications` table with `type = FilamentDatabaseNotification` and
 `notifiable_type = User`, and both stamp `data->menu_key`. They are kept apart **only** by the key
 string: badge keys are bare (`ads-controller`, `suggestion-controller`, `shared-events`); nudge keys
 carry a `:nudge` suffix. Each system's queries filter by its own key shape, so the two namespaces
-cannot collide and neither can delete the other's rows.
+cannot collide and neither can delete the other's rows. Signal 3 is isolated from both by **table**
+(it writes `edges`, not `notifications`); its `:edge` key suffix (`channels-controller:edge`,
+`projects-controller:edge`) is a naming convention mirroring `:nudge`, not a partitioning mechanism.
 
 ## Namespace map
 
@@ -34,7 +42,9 @@ App\Services\Menu\
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
 │   ├── EnergyTestBadge.php         key=energy-controller     isActive = $user !== null && EnergyTest::canSubmit($user->id)
 │   ├── ThsBadge.php                key=ths-controller        isActive = auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)
-│   └── DmsBadge.php                key=dms-controller        isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)
+│   ├── DmsBadge.php                key=dms-controller        isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)
+│   ├── TasksImminent.php           key=tasks-deadline        isActive = one of the user's non-done/pending tasks has deadline ≤3 days out or overdue (Task::urgency_state kind ∈ {overdue,due}); no dot surface, bell-only
+│   └── TasksPendingApproval.php    key=tasks-pending-approval isActive = user owns a requires_approval project holding a done task with approved_at IS NULL; bell-only (taskboardPattern.md §19.2)
 ├── Notifications\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
@@ -43,18 +53,28 @@ App\Services\Menu\
 │   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
 │   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
 │   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
-│   ├── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/restored/forceDeleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not owner)  for=owner + otherReplyParticipants([user_id, assigned_to])
+│   ├── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/restored/forceDeleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not owner)  for=owner + otherReplyParticipants([user_id, assigned_to]) + task->detail->collaborators
+│   ├── TaskOverdueNudge.php        key=tasks-controller:overdue-nudge  triggers=Task updated (self)  show=urgency_state['kind']==='overdue'  for=owner (assigned_to ?? user_id)  badgeSuppressesCreate=false  — the only time-driven trigger: also swept by `tasks:nudge-overdue` (hourly console command), not just the Task-save event
+│   ├── TaskApprovalNudge.php       key=tasks-controller:approval-nudge  triggers=Task updated (self)  show=isPendingApproval()  for=project owner only  badgeSuppressesCreate=false (the key does not end in the literal ':nudge', so the derived badge-suppress would no-op — explicit opt-out per the key-shape gotcha below)  title escalates: '' → 'یادآوری: ' >24h → '⏰ فوری: ' >48h, anchored on updated_at — known limitation: escalation only advances on a Task-save reconcile (no hourly sweep like TaskOverdueNudge's) and any save (e.g. a reply) resets the 24h/48h clock; accepted per plan §H/K2 (taskboardPattern.md §19.2)
+│   ├── ProjectNudge.php            key=projects-controller:nudge  triggers=Project created (self) + Reply created (subject=$reply->repliable, Assignment-type + payload.added-guarded)  show=true  for=newly-added member ids (from the Assignment reply's payload, or all member_ids minus owner on the create trigger)
 │   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not currentActionRecipient)  for=currentActionRecipient + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
 │   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false
+├── Toasts\
+│   ├── ChannelToast.php            key=channels-controller:edge   triggers=ChannelMessage created/deleted + ChannelMember/Channel events  for=invited (Channel::invitedUserIds) ∪ mentioned (mentionedSenders regex)  icon=mail (invited) / alternate_email (mentioned)  url=route('channels',['open'=>id])
+│   ├── ProjectToast.php            key=projects-controller:edge  triggers=Project created + Reply created (added ids) + ChannelMember created (unopened project channel)  for=resolveAddedIds ∪ Channel::invitedUserIds(channel_id)  icon=group_add (added) / workspaces (unopened)  url=route('projects',['open'=>id])
+│   └── TaskDueSoonToast.php        key=tasks-controller:due-soon-edge  triggers=Task created/updated (event) + hourly `tasks:nudge-overdue` sweep (time — see taskboardPattern.md §18, deadline BETWEEN now and now+24h)  show=deadline within 24h, not past, status not done/pending — tighter than TasksImminent's 3-day badge window, deliberately coexisting  for=owner (assigned_to ?? user_id)  icon=schedule  url=route('tasks',['open'=>id])
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
-└── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
+├── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
+└── EdgeService.php           registry + reconcile engine (edge side); register(MenuEdge) adapts a toast, reconcile() lock-diff upserts/prunes the edges table, forUser() reads it (payload carries localRoute), dismiss() snoozes by dismissRule()
 
 App\Jobs\ReconcileNudge.php            queued unit of work for a per-record reconcile (nudge side)
+App\Jobs\ReconcileEdge.php             queued unit of work for a per-(toast×user×subject) reconcile (edge side); $tries=3, $backoff=[10,30], afterCommit(), carries only primitives
 App\Providers\NudgeServiceProvider.php registers the nudge classes in boot(): NudgeService::register(new ...Nudge())
-bootstrap/providers.php                        one line appended to register the provider above
+App\Providers\EdgeServiceProvider.php  registers the toast classes in boot(): EdgeService::register(new ...Toast())
+bootstrap/providers.php                        one line appended to register each provider above
 ```
 
 No migration, no Observer class (events are bound from the service), and no edit to
@@ -77,11 +97,12 @@ interface MenuBadge {
 ```
 
 An indicator is a **stateless, read-only** object: `isActive()` reads the DB (or `auth()->user()`)
-fresh and returns a bool. It owns no row and writes nothing. **All 11 indicators implement it**,
+fresh and returns a bool. It owns no row and writes nothing. **All 13 indicators implement it**,
 all structurally identical (no per-user method, no sub-interface).
 
 | Indicator | `getKey()` | `isActive()` |
 |---|---|---|
+| `TasksPendingApproval` | `tasks-pending-approval` (bell-only — no `BadgeLegendCatalog` entry, deliberately: it is the project owner's lever, not ambient chrome) | `auth()->user() !== null` and the user owns a project with `settings->requires_approval` that has a done task with `approved_at IS NULL` (the `isPendingApproval()` shape, batched as one existence query — see `taskboardPattern.md` §19.2) |
 | `ActiveAds` | `ads-controller` | `Ad::active()->exists()` |
 | `PendingSuggestions` | `suggestion-controller` | `Suggestion::attentionRequired()->exists()` |
 | `SharedEvents` | `shared-events` | `auth()->user() !== null && (EventShare::hasImminentFor($user) \|\| Event::hasImminentSharedFor($user))` |
@@ -93,9 +114,11 @@ all structurally identical (no per-user method, no sub-interface).
 | `EnergyTestBadge` | `energy-controller` | `$user !== null && EnergyTest::canSubmit($user->id)` |
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
 | `DmsBadge` | `dms-controller` | `auth()->user() !== null && DMS::hasPendingFor($user->id)` |
+| `TasksImminent` | `tasks-deadline` | `auth()->user() !== null` and one of the user's non-done/pending tasks (`forUser`) has a deadline that is overdue or ≤3 days out (`Task::urgency_state['kind']` ∈ `{overdue, due}`) |
 
-`SharedEvents`, `TasksTodo`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`, `EnergyTestBadge`,
-`ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`. `PendingSuggestions`
+`SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
+`EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`.
+`PendingSuggestions`
 calls `Suggestion::attentionRequired()->exists()` with no `$user` argument — but
 `scopeAttentionRequired()` (`HasSuggestionAlert::scopeAttentionRequired`) defaults `$user ??= auth()->user()`
 internally, so it is **also per-user**, not global. Only `ActiveAds` (`Ad::active()->exists()`) and
@@ -274,6 +297,10 @@ cache hits.
 - **Full-page routes without a sidebar tab** (`ads-controller`, `suggestion-controller`,
   `tasks-controller`, `ths-controller`, `dms-controller`, `contacts-controller`, `energy-controller`)
   stay menu-modal-only by design. Forcing a dot onto an unrelated tab would mislabel the signal.
+- **`tasks-deadline` (`TasksImminent`) has no dot surface at all** — no `menu.js` item id, no
+  `Tabs.php` `'badge'` field. Its row still writes to `notifications` like every badge and is visible
+  through Filament's own bell UI (which lists every row regardless of signal), but no dot lights
+  anywhere; the catalog's `surface` text for it says so explicitly.
 
 ---
 
@@ -327,11 +354,12 @@ for tab-hosted modules) — the same `?open={id}` param `App\Traits\FocusOnRecor
 title/body: set `refresh() => true` and an edit re-fires reconcile to rewrite `url` on a still-
 **unread** row; a **read** row's `url` is never rewritten.
 
-All 12 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
+All 14 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
 `SharedEventsNudge`→`route('dashboard', ['tab'=>'calendar', …])`, `SuggestionNudge`→`route('suggestion', …)`,
 `PostNudge`→`route('dashboard', ['tab'=>'post', …])`, `FeedNudge`→`route('dashboard', ['tab'=>'feed', …])`,
 `PhotoNudge`→`route('dashboard', ['tab'=>'gallery', …])`, `ReportNudge`→`route('dashboard', ['tab'=>'reports', …])`,
-`TaskNudge`→`route('tasks', …)`, `ThsNudge`→`route('ths', …)`, `DmsNudge`→`route('dms', …)`,
+`TaskNudge`→`route('tasks', …)`, `TaskOverdueNudge`→`route('tasks', …)`, `ProjectNudge`→`route('projects', …)`,
+`ThsNudge`→`route('ths', …)`, `DmsNudge`→`route('dms', …)`,
 `ChannelNudge`→`route('channels', …)`, `ContactNudge`→`route('contact', …)` (subject is the message
 sender `User`, so this links to the conversation, not a specific message).
 
@@ -416,14 +444,25 @@ Design choices:
   the new subject existed) gives "excluding the current item" semantics for free. `register()`
   captures the flag via `method_exists($nudge, 'badgeSuppressesCreate')` (default `true`). A nudge
   opts OUT by implementing `badgeSuppressesCreate(): bool { return false; }` — required only where
-  the badge condition is **not** a superset of the nudge condition. Five opt-outs: `SharedEventsNudge`
+  the badge condition is **not** a superset of the nudge condition. Six opt-outs: `SharedEventsNudge`
   (badge = imminent ≤24h, nudge = any future event), `ContactNudge` (badge = any unread, nudge =
   per-chat; a new chat must still alert even when another chat already lit the badge), `DmsNudge` /
   `ThsNudge` (a `Read`/`Reply` on an already-badge-lit doc/ticket must still CREATE a nudge for the
-  reply-participants the badge does not track), and `ChannelNudge` (nudge-only — no `Channel`
-  indicator badge exists, so CREATE must always fire). Gallery/Reports have no matching badge row, so
-  the guard is a no-op there; Ads/Posts/Feeds/Suggestion/Task keep the default because their badge is
-  a superset of the nudge.
+  reply-participants the badge does not track), `ChannelNudge` (nudge-only — no `Channel`
+  indicator badge exists, so CREATE must always fire), and `TaskOverdueNudge` (its own badge,
+  `tasks-deadline`, fires on *due-soon or overdue*, a superset of "overdue" — but see the key-shape
+  note below; opting out sidesteps the question). Gallery/Reports/Projects have no matching badge row,
+  so the guard is a no-op there; Ads/Posts/Feeds/Suggestion/Task keep the default because their badge
+  is a superset of the nudge.
+- **Key-shape gotcha (`badge_suppress` lookup silently no-ops on a non-`:nudge` suffix)** —
+  `Str::beforeLast($key, ':nudge')` only strips a literal `:nudge` substring; when not found, Laravel
+  returns the subject **unchanged** (`vendor/laravel/framework/.../Str.php::beforeLast`). A nudge key
+  shaped like `TaskOverdueNudge`'s `tasks-controller:overdue-nudge` has no `:nudge` substring (the
+  colon is followed by `overdue-nudge`, not `nudge`), so an unguarded lookup would search for a bare
+  badge row keyed `tasks-controller:overdue-nudge` — which can never exist — making `badge_suppress`
+  a permanent no-op rather than a real check. `TaskOverdueNudge` sidesteps this by opting OUT
+  explicitly rather than relying on the (broken) default. Any future nudge whose key does not end in
+  the exact literal `:nudge` suffix inherits the same trap and should opt out explicitly too.
 - **`subject` resolver** — lets a *foreign* trigger reconcile a *different* record's nudge. Review
   writes flip a Suggestion's attention but fire no `Suggestion` event; binding Review with
   `subject = $review->suggestion` and the **same key + item_id (suggestion id)** makes both triggers
@@ -446,8 +485,11 @@ declare several triggers sharing the same key.
 | `Feed` | created, updated, deleted | self | `true` | `User::active()->get()` |
 | `Photo` | created, updated, deleted | self | `true` | dept-scoped (`Photo::all_departments` + 'MA', empty→all active) |
 | `Report` | created, updated, deleted | self | `$report->active` | `User::active()->get()` |
-| `Task` | created, updated, deleted, restored, forceDeleted | self | `true` (false when `latestReply` is own & not owner) | owner (`assigned_to ?? user_id`) + `otherReplyParticipants([user_id, assigned_to])` |
+| `Task` | created, updated, deleted, restored, forceDeleted | self | `true` (false when `latestReply` is own & not owner) | owner (`assigned_to ?? user_id`) + `otherReplyParticipants([user_id, assigned_to])` + `task->detail->collaborators` (only once a reply exists) |
 | `Reply` (Task) | created | `$reply->repliable` (repliable_type-guarded) | same `TaskNudge` class | same `TaskNudge` class |
+| `Task` (overdue) | updated | self | `$task->urgency_state['kind'] === 'overdue'` (model-as-source-of-truth, same accessor `TasksImminent` badge partially reuses) | owner (`assigned_to ?? user_id`) — also swept hourly by `tasks:nudge-overdue`, see below |
+| `Project` | created | self | `true` | newly-added member ids: on `created`, `member_ids` minus `owner_id`; see `Reply` row |
+| `Reply` (Project) | created | `$reply->repliable` (repliable_type-guarded, `TaskActivityType::Assignment`-guarded, empty `payload.added`→null) | same `ProjectNudge` class | `payload['added']` ids from the latest Assignment reply |
 | `Ticket` | created, updated, deleted | self | `true` (false when `latestReply` is own & not currentActionRecipient) | `Ticket::currentActionRecipient()` + `otherReplyParticipants([requester_id, assigned_to])` |
 | `Reply` (Ticket) | created | `$reply->repliable` (repliable_type-guarded) | same `ThsNudge` class | same `ThsNudge` class |
 | `DMS` | created, updated, deleted | self | `true` | `DMS::pendingRecipients()` |
@@ -479,6 +521,23 @@ declare several triggers sharing the same key.
   is active). `Event::booted()` flushes on `updated`/`deleted` only (not `created` — a new event has
   no shares), so the **badge** reflects an owner's date edit/deletion promptly instead of lagging
   the ≤2h TTL.
+- **`TaskOverdueNudge` — the only time-driven trigger.** Every other nudge in the system reconciles
+  purely off an Eloquent event; this one's `triggers()` still declares a normal `Task {updated}` (a
+  save that flips a task overdue reconciles immediately, same as any other nudge), but a task can also
+  cross its deadline with **no accompanying save at all** — nothing fires. `App\Console\Commands\NudgeOverdueTasks`
+  (`tasks:nudge-overdue`, scheduled `->hourly()->between('06:00','22:00')` in `routes/console.php`) closes
+  that gap: it sweeps `Task::whereNull('archived_at')->where('status','!=','done')->whereNotNull('deadline')->where('deadline','<',now())`
+  in `chunkById(200)` and dispatches the same `ReconcileNudge` job per row — an artificial "re-check"
+  rather than a new trigger class, so `NudgeService`'s engine is untouched. `show()` still re-derives
+  `urgency_state` fresh inside the job, so a task the sweep queues but that turns out `pending` (the
+  query does not exclude it, only `done`) simply reconciles to no-op/delete, not a false nudge.
+- **`ProjectNudge` recipient logic** — `for()` resolves "who was just added" two ways: on `Project
+  {created}` (no reply yet), every `member_ids` entry except `owner_id`; on `Reply {created}`
+  (`TaskActivityType::Assignment`, non-empty `payload['added']`), exactly the ids in that reply's
+  `added` payload — so re-adding an already-a-member user, or a membership reply with no `added`
+  delta, resolves to an empty/no-op recipient set rather than re-nudging the whole roster. No matching
+  badge exists for Projects (nudge-only, like Gallery/Reports); `badgeSuppressesCreate` stays default
+  `true` but is a no-op with no bare-key row to find.
 
 ### Recipients without an auth user
 
@@ -501,19 +560,20 @@ badge's `attentionRequired` scope already uses — single source of truth, no dr
 
 ---
 
-## The two systems side by side
+## The three systems side by side
 
-| | Badge / dot | Record nudge |
-|---|---|---|
-| what | permanent status signal (menu dot) | one-time nudge (bell entry) |
-| granularity | one row **per indicator** | one row **per qualifying record** |
-| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event |
-| key shape | bare `ads-controller` / `suggestion-controller` / `shared-events` | suffixed `ads-controller:nudge` / … |
-| dismissal | not dismissable (lit while true) | dismissable (`markAsRead`); never resurfaces |
-| no-resurface mechanism | `syncBatch()` `existingByKey` leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone |
-| invalidation | `StateService::flush()` (global version bump) | n/a (event-driven; re-fetches fresh) |
-| recipient model | one row per user per indicator | `for()` candidate set + per-recipient `show()` gate |
-| auth at write time | `get()` runs in-request with `auth()->user()` | none — `for`/`show` carry the user explicitly |
+| | Badge / dot | Record nudge | Edge / toast |
+|---|---|---|---|
+| what | permanent status signal (menu dot) | one-time nudge (bell entry) | persistent floating card |
+| granularity | one row **per indicator** | one row **per qualifying record** | one row **per (toast × user × subject)** |
+| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event (one exception: `TaskOverdueNudge` is additionally swept hourly by `tasks:nudge-overdue`, a console command re-checking for silent deadline crossings — it still calls the same per-record `ReconcileNudge`, not a bespoke mechanism) | push to materialize (reconciled on the Eloquent event into `edges`) + pull to render (read on page load) |
+| key shape | bare `ads-controller` / `suggestion-controller` / `shared-events` | suffixed `ads-controller:nudge` / … | suffixed `channels-controller:edge` / … (own `edges` table — the suffix is convention, not partitioning) |
+| dismissal | not dismissable (lit while true) | dismissable (`markAsRead`); never resurfaces | dismissible (× → `snooze()` by `dismissRule()`; default forever → `dismissed_at`, never resurfaces; a duration → `snoozed_until`, resurfaces after expiry) |
+| no-resurface mechanism | `syncBatch()` `existingByKey` leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone | `reconcile()` existing-row branch leaves `dismissed_at`/`snoozed_until` alone; `scopeVisible` re-includes after snooze expiry |
+| invalidation | `StateService::flush()` (global version bump) | n/a (event-driven; re-fetches fresh) | n/a (event-driven; re-fetches fresh) |
+| recipient model | one row per user per indicator | `for()` candidate set + per-recipient `show()` gate | `for()` candidate set + per-recipient `show()` gate (same shape as nudge) |
+| auth at write time | `get()` runs in-request with `auth()->user()` | none — `for`/`show` carry the user explicitly | none — `for`/`show` carry the user explicitly |
+| locality | always global | always global | `localRoute()` per-toast: `null`=global (every page), route-name=local (only that module URL, gated by blade `@if` vs `$currentRoute` captured at mount) |
 
 Both rely on the **same** `exists()` → leave-it-alone primitive for no-resurface, in pull vs push
 form. Both write rows of the same `type`/`notifiable_type`; only the `menu_key` shape separates them.
@@ -526,6 +586,11 @@ form. Both write rows of the same `type`/`notifiable_type`; only the `menu_key` 
   `where('data->menu_key', $ruleKey)` — suffixed key only.
 - A bare key can never equal a suffixed key, so the two query sets are disjoint. No const class
   needed — the `:nudge` suffix alone guarantees it.
+- **One key does not follow the exact `:nudge` shape** — `TaskOverdueNudge` uses
+  `tasks-controller:overdue-nudge`. Isolation from the badge namespace still holds (it is not a bare
+  key), and `PruneStaleNudges`' `LIKE '%nudge'` predicate still catches it (it ends in `nudge`), but
+  `Str::beforeLast($key, ':nudge')` does **not** find a `:nudge` substring in it — see the
+  `badge_suppress` key-shape note above, which is why this nudge opts out of that check explicitly.
 
 ## Configuring local vs production
 
@@ -570,7 +635,7 @@ migration, no observer class.
 
 ## `HasMenuState` trait — the single flush primitive
 
-Every model whose writes can change a badge's truth uses `App\Models\Traits\HasMenuState` instead of
+Every model whose writes can change a badge's truth uses `App\Models\Concerns\HasMenuState` instead of
 a hand-written `booted()` closure:
 
 ```php
@@ -622,6 +687,7 @@ adapters. One query, one place — reusable, testable, impossible to drift betwe
 | Suggestions | `Suggestion::attentionRequired()` / `requiresAttentionFor($s,$u)` (`HasSuggestionAlert`) | `PendingSuggestions` badge + `SuggestionNudge::show()` |
 | Shared events | `EventShare::hasImminentFor($u)` / `Event::hasImminentSharedFor($u)` | `SharedEvents` badge |
 | Tasks | `Task::getTodoCount($u)` / `scopeForUser` / `scopeStatus` | `TasksTodo` badge |
+| Tasks (deadline) | `Task::urgencyState()` accessor (`urgency_state['kind']`) | `TasksImminent` badge (kind ∈ `{overdue, due}`) + `TaskOverdueNudge::show()` (kind `=== 'overdue'`, a narrower slice of the same accessor) |
 | Contacts | `Message::hasUnreadFor($u)` / `Message::unreadCountsFrom($sender)` | `UnreadMessages` badge; `ContactNudge::for()` batches per-recipient counts via `unreadCountsFrom` (no per-user query in `show()`) |
 | Posts | `Post::hasUnreadFor($u)` (via `HasNudgeTracking`, reads `posts-controller:nudge` unread rows within `FRESHNESS_DAYS`) | `UnreadPosts` badge |
 | Feeds | `Feed::hasUnreadFor($u)` / `markAllReadFor($u)` (via `HasNudgeTracking`, reads `feeds:nudge` within `FRESHNESS_DAYS`) | `UnreadFeeds` badge |
@@ -633,9 +699,9 @@ Convention: the method takes the **user id** as a parameter (`hasUnreadFor($u)`,
 `canSubmit($u)`) rather than reading `auth()->user()` inside the model, so it is callable from the
 queued nudge reconcile job (no auth context) and from tests — mirroring
 `requiresAttentionFor($subject,$user)`. The indicator reads `auth()->user()` once and passes
-`$user->id` down. `PhotoNudge`/`ReportNudge` are nudge-only (no badge, no shared condition) so they
-have no model method to extract; `SpecialDays` is badge-only and its `Profile` date query is a
-one-off aggregate with no nudge counterpart, left inline.
+`$user->id` down. `PhotoNudge`/`ReportNudge`/`ProjectNudge` are nudge-only (no badge, no shared
+condition) so they have no model method to extract; `SpecialDays` is badge-only and its `Profile`
+date query is a one-off aggregate with no nudge counterpart, left inline.
 
 `ContactNudge` batches its per-recipient unread count to avoid an N+1: `for()` calls
 `Message::unreadCountsFrom($subject->id)` (one grouped `COUNT(*) … GROUP BY recipient_id` query,
@@ -726,7 +792,7 @@ at midnight, identically for every user).
 
 ### `HasNudgeTracking` trait — FRESHNESS_DAYS, `seenIdsFor` null-filter, `markReadFor` afterCommit
 
-`App\Models\Traits\HasNudgeTracking` gates all per-user unread-nudge queries:
+`App\Models\Concerns\HasNudgeTracking` gates all per-user unread-nudge queries:
 
 - **`FRESHNESS_DAYS = 30`** is the single horizon — `isFresh()`, `hasUnreadFor($u)`, and
   `seenIdsFor($u)` all scope `notifications` rows to `created_at >= now()->subDays(30)`. The
@@ -779,18 +845,23 @@ change.
   `user_id = me AND assigned_to null`). A global `Task::where('status','todo')->exists()` would light
   everyone's dot regardless of their own tasks and is wrong. `TaskStatus::Todo` ('todo', label
   «انجام نشده»), the default on create.
-- **`TaskNudge`** — **owner + reply-participants**: `for` pushes the owner
+- **`TaskNudge`** — **owner + reply-participants + collaborators**: `for` pushes the owner
   (`User::active()->where('id', $subject->assigned_to ?? $subject->user_id)`, empty → skip) then
   merges `$subject->otherReplyParticipants([$subject->user_id, $subject->assigned_to])` — so a task
-  with a reply thread also nudges the other party, not just the owner. The earlier assignee-only
-  rule left unassigned tasks with **no** recipient; owner-based fixed that, reply-participants added
-  reply-awareness. `show` returns `false` when the latest reply is the user's **and** the user is not
-  the owner (no self-nudge for your own reply unless you own the task), else `true` — same
-  fire-once/no-resurface rationale (the badge carries the "still in todo" state; a state-driven
-  `show = status==='todo'` would resurface a dismissed nudge on a todo→in-progress→todo cycle).
-  `title`/`body` branch on ownership: owner gets «وظیفه جدید: …» / «وظیفه جدیدی به شما ارجاع داده
-  شده است…», a reply-participant gets «پاسخ جدید: …» / «پاسخ جدیدی برای وظیفه شما ثبت شده است…».
-  `refresh = true`.
+  with a reply thread also nudges the other party, not just the owner — then merges
+  `collaboratorRecipients()`: **only once a reply exists** (`$task->latestReply()` non-null), the
+  task's `detail->collaborators` ids (`User::active()->whereIn('id', …)`), so a task's collaborator
+  list also gets nudged on the same reply-driven cadence as the reply participants, not on every bare
+  create/update. The earlier assignee-only rule left unassigned tasks with **no** recipient;
+  owner-based fixed that, reply-participants added reply-awareness, collaborators extended it further.
+  `show` returns `false` when the latest reply is the user's **and** the user is not the owner (no
+  self-nudge for your own reply unless you own the task), else `true` — same fire-once/no-resurface
+  rationale (the badge carries the "still in todo" state; a state-driven `show = status==='todo'`
+  would resurface a dismissed nudge on a todo→in-progress→todo cycle). `title`/`body` branch three
+  ways: a `StatusChange` reply whose `payload['to'] === 'done'` (`isCompletionReply()`) gets «وظیفه
+  تکمیل شد: …» / «وظیفهٔ شما به پایان رسید…» regardless of recipient; otherwise the owner gets
+  «وظیفه جدید: …» / «وظیفه جدیدی به شما ارجاع داده شده است…», any other recipient (reply-participant
+  or collaborator) gets «پاسخ جدید: …» / «پاسخ جدیدی برای وظیفه شما ثبت شده است…». `refresh = true`.
 - **Triggers** — `['created','updated','deleted','restored','forceDeleted']` + `Reply{created}`
   (`subject = $reply->repliable`, repliable_type-guarded to `Task`). `Task` uses `SoftDeletes`, so
   `forceDeleted` is a distinct Eloquent event that `deleted` does **not** cover (without it a
@@ -886,7 +957,7 @@ id):
   `show = true` (pending filtering is already inside `for()`/`pendingRecipients()`, so `show` is
   unconditional). `badgeSuppressesCreate = false` — a `Read` on an already-badge-lit doc must still
   CREATE a nudge for the newly-pending recipient. `title`/`body` embed the doc's type label via the
-  Filament lang strings (`__('resources/dms/strings/type.systematic')` / `non_systematic` →
+  Filament lang strings (`__('resources/dms/strings.type.systematic')` / `non_systematic` →
   «سیستمی»/«غیر سیستمی») and flavor: `requiresSignFor` → «نیازمند تأیید», else «نیازمند مطالعه».
   `refresh = true` so signing rewrites the same row from «نیازمند تأیید» to «نیازمند مطالعه» (the
   row persists across the sign→read transition rather than being recreated).
@@ -931,10 +1002,10 @@ Both are **Signal-2 only** (no `MenuBadge`, no menu dot) — the bell row is the
 - **`ReportNudge`** (key `reports-controller:nudge`) — broadcast: `for = User::active()->get()`,
   `show = $subject->active` (only published reports — the `Report.active` boolean gate, same shape
   as `AdNudge::show = $ad->active`), `refresh = true`. Title carries the publishing department's
-  full name: `'گزارش جدید از ' . (($subject->department?->description ?: $subject->department?->name) ?? 'سازمان') . ': ' . $subject->title`
-  — `Department` exposes `description` (complete display name, preferred) and `name` (short
-  fallback); `?:` falls through empty `description` to `name`, `?? 'سازمان'` covers a department-less
-  report. `Department` has **no** `title` field.
+  label via the shared `Department::displayLabel()` (`HasDepartmentLabel`, `description ?: name ?: code`):
+  `'گزارش جدید از ' . ($subject->department?->displayLabel() ?? 'سازمان') . ': ' . $subject->title`
+  — the nullsafe `?->` short-circuits `?? 'سازمان'` for a department-less report; the same helper
+  backs `Department` dropdown labels elsewhere, so this can't drift from that copy.
 - **Keys** — `gallery-controller` / `reports-controller` bare keys do **not** exist as menu items or
   tab badges; fine for nudge-only rules (the `:nudge` suffix is the only thing that matters for
   isolation, and there is no badge counterpart to collide with).
@@ -950,11 +1021,46 @@ states. Triggers = `Channel deleted/forceDeleted` (cleanup) + `ChannelMessage cr
 `MarkChannelRead` / `LeaveChannel`); the send path is covered by `ChannelMessage::created` → no new
 dispatch.
 
+## `ProjectNudge` — membership-scoped, no badge
+
+Key `projects-controller:nudge`. Nudge-only (no `MenuBadge`) — like Gallery/Reports, but scoped to
+**newly-added members** rather than a department or a broadcast. `for()` resolves the added-ids two
+ways depending on which trigger fired: `Project {created}` has no reply yet, so every `member_ids`
+entry except `owner_id` is "newly added"; `Reply {created}` (subject resolver guards
+`repliable_type === Project::class` **and** `type === TaskActivityType::Assignment`, returning
+`null` — i.e. no reconcile — when `payload['added']` is empty) resolves to exactly that reply's
+`added` ids via `resolveAddedIds()`, which reads the **latest** Assignment reply if one exists,
+falling back to the `created`-trigger's member-list logic otherwise. `show = true`; `refresh = true`.
+`url()` → `route('projects', ['open' => $subject->getKey()])`. Recipients not in `payload['added']`
+(existing members untouched by the change) never get a row, so adding one person to a 20-member
+project nudges only that person, not the roster — the engine's `whereNotIn` prune still removes a
+since-removed member's row on the next Assignment reply.
+
+## `TaskOverdueNudge` — the system's one time-driven nudge
+
+Key `tasks-controller:overdue-nudge` (not the `:nudge` suffix shape — see "Keys & isolation"). No
+badge condition of its own; `tasks-deadline` (`TasksImminent`) is a related but broader badge (due
+**or** overdue) that happens to reuse the same `urgency_state` accessor — not a superset relationship
+guaranteed to hold under every future tuning of either threshold, which is why `badgeSuppressesCreate`
+is explicitly `false` rather than left at the (silently-broken, see above) default. `for = owner
+(assigned_to ?? user_id)`; `show = urgency_state['kind'] === 'overdue'`; `refresh = true` so the row's
+day-count label (`{days} روز تأخیر`, read off the same accessor at reconcile time) stays current while
+unread. `triggers()` declares only `Task {updated}` — a save that flips a task overdue reconciles
+immediately like any other nudge — but `App\Console\Commands\NudgeOverdueTasks` (`tasks:nudge-overdue`)
+additionally sweeps tasks whose deadline silently passed with **no** accompanying save (see "The
+rules" above for the query + schedule). `url()` → `route('tasks', ['open' => $subject->getKey()])`.
+
 ---
 
 ## Open items (flagged, not auto-fixed)
 
-None currently — the `BadgeLegendCatalog` coverage gap below was closed 2026-08-13.
+- **`projects-controller` catalog entry's `tone` (`gold`) is inconsistent with its own semantics.**
+  `gold` per `viewPattern.md` §8.5 means "action-based, clears on completing the task" — but
+  `ProjectNudge` is nudge-only (no matching badge), dismiss-only, same shape as `channels-controller`
+  and `tasks-overdue-nudge`, both correctly tagged `sage` ("nudge-only with no matching dot/badge").
+  `projects-controller` should likely be `sage` too. Not auto-fixed here (a `tone` value is
+  application code in `BadgeLegendCatalog.php`, out of scope for a docs-only pass) — flagged for a
+  one-line fix on confirmation.
 
 ## Pruning stale nudge rows — `notifications:prune-stale`
 
@@ -1017,8 +1123,10 @@ Calendar, Posts, Feeds, Gallery, Reports) now each carry a `notifications`-icon 
 (`title="راهنمای نشانگر اعلان"`), placed first in the `actions` slot ahead of the module's existing
 `help`-icon workflow/feature-legend button, per the DOM-order rule in `viewPattern.md` §8.5. Calendar
 passes both `shared-events` and `special-days` as its `items` array (its badge has two indicators);
-the other 6 pass a single-entry array for their own key. All 14 catalog entries are now reachable both
-from their own module and from `Profile`'s full-catalog reference.
+the other 6 pass a single-entry array for their own key. All 14 catalog entries that existed at the
+time were reachable both from their own module and from `Profile`'s full-catalog reference (the
+catalog has since grown to 17 — see the 2026-08-29 audit below; the 3 newer entries follow the same
+reachability rule).
 
 ## Audit 2026-08-13 — `BadgeLegendCatalog` content accuracy pass
 
@@ -1104,3 +1212,251 @@ stale claim — see below):
   `hasUnclosedActionFor` (SQL `COALESCE`) — moot under #23's keep-the-fallback: only one PHP caller,
   the SQL `COALESCE` can't reuse a PHP accessor, and `booted().creating` is the WRITER (different
   role). Extracting `resolvedTargetDepartment()` would DRY zero call sites.
+
+## Audit 2026-08-29 — `TaskOverdueNudge` added; full re-audit against source
+
+`TaskOverdueNudge` is the system's first genuinely time-driven trigger (see its own section above and
+the `tasks:nudge-overdue` bullet under "The rules"). Auditing it surfaced that this doc had drifted
+from the live code independently of that addition — two indicator/nudge classes existed with **no**
+documentation at all, and several counts were stale:
+
+- **`TasksImminent` (badge, key `tasks-deadline`) and `ProjectNudge` (nudge, key
+  `projects-controller:nudge`) were entirely undocumented** — pre-existing, not part of today's
+  change. Both now have full coverage: `TasksImminent` in the Signal-1 table + namespace map +
+  "Where the dot renders" (it has no dot surface at all) + Model-as-source-of-truth table;
+  `ProjectNudge` in the namespace map + "The rules" table + its own "membership-scoped, no badge"
+  section.
+- **Counts corrected**: 11→12 badge indicators, 12→14 nudges implementing `url()`, 5→6
+  `badgeSuppressesCreate() => false` opt-outs (added `TaskOverdueNudge`), 14→17
+  `BadgeLegendCatalog` entries (also stale in `filamentPattern.md` and `viewPattern.md` §8.5, fixed
+  there too).
+- **`TaskNudge::for()` merges a third recipient group, `collaboratorRecipients()`** (task's
+  `detail->collaborators`, only once a reply exists) — undocumented; added. Its `title`/`body` also
+  branch on a completion reply (`StatusChange` to `done`) that the doc never mentioned — added.
+- **`ReportNudge`'s title logic was refactored** from inline `description ?: name` to the shared
+  `Department::displayLabel()` (`HasDepartmentLabel` trait) sometime after the doc's last read —
+  corrected to describe the current code, noting the trait is shared with other `Department` label
+  call sites (can't drift).
+- **`DmsNudge`'s lang-key was mistyped in this doc** as `resources/dms/strings/type.systematic`
+  (slash); the actual key is `resources/dms/strings.type.systematic` (dot) — corrected.
+- **`Str::beforeLast($key, ':nudge')` key-shape gotcha documented** — a nudge key not ending in the
+  literal `:nudge` substring (like `TaskOverdueNudge`'s `tasks-controller:overdue-nudge`) makes the
+  `badge_suppress` bare-key lookup silently search for a badge row that can never exist, since
+  `beforeLast` returns the subject unchanged when the search string isn't found. Not a live bug (every
+  such nudge so far opts out explicitly), but a real trap for the next one that doesn't.
+- **"Push" framing in "The two systems side by side"** given one exception without generalizing it —
+  `TaskOverdueNudge` is still reconciled by the same per-record `ReconcileNudge` job on the same
+  `Task {updated}` Eloquent trigger every other nudge uses; the console-command sweep is an additional
+  *source* of that same dispatch for records that had no accompanying save, not a second reconciliation
+  mechanism.
+- Ran `MenuServiceTest` (62 passed) and `ConsoleCommandsTest` (18 passed, including
+  `nudge_overdue_tasks_dispatches_reconcile_for_overdue_tasks_only`) as the ground-truth cross-check
+  before writing the above — no test expectation contradicted anything corrected here.
+
+**Stale count found while making the change below, not yet corrected everywhere:** the catalog now
+holds 22 entries (`MenuServiceTest::test_badge_legend_catalog_grouped_folds_all_entries_into_five_groups`
+already pins 22), not the 17 this doc's own "Counts corrected" bullet above states — `filamentPattern.md`
+and `viewPattern.md` §8.5 likely still say 17 too. Pre-existing drift, unrelated to today's change;
+flagged for a follow-up docs-only pass rather than fixed here to keep this session's diff scoped to the
+actual feature.
+
+## Notification legend — sub-pill grouping, max 2 items per subgroup (2026-08-30)
+
+The `tasks` group had grown to 9 entries — visibly longer than the other four groups in the badge-legend
+modal, a real usability complaint (user report: "super long"). Fixed the same way every module-local
+legend in this codebase already handles a long tab (`taskboard/legend.blade.php`,
+`project/legend.blade.php`, `authority/legend.blade.php` — see `viewPattern.md`'s "Legend restructure"
+note): a secondary row of sub-pills sharing one Alpine `sub` state that each top-level pill resets, not
+a new top-level group (which would break the catalog's fixed 5-theme taxonomy every consumer keys off).
+Went through three rounds before landing on the final shape below — each round is a real, explicit user
+rule, not a guess, and the final rule (**max 2 items per subgroup, no exceptions**) supersedes the
+looser ">3-4 rows" heuristic used earlier in this doc for module-local legends; this catalog's own
+subgrouping is stricter and should not be loosened back to the old heuristic without the user re-opening it.
+
+`BadgeLegendCatalog::subgroups(): array` — a map, keyed by group id, of `subId => {label, icon}`. Four
+of the five groups are configured; `opportunities` (2 rows: `ads-controller`, `suggestion-controller`)
+stays flat with no `subgroups()` entry since it already satisfies max-2 as a plain list:
+
+| Group | Subgroups (≤2 items each) |
+|---|---|
+| `tasks` (9 rows → 5 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `tickets` (`ths-controller`) |
+| `notifications` (4 rows → 2 subgroups) | `direct` (`posts-controller`, `contacts-controller`) · `channels` (`channels-controller`, `channels-controller:edge`) |
+| `content` (4 rows → 2 subgroups) | `calendar` (`shared-events`, `special-days`) · `media` (`feeds`, `gallery-controller`) |
+| `compliance` (3 rows → 2 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) |
+
+Every catalog row that belongs to a configured group carries a `'subgroup'` key naming which bucket it
+lands in (20 of the 22 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
+for `opportunities` (backward-compatible: `items` is unchanged, so no pre-existing consumer of
+`grouped()` needed updating), or `[{id,label,icon,items}]` for the four configured groups.
+`badge-legend.blade.php` renders the sub-pill row only `@if(!empty($group['subgroups']))`, falling back
+to the flat list otherwise — every other module's single-item `items=` prop path (the 14+ modules
+passing one catalog entry, never `groups=`) is completely untouched, since only the `groups=` branch
+(Profile's master catalog) ever reaches this code. Clicking a top-level pill resets `sub` to that
+group's first subgroup id so a stale subgroup selection from a previously-viewed group never shows
+empty content. Sub-pill labels are kept as short as the parent group's own context allows — e.g.
+`tasks`'s pills are `فهرست`/`سررسید`/`تأیید`/`پروژه`/`تیکت` (one word each), not full phrases, since the
+parent tab ("وظایف و تیکت") already carries the "tasks/tickets" framing and the sub-pill only needs to
+disambiguate *within* it.
+
+**Row height was a separate, second complaint — fixed independently.** Subgrouping only fixed item
+*count* per screen; `badge-legend-row.blade.php` separately stacked `lights`/`clears`/`surface` as three
+block `<p>` elements, so even a 2-item subgroup still read as a long scroll. Merged into one `<p>` with
+inline `<span class="font-bold">label:</span>` segments separated by a `·` glyph — matches the
+single-paragraph row style every module-local legend (`profile/legend.blade.php`,
+`taskboard/legend.blade.php`, etc.) already uses; same information, roughly a third the vertical height.
+See `viewPattern.md` §8.5 for the full row-shape spec, kept in sync there.
+
+Tests: `MenuServiceTest.php` (`grouped()` partitions all 4 configured groups generically off
+`subgroups()`'s own keys, every item lands in exactly one subgroup, `opportunities` stays flat, and a
+generic assertion pins **no group or subgroup ever exceeds 2 items** — the actual regression this whole
+section guards), `ProfileTest.php` (the master catalog modal renders all 11 sub-pill labels across the
+4 configured groups).
+
+---
+
+## Signal 3 — Edge / toast
+
+A persistent, dismissible floating card — the third menu signal. Unlike the ephemeral auto-dismiss
+`x-ui.modals.toast` feedback tier (next section), Edge owns a DB table (`edges`), fires on Eloquent
+events, and survives page reloads until dismissed.
+
+### Storage — `edges` table
+
+One row **per (toast × user × subject)**. Columns: `user_id`, `edge_key`, `subject_id`, `icon`,
+`title`, `body`, `url`, `dismissed_at` (null until forever-dismissed), `snoozed_until` (set by a
+duration dismiss; row re-appears once it passes). `scopeVisible` =
+`whereNull('dismissed_at')->where(fn $q => $q->whereNull('snoozed_until')->orWhere('snoozed_until','<=',now()))`.
+Migration `2026_08_29_000001_create_edges_table.php`; run `php artisan migrate` before exercising the
+path — until then `reconcile()` hits a SQL error, the job retries 3× then lands in `failed_jobs`, but
+the originating post-commit model save is **not** broken.
+
+### Contract — `Contracts\MenuEdge`
+
+Five **required** methods: `getKey()`, `triggers()`, `for($event, $user, $payload)`,
+`title($subject, $user, $payload)`, `body($subject, $user, $payload)`. Six **optional**, probed via
+`method_exists` (not declared on the interface, mirroring the nudge side): `show($subject, $user,
+$payload)` (default true — gate skipped), `refresh()` (default true — re-fetch subject on existing
+row), `icon($subject, $user)` (default `'info'`), `url($subject)` (default `''`), `dismissRule()`
+(default `'forever'`), `localRoute()` (default `null` = global). `EdgeService::register()` stores each
+optional's flag/value in the static rule array.
+
+### `EdgeService` — registry + engine
+
+- `register(MenuEdge $edge)` — stores the rule with `hasIcon/hasUrl/hasShow/hasDismissRule` flags + the
+  `refresh` bool + the resolved `localRoute` (null when absent).
+- `reconcile($key, $itemId, $userId, $payload)` — `Cache::lock` per `(key,itemId)`; re-fetches the
+  subject fresh; prunes via `whereNotIn('subject_id', $ids)`; `show()`-gates; on an existing row
+  honours `refresh()` (re-fetch + update icon/title/body/url) else leaves it; otherwise creates.
+- `forUser($userId)` — `edges` visible for the user, mapped to a payload array (key, subject_id, icon,
+  title, body, url, **localRoute**). `localRoute` is sourced from the static rule registry
+  (`isset`-guarded — an orphan `edge_key` with no registered toast yields null, no warning).
+- `dismiss($userId, $edgeKey, $subjectId)` — looks up the toast's `dismissRule()` (or `'forever'` when
+  absent) → `Edge::snooze($optionKey)`: `'forever'`→`dismissed_at=now()`; `'1day'|'1week'|'1month'`→
+  `snoozed_until = now()->addDay|addWeek|addMonth` (the model's `DURATIONS` map). Re-displays after
+  snooze expiry; forever-dismissed never resurfaces.
+
+### Delivery — render-driven, no poll
+
+`App\Livewire\Dashboard\Edge` is mounted **once globally** in `layouts/app.blade.php` (beside
+`Countdown`/`EventReminder`). `load()` runs in `mount()` + after `dismiss()` only — **not** in
+`render()` and **no** `wire:poll` — so zero recurring query; the card set is recomputed only on page
+load and on a dismiss. `render()` just returns the view.
+
+### Local vs global — `localRoute()` (the per-toast scope switch)
+
+A toast declares its locality by overriding `localRoute(): ?string`:
+
+- `null` (default) → **global**: the card renders on every page.
+- a route name → **local**: the card renders only on that module's URL.
+
+The gate is a single blade `@if` in `livewire/dashboard/edge.blade.php`:
+`@if($e['localRoute'] === null || $e['localRoute'] === $currentRoute)`. `$currentRoute` is captured once
+in `mount()` (`request()->route()?->getName()`) into a public prop — **not** read live in the blade — so
+it survives the dismiss-AJAX re-render (where `request()->route()` is the Livewire endpoint, not the
+page route). Both `ChannelToast` and `ProjectToast` currently omit the override → global by default;
+the hook is dormant, kept for a future toast that wants locality. This replaced an earlier per-module
+`<livewire:dashboard.edge :scope=...>` mount — one global mount + a toast-declared route + one blade
+`@if` is the minimal form.
+
+### Reconcile trigger chain
+
+`EdgeServiceProvider::boot()` → `EdgeService::register(new ChannelToast/ProjectToast())` → Eloquent
+listeners (from `triggers()`) → `ReconcileEdge` job (`afterCommit`, carries only primitives) →
+`EdgeService::reconcile()` → `edges` row → `Edge` Livewire `forUser()` → render. Push to materialize,
+pull to render.
+
+### Dismiss durations
+
+`dismissRule()` returns one of `'forever'` (default), `'1day'`, `'1week'`, `'1month'`. `ChannelToast`
+and `ProjectToast` currently use the default (forever) — the `'1month'` override was a test and removed.
+A toast opts into a snooze window by returning a non-forever key; the snoozed card returns after the
+window elapses (re-included by `scopeVisible`).
+
+---
+
+## Ephemeral toast (short-lived notice) — separate from the three signals above
+
+A lighter, auto-dismissing feedback surface that lives **outside** `App\Services\Menu` — no DB row, no
+badge, no nudge, no `edges`/`notifications` table. Always auto-dismisses (default 3000ms); never persistent.
+This is the "action succeeded / action errored" feedback tier. Do **not** confuse it with Signal 3
+above: that Edge toast *is* persistent (owns the `edges` table, survives reload until dismissed); this
+ephemeral toast is the fire-and-forget `x-ui.modals.toast`. (A separate persistent tier —
+`notice-card` / countdown banner — is tracked elsewhere, not here.)
+
+### The one render component
+
+`resources/views/components/ui/modals/toast.blade.php` (`<x-ui.modals.toast/>`) — self-contained
+`x-data` with `show`/`message`/`type`/`timeout`; `init()` does
+`window.addEventListener('toast', event => { … this.show = true; setTimeout(() => this.show = false,
+this.timeout) })`. Four `type` styles (`info`/`success`/`error`/`warning`), close button, and a
+`@props(['timeout' => 3000])` prop. Mounted **once globally**, not per module:
+`resources/views/layouts/app.blade.php:55` → `<x-dashboard.global/>` →
+`resources/views/components/dashboard/global.blade.php:8` → `<x-ui.modals.toast/>`. A single instance
+catches every `toast` event from every module — do not mount a second one.
+
+### The three emit paths that feed it
+
+All converge on the same `window` `toast` event the component listens for:
+
+**(a) `dispatch('toast', message:, type:)` from Livewire (no bridge needed).** Livewire emits a
+browser `toast` event on the component root that bubbles to `window`, where the toast component's
+`window.addEventListener('toast')` catches it directly. Used by most Livewire components: `TaskBoard\
+Main`, `Project\Kanban`, `Ths\Main`/`Ths\Workspace`, `Tab\Calendar`, `Tab\Reports`, `Tab\Status`,
+`Suggestion\Main`/`Suggestion\Detail`, `Reservation\Main`, `Profile\*` (Info/About/Details/Skills/
+Documents), `Energy\Main`, `ReleaseRequest\Main`, and the `ManagesTaskModal` trait. This is the
+default — prefer it; it needs no per-module JS.
+
+**(b) `dispatch('show-toast', message:, type:)` from Livewire (requires a per-module JS bridge).**
+Used by `Contact\Main`, `Channel\Main`, `Project\Main`. Livewire emits `show-toast`, which the toast
+component does **not** listen for — each module's Alpine data wires `this.$wire.on('show-toast', e =>
+this.toast(e.message, e.type ?? 'info'))`: `contact.js:119`, `channel.js:155`, `project.js:105`. The
+bridge calls `chatBase.toast()` (`resources/js/components/alpine/mixins/chatBase.js:40`), which does
+`window.dispatchEvent(new CustomEvent('toast', {detail:{message, type}}))` — the real event the toast
+component catches. So `show-toast` is just an extra hop that re-enters path (a). **Known gap:**
+`project.js:105` uses `this.toast?.(…)` (optional-call) but `project.js` does not define `toast()` nor
+mix in `chatBase`, so the listener is a no-op — `Project\Main`'s `show-toast` dispatches currently go
+nowhere. `contact.js`/`channel.js` mix in `chatBase` and work.
+
+**(c) Alpine `this.$dispatch('toast', {message, type})` directly.** No Livewire involved — the
+CustomEvent bubbles to `window` on its own. Used by `mixins/clipboard.js:35` (`_copyToast`) and
+`data/calendar.js` (5 sites: resize/duration success+error toasts).
+
+### `show-undo-toast` variant
+
+`Contact\Main` and `Channel\Main` also `dispatch('show-undo-toast', message:)`, bridged in
+`contact.js:121` / `channel.js:156` as `this.toast(e.message, 'warning')` — i.e. coerced to
+`type:'warning'`. The "undo" intent is carried only by the event name; the toast itself is a plain
+warning toast (no undo button). The in-message undo UI (`showUndo` + `undoTimeout`) is a separate
+Alpine state in `contact.js`/`channel.js`, not part of the toast component.
+
+### Do / Don't
+
+- **DO** use path (a) `dispatch('toast', message:, type:)` from Livewire by default — no bridge needed.
+- **DO** keep exactly one `<x-ui.modals.toast/>` (global.blade.php); never add a second instance.
+- **DON'T** use `show-toast` in a new module — it needs a per-module bridge and exists only as legacy
+  in Contact/Channel/Project. Use `toast` instead. (If fixing `project.js`'s broken bridge, prefer
+  switching `Project\Main` to `dispatch('toast', …)` and dropping the `show-toast` listener over
+  repairing the optional-call.)
+- **DON'T** call `Filament\Notifications\Notification::make()->send()` from user-panel Livewire — that
+  renders into a Filament mount that does not exist in the user panel. Admin uses `Notification::make()`
+  (see `filamentPattern.md` "Admin notifications"); user-panel uses `x-ui.modals.toast`.

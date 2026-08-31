@@ -25,6 +25,7 @@ class ChannelTablePresenter
             ->label(__('resources/channel/strings.fields.name'))
             ->searchable()
             ->sortable()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

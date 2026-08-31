@@ -105,6 +105,8 @@ export default {
             ctx.textAlign = 'center';
 
             const mouseRadius = 120;
+            const primaryFill = `rgb(${colors.primary})`;
+            const tertiaryFill = `rgb(${colors.tertiary})`;
 
             for (let i = 0; i < columns.length; i++) {
                 const col = columns[i];
@@ -124,9 +126,9 @@ export default {
                 const distToMouse = Math.sqrt(dx * dx + dy * dy);
 
                 if (distToMouse < mouseRadius) {
-                    ctx.fillStyle = `rgb(${colors.tertiary})`;
+                    ctx.fillStyle = tertiaryFill;
                     ctx.shadowBlur = 8;
-                    ctx.shadowColor = `rgb(${colors.tertiary})`;
+                    ctx.shadowColor = tertiaryFill;
 
                     if (Math.random() > distToMouse / mouseRadius) {
                         col.char = charSet[Math.floor(Math.random() * charSet.length)];
@@ -136,7 +138,7 @@ export default {
                     if (Math.random() > 0.75) {
                         ctx.fillStyle = `rgba(255, 255, 255, 0.5)`;
                     } else {
-                        ctx.fillStyle = `rgb(${colors.primary})`;
+                        ctx.fillStyle = primaryFill;
                     }
                 }
 

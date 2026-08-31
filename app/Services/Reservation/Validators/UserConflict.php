@@ -12,6 +12,8 @@ class UserConflict implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
+        if ($context->isRange()) return;
+
         $exists = Reservation::where('user_id', $context->user->id)
             ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
             ->whereHas('resource', fn($q) => $q->where('type', $context->resource->type))

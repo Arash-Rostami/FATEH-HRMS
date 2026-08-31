@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasCountdown;
-use App\Models\Traits\HasMenuState;
+use App\Models\Concerns\HasCountdown;
+use App\Models\Concerns\HasMenuState;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

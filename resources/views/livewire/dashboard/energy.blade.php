@@ -8,11 +8,9 @@
      categoryKeys: @js($categoryKeys ?? []),
 }"
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade"
-     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
+    >
 
     <div class="max-w-[88rem] mx-auto page-wrapper">
-        <x-ui.placeholder/>
-
         <x-ui.title
             icon="energy"
             title="پرسشنامه انرژی"
@@ -87,10 +85,11 @@
                     @include('livewire.dashboard.energy.after-test')
                 @endif
             </div>
-            <div x-show="activeTab==='chart'"
-                 class="w-full animate-fade" style="display: none;">
-                <livewire:dashboard.energy.chart/>
-            </div>
+            @if($activeTab === 'chart')
+                <div class="w-full animate-fade">
+                    <livewire:dashboard.energy.chart wire:key="energy-chart"/>
+                </div>
+            @endif
         </div>
     </div>
 </div>

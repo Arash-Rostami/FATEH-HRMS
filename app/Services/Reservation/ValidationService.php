@@ -18,6 +18,7 @@ use App\Services\Reservation\Validators\BookingPermission;
 use App\Services\Reservation\Validators\CancellationLimit;
 use App\Services\Reservation\Validators\Duration;
 use App\Services\Reservation\Validators\FullDay;
+use App\Services\Reservation\Validators\RangeDuration;
 use App\Services\Reservation\Validators\Recurrence;
 use App\Services\Reservation\Validators\ResourceActive;
 use App\Services\Reservation\Validators\ResourceAvailability;
@@ -40,6 +41,7 @@ class ValidationService
         AllowedDays::class => ['skip_admin' => true],
         FullDay::class => ['skip_admin' => true],
         Duration::class => ['skip_admin' => true],
+        RangeDuration::class => ['skip_admin' => false],
         AllowedHours::class => ['skip_admin' => true],
         ResourceSchedule::class => ['skip_admin' => true],
         Recurrence::class => ['skip_admin' => true],

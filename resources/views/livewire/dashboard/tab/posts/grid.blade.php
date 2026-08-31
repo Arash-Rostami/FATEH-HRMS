@@ -62,16 +62,17 @@
                             </div>
 
                             <span
-                                class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums">
+                                class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums"
+                                title="{{ toJalali($post->created_at) }}">
                                 {{ toJalaliRelative($post->created_at) }}
                             </span>
                         </div>
 
                         <h4
-                            class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-2 leading-snug cursor-pointer group-hover:text-[var(--md-sys-color-primary)] transition-colors"
+                            class="rich-colors text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 line-clamp-2 leading-snug cursor-pointer group-hover:text-[var(--md-sys-color-primary)] transition-colors"
                             wire:click="selectPost({{ $post->id }})"
                         >
-                            {{ superClean($post->title, 100) }}
+                            {!! renderInline($post->title, 100) !!}
                         </h4>
 
                         <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] line-clamp-3 mb-5 flex-grow text-justify">

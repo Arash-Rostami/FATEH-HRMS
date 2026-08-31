@@ -10,6 +10,8 @@ class AllowedDays implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
+        if ($context->isRange()) return;
+
         $allowedDays = $context->policies['allowed_days'] ?? null;
         if (!is_array($allowedDays)) return;
 

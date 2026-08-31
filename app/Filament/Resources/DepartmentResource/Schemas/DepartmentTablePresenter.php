@@ -43,6 +43,7 @@ class DepartmentTablePresenter
             ->label(__('resources/department/strings.fields.description'))
             ->limit(60)
             ->tooltip(fn(string $state): string => $state)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->color('gray')
             ->toggleable(isToggledHiddenByDefault: true);
     }
@@ -86,6 +87,7 @@ class DepartmentTablePresenter
             ->label(__('resources/department/strings.fields.name'))
             ->sortable()
             ->searchable(['description', 'name'])
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->weight(FontWeight::Bold)
             ->toggleable(isToggledHiddenByDefault: true);
     }

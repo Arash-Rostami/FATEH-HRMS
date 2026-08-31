@@ -54,6 +54,7 @@ class EventSyncService
         $related = $reservation->resource?->relatedUser;
 
         if (
+            $reservation->isRange() ||
             $reservation->resource?->type !== 'meeting' ||
             $reservation->status !== ReservationStatus::Active->value ||
             !$reservation->start_time ||

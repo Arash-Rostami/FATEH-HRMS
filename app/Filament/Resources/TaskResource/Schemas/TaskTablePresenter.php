@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
+use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use Filament\Tables\Columns\IconColumn;
@@ -36,6 +37,17 @@ class TaskTablePresenter
                 true: fn(Builder $query) => $query->whereNotNull('archived_at'),
                 false: fn(Builder $query) => $query->whereNull('archived_at'),
             );
+    }
+
+    public static function approvedAt(): TextColumn
+    {
+        return TextColumn::make('approved_at')
+            ->label(__('resources/task/strings.fields.approved_at'))
+            ->formatStateUsing(fn($state, $record) => $record->approved_at ? toJalali($record->approved_at, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->placeholder('—')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function assignee(): TextColumn
@@ -117,7 +129,7 @@ class TaskTablePresenter
     {
         return TextColumn::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deadline'))
+            ->formatStateUsing(fn($state, $record) => $record->deadline ? toJalali($record->deadline, 'Y/m/d') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignCenter()
             ->color(fn($record) => match (true) {
@@ -177,6 +189,7 @@ class TaskTablePresenter
             ->limit(60)
             ->wrap()
             ->tooltip(fn($state) => strlen($state ?? '') > 60 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
@@ -216,6 +229,21 @@ class TaskTablePresenter
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
+    public static function meta(): TextColumn
+    {
+        return TextColumn::make('detail.meta')
+            ->label(__('resources/task/strings.fields.meta'))
+            ->getStateUsing(fn($record) => collect($record->detail?->meta ?? [])
+                ->filter(fn($value) => is_scalar($value) && $value !== '')
+                ->map(fn($value, $key) => $key . ': ' . $value)
+                ->implode(' | '))
+            ->limit(60)
+            ->tooltip(fn($state) => strlen($state ?? '') > 60 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
     public static function overdueFilter(): Filter
     {
         return Filter::make('overdue')
@@ -234,6 +262,51 @@ class TaskTablePresenter
             ->label(__('resources/task/strings.fields.project'))
             ->placeholder('—')
             ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function linkedProject(): TextColumn
+    {
+        return TextColumn::make('project.name')
+            ->label(__('resources/task/strings.fields.project_id'))
+            ->placeholder('—')
+            ->searchable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function linkedProjectFilter(): SelectFilter
+    {
+        return SelectFilter::make('project_id')
+            ->label(__('resources/task/strings.fields.project_id'))
+            ->relationship('project', 'name')
+            ->searchable()
+            ->preload();
+    }
+
+    public static function labels(): TextColumn
+    {
+        return TextColumn::make('labels')
+            ->label(__('resources/task/strings.fields.labels'))
+            ->badge()
+            ->placeholder('—')
+            ->toggleable(isToggledHiddenByDefault: true);
+    }
+
+    public static function priority(): TextColumn
+    {
+        return TextColumn::make('priority')
+            ->label(__('resources/task/strings.fields.priority'))
+            ->getStateUsing(fn($record) => $record->priority)
+            ->badge()
+            ->placeholder('—')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function priorityFilter(): SelectFilter
+    {
+        return SelectFilter::make('priority')
+            ->label(__('resources/task/strings.fields.priority'))
+            ->options(TaskPriority::class);
     }
 
     public static function prunableWarning(): TextColumn
@@ -324,6 +397,7 @@ class TaskTablePresenter
             ->sortable()
             ->limit(60)
             ->tooltip(fn($state) => strlen($state ?? '') > 60 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

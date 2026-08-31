@@ -11,6 +11,8 @@ class ResourceSchedule implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
+        if ($context->isRange()) return;
+
         $metadata = $context->resource->metadata;
         if (!is_array($metadata)) return;
 

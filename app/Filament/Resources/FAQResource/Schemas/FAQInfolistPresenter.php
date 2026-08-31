@@ -12,6 +12,7 @@ class FAQInfolistPresenter
         return TextEntry::make('answer')
             ->label(__('resources/faq/strings.fields.answer'))
             ->html()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }
@@ -56,6 +57,7 @@ class FAQInfolistPresenter
         return TextEntry::make('question')
             ->label(__('resources/faq/strings.fields.question'))
             ->html()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }

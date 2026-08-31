@@ -37,15 +37,16 @@ export default {
             char: notesList[Math.floor(Math.random() * notesList.length)],
             x: Math.random(),
             y: Math.random(),
-            speed: Math.random() * 0.0005 + 0.0002, // Horizontal speed
+            speed: Math.random() * 0.0005 + 0.0002,
             size: Math.random() * 20 + 15,
             opacity: Math.random() * 0.4 + 0.1,
             colorKey: Math.random() > 0.5 ? 'primary' : 'tertiary',
-            amplitude: Math.random() * 30 + 10, // How high it bobs
+            amplitude: Math.random() * 30 + 10,
             frequency: Math.random() * 0.002 + 0.001,
             phase: Math.random() * Math.PI * 2,
-            offsetY: 0 // Used for mouse scattering
+            offsetY: 0
         }));
+        elements.forEach(el => el.font = `${el.size}px serif`);
 
         const resize = () => {
             w = innerWidth; h = innerHeight;
@@ -66,6 +67,8 @@ export default {
             ctx.clearRect(0, 0, w, h);
 
             const mouseRadius = Math.min(w, h) * 0.15;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
             elements.forEach(el => {
                 el.x += el.speed;
@@ -89,10 +92,8 @@ export default {
                     el.offsetY += (dy > 0 ? 1 : -1) * force * 5;
                 }
 
-                ctx.font = `${el.size}px serif`;
+                ctx.font = el.font;
                 ctx.fillStyle = `rgba(${colors[el.colorKey]}, ${el.opacity})`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
                 ctx.fillText(el.char, px, py);
             });
 

@@ -67,6 +67,7 @@ class ReportInfolistPresenter
             ->label(__('resources/report/strings.fields.description'))
             ->html()
             ->placeholder('-')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -126,7 +127,8 @@ class ReportInfolistPresenter
             ->label(__('resources/report/strings.fields.title'))
             ->html()
             ->weight(FontWeight::Bold)
-            ->size(TextSize::Large);
+            ->size(TextSize::Large)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']);
     }
 
     public static function updatedAt(): TextEntry

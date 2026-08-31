@@ -13,6 +13,7 @@ use App\Models\Review;
 use App\Models\Suggestion;
 use App\Support\SuggestionAccessPolicy;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -76,6 +77,11 @@ class Detail extends Component
         return view('livewire.dashboard.suggestion.detail', [
             'p' => new SuggestionPresenter($this->suggestion),
         ]);
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.suggestion.detail-placeholder');
     }
 
     public function submitDecision(SubmitDecisionAction $action): void

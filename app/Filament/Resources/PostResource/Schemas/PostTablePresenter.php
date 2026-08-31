@@ -21,6 +21,7 @@ class PostTablePresenter
             ->limit(80)
             ->tooltip(fn($record) => strip_tags($record->body ?? ''))
             ->searchable()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: true);
     }
 
@@ -84,6 +85,7 @@ class PostTablePresenter
             ->limit(60)
             ->tooltip(fn($state) => strlen($state) > 60 ? $state : null)
             ->sortable()
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

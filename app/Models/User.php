@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Models\Traits\HasAvatar as HasImage;
-use App\Models\Traits\HasProfileHierarchy;
+use App\Models\Concerns\HasAvatar as HasImage;
+use App\Models\Concerns\HasProfileHierarchy;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\Cache\SkipsAutomaticCacheVersioning;
 use App\Services\User\UserKeyGrouper;
@@ -81,9 +81,16 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     {
         return match ($this->role) {
             'developer' => true,
-            'admin' => ($p = Permission::forUser($this->id)) && ($p->is_super_admin || !empty($p->abilities)),
+            'admin' => $this->hasActiveAdminPermissions(),
             default => false,
         };
+    }
+
+    private function hasActiveAdminPermissions(): bool
+    {
+        $permission = Permission::forUser($this->id);
+
+        return $permission && ($permission->is_super_admin || !empty($permission->abilities));
     }
 
     public function cancelledReservations(): HasMany
@@ -135,7 +142,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         );
     }
 
-    /** Admin-role users only — permission rows are an admin-only concept (developers are super by role, users can't reach the panel). */
     public static function getCachedAdminOptions(): Collection
     {
         return Cache::remember(ModelCacheVersion::key(self::class, 'user_admin_options'),
@@ -269,7 +275,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
     }
 
-    public function latestEnergyTest()
+    public function latestEnergyTest(): HasOne
     {
         return $this->hasOne(EnergyTest::class)->latestOfMany('completed_at');
     }
@@ -286,7 +292,6 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
 
     public function permits(string $module, string $action): bool
     {
-        // Developers are super-admin by role — every module, every action, no exclusions.
         if ($this->isDeveloper()) {
             return true;
         }
@@ -339,22 +344,22 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->hasMany(SkillUser::class);
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('users.status', 'active');
     }
 
-    public function scopeVisibleOnBoard($query)
+    public function scopeVisibleOnBoard(Builder $query): Builder
     {
         return $query->active()->whereNot('type', UserType::Guest->value);
     }
 
-    public function scopeOfType($query, string $type)
+    public function scopeOfType(Builder $query, string $type): Builder
     {
         return $query->where('type', $type);
     }
 
-    public function scopeOnline($query, int $minutes = 5)
+    public function scopeOnline(Builder $query, int $minutes = 5): Builder
     {
         return $query->where('last_seen', '>=', now()->subMinutes($minutes));
     }
@@ -370,12 +375,12 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         ));
     }
 
-    public function scopeWithRole($query, string $role)
+    public function scopeWithRole(Builder $query, string $role): Builder
     {
         return $query->where('role', $role);
     }
 
-    public function sentMessages()
+    public function sentMessages(): HasMany
     {
         return $this->hasMany(Message::class, 'sender_id');
     }
@@ -439,15 +444,25 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
 
     protected static function booted(): void
     {
-        $bump = fn() => ModelCacheVersion::bump(self::class);
+        static::created(fn() => static::bumpCacheVersion());
 
-        static::created(fn() => $bump());
-        static::saved(fn(self $u) => $u->wasChanged(['name', 'role', 'status', 'type']) && $bump());
-        static::saved(fn() => self::forgetDynamicGroupCache());
-        static::deleted(function () use ($bump) {
-            $bump();
+        static::saved(function (self $user) {
+            if ($user->wasChanged(['name', 'role', 'status', 'type'])) {
+                static::bumpCacheVersion();
+            }
+
             self::forgetDynamicGroupCache();
         });
+
+        static::deleted(function () {
+            static::bumpCacheVersion();
+            self::forgetDynamicGroupCache();
+        });
+    }
+
+    protected static function bumpCacheVersion(): void
+    {
+        ModelCacheVersion::bump(self::class);
     }
 
     protected function casts(): array
@@ -466,57 +481,64 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     protected function extra(): Attribute
     {
         return Attribute::make(
-            get: function ($value) {
-                $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
-                return is_array($raw) ? $raw : [];
-            },
-            set: function ($value) {
-                $incoming = is_array($value) ? $value : json_decode($value ?? '[]', true);
-                if (!is_array($incoming)) {
-                    $incoming = [];
-                }
-
-                $existing = [];
-                if (isset($this->attributes['extra'])) {
-                    $decoded = json_decode($this->attributes['extra'], true);
-                    $existing = is_array($decoded) ? $decoded : [];
-                }
-
-                $result = [];
-                foreach ($existing as $k => $v) {
-                    if (is_array($v)) {
-                        $result[$k] = $v;
-                    }
-                }
-
-                $reserved = ['preferences', 'admin'];
-
-                if (array_key_exists('preferences', $incoming) && is_array($incoming['preferences'] ?? null)) {
-                    $result['preferences'] = array_merge(
-                        $result['preferences'] ?? [],
-                        $incoming['preferences'],
-                    );
-
-                    if (array_key_exists('admin', $incoming)) {
-                        $result['admin'] = is_array($incoming['admin']) ? $incoming['admin'] : [];
-                    }
-
-                    foreach ($incoming as $k => $v) {
-                        if (in_array($k, $reserved, true)) {
-                            continue;
-                        }
-                        $result['admin'][$k] = $v;
-                    }
-                } else {
-                    foreach ($reserved as $k) {
-                        unset($incoming[$k]);
-                    }
-                    $result['admin'] = $incoming;
-                }
-
-                return json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            },
+            get: fn($value) => $this->decodeExtra($value),
+            set: fn($value) => $this->mergeExtra($value),
         );
+    }
+
+    private function decodeExtra($value): array
+    {
+        $raw = is_array($value) ? $value : json_decode($value ?? '[]', true);
+
+        return is_array($raw) ? $raw : [];
+    }
+
+    private function decodeStoredExtra(): array
+    {
+        if (!isset($this->attributes['extra'])) {
+            return [];
+        }
+
+        $decoded = json_decode($this->attributes['extra'], true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function mergeExtra($value): string
+    {
+        $incoming = is_array($value) ? $value : json_decode($value ?? '[]', true);
+        if (!is_array($incoming)) {
+            $incoming = [];
+        }
+
+        $existing = $this->decodeStoredExtra();
+        $result = array_filter($existing, fn($v) => is_array($v));
+
+        $reserved = ['preferences', 'admin'];
+
+        if (array_key_exists('preferences', $incoming) && is_array($incoming['preferences'] ?? null)) {
+            $result['preferences'] = array_merge($result['preferences'] ?? [], $incoming['preferences']);
+
+            if (array_key_exists('admin', $incoming)) {
+                $result['admin'] = is_array($incoming['admin']) ? $incoming['admin'] : [];
+            }
+
+            foreach ($incoming as $k => $v) {
+                if (!in_array($k, $reserved, true)) {
+                    $result['admin'][$k] = $v;
+                }
+            }
+        } else {
+            $adminOverride = array_key_exists('admin', $incoming) && is_array($incoming['admin'])
+                ? $incoming['admin']
+                : [];
+
+            unset($incoming['preferences'], $incoming['admin']);
+
+            $result['admin'] = array_merge($adminOverride, $incoming);
+        }
+
+        return json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     protected function smsNumber(): Attribute

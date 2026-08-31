@@ -55,7 +55,7 @@
         @if($resource->metadata['notes'] ?? null)
             <div class="flex items-start gap-2 mb-4 px-1">
                 <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-primary)]">sticky_note_2</span>
-                <p class="text-[12px] leading-6 font-semibold text-[var(--md-sys-color-on-surface)]">{{ $resource->metadata['notes'] }}</p>
+                <p class="text-[12px] leading-6 font-semibold whitespace-pre-wrap text-[var(--md-sys-color-on-surface)]">{{ $resource->metadata['notes'] }}</p>
             </div>
         @endif
 

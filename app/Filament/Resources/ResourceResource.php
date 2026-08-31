@@ -70,6 +70,7 @@ class ResourceResource extends Resource
                             ResourceFormPresenter::extension(),
                             ResourceFormPresenter::capacity(),
                             ResourceFormPresenter::availableDays(),
+                            ResourceFormPresenter::showTime(),
                             ResourceFormPresenter::timeSlotStart(),
                             ResourceFormPresenter::timeSlotEnd(),
                             ResourceFormPresenter::divider(),

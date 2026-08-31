@@ -16,11 +16,13 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Isolate]
+#[Lazy]
 class Feeds extends Component
 {
     use FocusOnRecord;
@@ -61,15 +63,10 @@ class Feeds extends Component
         unset($this->feeds);
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'feed-categories')]
+    #[Computed]
     public function categories()
     {
-        return Feed::query()
-            ->whereNotNull('category')
-            ->where('category', '!=', '')
-            ->distinct()
-            ->orderBy('category')
-            ->pluck('category');
+        return Feed::cachedCategories();
     }
 
     public function filterByCategory(?string $category): void
@@ -218,6 +215,11 @@ class Feeds extends Component
     public function render()
     {
         return view('livewire.dashboard.tab.feeds', ['presenter' => new FeedPresenter()]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.feeds.placeholder');
     }
 
     public function startEditing($commentId): void

@@ -13,12 +13,17 @@ use App\Livewire\Dashboard\Channel\Main as Channel;
 use App\Livewire\Dashboard\Dms\Main as Dms;
 use App\Livewire\Dashboard\Energy\Main as Energy;
 use App\Livewire\Dashboard\Profile\Main as Profile;
+use App\Livewire\Dashboard\Project\Main as Project;
 use App\Livewire\Dashboard\Reservation\Main as Reservation;
 use App\Livewire\Dashboard\Suggestion\Main as Suggestion;
 use App\Livewire\Dashboard\Tabs;
 use App\Livewire\Dashboard\TaskBoard\Main as TaskBoard;
+use App\Livewire\Dashboard\Tasksheet\Main as Tasksheet;
 use App\Livewire\Dashboard\Ths\Main as Ths;
 use App\Http\Controllers\ToggleCalendarController;
+use App\Models\Project as ProjectModel;
+use App\Services\ProjectTask\ChannelProvisioner;
+use App\Services\ProjectTask\ProjectHeartbeat;
 use Illuminate\Support\Facades\Route;
 
 
@@ -47,6 +52,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Tabs::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile');
     Route::get('/tasks', TaskBoard::class)->name('tasks');
+    Route::get('/projects', Project::class)->name('projects');
+    Route::get('/tasksheet', Tasksheet::class)->name('tasksheet');
+    Route::get('/tasksheet/shared/{subject}', Tasksheet::class)->middleware('signed')->name('tasksheet.shared');
     Route::get('/dms', Dms::class)->name('dms');
     Route::get('/ths', Ths::class)->name('ths');
     Route::get('/ads', Ads::class)->name('ads');
@@ -71,6 +79,20 @@ Route::middleware(['auth'])->group(function () {
 
     Route::view('/coming', 'layouts.toCome')->name('coming');
     Route::get('/ping', fn() => response('', 204)->header('Cache-Control', 'no-store'));
+
+    Route::get('/projects/{id}/pulse', function (int $id) {
+        $project = ProjectModel::visibleTo(auth()->user())->find($id);
+        abort_unless($project, 404);
+
+        if (request()->query('tab') === 'teamChat') {
+            $channel = app(ChannelProvisioner::class)->resolve($project);
+            if (!$channel->memberUsers()->where('users.id', auth()->id())->exists()) {
+                return response()->json(['gone' => true])->header('Cache-Control', 'no-store');
+            }
+        }
+
+        return response()->json(ProjectHeartbeat::versions($project->id))->header('Cache-Control', 'no-store');
+    })->name('projects.pulse');
 });
 
 

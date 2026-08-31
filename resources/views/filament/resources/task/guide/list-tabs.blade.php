@@ -12,6 +12,8 @@
 
     $filters = [
         ['label' => 'وضعیت', 'hint' => 'SelectFilter روی ستون status با گزینه‌های enum.'],
+        ['label' => 'پروژه', 'hint' => 'SelectFilter روی رابطهٔ project (project_id)؛ فقط وظایفِ همان پروژه را نشان می‌دهد.'],
+        ['label' => 'اولویت', 'hint' => 'SelectFilter روی ستون priority.'],
         ['label' => 'ایجادکننده / مسئول انجام', 'hint' => 'دو SelectFilter مستقل با جستجو و پیش‌بارگذاری.'],
         ['label' => 'محول‌شده', 'hint' => 'TernaryFilter سه‌حالته: محول‌شده / محول‌نشده (assigned_to != user_id).'],
         ['label' => 'آرشیو', 'hint' => 'TernaryFilter سه‌حالته: آرشیو‌شده / فعال (archived_at).'],

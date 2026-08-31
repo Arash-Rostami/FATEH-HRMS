@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
 use App\Livewire\Dashboard\Profile\Presentation\DocumentPresenter;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\{Computed, Locked, On};
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -22,6 +23,11 @@ class Documents extends Component
     #[Locked] public string $pendingUploadKey = '';
     #[Locked] public string $pendingFileName = '';
     #[Locked] public ?string $errorMessage = null;
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.profile.documents-placeholder');
+    }
 
     #[On('confirm-upload-documents')]
     public function confirmUpload(

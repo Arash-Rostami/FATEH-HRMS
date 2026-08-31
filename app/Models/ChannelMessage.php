@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
-use App\Models\Traits\HasPrunableStatus;
+use App\Models\Concerns\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;

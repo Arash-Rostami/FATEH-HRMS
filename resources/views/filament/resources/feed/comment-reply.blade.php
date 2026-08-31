@@ -18,7 +18,7 @@
         </div>
 
         <div class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>p:last-child]:mb-0 break-words">
-            {!! $reply->content !!}
+            {!! renderComment($reply->content) !!}
         </div>
 
         @if($reply->replies && $reply->replies->isNotEmpty())

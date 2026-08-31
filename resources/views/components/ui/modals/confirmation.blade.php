@@ -23,6 +23,7 @@
         "
         @keydown.escape.window="show = false"
         x-init="
+            if (show) setTimeout(() => active = true, 50);
             $watch('show', value => {
                 if (value) {
                     setTimeout(() => active = true, 50);
@@ -43,7 +44,7 @@
         <div class="modal-close-icon" @click="show = false"></div>
 
         <!-- Content -->
-        <div class="custom-modal-content">
+        <div class="custom-modal-content scrollbar-hover-reveal">
             <h3 class="modal-title" x-text="title"></h3>
 
             <div class="modal-message" x-text="message"></div>

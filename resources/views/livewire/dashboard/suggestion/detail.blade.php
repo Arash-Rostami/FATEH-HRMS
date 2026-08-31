@@ -65,15 +65,22 @@
                 </div>
 
                 @if($p->attachmentUrl())
-                    <a
-                        href="{{ $p->attachmentUrl() }}"
-                        target="_blank"
-                        class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition hover:brightness-95
-                               bg-[var(--md-sys-color-primary-container)]
-                               text-[var(--md-sys-color-on-primary-container)]">
-                        <span class="material-symbols-rounded text-sm">attach_file</span>
-                        پیوست
-                    </a>
+                    @if($p->attachmentIsImage())
+                        <a href="{{ $p->attachmentUrl() }}" data-fancybox="suggestion-attachment" data-caption="پیوست"
+                           class="shrink-0 block w-16 h-16 rounded-lg overflow-hidden border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:brightness-90 transition-all">
+                            <img src="{{ $p->attachmentUrl() }}" alt="پیوست" loading="lazy" class="w-full h-full object-cover">
+                        </a>
+                    @else
+                        <a
+                            href="{{ $p->attachmentUrl() }}"
+                            target="_blank"
+                            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition hover:brightness-95
+                                   bg-[var(--md-sys-color-primary-container)]
+                                   text-[var(--md-sys-color-on-primary-container)]">
+                            <span class="material-symbols-rounded text-sm">attach_file</span>
+                            پیوست
+                        </a>
+                    @endif
                 @endif
             </div>
 
@@ -237,7 +244,7 @@
 
             <div>
                 <x-ui.title icon="description" title="شرح"/>
-                <p class="mt-3 text-sm leading-relaxed text-justify text-[var(--md-sys-color-on-surface-variant)]">
+                <p class="mt-3 text-sm leading-relaxed text-justify whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)] rich-colors">
                     {!! \Illuminate\Support\Str::sanitizeHtml(is_array($p->suggestion()->description)
                         ? ($p->suggestion()->description['self'] ?? '')
                         : $p->suggestion()->description) !!}
@@ -269,6 +276,20 @@
                             {{ $p->ruleLabels()[$rv] ?? $rv }}
                         </span>
                     @endforeach
+                </div>
+            </div>
+
+            {{-- PRIORITY --}}
+            <div class="pt-3 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
+                <x-ui.title icon="flag" title="اولویت پیگیری"/>
+                @php([$prioBg, $prioOn, $prioIcon, $prioLabel] = $p->priorityConfig())
+                <div class="mt-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold
+                                 bg-[var(--md-sys-color-{{ $prioBg }})]
+                                 text-[var(--md-sys-color-{{ $prioOn }})]">
+                        <span class="material-symbols-rounded !text-[14px]">{{ $prioIcon }}</span>
+                        {{ $prioLabel }}
+                    </span>
                 </div>
             </div>
 
@@ -346,7 +367,7 @@
                                 </span>
                                 @endif
                                 @if($item['is_system_generated'])
-                                    <span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                                         <span class="material-symbols-rounded text-[10px]">smart_toy</span>
                                         تولید خودکار
                                     </span>
@@ -358,7 +379,7 @@
                         </div>
 
                         @if($item['review']->comments)
-                            <p class="text-xs leading-relaxed text-[var(--md-sys-color-on-surface-variant)] px-1">
+                            <p class="text-xs leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)] px-1">
                                 {{ $item['review']->comments }}
                             </p>
                         @endif
@@ -381,7 +402,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                <p class="px-3 py-2.5 text-xs leading-6 text-[var(--md-sys-color-on-primary-container)]/85">
+                                <p class="px-3 py-2.5 text-xs leading-6 whitespace-pre-wrap text-[var(--md-sys-color-on-primary-container)]/85">
                                     {{ $item['review']->actions }}
                                 </p>
                             </div>
@@ -422,15 +443,13 @@
                 واحد شما به عنوان مسئول اقدام ارجاع داده شده است. در صورت اتمام اجرای دستورالعمل، اقدام را تکمیل‌شده اعلام کنید.
             </p>
             <div class="mt-4 flex justify-end">
-                <button type="button"
+                <x-ui.buttons.form type="button"
                         wire:click="markComplete"
-                        wire:loading.attr="disabled"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold
-                               bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
-                               hover:opacity-90 transition disabled:opacity-50">
-                    <span class="material-symbols-rounded text-base">check_circle</span>
+                        loading="markComplete"
+                        icon="check_circle"
+                        class="px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:opacity-90">
                     ثبت تکمیل اقدام
-                </button>
+                </x-ui.buttons.form>
             </div>
         </div>
     @endif
@@ -479,7 +498,7 @@
 
                 <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment" :maximizable="true"/>
 
-                <x-ui.buttons.form icon="send" wire:click="submitFeedback" wire:loading.attr="disabled">
+                <x-ui.buttons.form icon="send" wire:click="submitFeedback" loading="submitFeedback">
                     ثبت بازخورد
                 </x-ui.buttons.form>
 
@@ -595,7 +614,7 @@
                     </div>
                 @endif
 
-                <x-ui.buttons.form icon="gavel" wire:click="submitDecision" wire:loading.attr="disabled">
+                <x-ui.buttons.form icon="gavel" wire:click="submitDecision" loading="submitDecision">
                     ثبت تصمیم
                 </x-ui.buttons.form>
 

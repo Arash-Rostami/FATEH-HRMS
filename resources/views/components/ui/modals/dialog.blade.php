@@ -9,7 +9,7 @@
         x-on:close-modal.window="show = false"
         x-on:keydown.escape.window="show = false"
         style="display: none;"
-        class="fixed inset-0 z-[100] overflow-y-auto px-4 py-6 sm:px-0 flex items-center justify-center animate-slide-down"
+        class="fixed inset-0 z-[100] overflow-y-auto scrollbar-hover-reveal px-4 py-6 sm:px-0 flex items-center justify-center animate-slide-down"
         x-cloak
         dir="rtl"
     >

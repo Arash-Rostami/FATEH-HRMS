@@ -53,7 +53,7 @@
 
             {{-- Body --}}
             <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar bg-transparent px-5 py-6 sm:px-8 sm:py-8" dir="rtl">
-                <div class="prose prose-lg max-w-none leading-relaxed text-justify prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)]"
+                <div class="prose prose-lg max-w-none leading-relaxed text-justify prose-headings:text-[var(--md-sys-color-on-surface)] prose-p:text-[var(--md-sys-color-on-surface)] rich-colors"
                      x-html="activeReport.description">
                 </div>
             </div>

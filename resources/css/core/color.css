@@ -1,0 +1,45 @@
+.rich-colors span.color {
+    color: var(--color) !important;
+}
+
+:root.dark .rich-colors span.color {
+    color: var(--dark-color) !important;
+}
+
+.rich-colors mark {
+    background: var(--md-sys-color-tertiary-container) !important;
+    color: var(--md-sys-color-on-tertiary-container) !important;
+    border-radius: 0.2em;
+    padding: 0 0.15em;
+}
+
+.rich-colors span.color[data-color="primary"] { --color: #3b82f6 !important; --dark-color: #60a5fa !important; }
+.rich-colors span.color[data-color="success"] { --color: #22c55e !important; --dark-color: #4ade80 !important; }
+.rich-colors span.color[data-color="warning"] { --color: #f59e0b !important; --dark-color: #fbbf24 !important; }
+.rich-colors span.color[data-color="danger"] { --color: #ef4444 !important; --dark-color: #f87171 !important; }
+.rich-colors span.color[data-color="slate"] { --color: oklch(0.446 0.043 257.281) !important; --dark-color: oklch(0.704 0.04 256.788) !important; }
+.rich-colors span.color[data-color="gray"] { --color: oklch(0.446 0.03 256.802) !important; --dark-color: oklch(0.707 0.022 261.325) !important; }
+.rich-colors span.color[data-color="zinc"] { --color: oklch(0.442 0.017 285.786) !important; --dark-color: oklch(0.705 0.015 286.067) !important; }
+.rich-colors span.color[data-color="neutral"] { --color: oklch(0.439 0 0) !important; --dark-color: oklch(0.708 0 0) !important; }
+.rich-colors span.color[data-color="stone"] { --color: oklch(0.444 0.011 73.639) !important; --dark-color: oklch(0.709 0.01 56.259) !important; }
+.rich-colors span.color[data-color="mauve"] { --color: oklch(0.435 0.029 321.78) !important; --dark-color: oklch(0.711 0.019 323.02) !important; }
+.rich-colors span.color[data-color="olive"] { --color: oklch(0.466 0.025 107.3) !important; --dark-color: oklch(0.737 0.021 106.9) !important; }
+.rich-colors span.color[data-color="mist"] { --color: oklch(0.45 0.017 213.2) !important; --dark-color: oklch(0.723 0.014 214.4) !important; }
+.rich-colors span.color[data-color="taupe"] { --color: oklch(0.438 0.017 39.3) !important; --dark-color: oklch(0.714 0.014 41.2) !important; }
+.rich-colors span.color[data-color="red"] { --color: oklch(0.577 0.245 27.325) !important; --dark-color: oklch(0.704 0.191 22.216) !important; }
+.rich-colors span.color[data-color="orange"] { --color: oklch(0.646 0.222 41.116) !important; --dark-color: oklch(0.75 0.183 55.934) !important; }
+.rich-colors span.color[data-color="amber"] { --color: oklch(0.666 0.179 58.318) !important; --dark-color: oklch(0.828 0.189 84.429) !important; }
+.rich-colors span.color[data-color="yellow"] { --color: oklch(0.681 0.162 75.834) !important; --dark-color: oklch(0.852 0.199 91.936) !important; }
+.rich-colors span.color[data-color="lime"] { --color: oklch(0.648 0.2 131.684) !important; --dark-color: oklch(0.841 0.238 128.85) !important; }
+.rich-colors span.color[data-color="green"] { --color: oklch(0.627 0.194 149.214) !important; --dark-color: oklch(0.792 0.209 151.711) !important; }
+.rich-colors span.color[data-color="emerald"] { --color: oklch(0.596 0.145 163.225) !important; --dark-color: oklch(0.765 0.177 163.223) !important; }
+.rich-colors span.color[data-color="teal"] { --color: oklch(0.6 0.118 184.704) !important; --dark-color: oklch(0.777 0.152 181.912) !important; }
+.rich-colors span.color[data-color="cyan"] { --color: oklch(0.609 0.126 221.723) !important; --dark-color: oklch(0.789 0.154 211.53) !important; }
+.rich-colors span.color[data-color="sky"] { --color: oklch(0.588 0.158 241.966) !important; --dark-color: oklch(0.746 0.16 232.661) !important; }
+.rich-colors span.color[data-color="blue"] { --color: oklch(0.546 0.245 262.881) !important; --dark-color: oklch(0.707 0.165 254.624) !important; }
+.rich-colors span.color[data-color="indigo"] { --color: oklch(0.511 0.262 276.966) !important; --dark-color: oklch(0.673 0.182 276.935) !important; }
+.rich-colors span.color[data-color="violet"] { --color: oklch(0.541 0.281 293.009) !important; --dark-color: oklch(0.702 0.183 293.541) !important; }
+.rich-colors span.color[data-color="purple"] { --color: oklch(0.558 0.288 302.321) !important; --dark-color: oklch(0.714 0.203 305.504) !important; }
+.rich-colors span.color[data-color="fuchsia"] { --color: oklch(0.591 0.293 322.896) !important; --dark-color: oklch(0.74 0.238 322.16) !important; }
+.rich-colors span.color[data-color="pink"] { --color: oklch(0.592 0.249 0.584) !important; --dark-color: oklch(0.718 0.202 349.761) !important; }
+.rich-colors span.color[data-color="rose"] { --color: oklch(0.586 0.253 17.585) !important; --dark-color: oklch(0.712 0.194 13.428) !important; }

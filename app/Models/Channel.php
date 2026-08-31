@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
-use App\Models\Traits\HasPrunableStatus;
+use App\Models\Concerns\HasPrunableStatus;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

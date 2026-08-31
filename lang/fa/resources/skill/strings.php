@@ -31,9 +31,9 @@ return [
     ],
 
     'placeholders' => [
-        'name'        => 'مثلا: طراحی محصول',
-        'name_en'     => 'مثلا: Product Design',
-        'category'    => 'مثلا: طراحی',
+        'name'        => 'مثلاً: طراحی محصول',
+        'name_en'     => 'مثلاً: Product Design',
+        'category'    => 'مثلاً: طراحی',
         'description' => 'توضیح کوتاه درباره این مهارت...',
     ],
 

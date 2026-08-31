@@ -45,7 +45,7 @@ class EventInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/event/strings.fields.description'))
             ->placeholder('—')
-            ->extraAttributes(['style' => 'margin-bottom:15px'])
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; margin-bottom:15px; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -73,6 +73,7 @@ class EventInfolistPresenter
     {
         return TextEntry::make('title')
             ->label(__('resources/event/strings.fields.title'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

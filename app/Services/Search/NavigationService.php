@@ -9,16 +9,12 @@ class NavigationService
 {
     protected static ?Collection $items = null;
 
-    /**
-     * Search for items based on a query string.
-     */
     public function search(string $query): array
     {
         $query = $this->normalize($query);
 
         if (strlen($query) < 2) return [];
 
-        // Break query into words (e.g., "ticket support" -> ['ticket', 'support'])
         $tokens = array_values(array_filter(explode(' ', $query)));
 
         return $this->getSearchableItems()
@@ -29,10 +25,8 @@ class NavigationService
                 $subtitle = $this->normalize($item['subtitle']);
                 $keywords = collect($item['keywords'])->map(fn($k) => $this->normalize($k));
 
-                // 1. Exact Match Priority (Highest Score)
                 if ($title === $query || $keywords->contains($query)) $score += 100;
 
-                // 2. Token Matching (Smart Multi-word search)
                 foreach ($tokens as $token) {
                     if (Str::contains($title, $token)) $score += 40;
                     if (Str::contains($subtitle, $token)) $score += 20;
@@ -48,9 +42,6 @@ class NavigationService
             ->toArray();
     }
 
-    /**
-     * Normalizes text to handle Persian/Arabic inconsistencies and casing.
-     */
     protected function normalize(string $text): string
     {
         $text = Str::lower(trim($text));
@@ -63,10 +54,6 @@ class NavigationService
 
         return preg_replace('/\s+/u', ' ', $text);
     }
-
-    /**
-     * Get all searchable items.
-     */
 
     protected function getSearchableItems(): Collection
     {
@@ -226,6 +213,17 @@ class NavigationService
                     'task', 'tasks', 'board', 'kanban', 'project', 'todo', 'to do', 'workflow', 'sprint', 'agile',
                     'تسک', 'وظیفه', 'وظایف', 'پروژه', 'بورد', 'کانبان', 'کار', 'کارها', 'انجام', 'پیگیری',
                     'مدیریت کار', 'مدیریت پروژه', 'لیست کارها', 'برد', 'تسک بورد', 'برنامه‌ریزی', 'تیمی',
+                ],
+            ],
+            [
+                'id' => 'projects',
+                'title' => 'پروژه‌ها',
+                'subtitle' => 'فضای کاری تیمی با گفتگو، تقویم و گزارش',
+                'icon' => 'workspaces',
+                'action' => 'route:projects',
+                'keywords' => [
+                    'project', 'projects', 'workspace', 'team', 'collaboration', 'kanban', 'board', 'report', 'activity',
+                    'پروژه', 'پروژه‌ها', 'فضای کاری', 'تیمی', 'همکاری', 'کار تیمی', 'کانبان', 'برد', 'گزارش پروژه', 'فعالیت', 'فعالیت‌ها و نظرات', 'گفتگوی تیمی', 'چت زنده تیم',
                 ],
             ],
             [

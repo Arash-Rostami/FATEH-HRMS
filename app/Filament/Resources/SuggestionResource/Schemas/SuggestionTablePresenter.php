@@ -200,6 +200,7 @@ class SuggestionTablePresenter
             ->limit(60)
             ->wrap()
             ->tooltip(fn($state) => strlen((string)$state) > 60 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 }

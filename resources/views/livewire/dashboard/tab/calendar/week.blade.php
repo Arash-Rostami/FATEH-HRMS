@@ -9,6 +9,7 @@
     $endHour = $grid['endHour'];
     $iconByType = $grid['iconByType'];
     $reservations = $grid['allReservations'];
+    $spanningReservations = $grid['spanningReservations'] ?? [];
 @endphp
 
 <div class="w-full flex flex-col gap-2">
@@ -43,6 +44,24 @@
 
     @include('livewire.dashboard.tab.calendar.reservation-banner', ['reservations' => $reservations, 'columnsStyle' => 'grid-template-columns: 3rem repeat(7, minmax(0, 1fr))', 'gridSpan' => 'grid-column: 2 / span 7', 'keyPrefix' => 'week-res'])
 
+    @if(!empty($spanningReservations))
+        <div class="grid gap-1" style="grid-template-columns: 3rem repeat(7, minmax(0, 1fr))">
+            <div></div>
+            @foreach($spanningReservations as $s)
+                <div
+                    wire:key="week-span-{{ $s['id'] }}"
+                    @click="$wire.reservationHint()"
+                    class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold shadow-sm cursor-pointer select-none bg-[color-mix(in_srgb,var(--tool-sage-bg,var(--md-sys-color-tertiary-container))_70%,transparent)] text-[var(--tool-sage-color,var(--md-sys-color-on-tertiary-container))] border border-[color-mix(in_srgb,var(--tool-sage-color,var(--md-sys-color-tertiary))_40%,transparent)]"
+                    style="grid-column: {{ 2 + $s['col_start'] }} / span {{ $s['col_span'] }}"
+                    title="{{ $s['title'] }}"
+                >
+                    <span class="material-symbols-rounded text-[14px] shrink-0" style="font-variation-settings: 'FILL' 1;">event_seat</span>
+                    <span class="truncate flex-1">{{ $s['title'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     <div class="flex">
         <div class="w-12 shrink-0 relative" style="height: {{ $gridHeight }}px">
             @foreach($hourOffsets as $h => $offset)
@@ -58,7 +77,7 @@
                     wire:key="week-col-{{ $meta['jKey'] }}"
                     x-show="@js(!$meta['isFriday']) || !$wire.hideFriday"
                     x-cloak
-                    class="relative border-l border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
+                    class="calendar-day-column relative border-l border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
                     style="height: {{ $gridHeight }}px"
                     data-date="{{ $meta['jKey'] }}"
                     data-hour-height="{{ $hourHeight }}"
@@ -69,7 +88,7 @@
 
                     @foreach($meta['dayPills'] as $pill)
                         @php
-                            if (!empty($pill['is_reservation_linked']) || !isset($pill['top'], $pill['height'], $pill['left_pct'], $pill['width_pct'])) {
+                            if (!isset($pill['top'], $pill['height'], $pill['left_pct'], $pill['width_pct'])) {
                                 continue;
                             }
                         @endphp

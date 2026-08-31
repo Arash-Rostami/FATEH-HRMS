@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
+use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Task;
+use App\Support\TaskAccessPolicy;
 
 class ArchiveTaskAction
 {
@@ -10,11 +12,11 @@ class ArchiveTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task?->can_delete || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->ticket_id) {
             return false;
         }
 
-        if ($task->status !== 'done' || $task->archived_at !== null) {
+        if ($task->status !== TaskStatus::Done->value || $task->archived_at !== null) {
             return false;
         }
 

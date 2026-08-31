@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 trait FilamentPreferences
 {
     public const RECORDS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+    public const CACHE_TTL_OPTIONS = [300, 600, 900, 1800, 3600];
+    public const CACHE_TTL_MINUTES = [5, 10, 15, 30, 60];
 
     public ?array $data = [];
 
@@ -179,6 +181,22 @@ trait FilamentPreferences
                 ->afterStateHydrated(fn (Slider $component, ?int $state) => $component->state(($index = array_search($state, self::RECORDS_PER_PAGE_OPTIONS, true)) !== false ? $index : 0))
                 ->dehydrateStateUsing(fn (?int $state) => self::RECORDS_PER_PAGE_OPTIONS[$state] ?? 25)
                 ->beforeContent(fn (Get $get): string => (self::RECORDS_PER_PAGE_OPTIONS[(int) ($get('records_per_page') ?? 0)] ?? 25) . ' ردیف'),
+
+            Slider::make('cache_ttl')
+                ->label('مدت تازگی کش')
+                ->helperText('بازه به‌روزرسانی داده‌های تحلیلی کاربر؛ بالاتر = سریع‌تر ولی قدیمی‌تر.')
+                ->range(minValue: 0, maxValue: count(self::CACHE_TTL_OPTIONS) - 1)
+                ->step(1)
+                ->live()
+                ->rtl()
+                ->pips()
+                ->pipsFormatter(RawJs::make('(' . json_encode(self::CACHE_TTL_MINUTES) . ')[$value]'))
+                ->extraAttributes(['style' => 'transform: scale(0.8); transform-origin: center;'])
+                ->behavior([Behavior::Tap, Behavior::Drag, Behavior::SmoothSteps])
+                ->default(0)
+                ->afterStateHydrated(fn (Slider $component, ?int $state) => $component->state(($index = array_search($state, self::CACHE_TTL_OPTIONS, true)) !== false ? $index : 0))
+                ->dehydrateStateUsing(fn (?int $state) => self::CACHE_TTL_OPTIONS[$state] ?? 300)
+                ->beforeContent(fn (Get $get): string => (self::CACHE_TTL_MINUTES[(int) ($get('cache_ttl') ?? 0)] ?? 5) . ' دقیقه'),
 
             Toggle::make('screen_saver')
                 ->label('اسکرین سیور')

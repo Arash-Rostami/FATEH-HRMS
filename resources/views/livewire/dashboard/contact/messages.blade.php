@@ -1,6 +1,7 @@
 @php
     $p = $this->presenter;
     $hasOlder = $this->hasOlder;
+    $firstUnreadId = $this->newMessagesAnchorId;
 @endphp
 
 <div id="msg-viewport"
@@ -26,7 +27,7 @@
     </div>
 
     @forelse($this->groupedMessages as $date => $rawMessages)
-        @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit))
+        @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $firstUnreadId))
 
         <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4" role="separator" aria-label="{{ $group['label'] }}">
             <div
@@ -40,6 +41,15 @@
         </div>
 
         @foreach($group['messages'] as $msg)
+            @if(!empty($msg['is_new_messages']))
+                <div wire:key="new-msgs-{{ $msg['id'] }}" class="flex items-center gap-3 py-3" role="separator" aria-label="پیام‌های جدید">
+                    <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,var(--md-sys-color-tertiary))]"></div>
+                    <span class="text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="اولین پیامی که هنوز نخوانده‌اید">
+                        <span class="material-symbols-rounded text-[12px]" aria-hidden="true">mark_chat_unread</span>پیام‌های جدید
+                    </span>
+                    <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,var(--md-sys-color-tertiary))]"></div>
+                </div>
+            @endif
             <div wire:key="msg-{{ $msg['id'] }}"
                  data-rf="message-{{ $msg['id'] }}"
                  x-on:click="toggleActions({{ $msg['id'] }}, $event)"
@@ -85,13 +95,12 @@
                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                         انصراف
                                     </button>
-                                    <button x-on:click.prevent="saveEdit({{ $msg['id'] }})"
+                                    <x-ui.buttons.form x-on:click.prevent="saveEdit({{ $msg['id'] }})"
                                             wire:loading.attr="disabled"
-                                            class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-                                        <span wire:loading.remove wire:target="saveEdit">ذخیره</span>
-                                        <span wire:loading wire:target="saveEdit"
-                                              class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
-                                    </button>
+                                            loading="saveEdit"
+                                            class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
+                                        ذخیره
+                                    </x-ui.buttons.form>
                                 </div>
                             </div>
                         </div>
@@ -109,12 +118,11 @@
                                         class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_10%,transparent)]">
                                     انصراف
                                 </button>
-                                <button x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
-                                        class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] active:scale-95 disabled:opacity-40 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
-                                    <span wire:loading.remove wire:target="deleteMessage">حذف</span>
-                                    <span wire:loading wire:target="deleteMessage"
-                                          class="material-symbols-rounded text-[12px] animate-spin">progress_activity</span>
-                                </button>
+                                <x-ui.buttons.form x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
+                                        loading="deleteMessage"
+                                        class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
+                                    حذف
+                                </x-ui.buttons.form>
                             </div>
                         </div>
                     </template>

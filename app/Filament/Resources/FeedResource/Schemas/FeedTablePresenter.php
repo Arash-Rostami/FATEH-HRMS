@@ -57,6 +57,7 @@ class FeedTablePresenter
             ->wrap()
             ->lineClamp(2)
             ->tooltip(fn($state) => strlen($state) > 40 ? strip_tags($state) : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);
     }

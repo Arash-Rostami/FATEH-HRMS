@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasDepartmentLabel;
+use App\Models\Concerns\HasDepartmentLabel;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -42,7 +42,7 @@ class Department extends Model
             }
 
             if (static::wouldCreateCycle($department->code, $department->subordinate_to)) {
-                throw new RuntimeException('Department hierarchy cannot reference itself or form a cycle.');
+                throw new RuntimeException(__('resources/department/strings.errors.cyclic_hierarchy'));
             }
         });
     }

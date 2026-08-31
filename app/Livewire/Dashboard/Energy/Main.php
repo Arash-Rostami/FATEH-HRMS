@@ -8,9 +8,11 @@ use App\Models\EnergyTest as EnergyModel;
 use App\Services\EnergyQuestionService;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
+#[Lazy]
 class Main extends Component
 {
     public int $step = 1;
@@ -100,6 +102,29 @@ class Main extends Component
     public function userTestCount(): int
     {
         return EnergyModel::where('user_id', auth()->id())->count();
+    }
+
+    #[Computed]
+    public function cooldownDays(): ?int
+    {
+        if ($this->showSurvey) {
+            return null;
+        }
+
+        $last = EnergyModel::where('user_id', auth()->id())->latest('completed_at')->value('completed_at');
+
+        if (!$last) {
+            return null;
+        }
+
+        $remaining = now()->diffInHours($last->copy()->addDays(25));
+
+        return max(0, (int) ceil($remaining / 24));
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.energy.placeholder');
     }
 
     public function render(): View

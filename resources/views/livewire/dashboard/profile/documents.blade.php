@@ -246,4 +246,8 @@
         </div>
     </x-ui.modals.dialog>
 
+    <div wire:loading.delay wire:target="confirmUpload">
+        <x-ui.loaders.bar/>
+    </div>
+
 </div>

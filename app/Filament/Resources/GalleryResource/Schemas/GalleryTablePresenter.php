@@ -142,6 +142,7 @@ class GalleryTablePresenter
             ->sortable()
             ->limit(50)
             ->tooltip(fn($state) => strlen($state ?? '') > 50 ? $state : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

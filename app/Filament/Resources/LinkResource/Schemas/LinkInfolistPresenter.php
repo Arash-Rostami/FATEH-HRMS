@@ -43,6 +43,7 @@ class LinkInfolistPresenter
             ->label(__('resources/link/strings.fields.icon_description'))
             ->html()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpan(3)
             ->color('gray');
     }
@@ -61,6 +62,7 @@ class LinkInfolistPresenter
         return TextEntry::make('image_description')
             ->label(__('resources/link/strings.fields.image_description'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpan(1)
             ->color('gray');
     }
@@ -114,6 +116,7 @@ class LinkInfolistPresenter
         return TextEntry::make('url_description')
             ->label(__('resources/link/strings.fields.url_description'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -123,6 +126,7 @@ class LinkInfolistPresenter
             ->label(__('resources/link/strings.fields.url_title'))
             ->size(TextSize::Large)
             ->weight(FontWeight::Bold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 }

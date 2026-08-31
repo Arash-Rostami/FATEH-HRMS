@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
+use App\Support\TaskAccessPolicy;
 
 class DeleteTaskAction
 {
@@ -10,7 +11,7 @@ class DeleteTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task?->can_delete || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->ticket_id) {
             return false;
         }
 

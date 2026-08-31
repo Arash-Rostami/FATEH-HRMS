@@ -27,7 +27,7 @@
                     </button>
                 </div>
 
-                <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1" style="scrollbar-width: thin;">
+                <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
                     @foreach($this->topContributors as $index => $contributor)
                         <div @class([
                             'flex items-center justify-between text-xs p-2 rounded-xl border transition-all duration-300',

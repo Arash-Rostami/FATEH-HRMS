@@ -11,7 +11,7 @@ class AllowedHours implements BookingRule
 {
     public function validate(BookingContext $context): void
     {
-        if ($context->isFullDay) return;
+        if ($context->isFullDay || $context->isRange()) return;
 
         $allowedHours = $context->policies['allowed_hours'] ?? null;
         if (empty($allowedHours)) return;

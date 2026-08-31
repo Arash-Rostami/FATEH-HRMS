@@ -8,10 +8,13 @@ use App\Models\EnergyTest;
 use App\Models\User;
 use App\Services\EnergyQuestionService;
 use App\Services\PersolTeamService as TeamData;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Defer;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+#[Defer]
 class Chart extends Component
 {
     #[Computed]
@@ -79,6 +82,35 @@ class Chart extends Component
     }
 
     #[Computed]
+    public function personalHistory(): array
+    {
+        $service = app(EnergyQuestionService::class);
+
+        return EnergyTest::query()
+            ->where('user_id', $this->user->id)
+            ->orderByDesc('completed_at')
+            ->limit(12)
+            ->get()
+            ->map(function (EnergyTest $test) use ($service) {
+                $bank = $service->getQuestionsForMonth($test->month_index)['questions'];
+
+                return [
+                    'completed_at' => $test->completed_at,
+                    'overall' => $test->overall_score,
+                    'choices' => collect($test->answers ?? [])
+                        ->mapWithKeys(function (array $flags, string $cat) use ($bank) {
+                            $options = $bank[$cat] ?? [];
+                            $chosen = collect($flags)->search(true, true);
+
+                            return [$cat => is_int($chosen) ? ($options[$chosen] ?? null) : null];
+                        })
+                        ->all(),
+                ];
+            })
+            ->all();
+    }
+
+    #[Computed]
     public function teamMembersData(): array
     {
         if (!$this->isManager || !$this->user->profile?->department_id) {
@@ -117,7 +149,12 @@ class Chart extends Component
     #[On('energy-test-submitted')]
     public function refreshAfterSubmit(): void
     {
-        unset($this->history, $this->latestTest, $this->companyAverages, $this->teamMembersData);
+        unset($this->history, $this->latestTest, $this->companyAverages, $this->teamMembersData, $this->personalHistory);
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.energy.chart-placeholder');
     }
 
     public function render()
@@ -129,6 +166,7 @@ class Chart extends Component
             'companyAverages' => $this->companyAverages,
             'teamMembersData' => $this->teamMembersData,
             'sections' => $this->sections,
+            'personalHistory' => $this->personalHistory,
             'presenter' => new ChartPresenter(),
         ]);
     }

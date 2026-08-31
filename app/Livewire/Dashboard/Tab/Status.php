@@ -21,10 +21,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 #[Isolate]
+#[Lazy]
 class Status extends Component
 {
     public string $activeFilter = 'all';
@@ -62,6 +64,11 @@ class Status extends Component
             'skillPresenter' => new SkillPresenter(),
             'statusPresenter' => new StatusPresenter(),
         ]);
+    }
+
+    public function placeholder(): \Illuminate\View\View
+    {
+        return view('livewire.dashboard.tab.status.placeholder');
     }
 
     public function sendSms(string $userId, SendSmsAction $action, SmsService $smsService)
@@ -265,7 +272,7 @@ class Status extends Component
         $mentorOnly = $this->mentorOnly;
 
         return User::query()
-            ->with(['profile.department', 'profile.details' => fn ($q) => $q->whereIn('key', ['unit', 'section'])])
+            ->with(['profile.department', 'profile.details' => fn ($q) => $q->whereIn('key', ['unit', 'section', 'display_title'])])
             ->visibleOnBoard()
             ->when($this->activeFilter !== 'all', fn (Builder $query) => $query->where('presence', $this->activeFilter))
             ->when($this->activeClassifier !== 'all', fn (Builder $query) => $this->applyClassifier($query))

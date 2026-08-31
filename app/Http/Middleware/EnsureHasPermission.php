@@ -24,11 +24,11 @@ class EnsureHasPermission
         $perm = Permission::forUser($user->id);
 
         if (!$perm) {
-            abort(403, __('resources/permission/strings.denied') ?? 'Forbidden');
+            abort(403, __('resources/permission/strings.gate.denied'));
         }
 
         if (!$perm->is_super_admin && empty($perm->abilities)) {
-            abort(403, __('resources/permission/strings.denied') ?? 'Forbidden');
+            abort(403, __('resources/permission/strings.gate.denied'));
         }
 
         return $next($request);

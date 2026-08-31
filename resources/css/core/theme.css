@@ -67,12 +67,27 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --md-sys-color-error-container: #ffdad6;
         --md-sys-color-on-error-container: #410002;
         --md-sys-color-on-error: #ffffff;
+
+        --md-sys-color-success: #10b981;
+        --md-sys-color-on-success: #ffffff;
+        --md-sys-color-success-container: #d1fae5;
+        --md-sys-color-on-success-container: #064e3b;
+
+        --md-sys-color-warning: #f59e0b;
+        --md-sys-color-on-warning: #ffffff;
+        --md-sys-color-warning-container: #fef3c7;
+        --md-sys-color-on-warning-container: #422006;
+
         --md-sys-color-background: #fdfcff;
         --md-sys-color-on-background: #1a1c1e;
         --md-sys-color-surface: #f9f9fc;
         --md-sys-color-on-surface: #1a1c1e;
         --md-sys-color-surface-variant: #e1e2ec;
         --md-sys-color-surface-container-highest: #d4d5dc;
+        --md-sys-color-surface-container-lowest: color-mix(in srgb, var(--md-sys-color-surface), white 4%);
+        --md-sys-color-surface-container-low: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-variant) 25%);
+        --md-sys-color-surface-container: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-variant) 50%);
+        --md-sys-color-surface-container-high: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-variant) 75%);
         --md-sys-color-on-surface-variant: #44474f;
         --md-sys-color-outline: #74777f;
         --md-sys-color-outline-variant: #c4c6cf;
@@ -120,12 +135,26 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --md-sys-color-error: #ffb4ab;
         --md-sys-color-on-error: #690005;
 
+        --md-sys-color-success: #6ee7b7;
+        --md-sys-color-on-success: #003826;
+        --md-sys-color-success-container: #064e3b;
+        --md-sys-color-on-success-container: #a7f3d0;
+
+        --md-sys-color-warning: #fcd34d;
+        --md-sys-color-on-warning: #412006;
+        --md-sys-color-warning-container: #5a4100;
+        --md-sys-color-on-warning-container: #fde68a;
+
         --md-sys-color-background: #191c1d;
         --md-sys-color-on-background: #e1e3e4;
         --md-sys-color-surface: #101416;
         --md-sys-color-on-surface: #e1e3e4;
         --md-sys-color-surface-variant: #40484b;
         --md-sys-color-surface-container-highest: #3b4244;
+        --md-sys-color-surface-container-lowest: color-mix(in srgb, var(--md-sys-color-surface), black 4%);
+        --md-sys-color-surface-container-low: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-container-highest) 25%);
+        --md-sys-color-surface-container: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-container-highest) 50%);
+        --md-sys-color-surface-container-high: color-mix(in srgb, var(--md-sys-color-surface), var(--md-sys-color-surface-container-highest) 75%);
         --md-sys-color-on-surface-variant: #bfc8cc;
         --md-sys-color-outline: #899296;
         --md-sys-color-outline-variant: #40484b;

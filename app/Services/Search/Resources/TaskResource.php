@@ -2,6 +2,7 @@
 
 namespace App\Services\Search\Resources;
 
+use App\Models\Project;
 use App\Models\Task;
 use App\Services\Search\Contracts\SearchResource;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,6 +29,7 @@ class TaskResource extends SearchResource
         $query->where(fn (Builder $q) => $q
             ->where('user_id', $me)
             ->orWhere('assigned_to', $me)
+            ->orWhereIn('project_id', Project::visibleTo(auth()->user())->select('id'))
         );
     }
 }

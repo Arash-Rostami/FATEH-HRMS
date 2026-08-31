@@ -146,7 +146,7 @@
     @endif
 
     {{-- ─── Comments List ─────────────────────────────────────────── --}}
-    <div class="{{ $isNestedView ? 'space-y-3' : 'space-y-4 flex-1 overflow-y-auto feed-scrollbar px-2 py-1 min-h-0' }}">
+    <div class="{{ $isNestedView ? 'space-y-3' : 'space-y-4 flex-1 overflow-y-auto scrollbar-hover-reveal px-2 py-1 min-h-0' }}">
         @forelse($comments ?? [] as $comment)
             @php
                 $meta = $presenter->commentMeta($comment, $editingCommentId ?? null);
@@ -214,7 +214,7 @@
                                     </div>
                                 </div>
                             @else
-                                <p class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)] [&_strong]:font-bold [&_strong]:text-[var(--md-sys-color-on-surface)]">
+                                <p class="leading-relaxed text-[13.5px] tracking-wide text-[var(--md-sys-color-on-surface)] [&_strong]:font-bold [&_strong]:text-[var(--md-sys-color-on-surface)] rich-colors">
                                     {!! renderComment($comment?->content) !!}
                                 </p>
                             @endif

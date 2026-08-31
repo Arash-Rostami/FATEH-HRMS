@@ -16,7 +16,8 @@ class CredentialInfolistPresenter
             ->badge()
             ->color('primary')
             ->icon('heroicon-m-squares-2x2')
-            ->size(TextSize::Large);
+            ->size(TextSize::Large)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']);
     }
 
     public static function owner(): TextEntry
@@ -69,6 +70,7 @@ class CredentialInfolistPresenter
     {
         return TextEntry::make('note')
             ->label(__('resources/credential/strings.fields.note'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull()
             ->placeholder('-');
     }

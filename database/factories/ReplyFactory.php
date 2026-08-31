@@ -2,8 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\TaskActivityType;
 use App\Models\Reply;
-use App\Models\Ticket;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,11 +15,13 @@ class ReplyFactory extends Factory
     public function definition(): array
     {
         return [
+            'repliable_type' => Task::class,
+            'repliable_id' => Task::factory(),
             'user_id' => User::factory(),
-            'repliable_type' => Ticket::class,
-            'repliable_id' => Ticket::factory(),
-            'body' => fake()->sentence(),
+            'body' => $this->faker->paragraph(),
             'files' => [],
+            'type' => $this->faker->randomElement(TaskActivityType::cases()),
+            'payload' => [],
         ];
     }
 }

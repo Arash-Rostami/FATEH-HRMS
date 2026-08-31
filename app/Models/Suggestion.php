@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasStageHelpers;
-use App\Models\Traits\HasSuggestionAlert;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasStageHelpers;
+use App\Models\Concerns\HasSuggestionAlert;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;

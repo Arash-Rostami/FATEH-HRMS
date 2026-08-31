@@ -48,4 +48,8 @@ return [
         'date_until' => 'تا تاریخ',
     ],
 
+    'errors' => [
+        'file_store_failed' => 'ذخیره‌سازی فایل با خطا مواجه شد.',
+    ],
+
 ];

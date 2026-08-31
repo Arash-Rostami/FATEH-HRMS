@@ -1,3 +1,20 @@
+const FORMATTERS = {};
+
+function formattersFor(mode) {
+    if (!FORMATTERS[mode]) {
+        FORMATTERS[mode] = mode === 'fa'
+            ? {
+                date: new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', calendar: 'persian', numberingSystem: 'arab' }),
+                time: new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, numberingSystem: 'arab' }),
+            }
+            : {
+                date: new Intl.DateTimeFormat('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
+                time: new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+            };
+    }
+    return FORMATTERS[mode];
+}
+
 export default function timer() {
     return {
         time: '',
@@ -17,22 +34,10 @@ export default function timer() {
 
         updateTime() {
             const now = new Date();
+            const f = formattersFor(this.mode);
 
-            if (this.mode === 'fa') {
-                // Persian Date & Time
-                const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', calendar: 'persian', numberingSystem: 'arab' };
-                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, numberingSystem: 'arab' };
-
-                this.date = new Intl.DateTimeFormat('fa-IR', dateOptions).format(now);
-                this.time = new Intl.DateTimeFormat('fa-IR', timeOptions).format(now);
-            } else {
-                // English Date & Time
-                const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-
-                this.date = new Intl.DateTimeFormat('en-US', dateOptions).format(now);
-                this.time = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
-            }
+            this.date = f.date.format(now);
+            this.time = f.time.format(now);
         }
     };
 }

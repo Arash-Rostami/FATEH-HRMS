@@ -156,6 +156,23 @@ class ResourceFormPresenter
             ->helperText(__('resources/resource/strings.hints.status'));
     }
 
+    public static function showTime(): Toggle
+    {
+        return Toggle::make('show_time')
+            ->label(__('resources/resource/strings.fields.show_time'))
+            ->helperText(__('resources/resource/strings.hints.show_time'))
+            ->dehydrated(false)
+            ->live()
+            ->default(false)
+            ->visible(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === true)
+            ->afterStateHydrated(function ($component, $state, $livewire) {
+                $ts = $livewire->data['metadata']['time_slots'] ?? [];
+                if (!empty($ts['start']) && !empty($ts['end'])) {
+                    $component->state(true);
+                }
+            });
+    }
+
     public static function timeSlotEnd(): TimePicker
     {
         return TimePicker::make('metadata.time_slots.end')
@@ -165,8 +182,8 @@ class ResourceFormPresenter
             ->displayFormat('H:i')
             ->format('H:i')
             ->after('metadata.time_slots.start')
-            ->visible(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false)
-            ->dehydrated(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false);
+            ->visible(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false || (bool)($livewire->data['show_time'] ?? false))
+            ->dehydrated(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false || (bool)($livewire->data['show_time'] ?? false));
     }
 
     public static function timeSlotStart(): TimePicker
@@ -178,8 +195,8 @@ class ResourceFormPresenter
             ->displayFormat('H:i')
             ->format('H:i')
             ->before('metadata.time_slots.end')
-            ->visible(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false)
-            ->dehydrated(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false);
+            ->visible(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false || (bool)($livewire->data['show_time'] ?? false))
+            ->dehydrated(fn($livewire) => ResourceType::tryFrom($livewire->data['type'] ?? null)?->isFullDay() === false || (bool)($livewire->data['show_time'] ?? false));
     }
 
     public static function unit(): TextInput

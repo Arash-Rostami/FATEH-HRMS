@@ -24,10 +24,11 @@ class DmsPresenter
         return $sort === 'updated' && $sortDir === 'desc';
     }
 
-    public function rowState(DMS $doc, array $confirmedDocs, array $readDocs): array
+    public function rowState(DMS $doc, array $confirmedDocs, array $readDocs, array $readCounts = []): array
     {
         $isConfirmed = in_array($doc->id, $confirmedDocs);
         $isRead = in_array($doc->id, $readDocs);
+        $readCount = (int) ($readCounts[$doc->id] ?? 0);
         $cat = optional($doc->extra)['category'] ?? optional($doc->extra)['Category'];
         $extraDetails = collect($doc->extra ?? [])->except(['category', 'Category', 'type', 'Type', 'users']);
         $cleanTitle = superClean($doc->title ?? 'بدون عنوان');
@@ -45,6 +46,7 @@ class DmsPresenter
             'cleanTitle' => $cleanTitle,
             'statusColor' => $statusColor,
             'deptLabels' => $doc->getDepartmentTooltipLabels(),
+            'readCount' => $readCount,
         ];
     }
 

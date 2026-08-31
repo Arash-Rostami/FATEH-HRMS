@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class ModulesGuideWidget extends Widget
 {
-    protected static ?int $sort = -1;
+    protected static ?int $sort = 0;
 
     protected string $view = 'filament.widgets.guide';
 
@@ -52,8 +52,8 @@ class ModulesGuideWidget extends Widget
                 'label' => __("resources/dashboard/strings.guide.tools.{$key}.label"),
                 'desc' => __("resources/dashboard/strings.guide.tools.{$key}.desc"),
             ],
-            ['schema', 'filter_alt', 'layers', 'manage_search', 'tune', 'bolt', 'edit_note', 'description', 'table_chart', 'account_tree', 'calculate', 'speed'],
-            ['relation_managers', 'filters', 'groups', 'search', 'toggle_sort', 'actions', 'form', 'infolist', 'table', 'nested_resources', 'table_summaries', 'deferred_analytics'],
+            ['schema', 'filter_alt', 'layers', 'manage_search', 'tune', 'bolt', 'edit_note', 'description', 'table_chart', 'account_tree', 'query_stats', 'speed'],
+            ['relation_managers', 'filters', 'groups', 'search', 'toggle_sort', 'actions', 'form', 'infolist', 'table', 'nested_resources', 'stats', 'deferred_analytics'],
         );
     }
 
@@ -70,6 +70,7 @@ class ModulesGuideWidget extends Widget
             'notification-guide' => ['filament_icon' => 'heroicon-o-bell'],
             'analytics' => ['filament_icon' => 'heroicon-o-chart-bar'],
             'profile' => ['filament_icon' => 'heroicon-o-identification'],
+            'status' => ['filament_icon' => 'heroicon-o-user-group'],
             'skills' => ['filament_icon' => 'heroicon-o-bolt'],
             'onboarding' => ['filament_icon' => 'heroicon-o-building-office-2'],
             'documents' => ['filament_icon' => 'heroicon-o-cloud-arrow-up'],
@@ -77,6 +78,8 @@ class ModulesGuideWidget extends Widget
             'ads' => ['filament_icon' => 'heroicon-o-briefcase'],
             'suggestion' => ['filament_icon' => 'heroicon-o-light-bulb'],
             'taskboard' => ['filament_icon' => 'heroicon-o-view-columns'],
+            'projects' => ['filament_icon' => 'heroicon-o-rectangle-stack'],
+            'tasksheet' => ['filament_icon' => 'heroicon-o-document-chart-bar'],
             'dms' => ['filament_icon' => 'heroicon-o-folder-open'],
             'ths' => ['filament_icon' => 'heroicon-o-lifebuoy'],
             'reservation' => ['filament_icon' => 'heroicon-o-building-office'],
@@ -99,14 +102,16 @@ class ModulesGuideWidget extends Widget
             'links' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'لینک‌های دسترسی سریع را با آیکون‌های متناسب ثبت نمایید. از قابلیت مرتب‌سازی (Sorting) در جداول برای اولویت‌بندی نمایش ابزارها بهره بگیرید.'],
             'faq' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'پایگاه دانش را با دسته‌بندی‌های اصولی مدیریت کنید. فیلدهای Infolist به شما اجازه می‌دهد پیش‌نمایش دقیقی از نحوه نمایش پرسش‌ها به کاربران داشته باشید.'],
             'notification-guide' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'محتوای این راهنما از طریق پنل ادمین قابل ویرایش نیست — برای افزودن یا اصلاح متن یک نشانگر، ردیف مربوطه را مستقیماً در کاتالوگ اختصاصی نشانگرها (App\\Services\\Menu\\BadgeLegendCatalog) ویرایش کنید.'],
-            'ads' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'فرصت‌های شغلی را با جزئیات دقیق منتشر کنید. از طریق سوئیچ‌های Toggle وضعیت فعال یا بایگانی بودن فرصت‌ها را به‌سرعت در نمای جدول کنترل نمایید.'],
+            'ads' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'فرصت‌های شغلی را با جزئیات دقیق منتشر کنید. از طریق سوئیچ‌های Toggle وضعیت فعال یا غیرفعال بودن فرصت‌ها را به‌سرعت در نمای جدول کنترل نمایید.'],
             'suggestion' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'جریان پیشنهادات را از طریق فیلترهای وضعیت (Status Filters) رهگیری کنید. امکان ثبت بازخورد و تصمیم‌گیری مدیریتی مستقیماً از بخش Infolist یا Action های سفارشی فراهم است.'],
             'contact' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'روند ارتباطات داخلی را پایش کنید. با استفاده از قابلیت جستجوی جامع (Global Search)، تاریخچه تعاملات و پیام‌های سیستمی را با دقت بررسی نمایید.'],
             'channel' => ['major_category' => 'محتوا و ارتباطات', 'admin_tip' => 'وضعیت کانال‌ها و پیام‌ها را از طریق Relation Managers مدیریت کنید. مالکیت و اعضای هر کانال با استفاده از Attach/Detach Actions به‌سرعت قابل تنظیم است.'],
             'reservation' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'فضاها و منابع را به‌دقت پیکربندی کنید. از ابزارهای فیلترینگ برای مدیریت ظرفیت‌ها و از Action های تعبیه‌شده برای تعلیق یا لغو رزروهای تداخل‌دار استفاده نمایید.'],
-            'reports' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'گزارش‌های رسمی را با کنترل نسخه دقیق ثبت کنید. از قابلیت Export در Bulk Actions برای دریافت خروجی‌های استاندارد مدیریتی (CSV/Excel) بهره بگیرید.'],
+            'reports' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'گزارش‌های رسمی را با تعیین مخاطب (واحدهای مشخص)، پین کردن گزارش‌های مهم و تنظیم تاریخ انقضا منتشر کنید. از قابلیت Export در Bulk Actions برای دریافت خروجی‌های استاندارد مدیریتی (CSV/Excel) بهره بگیرید.'],
             'taskboard' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'جریان کاری تسک‌ها را با ابزار کانبان رهگیری کنید. از طریق Relation Managers پیشرفت وظایف زیرمجموعه را بررسی و وضعیت‌ها را به‌روزرسانی نمایید.'],
-            'dms' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'مخزن اسناد را با ساختاردهی استاندارد مدیریت کنید. کنترل نسخه‌ها و دسترسی‌ها را از طریق فرم‌های پیچیده و قابلیت اعتبارسنجی یکپارچه تضمین نمایید.'],
+            'projects' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'پروژه‌ها را با مالک و اعضای مشخص و دپارتمان‌های مخاطب تعریف کنید. از Relation Managers برای پایش وظایف و کانال گفتگوی اختصاصی هر پروژه استفاده نمایید و پروژه‌های پایان‌یافته را بایگانی کنید.'],
+            'tasksheet' => ['major_category' => 'عملیات و منابع', 'admin_tip' => 'این گزارش به‌صورت خودکار از فعالیت‌های تسک‌بورد و پروژه‌ها ساخته می‌شود و نیازی به مدیریت مستقیم ندارد؛ از اکشن‌های اختصاصی روی وظیفه/پروژه/کاربر برای مشاهدهٔ گزارش هر فرد استفاده کنید.'],
+            'dms' =>['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'مخزن اسناد را با ساختاردهی استاندارد مدیریت کنید. کنترل نسخه‌ها و دسترسی‌ها را از طریق فرم‌های پیچیده و قابلیت اعتبارسنجی یکپارچه تضمین نمایید.'],
             'ths' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'صف تیکت‌ها را بر اساس اولویت و دپارتمان فیلتر کنید. قابلیت گروه‌بندی (Grouping) در جداول، نمای شفافی از حجم درخواست‌های در حال بررسی ارائه می‌دهد.'],
             'energy' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'نتایج ارزیابی انرژی را تحلیل کنید. استفاده از ویجت‌های نموداری (Chart Widgets) و فیلترهای بازه زمانی، رهگیری الگوهای رفتاری سازمان را ساده می‌سازد.'],
             'radio' => ['major_category' => 'سیستم‌ها و ابزارها', 'admin_tip' => 'ایستگاه‌های رادیویی زنده را تنظیم کنید. با استفاده از ستون‌های Toggle امکان فعال یا غیرفعال‌سازی سریع کانال‌های در حال پخش فراهم است.'],
@@ -118,6 +123,7 @@ class ModulesGuideWidget extends Widget
             'credentials' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اطلاعات کاربری و دسترسی‌های سازمانی را با امنیت بالا نگهداری کنید. فیلترهای پیشرفته برای رهگیری تاریخ انقضا و وضعیت اکانت‌های اختصاص‌یافته در دسترس است.'],
             'auth' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'اختیارات تفویض‌شده را شفاف‌سازی کنید. مدیریت تاریخ‌های اعتبار از طریق فیلترهای زمانی و امکان تمدید گروهی با Bulk Actions تسهیل شده است.'],
             'analytics' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. برای تغییر آمار نمایش‌داده‌شده، اطلاعات پروفایل و حساب کاربری پرسنل را در ماژول «وضعیت کاریر» به‌روزرسانی کنید.'],
+            'status' => ['major_category' => 'کاربران و سازمان', 'admin_tip' => 'این ماژول صرفاً نمایشی است و منبع مستقلی در پنل ادمین ندارد. حالت‌های حضور و آیکون‌ها در «PresenceStatus» تعریف شده‌اند؛ برای تغییر فهرست حالت‌ها، آن فهرست را ویرایش کنید.'],
         ];
     }
 }

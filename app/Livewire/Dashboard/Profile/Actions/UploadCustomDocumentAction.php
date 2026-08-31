@@ -4,21 +4,19 @@ namespace App\Livewire\Dashboard\Profile\Actions;
 
 use App\Livewire\Dashboard\Profile\Forms\DocumentForm;
 use App\Models\Profile;
+use App\Traits\CleansAttachedFiles;
+use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UploadCustomDocumentAction
 {
+    use CleansAttachedFiles, StoresAttachedFiles;
+
     public function __construct(
         private ResetDocumentStateAction $resetAction
     ) {}
 
-    /**
-     * Execute custom document upload.
-     *
-     * @return array{success: bool, path: string|null, error: string|null}
-     */
     public function execute(DocumentForm $form, string $pendingFileName): array
     {
         if (!$form->customFile) {
@@ -41,7 +39,7 @@ class UploadCustomDocumentAction
             }
 
             $fileName = "doc_custom_{$slug}_{$timestamp}.{$extension}";
-            $newPath = $form->customFile->storeAs("profiles/docs/{$userProfile->getDocsPathToken()}", $fileName, 'public');
+            $newPath = static::storeAttachment($form->customFile, "profiles/docs/{$userProfile->getDocsPathToken()}", $fileName)['path'];
 
             $currentAttachments = collect($userProfile->attachments ?? []);
             $oldPaths = $currentAttachments
@@ -60,7 +58,7 @@ class UploadCustomDocumentAction
 
             $userProfile->save();
 
-            $oldPaths->each(fn ($path) => Storage::disk('public')->delete($path));
+            static::deleteStoredFiles($oldPaths);
 
             $this->resetAction->resetCustom($form);
 

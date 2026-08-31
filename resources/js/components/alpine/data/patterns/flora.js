@@ -1,4 +1,4 @@
-let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, visibilityHandler;
+let animationId, resizeId, themeObserver, resizeHandler, mouseMoveHandler, mouseOutHandler, visibilityHandler;
 
 export default {
     init() {
@@ -117,7 +117,8 @@ export default {
             lastMouse.x = e.clientX; lastMouse.y = e.clientY;
         };
         window.addEventListener('mousemove', mouseMoveHandler);
-        window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; mouse.vx = 0; mouse.vy = 0; });
+        mouseOutHandler = () => { mouse.x = -1000; mouse.y = -1000; mouse.vx = 0; mouse.vy = 0; };
+        window.addEventListener('mouseout', mouseOutHandler);
         visibilityHandler = () => { visible = document.visibilityState === 'visible'; if (visible) draw(performance.now()); };
         document.addEventListener('visibilitychange', visibilityHandler);
 
@@ -145,11 +146,9 @@ export default {
                     const force = (windRadius - distToMouse) / windRadius;
 
                     if (el.type === 'pollen' || el.type === 'leaf') {
-                        // Light elements are blown fully away
                         px += (mouse.vx * force * 0.8) + (dx / distToMouse * force * 15);
                         py += (mouse.vy * force * 0.8) + (dy / distToMouse * force * 15);
                     } else {
-                        // Heavy, anchored elements (Wheat and Straw) bend heavily with the wind
                         el.windBend += (mouse.vx * 0.015 * force);
                     }
                     ctx.globalAlpha = Math.min(1, el.opacity + force * 0.5);
@@ -199,6 +198,7 @@ export default {
         if (themeObserver) themeObserver.disconnect();
         window.removeEventListener('resize', resizeHandler);
         window.removeEventListener('mousemove', mouseMoveHandler);
+        window.removeEventListener('mouseout', mouseOutHandler);
         document.removeEventListener('visibilitychange', visibilityHandler);
         document.getElementById('interactive-background')?.remove();
     }

@@ -124,7 +124,7 @@
                 <tbody>
                 @forelse($this->docs as $doc)
                     @php
-                        $r = $this->presenter->rowState($doc, $this->confirmedDocs, $this->readDocs);
+                        $r = $this->presenter->rowState($doc, $this->confirmedDocs, $this->readDocs, $this->readCounts);
                         $isConfirmed = $r['isConfirmed'];
                         $isRead = $r['isRead'];
                         $cat = $r['cat'];
@@ -132,6 +132,7 @@
                         $cleanTitle = $r['cleanTitle'];
                         $statusColor = $r['statusColor'];
                         $deptLabels = $r['deptLabels'];
+                        $readCount = $r['readCount'];
                     @endphp
 
                     <tr wire:key="dms-doc-{{ $doc->id }}"
@@ -352,7 +353,7 @@
                                         <div x-show="open" x-transition.origin
                                              class="mt-1 w-max max-w-xs rounded-xl border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] p-2.5 shadow-xl"
                                              style="display: none;">
-                                            <div class="text-right text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]" dir="rtl">
+                                            <div class="text-right text-[11px] leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)]" dir="rtl">
                                                 {{ $doc->revision }}
                                             </div>
                                         </div>
@@ -396,6 +397,10 @@
                                         <span class="material-symbols-rounded text-[14px]">link_off</span>
                                         فایل ندارد
                                     </span>
+                            @endif
+
+                            @if($readCount > 0)
+                                <p class="mt-1.5 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">بازدید شما: {{ convertToPersian($readCount) }} بار</p>
                             @endif
                         </td>
                     </tr>

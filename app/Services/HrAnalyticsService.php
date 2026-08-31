@@ -7,6 +7,7 @@ use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Filament\Widgets\Concerns\DepartmentAxis;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;
 
 class HrAnalyticsService
@@ -14,6 +15,11 @@ class HrAnalyticsService
     use DepartmentAxis;
 
     public function getHrAData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_a', fn () => $this->rawHrAData());
+    }
+
+    private function rawHrAData(): array
     {
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
@@ -80,6 +86,11 @@ class HrAnalyticsService
 
     public function getHrBData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_b', fn () => $this->rawHrBData());
+    }
+
+    private function rawHrBData(): array
+    {
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
             ->where('users.type', '!=', UserType::Guest->value)
@@ -145,6 +156,11 @@ class HrAnalyticsService
 
     public function getHrCData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_c', fn () => $this->rawHrCData());
+    }
+
+    private function rawHrCData(): array
+    {
         $rows = DB::table(DB::raw(
             "(SELECT profiles.gender, TIMESTAMPDIFF(YEAR, profiles.birthdate, NOW()) AS age FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.birthdate IS NOT NULL) p"
         ))->select('gender', DB::raw("
@@ -202,6 +218,11 @@ class HrAnalyticsService
 
     public function getHrDData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_d', fn () => $this->rawHrDData());
+    }
+
+    private function rawHrDData(): array
+    {
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
             ->where('users.type', '!=', UserType::Guest->value)
@@ -253,6 +274,11 @@ class HrAnalyticsService
     }
 
     public function getHrEData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_e', fn () => $this->rawHrEData());
+    }
+
+    private function rawHrEData(): array
     {
         $rows = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
@@ -307,6 +333,11 @@ class HrAnalyticsService
     }
 
     public function getHrFData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_f', fn () => $this->rawHrFData());
+    }
+
+    private function rawHrFData(): array
     {
         $rows = DB::table(DB::raw("(SELECT profiles.degree, TIMESTAMPDIFF(YEAR, profiles.birthdate, NOW()) AS age FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.birthdate IS NOT NULL) AS p"))
             ->select('degree', DB::raw("
@@ -369,6 +400,11 @@ class HrAnalyticsService
 
     public function getHrGData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_g', fn () => $this->rawHrGData());
+    }
+
+    private function rawHrGData(): array
+    {
         $rows = DB::table(DB::raw("(SELECT profiles.position, TIMESTAMPDIFF(YEAR, profiles.start_date, NOW()) AS tenure FROM profiles JOIN users ON users.id = profiles.user_id AND users.type != '" . UserType::Guest->value . "' WHERE profiles.start_date IS NOT NULL) AS p"))
             ->select('position', DB::raw("
                 SUM(CASE WHEN tenure < 1 THEN 1 ELSE 0 END) as t1,
@@ -408,6 +444,11 @@ class HrAnalyticsService
     }
 
     public function getHrHData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_h', fn () => $this->rawHrHData());
+    }
+
+    private function rawHrHData(): array
     {
         $topFields = DB::table('profiles')
             ->join('users', 'profiles.user_id', '=', 'users.id')
@@ -481,6 +522,11 @@ class HrAnalyticsService
 
     public function getHrIData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_i', fn () => $this->rawHrIData());
+    }
+
+    private function rawHrIData(): array
+    {
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
@@ -504,6 +550,11 @@ class HrAnalyticsService
 
     public function getHrJData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_j', fn () => $this->rawHrJData());
+    }
+
+    private function rawHrJData(): array
+    {
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
@@ -525,6 +576,11 @@ class HrAnalyticsService
     }
 
     public function getHrKData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_k', fn () => $this->rawHrKData());
+    }
+
+    private function rawHrKData(): array
     {
         [$codes, $labels, $idx] = $this->topDepartments();
 
@@ -578,6 +634,11 @@ class HrAnalyticsService
 
     public function getHrLData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_l', fn () => $this->rawHrLData());
+    }
+
+    private function rawHrLData(): array
+    {
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
@@ -600,6 +661,11 @@ class HrAnalyticsService
     }
 
     public function getHrMData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_m', fn () => $this->rawHrMData());
+    }
+
+    private function rawHrMData(): array
     {
         [$codes, $labels] = $this->topDepartments();
 
@@ -637,6 +703,11 @@ class HrAnalyticsService
     }
 
     public function getHrNData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_n', fn () => $this->rawHrNData());
+    }
+
+    private function rawHrNData(): array
     {
         [$codes, $labels, $idx] = $this->topDepartments();
 
@@ -689,6 +760,11 @@ class HrAnalyticsService
 
     public function getHrOData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_o', fn () => $this->rawHrOData());
+    }
+
+    private function rawHrOData(): array
+    {
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
@@ -725,6 +801,11 @@ class HrAnalyticsService
 
     public function getHrPData(): array
     {
+        return ModelCacheVersion::rememberGlobal('hr:hr_p', fn () => $this->rawHrPData());
+    }
+
+    private function rawHrPData(): array
+    {
         [$codes, $labels, $idx] = $this->topDepartments();
 
         $rows = DB::table('profiles')
@@ -755,6 +836,11 @@ class HrAnalyticsService
     }
 
     public function getHrQData(): array
+    {
+        return ModelCacheVersion::rememberGlobal('hr:hr_q', fn () => $this->rawHrQData());
+    }
+
+    private function rawHrQData(): array
     {
         [$codes, $labels, $idx] = $this->topDepartments();
 

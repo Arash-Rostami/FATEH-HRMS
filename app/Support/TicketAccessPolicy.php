@@ -13,6 +13,10 @@ final class TicketAccessPolicy
             return false;
         }
 
+        if ($user->hasElevatedRole()) {
+            return true;
+        }
+
         if ($ticket->requester_id === $user->id || $ticket->assigned_to === $user->id) {
             return true;
         }
@@ -27,13 +31,17 @@ final class TicketAccessPolicy
 
     public static function canAssign(Ticket $ticket, ?User $user): bool
     {
-        return $user !== null && self::isHeadOfTargetDepartment($ticket, $user);
+        return $user !== null && ($user->hasElevatedRole() || self::isHeadOfTargetDepartment($ticket, $user));
     }
 
     public static function canSetEffectiveness(Ticket $ticket, ?User $user): bool
     {
         if (!$user) {
             return false;
+        }
+
+        if ($user->hasElevatedRole()) {
+            return true;
         }
 
         return $ticket->assigned_to === $user->id || self::isHeadOfTargetDepartment($ticket, $user);

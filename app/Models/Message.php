@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Livewire\Dashboard\Contact\Actions\ForceDeleteMessageAction;
-use App\Models\Traits\HasMenuState;
-use App\Models\Traits\HasPrunableStatus;
+use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;

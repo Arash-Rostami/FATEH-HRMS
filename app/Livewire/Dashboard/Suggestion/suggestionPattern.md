@@ -102,6 +102,8 @@ Same three conditions `SuggestionAccessPolicy` encodes, expressed as a query sco
 - `dept_remarks` for any listed department's head, only where that dept hasn't answered yet.
 - referral `complete=false` rows for dept heads whose department was referred by the CEO.
 
+The user-panel list also rides this scope as a filter: `Main::$attentionOnly` + `setAttentionOnly(bool)` (resets pagination) applies `->when(..., fn($q) => $q->attentionRequired())` inside the existing `suggestions()` computed — the «فقط نیازمند اقدام من» toggle is therefore guaranteed to match the red-edge badge cards (`requiresMyAction()` uses `requiresAttentionFor()`, the same scope row-for-row). Added 2026-08-31.
+
 **Gotcha — MySQL JSON array-index path syntax.** Laravel's `column->N` query-builder path syntax (e.g. `->where('departments->0', $deptId)`) compiles the segment as a **JSON object key** (`json_extract(col, '$."0"')`), not an array index. Against a JSON array like `["WP","AS"]` that never matches — silently returns zero rows, no error. To address array element 0 you must write `->where('departments->[0]', $deptId)` (bracket syntax — Laravel's `wrapJsonPathSegment()` only emits `$[0]` when the segment itself is wrapped in `[...]`). Verified via `EXPLAIN`/tinker during this rework. `departments` is a `longText` column (not native `JSON` type) — MySQL's `JSON_EXTRACT`/`JSON_UNQUOTE` still work on any column holding valid JSON text regardless of declared SQL type, so this is unrelated to the bug; the bug is purely the missing brackets.
 
 ---
@@ -129,9 +131,9 @@ app/Support/SuggestionAccessPolicy.php                  single source of truth (
 
 app/Models/Suggestion.php                                model — STAGES/PURPOSES/RULES/PRIORITIES consts, casts, scopeForDepartment
 app/Models/Review.php                                     model — FEEDBACKS consts, isComplete(), referralDepartments()
-app/Models/Traits/HasStageHelpers.php                     syncStage() — the stage machine (§3)
-app/Models/Traits/HasSuggestionAlert.php                  scopeAttentionRequired() — badge/nudge parity (§5)
-app/Models/Traits/HasProfileHierarchy.php                 isTopExecutive/isSeniorDecisionMaker/isDeptHead/isCeo (§4)
+app/Models/Concerns/HasStageHelpers.php                     syncStage() — the stage machine (§3)
+app/Models/Concerns/HasSuggestionAlert.php                  scopeAttentionRequired() — badge/nudge parity (§5)
+app/Models/Concerns/HasProfileHierarchy.php                 isTopExecutive/isSeniorDecisionMaker/isDeptHead/isCeo (§4)
 
 app/Console/Commands/AutoResolveStaleSuggestions.php     48h scheduled auto-resolve (§6)
 
@@ -172,6 +174,8 @@ self_fill (bool, default 0), priority (enum low/medium/high, default 'medium'), 
 abort (bool, default 0), user_id, timestamps
 indexes: abort, user_id, stage, priority, self_fill  -- no dedicated updated_at index (§6)
 ```
+
+`priority` is user-settable since 2026-08-31: the user-panel create form (`SuggestionForm::$priority`, `required|in:low,medium,high`, default `medium`) carries the THS-form 3-column priority selector verbatim (h-11 icon-over-label radio tiles, `low_priority`/`drag_handle`/`priority_high`, secondary/tertiary/error color-mix levels — cross-module harmony with ThsResource's TicketPriority selector; `SuggestionPresenter::PRIORITY_META` uses the same icon trio), and `CreateSuggestionAction` persists it. `Main::suggestions()` orders `FIELD(priority, 'high', 'medium', 'low')` → `created_at desc` (priority dominates recency — high-priority items surface on top regardless of age; injection-safe because the FIELD literals are fixed enum values, same `FIELD()` pattern as ReportingService). The list-card chip, the detail card's «اولویت پیگیری» section (below «قواعد», same chip grammar), and the admin form all read the same column, so every surface matches. `priority` is `NOT NULL DEFAULT 'medium'` at the DB level — the presenter's `DEFAULT_PRIORITY='low'` exists only as a defensive fallback for display, never a real NULL.
 
 ### `reviews`
 ```

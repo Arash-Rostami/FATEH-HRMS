@@ -40,7 +40,9 @@
                 <span class="truncate font-semibold text-[var(--md-sys-color-primary)]" dir="auto">{{ $header['slug_handle'] }}</span>
                 <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $header['members_count'] }} عضو</span>
+            <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-0.5" title="تعداد اعضا">
+                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ $header['members_count'] }}
+            </span>
             <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             <span class="truncate font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]">{{ $header['owner_name'] }}</span>
         </div>

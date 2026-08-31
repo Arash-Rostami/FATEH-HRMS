@@ -19,6 +19,7 @@ class PostsTest extends TestCase
         $this->useMysql();
         Cache::flush();
         DB::beginTransaction();
+        Livewire::withoutLazyLoading();
     }
 
     protected function tearDown(): void
@@ -52,6 +53,7 @@ class PostsTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->assertStatus(200)
@@ -60,6 +62,7 @@ class PostsTest extends TestCase
 
     public function test_posts_render_successfully_for_guest()
     {
+        Livewire::withoutLazyLoading();
         Livewire::test(Posts::class)
             ->assertStatus(200)
             ->assertHasNoErrors();
@@ -70,6 +73,7 @@ class PostsTest extends TestCase
         $pinnedPost = Post::factory()->pinned()->create();
         $regularPost = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         $pins = Livewire::test(Posts::class)->instance()->pins;
 
         $this->assertTrue($pins->every(fn($p) => (int)$p->pinned === 1));
@@ -81,6 +85,7 @@ class PostsTest extends TestCase
         Post::factory()->pinned()->create();
         Post::factory()->pinned()->create();
 
+        Livewire::withoutLazyLoading();
         $pins = Livewire::test(Posts::class)->instance()->pins;
 
         $this->assertSame(1, $pins->count());
@@ -95,6 +100,7 @@ class PostsTest extends TestCase
         $regularPost->created_at = now()->subSecond();
         $regularPost->save();
 
+        Livewire::withoutLazyLoading();
         $posts = Livewire::test(Posts::class)->instance()->posts;
 
         $this->assertFalse($posts->contains('id', $pinnedPost->id));
@@ -110,6 +116,7 @@ class PostsTest extends TestCase
         $older->created_at = now()->subSeconds(2);
         $older->save();
 
+        Livewire::withoutLazyLoading();
         $posts = Livewire::test(Posts::class)->instance()->posts;
 
         $newerPos = $posts->search(fn($p) => $p->is($newer));
@@ -123,6 +130,7 @@ class PostsTest extends TestCase
     {
         Post::factory()->count(10)->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         $testable = Livewire::test(Posts::class);
         $this->assertSame(3, $testable->instance()->posts->count());
 
@@ -134,6 +142,7 @@ class PostsTest extends TestCase
     {
         Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Posts::class)
             ->assertSet('page', 1)
             ->call('loadMore')
@@ -146,6 +155,7 @@ class PostsTest extends TestCase
         Post::factory()->count(4)->notPinned()->create();
         Post::factory()->pinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Posts::class)
             ->assertSet('totalPosts', $before + 5);
     }
@@ -155,6 +165,7 @@ class PostsTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
         $post = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->call('selectPost', $post->id)
@@ -166,6 +177,7 @@ class PostsTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
         $post = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->call('selectPost', $post->id)
@@ -178,6 +190,7 @@ class PostsTest extends TestCase
         $post = Post::factory()->notPinned()->create();
         $this->insertPostNudge($user, $post->id);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->call('selectPost', $post->id)
@@ -197,6 +210,7 @@ class PostsTest extends TestCase
         $post = Post::factory()->notPinned()->create();
         $this->insertPostNudge($user, $post->id);
 
+        Livewire::withoutLazyLoading();
         Livewire::test(Posts::class)
             ->call('selectPost', $post->id)
             ->assertSet('selectedPost.id', $post->id);
@@ -213,6 +227,7 @@ class PostsTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->call('selectPost', 999999)
@@ -222,6 +237,7 @@ class PostsTest extends TestCase
 
     public function test_seen_ids_returns_empty_collection_for_guest()
     {
+        Livewire::withoutLazyLoading();
         $seenIds = Livewire::test(Posts::class)->instance()->seenIds;
 
         $this->assertTrue($seenIds->isEmpty());
@@ -233,6 +249,7 @@ class PostsTest extends TestCase
         $post = Post::factory()->notPinned()->create();
         $this->insertPostNudge($user, $post->id, true);
 
+        Livewire::withoutLazyLoading();
         $seenIds = Livewire::actingAs($user)->test(Posts::class)->instance()->seenIds;
 
         $this->assertTrue($seenIds->has($post->id));
@@ -243,6 +260,7 @@ class PostsTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
         $post = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class)
             ->call('focusRecord', $post->id)
@@ -254,6 +272,7 @@ class PostsTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
         $post = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)
             ->test(Posts::class, ['open' => $post->id])
             ->assertSet('selectedPost.id', $post->id)
@@ -265,6 +284,7 @@ class PostsTest extends TestCase
         $user = User::factory()->create(['status' => 'active']);
         $post = Post::factory()->notPinned()->create();
 
+        Livewire::withoutLazyLoading();
         $component = Livewire::actingAs($user)->test(Posts::class, ['open' => $post->id])->instance();
         $this->assertTrue($component->isFocusing());
 
@@ -296,7 +316,9 @@ class PostsTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Posts::class)->assertSet('view', 'card')->call('toggleView', 'list')->assertSet('view', 'list');
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Posts::class)->assertSet('view', 'list');
     }
 
@@ -304,6 +326,7 @@ class PostsTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'active']);
 
+        Livewire::withoutLazyLoading();
         Livewire::actingAs($user)->test(Posts::class)
             ->call('toggleView', 'list')->assertSet('view', 'list')
             ->call('toggleView', 'grid')->assertSet('view', 'list');

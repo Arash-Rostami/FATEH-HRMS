@@ -14,7 +14,7 @@
     data-event-id="{{ $event['id'] }}"
     data-mtime="{{ $event['mtime'] ?? '' }}"
     x-data="{ ...calendarDrag({ eventId: @js($event['id']), locked: @js($locked || $isReservation), isOwner: @js($event['is_owner']) }) }"
-    @click="!justDragged && $wire.editEvent({{ $event['id'] }})"
+    @click="!justDragged && (@js($isReservation) ? $wire.reservationHint() : $wire.editEvent({{ $event['id'] }}))"
     @revert-event-{{ $event['id'] }}.window="$el.style.top = ({{ $topPx }}) + 'px'"
     @revert-resize-{{ $event['id'] }}.window="$el.style.height = ({{ $heightPx }}) + 'px'"
     style="top: {{ $topPx }}px; height: {{ $heightPx }}px; left: calc({{ $leftPct }}% + 2px); width: calc({{ $widthPct }}% - 4px); {{ $draggable ? 'touch-action: none; cursor: grab;' : 'touch-action: auto;' }}"

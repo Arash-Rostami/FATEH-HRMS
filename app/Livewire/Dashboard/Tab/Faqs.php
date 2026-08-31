@@ -6,13 +6,16 @@ use App\Livewire\Dashboard\Tab\Presentation\FaqPresenter;
 use App\Models\Department;
 use App\Models\FAQ;
 use App\Traits\FocusOnRecord;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Isolate]
+#[Lazy]
 class Faqs extends Component
 {
     use FocusOnRecord;
@@ -26,23 +29,19 @@ class Faqs extends Component
     #[Locked]
     public string $view = 'card';
 
-    #[Computed(seconds: 3600, cache: true, key: 'faq-categories')]
+    #[Computed]
     public function categories()
     {
-        return FAQ::query()
-            ->whereNotNull('category')
-            ->where('category', '!=', '')
-            ->distinct()
-            ->pluck('category');
+        return FAQ::cachedCategories();
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'faq-departments')]
+    #[Computed]
     public function departments()
     {
         return Department::getCachedOptions()->toArray();
     }
 
-    #[Computed(seconds: 3600, cache: true, key: 'faq-department-tooltips')]
+    #[Computed]
     public function departmentTooltips()
     {
         return Department::getCachedModels()->mapWithKeys(fn($d) => [$d->code => $d->tooltipLabel()])->toArray();
@@ -108,6 +107,11 @@ class Faqs extends Component
 
         $this->view = $view;
         session(['faqs_view_mode' => $view]);
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.tab.faqs.placeholder');
     }
 
     public function render()

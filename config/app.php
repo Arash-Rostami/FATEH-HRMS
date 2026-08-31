@@ -41,6 +41,8 @@ return [
     'developer' => env('DEVELOPER', 'Arash R.'),
     'last_update' => env('APP_UPDATE', now()),
 
+    'cache_ttl' => (int) env('APP_CACHE_TTL', 300),
+
     'support' => [
         'phone' => env('SUPPORT_PHONE', '+9122398772'),
         'email' => env('SUPPORT_EMAIL', 'arashrostami@time-gr.com'),

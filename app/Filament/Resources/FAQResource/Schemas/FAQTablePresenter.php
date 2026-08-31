@@ -10,7 +10,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class FAQTablePresenter
 {
@@ -24,6 +23,7 @@ class FAQTablePresenter
             ->weight(FontWeight::Light)
             ->limit(60)
             ->tooltip(fn($state) => strlen($state) > 60 ? strip_tags($state) : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
@@ -43,10 +43,7 @@ class FAQTablePresenter
     {
         return SelectFilter::make('category')
             ->label(__('resources/faq/strings.fields.category'))
-            ->options(fn(): array => Cache::remember(
-                'faq_categories_filter_options', now()->addDay(),
-                fn() => FAQ::distinct()->orderBy('category')->pluck('category', 'category')->toArray()
-            ))
+            ->options(fn(): array => FAQ::cachedCategoryFilter())
             ->searchable();
     }
 
@@ -110,6 +107,7 @@ class FAQTablePresenter
             ->weight(FontWeight::Light)
             ->limit(60)
             ->tooltip(fn($state) => strlen($state) > 60 ? strip_tags($state) : null)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);
     }
@@ -127,10 +125,7 @@ class FAQTablePresenter
     {
         return SelectFilter::make('user_id')
             ->label(__('resources/faq/strings.fields.user'))
-            ->options(fn() => Cache::remember(
-                'user_filter_options', now()->addDay(),
-                fn() => User::orderBy('name')->pluck('name', 'id')->toArray()
-            ))
+            ->options(fn() => User::getCachedAllOptions()->toArray())
             ->searchable();
     }
 

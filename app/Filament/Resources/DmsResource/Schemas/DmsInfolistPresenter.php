@@ -142,6 +142,7 @@ class DmsInfolistPresenter
         return TextEntry::make('revision')
             ->label(__('resources/dms/strings.fields.revision'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -167,6 +168,7 @@ class DmsInfolistPresenter
         return TextEntry::make('title')
             ->label(__('resources/dms/strings.fields.title'))
             ->size(TextSize::Medium)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

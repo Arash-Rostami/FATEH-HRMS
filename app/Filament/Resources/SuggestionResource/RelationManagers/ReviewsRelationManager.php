@@ -49,8 +49,8 @@ class ReviewsRelationManager extends RelationManager
                     IconEntry::make('complete')
                         ->label('تکمیل شده')
                         ->boolean(),
-                    TextEntry::make('comments')->label('توضیحات')->columnSpanFull(),
-                    TextEntry::make('actions')->label('اقدامات')->columnSpanFull(),
+                    TextEntry::make('comments')->label('توضیحات')->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
+                    TextEntry::make('actions')->label('اقدامات')->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])->columnSpanFull(),
                     TextEntry::make('created_at')->label('تاریخ')->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—'),
                 ])
                 ->columnSpanFull()

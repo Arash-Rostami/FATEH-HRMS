@@ -18,6 +18,7 @@ class TicketInfolistPresenter
         return TextEntry::make('action_result')
             ->label(__('resources/ths/strings.fields.action_result'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -26,6 +27,7 @@ class TicketInfolistPresenter
         return TextEntry::make('additional_notes')
             ->label(__('resources/ths/strings.fields.additional_notes'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -100,6 +102,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('description')
             ->label(__('resources/ths/strings.fields.description'))
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -199,6 +202,7 @@ class TicketInfolistPresenter
             ->label(__('resources/ths/strings.fields.subject'))
             ->size(TextSize::Medium)
             ->weight(FontWeight::SemiBold)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

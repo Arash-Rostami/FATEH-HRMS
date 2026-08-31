@@ -677,6 +677,39 @@
 /* ============================================
    6. CONTINUOUS & LOOP ANIMATIONS
    ============================================ */
+@keyframes floatSubtle {
+    0%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    50% {
+        transform: translate3d(0, -6px, 0);
+    }
+}
+
+.animate-float {
+    animation: floatSubtle 3.6s ease-in-out infinite !important;
+    will-change: transform;
+}
+
+@keyframes floatDrift {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate3d(3px, -5px, 0) rotate(0.8deg);
+    }
+    50% {
+        transform: translate3d(-3px, -8px, 0) rotate(-0.5deg);
+    }
+    75% {
+        transform: translate3d(-4px, -3px, 0) rotate(0.5deg);
+    }
+}
+
+.animate-float-drift {
+    animation: floatDrift 5.5s ease-in-out infinite !important;
+    will-change: transform;
+}
 
 @keyframes spin {
     to {
@@ -1127,6 +1160,25 @@
     animation: toastIn 0.35s cubic-bezier(0.2, 0, 0, 1) both !important;
 }
 
+@keyframes statusPillMorph {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-status-morph {
+    animation: statusPillMorph 0.3s cubic-bezier(0.2, 0, 0, 1) both !important;
+}
+
 /* replyBarIn: replaced max-height/padding animation (layout reflow) with scaleY (compositor only) */
 @keyframes replyBarIn {
     from {
@@ -1452,7 +1504,8 @@
     .animate-bubble-in,
     .animate-toast-in,
     .animate-reply-bar-in,
-    .animate-lightbox-in {
+    .animate-lightbox-in,
+    .animate-status-morph {
         animation: none !important;
         opacity: 1;
         transform: none;

@@ -29,6 +29,7 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.action_source')
             ->label(__('resources/task/strings.fields.action_source'))
             ->placeholder('—')
+            ->extraAttributes(['style' => 'white-space: pre-wrap;'])
             ->columnSpanFull();
     }
 
@@ -37,7 +38,26 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.action_source_domain')
             ->label(__('resources/task/strings.fields.action_source_domain'))
             ->placeholder('—')
+            ->extraAttributes(['style' => 'white-space: pre-wrap;'])
             ->columnSpanFull();
+    }
+
+    public static function approval(): TextEntry
+    {
+        return TextEntry::make('approval_status')
+            ->label(__('resources/task/strings.fields.approval_status'))
+            ->getStateUsing(fn($record) => $record->isPendingApproval()
+                ? 'منتظر تأیید مدیر پروژه'
+                : ($record->approved_at
+                    ? toJalali($record->approved_at, 'Y/m/d H:i') . ' — ' . ($record->approvedBy?->name ?? '—')
+                    : 'بدون نیاز به تأیید'))
+            ->color(fn($record) => $record->isPendingApproval()
+                ? 'warning'
+                : ($record->approved_at ? 'success' : 'gray'))
+            ->badge()
+            ->icon('heroicon-o-check-badge')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
+            ->visible(fn($record) => $record->status === TaskStatus::Done->value);
     }
 
     public static function assignee(): TextEntry
@@ -94,7 +114,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('deadline')
             ->label(__('resources/task/strings.fields.deadline'))
-            ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deadline', null))
+            ->formatStateUsing(fn($state, $record) => $record->deadline ? toJalali($record->deadline, 'Y/m/d') : null)
             ->alignRight()
             ->iconPosition(IconPosition::After)
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
@@ -133,6 +153,23 @@ class TaskInfolistPresenter
             ->hidden(fn($record) => !$record->deleted_at);
     }
 
+    public static function meta(): TextEntry
+    {
+        return TextEntry::make('detail.meta')
+            ->label(__('resources/task/strings.fields.meta'))
+            ->getStateUsing(function ($record) {
+                $schema = $record->project?->setting('custom_schema') ?? [];
+
+                return collect($record->detail?->meta ?? [])
+                    ->filter(fn($value) => is_scalar($value) && $value !== '')
+                    ->map(fn($value, $key) => ($schema[$key]['label'] ?? $key) . ': ' . $value)
+                    ->values();
+            })
+            ->badge()
+            ->placeholder('—')
+            ->columnSpanFull();
+    }
+
     public static function prunableWarning(): TextEntry
     {
         return TextEntry::make('prune_info')
@@ -158,6 +195,7 @@ class TaskInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/task/strings.fields.description'))
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 
@@ -166,6 +204,86 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.project')
             ->label(__('resources/task/strings.fields.project'))
             ->placeholder('—');
+    }
+
+    public static function linkedProject(): TextEntry
+    {
+        return TextEntry::make('project.name')
+            ->label(__('resources/task/strings.fields.project_id'))
+            ->placeholder('—')
+            ->icon('heroicon-o-rectangle-stack');
+    }
+
+    public static function lastTouchedBy(): TextEntry
+    {
+        return TextEntry::make('last_touched')
+            ->label(__('resources/task/strings.fields.last_touched_by'))
+            ->getStateUsing(function ($record) {
+                $touch = $record->replies()
+                    ->whereNotNull('user_id')
+                    ->latest('id')
+                    ->first(['user_id', 'created_at']);
+
+                return $touch
+                    ? ($touch->user?->name ?? '—') . ' · ' . toJalaliRelative($touch->created_at)
+                    : null;
+            })
+            ->placeholder('—')
+            ->color('gray')
+            ->icon('heroicon-o-finger-print');
+    }
+
+    public static function labels(): TextEntry
+    {
+        return TextEntry::make('labels')
+            ->label(__('resources/task/strings.fields.labels'))
+            ->badge()
+            ->placeholder('—');
+    }
+
+    public static function priority(): TextEntry
+    {
+        return TextEntry::make('priority')
+            ->label(__('resources/task/strings.fields.priority'))
+            ->getStateUsing(fn($record) => $record->priority)
+            ->badge()
+            ->placeholder('—');
+    }
+
+    public static function checklistCompletion(): TextEntry
+    {
+        return TextEntry::make('detail.checklist')
+            ->label(__('resources/task/strings.fields.checklist_completion'))
+            ->formatStateUsing(function ($state, $record) {
+                $items = $state ?? [];
+                $total = count($items);
+                $done = count(array_filter($items, fn($item) => $item['done'] ?? false));
+                $percent = $record->progress_percent ?? 0;
+
+                return $total > 0 ? "{$done} از {$total} ({$percent}٪)" : '—';
+            });
+    }
+
+    public static function activityStream(): RepeatableEntry
+    {
+        return RepeatableEntry::make('replies')
+            ->hiddenLabel()
+            ->schema([
+                TextEntry::make('user.name')
+                    ->hiddenLabel()
+                    ->placeholder('سیستم')
+                    ->weight('bold'),
+                TextEntry::make('body')
+                    ->hiddenLabel()
+                    ->formatStateUsing(fn($state, $record) => $state ?: app(\App\Services\ProjectTask\ActivityLogger::class)->render($record)['body'])
+                    ->extraAttributes(['style' => 'white-space: pre-wrap;'])
+                    ->columnSpanFull(),
+                TextEntry::make('created_at')
+                    ->hiddenLabel()
+                    ->dateTime(),
+            ])
+            ->columns(3)
+            ->columnSpanFull();
     }
 
     public static function responsibleUser(): TextEntry
@@ -212,6 +330,7 @@ class TaskInfolistPresenter
         return TextEntry::make('title')
             ->label(__('resources/task/strings.fields.title'))
             ->size(TextSize::Large)
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

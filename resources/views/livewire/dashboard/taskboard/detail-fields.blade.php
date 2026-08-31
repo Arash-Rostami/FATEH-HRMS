@@ -1,11 +1,10 @@
-<div x-show="tab === 'classification'" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-
+<div x-show="formTab === 'info'" class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
     <div class="{{ $sectionHeaderClass }}">
-        <span class="material-symbols-rounded text-lg">domain</span>
+        <span class="text-lg material-symbols-rounded">domain</span>
         ساختار سازمانی و پروژه
     </div>
 
-    <x-ui.forms.select label="واحد سازمانی/دپارتمان" name="form.departmentId" wire:model.live="form.departmentId" :disabled="$isReadOnly">
+    <x-ui.forms.select label="دپارتمان" name="form.departmentId" column-hint="department_id" wire:model.live="form.departmentId" :disabled="$isReadOnly">
         <option value="">انتخاب کنید</option>
         @foreach($departmentOptions as $code => $name)
             <option value="{{ $code }}">{{ $name }}</option>
@@ -33,96 +32,98 @@
         @endforeach
     </x-ui.forms.select>
 
-    <x-ui.forms.input label="پروژه" name="form.project" wire:model="form.project" icon="folder" :disabled="$isReadOnly"/>
-    <x-ui.forms.input label="طرح" name="form.scheme" wire:model="form.scheme" icon="assignment" :disabled="$isReadOnly"/>
+    <div class="w-full space-y-1.5">
+        <x-ui.forms.input
+            label="برچسب پروژه (متن آزاد، بدون اتصال)"
+            name="form.project"
+            column-hint="project"
+            wire:model="form.project"
+            icon="folder"
+            placeholder="نام سفارشی یا برچسب یکتا را وارد کنید (اختیاری)…"
+            :disabled="$isReadOnly"
+        />
 
-    <div class="md:col-span-2">
-        <x-ui.forms.select label="همکاران" name="form.collaborators" wire:model="form.collaborators" multiple class="min-h-[100px]" :disabled="$isReadOnly">
-            @foreach($staffMembers as $staff)
-                <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
-            @endforeach
-        </x-ui.forms.select>
+        <div class="flex items-start gap-1.5 px-1 text-[11px] leading-relaxed text-right text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="shrink-0 mt-0.5 text-[15px] text-[var(--md-sys-color-primary)] material-symbols-rounded">info</span>
+            <span>
+                شناسه سیستمی به‌صورت خودکار تخصیص می‌یابد؛ با این حال می‌توانید برای دسته‌بندی بهتر، ثبت عنوان جدید یا یکپارچه‌سازی وظایف آزاد قبلی، یک <strong>نام یا برچسب یکتا</strong> وارد کنید.
+            </span>
+        </div>
     </div>
-</div>
 
-<div x-show="tab === 'action'" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+    <x-ui.forms.input label="طرح" name="form.scheme" wire:model="form.scheme" icon="assignment" :disabled="$isReadOnly" />
 
     <div class="{{ $sectionHeaderClass }}">
-        <span class="material-symbols-rounded text-lg">flag</span>
-        جزئیات اقدام
+        <span class="text-lg material-symbols-rounded">hub</span>
+        منشاء اقدام
     </div>
 
-    <x-ui.forms.textarea label="حوزه منشاء اقدام" name="form.actionSourceDomain" wire:model="form.actionSourceDomain" icon="hub" rows="2" :disabled="$isReadOnly"/>
-    <x-ui.forms.textarea label="منشاء اقدام" name="form.actionSource" wire:model="form.actionSource" icon="hub" rows="2" :disabled="$isReadOnly"/>
+    <x-ui.forms.textarea label="حوزه منشاء اقدام" name="form.actionSourceDomain" wire:model="form.actionSourceDomain" icon="hub" rows="2" :disabled="$isReadOnly" />
 
-    <x-ui.forms.select label="تعیین تکلیف" name="form.state" wire:model="form.state" :disabled="$isReadOnly">
-        <option value="">انتخاب کنید</option>
-        @foreach(\App\Filament\Resources\TaskResource\Enums\TaskState::cases() as $stateCase)
-            <option value="{{ $stateCase->value }}">{{ $stateCase->getLabel() }}</option>
-        @endforeach
-    </x-ui.forms.select>
-
-    <div class="{{ $sectionHeaderClass }}">
-        <span class="material-symbols-rounded text-lg">attach_file</span>
-        فایل‌ها و مستندات
-    </div>
+    <x-ui.forms.textarea label="منشاء اقدام" name="form.actionSource" wire:model="form.actionSource" icon="hub" rows="2" :disabled="$isReadOnly" />
 
     <div class="md:col-span-2">
-        <label class="{{ $labelClass }}">پیوست‌ها</label>
+        <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] transition-all overflow-hidden">
+            <button type="button"
+                    @click="foldLabels = !foldLabels"
+                    class="w-full flex items-center justify-between p-3.5 sm:p-4 text-right select-none focus:outline-none bg-[var(--md-sys-color-surface-container)]/30 hover:bg-[var(--md-sys-color-surface-container)]/70 transition-colors">
+                <div class="flex items-center gap-2.5">
+                    <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">label</span>
+                    <span class="text-xs sm:text-sm font-bold text-[var(--md-sys-color-on-surface)]">برچسب‌ها</span>
+                    <span x-show="labelsCount > 0" x-text="labelsCount"
+                          class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold tabular-nums"></span>
+                </div>
+                <span
+                    class="material-symbols-rounded text-lg text-[var(--md-sys-color-outline)] transition-transform duration-200"
+                    :class="{ 'rotate-180': foldLabels }">expand_more</span>
+            </button>
 
-        @if(!empty($form->existingAttachments))
-            <ul class="space-y-1.5 mb-2">
-                @foreach($form->existingAttachments as $index => $attachment)
-                    <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
-                        <a href="{{ asset('storage/' . $attachment['path']) }}" target="_blank"
-                           class="flex items-center gap-1.5 text-[var(--md-sys-color-primary)] truncate">
-                            <span class="material-symbols-rounded text-sm">description</span>
-                            {{ $attachment['name'] ?? basename($attachment['path']) }}
-                        </a>
-                        @unless($isReadOnly)
-                            <button type="button" wire:click="removeExistingAttachment({{ $index }})"
-                                    class="text-[var(--md-sys-color-error)] flex items-center justify-center">
-                                <span class="material-symbols-rounded text-sm">close</span>
-                            </button>
-                        @endunless
-                    </li>
-                @endforeach
-            </ul>
-        @elseif($isReadOnly)
-            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">پیوستی ثبت نشده است.</p>
-        @endif
+            <div x-show="foldLabels" x-collapse
+                 class="p-3.5 sm:p-4 space-y-3.5 border-t border-[var(--md-sys-color-outline-variant)]/20">
+                @unless($isReadOnly)
+                    <div
+                        class="relative flex items-center rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] p-1 transition-all focus-within:border-[var(--md-sys-color-primary)] focus-within:ring-2 focus-within:ring-[var(--md-sys-color-primary)]/20">
+                        <input type="text"
+                               x-model="newLabel"
+                               list="task-label-suggestions"
+                               @keydown.enter.prevent="addLabelItem()"
+                               placeholder="افزودن برچسب جدید و فشردن Enter…"
+                               class="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-outline)] outline-none border-none focus:ring-0"/>
+                        <datalist id="task-label-suggestions">
+                            @foreach($this->labelOptions as $label)
+                                <option value="{{ $label }}"></option>
+                            @endforeach
+                        </datalist>
+                        <button type="button"
+                                @click="addLabelItem()"
+                                :disabled="!newLabel.trim()"
+                                class="shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+                                aria-label="افزودن برچسب">
+                            <span class="material-symbols-rounded text-base sm:text-lg">add</span>
+                        </button>
+                    </div>
+                @endunless
 
-        @unless($isReadOnly)
-            <input type="file" multiple wire:model="form.attachments"
-                   class="w-full text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] p-2.5 file:ml-2 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--md-sys-color-primary-container)] file:text-[var(--md-sys-color-on-primary-container)] file:text-xs file:font-bold"
-            >
-
-            <div wire:loading wire:target="form.attachments" class="text-xs text-[var(--md-sys-color-primary)] mt-2">
-                در حال آپلود...
+                <div wire:ignore class="flex flex-wrap gap-2">
+                    <template x-for="(label, index) in labels" :key="'lbl-' + index + '-' + label">
+                        <span
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/40 transition-all">
+                            <span x-text="label"></span>
+                            @unless($isReadOnly)
+                                <button type="button"
+                                        @click="removeLabel(index)"
+                                        class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-error)] transition-colors"
+                                        aria-label="حذف برچسب">
+                                    <span class="material-symbols-rounded text-[13px]">close</span>
+                                </button>
+                            @endunless
+                        </span>
+                    </template>
+                    <div class="w-full py-4 text-center" x-show="labels.length === 0">
+                        <p class="text-xs text-[var(--md-sys-color-outline)] font-medium">هیچ برچسبی اختصاص داده نشده است.</p>
+                    </div>
+                </div>
             </div>
-
-            @if(!empty($form->attachments))
-                <ul class="space-y-1.5 mt-2">
-                    @foreach($form->attachments as $index => $file)
-                        <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
-                            <span class="flex items-center gap-1.5 text-[var(--md-sys-color-on-surface)] truncate">
-                                <span class="material-symbols-rounded text-sm">upload_file</span>
-                                {{ $file->getClientOriginalName() }}
-                            </span>
-                            <button type="button" wire:click="removeAttachment({{ $index }})"
-                                    class="text-[var(--md-sys-color-error)] flex items-center justify-center">
-                                <span class="material-symbols-rounded text-sm">close</span>
-                            </button>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-
-            @foreach(['form.attachments', 'attachments', 'attachments.*'] as $errorKey)
-                @error($errorKey)
-                <div class="{{ $errorClass }}"><span class="material-symbols-rounded text-sm">error</span><span>{{ $message }}</span></div>
-                @enderror
-            @endforeach
-        @endunless
+        </div>
     </div>
 </div>

@@ -15,6 +15,7 @@ class AuthorityInfolistPresenter
             ->getStateUsing(fn($record) => $record->details['duty'] ?? null)
             ->html()
             ->placeholder('—')
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
 

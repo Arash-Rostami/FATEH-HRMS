@@ -1,11 +1,11 @@
-const KEYS = {contact: 'pinned-contacts', channel: 'pinned-channels', message: 'pinned-messages'};
+const KEYS = {contact: 'pinned-contacts', channel: 'pinned-channels', message: 'pinned-messages', project: 'pinned-projects', activity: 'pinned-activity'};
 
 export default (Alpine) => {
     Alpine.store('pinned', {
-        sets: {contact: new Set(), channel: new Set(), message: new Set()},
+        sets: {contact: new Set(), channel: new Set(), message: new Set(), project: new Set(), activity: new Set()},
 
         init() {
-            for (const scope in KEYS) {
+            for (const scope of Object.keys(KEYS)) {
                 this.sets[scope] = this._load(KEYS[scope]);
             }
         },
@@ -22,8 +22,7 @@ export default (Alpine) => {
         _persist(scope) {
             try {
                 localStorage.setItem(KEYS[scope], JSON.stringify([...this.sets[scope]]));
-            } catch {
-            }
+            } catch {}
         },
 
         isPinned(id, scope = 'contact') {
@@ -32,7 +31,6 @@ export default (Alpine) => {
 
         togglePin(id, scope = 'contact') {
             const s = this.sets[scope];
-
             if (s) {
                 id = Number(id);
                 s.has(id) ? s.delete(id) : s.add(id);

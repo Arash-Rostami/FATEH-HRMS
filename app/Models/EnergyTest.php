@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Filament\Resources\UserResource\Enums\UserType;
-use App\Models\Traits\HasMenuState;
+use App\Models\Concerns\HasMenuState;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

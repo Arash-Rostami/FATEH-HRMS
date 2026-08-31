@@ -146,7 +146,11 @@ class ReservationTablePresenter
             ->requiresConfirmation()
             ->modalHeading(__('resources/reservation/strings.actions.release_confirm'))
             ->action(function (Reservation $record): void {
-                $record->update(['status' => 'released']);
+                if ($record->isRange() && $record->start_time?->isPast()) {
+                    $record->update(['end_time' => now(), 'status' => 'released']);
+                } else {
+                    $record->update(['status' => 'released']);
+                }
                 Notification::make()
                     ->title(__('resources/reservation/strings.actions.release_success'))
                     ->success()
@@ -186,6 +190,19 @@ class ReservationTablePresenter
             ->iconPosition(IconPosition::After)
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
+    }
+
+    public static function endTime(): TextColumn
+    {
+        return TextColumn::make('end_time')
+            ->label(__('resources/reservation/strings.fields.end_time'))
+            ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->icon('heroicon-m-clock')
+            ->iconPosition(IconPosition::After)
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true);
     }
 
     public static function status(): TextColumn

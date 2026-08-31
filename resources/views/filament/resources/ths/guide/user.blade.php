@@ -25,6 +25,11 @@
             'label' => 'امتیاز رضایت — پس از بستن',
             'hint' => 'درخواست‌دهنده پس از بسته‌شدن تیکت می‌تواند یک امتیاز ۱ تا ۵ ستاره و یک یادداشت اختیاری ثبت کند. امتیاز در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">satisfaction_score</code> و یادداشت در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.satisfaction_comment</code> ذخیره می‌شوند.',
         ],
+        [
+            'icon' => 'trending_up',
+            'label' => 'انتقال اولویت به وظیفهٔ پیگیری',
+            'hint' => 'اولویتی که هنگام ثبت تیکت انتخاب شده، به وظیفهٔ خودکارِ متناظرش در «وظیفه‌ها» هم منتقل می‌شود و همین اولویت جایگاه کارت در ستون و نوار فوریت کناری آن را در تخته وظایف تعیین می‌کند (به الگوی «اولویت به‌عنوان یک سیگنال واقعی» در راهنمای وظیفه‌ها مراجعه کنید). کاربر پس از ثبت نمی‌تواند اولویت تیکت خودش را تغییر دهد؛ فقط ادمین از فرم ویرایش می‌تواند، و این تغییر بلافاصله اولویت و جایگاه وظیفهٔ پیوندی را هم به‌روزرسانی می‌کند.',
+        ],
     ];
 
     $roles = [

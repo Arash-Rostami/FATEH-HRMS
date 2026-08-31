@@ -57,6 +57,7 @@
                     @php
                         $prio = $presenter->priorityMeta($ticket->priority);
                         $stat = $presenter->statusMeta($ticket->status);
+                        $deadlineChip = $presenter->deadlineChip($ticket->completion_deadline, $ticket->completion_date, $ticket->status);
                         $fId = $presenter->formatId($ticket->toArray());
                         $isMine = $ticket->requester_id === auth()->id();
                     @endphp
@@ -90,6 +91,28 @@
                                     <span
                                         class="material-symbols-rounded text-[14px] {{ isset($stat['pulse']) && $stat['pulse'] ? 'animate-pulse' : '' }} {{ isset($stat['spin']) && $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
                                     {{ $stat['title'] }}
+                                </div>
+                            @endif
+                            @if($deadlineChip)
+                                <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-bold {{ $deadlineChip['classes'] }}">
+                                    <span class="material-symbols-rounded text-[12px]">{{ $deadlineChip['icon'] }}</span>
+                                    {{ $deadlineChip['text'] }}
+                                </div>
+                            @endif
+                            @if($ticket->replies_count || !empty($ticket->requester_files) || !empty($ticket->assignee_files))
+                                <div class="mt-1.5 flex items-center gap-2 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
+                                    @if($ticket->replies_count)
+                                        <span class="inline-flex items-center gap-0.5" title="تعداد پاسخ‌ها">
+                                            <span class="material-symbols-rounded text-[12px]">forum</span>
+                                            {{ convertToPersian($ticket->replies_count) }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($ticket->requester_files) || !empty($ticket->assignee_files))
+                                        <span class="inline-flex items-center gap-0.5" title="فایل پیوست دارد">
+                                            <span class="material-symbols-rounded text-[12px]">attach_file</span>
+                                            {{ convertToPersian(count($ticket->requester_files ?? []) + count($ticket->assignee_files ?? [])) }}
+                                        </span>
+                                    @endif
                                 </div>
                             @endif
                         </td>

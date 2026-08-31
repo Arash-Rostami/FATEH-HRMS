@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
+use App\Support\TaskAccessPolicy;
 
 class UnarchiveTaskAction
 {
@@ -10,7 +11,7 @@ class UnarchiveTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task?->can_delete || $task->archived_at === null) {
+        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->archived_at === null) {
             return false;
         }
 

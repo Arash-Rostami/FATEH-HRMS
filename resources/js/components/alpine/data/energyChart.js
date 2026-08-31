@@ -101,9 +101,10 @@ export default function energyChart(history, companyAverages, sections, latestTe
             if (!el || !latestTest) return;
 
             const dims = ['physique', 'emotion', 'mind', 'soul'];
-            const labels = dims.map(d => (Object.fromEntries(
+            const sectionLabels = Object.fromEntries(
                 Object.entries(sections).map(([k,v]) => [k, v.replace(/[^\u0600-\u06FF\s]/g,'').trim()])
-            ))[d] ?? d);
+            );
+            const labels = dims.map(d => sectionLabels[d] ?? d);
 
             const primary = this.getCssVar('--md-sys-color-primary');
             const secondary = this.getCssVar('--md-sys-color-secondary');

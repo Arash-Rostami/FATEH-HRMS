@@ -7,6 +7,8 @@ use Morilog\Jalali\Jalalian;
 
 final readonly class CalendarRange
 {
+    public const WEEK_DAY_LABELS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+
     public function __construct(
         public Carbon $start,
         public Carbon $end,
@@ -73,6 +75,19 @@ final readonly class CalendarRange
         }
 
         return Jalalian::fromCarbon($this->start)->getDayOfWeek();
+    }
+
+    public static function advanceMonths(string $navigationDate, int $deltaMonths): string
+    {
+        try {
+            $j = Jalalian::fromFormat('Y-m-d', $navigationDate);
+
+            return $deltaMonths >= 0
+                ? $j->addMonths($deltaMonths)->format('Y-m-d')
+                : $j->subMonths(abs($deltaMonths))->format('Y-m-d');
+        } catch (\Throwable) {
+            return Jalalian::now()->format('Y-m-d');
+        }
     }
 
     private static function buildMonth(Carbon $nav, string $navigationDate): self

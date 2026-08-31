@@ -4,6 +4,7 @@
     <div
         x-data="{ show: @entangle($attributes->wire('model')), active: false }"
         x-init="
+        if (show) requestAnimationFrame(() => requestAnimationFrame(() => active = true))
         $watch('show', v => {
             if (v) requestAnimationFrame(() => requestAnimationFrame(() => active = true))
             else active = false
@@ -21,7 +22,7 @@
             @click="show = false"
         ></div>
 
-        <div class="custom-modal-content {{ $contentClass }}">
+        <div class="custom-modal-content scrollbar-hover-reveal {{ $contentClass }}">
             @if($title)
                 <h3 class="modal-title">{{ $title }}</h3>
             @endif

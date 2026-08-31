@@ -5,6 +5,7 @@ namespace App\Traits;
 use Closure;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
+use Throwable;
 
 trait StoresAttachedFiles
 {
@@ -21,7 +22,7 @@ trait StoresAttachedFiles
             : $file->store($directory, 'public');
 
         if ($path === false) {
-            throw new RuntimeException("Failed to store file in directory: {$directory}");
+            throw new RuntimeException(__('resources/general/strings.errors.file_store_failed'));
         }
 
         return [
@@ -30,5 +31,22 @@ trait StoresAttachedFiles
             'mime' => $mime,
             'size' => $size,
         ];
+    }
+
+    protected function storeAttachments(array $files, string $directory): array
+    {
+        $stored = [];
+
+        try {
+            foreach ($files as $file) {
+                $stored[] = static::storeAttachment($file, $directory);
+            }
+        } catch (Throwable $e) {
+            static::deleteStoredFiles($stored);
+
+            throw $e;
+        }
+
+        return $stored;
     }
 }

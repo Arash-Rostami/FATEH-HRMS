@@ -5,9 +5,12 @@ namespace App\Livewire\Dashboard\Ads;
 use App\Models\Ad;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Component;
 
+#[Lazy]
 class Main extends Component
 {
     use FocusOnRecord;
@@ -35,6 +38,13 @@ class Main extends Component
                     ->latest()
             )
             ->get();
+    }
+
+    public function placeholder(): View
+    {
+        return view('livewire.dashboard.ads.placeholder')
+            ->extends('layouts.app')
+            ->section('content');
     }
 
     public function render()

@@ -7,7 +7,7 @@
     :open="true"
 >
     <div class="overflow-x-auto pb-2"
-         style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) transparent;">
+        >
         <div class="flex items-center gap-2 min-w-max">
             @foreach($this->departments as $dept)
                 @php( $isActive = $activeDept === $dept->code)
