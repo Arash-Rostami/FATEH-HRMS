@@ -39,4 +39,8 @@ return [
         'url' => env('OPENWEATHER_API_URL', 'http://api.openweathermap.org/data/2.5/weather'),
         'city' => env('OPENWEATHER_CITY', 'Tehran'),
     ],
+
+    'ai_assistant' => [
+        'url' => env('AI_ASSISTANT_URL'),
+    ],
 ];

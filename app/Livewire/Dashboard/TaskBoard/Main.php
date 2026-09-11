@@ -330,7 +330,7 @@ class Main extends Component
                 ->when($isDone, $archivedScope)
                 ->when($isDone && $doneWindow, $doneWindow)
                 ->when($isDone, fn($q) => $q->orderBy($this->showArchived ? 'archived_at' : 'updated_at', 'desc'))
-                ->when(!$isDone, fn($q) => $q->orderByRaw('rank IS NULL, rank')->orderBy('created_at', 'desc'))
+                ->when(!$isDone, fn($q) => $q->orderByRaw('`rank` IS NULL, `rank`')->orderBy('created_at', 'desc'))
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
                 ->withCount('replies')

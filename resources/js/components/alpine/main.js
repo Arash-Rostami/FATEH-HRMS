@@ -36,11 +36,14 @@ import filters from "./data/filters.js";
 import calculator from "./data/calculator.js";
 import stopwatch from "./data/stopwatch.js";
 import radio from "./data/radio.js";
+import audioPlayer from "./data/audioPlayer.js";
+import aiAssistant from "./data/aiAssistant.js";
 import ambient from "./data/ambient.js";
 import feedComposer from "./data/feedComposer.js";
 import feedReactions from "./data/feedReactions.js";
 import countdown from "./data/countdown.js";
 import { calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
+import status from "./data/status.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
@@ -82,6 +85,8 @@ export default function initAlpine() {
         Alpine.data('calculator', calculator)
         Alpine.data('stopwatch', stopwatch)
         Alpine.data('radio', radio)
+        Alpine.data('audioPlayer', audioPlayer)
+        Alpine.data('aiAssistant', aiAssistant)
         Alpine.data('ambient', ambient)
         Alpine.data('feedComposer', feedComposer)
         Alpine.data('feedReactions', feedReactions)
@@ -90,5 +95,6 @@ export default function initAlpine() {
         Alpine.data('calendarNow', calendarNow)
         Alpine.data('calendarResize', calendarResize)
         Alpine.data('calendarView', calendarView)
+        Alpine.data('status', status)
     })
 }

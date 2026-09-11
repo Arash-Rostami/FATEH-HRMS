@@ -51,7 +51,7 @@
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">school</span>
                                     <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مدرک تحصیلی:</h4>
                                 </div>
-                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify line-clamp-3">
+                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right line-clamp-3">
                                     {!! strip_tags($ad->certificate) !!}
                                 </p>
                             </div>
@@ -70,7 +70,7 @@
                                                 <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">info</span>
                                                 <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $k }}:</h4>
                                             </div>
-                                            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                            <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right whitespace-pre-wrap">
                                                 {{ strip_tags((string) $v) }}
                                             </p>
                                         </div>
@@ -110,7 +110,7 @@
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">work_history</span>
                                     <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سابقه کار:</h4>
                                 </div>
-                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right whitespace-pre-wrap">
                                     {{ strip_tags($ad->experience ?? '') }}
                                 </p>
                             </div>
@@ -120,7 +120,7 @@
                                     <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">psychology</span>
                                     <h4 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">مهارت‌ها:</h4>
                                 </div>
-                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-justify whitespace-pre-wrap">
+                                <p class="text-sm leading-[2] text-[var(--md-sys-color-on-surface-variant)] text-right whitespace-pre-wrap">
                                     {{ strip_tags($ad->skill ?? '') }}
                                 </p>
                             </div>

@@ -21,7 +21,7 @@
 
     <div
         x-ref="timeline"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[10%] z-10"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-4 md:px-12 z-10"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
         <div
@@ -104,28 +104,6 @@
             <div class="shrink-0 w-4 md:w-[20%] snap-align-none pointer-events-none h-1"></div>
         </div>
     </div>
-
-    <template x-teleport="body">
-        <div x-show="view === 'filmstrip'" x-cloak class="pointer-events-none">
-            <button
-                type="button"
-                @click="scrollPrev"
-                class="pointer-events-auto fixed top-1/2 right-4 md:right-[calc(11%)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-                aria-label="Previous"
-            >
-                <span class="material-symbols-rounded text-2xl">chevron_right</span>
-            </button>
-
-            <button
-                type="button"
-                @click="scrollNext"
-                class="pointer-events-auto fixed top-1/2 left-2 md:left-[calc(10%-80px)] -translate-y-1/2 z-50 w-12 h-12 hidden md:flex items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)]/80 text-[var(--md-sys-color-on-surface-variant)] shadow-sm hover:shadow-md hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] active:scale-95 transition-all duration-200"
-                aria-label="Next"
-            >
-                <span class="material-symbols-rounded text-2xl">chevron_left</span>
-            </button>
-        </div>
-    </template>
 
 @else
     <div class="w-full h-full">

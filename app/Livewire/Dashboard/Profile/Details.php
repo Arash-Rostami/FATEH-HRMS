@@ -20,7 +20,7 @@ class Details extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.details-placeholder');
+        return view('livewire.dashboard.profile.details.placeholder');
     }
 
     public function mount(): void

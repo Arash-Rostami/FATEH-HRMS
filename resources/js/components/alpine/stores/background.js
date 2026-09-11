@@ -1,18 +1,17 @@
-import bg1 from '../../../../assets/img/bg/backdrop1.png';
-import bg2 from '../../../../assets/img/bg/backdrop2.png';
-import bg3 from '../../../../assets/img/bg/backdrop3.png';
-import bg4 from '../../../../assets/img/bg/backdrop4.png';
-import bg5 from '../../../../assets/img/bg/backdrop5.png';
-import bg6 from '../../../../assets/img/bg/backdrop6.png';
-import bg7 from '../../../../assets/img/bg/backdrop7.png';
-import bg8 from '../../../../assets/img/bg/backdrop8.png';
-
 const LS_BACKGROUND_ENABLED = 'backgroundEnabled';
 const LS_PATTERN_ENABLED = 'patternEnabled';
 const LS_ACTIVE_PATTERN = 'activePattern';
 const DEFAULT_PATTERN = 'shapes';
 
-const IMAGES = [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8];
+const BACKDROP = window.__tenantBackdrop || {};
+const IMAGES = BACKDROP.images || [];
+const BACKDROP_MODE = BACKDROP.mode || 'time';
+const BACKDROP_OPACITY = BACKDROP.opacity ?? 0.85;
+const BACKDROP_BLUR = BACKDROP.blur ?? 0;
+const BACKDROP_BRIGHTNESS = BACKDROP.brightness ?? 1;
+const BACKDROP_CONTRAST = BACKDROP.contrast ?? 1;
+const BACKDROP_GRAYSCALE = BACKDROP.grayscale ?? 0;
+const BACKDROP_WIDTH = BACKDROP.width || '100%';
 
 const TABS_ORDER = ['home', 'post', 'feed', 'calendar', 'status', 'gallery', 'reports', 'links', 'faqs'];
 
@@ -34,26 +33,35 @@ const PATTERNS = [
     { id: 'snow', name: 'بلور برف' },
 ];
 
+let storage;
+
+try {
+    storage = window.localStorage;
+    storage.getItem('');
+} catch {
+    storage = { getItem: () => null, setItem: () => {} };
+}
+
 const readBool = (key) => {
     try {
-        return localStorage.getItem(key) === 'true';
-    } catch (e) {
+        return storage.getItem(key) === 'true';
+    } catch {
         return false;
     }
 };
 
 const readString = (key, fallback) => {
     try {
-        return localStorage.getItem(key) || fallback;
-    } catch (e) {
+        return storage.getItem(key) || fallback;
+    } catch {
         return fallback;
     }
 };
 
 const write = (key, value) => {
     try {
-        localStorage.setItem(key, String(value));
-    } catch (e) {}
+        storage.setItem(key, String(value));
+    } catch {}
 };
 
 export default (Alpine) => {
@@ -63,6 +71,13 @@ export default (Alpine) => {
         activePattern: readString(LS_ACTIVE_PATTERN, DEFAULT_PATTERN),
         tabsOrder: TABS_ORDER,
         images: IMAGES,
+        backdropMode: BACKDROP_MODE,
+        opacity: BACKDROP_OPACITY,
+        blur: BACKDROP_BLUR,
+        brightness: BACKDROP_BRIGHTNESS,
+        contrast: BACKDROP_CONTRAST,
+        grayscale: BACKDROP_GRAYSCALE,
+        width: BACKDROP_WIDTH,
         patterns: PATTERNS,
 
         toggleBackground(value) {

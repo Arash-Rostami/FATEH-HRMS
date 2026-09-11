@@ -10,6 +10,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class FeedTablePresenter
 {
     public static function category(): TextColumn
@@ -39,7 +40,7 @@ class FeedTablePresenter
 
     public static function commentsCount(): TextColumn
     {
-        return TextColumn::make('comments_count')
+        return CountUpColumn::make('comments_count')
             ->label(__('resources/feed/strings.fields.comments_count'))
             ->counts('comments')
             ->badge()
@@ -90,7 +91,7 @@ class FeedTablePresenter
 
     public static function mediaCount(): TextColumn
     {
-        return TextColumn::make('media_count')
+        return CountUpColumn::make('media_count')
             ->label('#')
             ->getStateUsing(fn($record) => count($record->images) + count($record->videos))
             ->badge()
@@ -111,7 +112,7 @@ class FeedTablePresenter
 
     public static function reactionsCount(): TextColumn
     {
-        return TextColumn::make('reactions_count')
+        return CountUpColumn::make('reactions_count')
             ->label(__('resources/feed/strings.fields.reactions_count'))
             ->counts('reactions')
             ->badge()
@@ -122,7 +123,7 @@ class FeedTablePresenter
 
     public static function pollsCount(): TextColumn
     {
-        return TextColumn::make('polls_count')
+        return CountUpColumn::make('polls_count')
             ->label(__('resources/feed/strings.fields.polls_count'))
             ->counts('polls')
             ->badge()

@@ -4,6 +4,7 @@ namespace App\Services\Search\Resources;
 
 use App\Models\Photo;
 use App\Services\Search\Contracts\SearchResource;
+use Illuminate\Database\Eloquent\Builder;
 
 class GalleryResource extends SearchResource
 {
@@ -19,5 +20,10 @@ class GalleryResource extends SearchResource
     public function action($row): string
     {
         return $this->tab('gallery', $row->getKey());
+    }
+
+    protected function scope(Builder $query): void
+    {
+        $query->visibleTo(auth()->user()?->profile?->department_id);
     }
 }

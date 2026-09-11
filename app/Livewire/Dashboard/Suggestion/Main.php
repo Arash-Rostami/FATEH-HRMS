@@ -85,7 +85,7 @@ class Main extends Component
 
     public function placeholder(): \Illuminate\View\View
     {
-        return view('livewire.dashboard.suggestion.lazy-placeholder')
+        return view('livewire.dashboard.suggestion.placeholder')
             ->extends('layouts.app')
             ->section('content');
     }

@@ -142,7 +142,7 @@ class CalendarPresenter
                 if (isset($existingResIds[$reservation->id])) {
                     continue;
                 }
-                $byDay[$key][] = $this->reservationPill($reservation);
+                $byDay[$key][] = $this->reservationPill($reservation, $key);
             }
         }
 
@@ -457,7 +457,7 @@ class CalendarPresenter
         $monthEnd = $gregorianDate->copy()->endOfMonth();
         $dayReservations = collect($this->userReservationsByDay($monthStart, $monthEnd)[$selectedDate] ?? [])
             ->filter(fn(Reservation $r) => !isset($existingResIds[$r->id]))
-            ->map(fn(Reservation $r) => $this->reservationPill($r));
+            ->map(fn(Reservation $r) => $this->reservationPill($r, $selectedDate));
 
         return collect()
             ->concat($holidays)
@@ -578,6 +578,17 @@ class CalendarPresenter
             if (!$resStart || !$resEnd) {
                 continue;
             }
+
+            if ($reservation->isLongHold()) {
+                if ($resStart->greaterThanOrEqualTo($start) && $resStart->lessThanOrEqualTo($end)) {
+                    $byDay[Jalalian::fromCarbon($resStart)->format('Y-m-d')][] = $reservation;
+                }
+                if ($resEnd->greaterThanOrEqualTo($start) && $resEnd->lessThanOrEqualTo($end)) {
+                    $byDay[Jalalian::fromCarbon($resEnd->copy()->startOfDay())->format('Y-m-d')][] = $reservation;
+                }
+                continue;
+            }
+
             $cursor = $resStart->greaterThan($start) ? $resStart->copy() : $start->copy();
             $loopEnd = $resEnd->lessThan($end) ? $resEnd : $end;
             while ($cursor <= $loopEnd) {
@@ -596,6 +607,9 @@ class CalendarPresenter
         $spanning = [];
         foreach ($this->userReservationsCache as $reservation) {
             if (!$reservation->start_time || !$reservation->end_time || $reservation->start_time->isSameDay($reservation->end_time)) {
+                continue;
+            }
+            if ($reservation->isLongHold()) {
                 continue;
             }
             $spanning[] = $this->spanningPill($reservation);
@@ -621,15 +635,34 @@ class CalendarPresenter
         ];
     }
 
-    private function reservationPill(Reservation $reservation): array
+    private function reservationPill(Reservation $reservation, ?string $dayKey = null): array
     {
         $type = $reservation->resource?->type;
         $resolved = $type !== null ? ResourceType::tryFrom($type) : null;
         $typeLabel = $resolved?->getLabel() ?? $type ?? 'منبع نامشخص';
         $resourceName = $reservation->resource?->name ?? 'منبع نامشخص';
-        $isFullDay = (bool) $reservation->is_full_day;
         $start = $reservation->start_time;
-        $isMultiDay = $start && $reservation->end_time && !$start->isSameDay($reservation->end_time);
+        $isLongHoldBoundary = false;
+        $longHoldDays = null;
+        $longHoldEndDate = null;
+        $title = "{$typeLabel} · {$resourceName}";
+
+        if ($dayKey !== null && $reservation->isLongHold() && $start && $reservation->end_time) {
+            $startKey = Jalalian::fromCarbon($start->copy()->startOfDay())->format('Y-m-d');
+            $endKey = Jalalian::fromCarbon($reservation->end_time->copy()->startOfDay())->format('Y-m-d');
+            if ($dayKey === $startKey) {
+                $title .= ' · شروع';
+                $isLongHoldBoundary = true;
+                $longHoldDays = (int) $start->diffInDays($reservation->end_time);
+                $longHoldEndDate = convertToPersian(Jalalian::fromCarbon($reservation->end_time)->format('d F'));
+            } elseif ($dayKey === $endKey) {
+                $title .= ' · پایان';
+                $isLongHoldBoundary = true;
+            }
+        }
+
+        $isFullDay = $isLongHoldBoundary || (bool) $reservation->is_full_day;
+        $isMultiDay = $isLongHoldBoundary ? false : ($start && $reservation->end_time && !$start->isSameDay($reservation->end_time));
         $time = $isFullDay ? 'تمام روز' : ($start ? toJalali($start, 'H:i') : '00:00');
         $startMinutes = $isFullDay ? 0 : (($start?->hour ?? 0) * 60 + ($start?->minute ?? 0));
         $duration = $isFullDay ? 0 : (int) ($start && $reservation->end_time ? $start->diffInMinutes($reservation->end_time) : 0);
@@ -637,7 +670,7 @@ class CalendarPresenter
         return [
             'id' => 'res-' . $reservation->id,
             'type' => 'event',
-            'title' => "{$typeLabel} · {$resourceName}",
+            'title' => $title,
             'description' => '',
             'time' => $time,
             'start_minutes' => $startMinutes,
@@ -649,6 +682,8 @@ class CalendarPresenter
             'is_reservation_linked' => true,
             'is_full_day' => $isFullDay,
             'is_multi_day' => $isMultiDay,
+            'long_hold_days' => $longHoldDays,
+            'long_hold_end_date' => $longHoldEndDate,
             'reservation_id' => $reservation->id,
             'remind_hours' => null,
             'locked' => true,
@@ -811,9 +846,13 @@ class CalendarPresenter
 
                 $dayReservations = $reservationsByDay[$dateString] ?? [];
                 $resCount = 0;
+                $longHoldDays = null;
                 foreach ($dayReservations as $r) {
                     if (!isset($resEventIdsByDay[$dateString][$r->id])) {
                         $resCount++;
+                    }
+                    if ($r->isLongHold() && Jalalian::fromCarbon($r->start_time->copy()->startOfDay())->format('Y-m-d') === $dateString) {
+                        $longHoldDays = (int) $r->start_time->diffInDays($r->end_time);
                     }
                 }
                 $hasReservations = $resCount > 0;
@@ -826,6 +865,7 @@ class CalendarPresenter
                     'isSelected' => $dateString === $selectedDate,
                     'hasEvents' => $hasEvent,
                     'hasReservations' => $hasReservations,
+                    'longHoldDays' => $longHoldDays,
                     'hasBirthday' => $hasBirthday,
                     'hasAnniversary' => $hasAnniversary,
                     'eventCount' => $eventCount,

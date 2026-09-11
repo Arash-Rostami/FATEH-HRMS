@@ -141,19 +141,6 @@ class Gallery extends Component
 
         return Photo::query()
             ->orderByDesc('event_date')
-            ->where(function($q) use ($dept) {
-                if ($dept) {
-                    $q->where('department_id', $dept)
-                        ->orWhereJsonContains('departments', $dept);
-                }
-
-                $q->orWhere(function ($p) {
-                    $p->where(function ($x) {
-                        $x->whereNull('department_id')->orWhere('department_id', '');
-                    })->where(function ($y) {
-                        $y->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0');
-                    });
-                });
-            });
+            ->visibleTo($dept);
     }
 }

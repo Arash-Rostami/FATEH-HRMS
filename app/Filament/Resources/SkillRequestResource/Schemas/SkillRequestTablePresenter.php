@@ -13,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class SkillRequestTablePresenter
 {
     public static function createdAt(): TextColumn
@@ -38,7 +39,7 @@ class SkillRequestTablePresenter
 
     public static function endorsementsCount(): TextColumn
     {
-        return TextColumn::make('endorsements_count')
+        return CountUpColumn::make('endorsements_count')
             ->label(__('resources/skill_request/strings.fields.endorsements_count'))
             ->formatStateUsing(fn(SkillUser $record) => $record->endorsementLabel())
             ->sortable()

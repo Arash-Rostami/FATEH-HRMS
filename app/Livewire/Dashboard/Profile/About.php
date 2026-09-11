@@ -16,7 +16,7 @@ class About extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.about-placeholder');
+        return view('livewire.dashboard.profile.about.placeholder');
     }
 
 

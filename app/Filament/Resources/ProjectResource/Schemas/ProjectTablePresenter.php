@@ -7,6 +7,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class ProjectTablePresenter
 {
     public static function id(): TextColumn
@@ -54,7 +55,7 @@ class ProjectTablePresenter
 
     public static function tasksCount(): TextColumn
     {
-        return TextColumn::make('tasks_count')
+        return CountUpColumn::make('tasks_count')
             ->label(__('resources/project/strings.fields.tasks_count'))
             ->badge()
             ->color('info')

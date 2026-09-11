@@ -1,5 +1,5 @@
 <div class="relative">
-    <div class="relative overflow-hidden rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
+    <div class="relative min-h-[300px] overflow-hidden rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
 
         <div class="w-full overflow-x-auto">
             <table class="dms-doc-table min-w-full w-full border-separate border-spacing-0 text-sm">
@@ -61,6 +61,42 @@
                                             @endforeach
                                         </div>
                                     </div>
+                                </div>
+
+                                <div x-data="{ open: false, pos: {} }" @keydown.escape.window="open = false" class="relative">
+                                    <button type="button"
+                                            x-ref="trigger"
+                                            @click="pos = $refs.trigger.getBoundingClientRect().toJSON(); open = !open"
+                                            title="فیلتر بازه تاریخ"
+                                            :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': open, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !open }"
+                                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
+                                        <span class="material-symbols-rounded text-[18px]">date_range</span>
+                                        @if($this->dateSpanActive())
+                                            <span class="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-[var(--md-sys-color-error)]"></span>
+                                        @endif
+                                    </button>
+
+                                    <template x-teleport="body">
+                                        <div x-show="open"
+                                             x-cloak
+                                             dir="rtl"
+                                             @click.away="if (!$refs.trigger.contains($event.target)) open = false"
+                                             x-transition
+                                             :style="{ position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
+                                             class="w-80 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2.5 shadow-2xl z-50">
+                                            <x-ui.forms.date-span apply="applyDateSpan" clear="clearDateSpan"
+                                                                  :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 15"
+                                                                  :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1">
+                                                @foreach(['created' => 'ایجاد', 'updated' => 'بروزرسانی'] as $basisKey => $basisLabel)
+                                                    <button type="button"
+                                                            wire:click="setDateBasis('{{ $basisKey }}')"
+                                                            class="flex-1 rounded-lg border py-1.5 text-[11px] font-semibold transition-colors {{ $dateBasis === $basisKey ? 'border-transparent bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)]' }}">
+                                                        {{ $basisLabel }}
+                                                    </button>
+                                                @endforeach
+                                            </x-ui.forms.date-span>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -419,6 +455,20 @@
                                             class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
                                         <span class="material-symbols-rounded text-[16px]">filter_alt_off</span>
                                         نمایش همه اسناد
+                                    </button>
+                                </div>
+                            @elseif($this->dateSpanActive())
+                                <x-ui.empty icon="event_busy"
+                                            title="سندی در این بازه تاریخ یافت نشد"
+                                            description="فیلتر بازه تاریخ فعال است"
+                                            variant="filtered" />
+
+                                <div class="mt-3 flex justify-center">
+                                    <button type="button"
+                                            wire:click="clearDateSpan"
+                                            class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                                        <span class="material-symbols-rounded text-[16px]">event_available</span>
+                                        حذف فیلتر تاریخ
                                     </button>
                                 </div>
                             @else

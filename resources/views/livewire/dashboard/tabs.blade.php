@@ -1,4 +1,4 @@
-<div class="flex flex-col min-h-screen overflow-x-hidden transition-colors duration-500 relative isolate">
+<div class="flex flex-col min-h-screen overflow-x-hidden transition-colors duration-500 relative isolate" style="--dock-w: 5.25rem">
     <x-dashboard.background/>
 
     <x-dashboard.navbars.left/>

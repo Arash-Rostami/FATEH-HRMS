@@ -67,7 +67,11 @@ class ReportTablePresenter
                 if ($models->isEmpty()) {
                     return null;
                 }
-                return $models->map(fn($d) => $d->displayLabel())->join('، ');
+                $labels = $models->map(fn($d) => $d->displayLabel());
+                if ($labels->count() > 2) {
+                    return $labels->take(2)->join('، ') . ' +' . convertToPersian($labels->count() - 2) . ' مورد دیگر';
+                }
+                return $labels->join('، ');
             })
             ->tooltip(function ($record) {
                 $models = $record->audience_departments;

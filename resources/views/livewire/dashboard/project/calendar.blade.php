@@ -246,6 +246,6 @@
     </div>
 
     <div wire:key="calendar-gantt-pane-{{ $activeProjectId }}" x-show="calView === 'gantt'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-        @include('livewire.dashboard.project.calendar-gantt')
+        @include('livewire.dashboard.project.calendar.gantt')
     </div>
 </div>

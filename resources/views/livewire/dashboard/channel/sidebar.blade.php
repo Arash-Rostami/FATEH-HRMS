@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        @include('livewire.dashboard.channel.search-field', [
+        @include('livewire.dashboard.messaging.search-field', [
             'model' => 'search',
             'name' => 'search',
             'id' => 'search',

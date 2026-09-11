@@ -72,7 +72,9 @@ would otherwise reopen — a raw `/livewire/update` request against an already-m
 component bypassing the named-method guards — is closed instead by a class-wide `updating(string $name,
 mixed $value)` lifecycle hook (Livewire's generic before-any-property-update hook, called once per
 dirty property ahead of the specific `updating{Property}` hook) that `abort_if($this->readOnly &&
-in_array($name, self::GUARDED_WHEN_READ_ONLY, true), 403)`s for all 9 properties, `preset`/
+in_array($name, self::GUARDED_WHEN_READ_ONLY, true), 403)`s for all 11 properties (`shareTarget`
+and `shareRecipientId` included for the same reason — they are `wire:model`-bound picker state that
+only ever renders in the non-read-only branch), `preset`/
 `scopeProjectId` included for defense in depth even though they're also statically locked. This guard
 only ever fires against tamper attempts: the date picker, preset buttons, and scope controls are only
 rendered in the `@else` (non-read-only) branch of `header.blade.php` and sibling partials, so a
@@ -100,10 +102,16 @@ hardcodes the recipient to `auth()->user()` and its action always `dispatch()`es
 action, which that trait's contract can't express, so `TasksheetShareService` calls
 `Filament\Notifications\Notification::make()->sendToDatabase($manager)` directly instead.
 
-`Main::shareRecipientOptions()`/`shareRecipientId` let the sender pick any active user, not only the
-resolved manager — the manager is only the pre-selected default. Since a sender can only ever share a
-report they're already authorized to view (their own, or an already-gated admin view), this is a UX
-choice, not an authorization gap.
+`Main::shareRecipientOptions()`/`shareRecipientId` back the «کاربر دیگر» branch of the recipient
+radio group (`shareTarget`: `boss` default → resolved manager, direct send; `other` → reveals the
+active-user select) rendered by the shared `<x-ui.forms.radio>` component (md3-input container +
+`.md3-radio-dot` — see `userStylesPattern.md` grammar). It must bind `wire:model.live`: plain
+`wire:model` is deferred in this Livewire install, so the conditional select never re-renders.
+Both panels mirror this exact flow — admin `UserTablePresenter::shareTasksheet()` uses the same
+segmented control + conditional Select, and when the boss branch resolves to nothing (or to the subject
+themself), the toast steers to «کاربر دیگر» instead of failing silently. Since a sender can only ever
+share a report they're already authorized to view (their own, or an already-gated admin view), this is
+a UX choice, not an authorization gap.
 
 ## `viewingBaseline` — one-flag time machine over the scorecard's own baseline math
 
@@ -191,7 +199,7 @@ chip now has its own row, including several that previously had none (میانگ
 count, never a combined/averaged number — this had read as vague before.
 
 **Tasksheet was missing the standard per-module badge-legend button entirely** — unlike every other
-module (see `viewPattern.md` §8.5), `main.blade.php` only ever had the "help" (`?`) header button, no
+module (see `viewPattern.md` §8.5), `tasksheet.blade.php` only ever had the "help" (`?`) header button, no
 "notifications" (🔔) one beside it, even though a real Filament DB notification already fires on
 `shareWithManager()`. Added: `BadgeLegendCatalog::all()['tasksheet-controller']` (new
 `compliance.tasksheet` subgroup, `tone: sage` — bell-only, no matching dot, same family as
@@ -227,5 +235,6 @@ same toggler `taskboard.blade.php`/`project.blade.php` already use between each 
 - `app/Services/ProjectTask/TasksheetService.php` — the data layer (§ above).
 - `app/Services/ProjectTask/TasksheetShareService.php` — manager resolution + signed-link notification send (§ "My manager" above); called by both `Main::shareWithManager()` and admin `UserResource`'s `shareTasksheet` action.
 - `Actions/ExportTasksheetAction.php` — OpenSpout XLSX streaming export, sourced from `TasksheetService::report()`.
-- `resources/views/livewire/dashboard/tasksheet/` — `main`, `header`, `scorecard`, `highlights`, `projects-accordion`, `standalone-accordion`, `row-table`, `task-table`, `activity-accordion`, `legend`, `placeholder`.
+- `resources/views/livewire/dashboard/tasksheet.blade.php` — the primary view (parent level, per `viewPattern.md` §2's cardinal rule).
+- `resources/views/livewire/dashboard/tasksheet/` — its partials: `header`, `scorecard`, `highlights`, `projects-accordion`, `standalone-accordion`, `row-table`, `task-table`, `activity-accordion`, `legend`, `placeholder`.
 - `app/Traits/RiskEscalationChip.php` — the success→warning→error tone-class primitive, extracted out of `ProjectPresenter` so `TasksheetPresenter` reuses the exact same escalation logic instead of a second copy (see `traitPattern.md` §2.2).

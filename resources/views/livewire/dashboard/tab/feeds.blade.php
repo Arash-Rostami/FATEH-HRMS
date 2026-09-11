@@ -1,9 +1,11 @@
-<div
+<x-ui.scroll-panel
     x-data="feed"
     @record-focus.window="if ($event.detail.type === 'feeds') activeId = $event.detail.id"
     @confirmation-confirmed.window="$wire.dispatch($event.detail.method, {commentId: $event.detail.params})"
     @keydown.escape.window="maximizedFeed && toggleMaximize(null)"
-    class="animate-fade relative w-full max-w-[88rem] mx-auto max-h-[calc(100svh-8rem)] lg:max-h-[calc(100svh-6rem)] h-screen overflow-hidden flex flex-col gap-6"
+    class="animate-fade"
+    max-height="max-h-[calc(100svh-8rem)] lg:max-h-[calc(100svh-6rem)]"
+    gap="gap-0"
     dir="rtl"
 >
     <x-ui.title
@@ -58,11 +60,12 @@
     </div>
 
 
-    <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0">
+    <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0 relative">
+        <x-ui.buttons.rail-arrows />
         @include('livewire.dashboard.tab.feeds.timeline')
     </div>
 
     <div x-show="view === 'magazine'" x-cloak class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-6">
         @include('livewire.dashboard.tab.feeds.magazine')
     </div>
-</div>
+</x-ui.scroll-panel>

@@ -46,8 +46,10 @@
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
-         class="w-full relative group/container hidden md:block"
+         class="w-full hidden md:block relative"
          style="height: clamp(420px, calc(100svh - 200px), 800px);">
+
+        <x-ui.buttons.rail-arrows />
 
         @include('livewire.dashboard.tab.reports.cards')
 

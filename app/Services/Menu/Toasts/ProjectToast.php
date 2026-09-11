@@ -79,6 +79,7 @@ class ProjectToast implements MenuEdge
     {
         $reply = $project->replies()
             ->where('type', TaskActivityType::Assignment)
+            ->reorder()
             ->latest('id')
             ->first(['payload']);
 

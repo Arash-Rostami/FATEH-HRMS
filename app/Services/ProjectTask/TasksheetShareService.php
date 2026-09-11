@@ -55,7 +55,9 @@ class TasksheetShareService
         return [
             'success' => true,
             'manager' => $manager,
-            'message' => 'گزارش برای مدیر شما ارسال شد.',
+            'message' => $recipient
+                ? 'گزارش برای گیرندهٔ انتخاب‌شده ارسال شد.'
+                : 'گزارش برای مدیرِ همین کاربر ارسال شد.',
         ];
     }
 }

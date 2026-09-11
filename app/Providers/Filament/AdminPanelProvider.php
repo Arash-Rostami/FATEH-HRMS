@@ -21,6 +21,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
+use Xplodman\CountUp\CountUpPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -68,6 +69,7 @@ class AdminPanelProvider extends PanelProvider
                 ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
                 ->globalSearchDebounce('1000ms')
                 ->brandName(config('app.name'))
+                ->plugins([CountUpPlugin::make()])
                 ->databaseTransactions()
                 ->darkMode(false)
                 ->navigationGroups([

@@ -15,6 +15,7 @@ class ViewServiceProvider extends ServiceProvider
             'components.dashboard.modal.menu',
             'components.dashboard.navbars.right',
             'components.dashboard.navbars.bottom',
+            'components.dashboard.navbars.top',
         ], function ($view) {
             $view->with('menuState', app(MenuStateService::class)->get());
         });

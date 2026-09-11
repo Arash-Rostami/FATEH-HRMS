@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
 use App\Models\FAQ;
+use Illuminate\Support\Str;
 
 class FaqPresenter
 {
@@ -24,5 +25,12 @@ class FaqPresenter
     public function questionText(FAQ $faq): string
     {
         return superClean($faq->question ?: 'بدون عنوان', 300);
+    }
+
+    public function answerSnippet(FAQ $faq): string
+    {
+        $text = html_entity_decode(preg_replace('/<[^>]+>/', ' ', (string) $faq->answer), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 140);
     }
 }

@@ -4,7 +4,7 @@
         <x-ui.loaders.skeleton.bar width="w-24" height="h-8"/>
     </div>
 
-    <div class="flex-1 hidden md:flex items-center gap-6 px-[10%]">
+    <div class="flex-1 hidden md:flex items-center gap-6 px-4 md:px-12">
         @for($i = 0; $i < 3; $i++)
             <div class="flex-shrink-0 w-[400px] h-full flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 p-5">
                 <div class="flex items-center gap-3 mb-4">

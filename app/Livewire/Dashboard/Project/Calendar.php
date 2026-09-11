@@ -32,7 +32,7 @@ class Calendar extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.project.calendar-placeholder');
+        return view('livewire.dashboard.project.calendar.placeholder');
     }
 
     public function mount(?int $activeProjectId = null): void

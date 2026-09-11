@@ -33,7 +33,7 @@ class Skills extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.skills-placeholder');
+        return view('livewire.dashboard.profile.skills.placeholder');
     }
 
     public function mount(): void

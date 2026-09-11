@@ -148,6 +148,21 @@ A range hold is one record. **Whole-cancel** (status → cancelled) and **shorte
 
 `Reservation::displayTime` shows the end **date** when end is on a later day than start (`date • H:i تا end_date H:i`), covering the user-panel history card (`history.blade.php` uses `$reservation->display_time`). The admin list table gained an `endTime()` column (`toJalaliSmart`, toggleable, hidden by default).
 
+### Calendar rendering of long holds — boundary markers, not a per-day pill (2026-09-05)
+
+Left unhandled, a range reservation of any length repeats its `event_seat` pill/bar on **every** day/week it spans (§"Calendar private reservation injection" in `app/Livewire/livewirePattern.md`) — fine for a few days, pure noise for a months-long hold. `Reservation::isLongHold()` (`isRange() && diffInDays >= self::LONG_HOLD_DAYS` — const, `7`) marks the cutoff; below it, rendering is byte-identical to any other range reservation (no regression).
+
+For a long hold, `CalendarPresenter`:
+- **`userReservationsByDay()`** stops fanning the reservation into every day key in its span — it emits the reservation into `byDay` only on its **start** day-key and/or its **end** day-key, and only when that boundary actually falls inside the currently-rendered `[start, end]` window. Both the month-grid dot/count and the day/week in-grid pill inherit this for free — they all read this one method.
+- **`userReservationsSpanning()`** (the week-view cross-column bar) skips long holds entirely — a bar that redraws itself fresh every single week for months would be its own kind of noise.
+- **`reservationPill()`** takes an optional `$dayKey` and, for a long hold, appends `· شروع` (start) or `· پایان` (end) to the title when that day IS the boundary being rendered — so the one or two pills that do appear read as a start/end marker, not a mystery one-off booking. The **start** pill only also carries `long_hold_days` (int, `start->diffInDays(end)`) and `long_hold_end_date` (Jalali short date, e.g. `۰۴ بهمن`); both `null` on every other pill, including the end boundary.
+- **`buildMonthDays()`** derives a per-day `longHoldDays` (nullable int) straight from the same `userReservationsByDay()` result it already fetches for `hasReservations`/`eventCount` — zero extra query. `month.blade.php`'s day cell renders it as a tiny sage number next to the `event_seat` dot, only on the reservation's start day.
+- **`calendar/events.blade.php`** (the per-day event list — the one place that lists everything happening that day in full) reads `long_hold_end_date` off the reservation entry and renders a dedicated badge — `event_seat` icon + "از طریق رزرو" + "- تا {end date}" — placed **before** the private/public badge whenever the day's entry is reservation-linked, on its own row (`flex-wrap`, so a long resource name never gets clipped).
+
+No standalone "ongoing holds" strip exists in the header — one was built (a persistent `long-holds.blade.php` partial + a separate `longHolds()` query, included in `view-header.blade.php` above the grid) and removed the same day: the month-grid badge and the events-list badge together cover "how long" and "until when" without an always-visible extra chrome element or a second query. If a persistent cross-navigation surface is wanted again later, re-derive it from `buildMonthDays()`'s data rather than a separate query. Tests: `CalendarTest` (`test_long_hold_*`, `test_selected_day_events_shows_long_hold_duration_only_on_its_start_day`).
+
+The 7-day threshold and the sidebar/grid badges reuse the existing sage/`--tool-sage-*`/`--md-sys-color-tertiary*` token convention already used by `reservation-banner.blade.php` and `events.blade.php`'s own reservation badge, so the new UI reads native, not bolted on. Calendar's own legend (`calendar/legend.blade.php`, rules tab, "از طریق رزرو" row) documents this for end users.
+
 ## Admin form date handling — shared `PersianDateFieldService` + `FilamentDateHandler`
 
 The reservation admin form is now consistent with the other 6 Filament modules (Task, Ths, Event, Gallery, Profile, Report): date/datetime fields use `PersianDateFieldService` (Jalali year/month/day dropdowns → hidden `Y-m-d`) + a native `type('time')` TextInput, merged by the `FilamentDateHandler` trait — **no raw `DatePicker`/`DateTimePicker`**. `ReservationFormPresenter` was the last holdout.

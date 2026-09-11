@@ -1,4 +1,4 @@
-<div class="overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm relative">
+<div class="relative min-h-[300px] overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-2xl shadow-sm">
     <div class="overflow-x-auto w-full">
         <table class="min-w-full text-sm text-right whitespace-nowrap lg:whitespace-normal text-[var(--md-sys-color-on-surface)]">
             <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs border-b border-[var(--md-sys-color-outline-variant)]">
@@ -45,6 +45,41 @@
                                                 : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'">
                                     <span class="material-symbols-rounded text-[18px]">search</span>
                                 </button>
+                                <div x-data="{ open: false, pos: {} }" @keydown.escape.window="open = false" class="relative">
+                                    <button type="button" x-ref="trigger"
+                                            @click="pos = $refs.trigger.getBoundingClientRect().toJSON(); open = !open"
+                                            title="فیلتر بازه تاریخ"
+                                            :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': open, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !open }"
+                                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
+                                        <span class="material-symbols-rounded text-[18px]">date_range</span>
+                                        @if($this->dateSpanActive())
+                                            <span class="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-[var(--md-sys-color-error)]"></span>
+                                        @endif
+                                    </button>
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-cloak dir="rtl"
+                                             @click.away="if (!$refs.trigger.contains($event.target)) open = false"
+                                             x-transition
+                                             :style="{ position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
+                                             class="w-80 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2.5 shadow-2xl z-50">
+                                            <x-ui.forms.date-span apply="applyDateSpan" clear="clearDateSpan"
+                                                                  :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 15"
+                                                                  :endYear="\Morilog\Jalali\Jalalian::now()->getYear()">
+                                                @foreach(['created' => 'ایجاد', 'updated' => 'بروزرسانی'] as $basisKey => $basisLabel)
+                                                    <button type="button"
+                                                            wire:click="setDateBasis('{{ $basisKey }}')"
+                                                            @class([
+                                                                'flex-1 rounded-lg border py-1.5 text-[11px] font-semibold transition-colors',
+                                                                'border-transparent bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' => $dateBasis === $basisKey,
+                                                                'border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)]' => $dateBasis !== $basisKey,
+                                                            ])>
+                                                        {{ $basisLabel }}
+                                                    </button>
+                                                @endforeach
+                                            </x-ui.forms.date-span>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         @else
                             اقدام
@@ -175,6 +210,20 @@
                         <td colspan="7" class="px-6 py-12">
                             @if($listFilter === 'actionable')
                                 <x-ui.empty icon="task_alt" title="فعلاً موردی نیاز به اقدام شما ندارد." description="تیکت‌های بازِ واحد شما یا تیکت‌های محول‌شده به شما اینجا نمایش داده می‌شوند." variant="list" />
+                            @elseif($this->dateSpanActive())
+                                <x-ui.empty icon="event_busy"
+                                            title="تیکتی در این بازه تاریخ یافت نشد"
+                                            description="فیلتر بازه تاریخ فعال است"
+                                            variant="filtered" />
+
+                                <div class="mt-3 flex justify-center">
+                                    <button type="button"
+                                            wire:click="clearDateSpan"
+                                            class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                                        <span class="material-symbols-rounded text-[16px]">event_available</span>
+                                        حذف فیلتر تاریخ
+                                    </button>
+                                </div>
                             @else
                                 <x-ui.empty icon="inbox" title="هیچ تیکتی یافت نشد." description="درخواست‌های ارسالی شما در اینجا نمایش داده می‌شوند." variant="list" />
                             @endif

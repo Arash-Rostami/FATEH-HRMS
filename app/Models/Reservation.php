@@ -17,6 +17,8 @@ class Reservation extends Model
 {
     use HasFactory;
 
+    public const LONG_HOLD_DAYS = 7;
+
     protected $fillable = [
         'user_id',
         'resource_id',
@@ -111,6 +113,11 @@ class Reservation extends Model
             && $this->start_time
             && $this->end_time
             && $this->start_time->diffInDays($this->end_time) >= 1;
+    }
+
+    public function isLongHold(): bool
+    {
+        return $this->isRange() && $this->start_time->diffInDays($this->end_time) >= self::LONG_HOLD_DAYS;
     }
 
     protected static function booted(): void

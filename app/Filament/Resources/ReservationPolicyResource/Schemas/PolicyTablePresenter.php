@@ -6,6 +6,7 @@ use App\Enums\ResourceType;
 use App\Models\ReservationPolicy;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class PolicyTablePresenter
 {
@@ -39,7 +40,7 @@ class PolicyTablePresenter
 
     public static function rulesCount(): TextColumn
     {
-        return TextColumn::make('rules_count')
+        return CountUpColumn::make('rules_count')
             ->label(__('resources/policy/strings.fields.rules_count'))
             ->badge()
             ->color('info');

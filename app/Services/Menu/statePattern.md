@@ -37,7 +37,7 @@ App\Services\Menu\
 │   ├── SharedEvents.php            key=shared-events         isActive = !StateService::viewedToday('calendar') && (EventShare::hasImminentFor($u) || Event::hasImminentSharedFor($u))
 │   ├── UnreadPosts.php             key=posts-controller      isActive = Post::hasUnreadFor($u)
 │   ├── UnreadFeeds.php             key=feeds                 isActive = auth()->user() !== null && Feed::hasUnreadFor($user->id)   (per-user, via HasNudgeTracking)
-│   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)
+│   ├── UnreadMessages.php          key=contacts-controller   isActive = auth()->user() !== null && Message::hasUnreadFor($user->id)   (hasUnreadFor/totalUnreadFor scoped to senders passing User::visibleOnBoard() as of 2026-09-04 — an unread message from a deactivated/guest sender, invisible in the Contact sidebar and thus unreachable to mark read, no longer lights this dot or the messaging-tab pill forever; see contactPattern.md §2)
 │   ├── SpecialDays.php             key=special-days          isActive = !StateService::viewedToday('calendar') && Profile (non-terminated) whereMonth/whereDay(birthdate|start_date) = today
 │   ├── TasksTodo.php               key=tasks-controller      isActive = auth()->user() !== null && Task::getTodoCount($user->id) > 0   (per-user)
 │   ├── EnergyTestBadge.php         key=energy-controller     isActive = $user !== null && EnergyTest::canSubmit($user->id)
@@ -49,7 +49,7 @@ App\Services\Menu\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
 │   ├── SuggestionNudge.php         key=suggestion-controller:nudge triggers=Suggestion created/updated/deleted + Review created/updated
-│   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted show=true  for=User::active()
+│   ├── PostNudge.php               key=posts-controller:nudge      triggers=Post created/updated/deleted show=true  for=User::active()  badgeSuppressesCreate=false (fixed 2026-09-05 — see opt-out list below)
 │   ├── FeedNudge.php                key=feeds:nudge                 triggers=Feed created/updated/deleted show=true  for=User::active()
 │   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
 │   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
@@ -60,7 +60,7 @@ App\Services\Menu\
 │   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not currentActionRecipient)  for=currentActionRecipient + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
-│   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false
+│   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
 ├── Toasts\
 │   ├── ChannelToast.php            key=channels-controller:edge   triggers=ChannelMessage created/deleted + ChannelMember/Channel events  for=invited (Channel::invitedUserIds) ∪ mentioned (mentionedSenders regex)  icon=mail (invited) / alternate_email (mentioned)  url=route('channels',['open'=>id])
 │   ├── ProjectToast.php            key=projects-controller:edge  triggers=Project created + Reply created (added ids) + ChannelMember created (unopened project channel)  for=resolveAddedIds ∪ Channel::invitedUserIds(channel_id)  icon=group_add (added) / workspaces (unopened)  url=route('projects',['open'=>id])
@@ -274,10 +274,12 @@ recompute.
 ### Where the dot renders (surfaces)
 
 `$menuState` (the `get()` bool map) is injected by **one** `View::composer` array in
-`ViewServiceProvider` into three views — `components.dashboard.modal.menu`,
-`components.dashboard.navbars.right`, `components.dashboard.navbars.bottom` — all calling the same
-cached `MenuStateService::get()`, so within a request the first call may hit the DB and the rest are
-cache hits.
+`ViewServiceProvider` into four views — `components.dashboard.modal.menu`,
+`components.dashboard.navbars.right`, `components.dashboard.navbars.bottom`,
+`components.dashboard.navbars.top` (added 2026-09-10 so the hamburger menu's own `x-data="menu(...)"`
+call can pass `menuState` into the Alpine factory as an option, for the pagination-dot notification
+badge) — all calling the same cached `MenuStateService::get()`, so within a request the first call may
+hit the DB and the rest are cache hits.
 
 - **Menu modal** — dot per item via `@js($menuState)[item.id]`; item ids come from the static
   `resources/js/components/alpine/data/menu.js` array (`*-controller` style). `ads-controller`,
@@ -444,16 +446,22 @@ Design choices:
   the new subject existed) gives "excluding the current item" semantics for free. `register()`
   captures the flag via `method_exists($nudge, 'badgeSuppressesCreate')` (default `true`). A nudge
   opts OUT by implementing `badgeSuppressesCreate(): bool { return false; }` — required only where
-  the badge condition is **not** a superset of the nudge condition. Six opt-outs: `SharedEventsNudge`
+  the badge condition is **not** a superset of the nudge condition. Seven opt-outs: `SharedEventsNudge`
   (badge = imminent ≤24h, nudge = any future event), `ContactNudge` (badge = any unread, nudge =
   per-chat; a new chat must still alert even when another chat already lit the badge), `DmsNudge` /
   `ThsNudge` (a `Read`/`Reply` on an already-badge-lit doc/ticket must still CREATE a nudge for the
   reply-participants the badge does not track), `ChannelNudge` (nudge-only — no `Channel`
-  indicator badge exists, so CREATE must always fire), and `TaskOverdueNudge` (its own badge,
+  indicator badge exists, so CREATE must always fire), `TaskOverdueNudge` (its own badge,
   `tasks-deadline`, fires on *due-soon or overdue*, a superset of "overdue" — but see the key-shape
-  note below; opting out sidesteps the question). Gallery/Reports/Projects have no matching badge row,
-  so the guard is a no-op there; Ads/Posts/Feeds/Suggestion/Task keep the default because their badge
-  is a superset of the nudge.
+  note below; opting out sidesteps the question), and `PostNudge` (fixed 2026-09-05 — Post has no
+  "mark all read on tab open" fallback the way Feed does; `selectPost()` only marks the one clicked
+  post read, so a user who already has any other unread post would otherwise be silently and
+  *permanently* skipped for every subsequent post — no row ever gets created for them, so their card
+  can never flip from "new" to "read" no matter how many times they click it. Real production incident:
+  a live user with dozens of unread posts had zero notification rows for any of them; verified via
+  `User::active()` scope directly and `notifications:prune-stale`-style row counts before finding the
+  cause). Gallery/Reports/Projects have no matching badge row, so the guard is a no-op there;
+  Ads/Feeds/Suggestion/Task keep the default because their badge is a genuine superset of the nudge.
 - **Key-shape gotcha (`badge_suppress` lookup silently no-ops on a non-`:nudge` suffix)** —
   `Str::beforeLast($key, ':nudge')` only strips a literal `:nudge` substring; when not found, Laravel
   returns the subject **unchanged** (`vendor/laravel/framework/.../Str.php::beforeLast`). A nudge key

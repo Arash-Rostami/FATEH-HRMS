@@ -16,7 +16,7 @@ class Credentials extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.credentials-placeholder');
+        return view('livewire.dashboard.profile.credentials.placeholder');
     }
 
     #[Computed]

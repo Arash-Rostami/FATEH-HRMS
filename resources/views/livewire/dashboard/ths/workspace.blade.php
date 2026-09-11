@@ -79,7 +79,7 @@
                  x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
                  class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-1">
                 @forelse($this->ticket->replies as $reply)
-                    @include('livewire.dashboard.ths.reply-bubble', ['reply' => $reply, 'animateIn' => $loop->last])
+                    @include('livewire.dashboard.ths.workspace.reply-bubble', ['reply' => $reply, 'animateIn' => $loop->last])
                 @empty
                     <p class="text-xs italic opacity-70 text-[var(--md-sys-color-on-surface-variant)] text-center py-4">هنوز پاسخی ثبت نشده است...</p>
                 @endforelse

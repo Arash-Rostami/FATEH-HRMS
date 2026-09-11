@@ -63,8 +63,8 @@
                             @include('livewire.dashboard.project.header')
                         </div>
 
-                        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-                            <div class="flex items-center gap-2 mb-6">
+                        <div class="flex-1 min-h-0 flex flex-col overflow-y-auto custom-scrollbar p-4 md:p-6">
+                            <div class="flex items-center gap-2 mb-6 flex-shrink-0">
                                 <x-ui.buttons.tab-selector
                                     :active-tab="$activeTab"
                                     has-a11y
@@ -98,7 +98,7 @@
                                 @endif
                             </div>
 
-                            <div @class(['hidden' => $activeTab !== 'teamChat'])>
+                            <div @class(['flex-1 min-h-0 flex flex-col', 'hidden' => $activeTab !== 'teamChat'])>
                                 <livewire:dashboard.project.team-chat wire:key="team-chat-{{ $activeProjectId }}" :active-project-id="$activeProjectId" :initial-active="$activeTab === 'teamChat'" />
                             </div>
 

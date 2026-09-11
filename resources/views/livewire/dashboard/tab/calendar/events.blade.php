@@ -94,7 +94,17 @@
                             </div>
                         @endif
 
-                        <div class="flex items-center gap-3 mt-3">
+                        @if(!empty($event['is_reservation_linked']))
+                            <div class="flex items-center gap-1.5 flex-wrap text-[10px] font-bold text-[var(--md-sys-color-tertiary)] bg-[color-mix(in_srgb,var(--md-sys-color-tertiary-container)_50%,transparent)] px-2.5 py-1 rounded-md mt-3">
+                                <span class="material-symbols-rounded text-[12px] shrink-0">event_seat</span>
+                                <span>از طریق رزرو</span>
+                                @if(!empty($event['long_hold_end_date']))
+                                    <span class="tabular-nums">- تا {{ $event['long_hold_end_date'] }}</span>
+                                @endif
+                            </div>
+                        @endif
+
+                        <div class="flex items-center gap-3 mt-2">
                             <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-outline)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-high)_80%,transparent)] px-2 py-0.5 rounded-md">
                                 @if($event['private'])
                                     <span class="material-symbols-rounded text-[12px]">lock</span>
@@ -122,13 +132,6 @@
                                             توسط {{ $event['shared_by_name'] }}
                                         @endif
                                     </span>
-                                </div>
-                            @endif
-
-                            @if(!empty($event['is_reservation_linked']))
-                                <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-tertiary)] bg-[color-mix(in_srgb,var(--md-sys-color-tertiary-container)_50%,transparent)] px-2 py-0.5 rounded-md">
-                                    <span class="material-symbols-rounded text-[12px]">event_seat</span>
-                                    <span>از طریق رزرو</span>
                                 </div>
                             @endif
                         </div>

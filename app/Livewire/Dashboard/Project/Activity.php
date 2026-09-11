@@ -36,7 +36,7 @@ class Activity extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.project.activity-placeholder');
+        return view('livewire.dashboard.project.activity.placeholder');
     }
 
     public function mount(?int $activeProjectId = null): void

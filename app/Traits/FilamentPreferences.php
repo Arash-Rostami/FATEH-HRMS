@@ -53,7 +53,7 @@ trait FilamentPreferences
         }
 
         $extra = $user->extra ?? [];
-        $extra['preferences'] = $this->form->getState();
+        $extra['preferences'] = array_merge($extra['preferences'] ?? [], $this->form->getState());
 
         $user->update(['extra' => $extra]);
 
@@ -83,14 +83,15 @@ trait FilamentPreferences
                 ->helperText('امکان جمع کردن منوی کناری برای فضای بیشتر.')
                 ->onIcon('heroicon-o-bars-3-bottom-right')
                 ->offIcon('heroicon-o-x-mark')
+                ->reactive()
                 ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
 
             Toggle::make('sidebar_fully_collapsible')
                 ->label('جمع شدن کامل')
-                ->helperText('منوی کناری به طور کامل مخفی شود.')
+                ->helperText('منوی کناری به طور کامل مخفی شود؛ در صورت فعال بودن «نوار کناری تاشو»، این گزینه بی‌اثر است.')
                 ->onIcon('heroicon-o-arrows-pointing-in')
                 ->offIcon('heroicon-o-arrows-pointing-out')
-                ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
+                ->disabled(fn (Get $get) => (bool) $get('nav_dock') || (bool) $get('sidebar_collapsible')),
 
             Toggle::make('breadcrumbs')
                 ->label('نمایش مسیر راهنما')
@@ -115,6 +116,7 @@ trait FilamentPreferences
                 ->helperText('انتقال منوی اصلی به قسمت بالای صفحه.')
                 ->onIcon('heroicon-o-window')
                 ->offIcon('heroicon-o-window')
+                ->reactive()
                 ->disabled(fn (Get $get) => (bool) $get('nav_dock')),
 
             Toggle::make('topbar')
@@ -126,25 +128,27 @@ trait FilamentPreferences
                 ->default(true),
 
             Toggle::make('topbar_pinned')
-                ->label('اتو هاید نوار بالا')
-                ->helperText('در حالت غیرفعال، نوار بالا خودکار مخفی و با هاور آشکار می‌شود (فقط دسکتاپ).')
+                ->label('ثابت نگه‌داشتن نوار بالا')
+                ->helperText('در صورت غیرفعال بودن، نوار بالا به‌طور خودکار مخفی می‌شود و تنها با هاور کردن نمایش داده خواهد شد (فقط دسکتاپ).')
                 ->onIcon('heroicon-o-map-pin')
-                ->offIcon('heroicon-o-map-pin')
+                ->offIcon('heroicon-o-eye')
                 ->default(true)
                 ->disabled(fn (Get $get) => !$get('topbar')),
 
             Toggle::make('nav_dock')
                 ->label('نوار ناوبری به حالت داک پایین')
-                ->helperText('نمایش منو به‌صورت نوار شناور در پایین صفحه به‌جای نوار کناری (دسکتاپ).')
+                ->helperText('نمایش منو به‌صورت نوار شناور در پایین صفحه به‌جای نوار کناری (دسکتاپ)؛ در صورت فعال بودن «منوی بالا»، این گزینه بی‌اثر است.')
                 ->onIcon('heroicon-o-view-columns')
                 ->offIcon('heroicon-o-bars-3')
-                ->reactive(),
+                ->reactive()
+                ->disabled(fn (Get $get) => (bool) $get('top_nav')),
 
             Toggle::make('user_menu_topbar')
                 ->label('منوی کاربر در نوار بالا')
                 ->helperText('نمایش منوی پروفایل کاربر در نوار بالای صفحه به جای منوی کناری.')
                 ->onIcon('heroicon-o-user-circle')
-                ->offIcon('heroicon-o-bars-4'),
+                ->offIcon('heroicon-o-bars-4')
+                ->disabled(fn (Get $get) => !$get('topbar')),
 
             Toggle::make('unsaved_changes_alerts')
                 ->label('هشدار تغییرات ذخیره‌نشده')

@@ -8,6 +8,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class OnboardingTablePresenter
 {
     public static function activeFilter(): TernaryFilter
@@ -49,7 +50,7 @@ class OnboardingTablePresenter
 
     public static function extrasCount(): TextColumn
     {
-        return TextColumn::make('extras_count')
+        return CountUpColumn::make('extras_count')
             ->label(__('resources/onboarding/strings.fields.extras'))
             ->getStateUsing(fn($record) => count((array)($record->extras ?? [])))
             ->badge()
@@ -60,7 +61,7 @@ class OnboardingTablePresenter
 
     public static function guidesCount(): TextColumn
     {
-        return TextColumn::make('guides_count')
+        return CountUpColumn::make('guides_count')
             ->label(__('resources/onboarding/strings.fields.guides'))
             ->getStateUsing(fn($record) => count($record->guides ?? []))
             ->badge()
@@ -117,7 +118,7 @@ class OnboardingTablePresenter
 
     public static function videosCount(): TextColumn
     {
-        return TextColumn::make('videos_count')
+        return CountUpColumn::make('videos_count')
             ->label(__('resources/onboarding/strings.fields.videos'))
             ->getStateUsing(fn($record) => count($record->videos ?? []))
             ->badge()

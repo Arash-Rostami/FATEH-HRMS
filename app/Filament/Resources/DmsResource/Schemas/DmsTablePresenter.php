@@ -12,6 +12,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class DmsTablePresenter
 {
     public static function code(): TextColumn
@@ -124,7 +125,7 @@ class DmsTablePresenter
 
     public static function readCount(): TextColumn
     {
-        return TextColumn::make('combined_read_count')
+        return CountUpColumn::make('combined_read_count')
             ->label(__('resources/dms/strings.fields.read_count'))
             ->badge()
             ->color('success')
@@ -184,7 +185,7 @@ class DmsTablePresenter
 
     public static function usersCount(): TextColumn
     {
-        return TextColumn::make('users_count')
+        return CountUpColumn::make('users_count')
             ->label(__('resources/dms/strings.fields.users_count'))
             ->getStateUsing(fn($record) => count($record->users ?? []))
             ->badge()

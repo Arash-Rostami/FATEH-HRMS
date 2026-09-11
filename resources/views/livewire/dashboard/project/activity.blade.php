@@ -1,6 +1,6 @@
 @php($meAvatar = auth()->user()?->getProfileImageUrl())
 
-<div class="mt-4 flex flex-col gap-4" wire:key="activity-{{ $activeProjectId }}" x-on:project-activity-refresh.window="$wire.refreshActivity()">
+<div class="flex flex-col gap-4" wire:key="activity-{{ $activeProjectId }}" x-on:project-activity-refresh.window="$wire.refreshActivity()">
     <form wire:submit.prevent="postComment"
           class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm p-4 flex flex-col gap-3"
           x-data="projectComposer(@entangle('activityComposer.body').live, @js($this->mentionCandidates->pluck('name')))">

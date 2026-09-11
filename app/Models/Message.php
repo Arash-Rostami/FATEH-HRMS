@@ -60,7 +60,10 @@ class Message extends Model
 
     public static function hasUnreadFor(int $userId): bool
     {
-        return static::where('recipient_id', $userId)->whereNull('read_at')->exists();
+        return static::where('recipient_id', $userId)
+            ->whereNull('read_at')
+            ->whereHas('sender', fn($q) => $q->visibleOnBoard())
+            ->exists();
     }
 
     public static function unreadCountsFrom(int $senderId): array
@@ -75,7 +78,10 @@ class Message extends Model
 
     public static function totalUnreadFor(int $userId): int
     {
-        return static::where('recipient_id', $userId)->whereNull('read_at')->count();
+        return static::where('recipient_id', $userId)
+            ->whereNull('read_at')
+            ->whereHas('sender', fn($q) => $q->visibleOnBoard())
+            ->count();
     }
 
     public function prunable()

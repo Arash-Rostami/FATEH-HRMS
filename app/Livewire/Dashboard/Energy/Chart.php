@@ -154,7 +154,7 @@ class Chart extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.energy.chart-placeholder');
+        return view('livewire.dashboard.energy.chart.placeholder');
     }
 
     public function render()

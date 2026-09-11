@@ -57,7 +57,7 @@ class Kanban extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.project.kanban-placeholder');
+        return view('livewire.dashboard.project.kanban.placeholder');
     }
 
     #[Computed]
@@ -97,7 +97,7 @@ class Kanban extends Component
 
         $tasks = $this->kanbanScopedQuery()
             ->whereIn('status', self::KANBAN_COLUMNS)
-            ->orderByRaw('rank IS NULL, rank')
+            ->orderByRaw('`rank` IS NULL, `rank`')
             ->orderBy('created_at', 'desc')
             ->withCount('replies')
             ->get(self::KANBAN_COLUMNS_TO_SELECT);

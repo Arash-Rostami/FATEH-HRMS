@@ -20,9 +20,9 @@
             <div
                 class="absolute inset-0 bg-cover bg-center"
                 :class="getClasses(i - 1)"
-                :style="{ backgroundImage: 'url(' + $store.background.images[i - 1] + ')' }">
+                :style="imageStyle(i - 1)">
             </div>
         </template>
-        <div class="absolute inset-0 bg-[var(--md-sys-color-background)]/85 "></div>
+        <div class="absolute inset-0 bg-[var(--md-sys-color-background)]" :style="{ opacity: $store.background.opacity }"></div>
     </div>
 </div>

@@ -10,6 +10,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class DepartmentTablePresenter
 {
@@ -103,7 +104,7 @@ class DepartmentTablePresenter
 
     public static function sectionsCount(): TextColumn
     {
-        return TextColumn::make('sections_count')
+        return CountUpColumn::make('sections_count')
             ->label(__('resources/department/strings.fields.sections_count'))
             ->getStateUsing(fn(Model $record): int => count($record->sections ?? []))
             ->badge()
@@ -124,7 +125,7 @@ class DepartmentTablePresenter
 
     public static function unitsCount(): TextColumn
     {
-        return TextColumn::make('units_count')
+        return CountUpColumn::make('units_count')
             ->label(__('resources/department/strings.fields.units_count'))
             ->getStateUsing(fn(Model $record): int => count($record->units ?? []))
             ->badge()
@@ -146,7 +147,7 @@ class DepartmentTablePresenter
 
     public static function usersCount(): TextColumn
     {
-        return TextColumn::make('users_count')
+        return CountUpColumn::make('users_count')
             ->label(__('resources/department/strings.fields.users_count'))
             ->counts('users')
             ->badge()

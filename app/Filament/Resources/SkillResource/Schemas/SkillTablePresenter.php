@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SkillResource\Schemas;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -68,7 +69,7 @@ class SkillTablePresenter
 
     public static function membersCount(): TextColumn
     {
-        return TextColumn::make('skill_users_count')
+        return CountUpColumn::make('skill_users_count')
             ->label(__('resources/skill/strings.fields.members_count'))
             ->numeric()
             ->sortable()

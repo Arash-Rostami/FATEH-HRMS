@@ -17,7 +17,8 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^4.1",
         "mokhosh/filament-jalali": "^6.0",
-        "morilog/jalali": "^3.5"
+        "morilog/jalali": "^3.5",
+        "xplodman/filament-count-up": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

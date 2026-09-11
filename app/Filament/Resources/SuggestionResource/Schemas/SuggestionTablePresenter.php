@@ -13,11 +13,12 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class SuggestionTablePresenter
 {
     public static function agreeCount(): TextColumn
     {
-        return TextColumn::make('agree_count')
+        return CountUpColumn::make('agree_count')
             ->label(__('resources/suggestion/strings.fields.agree_count'))
             ->badge()
             ->color('success')
@@ -63,7 +64,7 @@ class SuggestionTablePresenter
 
     public static function disagreeCount(): TextColumn
     {
-        return TextColumn::make('disagree_count')
+        return CountUpColumn::make('disagree_count')
             ->label(__('resources/suggestion/strings.fields.disagree_count'))
             ->badge()
             ->color('danger')
@@ -96,7 +97,7 @@ class SuggestionTablePresenter
 
     public static function neutralCount(): TextColumn
     {
-        return TextColumn::make('neutral_count')
+        return CountUpColumn::make('neutral_count')
             ->label(__('resources/suggestion/strings.fields.neutral_count'))
             ->badge()
             ->color('gray')

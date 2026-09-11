@@ -31,5 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-
+        $exceptions->report(function (\ErrorException $e) {
+            if (str_contains($e->getMessage(), 'Utime failed')) {
+                return false;
+            }
+        });
     })->create();

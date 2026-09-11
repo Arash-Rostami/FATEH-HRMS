@@ -59,6 +59,9 @@
                         @elseif($day['hasReservations'])
                             <span class="material-symbols-rounded text-[11px] sm:text-[13px] md:text-[16px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--tool-sage-color,var(--md-sys-color-tertiary))]' }} drop-shadow-sm"
                                   style="font-variation-settings: 'FILL' 1;">event_seat</span>
+                            @if($day['longHoldDays'])
+                                <span class="text-[5.5px] sm:text-[6.5px] md:text-[7px] font-bold leading-none ml-0.5 tabular-nums {{ $day['isSelected'] ? 'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_90%,transparent)]' : 'text-[var(--tool-sage-color,var(--md-sys-color-tertiary))]' }}">{{ convertToPersian($day['longHoldDays']) }}</span>
+                            @endif
                         @endif
 
                             @if($day['eventCount'] > 1)

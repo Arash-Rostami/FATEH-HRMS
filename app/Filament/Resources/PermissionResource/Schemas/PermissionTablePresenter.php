@@ -11,6 +11,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Model;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class PermissionTablePresenter
 {
     public static function createdAt(): TextColumn
@@ -46,7 +47,7 @@ class PermissionTablePresenter
 
     public static function modulesCount(): TextColumn
     {
-        return TextColumn::make('modules_count')
+        return CountUpColumn::make('modules_count')
             ->label(__('resources/permission/strings.fields.modules_count'))
             ->state(fn(Model $record): int => $record->is_super_admin
                 ? max(0, count(Permission::availableModules()) - count($record->excluded_modules ?? []))

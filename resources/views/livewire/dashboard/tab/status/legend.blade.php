@@ -14,7 +14,7 @@
     ];
 @endphp
 
-<div x-data="{ tab: 'levels' }">
+<div x-data="status()">
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $t)
             <button
@@ -105,7 +105,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">نشان رزرو امروز</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری امروز میز کار، پارکینگ یا اتاق جلسه‌ای را رزرو کرده باشد، این نشان روی کارتش ظاهر می‌شود؛ نگه‌داشتن نشانگر روی آن جزئیات کامل منبع (طبقه/واحد/داخلی برای میز کار، یا کارت پارکینگ، یا ظرفیت و برنامهٔ اتاق جلسه) را در راهنما نشان می‌دهد.</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری امروز میز کار، پارکینگ یا اتاق جلسه‌ای را رزرو کرده باشد، این نشان روی کارتش ظاهر می‌شود؛ برای میز کار، شمارهٔ داخلی مستقیماً روی کارت نمایش داده می‌شود و برای پارکینگ/اتاق جلسه فقط نشانگر. نگه‌داشتن نشانگر روی آن جزئیات کامل منبع (طبقه/واحد/داخلی برای میز کار، یا کارت پارکینگ، یا ظرفیت و برنامهٔ اتاق جلسه) را در راهنما نشان می‌دهد.</p>
             </div>
         </div>
     </div>
@@ -158,6 +158,16 @@
             <div class="min-w-0">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">باز و بسته‌کردن دپارتمان‌ها</p>
                 <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">برای دپارتمان‌های بزرگ می‌توانید روی عنوان دپارتمان یا نشان <span class="material-symbols-rounded text-[12px] align-middle">unfold_more</span> روی کارت سرپرست بزنید تا اعضا جمع شوند؛ وضعیت باز/بسته‌شدن ذخیره می‌ماند و با باز کردن پنجرهٔ جزئیات همکار یا تغییر فیلترها از بین نمی‌رود.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[16px]">pan_tool</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">جابه‌جایی افقی نمودار</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی ساختار بزرگ‌تر از صفحه شود، روی نمودار کلیک نگه دارید و بکشید تا در هر جهت (افقی و عمودی) جابه‌جا شود (نشانگر ماوس به شکل دست تغییر می‌کند). دو راه برای باز کردن ابزارک چهارجهته (جابه‌جایی با کلیک در بالا/پایین/چپ/راست) وجود دارد: دکمهٔ شناور <span class="material-symbols-rounded text-[12px] align-middle">open_with</span> ثابت در گوشهٔ پایین-راست صفحه، یا نشانگر <span class="material-symbols-rounded text-[12px] align-middle">swipe</span> که هنگام نگه‌داشتن ماوس روی ردیف، همراه اشاره‌گر حرکت می‌کند؛ در موبایل نمودار را با انگشت می‌کشید.</p>
             </div>
         </div>
 

@@ -10,10 +10,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             @for($i = 0; $i < 4; $i++)
-                <div class="flex flex-col gap-1.5">
-                    <x-ui.loaders.skeleton.bar width="w-28" height="h-3"/>
-                    <x-ui.loaders.skeleton.bar width="w-full" height="h-10"/>
-                </div>
+                <x-ui.loaders.skeleton.field/>
             @endfor
         </div>
     </div>

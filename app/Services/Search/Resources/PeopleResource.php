@@ -23,6 +23,6 @@ class PeopleResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
-        $query->whereKeyNot($this->me());
+        $query->visibleOnBoard()->whereKeyNot($this->me());
     }
 }

@@ -15,19 +15,9 @@
 
     <div
         x-ref="timeline"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 md:px-[5%] md:pr-[10%] md:pl-4 z-10"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-4 md:px-12 z-10"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
-        <button @click="scrollPrev"
-                class="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 md:right-4">
-            <span class="material-symbols-rounded text-3xl">chevron_right</span>
-        </button>
-
-        <button @click="scrollNext"
-                class="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] shadow-lg flex items-center justify-center hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] transition-all opacity-0 group-hover/container:opacity-100 md:left-4">
-            <span class="material-symbols-rounded text-3xl">chevron_left</span>
-        </button>
-
         <div
             x-ref="reportContainer"
             class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-6 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
@@ -119,7 +109,7 @@
                                 {{ $report->title }}
                             </h3>
                             <p class="text-[var(--md-sys-color-on-surface-variant)] text-xs line-clamp-2 leading-relaxed font-light opacity-80">
-                                {{ Str::limit(strip_tags($report->description), 100) }}
+                                {{ Str::limit(html_entity_decode(strip_tags($report->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 100) }}
                             </p>
                         </div>
 

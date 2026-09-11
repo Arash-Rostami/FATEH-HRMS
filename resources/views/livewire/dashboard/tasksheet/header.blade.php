@@ -28,17 +28,10 @@
                 </x-slot:trigger>
 
                 <x-slot:body>
-                    <div class="p-3 flex flex-col gap-3">
-                        <x-ui.forms.date label="از تاریخ" prefix="from" icon="event"
-                                          :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 3"
-                                          :endYear="\Morilog\Jalali\Jalalian::now()->getYear()"/>
-                        <x-ui.forms.date label="تا تاریخ" prefix="to" icon="event"
-                                          :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 3"
-                                          :endYear="\Morilog\Jalali\Jalalian::now()->getYear()"/>
-                        <button type="button" wire:click="setCustomRange" @click="open = false"
-                                class="inline-flex items-center justify-center h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-xs font-medium">
-                            اعمال
-                        </button>
+                    <div class="p-3">
+                        <x-ui.forms.date-span apply="setCustomRange"
+                                              :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 3"
+                                              :endYear="\Morilog\Jalali\Jalalian::now()->getYear()"/>
                     </div>
                 </x-slot:body>
             </x-ui.hover-popover>

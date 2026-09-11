@@ -11,6 +11,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class ResourceTablePresenter
 {
@@ -62,7 +63,7 @@ class ResourceTablePresenter
 
     public static function reservationsCount(): TextColumn
     {
-        return TextColumn::make('reservations_count')
+        return CountUpColumn::make('reservations_count')
             ->label(__('resources/resource/strings.fields.reservations_count'))
             ->badge()
             ->color('info')

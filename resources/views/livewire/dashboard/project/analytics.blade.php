@@ -9,7 +9,7 @@
     $gatedCharts = ['labelsDistribution', 'departmentCompletion'];
 @endphp
 
-<div class="mt-4 flex flex-col gap-4" wire:key="analytics-{{ $activeProjectId }}">
+<div class="flex flex-col gap-4" wire:key="analytics-{{ $activeProjectId }}">
     @if((int) ($summary['total'] ?? 0) === 0)
         <x-ui.empty icon="monitoring" title="هنوز داده‌ای برای تحلیل نیست" description="بعد از ثبت وظیفه در این پروژه، نمودارها اینجا نمایش داده می‌شوند."/>
     @else

@@ -213,6 +213,6 @@ class TeamChat extends Component
 
     public function render(): View
     {
-        return view('livewire.dashboard.project.team-chat');
+        return view('livewire.dashboard.project.chat');
     }
 }

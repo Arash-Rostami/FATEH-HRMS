@@ -25,7 +25,7 @@ class FilamentPanelCustomizer
             ->unsavedChangesAlerts(fn() => self::pref('unsaved_changes_alerts', true))
             ->topbar(fn() => self::pref('topbar', true))
             ->spa(fn() => self::pref('spa_enabled', true))
-            ->userMenu(position: fn() => self::pref('user_menu_topbar', false) ? UserMenuPosition::Topbar : UserMenuPosition::Sidebar);
+            ->userMenu(position: fn() => (self::pref('user_menu_topbar', false) && self::pref('topbar', true)) ? UserMenuPosition::Topbar : UserMenuPosition::Sidebar);
     }
 
     private static function pref(string $key, mixed $default = false): mixed
@@ -50,10 +50,11 @@ class FilamentPanelCustomizer
     private static function logoHtml(bool $dark): HtmlString
     {
         $name = e(config('app.name_en'));
+        $auth = request()->routeIs('filament.admin.auth.login');
 
         return new HtmlString(sprintf(
             '<img src="%s" alt="%s" title="%s" style="height:2rem;width:auto;margin:auto" />',
-            e(asset(tenantLogo($dark, 'admin'))), $name, $name
+            e(asset(tenantLogo($dark, 'admin', $auth))), $name, $name
         ));
     }
 }

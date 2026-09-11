@@ -14,7 +14,7 @@
 
             <div class="flex-grow min-w-0 text-center md:text-right w-full px-4">
                 <h4 class="text-[var(--md-sys-color-on-surface)] font-bold text-lg truncate group-hover:text-[var(--md-sys-color-primary)] transition-colors mb-1">{{ $report->title }}</h4>
-                <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm line-clamp-2 mb-2 text-justify">{{ Str::limit(strip_tags($report->description), 200) }}</p>
+                <p class="text-[var(--md-sys-color-on-surface-variant)] text-sm line-clamp-2 mb-2 text-justify">{{ Str::limit(html_entity_decode(strip_tags($report->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 200) }}</p>
                 <div
                     class="flex items-center justify-center md:justify-start gap-3 text-xs text-[var(--md-sys-color-outline)]">
                             <span

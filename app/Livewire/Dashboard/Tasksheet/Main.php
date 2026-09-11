@@ -14,7 +14,6 @@ use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Morilog\Jalali\CalendarUtils;
 use Morilog\Jalali\Jalalian;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -25,6 +24,7 @@ class Main extends Component
 
     private const GUARDED_WHEN_READ_ONLY = [
         'preset', 'fromYear', 'fromMonth', 'fromDay', 'toYear', 'toMonth', 'toDay', 'scopeProjectId', 'viewingBaseline',
+        'shareTarget', 'shareRecipientId',
     ];
 
     #[Locked]
@@ -66,6 +66,8 @@ class Main extends Component
     public int $activityLimit = 50;
 
     public ?int $shareRecipientId = null;
+
+    public string $shareTarget = 'boss';
 
     public function updating(string $name, mixed $value): void
     {
@@ -247,11 +249,26 @@ class Main extends Component
             return;
         }
 
-        $recipient = User::find($this->shareRecipientId);
+        if ($this->shareTarget === 'boss') {
+            $deptCode = $this->subject->profile?->department_id;
+            $recipient = $deptCode ? User::highestRankingInDepartment($deptCode) : null;
 
-        if (!$recipient) {
-            $this->dispatch('toast', message: 'یک گیرنده انتخاب کنید.', type: 'warning');
-            return;
+            if (!$recipient) {
+                $this->dispatch('toast', message: 'مدیری برای این کاربر شناسایی نشد؛ «کاربر دیگر» را انتخاب کنید.', type: 'warning');
+                return;
+            }
+
+            if ($recipient->is($this->subject)) {
+                $this->dispatch('toast', message: 'خودتان بالاترین رتبهٔ بخش هستید؛ گیرندهٔ دیگری انتخاب کنید.', type: 'warning');
+                return;
+            }
+        } else {
+            $recipient = User::visibleOnBoard()->find($this->shareRecipientId);
+
+            if (!$recipient || $recipient->is($this->subject)) {
+                $this->dispatch('toast', message: 'یک گیرنده انتخاب کنید.', type: 'warning');
+                return;
+            }
         }
 
         $result = app(TasksheetShareService::class)->shareWithManager($this->subject, $recipient, windowParams: request()->query());
@@ -289,28 +306,12 @@ class Main extends Component
 
     private function parseCustomRange(): ?array
     {
-        if (!$this->fromYear || !$this->fromMonth || !$this->fromDay || !$this->toYear || !$this->toMonth || !$this->toDay) {
-            return null;
-        }
-
-        try {
-            if (!CalendarUtils::checkDate((int) $this->fromYear, (int) $this->fromMonth, (int) $this->fromDay, true)
-                || !CalendarUtils::checkDate((int) $this->toYear, (int) $this->toMonth, (int) $this->toDay, true)) {
-                return null;
-            }
-
-            $start = CalendarUtils::createCarbonFromFormat('Y/m/d H:i:s', sprintf('%s/%02d/%02d 00:00:00', $this->fromYear, $this->fromMonth, $this->fromDay))->startOfDay();
-            $end = CalendarUtils::createCarbonFromFormat('Y/m/d H:i:s', sprintf('%s/%02d/%02d 00:00:00', $this->toYear, $this->toMonth, $this->toDay))->endOfDay();
-        } catch (\Throwable) {
-            return null;
-        }
-
-        return $end->lt($start) ? null : [$start, $end];
+        return jalaliSpanFromParts($this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay);
     }
 
     public function render(): View
     {
-        return view('livewire.dashboard.tasksheet.main', [
+        return view('livewire.dashboard.tasksheet', [
             'presenter' => new TasksheetPresenter(),
             'taskBoardPresenter' => new TaskBoardPresenter(),
         ])

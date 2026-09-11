@@ -15,8 +15,8 @@
             class="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 px-4 py-2.5 rounded-2xl shadow-xl cursor-pointer select-none ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)]/30 hover:-translate-y-0.5 transition-all duration-300"
             style="background:color-mix(in srgb,var(--md-sys-color-surface) 92%,transparent);backdrop-filter:blur(12px);"
             @click="show = false; $dispatch('card-restore')">
-            <img src="{{ asset(tenantLogo(true)) }}" alt="{{ config('app.name_en', 'WinterrA') }}" title="{{ config('app.name_en', 'WinterrA') }}" class="h-5 w-auto rounded-lg hidden dark:block">
-            <img src="{{ asset(tenantLogo(false)) }}" alt="{{ config('app.name_en', 'WinterrA') }}" title="{{ config('app.name_en', 'WinterrA') }}" class="h-5 w-auto rounded-lg dark:hidden">
+            <img src="{{ asset(tenantLogo(true, 'user', true)) }}" alt="{{ config('app.name_en', 'WinterrA') }}" title="{{ config('app.name_en', 'WinterrA') }}" class="h-5 w-auto rounded-lg hidden dark:block">
+            <img src="{{ asset(tenantLogo(false, 'user', true)) }}" alt="{{ config('app.name_en', 'WinterrA') }}" title="{{ config('app.name_en', 'WinterrA') }}" class="h-5 w-auto rounded-lg dark:hidden">
             <span class="text-sm font-bold" style="color:var(--md-sys-color-on-surface-variant);">{{ $title }}</span>
             <div class="flex items-center justify-center rounded-xl transition-all duration-150 hover:bg-[var(--md-sys-color-primary)]/10"
                  style="width:32px;height:32px;">
@@ -48,12 +48,12 @@
 
         <div class="scale-[0.9] pt-14 px-8 pb-8 flex flex-col items-center justify-center relative z-10 w-full animate-scale-in transition-transform ease-out animate-delay-2500 isolate">
 
-            <img src="{{ asset(tenantLogo(false)) }}"
+            <img src="{{ asset(tenantLogo(false, 'user', true)) }}"
                  alt="{{ config('app.name_en', 'WinterrA') }}"
                  title="{{ config('app.name_en', 'WinterrA') }}"
                  class="h-12 w-auto transition-all duration-700 block dark:hidden group-hover:scale-105 group-hover:-translate-y-0.5">
 
-            <img src="{{ asset(tenantLogo(true)) }}"
+            <img src="{{ asset(tenantLogo(true, 'user', true)) }}"
                  alt="{{ config('app.name_en', 'WinterrA') }}"
                  title="{{ config('app.name_en', 'WinterrA') }}"
                  class="h-12 w-auto transition-all duration-700  hidden dark:block group-hover:scale-105 group-hover:-translate-y-0.5">

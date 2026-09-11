@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\Profile;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\ImageColumn;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -50,7 +51,7 @@ class ProfileTablePresenter
 
     public static function detailsCount(): TextColumn
     {
-        return TextColumn::make('details_count')
+        return CountUpColumn::make('details_count')
             ->label(__('resources/profile/strings.table.details_count'))
             ->badge()
             ->color('info')

@@ -23,6 +23,8 @@ class ReportResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
-        $query->where('active', 1);
+        $dept = auth()->user()?->profile?->department_id;
+
+        $query->active()->notExpired()->visibleTo($dept);
     }
 }

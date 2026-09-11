@@ -9,6 +9,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class ChannelTablePresenter
 {
     public static function id(): TextColumn
@@ -57,7 +58,7 @@ class ChannelTablePresenter
 
     public static function membersCount(): TextColumn
     {
-        return TextColumn::make('members_count')
+        return CountUpColumn::make('members_count')
             ->label(__('resources/channel/strings.fields.members_count'))
             ->badge()
             ->color('info')
@@ -68,7 +69,7 @@ class ChannelTablePresenter
 
     public static function messagesCount(): TextColumn
     {
-        return TextColumn::make('messages_count')
+        return CountUpColumn::make('messages_count')
             ->label(__('resources/channel/strings.fields.messages_count'))
             ->badge()
             ->color('gray')

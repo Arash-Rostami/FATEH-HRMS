@@ -27,7 +27,7 @@ class Faqs extends Component
     public int $perPage = 10;
 
     #[Locked]
-    public string $view = 'card';
+    public string $view = 'list';
 
     #[Computed]
     public function categories()
@@ -90,8 +90,8 @@ class Faqs extends Component
 
     public function mount(): void
     {
-        $view = session('faqs_view_mode', 'card');
-        $this->view = in_array($view, ['card', 'list'], true) ? $view : 'card';
+        $view = session('faqs_view_mode', 'list');
+        $this->view = in_array($view, ['card', 'list'], true) ? $view : 'list';
 
         if ($this->open) {
             $this->perPage = max($this->perPage, 50);

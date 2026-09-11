@@ -10,8 +10,7 @@ resources/assets/
 ├── audio/
 ├── fonts/
 ├── img/
-│   ├── <tenant>/     — per-tenant role-named files, see Tenant-scoped assets below
-│   └── bg/
+│   └── <tenant>/     — per-tenant role-named files + bg/ backdrops, see Tenant-scoped assets below
 ├── js/
 │   └── lib/
 └── video/
@@ -25,18 +24,19 @@ resources/assets/
 `img/<tenant>/` and `video/<tenant>/` (`<tenant>` = a slug matching a `config/tenants.php` entry, e.g. `fateh`, `persol`) are auto-discovered at config-resolution time via `tenantAsset()`/`tenantVideos()` (`app/Helpers/index.php`) — no filename is ever hardcoded in PHP or Blade. Two different naming conventions apply inside a tenant folder:
 - **Images**: role-named, extension-agnostic — `logo.*`, `light.*`, `dark.*`, `favicon.*`, `user-background.*`, `admin-background.*`. Matched by basename only (`glob("{$dir}/{$role}.*")`), so `.jpg`/`.png`/`.svg`/`.webp` all work interchangeably per tenant.
 - **Videos**: sequentially numbered, no fixed count — `1.<ext>`, `2.<ext>`, ... as many as that tenant has.
+- **Backdrops** (`img/<tenant>/bg/`): a third shape — arbitrary count, any filename, matched by `glob("{$dir}/*.*")` (not a fixed role, not sequential numbering). Powers the user-panel quick-settings dynamic background; see `config/tenantPattern.md`'s "Dynamic user-panel backdrops" section for the full mechanism (`tenantBackdrops()`, the `backdrop_mode` flag, and why a `'time'`-mode tenant's filenames are semantically load-bearing — `morning`/`noon`/`evening`/`night` — while a `'tabs'`-mode tenant's aren't).
 - A tenant may keep an `extra/` subfolder for unused/reference assets — the glob only checks the tenant's immediate folder, so `extra/` is correctly ignored by the mechanism.
 
 Onboarding a new tenant is purely additive: add the folder + files, add one `config/tenants.php` entry, set `APP_TENANT`. Never hardcode a tenant's asset path outside `config/tenants.php`.
 
 ## Build Pipeline
 
-`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/build/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix.
+`vite-plugin-static-copy` copies each `resources/assets/{audio,video,img,fonts,js}` tree to `public/build/assets/`, preserving structure, non-hashed. `resources/js/` and `resources/css/` are Vite-processed/hashed separately — never mix. **Exception — streamed media must NOT live under `public/build`:** a playing/streamed file there holds a Windows handle that makes Vite's `emptyOutDir` wipe fail mid-build (EPERM/ENOTEMPTY), half-deleting the served bundle — every asset 404s until the handle releases (even a stuck `php artisan serve` response holds one). The menu-player music therefore lives in **`public/audio/music/`** (hand-copied, gitignored, globbed by the blade), and the audio copy target is narrowed to the root alarm files only:
 
 ```javascript
 viteStaticCopy({
     targets: [
-        {src: 'resources/assets/audio', dest: 'assets'},
+        {src: 'resources/assets/audio/*.mp3', dest: 'assets/audio'},
         {src: 'resources/assets/video', dest: 'assets'},
         {src: 'resources/assets/img', dest: 'assets'},
         {src: 'resources/assets/fonts', dest: 'assets'},
@@ -86,6 +86,7 @@ Tenant-scoped brand assets are never hand-written as literal paths like the abov
 | Custom web fonts | `fonts/` | Copied as-is |
 | Vendored browser-global JS | `js/lib/` | Copied as-is (assigned to `window`, loaded via literal `<script src=asset(...)>`) |
 | Per-tenant brand logos/backgrounds/favicon | `img/<tenant>/` | Copied as-is; role-named, see Tenant-scoped assets above |
+| Per-tenant dynamic backdrop set | `img/<tenant>/bg/` | Copied as-is; arbitrary count/filename, see Tenant-scoped assets above |
 | Generic/platform-default logos | `img/` root | Copied as-is; fallback when a tenant lacks a role file |
 | Hero/background images (non-tenant) | `img/` root or `img/bg/` | Copied as-is |
 | Icon system (SVG) | `img/icons/` | Potential future: sprite generation |

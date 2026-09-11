@@ -221,6 +221,7 @@ class TaskInfolistPresenter
             ->getStateUsing(function ($record) {
                 $touch = $record->replies()
                     ->whereNotNull('user_id')
+                    ->reorder()
                     ->latest('id')
                     ->first(['user_id', 'created_at']);
 

@@ -1,4 +1,4 @@
-<div class="min-h-full flex flex-col gap-3 relative" wire:key="chat-{{ $activeProjectId }}" x-on:project-teamchat-refresh.window="$wire.refreshTeamChat()" x-on:project-teamchat-activate.window="$wire.activate()">
+<div class="flex-1 min-h-0 flex flex-col gap-3 relative" wire:key="chat-{{ $activeProjectId }}" x-on:project-teamchat-refresh.window="$wire.refreshTeamChat()" x-on:project-teamchat-activate.window="$wire.activate()">
     <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
     @if($activated)
         @if($this->teamChatMessages['hasMore'])

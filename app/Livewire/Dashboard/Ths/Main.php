@@ -46,6 +46,17 @@ class Main extends Component
     public int $perPage = 10;
     public int $inboxPerPage = 10;
     public string $ticketSearch = '';
+    public string $dateBasis = 'updated';
+    public ?int $fromYear = null;
+    public ?int $fromMonth = null;
+    public ?int $fromDay = null;
+    public ?int $toYear = null;
+    public ?int $toMonth = null;
+    public ?int $toDay = null;
+    #[Locked]
+    public array $appliedDateParts = [];
+    #[Locked]
+    public string $appliedBasis = 'updated';
 
     public function addFileInput(): void
     {
@@ -65,11 +76,75 @@ class Main extends Component
 
     public function loadMore(): void
     {
+        if ($this->listFilter === 'mine' && $this->dateParts() !== $this->appliedDateParts) {
+            [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay] = $this->appliedDateParts;
+            return;
+        }
+
         if ($this->listFilter === 'actionable') {
             $this->inboxPerPage += 10;
         } else {
             $this->perPage += 10;
         }
+    }
+
+    public function setDateBasis(string $basis): void
+    {
+        if (!in_array($basis, ['created', 'updated'], true) || $this->dateBasis === $basis) {
+            return;
+        }
+
+        $this->dateBasis = $basis;
+
+        if ($this->dateSpan() !== null && $this->appliedBasis !== $basis) {
+            $this->appliedBasis = $basis;
+            $this->perPage = 10;
+        }
+    }
+
+    public function applyDateSpan(): void
+    {
+        if (jalaliSpanFromParts($this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay) === null) {
+            $this->dispatch('toast', message: 'بازهٔ انتخاب‌شده نامعتبر است.', type: 'warning');
+            return;
+        }
+
+        $this->perPage = 10;
+        $this->appliedBasis = $this->dateBasis;
+        $this->appliedDateParts = $this->dateParts();
+    }
+
+    public function clearDateSpan(): void
+    {
+        if ($this->fromYear === null && $this->fromMonth === null && $this->fromDay === null
+            && $this->toYear === null && $this->toMonth === null && $this->toDay === null) {
+            return;
+        }
+
+        $this->fromYear = $this->fromMonth = $this->fromDay = $this->toYear = $this->toMonth = $this->toDay = null;
+        $this->perPage = 10;
+        $this->appliedDateParts = $this->dateParts();
+    }
+
+    public function dateSpanActive(): bool
+    {
+        return $this->dateSpan() !== null;
+    }
+
+    private function dateParts(): array
+    {
+        return [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay];
+    }
+
+    private function dateSpan(): ?array
+    {
+        if (count($this->appliedDateParts) < 6) {
+            return null;
+        }
+
+        $span = jalaliSpanFromParts(...$this->appliedDateParts);
+
+        return $span === null ? null : [$this->appliedBasis === 'created' ? 'created_at' : 'updated_at', ...$span];
     }
 
     public function setListFilter(string $filter): void
@@ -106,6 +181,8 @@ class Main extends Component
             ->where('status', 'closed')
             ->whereNull('satisfaction_score')
             ->first();
+
+        $this->appliedDateParts = $this->dateParts();
 
         if ($this->ticketToRate) {
             $this->activeTab = 'rate';
@@ -217,6 +294,7 @@ class Main extends Component
                     ->orWhere('description', 'like', $term)
                     ->orWhereRaw("CONCAT('TN-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, 6, '0')) LIKE ?", [$term]);
             }))
+            ->when($this->dateSpan(), fn($query, $span) => $query->whereBetween($span[0], [$span[1], $span[2]]))
             ->orderByDesc('created_at')
             ->paginate($this->perPage);
     }

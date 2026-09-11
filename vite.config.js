@@ -38,7 +38,7 @@ export default defineConfig({
 
         viteStaticCopy({
             targets: [
-                {src: 'resources/assets/audio', dest: 'assets'},
+                {src: 'resources/assets/audio/*.mp3', dest: 'assets/audio'},
                 {src: 'resources/assets/video', dest: 'assets'},
                 {src: 'resources/assets/img', dest: 'assets'},
                 {src: 'resources/assets/fonts', dest: 'assets'},

@@ -12,7 +12,7 @@ class Onboarding extends Component
 {
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.onboarding-placeholder');
+        return view('livewire.dashboard.profile.onboarding.placeholder');
     }
 
     #[Computed(persist: true)]

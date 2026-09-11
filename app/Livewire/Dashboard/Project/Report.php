@@ -38,7 +38,7 @@ class Report extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.project.report-placeholder');
+        return view('livewire.dashboard.project.report.placeholder');
     }
 
     #[Computed]

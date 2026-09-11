@@ -8,6 +8,7 @@ use App\Services\Reservation\ValidationService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Morilog\Jalali\CalendarUtils;
 use Morilog\Jalali\Jalalian;
 
 if (!function_exists('convertToPersian')) {
@@ -385,6 +386,29 @@ if (!function_exists('jNow')) {
     }
 }
 
+if (!function_exists('jalaliSpanFromParts')) {
+    function jalaliSpanFromParts(mixed $fromYear, mixed $fromMonth, mixed $fromDay, mixed $toYear, mixed $toMonth, mixed $toDay): ?array
+    {
+        if (!$fromYear || !$fromMonth || !$fromDay || !$toYear || !$toMonth || !$toDay) {
+            return null;
+        }
+
+        try {
+            if (!CalendarUtils::checkDate((int)$fromYear, (int)$fromMonth, (int)$fromDay, true)
+                || !CalendarUtils::checkDate((int)$toYear, (int)$toMonth, (int)$toDay, true)) {
+                return null;
+            }
+
+            $start = CalendarUtils::createCarbonFromFormat('Y/m/d H:i:s', sprintf('%04d/%02d/%02d 00:00:00', $fromYear, $fromMonth, $fromDay))->startOfDay();
+            $end = CalendarUtils::createCarbonFromFormat('Y/m/d H:i:s', sprintf('%04d/%02d/%02d 00:00:00', $toYear, $toMonth, $toDay))->endOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $end->lt($start) ? null : [$start, $end];
+    }
+}
+
 if (!function_exists('canAdmin')) {
     function canAdmin(): bool
     {
@@ -451,17 +475,33 @@ if (!function_exists('tenantVideos')) {
     }
 }
 
+if (!function_exists('tenantBackdrops')) {
+    function tenantBackdrops(string $tenant): array
+    {
+        static $cache = [];
+        if (array_key_exists($tenant, $cache)) {
+            return $cache[$tenant];
+        }
+
+        $files = glob(resource_path("assets/img/{$tenant}/bg/*.*")) ?: [];
+        natsort($files);
+
+        return $cache[$tenant] = array_map(
+            fn(string $file): string => "build/assets/img/{$tenant}/bg/" . basename($file),
+            array_values($files)
+        );
+    }
+}
+
 if (!function_exists('tenantLogo')) {
-    function tenantLogo(bool $dark, string $scope = 'user'): string
+    function tenantLogo(bool $dark, string $scope = 'user', bool $auth = false): string
     {
         if ($scope === 'admin' && config('app.admin_use_company_logo')) {
             return config('app.company_logo');
         }
 
-        $reversed = config("app.{$scope}_reverse_logo");
-        $showDark = $scope === 'admin' && $reversed
-            ? $dark === request()->routeIs('filament.admin.auth.login')
-            : ($reversed ? !$dark : $dark);
+        $reversed = config('app.' . $scope . ($auth ? '_auth_reverse_logo' : '_reverse_logo'));
+        $showDark = $reversed ? !$dark : $dark;
 
         return config($showDark ? 'app.app_logo_dark' : 'app.app_logo_light');
     }

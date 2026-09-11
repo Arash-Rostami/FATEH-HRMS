@@ -1,6 +1,6 @@
 <div x-show="searchMessages" x-transition style="display:none;" class="absolute left-0 right-10 z-40">
     <div class="rounded-2xl bg-[var(--md-sys-color-surface)] shadow-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] overflow-hidden">
-        @include('livewire.dashboard.channel.search-field', [
+        @include('livewire.dashboard.messaging.search-field', [
             'model' => 'messageSearch',
             'id' => 'msg-search-input',
             'debounce' => 600,

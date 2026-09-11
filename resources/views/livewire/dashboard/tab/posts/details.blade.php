@@ -10,7 +10,7 @@
             >
                 <img
                     src="{{ $selectedPost->image_url }}"
-                    alt="{{ strip_tags($selectedPost->title) }}"
+                    alt="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
                     class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                 >
 
@@ -114,7 +114,7 @@
                         <div class="relative w-full max-w-[min(96vw,1600px)]">
                             <img
                                 src="{{ $selectedPost->image_url }}"
-                                alt="{{ strip_tags($selectedPost->title) }}"
+                                alt="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
                                 class="max-h-[92vh] w-full select-none object-contain rounded-xl"
                             >
 

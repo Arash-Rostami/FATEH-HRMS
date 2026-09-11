@@ -8,10 +8,7 @@
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @for($j = 0; $j < 6; $j++)
-                        <div class="flex flex-col gap-1.5">
-                            <x-ui.loaders.skeleton.bar width="w-24" height="h-3"/>
-                            <x-ui.loaders.skeleton.bar width="w-full" height="h-10"/>
-                        </div>
+                        <x-ui.loaders.skeleton.field label-width="w-24"/>
                     @endfor
                 </div>
             </div>

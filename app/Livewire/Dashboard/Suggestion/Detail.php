@@ -81,7 +81,7 @@ class Detail extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.suggestion.detail-placeholder');
+        return view('livewire.dashboard.suggestion.detail.placeholder');
     }
 
     public function submitDecision(SubmitDecisionAction $action): void

@@ -10,11 +10,12 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 class ContactTablePresenter
 {
     public static function attachmentsCount(): TextColumn
     {
-        return TextColumn::make('attachments_count')
+        return CountUpColumn::make('attachments_count')
             ->label(__('resources/contact/strings.fields.attachments'))
             ->getStateUsing(fn($record) => count($record->attachments ?? []))
             ->badge()

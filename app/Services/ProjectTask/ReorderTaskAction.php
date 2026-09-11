@@ -26,7 +26,7 @@ class ReorderTaskAction
             $siblings = Task::query()
                 ->inRankColumn($task->project_id, $ownerId, $status)
                 ->lockForUpdate()
-                ->orderByRaw('rank IS NULL, rank')
+                ->orderByRaw('`rank` IS NULL, `rank`')
                 ->get(['id', 'rank'])
                 ->reject(fn(Task $sibling) => $sibling->id === $task->id)
                 ->values();

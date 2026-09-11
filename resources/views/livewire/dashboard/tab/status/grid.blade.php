@@ -105,10 +105,11 @@
                         @endif
 
                         @if(($ext || $reserved) && !$obscured)
-                            <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface)]/60 text-{{ $p->color() }}-500" title="{{ $summary ? 'رزرو امروز: ' . $summary : ($reserved ? 'رزرو امروز: ' . $reserved : 'داخلی: ' . $ext) }}">
-                                <span class="material-symbols-rounded text-[12px]">domain</span>
+                            <div class="flex items-center justify-center p-1 rounded-md bg-[var(--md-sys-color-surface)]/60 text-{{ $p->color() }}-500" title="{{ $summary ? 'رزرو امروز: ' . $summary : ($reserved ? 'رزرو امروز: ' . $reserved : 'داخلی: ' . $ext) }}">
                                 @if($ext)
-                                    <span class="text-[10px] font-bold tabular-nums">{{ $ext }}</span>
+                                    <span class="text-[10px] font-bold tabular-nums leading-[15px]">{{ $ext }}</span>
+                                @else
+                                    <span class="material-symbols-rounded text-[15px] leading-none">domain</span>
                                 @endif
                             </div>
                         @endif

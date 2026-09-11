@@ -12,6 +12,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Xplodman\CountUp\Tables\Columns\CountUpColumn;
 
 class GalleryTablePresenter
 {
@@ -35,14 +36,20 @@ class GalleryTablePresenter
             ->color(fn($record) => count($record->all_departments) > 1 ? 'info' : (count($record->all_departments) === 1 ? 'warning' : 'success'))
             ->icon(fn($record) => count($record->all_departments) > 1 ? 'heroicon-o-users' : (count($record->all_departments) === 1 ? 'heroicon-o-lock-closed' : 'heroicon-o-globe-alt'))
             ->getStateUsing(function ($record) {
+                if (empty($record->all_departments)) return null;
                 $models = $record->all_department_models;
-                if ($models->isEmpty()) return null;
-                return $models->map(fn($d) => $d->displayLabel())->join(', ');
+                if ($models->isEmpty()) return __('resources/gallery/strings.fields.department_unresolved');
+                $labels = $models->map(fn($d) => $d->displayLabel());
+                if ($labels->count() > 2) {
+                    return $labels->take(2)->join('، ') . ' +' . convertToPersian($labels->count() - 2) . ' مورد دیگر';
+                }
+                return $labels->join('، ');
             })
             ->tooltip(function ($record) {
+                if (empty($record->all_departments)) return null;
                 $models = $record->all_department_models;
-                if ($models->isEmpty()) return null;
-                return $models->map(fn($d) => $d->tooltipLabel())->join(', ');
+                if ($models->isEmpty()) return __('resources/gallery/strings.fields.department_unresolved');
+                return $models->map(fn($d) => $d->tooltipLabel())->join('، ');
             })
             ->sortable(false)
             ->toggleable(isToggledHiddenByDefault: false);
@@ -107,7 +114,7 @@ class GalleryTablePresenter
 
     public static function photosCount(): TextColumn
     {
-        return TextColumn::make('photos_count')
+        return CountUpColumn::make('photos_count')
             ->label(__('resources/gallery/strings.fields.count'))
             ->getStateUsing(fn($record) => count($record->path ?? []))
             ->badge()
@@ -153,8 +160,12 @@ class GalleryTablePresenter
             ->trueLabel(__('resources/gallery/strings.filters.private'))
             ->falseLabel(__('resources/gallery/strings.filters.public'))
             ->queries(
-                true: fn(Builder $q) => $q->where(fn($sq) => $sq->whereNotNull('department_id')->orWhereNotNull('departments')),
-                false: fn(Builder $q) => $q->whereNull('department_id')->whereNull('departments'),
+                true: fn(Builder $q) => $q->where(fn($sq) => $sq
+                    ->where(fn($x) => $x->whereNotNull('department_id')->where('department_id', '!=', ''))
+                    ->orWhere(fn($y) => $y->whereNotNull('departments')->whereRaw('JSON_LENGTH(departments) > 0'))),
+                false: fn(Builder $q) => $q
+                    ->where(fn($x) => $x->whereNull('department_id')->orWhere('department_id', ''))
+                    ->where(fn($y) => $y->whereNull('departments')->orWhereRaw('JSON_LENGTH(departments) = 0')),
             );
     }
 

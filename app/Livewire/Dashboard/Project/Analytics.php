@@ -26,7 +26,7 @@ class Analytics extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.project.analytics-placeholder');
+        return view('livewire.dashboard.project.analytics.placeholder');
     }
 
     #[Computed]

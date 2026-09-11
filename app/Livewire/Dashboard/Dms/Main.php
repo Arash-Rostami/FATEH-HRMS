@@ -41,6 +41,17 @@ class Main extends Component
     public string $sort = 'updated';
     public string $sortDir = 'desc';
     public ?string $pendingFilter = null;
+    public string $dateBasis = 'updated';
+    public ?int $fromYear = null;
+    public ?int $fromMonth = null;
+    public ?int $fromDay = null;
+    public ?int $toYear = null;
+    public ?int $toMonth = null;
+    public ?int $toDay = null;
+    #[Locked]
+    public array $appliedDateParts = [];
+    #[Locked]
+    public string $appliedBasis = 'updated';
     public int $perPage = 10;
     public bool $hasMorePages = true;
     #[Locked]
@@ -209,6 +220,49 @@ class Main extends Component
         $this->resetAndReload();
     }
 
+    public function setDateBasis(string $basis): void
+    {
+        if (!in_array($basis, ['created', 'updated'], true) || $this->dateBasis === $basis) {
+            return;
+        }
+
+        $this->dateBasis = $basis;
+
+        if ($this->dateSpan() !== null && $this->appliedBasis !== $basis) {
+            $this->appliedBasis = $basis;
+            $this->resetAndReload();
+        }
+    }
+
+    public function applyDateSpan(): void
+    {
+        if (jalaliSpanFromParts($this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay) === null) {
+            $this->dispatch('toast', message: 'بازهٔ انتخاب‌شده نامعتبر است.', type: 'warning');
+            return;
+        }
+
+        $this->appliedBasis = $this->dateBasis;
+        $this->appliedDateParts = $this->dateParts();
+        $this->resetAndReload();
+    }
+
+    public function clearDateSpan(): void
+    {
+        if ($this->fromYear === null && $this->fromMonth === null && $this->fromDay === null
+            && $this->toYear === null && $this->toMonth === null && $this->toDay === null) {
+            return;
+        }
+
+        $this->fromYear = $this->fromMonth = $this->fromDay = $this->toYear = $this->toMonth = $this->toDay = null;
+        $this->appliedDateParts = $this->dateParts();
+        $this->resetAndReload();
+    }
+
+    public function dateSpanActive(): bool
+    {
+        return $this->dateSpan() !== null;
+    }
+
     public function loadInitialDocs(): void
     {
         $ids = $this->matchingDocIds();
@@ -217,9 +271,20 @@ class Main extends Component
         unset($this->docs);
     }
 
+    private function dateParts(): array
+    {
+        return [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay];
+    }
+
     public function loadMore(): void
     {
         if (!$this->hasMorePages) {
+            return;
+        }
+
+        if ($this->dateParts() !== $this->appliedDateParts) {
+            [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay] = $this->appliedDateParts;
+            $this->loadInitialDocs();
             return;
         }
 
@@ -237,6 +302,8 @@ class Main extends Component
 
     public function mount(): void
     {
+        $this->appliedDateParts = $this->dateParts();
+
         if ($this->open && DMS::visibleToUser()->whereKey($this->open)->exists()) {
             $this->docIds = [$this->open];
             $this->hasMorePages = false;
@@ -314,6 +381,10 @@ class Main extends Component
         $this->search = "";
         $this->activeFilter = "all";
         $this->pendingFilter = null;
+        $this->dateBasis = 'updated';
+        $this->fromYear = $this->fromMonth = $this->fromDay = $this->toYear = $this->toMonth = $this->toDay = null;
+        $this->appliedBasis = 'updated';
+        $this->appliedDateParts = $this->dateParts();
         $this->resetAndReload();
     }
 
@@ -394,6 +465,7 @@ class Main extends Component
                     );
                 }
             )
+            ->when($this->dateSpan(), fn($query, $span) => $query->whereBetween($span[0], [$span[1], $span[2]]))
             ->when($this->pendingFilter === 'receive', fn($query) => $query->whereNotIn('id', $this->confirmedDocs))
             ->when($this->pendingFilter === 'read', fn($query) => $query->whereIn('id', $this->confirmedDocs)->whereNotIn('id', $this->readDocs))
             ->orderByRaw($this->readPriorityExpression(), [auth()->id()])
@@ -410,6 +482,17 @@ class Main extends Component
                 LIMIT 1),
             0
         ) ASC";
+    }
+
+    private function dateSpan(): ?array
+    {
+        if (count($this->appliedDateParts) < 6) {
+            return null;
+        }
+
+        $span = jalaliSpanFromParts(...$this->appliedDateParts);
+
+        return $span === null ? null : [$this->appliedBasis === 'created' ? 'created_at' : 'updated_at', ...$span];
     }
 
     private function validSort(): array

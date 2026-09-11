@@ -46,6 +46,7 @@ Do not delete `page-transition.blade.php` or its render hook when doing dashboar
 Composed per module, not copy-pasted per module. Each takes only sizing/count props — no page-specific logic.
 
 - `bar` — a single shimmering rounded rectangle, `width`/`height` props. The atom everything else is built from.
+- `field` — a label bar + full-width input bar, stacked (`labelWidth` prop). For skeletons previewing a form grid — added 2026-09-10 after `about`/`details`' placeholders each hand-repeated the identical two-bar pair (4× and 18× respectively).
 - `avatar-row` — a circle + one or two bars, for a list row with an identity (sidebar rows, people cards).
 - `card` — a rounded rectangle with an optional inset bar-stack, for grid tiles.
 - `table-stripe` — a header bar + N body rows.

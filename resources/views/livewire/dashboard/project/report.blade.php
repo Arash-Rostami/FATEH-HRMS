@@ -6,11 +6,11 @@
 @php($anyFilter = $this->reportIsFiltered)
 @php($groupedReportRows = $projectPresenter->groupedReportRows($data['rows']))
 
-<div class="mt-4 flex flex-col gap-4" wire:key="report-{{ $activeProjectId }}" @project-report-refresh.window="$wire.refreshReport()">
-    @include('livewire.dashboard.project.report-summary', ['summary' => $summary])
-    @include('livewire.dashboard.project.report-filters', ['options' => $options])
-    @include('livewire.dashboard.project.report-scheme-progress', ['schemeProgress' => $schemeProgress])
-    @include('livewire.dashboard.project.report-attachments', ['attachments' => $attachments, 'dmsPresenter' => $dmsPresenter])
+<div class="flex flex-col gap-4" wire:key="report-{{ $activeProjectId }}" @project-report-refresh.window="$wire.refreshReport()">
+    @include('livewire.dashboard.project.report.summary', ['summary' => $summary])
+    @include('livewire.dashboard.project.report.filters', ['options' => $options])
+    @include('livewire.dashboard.project.report.scheme-progress', ['schemeProgress' => $schemeProgress])
+    @include('livewire.dashboard.project.report.attachments', ['attachments' => $attachments, 'dmsPresenter' => $dmsPresenter])
 
     <div class="relative overflow-hidden rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
         <div class="overflow-x-auto custom-scrollbar">
@@ -22,9 +22,9 @@
                         <th class="px-6 py-4 hidden lg:table-cell">دپارتمان</th>
                         <th class="px-6 py-4 hidden md:table-cell">مسئول</th>
                         <th class="px-6 py-4">وضعیت</th>
-                        @include('livewire.dashboard.project.report-sort-th', ['field' => 'priority', 'label' => 'اولویت'])
-                        @include('livewire.dashboard.project.report-sort-th', ['field' => 'deadline', 'label' => 'مهلت'])
-                        @include('livewire.dashboard.project.report-sort-th', ['field' => 'last_activity_at', 'label' => 'آخرین فعالیت'])
+                        @include('livewire.dashboard.project.report.sort-th', ['field' => 'priority', 'label' => 'اولویت'])
+                        @include('livewire.dashboard.project.report.sort-th', ['field' => 'deadline', 'label' => 'مهلت'])
+                        @include('livewire.dashboard.project.report.sort-th', ['field' => 'last_activity_at', 'label' => 'آخرین فعالیت'])
                         <th class="px-6 py-4 hidden md:table-cell">پیشرفت</th>
                         <th class="px-6 py-4 text-center">شاخص‌ها</th>
                     </tr>
@@ -116,7 +116,7 @@
                         <tr wire:key="report-detail-{{ $row['id'] }}" x-show="expanded === {{ $row['id'] }}" x-cloak x-transition class="bg-[var(--md-sys-color-surface-container-lowest)]">
                             <td colspan="10" class="p-0">
                                 <div class="px-6 py-5 ring-1 ring-inset ring-[var(--md-sys-color-primary)]/15 animate-bubble-in">
-                                    @include('livewire.dashboard.project.report-row-detail', ['row' => $row])
+                                    @include('livewire.dashboard.project.report.detail', ['row' => $row])
                                 </div>
                             </td>
                         </tr>

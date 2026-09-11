@@ -84,3 +84,7 @@ It explicitly does **not** flag `#[Computed(seconds: N, cache: true)]` with no `
 - A pin/edit on a Tier V model changes `ModelCacheVersion::key(ThatModel::class, $suffix)` and a fresh `cached*()` recomputes through the new key (assert the key differs, not that the old key is deleted — see `cachePattern.md`).
 - A parameterized Tier T cache with two different argument values produces two different keys and two different results (locks the contamination fix).
 - `php artisan optimize:clear` once post-deploy to drop orphaned literal keys (`dashboard.posts.pins`, `dashboard.posts.item.*`, `faq-categories`, `feed-categories`, `authority-global-count`, `lw_computed:*`, etc.).
+
+## Relation-ordering gotcha — `->latest('id')` appended to a pre-ordered relation never wins
+
+`HasReplies::replies()` bakes `orderBy('created_at')->orderBy('id')` (asc) into the relation itself. Any later `->latest('id')` on that relation is appended as a **third** sort key, so `first()` still returns the *earliest* row — the code reads "latest" but behaves "earliest". This silently hit three call sites (`ProjectNudge::resolveAddedIds`, `ProjectToast::resolveAddedIds`, `TaskInfolistPresenter::lastTouchedBy`; fixed 2026-09-10 by inserting `->reorder()` before `->latest('id')`). Any query that must override a relation's default orders needs `->reorder()` first; fresh `Model::query()` builders are immune.

@@ -9,7 +9,7 @@
             : 'bg-[var(--md-sys-color-surface-variant)]/40 border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-primary)]/40 hover:bg-[var(--md-sys-color-primary)]/5'"
     >
         {{-- Icon --}}
-        <span class="material-symbols-rounded text-[16px] transition-colors duration-200"
+        <span class="material-symbols-rounded text-[16px] transition-all duration-300 group-hover:rotate-12"
               :class="enabled ? 'text-[var(--md-sys-color-primary)]' : 'opacity-60 group-hover:opacity-100'">
             translate
         </span>

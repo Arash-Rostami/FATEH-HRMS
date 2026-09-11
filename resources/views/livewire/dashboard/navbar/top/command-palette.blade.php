@@ -39,7 +39,9 @@
                        @keydown.down.prevent="selectedIndex = Math.min(selectedIndex + 1, ($wire.query.length > 1 ? $wire.results.length : recentSearches.length) - 1)"
                        @keydown.up.prevent="selectedIndex = Math.max(selectedIndex - 1, 0)"
                        @keydown.enter.prevent="
-                           if ($wire.query.length > 1 && $wire.results.length > 0 && $wire.results[selectedIndex]) {
+                           if ($wire.query.length > 1 && !resultsFresh) {
+                               // debounced request still in flight, results are stale — ignore this Enter
+                           } else if ($wire.query.length > 1 && $wire.results.length > 0 && $wire.results[selectedIndex]) {
                                $wire.selectResult($wire.results[selectedIndex].action);
                            } else if ($wire.query.length <= 1 && recentSearches.length > 0 && recentSearches[selectedIndex]) {
                                selectHistoryItem(recentSearches[selectedIndex]);

@@ -58,7 +58,7 @@
 
                 <main class="flex-1 min-w-0">
 
-                    @includeWhen($panel === 'empty', 'livewire.dashboard.suggestion.placeholder')
+                    @includeWhen($panel === 'empty', 'livewire.dashboard.suggestion.empty')
 
                     @includeWhen($panel === 'create', 'livewire.dashboard.suggestion.create')
 

@@ -1,12 +1,4 @@
-<div x-data="{
-        user: null,
-        aboutMe: {},
-        resetData() { setTimeout(() => this.user = null, 300) },
-        get extraKeys() {
-                const core = ['bio','movies','music','hobbies','food','sports'];
-                return Object.keys(this.aboutMe).filter(k => !core.includes(k) && this.aboutMe[k]);
-            }
-     }"
+<div x-data="status()"
      @open-about-me.window="user = $event.detail.user; aboutMe = $event.detail.aboutMe || {}; $wire.showAboutModal = true;">
 
     <x-ui.modals.base

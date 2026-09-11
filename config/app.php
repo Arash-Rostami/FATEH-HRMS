@@ -1,6 +1,8 @@
 <?php
 
 $tenant = (require __DIR__ . '/tenants.php')[env('APP_TENANT', 'fateh')] ?? [];
+$releases = require __DIR__ . '/releases.php';
+$latestVersion = end($releases)['version'] ?? 'β';
 
 return [
 
@@ -17,30 +19,40 @@ return [
 
     'tenant' => env('APP_TENANT', 'fateh'),
 
-    'name' => env('APP_NAME', $tenant['name'] ),
-    'name_en' => env('APP_NAME_EN', $tenant['name_en'] ),
-    'company_name' => env('APP_NAME_ALT', $tenant['company_name'] ),
-    'organization_name' => env('APP_ORGANIZATION', $tenant['organization_name'] ),
-    'organization_name_en' => env('APP_ORGANIZATION_EN', $tenant['organization_name_en'] ),
-    'slogan' => env('APP_SLOGAN', $tenant['slogan'] ),
-    'slogan_en' => env('APP_SLOGAN_EN', $tenant['slogan_en']),
-    'company_logo' => env('COMPANY_LOGO', $tenant['company_logo'] ),
-    'app_logo_light' => env('APP_LOGO_LIGHT', $tenant['app_logo_light'] ),
-    'app_logo_dark' => env('APP_LOGO_DARK', $tenant['app_logo_dark'] ),
-    'admin_reverse_logo' => (bool)($tenant['admin_reverse_logo'] ?? false),
-    'user_reverse_logo' => (bool)($tenant['user_reverse_logo'] ?? false),
-    'admin_use_company_logo' => (bool)($tenant['admin_use_company_logo'] ?? false),
-    'user_use_company_logo' => (bool)($tenant['user_use_company_logo'] ?? false),
-    'favicon' => env('APP_FAVICON', $tenant['favicon']),
-    'background_image' => env('APP_BACKGROUND_IMAGE', $tenant['background_image'] ),
-    'admin_background_image' => $tenant['admin_background_image'],
+    'name' => env('APP_NAME', $tenant['app']['name'] ),
+    'name_en' => env('APP_NAME_EN', $tenant['app']['name_en'] ),
+    'company_name' => env('APP_NAME_ALT', $tenant['app']['alt_name'] ),
+    'organization_name' => env('APP_ORGANIZATION', $tenant['company']['name'] ),
+    'organization_name_en' => env('APP_ORGANIZATION_EN', $tenant['company']['name_en'] ),
+    'slogan' => env('APP_SLOGAN', $tenant['app']['slogan'] ),
+    'slogan_en' => env('APP_SLOGAN_EN', $tenant['app']['slogan_en']),
+    'company_logo' => env('COMPANY_LOGO', $tenant['company']['logo'] ),
+    'app_logo_light' => env('APP_LOGO_LIGHT', $tenant['app']['logo_light'] ),
+    'app_logo_dark' => env('APP_LOGO_DARK', $tenant['app']['logo_dark'] ),
+    'admin_reverse_logo' => (bool)($tenant['logo_display']['admin_reverse'] ?? false),
+    'user_reverse_logo' => (bool)($tenant['logo_display']['user_reverse'] ?? false),
+    'admin_auth_reverse_logo' => (bool)($tenant['logo_display']['admin_auth_reverse'] ?? false),
+    'user_auth_reverse_logo' => (bool)($tenant['logo_display']['user_auth_reverse'] ?? false),
+    'admin_use_company_logo' => (bool)($tenant['logo_display']['admin_use_company'] ?? false),
+    'user_use_company_logo' => (bool)($tenant['logo_display']['user_use_company'] ?? false),
+    'ai_assistant_access' => env('AI_ASSISTANT_ACCESS', $tenant['ai_assistant']['access'] ?? false),
+    'ai_assistant_lang' => env('AI_ASSISTANT_LANG', $tenant['ai_assistant']['lang'] ?? 'fa'),
+    'favicon' => env('APP_FAVICON', $tenant['app']['favicon']),
+    'background_image' => env('APP_BACKGROUND_IMAGE', $tenant['background']['user'] ),
+    'admin_background_image' => $tenant['background']['admin'],
     'videos' => $tenant['videos'] ?? [],
-    'instagram' => env('APP_INSTAGRAM', $tenant['instagram'] ?? null),
-    'linkedin' => env('APP_LINKEDIN', $tenant['linkedin'] ?? null),
-    'version' => env('APP_VERSION', 'β'),
+    'backdrop' => $tenant['backdrop'] ?? [
+        'images' => [], 'mode' => 'time', 'opacity' => 0.85,
+        'blur' => 0, 'brightness' => 1, 'contrast' => 1, 'grayscale' => 0, 'width' => '100%',
+    ],
+    'instagram' => env('APP_INSTAGRAM', $tenant['company']['social']['instagram'] ?? null),
+    'linkedin' => env('APP_LINKEDIN', $tenant['company']['social']['linkedin'] ?? null),
+    'version' => env('APP_VERSION', $latestVersion),
     'developer' => env('DEVELOPER', 'Arash R.'),
+    'owner' => env('OWNER', 'PBS'),
     'last_update' => env('APP_UPDATE', now()),
 
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
     'cache_ttl' => (int) env('APP_CACHE_TTL', 300),
 
     'support' => [

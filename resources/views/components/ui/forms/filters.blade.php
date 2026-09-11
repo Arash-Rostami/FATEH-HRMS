@@ -18,7 +18,7 @@
                 x-show="isDocked"
                 x-transition:enter="animate-pop"
                 x-transition:leave="animate-fade-out"
-                class="fixed bottom-24 left-6 md:bottom-10 md:left-10 z-50 group flex items-center justify-center"
+                class="fixed bottom-24 left-6 md:bottom-10 md:left-13 z-50 group flex items-center justify-center"
                 x-cloak
             >
                 <button

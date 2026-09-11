@@ -22,7 +22,7 @@
 
                     <div class="absolute top-0 inset-x-0 h-[5px] bg-gradient-to-r from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-tertiary)] to-[var(--md-sys-color-primary)] z-30 transform origin-left scale-x-100 transition-transform duration-500"></div>
 
-                    <div class="relative h-52 lg:h-60 xl:h-64 w-full overflow-hidden shrink-0 border-b border-[var(--md-sys-color-outline-variant)]/30">
+                    <div class="relative flex-1 min-h-52 lg:min-h-60 xl:min-h-64 w-full overflow-hidden border-b border-[var(--md-sys-color-outline-variant)]/30">
                         <img src="{{ $pin->image_url }}"
                              alt="{{ superClean($pin->title, 200) }}"
                              class="w-full h-full object-cover transition-transform duration-700 ease-[var(--theme-transition-easing)] group-hover:scale-105">
@@ -32,7 +32,7 @@
                         </div>
                     </div>
 
-                    <div class="p-6 lg:p-8 flex flex-col flex-grow gap-3 transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] bg-gradient-to-b from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-primary)] to-[var(--md-sys-color-on-primary-container)] group-hover:from-[var(--md-sys-color-primary-container)] group-hover:via-[var(--md-sys-color-primary-container)] group-hover:to-[var(--md-sys-color-primary-container)]">
+                    <div class="p-6 lg:p-8 flex flex-col gap-3 transition-colors duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-easing)] bg-gradient-to-b from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-primary)] to-[var(--md-sys-color-on-primary-container)] group-hover:from-[var(--md-sys-color-primary-container)] group-hover:via-[var(--md-sys-color-primary-container)] group-hover:to-[var(--md-sys-color-primary-container)]">
 
                         <h2 class="text-2xl lg:text-3xl font-bold leading-tight text-[var(--md-sys-color-on-primary)] transition-colors duration-300 group-hover:text-[var(--md-sys-color-on-primary-container)]">
                             {{ superClean($pin->title, 100) }}

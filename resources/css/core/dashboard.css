@@ -1154,8 +1154,9 @@
 
 .focus-chip {
     position: fixed;
-    top: calc(8.5rem + 0.75rem);
-    left: 1.25rem;
+    top: 9rem;
+    left: calc(var(--dock-w, 0px) / 2 + 50%);
+    transform: translateX(-50%);
     z-index: 60;
     display: inline-flex;
     align-items: center;
@@ -1871,7 +1872,103 @@
     padding: 1.75rem 0.5rem 0.5rem;
     scrollbar-width: thin;
     align-items: flex-start;
+    cursor: grab;
 }
+
+.orgc-depts.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.orgc-stage {
+    position: relative;
+    cursor: grab;
+}
+
+.orgc-stage.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.orgc-cursor-hint {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(14px, 14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.5rem;
+    background: var(--md-sys-color-primary-container);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+    color: var(--md-sys-color-on-primary-container);
+    cursor: pointer;
+    z-index: 50;
+    transition: transform var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+.orgc-cursor-hint:hover {
+    transform: translate(14px, 14px) scale(1.08);
+}
+
+.orgc-cursor-hint .material-symbols-rounded {
+    font-size: 17px;
+}
+
+.orgc-compass {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(3, 1.7rem);
+    grid-template-rows: repeat(3, 1.7rem);
+    background: var(--md-sys-color-surface-container-high);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 9999px;
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .orgc-compass {
+        grid-template-columns: repeat(3, 2.1rem);
+        grid-template-rows: repeat(3, 2.1rem);
+    }
+}
+
+.orgc-compass-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-easing), color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+.orgc-compass-btn:hover {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.orgc-compass-btn .material-symbols-rounded {
+    font-size: 15px;
+}
+
+@media (min-width: 768px) {
+    .orgc-compass-btn .material-symbols-rounded {
+        font-size: 18px;
+    }
+}
+
+.orgc-compass-btn--up { grid-column: 2; grid-row: 1; }
+.orgc-compass-btn--left { grid-column: 1; grid-row: 2; }
+.orgc-compass-btn--center { grid-column: 2; grid-row: 2; background: var(--md-sys-color-surface-container-highest); }
+.orgc-compass-btn--right { grid-column: 3; grid-row: 2; }
+.orgc-compass-btn--down { grid-column: 2; grid-row: 3; }
 
 .orgc-depts--bus {
     border-top: 2px solid var(--md-sys-color-outline-variant);

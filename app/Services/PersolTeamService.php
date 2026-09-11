@@ -16,18 +16,27 @@ class PersolTeamService
 
         $query->where('status', 'active');
 
+        if ($viewer->isTopExecutive()) {
+            $query->whereHas('profile', fn(Builder $q) => $q->whereIn(
+                'position',
+                array_keys(array_filter(User::RANKS, fn(int $r) => $r <= User::RANKS['manager']))
+            ));
+            return;
+        }
 
         $viewerProfile = $viewer->profile;
         $viewerDepartment = $viewerProfile->department_id;
         $isManager = $viewer->isDeptHead();
 
-        $rulesApplied = match ($viewerDepartment) {
-            'MA' => $this->applyMARules($query, $viewerProfile),
-            'MK' => $this->applyMKRules($query, $viewerDepartment, $isManager),
-            'HC', 'HR' => $this->applyHCRules($query, $viewerDepartment, $isManager),
-            'CP' => $this->applyCPRules($query, $viewer),
-            default => $this->applyDefaultRules($query, $viewerDepartment, $isManager),
-        };
+        $rulesApplied = config('app.tenant') === 'persol'
+            ? match ($viewerDepartment) {
+                'MA' => $this->applyMARules($query, $viewerProfile),
+                'MK' => $this->applyMKRules($query, $viewerDepartment, $isManager),
+                'HC', 'HR' => $this->applyHCRules($query, $viewerDepartment, $isManager),
+                'CP' => $this->applyCPRules($query, $viewer),
+                default => $this->applyDefaultRules($query, $viewerDepartment, $isManager),
+            }
+            : $this->applyDefaultRules($query, $viewerDepartment, $isManager);
 
         if (!$rulesApplied) {
             $query->whereRaw('1 = 0');

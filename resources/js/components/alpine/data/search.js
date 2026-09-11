@@ -6,6 +6,7 @@ export default function search() {
         open: false,
         selectedIndex: 0,
         recentSearches: [],
+        resultsFresh: true,
 
         init() {
             try {
@@ -22,6 +23,9 @@ export default function search() {
                 const item = data?.item ?? (Array.isArray(data) ? data[0]?.item : null);
                 if (item) this.addToHistory(item);
             });
+
+            this.$watch('$wire.query', () => this.resultsFresh = false);
+            this.$watch('$wire.results', () => this.resultsFresh = true);
         },
 
         toggle() {

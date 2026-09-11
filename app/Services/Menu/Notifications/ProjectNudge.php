@@ -66,6 +66,7 @@ class ProjectNudge implements MenuNudge
     {
         $latestReply = $project->replies()
             ->where('type', TaskActivityType::Assignment)
+            ->reorder()
             ->latest('id')
             ->first();
 

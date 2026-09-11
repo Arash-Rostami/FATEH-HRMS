@@ -1,9 +1,5 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] flex flex-col gap-4"
-     x-data="{
-        view: @js($view),
-        collapsed: {},
-        toggleDept(code) { this.collapsed[code] = !this.collapsed[code] }
-     }"
+     x-data="status(@js($view))"
      wire:ignore.self>
 
     <div dir="rtl">

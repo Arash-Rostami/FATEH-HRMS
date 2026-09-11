@@ -7,10 +7,18 @@ use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\User;
+use App\Services\ProjectTask\TasksheetShareService;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Grouping\Group;
+use Filament\Support\Enums\Width;
+use Illuminate\Database\Eloquent\Model;
 
 class UserTablePresenter
 {
@@ -187,5 +195,87 @@ class UserTablePresenter
         return SelectFilter::make('type')
             ->label(__('resources/user/strings.table.filter_type'))
             ->options(UserType::class);
+    }
+
+    public static function shareTasksheet(): Action
+    {
+        return Action::make('shareTasksheet')
+            ->label('اشتراک‌گذاری تسک‌شیت')
+            ->icon('heroicon-o-share')
+            ->iconButton()
+            ->modalWidth(Width::Small)
+            ->modalSubmitActionLabel('ارسال')
+            ->form(function (?Model $record) {
+                $boss = ($dept = $record?->profile?->department_id)
+                    ? User::highestRankingInDepartment($dept)
+                    : null;
+
+                return [
+                    Radio::make('target')
+                        ->label('گیرنده')
+                        ->options([
+                            'boss' => $boss && $boss->id === $record->id
+                                ? 'مدیر این کاربر (خودتان هستید — «کاربر دیگر» را انتخاب کنید)'
+                                : 'مدیر این کاربر',
+                            'other' => 'کاربر دیگر',
+                        ])
+                        ->default('boss')
+                        ->live()
+                        ->columnSpanFull(),
+                    Select::make('recipient')
+                        ->label('کاربر')
+                        ->options(fn () => User::getCachedActiveOptions()
+                            ->except($record?->id ?? 0)
+                            ->except($boss?->id ?? 0)
+                            ->all())
+                        ->visible(fn (Get $get) => $get('target') === 'other')
+                        ->searchable()
+                        ->preload()
+                        ->required(),
+                ];
+            })
+            ->action(function (User $record, array $data) {
+                if (($data['target'] ?? 'boss') === 'boss') {
+                    $dept = $record->profile?->department_id;
+                    $recipient = $dept ? User::highestRankingInDepartment($dept) : null;
+
+                    if (!$recipient) {
+                        Notification::make()
+                            ->title('مدیری برای این کاربر شناسایی نشد؛ «کاربر دیگر» را انتخاب کنید.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    if ($recipient->is($record)) {
+                        Notification::make()
+                            ->title('خودتان بالاترین رتبهٔ بخش هستید؛ گیرندهٔ دیگری انتخاب کنید.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+                } else {
+                    $recipient = User::visibleOnBoard()->find($data['recipient'] ?? 0);
+
+                    if (!$recipient) {
+                        Notification::make()
+                            ->title('گیرندهٔ انتخاب‌شده معتبر نیست.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+                }
+
+                $result = app(TasksheetShareService::class)
+                    ->shareWithManager($record, $recipient, requestedBy: auth()->user());
+
+                Notification::make()
+                    ->title($result['message'])
+                    ->{$result['success'] ? 'success' : 'warning'}()
+                    ->send();
+            });
     }
 }

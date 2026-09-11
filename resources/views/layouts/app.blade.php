@@ -7,6 +7,12 @@
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
     <x-dashboard.meta-tags/>
     <x-dashboard.module-chunks/>
+    @php
+        $backdrop = array_merge(config('app.backdrop'), [
+            'images' => array_map('asset', config('app.backdrop.images')),
+        ]);
+    @endphp
+    <script>window.__tenantBackdrop = @json($backdrop);</script>
 
     @php
         $moduleChunk = match(request()->route()?->getName()) {
@@ -51,7 +57,6 @@
         @yield('content')
     @endisset
 </div>
-
 
 
 @unless(View::hasSection('minimal_layout'))

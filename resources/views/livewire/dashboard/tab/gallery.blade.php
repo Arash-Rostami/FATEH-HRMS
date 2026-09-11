@@ -1,7 +1,9 @@
-<div
+<x-ui.scroll-panel
     x-data="gallery()"
     ax-load="visible"
-    class="animate-fade relative w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] h-screen overflow-hidden flex flex-col gap-6"
+    class="animate-fade"
+    max-height="max-h-[calc(100svh-10rem)]"
+    gap="gap-0"
     dir="rtl"
 >
 
@@ -54,11 +56,12 @@
     @include('components.dashboard.header.focus-chip')
 
 
-    <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0">
+    <div x-show="view === 'filmstrip'" x-cloak class="flex-1 min-h-0 relative">
+        <x-ui.buttons.rail-arrows />
         @include('livewire.dashboard.tab.gallery.timeline')
     </div>
 
     <div x-show="view === 'wall'" x-cloak class="flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-6">
         @include('livewire.dashboard.tab.gallery.wall')
     </div>
-</div>
+</x-ui.scroll-panel>

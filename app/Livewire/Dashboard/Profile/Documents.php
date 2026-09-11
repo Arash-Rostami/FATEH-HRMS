@@ -26,7 +26,7 @@ class Documents extends Component
 
     public function placeholder(): View
     {
-        return view('livewire.dashboard.profile.documents-placeholder');
+        return view('livewire.dashboard.profile.documents.placeholder');
     }
 
     #[On('confirm-upload-documents')]

@@ -8,6 +8,11 @@ use App\Services\Menu\Contracts\MenuNudge;
 
 class PostNudge implements MenuNudge
 {
+    public function badgeSuppressesCreate(): bool
+    {
+        return false;
+    }
+
     public function body($subject, User $user): string
     {
         return 'یک اطلاعیه جدید منتشر شده است؛ لطفاً آن را مطالعه کنید.';

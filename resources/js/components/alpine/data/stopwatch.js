@@ -35,6 +35,8 @@ export default function stopwatch(mp3) {
                     if (this.timer.seconds === 0) {
                         this.timer.running = false;
                         this.armedUntil = null;
+                        this.open = true;
+                        this.minimized = false;
                         this.startAlarmLoop();
                         this.saveState();
                     }
@@ -55,6 +57,8 @@ export default function stopwatch(mp3) {
                     this.timer.seconds = 0;
                     this.timer.running = false;
                     this.armedUntil = null;
+                    this.open = true;
+                    this.minimized = false;
                     this.startAlarmLoop();
                     this.saveState();
                 } else {
@@ -95,6 +99,8 @@ export default function stopwatch(mp3) {
             if (seconds === 0) {
                 this.timer.running = false;
                 this.armedUntil = null;
+                this.open = true;
+                this.minimized = false;
                 this.startAlarmLoop();
             } else {
                 this.timer.running = true;
