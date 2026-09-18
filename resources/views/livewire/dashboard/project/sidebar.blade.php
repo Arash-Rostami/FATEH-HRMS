@@ -13,8 +13,8 @@
                     <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]">فضای‌کاری تیمی</p>
                 </div>
                 @if(count($this->pendingInviteProjects))
-                    <span class="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold tabular-nums bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]" title="دعوت‌های در انتظار">
-                        {{ count($this->pendingInviteProjects) }}
+                    <span class="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]" title="دعوت‌های در انتظار">
+                        {{ convertToPersian(count($this->pendingInviteProjects)) }}
                     </span>
                 @endif
             </div>
@@ -30,18 +30,10 @@
             </div>
         </div>
 
-        <div class="relative mt-3" wire:ignore.self>
-            <span class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">search</span>
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="جستجوی پروژه..."
-                   aria-label="جستجوی پروژه"
-                   class="md3-input w-full rounded-xl text-sm outline-none focus:ring-2 pr-9 pl-9 h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 placeholder-transparent"
-                   autocomplete="off" spellcheck="false"/>
-            @if($search !== '')
-                <button type="button" title="حذف" aria-label="حذف" wire:click="$set('search', '')"
-                        class="absolute inset-y-0 left-0 pl-3 flex items-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
-                    <span class="material-symbols-rounded text-[18px]">close</span>
-                </button>
-            @endif
+        <div class="mt-3">
+            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+                                     placeholder="جستجوی پروژه..." aria-label="جستجوی پروژه" overlay-title="جستجوی پروژه"
+                                     show-label />
         </div>
     </div>
 
@@ -62,7 +54,7 @@
                         'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeProjectId !== $project['id'],
                     ])>
 
-                <x-ui.row-actions :id="$project['id']" scope="project" pin-noun="پروژه" mute-noun="پروژه"/>
+                <x-ui.row-actions :id="$project['id']" scope="project" pin-noun="پروژه" mute-noun="پروژه" :for="\App\Models\Project::make(['id' => $project['id']])"/>
 
                 <span class="relative flex-shrink-0">
                     <span @class([

@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/core/filament.js',
 
                 'resources/js/core/theme-manager.js',
+                'resources/js/core/tooltip.js',
                 'resources/js/core/filament.js',
                 'resources/js/core/topbar-autohide.js',
                 'resources/js/core/nav-dock.js',

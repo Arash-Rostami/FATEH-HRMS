@@ -45,8 +45,18 @@
                 </span>
                 <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <span class="truncate font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]">
-                {{ toJalaliRelative($this->activeContact->last_seen) ?: 'نامشخص' }}
+            <span class="font-medium inline-flex items-center gap-1.5 min-w-0 {{ $this->peerTyping ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
+                  data-typing="{{ $this->peerTyping ? '1' : '0' }}">
+                @if($this->peerTyping)
+                    <span class="truncate">در حال نوشتن</span>
+                    <span class="inline-flex items-center gap-0.5 shrink-0">
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-1"></span>
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-2"></span>
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-3"></span>
+                    </span>
+                @else
+                    <span class="truncate">{{ toJalaliRelative($this->activeContact->last_seen) ?: 'نامشخص' }}</span>
+                @endif
             </span>
         </div>
         @include('livewire.dashboard.messaging.search', ['placeholder' => 'جستجو در پیام‌های این گفتگو...', 'overlayTitle' => 'جستجو در پیام‌های گفتگو'])

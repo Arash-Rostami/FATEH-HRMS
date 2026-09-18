@@ -7,7 +7,7 @@ use Livewire\Attributes\Validate;
 
 class MessageComposerForm extends Form
 {
-    #[Validate('required_without:attachments|string|max:2000')]
+    #[Validate('required_without:attachments|string|max:2000', onUpdate: false)]
     public string $body = '';
 
     #[Validate([

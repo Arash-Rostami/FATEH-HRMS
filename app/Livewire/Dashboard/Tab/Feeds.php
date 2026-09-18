@@ -12,6 +12,7 @@ use App\Livewire\Dashboard\Tab\Forms\CommentForm;
 use App\Livewire\Dashboard\Tab\Presentation\FeedPresenter;
 use App\Models\Comment;
 use App\Models\Feed;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -125,8 +126,9 @@ class Feeds extends Component
             $this->feedIds = $query->pluck('id')->toArray();
             $this->hasMorePages = false;
         } else {
-            $this->feedIds = $query->take($this->perPage)->pluck('id')->toArray();
-            $this->hasMorePages = count($this->feedIds) >= $this->perPage;
+            $ids = $query->take($this->perPage + 1)->pluck('id')->toArray();
+            $this->hasMorePages = count($ids) > $this->perPage;
+            $this->feedIds = array_slice($ids, 0, $this->perPage);
         }
 
         $this->selectedFeedId = $this->feedIds[0] ?? null;
@@ -140,9 +142,12 @@ class Feeds extends Component
 
         $newIds = $this->baseQuery()->latest()
             ->skip(count($this->feedIds))
-            ->take($this->perPage)
+            ->take($this->perPage + 1)
             ->pluck('id')
             ->toArray();
+
+        $this->hasMorePages = count($newIds) > $this->perPage;
+        $newIds = array_slice($newIds, 0, $this->perPage);
 
         if (empty($newIds)) {
             $this->hasMorePages = false;
@@ -250,7 +255,7 @@ class Feeds extends Component
     #[Computed]
     public function totalFeeds(): int
     {
-        return Feed::count();
+        return ModelCacheVersion::remember(Feed::class, 'total_count', now()->addMinutes(15), fn () => Feed::count());
     }
 
     public function updateComment(UpdateCommentAction $action): void

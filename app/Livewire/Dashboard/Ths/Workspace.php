@@ -71,8 +71,9 @@ class Workspace extends Component
         }
 
         return User::whereHas('profile', fn($q) => $q->where('department_id', $target))
+            ->with('profile')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'presence']);
     }
 
     public function postReply(SubmitTicketReplyAction $action): void
@@ -112,7 +113,7 @@ class Workspace extends Component
         $this->dispatch('toast', message: 'اثربخشی ثبت شد.', type: 'success');
     }
 
-    public function closeTicket(): void
+    public function closeTicket(AssignTicketAction $action): void
     {
         abort_unless(TicketAccessPolicy::canClose($this->ticket, auth()->user()), 403);
 
@@ -122,6 +123,7 @@ class Workspace extends Component
         }
 
         $this->ticket->update(['status' => 'closed']);
+        $action->markLinkedTaskDone($this->ticket);
 
         unset($this->ticket);
         $this->dispatch('toast', message: 'تیکت با موفقیت بسته شد.', type: 'success');

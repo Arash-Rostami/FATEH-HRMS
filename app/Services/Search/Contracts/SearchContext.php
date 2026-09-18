@@ -9,13 +9,14 @@ final class SearchContext
     public function __construct(
         public readonly string $query,
         public readonly array $tokens,
+        public readonly bool $allHistory = false,
     ) {}
 
     /**
      * Normalize + tokenize a raw query.
      * Returns null when the query is too short / empty to search.
      */
-    public static function for(string $query): ?self
+    public static function for(string $query, bool $allHistory = false): ?self
     {
         $query = self::normalize($query);
 
@@ -32,7 +33,7 @@ final class SearchContext
             return null;
         }
 
-        return new self($query, $tokens);
+        return new self($query, $tokens, $allHistory);
     }
 
     /** Lowercase, fold Persian ي/ك, and collapse whitespace. */

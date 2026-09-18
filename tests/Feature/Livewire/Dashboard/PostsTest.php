@@ -5,6 +5,7 @@ namespace Tests\Feature\Livewire\Dashboard;
 use App\Livewire\Dashboard\Tab\Posts;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -113,7 +114,7 @@ class PostsTest extends TestCase
         $newer->created_at = now()->subSecond();
         $newer->save();
         $older = Post::factory()->notPinned()->create();
-        $older->created_at = now()->subSeconds(2);
+        $older->created_at = now()->subSeconds(60);
         $older->save();
 
         Livewire::withoutLazyLoading();
@@ -147,6 +148,56 @@ class PostsTest extends TestCase
             ->assertSet('page', 1)
             ->call('loadMore')
             ->assertSet('page', 2);
+    }
+
+    public function test_has_more_posts_is_true_and_the_load_more_button_renders_while_posts_remain(): void
+    {
+        Post::factory()->count(4)->notPinned()->create();
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class);
+
+        $this->assertTrue($component->instance()->hasMorePosts);
+        $this->assertStringContainsString('$wire.loadMore', $component->html());
+
+        $component->call('toggleView', 'list');
+        $this->assertStringContainsString('$wire.loadMore', $component->html());
+    }
+
+    public function test_has_more_posts_flips_false_and_the_button_disappears_once_every_post_fits_the_page(): void
+    {
+        Post::factory()->count(2)->notPinned()->create();
+        $total = Post::notPinned()->count();
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class);
+        while ($component->get('page') * 3 < $total) {
+            $component->call('loadMore');
+        }
+
+        $this->assertFalse($component->instance()->hasMorePosts);
+        $this->assertStringNotContainsString('$wire.loadMore', $component->html());
+
+        $component->call('toggleView', 'list');
+        $this->assertStringNotContainsString('$wire.loadMore', $component->html());
+    }
+
+    public function test_total_posts_and_non_pinned_count_are_cached_under_model_cache_version_keys(): void
+    {
+        Post::factory()->count(4)->notPinned()->create();
+
+        Livewire::withoutLazyLoading();
+        $component = Livewire::test(Posts::class);
+        $component->instance()->totalPosts;
+        $component->instance()->hasMorePosts;
+
+        $this->assertTrue(Cache::has(ModelCacheVersion::key(Post::class, 'total_count')));
+        $nonPinnedKey = ModelCacheVersion::key(Post::class, 'non_pinned_count');
+        $this->assertTrue(Cache::has($nonPinnedKey));
+
+        Post::factory()->notPinned()->create();
+
+        $this->assertNotSame($nonPinnedKey, ModelCacheVersion::key(Post::class, 'non_pinned_count'), 'a post write must bump the version and orphan the cached non-pinned count');
     }
 
     public function test_total_posts_returns_count_of_all_posts()

@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
@@ -165,11 +164,6 @@ class Department extends Model
     {
         $units = $this->units ?? [];
         return array_combine($units, $units);
-    }
-
-    public function user(): HasOneThrough
-    {
-        return $this->hasOneThrough(User::class, Profile::class, 'department_id', 'id', 'code');
     }
 
     public function users(): HasManyThrough

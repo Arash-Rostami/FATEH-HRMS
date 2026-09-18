@@ -369,6 +369,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'posts' => count($this->postsData),
             'profiles' => count($this->profilesData),
             'projects' => count($this->projectsData),
+            'reminders' => count($this->remindersData),
             'support' => count($this->releaseRequestsData),
             'reservation_policies' => count($this->reservationPoliciesData),
             'reservations' => count($this->reservationsData),
@@ -410,6 +411,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'resources' => ['icon' => 'heroicon-o-archive-box', 'label' => __('resources/resource/strings.plural_label')],
             'reservation_policies' => ['icon' => 'heroicon-o-adjustments-horizontal', 'label' => __('resources/policy/strings.plural_label')],
             'skills' => ['icon' => 'heroicon-o-sparkles', 'label' => __('resources/skill/strings.plural_label')],
+            'reminders' => ['icon' => 'heroicon-o-bell-alert', 'label' => __('resources/reminder/strings.plural_label')],
             'support' => ['icon' => 'heroicon-o-lifebuoy', 'label' => __('resources/release_request/strings.plural_label')],
             'permissions' => ['icon' => 'heroicon-o-shield-check', 'label' => __('resources/permission/strings.plural_label')],
             'projects' => ['icon' => 'heroicon-o-rectangle-stack', 'label' => __('resources/project/strings.plural_label')],
@@ -596,6 +598,32 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     }
 
     #[Computed(seconds: 300, cache: true)]
+    public function remindersData(): array
+    {
+        $stats = DB::table('reminders')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN completed_at IS NULL THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN completed_at IS NULL AND due_at < NOW() THEN 1 ELSE 0 END) as overdue,
+            SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed
+        ")->first();
+
+        return [
+            Stat::make(__('resources/reminder/strings.plural_label'), $stats->total ?? 0)
+                ->icon('heroicon-o-bell-alert')
+                ->color('primary'),
+            Stat::make(__('resources/dashboard/strings.analytics.reminders.active'), $stats->active ?? 0)
+                ->icon('heroicon-o-clock')
+                ->color('info'),
+            Stat::make(__('resources/dashboard/strings.analytics.reminders.overdue'), $stats->overdue ?? 0)
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color('danger'),
+            Stat::make(__('resources/dashboard/strings.analytics.reminders.completed'), $stats->completed ?? 0)
+                ->icon('heroicon-o-check-circle')
+                ->color('success'),
+        ];
+    }
+
+    #[Computed(seconds: 300, cache: true)]
     public function reportsData(): array
     {
         $stats = DB::table('reports')
@@ -758,6 +786,7 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             'posts' => $this->postsData,
             'profiles' => $this->profilesData,
             'projects' => $this->projectsData,
+            'reminders' => $this->remindersData,
             'support' => $this->releaseRequestsData,
             'reservation_policies' => $this->reservationPoliciesData,
             'reservations' => $this->reservationsData,

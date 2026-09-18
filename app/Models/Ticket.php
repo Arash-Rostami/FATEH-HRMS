@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TicketError;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPublicAssetUrl;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
 use App\Models\Concerns\HasTicketCountHelpers;
 use App\Models\Concerns\HasTicketOptions;
@@ -24,7 +25,8 @@ class Ticket extends Model
         HasReplies,
         HasTicketCountHelpers,
         HasTicketOptions,
-        CleansAttachedFiles;
+        CleansAttachedFiles,
+        HasReminders;
 
     public const MENU_STATE_EVENTS = ['created', 'updated', 'deleted'];
 
@@ -228,5 +230,90 @@ class Ticket extends Model
     protected function targetDepartmentId(): Attribute
     {
         return Attribute::make(get: fn(): ?string => $this->extra['target_department'] ?? null);
+    }
+
+    protected function urgencyState(): Attribute
+    {
+        return Attribute::make(get: fn() => $this->calculateUrgencyState());
+    }
+
+    protected function calculateUrgencyState(): array
+    {
+        if ($this->status === 'closed') {
+            return ['score' => 0.0, 'kind' => null, 'label' => null];
+        }
+
+        $today = now()->startOfDay();
+        $urgency = ['score' => 0.0, 'kind' => null, 'label' => null];
+
+        $urgency = $this->applyDeadlineUrgency($urgency, $today);
+        $urgency = $this->applyPriorityFloor($urgency);
+        $urgency = $this->applyIdleUrgency($urgency, $today);
+
+        $urgency['score'] = round($urgency['score'], 2);
+
+        return $urgency;
+    }
+
+    protected function applyDeadlineUrgency(array $urgency, $today): array
+    {
+        if (!$this->completion_deadline) {
+            return $urgency;
+        }
+
+        $due = clone $this->completion_deadline;
+        $due = $due->startOfDay();
+        $daysDiff = (int)$due->diffInDays($today, true);
+
+        if ($due->isBefore($today)) {
+            return ['score' => 1.0, 'kind' => 'overdue', 'label' => $daysDiff . ' روز تأخیر'];
+        }
+
+        if ($daysDiff <= 3) {
+            $label = match ($daysDiff) {
+                0 => 'امروز',
+                1 => 'فردا',
+                default => $daysDiff . ' روز دیگر',
+            };
+
+            return ['score' => 0.7, 'kind' => 'due', 'label' => $label];
+        }
+
+        return $urgency;
+    }
+
+    protected function applyPriorityFloor(array $urgency): array
+    {
+        $floor = match ($this->priority) {
+            'high' => 0.55,
+            default => 0.0,
+        };
+
+        $urgency['score'] = max($urgency['score'], $floor);
+
+        return $urgency;
+    }
+
+    protected function applyIdleUrgency(array $urgency, $today): array
+    {
+        if (!$this->updated_at) {
+            return $urgency;
+        }
+
+        $updatedAt = clone $this->updated_at;
+        $idleDays = (int)$updatedAt->startOfDay()->diffInDays($today, true);
+
+        if ($idleDays >= 7) {
+            $urgency['score'] = max($urgency['score'], 0.45);
+        } elseif ($idleDays >= 3) {
+            $urgency['score'] = max($urgency['score'], 0.22);
+        } else {
+            return $urgency;
+        }
+
+        $urgency['kind'] ??= 'idle';
+        $urgency['label'] ??= 'چند روز بی‌تغیر';
+
+        return $urgency;
     }
 }

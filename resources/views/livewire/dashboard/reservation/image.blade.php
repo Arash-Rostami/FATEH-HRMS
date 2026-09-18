@@ -77,7 +77,7 @@
 
         <div class="mt-auto w-full">
             @if($blocked)
-                <div class="flex items-center gap-1.5 mb-2 px-1">
+                <div wire:key="reservation-booking-blocked" class="flex items-center gap-1.5 mb-2 px-1">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-error)]">block</span>
                     <span class="text-[11px] font-semibold text-[var(--md-sys-color-error)] leading-tight">{{ $this->bookingBlockReason }}</span>
                 </div>

@@ -1,5 +1,5 @@
 @if($this->externalLinks->isNotEmpty())
-    <section class="relative group/section" x-data="{
+    <section wire:key="links-external" class="relative group/section" x-data="{
             hasOverflow: false,
             checkScroll() {
                 const el = this.$refs.container;
@@ -122,8 +122,12 @@
     </section>
 @else
     @if($search !== '' || $activeFilter !== 'all')
-        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        <div wire:key="links-external-empty-filtered" class="mt-6">
+            <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        </div>
     @else
-        <x-ui.empty icon="public_off" title="هیچ سامانه خارجی تعریف نشده" description="سامانه‌های اینترنتی توسط مدیر تعریف می‌شوند." variant="list" />
+        <div wire:key="links-external-empty" class="mt-6">
+            <x-ui.empty icon="public_off" title="هیچ سامانه خارجی تعریف نشده" description="سامانه‌های اینترنتی توسط مدیر تعریف می‌شوند." variant="list" />
+        </div>
     @endif
 @endif

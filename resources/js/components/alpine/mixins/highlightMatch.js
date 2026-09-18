@@ -17,7 +17,7 @@ export default function highlightMatchMixin() {
                 return this._cachedRegex;
             }
             this._cachedNeedle = needle;
-            this._cachedRegex = new RegExp(`(${escapeRegex(needle)})`, 'gi');
+            this._cachedRegex = new RegExp(`(${needle.trim().split(/\s+/).map(escapeRegex).join('|')})`, 'gi');
             return this._cachedRegex;
         },
 

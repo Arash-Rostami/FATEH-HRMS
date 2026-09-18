@@ -897,6 +897,14 @@
         @apply !py-0
     }
 
+    .app-density-compact .reservation-command-table tbody td {
+        @apply !py-0
+    }
+
+    .app-density-compact .reservation-command-table .reservation-action-cluster {
+        @apply !top-px;
+    }
+
     .app-density-compact .taskboard-card {
         @apply !gap-2 !p-2.5 !pt-5;
     }
@@ -1782,7 +1790,8 @@
 
 .mention {
     font-weight: 700;
-    background: color-mix(in srgb, currentColor 18%, transparent);
+    color: var(--md-sys-color-surface);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 85%, transparent);
     padding: 0.05em 0.3em;
     border-radius: 0.35em;
 }
@@ -1794,7 +1803,7 @@
     font-size: 10px;
     font-weight: 700;
     margin-bottom: 0.25rem;
-    color: var(--md-sys-color-tertiary);
+    color: var(--md-sys-color-tertiary-container);
 }
 
 .mention-you .material-symbols-rounded {

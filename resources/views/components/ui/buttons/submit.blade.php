@@ -6,10 +6,12 @@
     'iconSize' => 'text-[18px]'
 ])
 
-<button type="submit"
-        wire:loading.attr="disabled"
-    {{ $attributes->merge(['class' => 'flex items-center justify-center gap-2 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-sm transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group hover:opacity-90']) }}>
-
+<x-ui.buttons.form
+    type="submit"
+    variant="none"
+    wire:loading.attr="disabled"
+    {{ $attributes->merge(['class' => 'flex items-center justify-center gap-2 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-sm transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group hover:opacity-90']) }}
+>
     <span wire:loading.remove wire:target="{{ $target }}">{{ $text }}</span>
 
     <span wire:loading wire:target="{{ $target }}">{{ $loadingText }}</span>
@@ -27,4 +29,4 @@
           wire:target="{{ $target }}">
         progress_activity
     </span>
-</button>
+</x-ui.buttons.form>

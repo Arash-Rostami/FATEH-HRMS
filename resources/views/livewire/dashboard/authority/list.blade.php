@@ -19,8 +19,8 @@
                 class="w-full flex items-center gap-3 px-5 py-3.5 text-right transition-colors hover:bg-[var(--md-sys-color-surface-variant)]/30 focus:outline-none"
             >
                 <span
-                    class="shrink-0 text-[11px] font-mono font-bold text-[var(--md-sys-color-on-surface-variant)] w-6 text-center">
-                    {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}
+                    class="shrink-0 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] w-6 text-center">
+                    {{ convertToPersian(str_pad($index + 1, 2, '0', STR_PAD_LEFT)) }}
                 </span>
 
                 <div class="flex-1 min-w-0 text-start">
@@ -93,7 +93,9 @@
         </div>
 
     @empty
-        <x-ui.empty icon="policy" title="هیچ اختیاری یافت نشد" variant="list" />
+        <div wire:key="authority-empty" class="contents">
+            <x-ui.empty icon="policy" title="هیچ اختیاری یافت نشد" variant="list" />
+        </div>
     @endforelse
 
     @if($this->authorities->hasMorePages())

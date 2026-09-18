@@ -22,13 +22,15 @@
                                     <x-ui.forms.radio label="گیرنده" name="shareTarget" wire:model.live="shareTarget"
                                                       :options="['boss' => 'مدیر این کاربر', 'other' => 'کاربر دیگر']"/>
                                     @if($shareTarget === 'other')
-                                        <x-ui.forms.select label="کاربر" name="shareRecipientId" wire:model="shareRecipientId"
-                                                            icon="person" x-on:change="rememberRecipient($event.target.value)">
-                                            <option value="">انتخاب کنید</option>
-                                            @foreach($this->shareRecipientOptions as $id => $name)
-                                                <option value="{{ $id }}">{{ $name }}</option>
-                                            @endforeach
-                                        </x-ui.forms.select>
+                                        <div wire:key="tasksheet-share-recipient" class="contents">
+                                            <x-ui.forms.select label="کاربر" name="shareRecipientId" wire:model="shareRecipientId"
+                                                                icon="person" x-on:change="rememberRecipient($event.target.value)">
+                                                <option value="">انتخاب کنید</option>
+                                                @foreach($this->shareRecipientOptions as $id => $name)
+                                                    <option value="{{ $id }}">{{ $name }}</option>
+                                                @endforeach
+                                            </x-ui.forms.select>
+                                        </div>
                                     @endif
                                     <button type="button" wire:click="shareWithManager" @click="open = false"
                                             class="inline-flex items-center justify-center h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-xs font-medium">

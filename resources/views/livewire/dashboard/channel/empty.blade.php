@@ -1,16 +1,16 @@
 @component('livewire.dashboard.messaging.empty-state', [
     'icon' => 'campaign',
-    'title' => 'به کانال‌ها خوش آمدید',
-    'subtitle' => 'از لیست سمت راست یک کانال را انتخاب کنید یا کانال‌های عمومی را جستجو کنید.',
+    'title' => 'به گروه‌ها خوش آمدید',
+    'subtitle' => 'از لیست سمت راست یک گروه را انتخاب کنید یا گروه‌های عمومی را جستجو کنید.',
     'mobileIcon' => 'campaign',
-    'mobileText' => 'یک کانال انتخاب کنید',
+    'mobileText' => 'یک گروه انتخاب کنید',
 ])
     @php
         $channelsList = is_iterable($this->channels) ? $this->channels : [];
         $totalUnread = $this->presenter?->totalUnread($channelsList) ?? 0;
     @endphp
 
-    <div class="relative z-10 w-full max-w-md mx-auto mt-6" aria-label="آمار و وضعیت کانال‌ها">
+    <div class="relative z-10 w-full max-w-md mx-auto mt-6" aria-label="آمار و وضعیت گروه‌ها">
         <div class="grid grid-cols-2 gap-2.5 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-xs">
 
             <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors hover:bg-[var(--md-sys-color-surface-container-high)]">
@@ -20,7 +20,7 @@
                     </svg>
                 </div>
                 <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">کانال‌ها</span>
+                    <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">گروه‌ها</span>
                     <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ number_format(count($channelsList)) }}</span>
                 </div>
             </div>

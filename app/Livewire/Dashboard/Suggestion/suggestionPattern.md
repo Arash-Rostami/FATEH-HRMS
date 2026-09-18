@@ -162,6 +162,8 @@ database/migrations/migrated/2026_06_30_000039_create_suggestions_table.php
 tests/Feature/Livewire/Dashboard/SuggestionTest.php
 ```
 
+**Reminders (2026-09-15, net-new):** `Suggestion` gained `HasReminders`; each list card (`suggestion/list.blade.php`) embeds a hover-reveal `<x-dashboard.reminder-trigger :for="$item" variant="inline">` in its footer row, alongside the reaction counts and created-date (last child, leftmost under RTL). Full architecture, the active/inactive visual contract, and the reason the card's clickable body had to become a `role="button"` `<div>` (with manual Enter/Space keydown handlers) instead of a real `<button>` it used to be (a `<button>` cannot validly contain another `<button>`) all live in `app/Livewire/Dashboard/Reminder/reminderPattern.md` §3c — not duplicated here.
+
 ---
 
 ## 8. Data model

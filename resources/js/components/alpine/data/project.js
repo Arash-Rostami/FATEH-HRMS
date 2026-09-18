@@ -3,11 +3,17 @@ import clipboardMixin from '../mixins/clipboard.js';
 import mentionMixin from '../mixins/mention.js';
 import kanbanDragMixin from '../mixins/kanbanDrag.js';
 import taskFormMixin from '../mixins/taskForm.js';
-import { feedReactions } from '../stores/emoji.js';
 
 const BASE_INTERVAL_MS = 10000;
 const MAX_INTERVAL_MS = 60000;
 const PULSE_CHANNEL_NAME = 'project-pulse';
+const LS_SETTINGS_KEY = 'chat-settings:project';
+const EVENT_TOAST = 'toast';
+const ID_CHAT_VP = 'team-chat-viewport';
+const ID_CHAT_TA = 'team-chat-ta';
+const ID_ACTIVITY_VP = 'activity-viewport';
+const CLASS_FLASH = 'record-focus-flash';
+
 const TAB_DOMAIN = {
     activity: 'activity',
     teamChat: 'chat',
@@ -35,6 +41,7 @@ export default function project() {
         _lastVersion: null,
         _loadingOlderActivity: false,
         _onVisibility: null,
+        _onActivityTyped: null,
         _searchLowerCache: '',
         _searchLowerValue: '',
         _isDestroyed: false,
@@ -44,13 +51,17 @@ export default function project() {
         _isLeader: true,
         _leaderProjectId: null,
         _releaseLeadership: null,
+        _scrollRaf: null,
         mentionOpen: false,
         mentionQuery: '',
         mentionActiveIndex: 0,
         sending: false,
         showScrollFab: false,
         backgroundPattern: 'off',
+        backgroundPatternType: 'mesh',
         isHighlighted: false,
+        searchFullscreen: false,
+        searchValue: '',
         activitySearch: '',
         activityPinnedOnly: false,
         activityTypeFilter: '',
@@ -61,12 +72,13 @@ export default function project() {
             this.initKanbanDrag();
             this._isDestroyed = false;
 
-            const chatSettings = localStorage.getItem('chat-settings');
+            const chatSettings = localStorage.getItem(LS_SETTINGS_KEY);
             if (chatSettings) {
                 try {
                     const data = JSON.parse(chatSettings);
                     this.isHighlighted = data.isHighlighted ?? false;
                     this.backgroundPattern = data.backgroundPattern ?? 'off';
+                    this.backgroundPatternType = data.backgroundPatternType ?? 'mesh';
                 } catch {}
             }
 
@@ -83,26 +95,39 @@ export default function project() {
 
             this.startPolling();
 
-            this._onVisibility = () => document.hidden ? this.stopPolling() : this.startPolling();
+            this._onVisibility = () => {
+                if (document.hidden) {
+                    this.stopPolling();
+                    return;
+                }
+                this.resetInterval();
+                if (this._timer) return;
+                this._timer = true;
+                this._tick();
+            };
             document.addEventListener('visibilitychange', this._onVisibility);
 
             wire.on('show-toast', (e) => this.toast?.(e.message, e.type ?? 'info'));
-            this.$el.addEventListener('activity-typed', () => this.resetInterval());
+
+            this._onActivityTyped = () => this.resetInterval();
+            this.$el.addEventListener('activity-typed', this._onActivityTyped);
 
             const focusEntry = new URLSearchParams(window.location.search).get('focus_entry');
             if (focusEntry) {
                 this.scrollToActivityEntry(focusEntry);
             }
 
-            const chatVp = document.getElementById('team-chat-viewport');
+            const chatVp = document.getElementById(ID_CHAT_VP);
             if (chatVp) {
                 chatVp.style.overflowAnchor = 'none';
-                let rafId = null;
                 chatVp.addEventListener('scroll', () => {
-                    if (rafId) return;
-                    rafId = requestAnimationFrame(() => {
-                        this.showScrollFab = (chatVp.scrollHeight - chatVp.scrollTop - chatVp.clientHeight) > 200;
-                        rafId = null;
+                    if (this._scrollRaf) return;
+                    this._scrollRaf = requestAnimationFrame(() => {
+                        this._scrollRaf = null;
+                        const sh = chatVp.scrollHeight;
+                        const st = chatVp.scrollTop;
+                        const ch = chatVp.clientHeight;
+                        this.showScrollFab = (sh - st - ch) > 200;
                     });
                 }, { passive: true });
             }
@@ -112,8 +137,16 @@ export default function project() {
             this._isDestroyed = true;
             this.stopPolling();
             this.cancelWarm();
+
             document.removeEventListener('visibilitychange', this._onVisibility);
 
+            if (this._onActivityTyped) {
+                this.$el.removeEventListener('activity-typed', this._onActivityTyped);
+            }
+            if (this._scrollRaf) {
+                cancelAnimationFrame(this._scrollRaf);
+                this._scrollRaf = null;
+            }
             if (typeof this._commitHook === 'function') {
                 this._commitHook();
                 this._commitHook = null;
@@ -125,13 +158,13 @@ export default function project() {
 
         toast(message, type = 'info') {
             if (!message) return;
-            window.dispatchEvent(new CustomEvent('toast', {detail: {message, type}}));
+            window.dispatchEvent(new CustomEvent(EVENT_TOAST, { detail: { message, type } }));
         },
 
         async loadOlderActivity() {
             if (this._loadingOlderActivity) return;
 
-            const vp = document.getElementById('activity-viewport');
+            const vp = document.getElementById(ID_ACTIVITY_VP);
             let prevHeight = 0;
 
             if (vp) {
@@ -162,27 +195,34 @@ export default function project() {
             return this._searchLowerValue;
         },
 
-        matchesActivityFilter(id, text, type) {
+        _matchesRaw(id, text, type, searchLower) {
             if (this.activityTypeFilter && type !== this.activityTypeFilter) return false;
             if (this.activityPinnedOnly && !this.$store.pinned.isPinned(id, 'activity')) return false;
             if (!this.activitySearch) return true;
             if (!text) return false;
-            return text.toLowerCase().includes(this._searchLower);
+            return text.toLowerCase().includes(searchLower);
+        },
+
+        matchesActivityFilter(id, text, type) {
+            return this._matchesRaw(id, text, type, this._searchLower);
         },
 
         anyActivityVisible(entries) {
+            const sl = this._searchLower;
             for (let i = 0, len = entries.length; i < len; i++) {
-                if (this.matchesActivityFilter(entries[i][0], entries[i][1], entries[i][4])) return true;
+                const e = entries[i];
+                if (this._matchesRaw(e[0], e[1], e[4], sl)) return true;
             }
             return false;
         },
 
         exportActivity(entries) {
             const lines = [];
+            const sl = this._searchLower;
             for (let i = 0, len = entries.length; i < len; i++) {
                 const entry = entries[i];
-                if (this.matchesActivityFilter(entry[0], entry[1], entry[4])) {
-                    lines.push(`[${entry[3]}] ${entry[2]}: ${entry[1]}`);
+                if (this._matchesRaw(entry[0], entry[1], entry[4], sl)) {
+                    lines.push('[' + entry[3] + '] ' + entry[2] + ': ' + entry[1]);
                 }
             }
             if (lines.length === 0) return;
@@ -201,15 +241,6 @@ export default function project() {
             this.activityDeletingId = id;
         },
 
-        get activityReactions() {
-            return feedReactions;
-        },
-
-        toggleReactionAndClose(id, emoji) {
-            this.$store.activityReactionPicker.close();
-            this.$wire.toggleReaction(id, emoji).catch(() => {});
-        },
-
         scrollToActivityEntry(id, attempt = 0) {
             const el = document.querySelector(`[data-rf="activity-${id}"]`);
 
@@ -218,14 +249,14 @@ export default function project() {
                 return;
             }
 
-            const flashes = document.querySelectorAll('.record-focus-flash');
+            const flashes = document.querySelectorAll('.' + CLASS_FLASH);
             for (let i = 0, len = flashes.length; i < len; i++) {
-                flashes[i].classList.remove('record-focus-flash');
+                flashes[i].classList.remove(CLASS_FLASH);
             }
 
             el.style.animation = 'none';
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.classList.add('record-focus-flash');
+            el.classList.add(CLASS_FLASH);
         },
 
         cancelDeleteComment() {
@@ -233,7 +264,7 @@ export default function project() {
         },
 
         scrollToBottom(smooth = false) {
-            const vp = document.getElementById('team-chat-viewport');
+            const vp = document.getElementById(ID_CHAT_VP);
             if (vp) {
                 vp.scrollTo({
                     top: 999999,
@@ -245,10 +276,20 @@ export default function project() {
         toggleHighlight() {
             this.isHighlighted = !this.isHighlighted;
             this.backgroundPattern = this.backgroundPattern === 'on' ? 'off' : 'on';
+            queueMicrotask(() => this._persistChatSettings());
+        },
+
+        setPatternType(id) {
+            this.backgroundPatternType = id;
+            queueMicrotask(() => this._persistChatSettings());
+        },
+
+        _persistChatSettings() {
             try {
-                localStorage.setItem('chat-settings', JSON.stringify({
+                localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify({
                     isHighlighted: this.isHighlighted,
-                    backgroundPattern: this.backgroundPattern
+                    backgroundPattern: this.backgroundPattern,
+                    backgroundPatternType: this.backgroundPatternType
                 }));
             } catch {}
         },
@@ -259,7 +300,7 @@ export default function project() {
         },
 
         openMentionPicker() {
-            const ta = document.getElementById('team-chat-ta');
+            const ta = document.getElementById(ID_CHAT_TA);
             if (!ta) return;
 
             const pos = ta.selectionStart ?? ta.value.length;
@@ -272,7 +313,7 @@ export default function project() {
             }
 
             const insert = (needsSpace ? ' @' : '@');
-            const next = val.slice(0, pos) + insert + val.slice(pos);
+            const next = val.substring(0, pos) + insert + val.substring(pos);
 
             ta.value = next;
             const at = pos + (needsSpace ? 1 : 0);
@@ -298,26 +339,30 @@ export default function project() {
         },
 
         onComposerKeydown(e) {
-            if (this.mentionOpen && this.mentionMatches.length) {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    this.mentionActiveIndex = (this.mentionActiveIndex + 1) % this.mentionMatches.length;
-                    return;
-                }
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    this.mentionActiveIndex = (this.mentionActiveIndex - 1 + this.mentionMatches.length) % this.mentionMatches.length;
-                    return;
-                }
-                if (e.key === 'Enter' || e.key === 'Tab') {
-                    e.preventDefault();
-                    this.pickMention(this.mentionActiveIndex);
-                    return;
-                }
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    this.mentionOpen = false;
-                    return;
+            if (this.mentionOpen) {
+                const matches = this.mentionMatches;
+                const len = matches.length;
+                if (len) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        this.mentionActiveIndex = (this.mentionActiveIndex + 1) % len;
+                        return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.mentionActiveIndex = (this.mentionActiveIndex - 1 + len) % len;
+                        return;
+                    }
+                    if (e.key === 'Enter' || e.key === 'Tab') {
+                        e.preventDefault();
+                        this.pickMention(this.mentionActiveIndex);
+                        return;
+                    }
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.mentionOpen = false;
+                        return;
+                    }
                 }
             }
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -330,7 +375,7 @@ export default function project() {
             const name = this.mentionMatches[i];
             if (!name) { this.mentionOpen = false; return; }
 
-            const ta = document.getElementById('team-chat-ta');
+            const ta = document.getElementById(ID_CHAT_TA);
             if (!ta) { this.mentionOpen = false; return; }
 
             const r = this.mentionBuild(ta.value, ta.selectionStart, name);
@@ -350,7 +395,7 @@ export default function project() {
             if (this.sending) return;
 
             const wire = this.$wire;
-            const ta = document.getElementById('team-chat-ta');
+            const ta = document.getElementById(ID_CHAT_TA);
             const body = ta?.value ? ta.value.trim() : '';
             const attachments = wire.chatComposer?.attachments || [];
 
@@ -521,7 +566,8 @@ export default function project() {
 
             const wire = this.$wire;
             const activeTab = wire.activeTab;
-            if (changedDomains.includes(TAB_DOMAIN[activeTab])) {
+
+            if (changedDomains.indexOf(TAB_DOMAIN[activeTab]) !== -1) {
                 await this._refreshActiveTab(activeTab);
             }
 

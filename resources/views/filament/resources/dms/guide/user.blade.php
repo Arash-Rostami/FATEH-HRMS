@@ -2,8 +2,8 @@
     $panels = [
         [
             'icon' => 'account_tree',
-            'label' => 'دو زبانه: سیستمی / غیر سیستمی',
-            'hint' => 'صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/dms</code> کاربر دو زبانه دارد: «سیستمی» و «غیر سیستمی». کاربر فقط اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> را می‌بیند و فقط اسنادی که به واحدش (یا همهٔ واحدها) یا مستقیماً به خودش رسیده است (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">scopeVisibleToUser</code>). با تعویض زبانه، جستجو و فیلتر بازنشانی می‌شوند.',
+            'label' => 'دو زبانه: اسناد / سوابق',
+            'hint' => 'صفحهٔ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">/dms</code> کاربر دو زبانه دارد: «اسناد» و «سوابق». کاربر فقط اسنادِ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">live</code> را می‌بیند و فقط اسنادی که به واحدش (یا همهٔ واحدها) یا مستقیماً به خودش رسیده است (<code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">scopeVisibleToUser</code>). با تعویض زبانه، جستجو و فیلتر بازنشانی می‌شوند.',
         ],
         [
             'icon' => 'edit_document',

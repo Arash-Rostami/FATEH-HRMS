@@ -8,7 +8,7 @@
 
         <x-ui.title
             icon="folder_open"
-            :title="$activeTab === 'systematic' ? 'مستندات سیستمی' : 'مستندات غیر سیستمی'"
+            :title="$activeTab === 'systematic' ? 'اسناد' : 'سوابق'"
             :count="$this->totalDocs"
             countLabel="سند">
             <x-slot:actions>
@@ -38,7 +38,7 @@
         />
 
         <x-ui.modals.dialog name="dms-status-legend" title="راهنمای وضعیت سند">
-            @include('livewire.dashboard.dms.status-legend')
+            @include('livewire.dashboard.dms.legend')
         </x-ui.modals.dialog>
 
         @include('components.dashboard.header.focus-chip')
@@ -49,8 +49,8 @@
                 :active-tab="$activeTab"
                 :has-a11y="true"
                 :tabs="[
-                    ['id' => 'systematic', 'label' => 'سیستمی', 'icon' => 'account_tree'],
-                    ['id' => 'non_systematic', 'label' => 'غیر سیستمی', 'icon' => 'description']
+                    ['id' => 'systematic', 'label' => 'اسناد', 'icon' => 'description'],
+                    ['id' => 'non_systematic', 'label' => 'سوابق', 'icon' => 'history']
                 ]"
             />
         </div>
@@ -67,7 +67,7 @@
 
         <div class="space-y-6 relative z-10">
 
-            @include('livewire.dashboard.dms.legend')
+            @include('livewire.dashboard.dms.pending-banner')
 
             <x-ui.modals.max-backdrop/>
 

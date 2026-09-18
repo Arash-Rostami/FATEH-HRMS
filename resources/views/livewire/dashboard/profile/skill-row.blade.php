@@ -67,7 +67,7 @@
                     </div>
                     @if($totalEndorsements > count($endorsers))
                         <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)]">
-                            +{{ $totalEndorsements - count($endorsers) }} دیگر
+                            +{{ convertToPersian($totalEndorsements - count($endorsers)) }} دیگر
                         </span>
                     @endif
                 </div>

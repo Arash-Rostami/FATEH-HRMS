@@ -18,7 +18,7 @@
      role="dialog">
     <div class="p-5 space-y-5 border-none">
         <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">اطلاعات کانال</h3>
+            <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">اطلاعات گروه</h3>
             <button x-on:click="showInfo = false" aria-label="بستن"
                     class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
                 <span class="material-symbols-rounded text-base" aria-hidden="true">close</span>
@@ -42,13 +42,13 @@
                 <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">groups</span>
                 <div>
                     <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">اعضا</p>
-                    <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ $header['members_count'] }} نفر</p>
+                    <p class="text-xs font-medium text-[var(--md-sys-color-on-primary)]">{{ convertToPersian($header['members_count']) }} نفر</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-primary)]">
                 <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-primary)]" aria-hidden="true">person</span>
                 <div class="min-w-0">
-                    <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">مدیر کانال</p>
+                    <p class="text-[10px] text-[var(--md-sys-color-on-primary)]">مدیر گروه</p>
                     <p class="text-xs font-medium truncate text-[var(--md-sys-color-on-primary)]">{{ $header['owner_name'] }}</p>
                 </div>
             </div>
@@ -57,7 +57,7 @@
             @php $pendingInvitees = $this->pendingInvitees; @endphp
             @if($pendingInvitees)
                 <div class="px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)]">
-                    <p class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] mb-2 flex items-center gap-1" title="کاربرانی که توسط شما دعوت شده‌اند اما هنوز یک‌بار وارد کانال نشده‌اند">
+                    <p class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] mb-2 flex items-center gap-1" title="کاربرانی که توسط شما دعوت شده‌اند اما هنوز یک‌بار وارد گروه نشده‌اند">
                         <span class="material-symbols-rounded text-[13px]" aria-hidden="true">hourglass_top</span>
                         در انتظار ورود ({{ convertToPersian((string) count($pendingInvitees)) }})
                     </p>

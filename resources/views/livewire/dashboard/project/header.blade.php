@@ -1,9 +1,8 @@
 @php
-    $presenter = new \App\Livewire\Dashboard\Project\Presentation\ProjectPresenter();
     $project = $this->activeProject;
     $summary = $this->reportSummary;
     $memberCount = count($project->member_ids ?? []) + 1;
-    $riskChips = $presenter->headerRiskChips($project, $summary);
+    $riskChips = $this->presenter->headerRiskChips($project, $summary);
     $settingsSummary = $project->settingsSummary();
     $otherSettings = $project->otherSettings();
 @endphp
@@ -76,7 +75,7 @@
             <span class="h-1 w-1 rounded-full bg-current opacity-40"></span>
             <span class="flex items-center gap-1">
                 <span class="material-symbols-rounded text-[13px]">task_alt</span>
-                {{ $summary['done'] }} از {{ $summary['total'] }}
+                {{ convertToPersian($summary['done']) }} از {{ convertToPersian($summary['total']) }}
             </span>
             @foreach($riskChips as $chip)
                 <span class="h-1 w-1 rounded-full bg-current opacity-40"></span>
@@ -106,11 +105,7 @@
 
     <div class="flex items-center gap-1.5 flex-shrink-0">
         @if($activeTab === 'teamChat')
-            <button type="button" @click="toggleHighlight()" aria-label="پیش زمینه چت" title="پیش زمینه چت"
-                    :class="isHighlighted ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]'"
-                    class="flex items-center justify-center w-9 h-9 rounded-xl transition-colors">
-                <span class="material-symbols-rounded text-lg" x-text="isHighlighted ? 'hide_image' : 'texture'"></span>
-            </button>
+            @include('livewire.dashboard.messaging.pattern-picker')
         @endif
 
         <button type="button" @click="toggleMaximize()"
@@ -119,6 +114,8 @@
                 class="flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
             <span class="material-symbols-rounded text-lg" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
         </button>
+
+        <x-dashboard.reminder-trigger :for="$project"/>
 
         @if($project->owner_id === auth()->id())
             <button type="button" x-on:click="$wire.openEdit()" title="ویرایش پروژه"

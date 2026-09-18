@@ -22,47 +22,52 @@
          x-effect="if (show && !formReady) { formTab = '{{ $defaultTab }}'; syncFormArrays(); setTimeout(() => { if (show) formReady = true }, 1000) } else if (!show) { formReady = false }"
          x-show="formReady">
 
-        <nav
-            class="flex items-center gap-1.5 p-1 bg-[var(--md-sys-color-surface-container-high)]/60 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm overflow-x-auto max-w-full">
-            @foreach($tabs as $t)
-                @continue($t['key'] === 'reply' && !$editingTaskId)
-                @continue($t['key'] === 'history' && (!$editingTaskId || $this->editingTask?->project_id !== null))
-                @php
-                    $badgeCount = $badgeCounts[$t['key']] ?? 0;
-                @endphp
-                <button
-                    type="button"
-                    @click="formTab = '{{ $t['key'] }}'"
-                    title="{{ $t['description'] ?? '' }}"
-                    :class="formTab === '{{ $t['key'] }}'
-                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm font-bold'
-                        : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] font-medium'"
-                    class="relative px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shrink-0 select-none"
-                >
-                    <span class="material-symbols-rounded text-lg">{{ $t['icon'] }}</span>
-                    <span>{{ $t['label'] }}</span>
-                    @if($t['key'] === 'followup')
-                        <span x-show="followupBadge > 0" x-text="followupBadge"
-                              class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center tabular-nums transition-colors"
-                              :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'"></span>
-                    @elseif($t['key'] === 'info')
-                        <span x-show="infoBadge > 0" x-text="infoBadge"
-                              class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center tabular-nums transition-colors"
-                              :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'"></span>
-                    @elseif($badgeCount > 0)
-                        <span
-                            class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center tabular-nums transition-colors"
-                            :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'">
-                            {{ $badgeCount }}
-                        </span>
-                    @endif
-                    @if($errors->hasAny($t['errors'] ?? []))
-                        <span
-                            class="w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] ring-2 ring-[var(--md-sys-color-surface)]"></span>
-                    @endif
-                </button>
-            @endforeach
-        </nav>
+        <div class="flex items-center justify-between gap-3 mb-6">
+            <nav
+                class="flex items-center gap-1.5 p-1 bg-[var(--md-sys-color-surface-container-high)]/60 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit shadow-sm overflow-x-auto max-w-full">
+                @foreach($tabs as $t)
+                    @continue($t['key'] === 'reply' && !$editingTaskId)
+                    @continue($t['key'] === 'history' && (!$editingTaskId || $this->editingTask?->project_id !== null))
+                    @php
+                        $badgeCount = $badgeCounts[$t['key']] ?? 0;
+                    @endphp
+                    <button
+                        wire:key="taskboard-form-tab-{{ $t['key'] }}"
+                        type="button"
+                        @click="formTab = '{{ $t['key'] }}'"
+                        title="{{ $t['description'] ?? '' }}"
+                        :class="formTab === '{{ $t['key'] }}'
+                            ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-sm font-bold'
+                            : 'text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] font-medium'"
+                        class="relative px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shrink-0 select-none"
+                    >
+                        <span class="material-symbols-rounded text-lg">{{ $t['icon'] }}</span>
+                        <span>{{ $t['label'] }}</span>
+                        @if($t['key'] === 'followup')
+                            <span x-show="followupBadge > 0" x-text="followupBadge"
+                                  class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors"
+                                  :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'"></span>
+                        @elseif($t['key'] === 'info')
+                            <span x-show="infoBadge > 0" x-text="infoBadge"
+                                  class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors"
+                                  :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'"></span>
+                        @elseif($badgeCount > 0)
+                            <span
+                                wire:key="taskboard-tab-badge"
+                                class="min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors"
+                                :class="formTab === '{{ $t['key'] }}' ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'">
+                                {{ convertToPersian($badgeCount) }}
+                            </span>
+                        @endif
+                        @if($errors->hasAny($t['errors'] ?? []))
+                            <span
+                                wire:key="taskboard-tab-error-dot"
+                                class="w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] ring-2 ring-[var(--md-sys-color-surface)]"></span>
+                        @endif
+                    </button>
+                @endforeach
+            </nav>
+        </div>
 
         @error('form')
         <div
@@ -73,7 +78,7 @@
         @enderror
 
         @if($editingTaskId && $this->editingTask?->ticket_id)
-            <div
+            <div wire:key="taskboard-ticket-banner"
                 class="flex items-center gap-3 mb-5 px-4 py-3 rounded-2xl bg-[var(--md-sys-color-secondary-container)]/50 text-[var(--md-sys-color-on-secondary-container)] border border-[var(--md-sys-color-secondary)]/20 text-xs">
                 <span class="material-symbols-rounded text-xl shrink-0 text-[var(--md-sys-color-secondary)]">support_agent</span>
                 <span class="leading-relaxed">این وظیفه به‌صورت خودکار از یک تیکت پشتیبانی ایجاد شده است. گفتگو و ویرایش جزئیات فقط از طریق تیکت مبدأ امکان‌پذیر است.</span>
@@ -117,9 +122,9 @@
             </div>
 
             @if(!$isReadOnly && !$form->projectId)
-                <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-3.5">
+                <div wire:key="taskboard-levelup" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-3.5">
                     @if($form->pendingProjectName)
-                        <div class="flex items-center gap-2 text-xs">
+                        <div wire:key="taskboard-levelup-pending" class="flex items-center gap-2 text-xs">
                             <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">workspaces</span>
                             <span class="flex-1">پروژهٔ «{{ $form->pendingProjectName }}» هنگام ذخیرهٔ این وظیفه ساخته و پیوند می‌شود.</span>
                             <button type="button" wire:click="cancelPendingProject"
@@ -128,6 +133,7 @@
                             </button>
                         </div>
                     @else
+                        <div wire:key="taskboard-levelup-create" class="contents">
                         <button type="button" wire:click="toggleLevelUpForm"
                                 class="flex items-center gap-2 text-xs font-bold text-[var(--md-sys-color-primary)] hover:opacity-80 active:scale-[0.98] transition">
                             <span class="material-symbols-rounded text-base">workspaces</span>
@@ -136,7 +142,7 @@
                         </button>
 
                         @if($showLevelUpForm)
-                            <div class="mt-3 space-y-3">
+                            <div wire:key="taskboard-levelup-form" class="mt-3 space-y-3">
                                 <x-ui.forms.input label="نام پروژه" name="levelUpForm.name" wire:model="levelUpForm.name" icon="workspaces" required dir="auto"/>
                                 @error('levelUpForm.name')
                                 <div class="{{ $errorClass }}">
@@ -156,6 +162,7 @@
                                 </div>
                             </div>
                         @endif
+                        </div>
                     @endif
                 </div>
             @endif
@@ -187,11 +194,11 @@
         @include('livewire.dashboard.taskboard.checklist')
 
         @if($editingTaskId)
-            <div x-show="formTab === 'reply'" x-transition:enter="transition ease-out duration-200"
+            <div wire:key="taskboard-reply-tab" x-show="formTab === 'reply'" x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
                  class="space-y-4">
                 @if($this->editingTask?->ticket_id)
-                    <div
+                    <div wire:key="taskboard-reply-ticket"
                         class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-6 text-center space-y-3">
                         <div
                             class="w-12 h-12 rounded-2xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center mx-auto shadow-sm">
@@ -211,27 +218,25 @@
                         </a>
                     </div>
                 @else
+                    <div wire:key="taskboard-reply-thread" class="contents">
                     <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mb-3">این گفتگو خصوصی است؛ فقط ایجادکننده، مسئول انجام و همکاران این وظیفه آن را می‌بینند و پاسخ‌ها را دریافت می‌کنند.</p>
 
                     <div class="relative flex flex-col gap-3 max-h-96 overflow-y-auto custom-scrollbar pr-1 pl-1">
                         @if($this->taskComments->isNotEmpty())
-                            <div class="absolute top-3 bottom-3 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
+                            <div wire:key="taskboard-reply-divider" class="absolute top-3 bottom-3 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
                         @endif
 
                         @forelse($this->taskComments as $reply)
                             @include('livewire.dashboard.taskboard.reply-row', ['reply' => $reply])
                         @empty
-                            <div
-                                class="flex flex-col items-center justify-center py-10 px-4 rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/50 text-center">
-                                <span class="material-symbols-rounded text-3xl text-[var(--md-sys-color-outline)] mb-2">forum</span>
-                                <p class="text-xs font-medium text-[var(--md-sys-color-outline)]">هنوز گفتگویی برای این
-                                    وظیفه ثبت نشده است.</p>
+                            <div wire:key="taskboard-reply-empty" class="contents">
+                                <x-ui.empty icon="forum" title="هنوز گفتگویی برای این وظیفه ثبت نشده است" />
                             </div>
                         @endforelse
                     </div>
 
                     @if($this->canReplyToTask)
-                        <form wire:submit.prevent="postTaskReply"
+                        <form wire:key="taskboard-reply-composer" wire:submit.prevent="postTaskReply"
                               class="pt-3 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-3">
                             <div
                                 class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] p-2.5 transition-all focus-within:border-[var(--md-sys-color-primary)] focus-within:ring-2 focus-within:ring-[var(--md-sys-color-primary)]/20">
@@ -245,7 +250,7 @@
                                 @enderror
 
                                 @if(count($taskReplyForm->files))
-                                    <div class="flex flex-wrap items-center gap-1.5 pt-2">
+                                    <div wire:key="taskboard-reply-staged" class="flex flex-wrap items-center gap-1.5 pt-2">
                                         @foreach($taskReplyForm->files as $i => $file)
                                             <div wire:key="staged-reply-file-{{ $i }}"
                                                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg max-w-[180px] bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40">
@@ -292,12 +297,13 @@
                             @enderror
                         </form>
                     @endif
+                    </div>
                 @endif
             </div>
         @endif
 
         @if($editingTaskId && $this->editingTask?->project_id === null)
-            <div x-show="formTab === 'history'" x-transition:enter="transition ease-out duration-200"
+            <div wire:key="taskboard-history-tab" x-show="formTab === 'history'" x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
                  class="flex flex-col gap-3 h-96 overflow-y-auto custom-scrollbar pr-1 pl-1">
                 @forelse($this->taskHistory as $entry)
@@ -309,7 +315,9 @@
                         <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}">{{ toJalaliRelative($entry['created_at']) }}</span>
                     </div>
                 @empty
-                    <x-ui.empty icon="timeline" title="هنوز تغییری برای این وظیفه ثبت نشده" variant="list" :fill="true"/>
+                    <div wire:key="taskboard-history-empty" class="contents">
+                        <x-ui.empty icon="timeline" title="هنوز تغییری برای این وظیفه ثبت نشده" variant="list" :fill="true"/>
+                    </div>
                 @endforelse
             </div>
         @endif

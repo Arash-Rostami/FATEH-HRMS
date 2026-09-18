@@ -3,7 +3,7 @@
         <x-ui.loaders.skeleton.bar width="w-40" height="h-3" class="!bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_45%,var(--md-sys-color-surface-variant))]"/>
 
         <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-xl shrink-0 bg-[var(--md-sys-color-primary-container)] animate-pulse"></div>
+            <x-ui.loaders.skeleton.bar width="w-12" height="h-12" class="!rounded-xl shrink-0 !bg-[var(--md-sys-color-primary-container)]"/>
 
             <div class="flex-1 min-w-0 flex flex-col gap-2">
                 <x-ui.loaders.skeleton.bar width="w-2/3" height="h-5" class="!bg-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,var(--md-sys-color-surface-variant))]"/>

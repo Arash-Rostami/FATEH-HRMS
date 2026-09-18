@@ -82,6 +82,25 @@ class ValidationService
         );
     }
 
+    public function activeLimitCount(int $userId, string $resourceType, Carbon $date): int
+    {
+        return Reservation::forUser($userId)
+            ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
+            ->whereMonth('start_time', $date->month)
+            ->whereYear('start_time', $date->year)
+            ->whereIn('status', [ReservationStatus::Active->value, ReservationStatus::Released->value])
+            ->toBase()->count();
+    }
+
+    public function cancelLimitCount(int $userId, string $resourceType): int
+    {
+        return Reservation::forUser($userId)
+            ->whereHas('resource', fn($q) => $q->where('type', $resourceType))
+            ->where('status', ReservationStatus::CancelledUser->value)
+            ->where(fn($q) => $q->whereNull('cancelled_at')->orWhere('cancelled_at', '>=', now()->subDays(30)))
+            ->toBase()->count();
+    }
+
     public function validateBooking(User $user, Resource $resource, Carbon $start, Carbon $end, bool $isFullDay, ?array $recurrence = null, ?int $excludeId = null): void
     {
         $this->runPipeline($user, $resource, $start, $end, $isFullDay, $recurrence, $excludeId, true);

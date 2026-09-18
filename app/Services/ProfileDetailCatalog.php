@@ -67,6 +67,7 @@ class ProfileDetailCatalog
             'birthplace' => ['section' => 'identity', 'label' => 'محل تولد', 'type' => 'select', 'options' => self::getSortedOptions('cities'), 'searchable' => true],
             'nationality' => ['section' => 'identity', 'label' => 'ملیت', 'type' => 'select', 'options' => self::getSortedOptions('nationalities'), 'searchable' => true],
             'religion' => ['section' => 'identity', 'label' => 'دین', 'type' => 'select', 'options' => self::list(['اسلام', 'مسیحیت', 'یهودیت', 'زرتشتی', 'سایر'])],
+            'display_name' => ['section' => 'identity', 'label' => 'نام صمیمانه (جایگزین نام در صفحه خوشامدگویی)', 'type' => 'text', 'max' => 40],
             'foreign_residency' => ['section' => 'identity', 'label' => 'پاسپورت/اقامت سایر کشورها', 'type' => 'select', 'options' => self::hasNot()],
             'clearance_certificate' => ['section' => 'identity', 'label' => 'گواهی عدم سوءپیشینه', 'type' => 'select', 'options' => self::hasNot()],
 

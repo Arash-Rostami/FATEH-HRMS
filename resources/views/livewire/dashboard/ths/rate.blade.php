@@ -1,5 +1,5 @@
 @if ($ticketToRate)
-    <div class="bg-[var(--md-sys-color-primary-container)]/10 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
+    <div wire:key="ths-rate" class="bg-[var(--md-sys-color-primary-container)]/10 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
         {{-- Decorative background element --}}
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-[var(--md-sys-color-primary)] opacity-5 rounded-full "></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--md-sys-color-secondary)] opacity-5 rounded-full"></div>
@@ -12,7 +12,7 @@
             <div>
                 <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)] mb-2 tracking-tight">ارزیابی عملکرد پشتیبانی</h3>
                 <p class="text-sm text-[var(--md-sys-color-on-surface-variant)] leading-relaxed max-w-md mx-auto">
-                    تیکت <span class="font-mono font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">#{{ str_pad($ticketToRate->id, 4, '0', STR_PAD_LEFT) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. لطفا میزان رضایت خود را اعلام نمایید.
+                    تیکت <span class="font-bold text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 px-1.5 py-0.5 rounded-md" dir="ltr">#{{ str_pad($ticketToRate->id, 4, '0', STR_PAD_LEFT) }}</span> با موضوع <span class="font-medium text-[var(--md-sys-color-on-surface)]">"{{ Str::limit($ticketToRate->request_subject, 40) }}"</span> بسته شده است. لطفا میزان رضایت خود را اعلام نمایید.
                 </p>
             </div>
 

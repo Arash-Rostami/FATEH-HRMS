@@ -23,7 +23,7 @@
          x-show="open"
          class="fixed inset-0 z-[201] flex items-start justify-center pt-[8vh] px-4 pb-4 pointer-events-none animate-slide-down">
 
-        <div class="pointer-events-auto w-full max-w-3xl flex flex-col max-h-[75vh] rounded-[28px] shadow-2xl overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 ring-1 ring-white/5 text-[var(--md-sys-color-on-surface)]">
+        <div class="pointer-events-auto w-full max-w-3xl flex flex-col h-[75vh] rounded-[28px] shadow-2xl overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 ring-1 ring-white/5 text-[var(--md-sys-color-on-surface)]">
 
             {{-- Header / Search Bar --}}
             <div class="flex items-center gap-4 px-6 py-5 border-b border-[var(--md-sys-color-outline-variant)]/15 bg-[var(--md-sys-color-surface-container)]/40">
@@ -34,7 +34,7 @@
                 <input x-ref="searchInput"
                        wire:model.live.debounce.{{ $mode === 'content' ? '300' : '150' }}ms="query"
                        type="text"
-                       placeholder="{{ $mode === 'content' ? 'جستجوی محتوا در کل سامانه (اسناد، گزارش‌ها، تیکت‌ها…)' : 'جستجو در بخش‌های مختلف سیستم...' }}"
+                       placeholder="{{ $mode === 'content' ? 'جستجوی محتوا در ۶ ماه اخیر (اسناد، گزارش‌ها، تیکت‌ها…)' : 'جستجو در بخش‌های مختلف سیستم...' }}"
                        class="w-full bg-transparent border-none outline-none text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-on-surface-variant)]/40 text-xl font-medium h-12"
                        @keydown.down.prevent="selectedIndex = Math.min(selectedIndex + 1, ($wire.query.length > 1 ? $wire.results.length : recentSearches.length) - 1)"
                        @keydown.up.prevent="selectedIndex = Math.max(selectedIndex - 1, 0)"
@@ -67,10 +67,32 @@
             {{-- Results Area --}}
             <div class="overflow-y-auto custom-scrollbar p-3 space-y-1 bg-[var(--md-sys-color-surface)]/50 flex-1">
 
+                @if($mode === 'content' && strlen($query) > 1 && !$allHistory && count($results) <= 5)
+                    <div wire:key="palette-search-all-history" class="flex justify-center pt-1 pb-1">
+                        <button wire:click="searchAllHistory" wire:loading.attr="disabled"
+                                @click="selectedIndex = 0"
+                                type="button"
+                                class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline)]/20 hover:text-[var(--md-sys-color-primary)] hover:border-[var(--md-sys-color-primary)]/40 transition-all">
+                            <span class="material-symbols-rounded text-[16px]">history</span>
+                            جستجو در کل تاریخ (فراتر از ۶ ماه اخیر)
+                        </button>
+                    </div>
+                @endif
+
+                @if($mode === 'content' && $allHistory)
+                    <div wire:key="palette-all-history" class="flex justify-center pt-1 pb-1">
+                        <span class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold bg-[var(--md-sys-color-primary-container)]/50 text-[var(--md-sys-color-on-primary-container)] border border-[var(--md-sys-color-primary)]/20">
+                            <span class="material-symbols-rounded text-[16px]">all_inclusive</span>
+                            جستجو در کل تاریخ فعال است
+                        </span>
+                    </div>
+                @endif
+
                 @if(strlen($query) > 1)
                     @if(count($results) > 0)
 
                         @if($mode === 'content')
+                            <div wire:key="palette-results-content" class="contents">
                             {{-- Content Mode Results --}}
                             @php $flatIndex = 0; @endphp
                             @foreach(collect($results)->groupBy('group') as $groupName => $groupItems)
@@ -80,7 +102,7 @@
                                         <span class="material-symbols-rounded text-[18px] opacity-50">{{ $groupItems->first()['icon'] }}</span>
                                         <span class="text-xs font-bold opacity-60 uppercase tracking-widest">{{ $groupName }}</span>
                                     </div>
-                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/20 opacity-70">{{ $groupItems->count() }}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/20 opacity-70">{{ convertToPersian($groupItems->count()) }}</span>
                                 </div>
 
                                 @foreach($groupItems as $result)
@@ -106,6 +128,34 @@
                                             <span class="text-xs opacity-70 truncate max-w-full block mt-0.5">
                                                 {{ superClean($result['subtitle'] ?? '', 120) }}
                                             </span>
+
+                                            @if($result['type'] === 'task')
+                                                @php($urgencyKind = $result['urgency_state']['kind'] ?? null)
+                                                <div class="flex items-center gap-2 mt-1">
+                                                    @if(in_array($urgencyKind, ['overdue', 'due'], true))
+                                                        <span class="inline-flex h-1.5 w-1.5 rounded-full {{ $urgencyKind === 'overdue' ? 'bg-[var(--md-sys-color-error)] animate-pulse-ring' : 'bg-[var(--tool-gold-text)]' }}" title="{{ $result['urgency_state']['label'] ?? '' }}"></span>
+                                                    @elseif($urgencyKind === 'idle')
+                                                        <span class="inline-flex h-1.5 w-1.5 rounded-full bg-[var(--md-sys-color-on-surface-variant)]/40" title="{{ $result['urgency_state']['label'] ?? '' }}"></span>
+                                                    @endif
+
+                                                    <x-ui.decor.progress-ring :percent="$result['progress_percent']" :size="18" :stroke="2"
+                                                                              :color="$result['progress_percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>
+
+                                                    @if(!empty($result['collaborator_avatars']))
+                                                        <div class="flex items-center -space-x-1.5 rtl:space-x-reverse shrink-0" title="همکاران: {{ implode('، ', array_column($result['collaborator_avatars'], 'name')) }}">
+                                                            @foreach(array_slice($result['collaborator_avatars'], 0, 3) as $collaborator)
+                                                                <img src="{{ $collaborator['avatar_url'] }}" alt="{{ $collaborator['name'] }}"
+                                                                     class="w-4 h-4 rounded-full border border-[var(--md-sys-color-surface)] object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]">
+                                                            @endforeach
+                                                            @if(count($result['collaborator_avatars']) > 3)
+                                                                <span class="w-4 h-4 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[8px] font-bold flex items-center justify-center border border-[var(--md-sys-color-surface)] ring-1 ring-[var(--md-sys-color-outline-variant)]">
+                                                                    +{{ convertToPersian(count($result['collaborator_avatars']) - 3) }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <span class="material-symbols-rounded text-[22px] transition-all duration-300"
@@ -115,8 +165,9 @@
                                     </button>
                                 @endforeach
                             @endforeach
-
+                            </div>
                         @else
+                            <div wire:key="palette-results-nav" class="contents">
                             {{-- Navigation Mode Results --}}
                             <div class="px-3 py-2 text-xs font-bold opacity-50 uppercase tracking-widest mb-1 border-b border-[var(--md-sys-color-outline-variant)]/10">
                                 نتایج جستجو
@@ -158,15 +209,21 @@
                                     </span>
                                 </button>
                             @endforeach
+                            </div>
                         @endif
 
                     @else
-                        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="لطفاً عبارت دیگری را امتحان کنید" variant="search" />
+                        <div wire:key="palette-results-empty">
+                            <x-ui.empty icon="search_off"
+                                        title="نتیجه‌ای یافت نشد"
+                                        description="{{ $mode === 'content' && !$allHistory ? 'در ۶ ماه اخیر نتیجه‌ای نبود؛ دکمهٔ «جستجو در کل تاریخ» را بزنید' : 'لطفاً عبارت دیگری را امتحان کنید' }}"
+                                        variant="search" />
+                        </div>
                     @endif
 
                 @else
                     {{-- Recent Searches --}}
-                    <div x-cloak x-show="recentSearches.length > 0" class="pt-2">
+                    <div wire:key="palette-recent-searches" x-cloak x-show="recentSearches.length > 0" class="pt-2">
                         <div class="flex items-center justify-between px-3 py-2 mb-2 border-b border-[var(--md-sys-color-outline-variant)]/10">
                             <span class="text-xs font-bold opacity-50 uppercase tracking-widest">جستجوهای اخیر</span>
                             <button @click.stop="clearHistory()"
@@ -200,7 +257,7 @@
                     </div>
 
                     {{-- Initial Idle State --}}
-                    <div x-cloak x-show="recentSearches.length === 0"
+                    <div wire:key="palette-idle" x-cloak x-show="recentSearches.length === 0"
                          class="px-4 py-4 h-full flex flex-col items-center justify-center">
                         <div class="text-center opacity-40 py-16">
                             <div class="w-24 h-24 bg-[var(--md-sys-color-surface-container-high)] rounded-[32px] flex items-center justify-center mx-auto mb-6 rotate-3">
@@ -233,21 +290,30 @@
                 </div>
 
                 {{-- System Metrics --}}
-                <div class="flex items-center gap-2 font-mono"
+                <div class="flex items-center gap-2"
                      x-data="{ ttl: 0, start: performance.now() }"
                      x-init="$watch('$wire.query', () => { start = performance.now(); }); $watch('$wire.results', () => { ttl = Math.round(performance.now() - start); })">
 
                     <div class="flex items-center gap-1.5 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/15 px-2 py-1 rounded-md shadow-sm">
-                        <span class="material-symbols-rounded text-[14px] opacity-60">schema</span>
-                        <span class="text-[9px] font-bold tracking-widest uppercase opacity-70">
-                            {{ $mode === 'content' ? 'Heuristic' : 'Graph' }}
-                        </span>
+                        @if($mode === 'content')
+                            <div wire:key="palette-mode-chip-content" class="contents">
+                            <span class="material-symbols-rounded text-[14px] opacity-60">{{ $allHistory ? 'all_inclusive' : 'history' }}</span>
+                            <span class="text-[9px] font-bold tracking-widest uppercase opacity-70">
+                                {{ $allHistory ? 'کل تاریخ' : '۶ ماه اخیر' }}
+                            </span>
+                            </div>
+                        @else
+                            <div wire:key="palette-mode-chip-nav" class="contents">
+                            <span class="material-symbols-rounded text-[14px] opacity-60">schema</span>
+                            <span class="text-[9px] font-bold tracking-widest uppercase opacity-70">Graph</span>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="flex items-center gap-1.5 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/15 px-2 py-1 rounded-md shadow-sm">
                         <span class="material-symbols-rounded text-[14px] opacity-60">data_array</span>
                         <span class="text-[9px] font-bold tracking-widest uppercase opacity-70">
-                            Yield: {{ count($results ?? []) }}
+                            Yield: {{ convertToPersian(count($results ?? [])) }}
                         </span>
                     </div>
 
@@ -267,8 +333,8 @@
                     </div>
                 </div>
             </div>
-            <div class="relative right-4/5 bottom-1 opacity-50 p-0 m-0" >
-                <small>powered by {{ config('app.name') }}✨</small>
+            <div class="relative right-4/5 bottom-1 opacity-50 p-0 m-0">
+                <small>powered by {{ config('app.name_en') }}✨</small>
             </div>
         </div>
     </div>

@@ -26,18 +26,18 @@
         </button>
 
         @unless($readonly)
-            <button
-                type="button"
+            <x-ui.buttons.form
+                variant="none"
                 class="modal-btn modal-btn-confirm"
-                wire:click="{{ $action }}"
+                x-on:click="$wire.{{ $action }}()"
                 wire:loading.attr="disabled"
+                wire:target="{{ $action }}"
+                :loading="$action"
+                loadingText="در حال پردازش..."
                 aria-label="{{ $confirmText }}"
             >
-                <span wire:loading.remove wire:target="{{ $action }}">{{ $confirmText }}</span>
-                <span wire:loading wire:target="{{ $action }}">
-                    <i class="fas fa-spinner fa-spin"></i> در حال پردازش...
-                </span>
-            </button>
+                {{ $confirmText }}
+            </x-ui.buttons.form>
         @endunless
     </x-slot:actions>
 </x-ui.modals.base>

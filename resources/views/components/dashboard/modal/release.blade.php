@@ -1,13 +1,19 @@
+@props(['trigger' => null])
+
 <div x-data="{ open: false, active: false }"
      x-init="$watch('open', value => { if(value) { requestAnimationFrame(() => requestAnimationFrame(() => active = true)) } else { active = false } })"
      class="relative">
 
-    <button @click="open = true"
-            class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/50 active:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center relative group"
-            title="یادداشت‌های انتشار">
-        <span class="material-symbols-rounded text-[22px] opacity-70 group-hover:opacity-100 transition-opacity">new_releases</span>
-        <span class="absolute top-2 right-2 w-2 h-2 bg-yellow-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
-    </button>
+    @if($trigger)
+        <div @click="open = true" class="cursor-pointer">{{ $trigger }}</div>
+    @else
+        <button type="button" @click="open = true"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
+            <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">new_releases</span>
+            یادداشت‌های انتشار
+            <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)] mr-auto"></span>
+        </button>
+    @endif
 
     <template x-teleport="body">
         <div class="custom-modal"

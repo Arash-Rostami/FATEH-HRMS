@@ -4,7 +4,14 @@
     'bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] text-[var(--md-sys-color-error)]' => $entry['type'] === 'holiday',
     'bg-[color-mix(in_srgb,var(--tool-amethyst-bg,var(--md-sys-color-tertiary-container))_70%,transparent)] text-[var(--tool-amethyst-color,var(--md-sys-color-on-tertiary-container))]' => $entry['type'] === 'birthday',
     'bg-[color-mix(in_srgb,var(--tool-gold-bg,var(--md-sys-color-secondary-container))_70%,transparent)] text-[var(--tool-gold-color,var(--md-sys-color-on-secondary-container))]' => $entry['type'] === 'anniversary',
+    'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_70%,transparent)] text-[var(--md-sys-color-on-primary-container)]' => $entry['type'] === 'reminder',
 ])>
     <span class="material-symbols-rounded text-[12px] shrink-0" style="font-variation-settings: 'FILL' 1;">{{ $iconByType[$entry['type']] ?? '' }}</span>
+    @if($entry['type'] === 'reminder' && !empty($entry['time']))
+        <span class="shrink-0 opacity-80">{{ convertToPersian($entry['time']) }}</span>
+    @endif
     <span class="truncate">{{ $entry['title'] }}</span>
+    @if($entry['is_snoozed'] ?? false)
+        <span class="shrink-0 opacity-70 text-[9px]" title="اعلان موقتاً خاموش است">({{ convertToPersian($entry['snoozed_hours']) }}h)</span>
+    @endif
 </div>

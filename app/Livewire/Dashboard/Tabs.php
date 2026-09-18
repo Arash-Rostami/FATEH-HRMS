@@ -21,6 +21,9 @@ class Tabs extends Component
     #[Url(as: 'tab')]
     public $activeTab = 'home';
 
+    #[Url]
+    public bool $embed = false;
+
     public $direction = 'up';
 
     public function mount(): void

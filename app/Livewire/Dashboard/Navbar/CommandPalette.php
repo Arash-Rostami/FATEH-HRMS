@@ -16,6 +16,9 @@ class CommandPalette extends Component
     /** 'navigate' = jump to a module (static list) | 'content' = search real records. */
     public string $mode = 'navigate';
 
+    /** Expands content search past the default 6-month recency window. */
+    public bool $allHistory = false;
+
     public function render()
     {
         return view('livewire.dashboard.navbar.top.command-palette');
@@ -53,6 +56,7 @@ class CommandPalette extends Component
     public function toggleMode(): void
     {
         $this->mode = $this->mode === 'navigate' ? 'content' : 'navigate';
+        $this->allHistory = false;
         $this->results = [];
         $this->updatedQuery();
     }
@@ -65,8 +69,15 @@ class CommandPalette extends Component
         }
 
         $this->results = $this->mode === 'content'
-            ? app(ContentService::class)->search($this->query)
+            ? app(ContentService::class)->search($this->query, $this->allHistory)
             : app(NavigationService::class)->search($this->query);
+    }
+
+    /** Re-run the query without the recency window (whole-history content search). */
+    public function searchAllHistory(): void
+    {
+        $this->allHistory = true;
+        $this->updatedQuery();
     }
 
     private function handleEvent(string $target): void
@@ -107,7 +118,7 @@ class CommandPalette extends Component
 
     private function resetPalette(): void
     {
-        $this->reset(['query', 'results']);
+        $this->reset(['query', 'results', 'allHistory']);
         $this->dispatch('close-command-palette');
     }
 }

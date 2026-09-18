@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\TaskBoard\Actions\ForceDeleteTaskAction;
 use App\Models\Concerns\HasJalaliAdminLabels;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasPrunableStatus;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
 use App\Models\Concerns\HasTaskActivityLog;
 use App\Services\ProjectTask\EventSyncService;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -32,6 +34,7 @@ class Task extends Model
         HasJalaliAdminLabels,
         HasMenuState,
         HasReplies,
+        HasReminders,
         SoftDeletes,
         Prunable,
         HasPrunableStatus,
@@ -207,12 +210,34 @@ class Task extends Model
         } catch (InvalidArgumentException|RuntimeException) {
             $result = RankGenerator::rebalanceInsert($siblings->pluck('id')->values()->all(), $insertIndex);
 
-            foreach ($result['assignments'] as $id => $rank) {
-                static::whereKey($id)->update(['rank' => $rank]);
-            }
+            static::bulkAssignRanks($result['assignments']);
 
             return $result['insertRank'];
         }
+    }
+
+    public static function bulkAssignRanks(array $assignments): void
+    {
+        if ($assignments === []) {
+            return;
+        }
+
+        $ids = array_keys($assignments);
+        $bindings = [];
+
+        foreach ($assignments as $id => $rank) {
+            $bindings[] = $id;
+            $bindings[] = $rank;
+        }
+
+        $table = (new static)->getTable();
+        $cases = str_repeat('WHEN ? THEN ? ', count($assignments));
+        $in = implode(',', array_fill(0, count($ids), '?'));
+
+        DB::statement(
+            "UPDATE `{$table}` SET `rank` = CASE `id` {$cases}END WHERE `id` IN ({$in})",
+            [...$bindings, ...$ids]
+        );
     }
 
     public static function resetStatusCountsCache(): void
@@ -278,8 +303,10 @@ class Task extends Model
         });
 
         static::updating(function (self $task) {
-            $task->clearArchiveOnStatusChange();
-            $task->handleApprovalOnCompletion();
+            if ($task->isDirty('status')) {
+                $task->clearArchiveOnStatusChange();
+                $task->handleApprovalOnCompletion();
+            }
         });
 
         static::saved(function (self $task) {
@@ -291,7 +318,7 @@ class Task extends Model
 
     protected function clearArchiveOnStatusChange(): void
     {
-        if ($this->isDirty('status') && $this->status !== 'done' && $this->archived_at !== null) {
+        if ($this->status !== 'done' && $this->archived_at !== null) {
             $this->archived_at = null;
             $this->completed_at = null;
         }
@@ -299,7 +326,7 @@ class Task extends Model
 
     protected function handleApprovalOnCompletion(): void
     {
-        if (!$this->isDirty('status') || $this->status !== 'done' || $this->getOriginal('status') === 'done') {
+        if ($this->status !== 'done' || $this->getOriginal('status') === 'done') {
             return;
         }
 
@@ -364,9 +391,12 @@ class Task extends Model
             get: function () {
                 if (!$this->deadline) return null;
 
-                $format = $this->deadline->between(now(), now()->addDays(7)) ? 'l j F' : 'j F Y';
+                $now = now();
 
-                return toJalali($this->deadline, $format);
+                return toJalali(
+                    $this->deadline,
+                    $this->deadline->between($now, $now->copy()->addDays(7)) ? 'l j F' : 'j F Y'
+                );
             }
         )->shouldCache();
     }
@@ -405,27 +435,31 @@ class Task extends Model
 
         $checklist = $this->detail?->checklist ?? [];
 
-        if (empty($checklist)) {
+        if ($checklist === []) {
             return match ($this->status) {
-                'todo' => 0,
                 'in-progress' => 50,
                 'pending' => 75,
                 default => 0,
             };
         }
 
-        $totalWeight = array_sum(array_map(fn($item) => (int)($item['weight'] ?? 0), $checklist));
+        $totalWeight = 0;
+        $doneWeight = 0;
+        $doneCount = 0;
 
-        if ($totalWeight <= 0) {
-            $done = count(array_filter($checklist, fn($item) => $item['done'] ?? false));
+        foreach ($checklist as $item) {
+            $weight = (int) ($item['weight'] ?? 0);
+            $totalWeight += $weight;
 
-            return (int)round($done / count($checklist) * 100);
+            if ($item['done'] ?? false) {
+                $doneWeight += $weight;
+                $doneCount++;
+            }
         }
 
-        return (int)array_sum(array_map(
-            fn($item) => ($item['done'] ?? false) ? (int)($item['weight'] ?? 0) : 0,
-            $checklist,
-        ));
+        return $totalWeight > 0
+            ? $doneWeight
+            : (int) round($doneCount / count($checklist) * 100);
     }
 
     protected function status(): Attribute

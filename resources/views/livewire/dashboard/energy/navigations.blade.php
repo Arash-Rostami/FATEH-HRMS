@@ -2,7 +2,7 @@
     <div class="flex items-center gap-2 text-sm font-medium text-[var(--md-sys-color-on-surface-variant)]">
         <span title="مرحله"
               class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] text-xs font-bold shadow-sm">
-             {{ $totalSteps }} / {{ $step }}
+             {{ convertToPersian($totalSteps) }} / {{ convertToPersian($step) }}
         </span>
     </div>
 
@@ -28,6 +28,7 @@
         @if($step < $totalSteps)
             {{-- Next Button --}}
             <button
+                wire:key="energy-nav-next"
                 wire:click="nextStep"
                 :disabled="!canProceed"
                 title="مرحله بعد"
@@ -46,6 +47,7 @@
             {{-- Submit Button --}}
             <x-ui.buttons.form
                 type="button"
+                wire:key="energy-nav-submit"
                 wire:click="submitTest"
                 :disabled="!$canSubmit"
                 title="ثبت "

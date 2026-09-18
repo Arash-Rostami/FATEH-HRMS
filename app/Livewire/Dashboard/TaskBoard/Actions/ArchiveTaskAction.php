@@ -12,7 +12,7 @@ class ArchiveTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user()) || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canDelete($task, auth()->user())) {
             return false;
         }
 

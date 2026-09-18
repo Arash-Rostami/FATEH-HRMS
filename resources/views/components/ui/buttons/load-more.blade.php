@@ -7,9 +7,13 @@
     'iconHoverClass' => 'group-hover:translate-y-0.5'
 ])
 
-<button wire:click="{{ $action }}"
-    {{ $attributes->merge(['class' => 'group flex items-center justify-center gap-2 transition-all outline-none']) }}>
-
+<x-ui.buttons.form
+    variant="none"
+    x-on:click="$wire.{{ $action }}()"
+    wire:loading.attr="disabled"
+    wire:target="{{ $action }}"
+    {{ $attributes->merge(['class' => 'group flex items-center justify-center gap-2 transition-all outline-none']) }}
+>
     <span wire:loading.remove wire:target="{{ $action }}">{{ $text }}</span>
 
     @if($loadingText)
@@ -29,4 +33,4 @@
           wire:target="{{ $action }}">
         progress_activity
     </span>
-</button>
+</x-ui.buttons.form>

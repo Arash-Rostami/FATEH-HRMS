@@ -12,7 +12,7 @@ class ReorderTaskAction
 {
     public function execute(Task $task, ?int $beforeTaskId, ?string $targetStatus = null): void
     {
-        abort_unless($task->can_change_status, 403);
+        abort_unless($task->can_change_status && !$task->ticket_id, 403);
 
         $status = ($targetStatus && TaskStatus::tryFrom($targetStatus)) ? $targetStatus : $task->status;
 
@@ -48,9 +48,7 @@ class ReorderTaskAction
                 $insertAt = $targetIndex === false ? $siblings->count() : $targetIndex;
                 $result = RankGenerator::rebalanceInsert($siblings->pluck('id')->values()->all(), $insertAt);
 
-                foreach ($result['assignments'] as $id => $siblingRank) {
-                    Task::whereKey($id)->update(['rank' => $siblingRank]);
-                }
+                Task::bulkAssignRanks($result['assignments']);
 
                 $rank = $result['insertRank'];
             }

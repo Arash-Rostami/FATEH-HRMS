@@ -4,6 +4,18 @@
     $firstUnreadId = $this->newMessagesAnchorId;
 @endphp
 
+<div x-show="typeFilterOpen || typeFilter" x-cloak x-transition
+     class="flex-shrink-0 px-4 md:px-8 pt-3 pb-1 bg-[var(--md-sys-color-surface)]">
+    <div class="flex flex-row-reverse items-center gap-3 min-w-0">
+        @include('livewire.dashboard.messaging.type-filter')
+        <button type="button" x-show="typeFilter" x-cloak x-on:click="clearAllFilters()"
+                class="flex-shrink-0 px-2.5 h-7 rounded-full flex items-center gap-1 text-[10px] font-semibold bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] transition-all active:scale-95">
+            <span class="material-symbols-rounded text-[13px]">close</span>
+            همه
+        </button>
+    </div>
+</div>
+
 <div id="msg-viewport"
      class="flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
@@ -52,6 +64,8 @@
             @endif
             <div wire:key="msg-{{ $msg['id'] }}"
                  data-rf="message-{{ $msg['id'] }}"
+                 data-types="{{ $msg['type_flags'] }}"
+                 x-show="passesTypeFilter($el.dataset.types)"
                  x-on:click="toggleActions({{ $msg['id'] }}, $event)"
                  @class([
                      'flex items-end gap-2 group bubble-enter',
@@ -157,7 +171,7 @@
                                             class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
                                     @endif
                                     <time
-                                        class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60"
+                                        class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60"
                                         datetime="{{ $msg['datetime'] }}"
                                         dir="ltr">{{ $msg['time'] }}</time>
                                     @if($msg['is_mine'])

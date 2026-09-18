@@ -17,7 +17,7 @@
 
             <main class="hidden md:flex flex-1 flex-col bg-[var(--md-sys-color-background)]">
                 <div class="flex-shrink-0 p-4 md:p-5 border-b border-[var(--md-sys-color-outline-variant)]/40 flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-[var(--md-sys-color-surface-variant)] animate-pulse flex-shrink-0"></div>
+                    <x-ui.loaders.skeleton.bar width="w-12" height="h-12" class="!rounded-2xl flex-shrink-0"/>
                     <div class="flex-1 flex flex-col gap-2">
                         <x-ui.loaders.skeleton.bar width="w-1/3" height="h-4"/>
                         <x-ui.loaders.skeleton.bar width="w-1/2" height="h-3"/>
@@ -27,7 +27,7 @@
                     <x-ui.loaders.skeleton.bar width="w-64" height="h-9"/>
                     @for($i = 0; $i < 4; $i++)
                         <div class="flex items-start gap-2.5">
-                            <div class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] animate-pulse flex-shrink-0"></div>
+                            <x-ui.loaders.skeleton.bar width="w-8" height="h-8" class="!rounded-full flex-shrink-0"/>
                             <x-ui.loaders.skeleton.bar :width="$i % 2 === 0 ? 'w-2/5' : 'w-1/3'" height="h-10"/>
                         </div>
                     @endfor

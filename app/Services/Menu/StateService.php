@@ -5,6 +5,7 @@ namespace App\Services\Menu;
 use App\Services\Menu\Indicators\ActiveAds;
 use App\Services\Menu\Indicators\EnergyTestBadge;
 use App\Services\Menu\Indicators\PendingSuggestions;
+use App\Services\Menu\Indicators\ReminderBadge;
 use App\Services\Menu\Indicators\SharedEvents;
 use App\Services\Menu\Indicators\SpecialDays;
 use App\Services\Menu\Indicators\TasksImminent;
@@ -37,6 +38,7 @@ class StateService
         EnergyTestBadge::class,
         ThsBadge::class,
         DmsBadge::class,
+        ReminderBadge::class,
 
     ];
 

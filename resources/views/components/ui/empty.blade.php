@@ -11,7 +11,7 @@
 @php
     [$iconBox, $iconSize, $heading] = match ($variant) {
         'welcome' => ['p-6 rounded-3xl bg-[var(--md-sys-color-surface-container-high)]', 'text-[56px] leading-none', 'text-lg font-bold'],
-        default => ['p-4 rounded-full bg-[var(--md-sys-color-surface-container-high)]', 'text-[40px] leading-none', 'text-base font-medium'],
+        default => ['p-4 rounded-2xl bg-[var(--md-sys-color-surface-container-high)]', 'text-[40px] leading-none', 'text-base font-medium'],
     };
     $heightClass = $fill ? 'h-full w-full' : 'h-64';
     $rootClass = 'flex flex-col items-center justify-center text-center text-[var(--md-sys-color-on-surface-variant)] opacity-60 ' . $heightClass;

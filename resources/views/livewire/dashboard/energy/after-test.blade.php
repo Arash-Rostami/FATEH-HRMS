@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto px-4">
+<div wire:key="energy-after-test" class="max-w-md mx-auto px-4">
     <div
         class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
         <div class="h-[3px] bg-[var(--md-sys-color-primary)]"

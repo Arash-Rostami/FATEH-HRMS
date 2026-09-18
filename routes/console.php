@@ -15,7 +15,12 @@ Schedule::command('notifications:prune-stale')
     ->daily()
     ->withoutOverlapping();
 
-Schedule::command('tasks:nudge-overdue')
+Schedule::command('tasks:sweep-overdue')
+    ->hourly()
+    ->between('06:00', '22:00')
+    ->withoutOverlapping();
+
+Schedule::command('reminders:sweep-due')
     ->hourly()
     ->between('06:00', '22:00')
     ->withoutOverlapping();
@@ -26,5 +31,9 @@ Schedule::command('tasks:archive-stale-done')
     ->withoutOverlapping();
 
 Schedule::command('edges:prune-stale')
+    ->daily()
+    ->withoutOverlapping();
+
+Schedule::command('reminders:prune-completed')
     ->daily()
     ->withoutOverlapping();

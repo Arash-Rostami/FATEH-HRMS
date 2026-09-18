@@ -38,6 +38,23 @@ trait BuildsChatBubbles
         ])->all();
     }
 
+    public function typeFlags(array $msg): string
+    {
+        $flags = ($msg['body'] ?? '') !== '' ? 't' : '';
+
+        foreach ($msg['attachments'] ?? [] as $file) {
+            $mime = $file['mime'] ?? '';
+            $flags .= match (true) {
+                str_starts_with($mime, 'image/') => ' i',
+                str_starts_with($mime, 'video/') => ' v',
+                str_contains($mime, 'pdf') => ' p',
+                default => ' f',
+            };
+        }
+
+        return trim($flags);
+    }
+
     public function linkify(string $text): string
     {
         return preg_replace(

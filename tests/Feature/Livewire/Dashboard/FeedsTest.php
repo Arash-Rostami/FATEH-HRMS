@@ -9,6 +9,8 @@ use App\Models\Feed;
 use App\Models\Poll;
 use App\Models\Reaction;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -20,6 +22,7 @@ class FeedsTest extends TestCase
     {
         parent::setUp();
         $this->useMysql();
+        Cache::flush();
         DB::beginTransaction();
         Livewire::withoutLazyLoading();
     }
@@ -104,10 +107,55 @@ class FeedsTest extends TestCase
             ->assertSet('hasMorePages', true)
             ->call('loadMore')
             ->assertSet('feedIds', fn ($ids) => count($ids) === 6)
-            ->assertSet('hasMorePages', true)
+            ->assertSet('hasMorePages', false)
             ->call('loadMore')
             ->assertSet('hasMorePages', false)
             ->assertSet('feedIds', fn ($ids) => count($ids) === 6);
+    }
+
+    public function test_load_more_flips_the_flag_off_on_a_partial_final_batch(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 5);
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Feeds::class)
+            ->assertSet('feedIds', fn ($ids) => count($ids) === 3)
+            ->assertSet('hasMorePages', true)
+            ->call('loadMore')
+            ->assertSet('feedIds', fn ($ids) => count($ids) === 5)
+            ->assertSet('hasMorePages', false);
+    }
+
+    public function test_filter_branch_loads_every_match_without_pagination_and_flag_stays_false(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 5);
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Feeds::class)
+            ->set('search', 'feed')
+            ->assertSet('feedIds', fn ($ids) => count($ids) === 5)
+            ->assertSet('hasMorePages', false);
+    }
+
+    public function test_total_feeds_is_cached_under_the_model_cache_version_key(): void
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        $this->cleanSlate();
+        $this->createFeedsFor($user, 3);
+
+        Livewire::withoutLazyLoading();
+        Livewire::test(Feeds::class)->instance()->totalFeeds;
+
+        $key = ModelCacheVersion::key(Feed::class, 'total_count');
+        $this->assertTrue(Cache::has($key));
+
+        Feed::factory()->create(['user_id' => $user->id]);
+
+        $this->assertNotSame($key, ModelCacheVersion::key(Feed::class, 'total_count'), 'a feed write must bump the version and orphan the cached total');
     }
 
     public function test_load_more_is_noop_when_has_more_pages_is_false(): void
@@ -142,6 +190,7 @@ class FeedsTest extends TestCase
         Livewire::withoutLazyLoading();
         Livewire::test(Feeds::class)
             ->assertStatus(200)
+            ->assertSeeHtml('feeds-empty-timeline')
             ->assertSet('feedIds', [])
             ->assertSet('hasMorePages', false)
             ->assertSet('selectedFeedId', null)
@@ -668,7 +717,7 @@ class FeedsTest extends TestCase
             ->test(Feeds::class)
             ->assertSet('open', null)
             ->assertSet('feedIds', fn ($ids) => count($ids) === 3)
-            ->assertSet('hasMorePages', true);
+            ->assertSet('hasMorePages', false);
     }
 
     public function test_clear_focus_restores_initial_feed_load(): void

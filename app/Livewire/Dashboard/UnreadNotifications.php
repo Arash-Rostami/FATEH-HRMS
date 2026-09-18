@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\DMS;
+use App\Services\Cache\ModelCacheVersion;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
@@ -124,11 +125,17 @@ class UnreadNotifications extends DatabaseNotifications
             return $total;
         }
 
-        $groups = $this->getNotificationsQuery()
-            ->reorder()
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.menu_key')) as menu_key, COUNT(*) as cnt")
-            ->groupBy('menu_key')
-            ->get();
+        $groups = ModelCacheVersion::remember(
+            DatabaseNotification::class,
+            'unread_menu_groups:' . (int) auth()->id(),
+            now()->addMinutes(15),
+            fn () => $this->getNotificationsQuery()
+                ->reorder()
+                ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.menu_key')) as menu_key, COUNT(*) as cnt")
+                ->groupBy('menu_key')
+                ->get()
+                ->all()
+        );
 
         $userId = null;
 
@@ -165,10 +172,7 @@ class UnreadNotifications extends DatabaseNotifications
 
     protected function dmsCounts(int $userId): array
     {
-        return $this->dmsCountsCache ??= [
-            DMS::needsSignCount($userId),
-            DMS::needsReadCount($userId),
-        ];
+        return $this->dmsCountsCache ??= DMS::pendingCounts($userId);
     }
 
     protected function dmsAggregateRow(string $mode, int $count): DatabaseNotification

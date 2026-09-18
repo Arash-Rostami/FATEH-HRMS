@@ -22,6 +22,7 @@ export default function status(view) {
         user: null,
         aboutMe: {},
         tab: 'levels',
+        structureSub: 'layout',
 
         init() {
             this.vBox = this.$root.closest('.custom-scrollbar') || document.scrollingElement || document.documentElement;

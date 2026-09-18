@@ -6,18 +6,25 @@ use App\Enums\CancelReason;
 use App\Enums\ReservationError;
 use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
+use App\Models\Concerns\HasReminders;
 use App\Services\Reservation\EventSyncService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Reservation extends Model
 {
-    use HasFactory;
+    use HasFactory, HasReminders;
 
     public const LONG_HOLD_DAYS = 7;
+
+    private const CANCELLED_STATUSES = [
+        ReservationStatus::CancelledUser->value,
+        ReservationStatus::CancelledAdmin->value,
+    ];
 
     protected $fillable = [
         'user_id',
@@ -36,7 +43,7 @@ class Reservation extends Model
         'display_time',
     ];
 
-    public function cancelledBy()
+    public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by_id');
     }
@@ -48,29 +55,46 @@ class Reservation extends Model
             : null;
     }
 
-    public function occurrences()
+    public function occurrences(): HasMany
     {
-        return $this->hasMany(Reservation::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function parent()
+    public function parent(): BelongsTo
     {
-        return $this->belongsTo(Reservation::class, 'parent_id');
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function resource()
+    public function resource(): BelongsTo
     {
         return $this->belongsTo(Resource::class);
     }
 
     public function scopeCancelled(Builder $q): Builder
     {
-        return $q->whereIn('status', [ReservationStatus::CancelledUser->value, ReservationStatus::CancelledAdmin->value]);
+        return $q->whereIn('status', self::CANCELLED_STATUSES);
     }
 
     public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
+    }
+
+    public function scopeForHistoryTab(Builder $q, string $tab, bool $showAll, ?string $search, ?array $span = null): Builder
+    {
+        if (! $showAll) {
+            match ($tab) {
+                'previous' => $q->previous(),
+                'cancelled' => $q->cancelled(),
+                'released' => $q->released(),
+                default => $q->upcoming(),
+            };
+        }
+
+        return $q->when($search !== null && $search !== '', fn($sub) => $sub->whereHas(
+            'resource',
+            fn($r) => $r->whereRaw('INSTR(name, ?) > 0', [$search])
+        ))->when($span !== null, fn($sub) => $sub->whereBetween('start_time', [$span[0], $span[1]]));
     }
 
     public function scopePrevious(Builder $q): Builder
@@ -86,9 +110,11 @@ class Reservation extends Model
 
     public function scopeForToday(Builder $q): Builder
     {
+        $now = now();
+
         return $q->where('status', ReservationStatus::Active->value)
-            ->where('start_time', '<=', now()->endOfDay())
-            ->where('end_time', '>=', now()->startOfDay());
+            ->where('start_time', '<=', $now->copy()->endOfDay())
+            ->where('end_time', '>=', $now->copy()->startOfDay());
     }
 
     public function scopeUpcoming(Builder $q): Builder
@@ -109,15 +135,21 @@ class Reservation extends Model
 
     public function isRange(): bool
     {
-        return !$this->is_full_day
-            && $this->start_time
-            && $this->end_time
-            && $this->start_time->diffInDays($this->end_time) >= 1;
+        return $this->spanInDays() >= 1;
     }
 
     public function isLongHold(): bool
     {
-        return $this->isRange() && $this->start_time->diffInDays($this->end_time) >= self::LONG_HOLD_DAYS;
+        return $this->spanInDays() >= self::LONG_HOLD_DAYS;
+    }
+
+    private function spanInDays(): float
+    {
+        if ($this->is_full_day || !$this->start_time || !$this->end_time) {
+            return -1.0;
+        }
+
+        return (float) $this->start_time->diffInDays($this->end_time);
     }
 
     protected static function booted(): void
@@ -172,7 +204,7 @@ class Reservation extends Model
 
                 return $date . ' • ' . $startTime . ' تا ' . $endDate . ' ' . $endTime;
             }
-        );
+        )->shouldCache();
     }
 
     protected function resourceDropdownLabel(): Attribute

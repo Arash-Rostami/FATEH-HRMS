@@ -1,50 +1,88 @@
-const KEYS = {contact: 'pinned-contacts', channel: 'pinned-channels', message: 'pinned-messages', project: 'pinned-projects', activity: 'pinned-activity', menu: 'pinned-menu-items'};
-const STRING_SCOPES = new Set(['menu']);
+const SCOPES = ['contact', 'channel', 'message', 'project', 'activity', 'menu', 'reservation'];
 
-const coerceId = (id, scope) => STRING_SCOPES.has(scope) ? String(id) : Number(id);
+const KEYS = {
+    contact: 'pinned-contacts',
+    channel: 'pinned-channels',
+    message: 'pinned-messages',
+    project: 'pinned-projects',
+    activity: 'pinned-activity',
+    menu: 'pinned-menu-items',
+    reservation: 'pinned-reservations'
+};
 
-export default (Alpine) => {
+export default function pinned(Alpine) {
     Alpine.store('pinned', {
-        sets: {contact: new Set(), channel: new Set(), message: new Set(), project: new Set(), activity: new Set(), menu: new Set()},
+        sets: { contact: null, channel: null, message: null, project: null, activity: null, menu: null, reservation: null },
+        lists: { contact: [], channel: [], message: [], project: [], activity: [], menu: [], reservation: [] },
 
         init() {
-            for (const scope of Object.keys(KEYS)) {
-                this.sets[scope] = this._load(scope);
+            for (let i = 0; i < 7; i++) {
+                const scope = SCOPES[i];
+                const set = this._load(scope);
+                this.sets[scope] = set;
+                this.lists[scope] = Array.from(set);
             }
         },
 
         _load(scope) {
+            const set = new Set();
             try {
                 const saved = JSON.parse(localStorage.getItem(KEYS[scope]));
-                if (!Array.isArray(saved)) return new Set();
-                const ids = saved.map((v) => coerceId(v, scope));
-                return new Set(STRING_SCOPES.has(scope) ? ids.filter(Boolean) : ids.filter(Number.isFinite));
-            } catch {
-                return new Set();
-            }
+                if (Array.isArray(saved)) {
+                    const len = saved.length;
+                    const isMenu = scope === 'menu';
+                    for (let i = 0; i < len; i++) {
+                        const val = saved[i];
+                        if (isMenu) {
+                            if (val) set.add(String(val));
+                        } else {
+                            const num = Number(val);
+                            if (Number.isFinite(num)) set.add(num);
+                        }
+                    }
+                }
+            } catch {}
+            return set;
         },
 
         _persist(scope) {
-            try {
-                localStorage.setItem(KEYS[scope], JSON.stringify([...this.sets[scope]]));
-            } catch {}
+            const data = Alpine.raw(this.lists[scope]);
+            if (!data) return;
+
+            queueMicrotask(() => {
+                try {
+                    localStorage.setItem(KEYS[scope], JSON.stringify(data));
+                } catch {}
+            });
         },
 
         isPinned(id, scope = 'contact') {
-            return this.sets[scope]?.has(coerceId(id, scope)) ?? false;
+            const s = this.sets[scope];
+            if (!s) return false;
+            return s.has(scope === 'menu' ? String(id) : Number(id));
         },
 
         togglePin(id, scope = 'contact') {
-            const s = this.sets[scope];
-            if (s) {
-                const key = coerceId(id, scope);
-                s.has(key) ? s.delete(key) : s.add(key);
-                this._persist(scope);
+            const rawSet = Alpine.raw(this.sets[scope]);
+            if (!rawSet) return;
+
+            const key = scope === 'menu' ? String(id) : Number(id);
+            const nextSet = new Set(rawSet);
+
+            if (nextSet.has(key)) {
+                nextSet.delete(key);
+            } else {
+                nextSet.add(key);
             }
+
+            this.sets[scope] = nextSet;
+            this.lists[scope] = Array.from(nextSet);
+
+            this._persist(scope);
         },
 
         getPinned(scope = 'contact') {
-            return this.sets[scope] ? [...this.sets[scope]] : [];
+            return this.lists[scope] || [];
         }
     });
-};
+}

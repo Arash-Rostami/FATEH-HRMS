@@ -111,6 +111,7 @@ class ContactPresenter
                 'can_edit'   => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'attachments' => $this->attachments($msg['attachments'] ?? []),
+                'type_flags' => $this->typeFlags($msg),
                 'gap_class'  => $isFirst ? 'mt-4' : 'mt-1',
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),
                 'reply_to'   => $this->replyPreview($msg['reply_to'] ?? null),

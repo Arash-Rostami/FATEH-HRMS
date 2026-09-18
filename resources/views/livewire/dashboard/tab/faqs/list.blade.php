@@ -53,5 +53,7 @@
         </div>
     </div>
 @empty
-    @include('livewire.dashboard.tab.faqs.empty')
+    <div wire:key="faq-empty" class="contents">
+        @include('livewire.dashboard.tab.faqs.empty')
+    </div>
 @endforelse

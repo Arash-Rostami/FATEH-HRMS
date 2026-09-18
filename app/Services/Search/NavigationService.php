@@ -264,8 +264,8 @@ class NavigationService
             ],
             [
                 'id' => 'channels',
-                'title' => 'کانال‌ها',
-                'subtitle' => 'کانال‌های موضوعی و گروهی',
+                'title' => 'گروه‌ها',
+                'subtitle' => 'گروه‌های موضوعی و سازمانی',
                 'icon' => 'campaign',
                 'action' => 'route:channels',
                 'keywords' => [

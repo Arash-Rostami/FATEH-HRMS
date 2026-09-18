@@ -46,7 +46,7 @@
             @forelse($this->faqs as $faq)
                 @include('livewire.dashboard.tab.faqs.cards')
             @empty
-                <div class="col-span-full">
+                <div wire:key="faq-empty" class="col-span-full">
                     @include('livewire.dashboard.tab.faqs.empty')
                 </div>
             @endforelse

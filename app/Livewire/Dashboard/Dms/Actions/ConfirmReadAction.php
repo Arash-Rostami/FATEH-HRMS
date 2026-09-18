@@ -3,6 +3,8 @@
 namespace App\Livewire\Dashboard\Dms\Actions;
 
 use App\Models\DMS;
+use App\Services\Cache\ModelCacheVersion;
+use Illuminate\Support\Facades\Cache;
 
 class ConfirmReadAction
 {
@@ -16,6 +18,8 @@ class ConfirmReadAction
             ['user_id' => auth()->id()],
             ['read' => true]
         );
+
+        Cache::forget(ModelCacheVersion::key(DMS::class, 'pending_counts:' . auth()->id()));
 
         if ($increment) {
             $readRecord->increment('read_count');

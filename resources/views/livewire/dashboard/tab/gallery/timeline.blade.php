@@ -49,16 +49,7 @@
                         x-transition:leave-start="opacity-100 scale-100 translate-x-1/2"
                         x-transition:leave-end="opacity-0 scale-90 translate-x-4"
                         class="absolute top-1/2 -right-10 z-0 hidden md:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2 pointer-events-none">
-                        <div
-                            class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
-                            :class="activeId == {{ $photo->id }} ? '!opacity-100 !translate-y-0' : ''"
-                        >
-                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
-                                {{ toJalali($photo->event_date, 'j F Y') }}
-                            </span>
-                            <div
-                                class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-variant)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"></div>
-                        </div>
+                        <x-dashboard.timeline-date-bubble :id="$photo->id" :date="toJalali($photo->event_date, 'j F Y')"/>
 
                         <div
                             class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
@@ -68,14 +59,7 @@
                         </div>
 
                         @if($photo->description)
-                            <div
-                                class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-                                :class="activeId == {{ $photo->id }} ? '!opacity-100' : ''"
-                            >
-                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                                    {{ Str::limit(strip_tags($photo->description), 28) }}
-                                </span>
-                            </div>
+                            <x-dashboard.timeline-caption :id="$photo->id" :text="Str::limit(strip_tags($photo->description), 28)"/>
                         @endif
                     </div>
 

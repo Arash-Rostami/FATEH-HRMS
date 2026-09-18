@@ -53,6 +53,9 @@
                         @elseif($day['hasAnniversary'])
                             <span class="material-symbols-rounded text-[11px] sm:text-[13px] md:text-[16px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--tool-gold-on-surface-variant,var(--md-sys-color-secondary))]' }} drop-shadow-sm"
                                   style="font-variation-settings: 'FILL' 1;">celebration</span>
+                        @elseif($day['hasReminder'])
+                            <span class="material-symbols-rounded text-[11px] sm:text-[13px] md:text-[16px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--tool-sapphire-on-surface-variant,var(--md-sys-color-secondary))]' }} drop-shadow-sm"
+                                  style="font-variation-settings: 'FILL' 1;">alarm</span>
                         @elseif($day['hasEvents'])
                             <span class="material-symbols-rounded text-[11px] sm:text-[13px] md:text-[16px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-primary)]' }} drop-shadow-sm"
                                   style="font-variation-settings: 'FILL' 1;">event</span>
@@ -121,6 +124,10 @@
             <div class="flex items-center gap-1.5">
                 <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-primary)]" style="font-variation-settings: 'FILL' 1;">event</span>
                 <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold">رویداد</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-[12px] text-[var(--tool-sapphire-on-surface-variant,var(--md-sys-color-secondary))]" style="font-variation-settings: 'FILL' 1;">alarm</span>
+                <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold">یادآوری</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="material-symbols-rounded text-[12px] text-[var(--tool-sage-color,var(--md-sys-color-tertiary))]" style="font-variation-settings: 'FILL' 1;">event_seat</span>

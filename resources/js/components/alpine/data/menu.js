@@ -18,7 +18,7 @@ const BASE_ITEMS = [
     {id: 'reservation-car', href: '/reservation?tab=car', icon: 'directions_car', title: 'رزرو خودرو', sub: 'ماشین شرکت', resourceType: 'car', module: 'reservation', group: 'رزرواسیون'},
     {id: 'reservation-appointment', href: '/reservation?tab=meeting', icon: 'event_available', title: 'رزرو ملاقات', sub: 'جلسه کاری', resourceType: 'meeting', module: 'reservation', group: 'رزرواسیون'},
     {id: 'contacts-controller', href: '/contacts', icon: 'perm_contact_calendar', title: 'مخاطبین (پیام‌رسان)', sub: 'پیام‌رسان داخلی', module: 'contact', group: 'ارتباطات'},
-    {id: 'channels', href: '/channels', icon: 'campaign', title: 'کانال‌ها', sub: 'کانال‌های موضوعی', module: 'channel', group: 'ارتباطات'},
+    {id: 'channels', href: '/channels', icon: 'campaign', title: 'گروه‌ها', sub: 'گروه‌های موضوعی', module: 'channel', group: 'ارتباطات'},
     {id: 'ads-controller', href: '/ads', icon: 'work', title: 'فرصت‌های شغلی', sub: 'استخدامی', group: 'سازمان'},
     {id: 'authority-controller', href: '/authority', icon: 'verified_user', title: 'اختیارات', sub: 'واحدهای سازمانی', group: 'سازمان'},
     {id: 'energy-controller', href: '/energy', icon: 'energy', title: 'پرسشنامه انرژی', sub: 'ارزیابی فردی', module: 'energy', group: 'سازمان'},
@@ -32,7 +32,7 @@ const BASE_ITEMS = [
 
 const RECENT_KEY = 'menu_recent_items';
 const RECENT_MAX = 8;
-const CURRENT_PAGE_KEY = 'menu_current_page';
+const LAST_ITEM_KEY = 'menu_last_item_id';
 const VIEW_MODE_KEY = 'menu_view_mode';
 const SORT_ALPHA_KEY = 'menu_sort_alpha';
 const MQ_LARGE = '(min-width: 640px)';
@@ -74,13 +74,18 @@ export default function menu(options = {}) {
 
         get sortedItems() {
             const pins = this.$store.pinned.sets.menu;
-            if (!this.sortAlpha && pins.size === 0) return this.items;
+            if (!this.sortAlpha && (!pins || pins.size === 0)) return this.items;
 
-            const key = `${this.sortAlpha ? 1 : 0}|${this._pinsVersion}`;
+            const key = (this.sortAlpha ? '1|' : '0|') + this._pinsVersion;
             if (this._sortedKey === key) return this._sortedCache;
 
-            const sorted = [...this.items].sort((a, b) => {
-                const pinDiff = pins.has(b.id) - pins.has(a.id);
+            const sorted = this.items.slice().sort((a, b) => {
+                let pinDiff = 0;
+                if (pins) {
+                    const hasB = pins.has(b.id) ? 1 : 0;
+                    const hasA = pins.has(a.id) ? 1 : 0;
+                    pinDiff = hasB - hasA;
+                }
                 if (pinDiff !== 0) return pinDiff;
                 return this.sortAlpha ? a.title.localeCompare(b.title, 'fa') : 0;
             });
@@ -95,8 +100,9 @@ export default function menu(options = {}) {
             if (this._groupedSourceRef === visible) return this._groupedCache;
 
             const groupsMap = new Map();
+            const len = visible.length;
 
-            for (let i = 0, len = visible.length; i < len; i++) {
+            for (let i = 0; i < len; i++) {
                 const item = visible[i];
                 const label = item.group || 'سایر';
                 let g = groupsMap.get(label);
@@ -119,22 +125,47 @@ export default function menu(options = {}) {
             }
 
             const pages = [];
-            for (let i = 0, len = items.length; i < len; i += this.perPage) {
-                pages.push(items.slice(i, i + this.perPage));
+            const len = items.length;
+            const pp = this.perPage;
+
+            for (let i = 0; i < len; i += pp) {
+                pages.push(items.slice(i, i + pp));
             }
 
             this._paginatedSourceRef = items;
-            this._paginatedPerPage = this.perPage;
+            this._paginatedPerPage = pp;
             this._paginatedCache = pages;
             return pages;
         },
 
         _filteredItems() {
             if (this.showRecentOnly) {
-                return this.recentIds.map((id) => this._itemMap.get(id)).filter(Boolean);
+                const recent = [];
+                const rIds = this.recentIds;
+                const rLen = rIds.length;
+                const map = this._itemMap;
+
+                for (let i = 0; i < rLen; i++) {
+                    const item = map.get(rIds[i]);
+                    if (item) recent.push(item);
+                }
+                return recent;
             }
+
             const q = this.search.trim().toLowerCase();
-            return q ? this.sortedItems.filter((i) => i._searchKey.includes(q)) : null;
+            if (!q) return null;
+
+            const sorted = this.sortedItems;
+            const filtered = [];
+            const len = sorted.length;
+
+            for (let i = 0; i < len; i++) {
+                const item = sorted[i];
+                if (item._searchKey.includes(q)) {
+                    filtered.push(item);
+                }
+            }
+            return filtered;
         },
 
         get activePages() {
@@ -143,21 +174,51 @@ export default function menu(options = {}) {
         },
 
         get allVisibleItems() {
-            return this._filteredItems() ?? this.sortedItems;
+            const filtered = this._filteredItems();
+            return filtered !== null ? filtered : this.sortedItems;
         },
 
         get activeIndex() {
-            return (this.search.trim() || this.showRecentOnly) ? 0 : this.current;
+            const q = this.search.trim();
+            if (q !== '' || this.showRecentOnly) return 0;
+            return this.current;
         },
 
         get currentFocusableItems() {
-            return this.viewMode === 'grid'
-                ? (this.activePages[this.activeIndex] || [])
-                : this.allVisibleItems;
+            if (this.viewMode === 'grid') {
+                const pages = this.activePages;
+                const active = this.activeIndex;
+                return pages[active] || [];
+            }
+            return this.allVisibleItems;
         },
 
         get notifiedCount() {
-            return this.items.filter((i) => i.hasNotification).length;
+            let count = 0;
+            const items = this.items;
+            const len = items.length;
+
+            for (let i = 0; i < len; i++) {
+                if (items[i].hasNotification) count++;
+            }
+            return count;
+        },
+
+        _pageForItem(id) {
+            if (id == null) return 0;
+
+            const sorted = this.sortedItems;
+            const len = sorted.length;
+            let idx = -1;
+
+            for (let i = 0; i < len; i++) {
+                if (sorted[i].id === id) {
+                    idx = i;
+                    break;
+                }
+            }
+
+            return idx === -1 ? 0 : Math.floor(idx / this.perPage);
         },
 
         listCols(count) {
@@ -168,11 +229,19 @@ export default function menu(options = {}) {
 
         pageHasNotification(pageIndex) {
             const page = this.paginatedData[pageIndex];
-            return !!page && page.some((i) => i.hasNotification);
+            if (!page) return false;
+
+            const len = page.length;
+            for (let i = 0; i < len; i++) {
+                if (page[i].hasNotification) return true;
+            }
+            return false;
         },
 
         toggleTheme() {
-            window.ThemeManager?.toggleMode?.();
+            if (window.ThemeManager && window.ThemeManager.toggleMode) {
+                window.ThemeManager.toggleMode();
+            }
             this.isDark = !this.isDark;
         },
 
@@ -188,7 +257,8 @@ export default function menu(options = {}) {
         },
 
         isPinned(item) {
-            return this.$store.pinned.isPinned(item?.id, 'menu');
+            if (!item || !item.id) return false;
+            return this.$store.pinned.isPinned(item.id, 'menu');
         },
 
         togglePin(item, event) {
@@ -196,21 +266,35 @@ export default function menu(options = {}) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-            if (!item?.id) return;
+            if (!item || !item.id) return;
 
             const wasPinned = this.isPinned(item);
             this.$store.pinned.togglePin(item.id, 'menu');
             this._pinsVersion++;
             this.focusIndex = null;
 
-            if (!wasPinned && !this.search.trim() && !this.showRecentOnly) {
+            const q = this.search.trim();
+            if (!wasPinned && q === '' && !this.showRecentOnly) {
                 this.current = 0;
             }
         },
 
         recordRecent(item) {
-            if (!item?.id) return;
-            this.recentIds = [item.id, ...this.recentIds.filter((id) => id !== item.id)].slice(0, RECENT_MAX);
+            if (!item || !item.id) return;
+
+            const id = item.id;
+            const next = [id];
+            const current = this.recentIds;
+            const len = current.length;
+
+            for (let i = 0; i < len; i++) {
+                if (current[i] !== id) {
+                    next.push(current[i]);
+                    if (next.length === RECENT_MAX) break;
+                }
+            }
+
+            this.recentIds = next;
             this._saveState(RECENT_KEY, this.recentIds);
         },
 
@@ -238,13 +322,23 @@ export default function menu(options = {}) {
         moveFocus(delta) {
             const items = this.currentFocusableItems;
             const len = items.length;
-            if (!len) return;
+            if (len === 0) return;
 
-            const canPage = this.viewMode === 'grid' && !this.search.trim() && !this.showRecentOnly;
-            let pos = items.findIndex((i) => i.id === this.focusIndex);
+            const q = this.search.trim();
+            const canPage = this.viewMode === 'grid' && q === '' && !this.showRecentOnly;
+            let pos = -1;
+
+            const fid = this.focusIndex;
+            for (let i = 0; i < len; i++) {
+                if (items[i].id === fid) {
+                    pos = i;
+                    break;
+                }
+            }
 
             if (pos === -1) {
-                this.focusIndex = items[delta > 0 ? 0 : len - 1]?.id ?? null;
+                const item = items[delta > 0 ? 0 : len - 1];
+                this.focusIndex = item ? item.id : null;
                 return;
             }
 
@@ -254,67 +348,96 @@ export default function menu(options = {}) {
                 if (canPage && this.current > 0) {
                     this.prev();
                     this.$nextTick(() => {
-                        const next = this.activePages[this.activeIndex] || [];
-                        this.focusIndex = next[next.length - 1]?.id ?? null;
+                        const active = this.activeIndex;
+                        const pages = this.activePages;
+                        const next = pages[active] || [];
+                        const last = next[next.length - 1];
+                        this.focusIndex = last ? last.id : null;
                     });
                     return;
                 }
                 pos = 0;
             } else if (pos >= len) {
-                if (canPage && this.current < this.paginatedData.length - 1) {
+                const pData = this.paginatedData;
+                if (canPage && this.current < pData.length - 1) {
                     this.next();
                     this.$nextTick(() => {
-                        const next = this.activePages[this.activeIndex] || [];
-                        this.focusIndex = next[0]?.id ?? null;
+                        const active = this.activeIndex;
+                        const pages = this.activePages;
+                        const next = pages[active] || [];
+                        const first = next[0];
+                        this.focusIndex = first ? first.id : null;
                     });
                     return;
                 }
                 pos = len - 1;
             }
 
-            this.focusIndex = items[pos]?.id ?? null;
+            const nextItem = items[pos];
+            this.focusIndex = nextItem ? nextItem.id : null;
         },
 
         openFocused() {
-            const item = this.currentFocusableItems.find((i) => i.id === this.focusIndex);
-            if (item) this.handleItemClick(item, { preventDefault() {}, ctrlKey: false, metaKey: false });
+            const items = this.currentFocusableItems;
+            const len = items.length;
+            const fid = this.focusIndex;
+
+            for (let i = 0; i < len; i++) {
+                if (items[i].id === fid) {
+                    this.handleItemClick(items[i], { preventDefault() {}, ctrlKey: false, metaKey: false });
+                    break;
+                }
+            }
         },
 
         openTopResult() {
             const item = this.currentFocusableItems[0];
-            if (item) this.handleItemClick(item, { preventDefault() {}, ctrlKey: false, metaKey: false });
+            if (item) {
+                this.handleItemClick(item, { preventDefault() {}, ctrlKey: false, metaKey: false });
+            }
         },
 
         handleSwipe() {
             const d = this.touchEndX - this.touchStartX;
             if (Math.abs(d) < SWIPE_THRESHOLD) return;
-            d < 0 ? this.next() : this.prev();
+            if (d < 0) {
+                this.next();
+            } else {
+                this.prev();
+            }
         },
 
         handleGlobalKeydown(e) {
             if (!this.menuOpen) return;
 
-            const inSearch = document.activeElement === this.$refs.searchInput;
+            const input = this.$refs.searchInput;
+            const inSearch = document.activeElement === input;
             const key = e.key;
 
             if (key === 'Escape') return this.closeMenu();
 
             if (key === '/' && !inSearch) {
                 e.preventDefault();
-                this.$refs.searchInput?.focus();
+                if (input) input.focus();
                 return;
             }
 
             if (key === 'Enter') {
                 e.preventDefault();
-                inSearch ? this.openTopResult() : this.openFocused();
+                if (inSearch) {
+                    this.openTopResult();
+                } else {
+                    this.openFocused();
+                }
                 return;
             }
 
-            if (!inSearch && !this.search && key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            if (!inSearch && this.search === '' && key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 e.preventDefault();
                 this.search = key;
-                this.$nextTick(() => this.$refs.searchInput?.focus());
+                this.$nextTick(() => {
+                    if (this.$refs.searchInput) this.$refs.searchInput.focus();
+                });
                 return;
             }
 
@@ -326,6 +449,10 @@ export default function menu(options = {}) {
 
         toggleMenu() {
             this.menuOpen = !this.menuOpen;
+            if (this.menuOpen) {
+                this.perPage = this._mql.matches ? 12 : 8;
+                this.current = this._pageForItem(this._loadState(LAST_ITEM_KEY, null));
+            }
         },
 
         closeMenu() {
@@ -341,7 +468,8 @@ export default function menu(options = {}) {
         },
 
         next() {
-            if (this.current < this.paginatedData.length - 1) this.current++;
+            const pData = this.paginatedData;
+            if (this.current < pData.length - 1) this.current++;
         },
 
         updatePerPage(e) {
@@ -353,28 +481,58 @@ export default function menu(options = {}) {
         },
 
         init() {
-            const { canAdmin, disabledReservationTypes = [], menuState = {} } = options;
-            const disabledTypes = new Set(disabledReservationTypes);
+            const canAdmin = options.canAdmin === true;
+            const disabledTypes = new Set(options.disabledReservationTypes || []);
+            const menuState = options.menuState || {};
 
-            this.items = BASE_ITEMS.reduce((acc, item) => {
+            const map = this._itemMap;
+            const outItems = [];
+            const len = BASE_ITEMS.length;
+
+            for (let i = 0; i < len; i++) {
+                const item = BASE_ITEMS[i];
                 if (canAdmin || !item.adminOnly) {
+                    const title = item.title || '';
+                    const sub = item.sub || '';
+                    const mod = item.module || '';
+
                     const parsedItem = {
-                        ...item,
+                        id: item.id,
+                        href: item.href,
+                        icon: item.icon,
+                        title: title,
+                        sub: sub,
+                        adminOnly: item.adminOnly,
+                        group: item.group,
+                        module: item.module,
+                        resourceType: item.resourceType,
+                        action: item.action,
                         disabled: !!item.resourceType && disabledTypes.has(item.resourceType),
                         hasNotification: !!menuState[item.id],
-                        _searchKey: `${item.title || ''} ${item.sub || ''} ${item.module || ''}`.toLowerCase()
+                        _searchKey: (title + ' ' + sub + ' ' + mod).toLowerCase()
                     };
-                    acc.push(parsedItem);
-                    this._itemMap.set(item.id, parsedItem);
+
+                    outItems.push(parsedItem);
+                    map.set(item.id, parsedItem);
                 }
-                return acc;
-            }, []);
+            }
+            this.items = outItems;
 
             this.recentIds = this._loadState(RECENT_KEY, []);
+
             const savedView = this._loadState(VIEW_MODE_KEY, 'grid');
-            this.viewMode = ['grid', 'list', 'grouped'].includes(savedView) ? savedView : 'grid';
+            if (savedView === 'grid' || savedView === 'list' || savedView === 'grouped') {
+                this.viewMode = savedView;
+            } else {
+                this.viewMode = 'grid';
+            }
+
             this.sortAlpha = !!this._loadState(SORT_ALPHA_KEY, false);
-            this.isDark = window.ThemeManager?.getUserMode?.() === 'dark';
+
+            if (window.ThemeManager && window.ThemeManager.getUserMode) {
+                this.isDark = window.ThemeManager.getUserMode() === 'dark';
+            }
+
             this.initFancybox();
 
             this._mql = window.matchMedia(MQ_LARGE);
@@ -382,15 +540,19 @@ export default function menu(options = {}) {
             this._mediaListener = (e) => this.updatePerPage(e);
             this._mql.addEventListener('change', this._mediaListener);
 
-            const savedPage = this._loadState(CURRENT_PAGE_KEY, 0);
-            const maxPage = Math.max(0, Math.ceil(this.items.length / this.perPage) - 1);
-            this.current = Math.min(Math.max(savedPage, 0), maxPage);
+            this.current = this._pageForItem(this._loadState(LAST_ITEM_KEY, null));
 
             this.$watch('search', (val) => {
                 this.focusIndex = null;
-                if (val) this.showRecentOnly = false;
+                if (val !== '') this.showRecentOnly = false;
             });
-            this.$watch('current', (val) => this._saveState(CURRENT_PAGE_KEY, val));
+
+            this.$watch('current', (val) => {
+                const pData = this.paginatedData;
+                const page = pData[val];
+                this._saveState(LAST_ITEM_KEY, page && page[0] ? page[0].id : null);
+            });
+
             this.$watch('viewMode', (val) => {
                 this._saveState(VIEW_MODE_KEY, val);
                 this.focusIndex = null;

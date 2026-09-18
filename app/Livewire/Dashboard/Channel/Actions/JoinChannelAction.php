@@ -12,7 +12,7 @@ class JoinChannelAction
     {
         $channel = Channel::withoutTrashed()->find($channelId);
 
-        abort_unless($channel && $channel->type === ChannelType::Open, 403, 'عضویت در این کانال ممکن نیست.');
+        abort_unless($channel && $channel->type === ChannelType::Open, 403, 'عضویت در این گروه ممکن نیست.');
 
         $channel->memberUsers()->newPivotStatement()->insertOrIgnore([
             'channel_id'           => $channelId,

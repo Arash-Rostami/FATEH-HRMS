@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\Menu\EdgeService;
 use App\Services\Menu\Toasts\ChannelToast;
 use App\Services\Menu\Toasts\ProjectToast;
+use App\Services\Menu\Toasts\ReminderDueTodayEdge;
 use App\Services\Menu\Toasts\TaskDueSoonToast;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,5 +16,6 @@ class EdgeServiceProvider extends ServiceProvider
         EdgeService::register(new ChannelToast());
         EdgeService::register(new ProjectToast());
         EdgeService::register(new TaskDueSoonToast());
+        EdgeService::register(new ReminderDueTodayEdge());
     }
 }

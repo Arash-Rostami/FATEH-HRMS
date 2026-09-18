@@ -41,12 +41,29 @@
                 <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
             <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-0.5" title="تعداد اعضا">
-                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ $header['members_count'] }}
+                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ convertToPersian($header['members_count']) }}
             </span>
             <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
-            <span class="truncate font-medium text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]">{{ $header['owner_name'] }}</span>
+            <span class="truncate font-medium inline-flex items-center gap-1.5 {{ count($this->typingMembers) ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
+                  data-typing="{{ count($this->typingMembers) }}"
+                  @if(count($this->typingMembers)) title="{{ implode('، ', $this->typingMembers) }}" @endif>
+                @if(count($this->typingMembers))
+                    @if(count($this->typingMembers) === 1)
+                        {{ $this->typingMembers[0] }} در حال نوشتن
+                    @else
+                        {{ count($this->typingMembers) }} نفر در حال نوشتن
+                    @endif
+                    <span class="inline-flex items-center gap-0.5">
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-1"></span>
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-2"></span>
+                        <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-3"></span>
+                    </span>
+                @else
+                    {{ $header['owner_name'] }}
+                @endif
+            </span>
         </div>
-        @include('livewire.dashboard.messaging.search', ['placeholder' => 'جستجو در پیام‌های این کانال...', 'overlayTitle' => 'جستجو در پیام‌های کانال'])
+        @include('livewire.dashboard.messaging.search', ['placeholder' => 'جستجو در پیام‌های این گروه...', 'overlayTitle' => 'جستجو در پیام‌های گروه'])
     </div>
 
     <div class="flex flex-wrap items-center gap-1">
@@ -54,8 +71,8 @@
             @slot('sound')
                 <button type="button" x-on:click="$store.sound.toggleMute({{ $header['id'] }})"
                         :aria-pressed="$store.sound.isMuted({{ $header['id'] }})"
-                        :aria-label="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
-                        :title="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن کانال' : 'بی‌صدا کردن کانال'"
+                        :aria-label="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"
+                        :title="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"
                         class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
                         :class="$store.sound.isMuted({{ $header['id'] }}) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
                     <span class="material-symbols-rounded text-base" x-text="$store.sound.isMuted({{ $header['id'] }}) ? 'volume_off' : 'volume_up'"></span>
@@ -65,7 +82,7 @@
 
         @if(!$isOwner)
             <button x-on:click="leaveChannel({{ $header['id'] }})"
-                    aria-label="خروج از کانال" title="خروج از کانال"
+                    aria-label="خروج از گروه" title="خروج از گروه"
                     class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
                 <span class="material-symbols-rounded text-base">logout</span>
             </button>

@@ -49,7 +49,7 @@
     </div>
 
     @if($this->hasMorePages)
-        <div class="flex justify-center py-6">
+        <div wire:key="gallery-wall-load-more" class="flex justify-center py-6">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="بارگذاری بیشتر"

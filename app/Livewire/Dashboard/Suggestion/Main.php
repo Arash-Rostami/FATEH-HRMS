@@ -145,14 +145,36 @@ class Main extends Component
             ->selectRaw('*, JSON_LENGTH(departments) as departments_count')
             ->withReviewCounts()
             ->when($this->attentionOnly, fn($q) => $q->attentionRequired())
-            ->when($this->search !== '', fn($q) => $q->where(function ($w) {
-                $term = "%{$this->search}%";
-                $w->where('title', 'like', $term)
-                    ->orWhereRaw(
-                        "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
-                        [$term]
-                    );
-            }))
+            ->when($this->search !== '', function ($q) {
+                $term = $this->search;
+
+                $q->where(function ($w) use ($term) {
+                    $w->where('title', 'like', "%{$term}%");
+
+                    preg_match('/^SN-(\d{2,8})(?:-(\d{1,6}))?$/i', $term, $m);
+                    $digits = $m[1] ?? '';
+                    $idPart = $m[2] ?? '';
+
+                    if ($digits !== '') {
+                        $dateLike = strlen($digits) > 4 ? substr($digits, 0, 4) . '-' . substr($digits, 4) : $digits;
+                        if (strlen($digits) > 6) {
+                            $dateLike = substr($dateLike, 0, 7) . '-' . substr($digits, 6);
+                        }
+
+                        $w->orWhere(function ($r) use ($dateLike, $idPart) {
+                            $r->whereRaw('created_at like ?', [$dateLike . '%']);
+                            if ($idPart !== '') {
+                                $r->whereRaw("LPAD(id, 6, '0') like ?", [$idPart . '%']);
+                            }
+                        });
+                    } else {
+                        $w->orWhereRaw(
+                            "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
+                            ["%{$term}%"]
+                        );
+                    }
+                });
+            })
             ->orderByRaw("FIELD(priority, 'high', 'medium', 'low')")
             ->orderByDesc('created_at')
             ->paginate($this->perPage);

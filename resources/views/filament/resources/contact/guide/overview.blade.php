@@ -22,7 +22,7 @@
                 </div>
                 <div class="flex-1 flex flex-col gap-1.5">
                     <p class="text-[13px] font-black text-[var(--md-sys-color-on-surface)]">طرفین گفتگو</p>
-                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">ستون «فرستنده» و «گیرنده» هر ردیف را پر می‌کنند — هر دو به یک کاربر اشاره می‌کنند. برخلاف کانال‌ها که یک‌به‌多く است، پیام‌رسان همیشه یک‌به‌یک است.</p>
+                    <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">ستون «فرستنده» و «گیرنده» هر ردیف را پر می‌کنند — هر دو به یک کاربر اشاره می‌کنند. برخلاف گروه‌ها که یک‌به‌چند است، پیام‌رسان همیشه یک‌به‌یک است.</p>
                 </div>
             </div>
             <div class="flex items-start gap-4 p-5 hover:bg-[var(--md-sys-color-surface-container)] transition-colors duration-300">

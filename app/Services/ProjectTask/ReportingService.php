@@ -301,9 +301,9 @@ class ReportingService
     public function schemeProgress(User $user, array $filters = []): array
     {
         $tasks = $this->query($user, $filters, withCounts: false)
+            ->whereHas('detail', fn($q) => $q->whereRaw("TRIM(COALESCE(scheme, '')) <> ''"))
             ->with('detail:id,task_id,scheme')
-            ->get()
-            ->filter(fn(Task $task) => filled($task->detail?->scheme));
+            ->get();
 
         return $tasks->groupBy(fn(Task $task) => $task->detail->scheme)
             ->map(fn(Collection $group, string $scheme) => [
@@ -319,9 +319,9 @@ class ReportingService
     public function attachments(User $user, array $filters = []): array
     {
         return $this->query($user, $filters, withCounts: false)
+            ->whereHas('detail', fn($q) => $q->whereRaw('JSON_LENGTH(COALESCE(attachments, JSON_ARRAY())) > 0'))
             ->with('detail:id,task_id,attachments')
             ->get()
-            ->filter(fn(Task $task) => filled($task->detail?->attachments))
             ->map(fn(Task $task) => [
                 'task_id' => $task->id,
                 'task_title' => $task->title,

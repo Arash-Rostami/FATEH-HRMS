@@ -9,7 +9,7 @@
 
     @if($activityOpen)
         @php($feed = $this->activityFeed())
-        <div class="border-t border-[var(--md-sys-color-outline-variant)]/60 flex flex-col gap-4 p-4">
+        <div wire:key="tasksheet-activity-body" class="border-t border-[var(--md-sys-color-outline-variant)]/60 flex flex-col gap-4 p-4">
             @forelse($feed['days'] as $day)
                 <div class="flex items-center gap-3" wire:key="tasksheet-activity-day-{{ $day['date'] }}">
                     <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
@@ -37,11 +37,13 @@
                     </div>
                 @endforeach
             @empty
-                <x-ui.empty icon="timeline" title="فعالیتی در این بازه ثبت نشده" variant="list"/>
+                <div wire:key="tasksheet-activity-empty" class="contents">
+                    <x-ui.empty icon="timeline" title="فعالیتی در این بازه ثبت نشده" variant="list"/>
+                </div>
             @endforelse
 
             @if($feed['has_more'])
-                <div class="flex justify-center print:hidden">
+                <div wire:key="tasksheet-activity-more" class="flex justify-center print:hidden">
                     <x-ui.buttons.load-more action="loadMoreActivity" text="بارگذاری بیشتر" loading-text="در حال بارگذاری…" icon="expand_more"
                         class="rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 text-xs font-medium text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition"/>
                 </div>

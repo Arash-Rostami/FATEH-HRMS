@@ -1,4 +1,4 @@
-@props(['id', 'scope', 'pinNoun', 'muteNoun'])
+@props(['id', 'scope', 'pinNoun', 'muteNoun', 'for' => null])
 
 @php
     $pinOff  = 'سنجاق کردن ' . $pinNoun;
@@ -55,6 +55,12 @@
         <span class="material-symbols-rounded text-[14px]" aria-hidden="true"
               :style="$store.tagged.isTagged(@js($id), @js($scope)) ? { color: $store.tagged.solid($store.tagged.getTag(@js($id), @js($scope))) } : null">palette</span>
     </button>
+
+    @if($for)
+        <span @click.stop>
+            <x-dashboard.reminder-trigger :for="$for" variant="inline" tooltip-position="left"/>
+        </span>
+    @endif
 </div>
 
 <div x-show="tagOpen" x-cloak

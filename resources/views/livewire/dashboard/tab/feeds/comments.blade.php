@@ -303,14 +303,11 @@
                 </div>
             </div>
         @empty
-            @if(!$isNestedView)
-                <div class="py-10 text-center opacity-40 flex flex-col items-center gap-2">
-                    <div class="w-14 h-14 rounded-full bg-[var(--md-sys-color-surface-container-high)] flex items-center justify-center shadow-inner">
-                        <span class="material-symbols-rounded text-3xl">chat_bubble</span>
-                    </div>
-                    <p class="text-[13px] font-medium">اولین نظر را شما بنویسید</p>
-                </div>
-            @endif
+            <div wire:key="feed-comments-empty" class="contents">
+                @if(!$isNestedView)
+                    <x-ui.empty icon="chat_bubble" title="اولین نظر را شما بنویسید" />
+                @endif
+            </div>
         @endforelse
     </div>
 </div>

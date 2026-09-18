@@ -21,7 +21,7 @@
             'module' => 'dms',
             'id' => 'dms',
             'icon' => 'folder_open',
-            'label' => 'مدیریت مستندات',
+            'label' => 'مدیریت اسناد',
             'delay' => 'animate-delay-300',
         ],
         [

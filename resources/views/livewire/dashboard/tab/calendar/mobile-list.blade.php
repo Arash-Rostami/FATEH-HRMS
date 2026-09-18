@@ -27,7 +27,9 @@
                     <span class="shrink-0 text-[11px] font-bold text-[var(--md-sys-color-primary)] tabular-nums">{{ convertToPersian($item['time']) }}</span>
                 </button>
             @empty
-                <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این روز هنوز هیچ برنامه‌ای ثبت نشده است." variant="list" :fill="true" />
+                <div wire:key="calendar-mobile-day-empty" class="contents">
+                    <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این روز هنوز هیچ برنامه‌ای ثبت نشده است." variant="list" :fill="true" />
+                </div>
             @endforelse
         </div>
     @endforeach

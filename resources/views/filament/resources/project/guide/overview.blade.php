@@ -16,7 +16,7 @@
                 <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] shrink-0">
                     <span class="material-symbols-rounded text-[22px]">rectangle_stack</span>
                 </span>
-                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پروژه یک نام، یک مالک (<code class="px-1 rounded bg-[var(--md-sys-color-secondary-container)] font-mono text-[11px]">owner_id</code>)، فهرست اعضا و دپارتمان‌های مجاز، و یک کانال گفتگوی متصل دارد. ستون‌های «تعداد وظایف» و «پیشرفت» به‌صورت زنده محاسبه می‌شوند.</p>
+                <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium">هر پروژه یک نام، یک مالک (<code class="px-1 rounded bg-[var(--md-sys-color-secondary-container)] font-mono text-[11px]">owner_id</code>)، فهرست اعضا و دپارتمان‌های مجاز، و یک گروه گفتگوی متصل دارد. ستون‌های «تعداد وظایف» و «پیشرفت» به‌صورت زنده محاسبه می‌شوند.</p>
             </div>
         </div>
     </div>

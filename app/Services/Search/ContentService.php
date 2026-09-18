@@ -61,9 +61,9 @@ class ContentService
         SkillSearchResource::class,
     ];
 
-    public function search(string $query): array
+    public function search(string $query, bool $allHistory = false): array
     {
-        $context = SearchContext::for($query);
+        $context = SearchContext::for($query, $allHistory);
 
         if (!$context) return [];
 

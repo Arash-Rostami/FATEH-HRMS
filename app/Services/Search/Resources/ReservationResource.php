@@ -13,6 +13,8 @@ class ReservationResource extends SearchResource
     protected string $icon = 'meeting_room';
     protected string $model = Resource::class;
     protected array $columns = ['name', 'type'];
+
+    protected int $recencyMonths = 6;
     protected ?string $titleField = 'name';
     protected ?string $subtitleField = 'type';
 

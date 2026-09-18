@@ -33,7 +33,7 @@ class ProjectResource extends Resource
     protected static array $guide = [
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.project.guide.overview'],
         ['label' => 'دسترسی و اعضا', 'icon' => 'group', 'view' => 'filament.resources.project.guide.membership'],
-        ['label' => 'کانال گفتگو', 'icon' => 'forum', 'view' => 'filament.resources.project.guide.channel'],
+        ['label' => 'گروه گفتگو', 'icon' => 'forum', 'view' => 'filament.resources.project.guide.channel'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.project.guide.admin-ops'],
     ];
 

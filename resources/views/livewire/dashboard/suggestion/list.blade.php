@@ -50,12 +50,14 @@
             @php($p = $this->presenter($item))
             @php($stage = $p->stageConfig())
 
-            <button
+            <div wire:key="s-{{ $item->id }}" data-rf="suggestion-{{ $item->id }}" class="group">
+            <div
+                role="button" tabindex="0"
                 wire:click="selectSuggestion({{ $item->id }})"
-                wire:key="s-{{ $item->id }}"
-                data-rf="suggestion-{{ $item->id }}"
+                x-on:keydown.enter.prevent="$wire.selectSuggestion({{ $item->id }})"
+                x-on:keydown.space.prevent="$wire.selectSuggestion({{ $item->id }})"
                 @class([
-                    'group relative w-full text-right rounded-2xl border p-4 transition-all text-left hover:-translate-y-[1px]',
+                    'relative w-full text-right rounded-2xl border p-4 transition-all text-left hover:-translate-y-[1px] cursor-pointer',
                     'bg-[var(--md-sys-color-surface)] border-[var(--md-sys-color-outline-variant)] hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:border-[var(--md-sys-color-primary)]/30' => $selectedId !== $item->id,
                     'border-[var(--md-sys-color-primary)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]' => $selectedId === $item->id,
                     'bg-gradient-to-l from-[var(--md-sys-color-error)]/10 to-transparent border-l-3 border-l-[var(--md-sys-color-error)] !border-r-none' => $p->requiresMyAction(),
@@ -63,7 +65,7 @@
             >
 
                 @if($selectedId === $item->id)
-                    <div
+                    <div wire:key="suggestion-selected-rail"
                         class="absolute right-0 top-4 bottom-4 w-0.5 rounded-r-full bg-[var(--md-sys-color-primary)] animate-expand origin-center"></div>
                 @endif
 
@@ -80,7 +82,9 @@
                         </span>
 
                         @if($p->requiresMyAction())
-                            <x-ui.notification-badge />
+                            <div wire:key="suggestion-action-badge" class="contents">
+                                <x-ui.notification-badge />
+                            </div>
                         @endif
 
                         <span
@@ -125,41 +129,47 @@
                 <div class="flex justify-between items-center pt-2
                             border-t border-[var(--md-sys-color-outline-variant)]/50 text-xs">
 
-                    <div class="flex gap-3">
+                    <div class="flex items-center gap-3">
 
                         @if(($item->agree_count ?? 0) > 0)
-                            <span class="flex items-center gap-1 text-[var(--md-sys-color-primary)]">
+                            <span wire:key="suggestion-agree-count" class="flex items-center gap-1 text-[var(--md-sys-color-primary)]">
                                 <span class="material-symbols-rounded !text-sm font-fill">thumb_up</span>
-                                {{ $item->agree_count }}
+                                {{ convertToPersian($item->agree_count) }}
                             </span>
                         @endif
 
                         @if(($item->neutral_count ?? 0) > 0)
-                            <span class="flex items-center gap-1 text-[var(--md-sys-color-secondary)]">
+                            <span wire:key="suggestion-neutral-count" class="flex items-center gap-1 text-[var(--md-sys-color-secondary)]">
                                 <span class="material-symbols-rounded !text-sm font-fill">thumbs_up_down</span>
-                                {{ $item->neutral_count }}
+                                {{ convertToPersian($item->neutral_count) }}
                             </span>
                         @endif
 
                         @if(($item->disagree_count ?? 0) > 0)
-                            <span class="flex items-center gap-1 text-[var(--md-sys-color-error)]">
+                            <span wire:key="suggestion-disagree-count" class="flex items-center gap-1 text-[var(--md-sys-color-error)]">
                                 <span class="material-symbols-rounded !text-sm font-fill">thumb_down</span>
-                                {{ $item->disagree_count }}
+                                {{ convertToPersian($item->disagree_count) }}
                             </span>
                         @endif
 
+                        {{-- DATE --}}
+                        <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+                            {{ toJalali($item->created_at, 'j F Y') }}
+                        </span>
                     </div>
 
-                    {{-- DATE --}}
-                    <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
-                        {{ toJalali($item->created_at, 'j F Y') }}
+                    <span @click.stop>
+                        <x-dashboard.reminder-trigger :for="$item" variant="inline" tooltip-position="top"/>
                     </span>
                 </div>
 
-            </button>
+            </div>
+            </div>
 
         @empty
-            <x-ui.empty icon="inbox" title="موردی یافت نشد" variant="list" />
+            <div wire:key="suggestion-list-empty" class="contents">
+                <x-ui.empty icon="inbox" title="موردی یافت نشد" variant="list" />
+            </div>
         @endforelse
 
         <div wire:loading wire:target="search" class="p-4 flex justify-center">
@@ -169,7 +179,7 @@
     </div>
 
     @if($this->suggestions->hasMorePages())
-        <div class="flex justify-center py-2">
+        <div wire:key="suggestion-load-more" class="flex justify-center py-2">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="بارگذاری بیشتر"

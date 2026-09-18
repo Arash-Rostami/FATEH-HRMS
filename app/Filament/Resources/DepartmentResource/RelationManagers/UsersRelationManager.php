@@ -19,7 +19,7 @@ class UsersRelationManager extends RelationManager
 {
     use FilamentActions;
 
-    protected static string $relationship = 'user';
+    protected static string $relationship = 'users';
 
     public function form(Schema $schema): Schema
     {

@@ -12,6 +12,8 @@ class PostResource extends SearchResource
     protected string $icon = 'campaign';
     protected string $model = Post::class;
     protected array $columns = ['title', 'body'];
+
+    protected int $recencyMonths = 6;
     protected ?string $titleField = 'title';
     protected ?string $subtitleField = 'body';
 

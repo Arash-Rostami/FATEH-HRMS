@@ -23,3 +23,21 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    # /build/ mixes Vite's content-hashed bundle output (safe to cache forever) with several
+    # unhashed static-copied folders (fonts, material-symbols, audio, video, img — same filename
+    # every build). Can't tell them apart by URL, so use a moderate week-long cache instead of
+    # "immutable": still kills the FOUC on repeat reloads within any normal session, caps worst-case
+    # staleness on an unhashed file to about a week instead of silently sticking for a year.
+    <If "%{REQUEST_URI} =~ m#^/build/#">
+        Header set Cache-Control "public, max-age=604800, must-revalidate"
+    </If>
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>

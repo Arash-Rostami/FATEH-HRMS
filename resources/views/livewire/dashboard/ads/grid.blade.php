@@ -139,7 +139,7 @@
                 </div>
             </div>
         @empty
-            <div class="col-span-full">
+            <div wire:key="ads-empty" class="col-span-full">
                 <x-ui.empty icon="search_off" title="هیچ فرصت شغلی در این بخش یافت نشد" variant="search" />
             </div>
         @endforelse

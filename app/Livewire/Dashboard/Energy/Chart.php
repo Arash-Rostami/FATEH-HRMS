@@ -6,6 +6,7 @@ use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Livewire\Dashboard\Energy\Presentation\ChartPresenter;
 use App\Models\EnergyTest;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\EnergyQuestionService;
 use App\Services\PersolTeamService as TeamData;
 use Illuminate\View\View;
@@ -20,22 +21,28 @@ class Chart extends Component
     #[Computed]
     public function companyAverages(): array
     {
+        $userId = $this->user->id;
         $cutoff = now()->subMonths(18);
 
-        return EnergyTest::query()
-            ->join('users', 'users.id', '=', 'energy_tests.user_id')
-            ->where('users.type', '!=', UserType::Guest->value)
-            ->where('energy_tests.user_id', '!=', $this->user->id)
-            ->where(fn($q) => $q->where('energy_tests.completed_at', '>=', $cutoff)->orWhere('energy_tests.created_at', '>=', $cutoff))
-            ->selectRaw('
-                COALESCE(AVG(mind_score), 0) as mind,
-                COALESCE(AVG(emotion_score), 0) as emotion,
-                COALESCE(AVG(physique_score), 0) as physique,
-                COALESCE(AVG(soul_score), 0) as soul,
-                COALESCE(AVG(overall_score), 0) as overall
-            ')
-            ->first()
-            ->toArray();
+        return ModelCacheVersion::remember(
+            EnergyTest::class,
+            "company_averages:{$userId}",
+            now()->addMinutes(15),
+            fn () => EnergyTest::query()
+                ->join('users', 'users.id', '=', 'energy_tests.user_id')
+                ->where('users.type', '!=', UserType::Guest->value)
+                ->where('energy_tests.user_id', '!=', $userId)
+                ->where(fn($q) => $q->where('energy_tests.completed_at', '>=', $cutoff)->orWhere('energy_tests.created_at', '>=', $cutoff))
+                ->selectRaw('
+                    COALESCE(AVG(mind_score), 0) as mind,
+                    COALESCE(AVG(emotion_score), 0) as emotion,
+                    COALESCE(AVG(physique_score), 0) as physique,
+                    COALESCE(AVG(soul_score), 0) as soul,
+                    COALESCE(AVG(overall_score), 0) as overall
+                ')
+                ->first()
+                ->toArray()
+        );
     }
 
     #[Computed]

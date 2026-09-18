@@ -33,22 +33,22 @@
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-[13px] sm:text-sm tracking-tight leading-none">
                         {{ ($showArchived && $isDoneColumn) ? 'آرشیو' : $config['title'] }}
                     </h3>
-                    <span class="tabular-nums px-1.5 py-0.5 rounded-sm text-[10px] font-bold leading-none"
+                    <span class="px-1.5 py-0.5 rounded-sm text-[10px] font-bold leading-none"
                           style="background: color-mix(in srgb, var(--md-sys-color-{{ $config['color'] }}) 12%, transparent); border: 1px solid color-mix(in srgb, var(--md-sys-color-{{ $config['color'] }}) 25%, transparent); color: var(--md-sys-color-{{ $config['color'] }});">
-                        {{ $taskCount }}
+                        {{ convertToPersian($taskCount) }}
                     </span>
                 </div>
                 <div class="flex items-center">
                     @if($isDoneColumn && $search === '')
-                        <span class="text-[9px] font-medium leading-none">
+                        <span wire:key="taskboard-column-subtitle-done" class="text-[9px] font-medium leading-none">
                             @if($showArchived)
-                                <span class="text-[var(--md-sys-color-tertiary)]">آرشیو شده‌ها</span>
+                                <span wire:key="taskboard-subtitle-archived" class="text-[var(--md-sys-color-tertiary)]">آرشیو شده‌ها</span>
                             @elseif(!$showAllDone)
-                                <span class="text-[var(--md-sys-color-primary)]">۴۵ روز اخیر</span>
+                                <span wire:key="taskboard-subtitle-recent" class="text-[var(--md-sys-color-primary)]">۴۵ روز اخیر</span>
                             @endif
                         </span>
                     @else
-                        <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]/70 leading-none">
+                        <span wire:key="taskboard-column-subtitle-generic" class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]/70 leading-none">
                             وظایف ستون
                         </span>
                     @endif
@@ -85,6 +85,7 @@
 
                 @if(!$showArchived)
                     <button
+                        wire:key="taskboard-show-all-done"
                         wire:click="toggleShowAllDone"
                         @class([
                             $presenter->columnButtonBase(),
@@ -154,21 +155,27 @@
                 @endphp
 
                 @if($empty['archiveEmpty'])
-                    <x-ui.empty icon="archive" title="مورد آرشیو شده‌ای نیست" description="وظایف انجام‌شده‌ی آرشیو‌شده اینجا نمایش داده می‌شوند" variant="list" />
+                    <div wire:key="taskboard-empty-archive" class="contents">
+                        <x-ui.empty icon="archive" title="مورد آرشیو شده‌ای نیست" description="وظایف انجام‌شده‌ی آرشیو‌شده اینجا نمایش داده می‌شوند" variant="list" />
+                    </div>
                 @elseif($empty['olderExist'])
-                    <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
-                        <x-slot:slot>
-                            <button
-                                wire:click="toggleShowAllDone"
-                                class="ripple-effect px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-xs font-bold transition-all duration-200 active:scale-95 inline-flex items-center gap-1"
-                            >
-                                <span class="material-symbols-rounded text-[14px]">history</span>
-                                نمایش موارد قدیمی‌تر
-                            </button>
-                        </x-slot:slot>
-                    </x-ui.empty>
+                    <div wire:key="taskboard-empty-window" class="contents">
+                        <x-ui.empty icon="history" title="هیچ موردی در ۴۵ روز اخیر نیست" description="تسک‌های انجام‌شده قدیمی‌تر پنهان شده‌اند" variant="list">
+                            <x-slot:slot>
+                                <button
+                                    wire:click="toggleShowAllDone"
+                                    class="ripple-effect px-3 py-1.5 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-xs font-bold transition-all duration-200 active:scale-95 inline-flex items-center gap-1"
+                                >
+                                    <span class="material-symbols-rounded text-[14px]">history</span>
+                                    نمایش موارد قدیمی‌تر
+                                </button>
+                            </x-slot:slot>
+                        </x-ui.empty>
+                    </div>
                 @else
-                    <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" description="با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند" variant="list" />
+                    <div wire:key="taskboard-empty-none" class="contents">
+                        <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" description="با افزودن وظیفه، کارت‌ها اینجا نمایش داده می‌شوند" variant="list" />
+                    </div>
                 @endif
             @endforelse
 
@@ -186,7 +193,7 @@
         </div>
 
         @if($taskCount > $perPage)
-            <div class="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-[var(--md-sys-color-outline-variant)]/40 w-full px-1">
+            <div wire:key="taskboard-column-pager" class="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-[var(--md-sys-color-outline-variant)]/40 w-full px-1">
                 <button
                     wire:click="prevPage('{{ $column }}')"
                     class="{{ $presenter->columnButtonBase() }} {{ $presenter->columnButtonIcon() }} disabled:opacity-30 disabled:pointer-events-none"
@@ -197,7 +204,7 @@
 
                 <div
                     x-data="{ editing: false, val: {{ $page[$column] ?? 1 }} }"
-                    class="text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] tabular-nums tracking-widest px-2.5 py-1 rounded-md border border-[var(--md-sys-color-outline-variant)]/30"
+                    class="text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] tracking-widest px-2.5 py-1 rounded-md border border-[var(--md-sys-color-outline-variant)]/30"
                     style="background: color-mix(in srgb, var(--md-sys-color-surface-container) 60%, transparent);"
                 >
                     <button

@@ -20,6 +20,7 @@
             </div>
 
             @if($this->ticket->targetDepartment !== '')
+                <div wire:key="ths-create-fields" class="contents">
                 <x-ui.forms.select label="نوع درخواست" name="ticket.requestType"
                                    wire:model.live="ticket.requestType" icon="category">
                     @foreach ($ticket->requestTypeOptions as  $value => $label)
@@ -66,6 +67,7 @@
                     @error('ticket.priority') <p
                         class="text-[10px] text-[var(--md-sys-color-error)] mt-1">{{ $message }}</p> @enderror
                 </div>
+                </div>
             @endif
 
         </div>
@@ -73,7 +75,7 @@
 
     @if($this->ticket->targetDepartment !== '')
         {{-- ── Section 2: Content + Attachments ── --}}
-        <div class="space-y-4">
+        <div wire:key="ths-create-content" class="space-y-4">
 
             <x-ui.title icon="edit_note" title="محتوای تیکت"/>
 

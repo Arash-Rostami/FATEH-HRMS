@@ -1,4 +1,5 @@
 const REPORT_ID_SELECTOR = '[data-report-id]';
+const ATTR_REPORT_ID = 'data-report-id';
 const MOBILE_BREAKPOINT = 768;
 const INIT_TIMER_DELAY = 100;
 const SCROLLER_SELECTOR = '.overflow-y-auto';
@@ -6,6 +7,8 @@ const FILTER_SELECTOR = '[x-data^="filters"]';
 const SCROLL_TOP_THRESHOLD = 30;
 const SCROLL_HIDE_DELTA = 10;
 const SCROLL_SHOW_DELTA = -10;
+const RECENT_KEY = 'fateh_reports_recent';
+const RECENT_MAX = 6;
 
 export default function report() {
     return {
@@ -15,6 +18,7 @@ export default function report() {
         activeId: null,
         showTimeline: false,
         loading: false,
+        recent: [],
 
         _isDestroyed: false,
         _enforce: null,
@@ -32,6 +36,16 @@ export default function report() {
         init() {
             this._isDestroyed = false;
             this.view = this.$wire.get('view');
+
+            try {
+                const saved = localStorage.getItem(RECENT_KEY);
+                if (saved && saved.length > 2) {
+                    const parsed = JSON.parse(saved);
+                    this.recent = Array.isArray(parsed) ? parsed : [];
+                }
+            } catch {
+                this.recent = [];
+            }
 
             this._enforce = () => {
                 if (window.innerWidth < MOBILE_BREAKPOINT && this.view !== 'list') {
@@ -59,7 +73,7 @@ export default function report() {
                 this._observer.observe(this.$root, { childList: true, subtree: true });
             });
 
-            this._morphHook = Livewire.hook('morph', ({ component, el }) => {
+            this._morphHook = Livewire.hook('morph', ({ component }) => {
                 if (this._isDestroyed) return;
                 if (component.id === this.$wire.__instance.id) {
                     this.$nextTick(() => this.updateActiveItem());
@@ -86,12 +100,12 @@ export default function report() {
             }
 
             if (this._timelineRaf) {
-                window.cancelAnimationFrame(this._timelineRaf);
+                cancelAnimationFrame(this._timelineRaf);
                 this._timelineRaf = null;
             }
 
             if (this._scrollerRaf) {
-                window.cancelAnimationFrame(this._scrollerRaf);
+                cancelAnimationFrame(this._scrollerRaf);
                 this._scrollerRaf = null;
             }
 
@@ -119,8 +133,11 @@ export default function report() {
 
             this._timelineEl = container;
             this._timelineHandler = () => {
-                if (this._timelineRaf) window.cancelAnimationFrame(this._timelineRaf);
-                this._timelineRaf = window.requestAnimationFrame(() => this.updateActiveItem());
+                if (this._timelineRaf) cancelAnimationFrame(this._timelineRaf);
+                this._timelineRaf = requestAnimationFrame(() => {
+                    this._timelineRaf = null;
+                    this.updateActiveItem();
+                });
             };
             container.addEventListener('scroll', this._timelineHandler, { passive: true });
         },
@@ -130,16 +147,55 @@ export default function report() {
             this.loading = true;
             try {
                 await this.$wire.loadMore();
-            } catch (e) {
-                console.error(e);
-            } finally {
-                this.loading = false;
+            } catch {}
+            this.loading = false;
+        },
+
+        recordOpen(item) {
+            if (!item || !item.id) return;
+
+            const arr = this.recent;
+            const id = item.id;
+            const len = arr.length;
+
+            for (let i = 0; i < len; i++) {
+                if (arr[i].id === id) {
+                    arr.splice(i, 1);
+                    break;
+                }
             }
+
+            arr.unshift({ id, payload: item });
+
+            if (arr.length > RECENT_MAX) {
+                arr.length = RECENT_MAX;
+            }
+
+            queueMicrotask(() => {
+                try {
+                    localStorage.setItem(RECENT_KEY, JSON.stringify(this.recent));
+                } catch {}
+            });
+        },
+
+        openRecent(item) {
+            this.activeReport = item.payload || item;
+            this.showModal = true;
+        },
+
+        clearRecent() {
+            this.recent = [];
+            queueMicrotask(() => {
+                try {
+                    localStorage.removeItem(RECENT_KEY);
+                } catch {}
+            });
         },
 
         setupFilterCompact() {
             const scroller = this.$root.closest(SCROLLER_SELECTOR);
             if (!scroller) return;
+
             const filterEl = this.$root.querySelector(FILTER_SELECTOR);
             if (!filterEl) return;
 
@@ -149,13 +205,13 @@ export default function report() {
             this._scrollerHandler = () => {
                 if (this._scrollerRaf) return;
 
-                this._scrollerRaf = window.requestAnimationFrame(() => {
+                this._scrollerRaf = requestAnimationFrame(() => {
                     this._scrollerRaf = null;
 
                     const y = scroller.scrollTop;
                     const d = y - lastY;
-                    const data = Alpine.$data(filterEl);
 
+                    const data = Alpine.$data(filterEl);
                     if (!data) return;
 
                     if (y < SCROLL_TOP_THRESHOLD) {
@@ -166,6 +222,7 @@ export default function report() {
                     } else if (d < SCROLL_SHOW_DELTA) {
                         data.compact = false;
                     }
+
                     lastY = y;
                 });
             };
@@ -179,19 +236,24 @@ export default function report() {
             if (!container || !viewport) return;
 
             const viewportRect = viewport.getBoundingClientRect();
-            const referencePoint = viewportRect.right - viewportRect.width * 0.1;
+            const referencePoint = viewportRect.right - (viewportRect.width * 0.1);
 
             let closestId = null;
             let minDistance = Infinity;
 
             const items = container.querySelectorAll(REPORT_ID_SELECTOR);
-            for (let i = 0, len = items.length; i < len; i++) {
-                const rect = items[i].getBoundingClientRect();
-                const distance = Math.abs(referencePoint - rect.right);
+            const len = items.length;
 
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestId = items[i].dataset.reportId;
+            for (let i = 0; i < len; i++) {
+                const item = items[i];
+                const rect = item.getBoundingClientRect();
+
+                const distance = referencePoint - rect.right;
+                const absDist = distance < 0 ? -distance : distance;
+
+                if (absDist < minDistance) {
+                    minDistance = absDist;
+                    closestId = item.getAttribute(ATTR_REPORT_ID);
                 }
             }
 
@@ -210,6 +272,6 @@ export default function report() {
             const el = this.$refs.timeline;
             if (!el) return;
             el.scrollBy({ left: el.offsetWidth, behavior: 'smooth' });
-        },
+        }
     };
 }

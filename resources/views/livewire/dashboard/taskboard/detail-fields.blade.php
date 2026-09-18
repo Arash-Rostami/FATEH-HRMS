@@ -71,7 +71,7 @@
                     <span class="material-symbols-rounded text-lg text-[var(--md-sys-color-primary)]">label</span>
                     <span class="text-xs sm:text-sm font-bold text-[var(--md-sys-color-on-surface)]">برچسب‌ها</span>
                     <span x-show="labelsCount > 0" x-text="labelsCount"
-                          class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold tabular-nums"></span>
+                          class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[11px] font-semibold"></span>
                 </div>
                 <span
                     class="material-symbols-rounded text-lg text-[var(--md-sys-color-outline)] transition-transform duration-200"
@@ -82,6 +82,7 @@
                  class="p-3.5 sm:p-4 space-y-3.5 border-t border-[var(--md-sys-color-outline-variant)]/20">
                 @unless($isReadOnly)
                     <div
+                        wire:key="taskboard-labels-adder"
                         class="relative flex items-center rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] p-1 transition-all focus-within:border-[var(--md-sys-color-primary)] focus-within:ring-2 focus-within:ring-[var(--md-sys-color-primary)]/20">
                         <input type="text"
                                x-model="newLabel"

@@ -88,14 +88,15 @@
                          ? 'border-[var(--md-sys-color-primary)]'
                          : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'
                  ]">
-                <textarea id="msg-ta" wire:ref="body"
+                <textarea id="msg-ta" wire:ref="body" dir="rtl"
                           wire:model.defer="composer.body"
                           wire:loading.attr="disabled" wire:target="send"
                           x-on:keydown="onComposerKeydown($event)"
-                          x-on:input="len = $el.value.length; $el.style.height='auto';$el.style.height=Math.min($el.scrollHeight,160)+'px'; detectMention($event)"
+                          x-init="initAutoResize($el)"
+                          x-on:input="len = $el.value.length; autoGrow($el, 160); autoDirection($el); detectMention($event)"
                           x-on:paste="pasteImage($event, 'composer-cattachments')"
                           rows="1" placeholder="پیام خود را بنویسید..." aria-label="متن پیام"
-                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[160px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
+                          class="w-full bg-transparent px-3 py-2.5 text-sm resize-y focus:outline-none leading-relaxed min-h-[40px] max-h-[280px] field-sizing-content text-[var(--md-sys-color-on-surface)] disabled:opacity-60 placeholder:text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_50%,transparent)]"></textarea>
                 <span x-show="len > 3600"
                       x-text="len + ' / 4000'"
                       class="absolute bottom-1.5 end-3 text-[10px] font-medium pointer-events-none"
@@ -136,6 +137,18 @@
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
         </div>
 
-        <p class="hidden md:block text-[10px] text-center pb-2.5 text-[var(--md-sys-color-on-surface-variant)] opacity-50" aria-hidden="true"> خط جدید Shift+Enter</p>
+        <p class="hidden md:grid grid-cols-3 items-center pb-2.5 px-4 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" aria-hidden="true">
+            <span class="justify-self-start" x-text="(4000 - (($wire.composer.body || '').length)) + ' کاراکتر باقی‌مانده'"></span>
+            <span class="justify-self-center inline-flex items-center gap-2">
+                <span class="inline-flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] font-sans text-[9px] font-bold">Enter</kbd> ارسال
+                </span>
+                <span class="opacity-40">•</span>
+                <span class="inline-flex items-center gap-1">
+                    <kbd class="px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-variant)] font-sans text-[9px] font-bold">Shift+Enter</kbd> خط جدید
+                </span>
+            </span>
+            <span></span>
+        </p>
     </div>
 </footer>

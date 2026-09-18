@@ -1,6 +1,7 @@
 <x-ui.modals.slideover show="panelOpen" class="w-screen max-w-none h-screen rounded-none">
     @if($this->selectedPost)
         <div
+            wire:key="pane-post-details"
             x-data="{ imageViewer: false }"
             class="flex h-full min-h-0 flex-col overflow-hidden bg-transparent"
         >
@@ -101,33 +102,13 @@
                 </div>
             </div>
 
-            <template x-teleport="body">
-                <div
-                    x-cloak
-                    x-show="imageViewer"
-                    x-transition.opacity.duration.200ms
-                    class="fixed inset-0 z-[99999] bg-[var(--md-sys-color-primary)] animate-lightbox-in"
-                    @keydown.escape.window="imageViewer = false"
-                    @click.self="imageViewer = false"
+            <x-ui.modals.lightbox>
+                <img
+                    src="{{ $selectedPost->image_url }}"
+                    alt="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
+                    class="max-h-[92vh] w-full select-none object-contain rounded-xl"
                 >
-                    <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
-                        <div class="relative w-full max-w-[min(96vw,1600px)]">
-                            <img
-                                src="{{ $selectedPost->image_url }}"
-                                alt="{{ html_entity_decode(strip_tags($selectedPost->title), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}"
-                                class="max-h-[92vh] w-full select-none object-contain rounded-xl"
-                            >
-
-                            <button
-                                @click="imageViewer = false"
-                                class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                            >
-                                <span class="material-symbols-rounded">close</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </template>
+            </x-ui.modals.lightbox>
         </div>
     @else
         <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>

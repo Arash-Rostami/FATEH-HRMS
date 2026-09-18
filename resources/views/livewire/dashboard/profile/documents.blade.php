@@ -146,7 +146,7 @@
                             class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-lg">folder_special</span>
                         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">سایر مدارک بارگذاری شده</h3>
                         <span
-                            class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ $customDocs->count() }}</span>
+                            class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian($customDocs->count()) }}</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         @foreach($customDocs as $doc)

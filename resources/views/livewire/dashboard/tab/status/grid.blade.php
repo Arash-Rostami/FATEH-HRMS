@@ -132,9 +132,13 @@
         @empty
             <div class="col-span-full">
                 @if($skillId !== null || trim($skillSearch) !== '')
-                    <x-ui.empty icon="manage_search" title="همکاری با این مهارت یافت نشد" variant="filtered" />
+                    <div wire:key="status-empty-filtered" class="contents">
+                        <x-ui.empty icon="manage_search" title="همکاری با این مهارت یافت نشد" variant="filtered" />
+                    </div>
                 @else
-                    <x-ui.empty icon="manage_search" title="کاربری یافت نشد" variant="search" />
+                    <div wire:key="status-empty-none" class="contents">
+                        <x-ui.empty icon="manage_search" title="کاربری یافت نشد" variant="search" />
+                    </div>
                 @endif
             </div>
         @endforelse

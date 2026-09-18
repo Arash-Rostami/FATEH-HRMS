@@ -55,6 +55,11 @@
                 پروفایل کاربری
             </a>
 
+            <x-dashboard.modal.release/>
+            @auth
+                <livewire:dashboard.release-request.main/>
+            @endauth
+
             <div class="h-px bg-[var(--md-sys-color-outline-variant)]/10 my-1 mx-2"></div>
 
             <div class="px-1">

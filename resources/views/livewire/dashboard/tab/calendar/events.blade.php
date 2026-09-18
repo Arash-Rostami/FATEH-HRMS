@@ -58,6 +58,8 @@
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">celebration</span>
                                 @elseif(($event['type'] ?? '') === 'holiday')
                                     <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">event_busy</span>
+                                @elseif(($event['type'] ?? '') === 'reminder')
+                                    <span class="material-symbols-rounded" style="font-variation-settings: 'FILL' 1;">alarm</span>
                                 @else
                                     <span class="material-symbols-rounded">event</span>
                                 @endif
@@ -73,6 +75,12 @@
                             <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_50%,transparent)] px-2 py-1 rounded-lg shrink-0">
                                 {{ $rangeLabel }}
                             </span>
+                            @if(($event['type'] ?? '') === 'reminder' && ($event['is_snoozed'] ?? false))
+                                <span class="flex items-center gap-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-container-high)] px-2 py-1 rounded-lg shrink-0" title="اعلان موقتاً خاموش است">
+                                    <span class="material-symbols-rounded text-[11px]">snooze</span>
+                                    {{ convertToPersian($event['snoozed_hours']) }} ساعت اعلان خاموش
+                                </span>
+                            @endif
                         </div>
 
                         @php $eventDescription = $event['description'] ?? ''; @endphp
@@ -183,7 +191,9 @@
                 @endif
             </div>
         @empty
-            <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این روز هنوز هیچ برنامه ای ثبت نکرده‌اید." variant="list" :fill="true" />
+            <div wire:key="calendar-day-empty" class="contents">
+                <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این روز هنوز هیچ برنامه ای ثبت نکرده‌اید." variant="list" :fill="true" />
+            </div>
         @endforelse
     </div>
 </div>

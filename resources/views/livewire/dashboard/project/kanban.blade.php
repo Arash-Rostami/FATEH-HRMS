@@ -1,6 +1,4 @@
 @php
-    $taskBoardPresenter = new \App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter();
-    $dmsPresenter = new \App\Livewire\Dashboard\Dms\Presentation\DmsPresenter();
     $isPersonalBoard = false;
     $activeTab = null;
     $staffMembers = $this->staffMembers;
@@ -67,7 +65,7 @@
                 @php $deadlineOptions = ['overdue' => 'سررسید گذشته', 'today' => 'امروز', 'week' => 'این هفته']; @endphp
                 <option value="">همه مهلت‌ها</option>
                 @foreach($deadlineOptions as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}@if(($dfCounts[$value] ?? 0) > 0) ({{ $dfCounts[$value] }})@endif</option>
+                    <option value="{{ $value }}">{{ $label }}@if(($dfCounts[$value] ?? 0) > 0) ({{ convertToPersian($dfCounts[$value]) }})@endif</option>
                 @endforeach
             </x-ui.forms.select>
         </div>
@@ -214,8 +212,7 @@
         @foreach(['todo', 'in-progress', 'pending', 'done'] as $column)
             <div class="snap-center shrink-0 w-full sm:w-[calc(100%-2rem)] md:w-1/4 md:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-0 max-w-full">
                 @php
-                    $presenter = $taskBoardPresenter;
-                    $columnConfig = $presenter->columnConfig()[$column];
+                    $columnConfig = $this->taskBoardPresenter->columnConfig()[$column];
                     $columnTasks = $this->kanbanBoard['tasks'][$column] ?? [];
                     $columnTaskCount = $this->kanbanBoard['totalCount'][$column] ?? 0;
                 @endphp
@@ -238,9 +235,9 @@
                                 {{ $columnConfig['title'] }}
                             </h3>
 
-                            <span class="px-1.5 py-0.5 rounded-sm tabular-nums text-[10px] font-bold leading-none"
+                            <span class="px-1.5 py-0.5 rounded-sm text-[10px] font-bold leading-none"
                                   style="background: color-mix(in srgb, var(--md-sys-color-{{ $columnConfig['color'] }}) 12%, transparent); border: 1px solid color-mix(in srgb, var(--md-sys-color-{{ $columnConfig['color'] }}) 25%, transparent); color: var(--md-sys-color-{{ $columnConfig['color'] }});">
-                                {{ $columnTaskCount }}
+                                {{ convertToPersian($columnTaskCount) }}
                             </span>
                         </div>
 
@@ -299,7 +296,7 @@
 
                     <div class="flex flex-col flex-1 gap-2 p-1.5 mt-2.5 min-h-0 overflow-x-hidden overflow-y-auto scroll-smooth rounded-[14px] taskboard-column-list container-scrollbar custom-scrollbar">
                         @forelse($columnTasks as $task)
-                            @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column, 'isPersonalBoard' => false])
+                            @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column, 'isPersonalBoard' => false, 'presenter' => $this->taskBoardPresenter, 'dmsPresenter' => $this->dmsPresenter])
                         @empty
                             <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" variant="list" />
                         @endforelse

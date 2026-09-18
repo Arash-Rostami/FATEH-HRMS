@@ -85,7 +85,7 @@
                         <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
                             {{ $task['completed_at'] ? toJalaliSmart($task['completed_at']) : '—' }}
                         </td>
-                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle tabular-nums">
+                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
                             {{ $task['cycle_time_days'] !== null ? convertToPersian(number_format($task['cycle_time_days'], 1)) . ' روز' : '—' }}
                         </td>
                         <td class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
@@ -99,7 +99,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr wire:key="tasksheet-tasks-empty">
                         <td colspan="7" class="py-8">
                             <x-ui.empty icon="checklist" title="وظیفه‌ای در این بازه ثبت نشده" variant="filtered"/>
                         </td>

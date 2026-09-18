@@ -54,11 +54,12 @@
 
     @if($isPersonalBoard && $selectionMode)
         <button
+            wire:key="taskboard-selection-btn"
             wire:click="toggleTaskSelection({{ $taskId }})"
             class="absolute top-3 right-3 min-w-[28px] min-h-[28px] rounded-lg border-2 flex items-center justify-center transition-all duration-150 {{ in_array($taskId, $selectedTasks) ? 'bg-[var(--md-sys-color-primary)] border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]' }}"
         >
             @if(in_array($taskId, $selectedTasks))
-                <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary)]">check</span>
+                <span wire:key="taskboard-selection-check" class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary)]">check</span>
             @endif
         </button>
     @endif
@@ -69,14 +70,14 @@
             <span class="truncate shrink-0">#{{ $taskId }}</span>
             @if($projectLabel)
                 @if($projectHasLink)
-                    <a href="{{ route('projects', ['open' => $task['project_id'], 'tab' => 'report']) }}" wire:navigate
+                    <a wire:key="taskboard-card-project-link" href="{{ route('projects', ['open' => $task['project_id'], 'tab' => 'report']) }}" wire:navigate
                        class="inline-flex items-center gap-0.5 min-w-0 text-[var(--md-sys-color-primary)] hover:brightness-110 transition"
                        title="پروژه: {{ $projectLabel }}">
                         <span class="material-symbols-rounded text-[12px] shrink-0">workspaces</span>
                         <span class="max-w-[120px] truncate normal-case" dir="auto">{{ $projectLabel }}</span>
                     </a>
                 @else
-                    <span class="inline-flex items-center gap-0.5 min-w-0" title="برچسب پروژه (بدون پروژهٔ متصل): {{ $projectLabel }}">
+                    <span wire:key="taskboard-card-project-plain" class="inline-flex items-center gap-0.5 min-w-0" title="برچسب پروژه (بدون پروژهٔ متصل): {{ $projectLabel }}">
                         <span class="material-symbols-rounded text-[12px] shrink-0">workspaces</span>
                         <span class="max-w-[120px] truncate normal-case" dir="auto">{{ $projectLabel }}</span>
                     </span>
@@ -88,12 +89,12 @@
 
         <div class="flex items-center gap-1 shrink-0 text-[10px] text-[var(--md-sys-color-on-surface-variant)]/70 font-medium tracking-wider uppercase">
             @if(($task['replies_count'] ?? 0) > 0)
-                <span class="inline-flex items-center gap-0.5">
-                    <span class="material-symbols-rounded text-[12px]">forum</span>{{ $task['replies_count'] }}
+                <span wire:key="taskboard-card-replies" class="inline-flex items-center gap-0.5">
+                    <span class="material-symbols-rounded text-[12px]">forum</span>{{ convertToPersian($task['replies_count']) }}
                 </span>
             @endif
             @if($attachmentsCount > 0)
-                <span class="inline-flex items-center gap-0.5">
+                <span wire:key="taskboard-card-attachments" class="inline-flex items-center gap-0.5">
                     <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="tertiary">
                         <x-slot:trigger>
                             <span class="inline-flex items-center gap-0.5"><span class="material-symbols-rounded text-[12px]">attach_file</span>{{ $attachmentsCount }}</span>
@@ -156,12 +157,12 @@
         @endif
 
         @if($task['deadline'] || $ticketId || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id()) || ($activeTab === 'assigned-tasks' && $task['assignee_name']) || (!$isPersonalBoard && $task['assignee_name']) || in_array($urgency['kind'] ?? null, ['idle', 'sla', 'project-deadline-exceeded'], true) || $task['priority'] || !empty($task['labels']) || $checklistTotal > 0 || $stateChip || $responsibleUser || $departmentLabel || $isPendingApproval || $metaChips !== [] || $actionSourceChip)
-            <div class="flex flex-wrap items-center gap-1.5">
+            <div wire:key="taskboard-card-chips" class="flex flex-wrap items-center gap-1.5">
                 @php
                     $chip = $presenter->priorityChip($task['priority'] ?? null);
                 @endphp
                 @if($chip)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-priority" alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
                         <x-slot:trigger>
                             <button
                                 type="button"
@@ -179,7 +180,7 @@
                 @endif
 
                 @if($stateChip)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-state" alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
                         <x-slot:trigger>
                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $stateChip['class'] }}">
                                 <span class="material-symbols-rounded text-[12px]">{{ $stateChip['icon'] }}</span>
@@ -193,7 +194,7 @@
                 @endif
 
                 @if($responsibleUser)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-responsible" alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
                         <x-slot:trigger>
                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                                 <span class="material-symbols-rounded text-[12px]">support_agent</span>
@@ -207,7 +208,7 @@
                 @endif
 
                 @if($departmentLabel)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-56" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-department" alignment="top-full right-0 mt-2 origin-top-right" width="w-56" surface="default">
                         <x-slot:trigger>
                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                                 <span class="material-symbols-rounded text-[12px]">corporate_fare</span>
@@ -241,7 +242,7 @@
                     @php
                         $tone = ['amethyst', 'sapphire', 'sage', 'gold'][crc32($label) % 4];
                     @endphp
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-label-{{ crc32($label) }}" alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
                         <x-slot:trigger>
                             <button type="button" wire:click="{{ $labelFilterMethod }}({{ \Illuminate\Support\Js::from($label) }})"
                                     class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] hover:brightness-110 active:scale-95 transition"
@@ -257,7 +258,7 @@
                 @endforeach
 
                 @foreach($metaChips as $metaChip)
-                    <span title="{{ $metaChip['label'] }}: {{ $metaChip['value'] }}"
+                    <span wire:key="taskboard-meta-chip-{{ crc32($metaChip['label'] . $metaChip['value']) }}" title="{{ $metaChip['label'] }}: {{ $metaChip['value'] }}"
                           class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
                         <span class="material-symbols-rounded text-[12px]">database</span>
                         <span class="max-w-[100px] truncate" dir="auto">{{ $metaChip['label'] }}</span>
@@ -283,7 +284,7 @@
                     @php
                         $isComplete = $task['progress_percent'] === 100;
                     @endphp
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-56" surface="tertiary">
+                    <x-ui.hover-popover wire:key="taskboard-card-checklist" alignment="top-full right-0 mt-2 origin-top-right" width="w-56" surface="tertiary">
                         <x-slot:trigger>
                             <div class="inline-flex items-center px-1 py-0.5 rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $isComplete ? 'bg-[var(--md-sys-color-tertiary-container)]' : 'bg-[var(--md-sys-color-surface-container-highest)]' }}">
                                 <x-ui.decor.progress-ring
@@ -324,7 +325,7 @@
                 @endif
 
                 @if($hasDeadline)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-52" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-deadline" alignment="top-full right-0 mt-2 origin-top-right" width="w-52" surface="default">
                         <x-slot:trigger>
                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]
                                 {{ isPast($task['deadline']) && $task['status'] !== 'done'
@@ -343,7 +344,7 @@
 
                 @if($activeTab === 'my-tasks')
                     @if($task['assignee_name'] && $task['user_id'] !== auth()->id())
-                        <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
+                        <x-ui.hover-popover wire:key="taskboard-assignee-from" alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
                             <x-slot:trigger>
                                 <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                                     <span class="material-symbols-rounded text-[12px]">arrow_downward</span>
@@ -357,7 +358,7 @@
                     @endif
                 @elseif($activeTab === 'assigned-tasks')
                     @if($task['assignee_name'])
-                        <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
+                        <x-ui.hover-popover wire:key="taskboard-assignee-to" alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
                             <x-slot:trigger>
                                 <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                                     <span class="material-symbols-rounded text-[12px]">arrow_upward</span>
@@ -370,7 +371,7 @@
                         </x-ui.hover-popover>
                     @endif
                 @elseif($task['assignee_name'])
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-assignee-plain" alignment="top-full right-0 mt-2 origin-top-right" width="w-48" surface="default">
                         <x-slot:trigger>
                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                                 <span class="material-symbols-rounded text-[12px]">person</span>
@@ -384,24 +385,24 @@
                 @endif
 
                 @if(($urgency['kind'] ?? null) === 'idle')
-                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
+                    <div wire:key="taskboard-urgency-idle" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
                         <span class="material-symbols-rounded text-[12px]">hourglass_top</span>
                         <span>{{ $urgency['label'] }}</span>
                     </div>
                 @elseif(($urgency['kind'] ?? null) === 'sla')
-                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
+                    <div wire:key="taskboard-urgency-sla" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
                         <span class="material-symbols-rounded text-[12px]">gpp_bad</span>
                         <span>{{ $urgency['label'] }}</span>
                     </div>
                 @elseif(($urgency['kind'] ?? null) === 'project-deadline-exceeded')
-                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
+                    <div wire:key="taskboard-urgency-project" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                         <span class="material-symbols-rounded text-[12px]">flag</span>
                         <span>{{ $urgency['label'] }}</span>
                     </div>
                 @endif
 
                 @if($isPendingApproval)
-                    <x-ui.hover-popover alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-pending" alignment="top-full right-0 mt-2 origin-top-right" width="w-44" surface="default">
                         <x-slot:trigger>
                             <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                                 <span class="material-symbols-rounded text-[12px]">verified_user</span>
@@ -424,24 +425,25 @@
     {{-- ═══ FOOTER ═══ --}}
     <div class="flex items-center justify-between gap-1 pt-2.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
         @if(!empty($collaboratorUsers))
-            <div class="flex items-center -space-x-1.5 rtl:space-x-reverse shrink-0" title="همکاران: {{ implode('، ', array_column($collaboratorUsers, 'name')) }}">
+            <div wire:key="taskboard-card-collaborators" class="flex items-center -space-x-1.5 rtl:space-x-reverse shrink-0" title="همکاران: {{ implode('، ', array_column($collaboratorUsers, 'name')) }}">
                 @foreach(array_slice($collaboratorUsers, 0, 3) as $collaborator)
                     <img src="{{ $collaborator['avatar_url'] }}" alt="{{ $collaborator['name'] }}"
                          class="w-5 h-5 rounded-full border border-[var(--md-sys-color-surface)] object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]">
                 @endforeach
                 @if(count($collaboratorUsers) > 3)
                     <span class="w-5 h-5 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[9px] font-bold flex items-center justify-center border border-[var(--md-sys-color-surface)] ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                        +{{ count($collaboratorUsers) - 3 }}
+                        +{{ convertToPersian(count($collaboratorUsers) - 3) }}
                     </span>
                 @endif
             </div>
         @else
-            <span></span>
+            <span wire:key="taskboard-card-collaborators-empty"></span>
         @endif
 
         <div class="task-action-rail flex items-center gap-1">
             @if($canApprove)
                 <button
+                    wire:key="taskboard-approve-btn"
                     wire:click="approveTask({{ $taskId }})"
                     class="w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-tertiary)] hover:bg-[var(--md-sys-color-tertiary-container)] hover:text-[var(--md-sys-color-on-tertiary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="تأیید وظیفه"
@@ -454,6 +456,7 @@
             @if($isPersonalBoard)
                 @if($canChangeStatus && !$isArchived)
                     <button
+                        wire:key="taskboard-edit-btn"
                         wire:click="editTask({{ $taskId }})"
                         class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                         title="{{ $ticketId ? 'مشاهده' : 'ویرایش' }}"
@@ -463,6 +466,7 @@
                     </button>
                 @elseif($task['is_delegator'] && !$isArchived)
                     <button
+                        wire:key="taskboard-view-btn"
                         wire:click="viewTask({{ $taskId }})"
                         class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                         title="مشاهده"
@@ -473,6 +477,7 @@
                 @endif
             @else
                 <button
+                    wire:key="taskboard-open-btn"
                     x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $taskId }} })"
                     class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center {{ $canChangeStatus ? 'text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]' }}"
                     title="{{ $canChangeStatus ? 'ویرایش' : 'مشاهده' }}"
@@ -483,7 +488,7 @@
             @endif
 
             @if($isPersonalBoard && $canChangeStatus && !$ticketId && !$isArchived)
-                <div x-data="{ open: false }" class="relative">
+                <div wire:key="taskboard-assign-dropdown" x-data="{ open: false }" class="relative">
                     <button
                         x-on:click="open = !open"
                         x-on:click.outside="open = false"
@@ -529,7 +534,7 @@
             @endif
 
             @if(!($isUrgent || $isPending || $isArchived))
-            <div x-data="{ tagOpen: false }" class="relative" x-on:click.away="tagOpen = false">
+            <div wire:key="taskboard-tag-palette" x-data="{ tagOpen: false }" class="relative" x-on:click.away="tagOpen = false">
                 <button
                     type="button"
                     x-on:click="tagOpen = !tagOpen"
@@ -588,6 +593,7 @@
 
             @if($canChangeStatus && !$isArchived && !$ticketId)
                 <button
+                    wire:key="taskboard-duplicate-btn"
                     @if($isPersonalBoard)
                         wire:click="duplicateTask({{ $taskId }})"
                     @else
@@ -609,6 +615,7 @@
 
             @if($isPersonalBoard && $task['can_delete'] && $task['status'] === 'done' && !$isArchived && !$ticketId)
                 <button
+                    wire:key="taskboard-archive-btn"
                     wire:click="archiveTask({{ $taskId }})"
                     class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="آرشیو"
@@ -620,6 +627,7 @@
 
             @if($isPersonalBoard && $task['can_delete'] && $isArchived)
                 <button
+                    wire:key="taskboard-unarchive-btn"
                     wire:click="unarchiveTask({{ $taskId }})"
                     class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="خروج از آرشیو"
@@ -631,6 +639,7 @@
 
             @if($isPersonalBoard && $task['is_delegator'] && $column !== 'done' && !$ticketId)
                 <button
+                    wire:key="taskboard-undo-btn"
                     wire:click="undoAssignment({{ $taskId }})"
                     class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="لغو واگذاری"
@@ -642,6 +651,7 @@
 
             @if($isPersonalBoard && $task['can_delete'] && !$ticketId && !$isArchived)
                 <button
+                    wire:key="taskboard-delete-btn"
                     wire:click="deleteTask({{ $taskId }})"
                     class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="حذف"
@@ -649,6 +659,12 @@
                 >
                     <span class="material-symbols-rounded text-[16px]">delete</span>
                 </button>
+            @endif
+
+            @if($isPersonalBoard)
+                <span @click.stop>
+                    <x-dashboard.reminder-trigger :for="\App\Models\Task::make(['id' => $taskId])" variant="inline" tooltip-position="right"/>
+                </span>
             @endif
         </div>
     </div>

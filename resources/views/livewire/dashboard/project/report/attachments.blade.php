@@ -5,7 +5,7 @@
             <span class="flex items-center gap-2 text-xs font-bold text-[var(--md-sys-color-on-surface)]">
                 <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">attach_file</span>
                 پیوست‌ها
-                <span class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[10px] font-black tabular-nums">{{ convertToPersian($totalCount) }}</span>
+                <span class="px-2 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] text-[10px] font-black">{{ convertToPersian($totalCount) }}</span>
             </span>
             <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
         </button>

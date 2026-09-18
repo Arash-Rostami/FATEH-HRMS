@@ -13,6 +13,8 @@ class MessageResource extends SearchResource
     protected string $icon = 'perm_contact_calendar';
     protected string $model = Message::class;
     protected array $columns = ['body'];
+
+    protected int $recencyMonths = 6;
     protected ?string $subtitleField = 'body';
 
     public function action($row): string

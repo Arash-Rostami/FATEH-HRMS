@@ -14,6 +14,8 @@ class TicketResource extends SearchResource
     protected string $icon = 'support_agent';
     protected string $model = Ticket::class;
     protected array $columns = ['request_subject', 'description', 'request_type'];
+
+    protected int $recencyMonths = 6;
     protected ?string $titleField = 'request_subject';
     protected ?string $subtitleField = 'description';
 

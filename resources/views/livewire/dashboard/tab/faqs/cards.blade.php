@@ -4,6 +4,7 @@
 @endphp
 
 <div
+    wire:key="faq-card-{{ $faq->id }}"
     data-rf="faqs-{{ $faq->id }}"
     class="slide-up group flex flex-col w-full overflow-hidden transition-all duration-300 rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] hover:border-[var(--md-sys-color-primary)] hover:shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
 >

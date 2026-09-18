@@ -4,9 +4,9 @@
             <div class="flex items-center gap-2.5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)]">add_box</span>
                 <div>
-                    <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ساخت کانال جدید</h2>
+                    <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">ساخت گروه جدید</h2>
                     <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]"
-                       x-text="$wire.create.type === 'private' ? 'کانال خصوصی — فقط با دعوت مدیر' : 'کانال عمومی — همه می‌توانند پیوستن'"></p>
+                       x-text="$wire.create.type === 'private' ? 'گروه خصوصی — فقط با دعوت مدیر' : 'گروه عمومی — همه می‌توانند پیوستن'"></p>
                 </div>
             </div>
             <button x-on:click="closeCreate()" aria-label="بستن"
@@ -17,7 +17,7 @@
 
         <div class="bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] rounded-xl p-5 space-y-4">
             <div>
-                <label for="create-name" class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نام کانال</label>
+                <label for="create-name" class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نام گروه</label>
                 <input id="create-name" type="text" wire:model="create.name" maxlength="100" autocomplete="off"
                        placeholder="مثلاً اطلاعیه‌های فروش"
                        class="md3-input peer w-full rounded-xl text-sm outline-none focus:ring-2 px-4 h-11 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50" />
@@ -26,12 +26,12 @@
             <div>
                 <label for="create-desc" class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">توضیحات (اختیاری)</label>
                 <textarea id="create-desc" rows="3" wire:model="create.description" maxlength="500" autocomplete="off"
-                          placeholder="توضیحی کوتاه درباره موضوع کانال"
+                          placeholder="توضیحی کوتاه درباره موضوع گروه"
                           class="md3-input peer w-full rounded-xl text-sm outline-none focus:ring-2 px-4 py-2.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 resize-none"></textarea>
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نوع کانال</label>
+                <label class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نوع گروه</label>
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" x-on:click="$wire.set('create.type', 'open')"
                             @class([
@@ -63,14 +63,10 @@
                     </label>
                 </div>
                 <p class="text-[10px] mb-2 text-[var(--md-sys-color-on-surface-variant)]"
-                   x-text="$wire.create.type === 'private' ? 'تنها اعضای انتخاب‌شده به کانال خصوصی دسترسی دارند — دیگران نمی‌توانند خودشان پیوستن.' : 'اختیاری — در کانال عمومی دیگران می‌توانند از طریق مرور پیوستن.'"></p>
+                   x-text="$wire.create.type === 'private' ? 'تنها اعضای انتخاب‌شده به گروه خصوصی دسترسی دارند — دیگران نمی‌توانند خودشان پیوستن.' : 'اختیاری — در گروه عمومی دیگران می‌توانند از طریق مرور پیوستن.'"></p>
 
                 @if(count($this->memberCandidates) > 0)
-                    <div class="relative mb-2">
-                        <span class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">search</span>
-                        <input type="text" x-model="memberQuery" placeholder="جستجوی کاربر..."
-                               class="md3-input w-full rounded-xl text-sm outline-none focus:ring-2 pr-9 h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
-                    </div>
+                    <x-dashboard.member-search/>
 
                     <div class="max-h-56 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
                         @foreach($this->memberCandidates as $u)
@@ -83,10 +79,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-8 text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 rounded-2xl">
-                        <span class="material-symbols-rounded text-4xl mb-2 block opacity-40">group</span>
-                        <p class="text-sm">کاربر فعال دیگری برای افزودن وجود ندارد.</p>
-                    </div>
+                    <x-ui.empty icon="group" title="کاربر فعال دیگری برای افزودن وجود ندارد." />
                 @endif
             </div>
 
@@ -94,7 +87,7 @@
                 <x-ui.buttons.form x-on:click="createChannel()" wire:loading.attr="disabled" wire:target="createChannel"
                         loading="createChannel"
                         class="flex-shrink-0 px-5 py-2.5 h-auto rounded-lg text-[12px] font-semibold transition-all hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-                    ساخت کانال
+                    ساخت گروه
                 </x-ui.buttons.form>
                 <button x-on:click="closeCreate()"
                         class="px-4 py-2.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-95 active:scale-95 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">

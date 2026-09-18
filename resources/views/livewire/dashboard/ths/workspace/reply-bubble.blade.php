@@ -3,12 +3,13 @@
 @endphp
 
 <div wire:key="reply-{{ $reply->id }}" class="flex items-start gap-2.5 {{ $isMine ? 'flex-row-reverse' : '' }} {{ ($animateIn ?? false) ? 'animate-slide-up-fade' : '' }}">
-    <div class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold shadow-sm"
-         @class([
-             'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' => $isMine,
-             'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' => !$isMine,
-         ])>
-        {{ $reply->user ? mb_substr($reply->user->name, 0, 1) : '—' }}
+    <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden shadow-sm">
+        @if($reply->user)
+            <x-ui.avatar :existingImage="$reply->user->getProfileImageUrl() ?? $reply->user->getInitialsAvatarUrl()"
+                         :alt="$reply->user->name" icon-size="text-[11px]" class="rounded-lg"/>
+        @else
+            <div class="w-full h-full flex items-center justify-center text-[11px] font-bold bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">—</div>
+        @endif
     </div>
 
     <div class="max-w-[80%] rounded-2xl px-3.5 py-2.5 shadow-sm"

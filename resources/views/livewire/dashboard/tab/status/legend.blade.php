@@ -17,15 +17,16 @@
 <div x-data="status()">
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $t)
+            @continue(!$showFilterHint && $t['id'] === 'notes')
             <button
                 type="button"
                 @click="tab = '{{ $t['id'] }}'"
                 :class="tab === '{{ $t['id'] }}'
                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
                     : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
-                class="flex-1 flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 rounded-xl text-[11px] font-bold transition-all duration-200"
+                class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[12px] font-bold transition-all duration-200"
             >
-                <span class="material-symbols-rounded text-[18px]">{{ $t['icon'] }}</span>
+                <span class="material-symbols-rounded text-[17px]">{{ $t['icon'] }}</span>
                 <span class="leading-tight text-center">{{ $t['label'] }}</span>
             </button>
         @endforeach
@@ -110,7 +111,27 @@
         </div>
     </div>
 
-    <div x-show="tab === 'structure'" x-cloak class="space-y-2">
+    <div x-show="tab === 'structure'" x-cloak>
+        <div class="flex p-1 mb-4 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+            @foreach([
+                ['id' => 'layout', 'icon' => 'account_tree', 'label' => 'ساختار و سطح‌بندی'],
+                ['id' => 'interact', 'icon' => 'open_with', 'label' => 'تعامل و نما'],
+            ] as $sub)
+                <button
+                    type="button"
+                    @click="structureSub = '{{ $sub['id'] }}'"
+                    :class="structureSub === '{{ $sub['id'] }}'
+                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
+                        : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
+                    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[12px] font-bold transition-all duration-200"
+                >
+                    <span class="material-symbols-rounded text-[17px]">{{ $sub['icon'] }}</span>
+                    {{ $sub['label'] }}
+                </button>
+            @endforeach
+        </div>
+
+        <div x-show="structureSub === 'layout'" x-cloak class="space-y-2">
         <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
             <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
                 <span class="material-symbols-rounded text-[16px]">account_tree</span>
@@ -150,7 +171,9 @@
                 <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">سرپرست هر دپارتمان از روی پایگاه دادهٔ «مدیر» تعیین نمی‌شود؛ بلکه بالاترین رتبهٔ فعالِ حاضر در همان دپارتمان به‌طور خودکار به‌عنوان سرپرست در نظر گرفته می‌شود. بنابراین اگر مدیر اصلی غایب یا غیرفعال باشد، ارشد بعدی به‌جای او نشان داده می‌شود.</p>
             </div>
         </div>
+        </div>
 
+        <div x-show="structureSub === 'interact'" x-cloak class="space-y-2">
         <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
             <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
                 <span class="material-symbols-rounded text-[16px]">unfold_more</span>
@@ -189,6 +212,7 @@
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">اثر فیلترها بر نمای ساختاری</p>
                 <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">فیلتر وضعیت حضور، جستجوی مهارت و دسته‌بندی‌ها روی نمای ساختاری هم اعمال می‌شود؛ بنابراین با فعال‌کردن یک فیلتر، فقط بخشی از ساختار که شرط آن را برآورده می‌کند نمایش داده می‌شود.</p>
             </div>
+        </div>
         </div>
     </div>
 

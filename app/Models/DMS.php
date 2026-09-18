@@ -6,6 +6,7 @@ use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Models\Concerns\HasDepartmentHelpers;
 use App\Models\Concerns\HasDmsCountHelpers;
 use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasUserHelpers;
 use App\Services\Dms\DmsKeyGrouper;
 use App\Traits\CleansAttachedFiles;
@@ -26,6 +27,7 @@ class DMS extends Model
     use HasDmsCountHelpers;
     use HasMenuState;
     use CleansAttachedFiles;
+    use HasReminders;
 
 
     private static $statusMapping = [
@@ -85,9 +87,9 @@ class DMS extends Model
 
     public static function hasPendingFor(int $userId): bool
     {
-        $dept = User::with('profile')->find($userId)?->profile?->department_id;
+        [$sign, $read] = static::pendingCounts($userId);
 
-        return static::needsSignCount($userId, $dept) > 0 || static::needsReadCount($userId, $dept) > 0;
+        return $sign > 0 || $read > 0;
     }
 
     public static function needsReadCount(int $userId, ?string $dept = null): int
@@ -106,7 +108,7 @@ class DMS extends Model
 
     public static function pendingCount(int $userId): int
     {
-        return static::needsSignCount($userId) + static::needsReadCount($userId);
+        return array_sum(static::pendingCounts($userId));
     }
 
     public function pendingRecipients(): Collection

@@ -70,7 +70,7 @@
                         $lastIdx = count($qs) - 1;
                     @endphp
 
-                    <div class="max-w-2xl mx-auto px-4">
+                    <div wire:key="energy-survey" class="max-w-2xl mx-auto px-4">
 
                         <div
                             class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
@@ -86,7 +86,7 @@
                 @endif
             </div>
             @if($activeTab === 'chart')
-                <div class="w-full animate-fade">
+                <div wire:key="energy-chart-pane" class="w-full animate-fade">
                     <livewire:dashboard.energy.chart wire:key="energy-chart"/>
                 </div>
             @endif

@@ -34,7 +34,7 @@
                         'md:scale-[1.15] z-30': activeId == {{ $report->id }},
                         'md:scale-95 z-10': activeId != {{ $report->id }}
                     }"
-                    @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true"
+                    @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true; recordOpen(activeReport)"
                 >
                     {{-- Timeline dot --}}
                     <div
@@ -47,29 +47,14 @@
                         x-transition:leave-end="opacity-0 scale-90 translate-x-4"
                         class="absolute top-1/2 -right-10 z-40 hidden md:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2 pointer-events-none"
                     >
-                        <div
-                            class="absolute bottom-12 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
-                            :class="activeId == {{ $report->id }} ? '!opacity-100 !translate-y-0' : ''"
-                        >
-                            <span class="text-[10px] font-bold text-[var(--md-sys-color-primary)]">
-                                {{ toJalali($report->created_at, 'j F Y') }}
-                            </span>
-                            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--md-sys-color-surface-variant)] rotate-45 border-r border-b border-[var(--md-sys-color-outline-variant)]/20"></div>
-                        </div>
+                        <x-dashboard.timeline-date-bubble :id="$report->id" :date="toJalali($report->created_at, 'j F Y')"/>
                         <div
                             class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
                             :class="activeId == {{ $report->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
                         >
                             <div class="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]"></div>
                         </div>
-                        <div
-                            class="absolute top-12 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-                            :class="activeId == {{ $report->id }} ? '!opacity-100' : ''"
-                        >
-                            <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
-                                {{ strtoupper($report->file_type) }}
-                            </span>
-                        </div>
+                        <x-dashboard.timeline-caption :id="$report->id" :text="strtoupper($report->file_type)"/>
                     </div>
 
                     {{-- Top accent bar --}}
@@ -142,32 +127,13 @@
                     </div>
 
                     {{-- Fullscreen image viewer --}}
-                    <template x-teleport="body">
-                        <div
-                            x-cloak
-                            x-show="imageViewer"
-                            x-transition.opacity.duration.200ms
-                            class="fixed inset-0 z-[99999] bg-[var(--md-sys-color-primary)] animate-lightbox-in"
-                            @keydown.escape.window="imageViewer = false"
-                            @click.self="imageViewer = false"
+                    <x-ui.modals.lightbox>
+                        <img
+                            src="{{ $report->thumbnail }}"
+                            alt="{{ $report->title }}"
+                            class="max-h-[92vh] w-full select-none object-contain rounded-xl"
                         >
-                            <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
-                                <div class="relative w-full max-w-[min(96vw,1600px)]">
-                                    <img
-                                        src="{{ $report->thumbnail }}"
-                                        alt="{{ $report->title }}"
-                                        class="max-h-[92vh] w-full select-none object-contain rounded-xl"
-                                    >
-                                    <button
-                                        @click="imageViewer = false"
-                                        class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                                    >
-                                        <span class="material-symbols-rounded">close</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                    </x-ui.modals.lightbox>
                 </div>
             @endforeach
 

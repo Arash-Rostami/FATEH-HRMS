@@ -1260,6 +1260,7 @@ Apply colors purposefully across tables, infolists, and forms. Avoid decorative 
 12. **Shared logic belongs in Enums** — states, labels, icons, colors.
 13. **RelationManagers reuse presenter classes** — never define new components inside a manager.
 14. **RelationManagers are minimal** — no filters unless genuinely needed; no edit/delete unless workflow requires it.
+14a. **`$relationship` must name the exact relation method** — when a model carries both a singular and a plural variant of the same relation, a manager bound to the singular one silently shows wrong/empty rows (a `hasOneThrough` with default keys joins the wrong columns). A manager listing many rows always binds the plural method. Incident: `UsersRelationManager` was bound to `Department::user()` (broken-key HasOneThrough) instead of `Department::users()` (HasManyThrough via Profile) — fixed 2026-09-13 and the dead singular relation deleted.
 15. **Exports are isolated** — `Exports/` folder, dedicated class.
 16. **Localization is mandatory** — all labels, messages, tooltips, placeholders, and validation text use translation keys.
 17. **Table defaults are sparse** — only ID, name, status, and essential operational fields visible by default; everything else toggleable and hidden.

@@ -96,6 +96,12 @@ return [
             'active' => 'منابع فعال',
             'distinct_types' => 'انواع تعریف‌شده',
         ],
+
+        'reminders' => [
+            'active' => 'فعال',
+            'overdue' => 'دیرکرد',
+            'completed' => 'انجام‌شده',
+        ],
     ],
 
     'chart_widgets' => [

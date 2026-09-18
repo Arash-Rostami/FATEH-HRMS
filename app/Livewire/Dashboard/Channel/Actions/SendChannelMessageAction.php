@@ -54,7 +54,7 @@ class SendChannelMessageAction
 
     private function ensureMember(?Channel $channel): void
     {
-        abort_unless($channel, 403, 'شما عضو این کانال نیستید.');
+        abort_unless($channel, 403, 'شما عضو این گروه نیستید.');
     }
 
     private function resolveReplyToId(?int $replyToId, int $channelId): ?int

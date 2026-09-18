@@ -28,7 +28,7 @@
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
-                    title="راهنمای پیام‌رسان و کانال"
+                    title="راهنمای پیام‌رسان و گروه"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors">
                     <span class="material-symbols-rounded text-lg">help</span>
                 </button>
@@ -55,18 +55,21 @@
                             'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
                         ])>
                     @if($this->activeContact)
+                        <div wire:key="pane-active" class="contents">
+                            @include('livewire.dashboard.contact.header')
 
-                        @include('livewire.dashboard.contact.header')
+                            <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
 
-                        <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
+                            @include('livewire.dashboard.contact.messages')
 
-                        @include('livewire.dashboard.contact.messages')
+                            @include('livewire.dashboard.contact.composer')
 
-                        @include('livewire.dashboard.contact.composer')
-
-                        @include('livewire.dashboard.contact.info')
+                            @include('livewire.dashboard.contact.info')
+                        </div>
                     @else
-                        @include('livewire.dashboard.contact.empty')
+                        <div wire:key="pane-empty" class="contents">
+                            @include('livewire.dashboard.contact.empty')
+                        </div>
                     @endif
                 </main>
             @endisland

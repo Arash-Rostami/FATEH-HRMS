@@ -39,7 +39,7 @@
                           class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
                         <span class="material-symbols-rounded text-[12px]">database</span>
                         <span class="max-w-[100px] truncate" dir="auto">{{ $metaChip['label'] }}</span>
-                        <span class="max-w-[120px] truncate" dir="auto">{{ $metaChip['value'] }}</span>
+                        <span class="max-w-[120px] truncate" dir="auto">{{ convertToPersian($metaChip['value']) }}</span>
                     </span>
                 @endforeach
             </div>

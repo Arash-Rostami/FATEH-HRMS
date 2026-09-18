@@ -43,7 +43,7 @@
                             </div>
                             @if($msg['is_last'])
                                 <div class="flex items-center gap-1.5 mt-1 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
-                                    <time class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
+                                    <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 </div>
                             @endif
                         </div>
@@ -115,10 +115,13 @@
                 </label>
                 <input id="team-chat-attachments" type="file" multiple wire:model="chatComposer.attachments" class="hidden"
                        accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
-                <button type="button" x-on:click.prevent="sendMessage" wire:loading.attr="disabled" wire:target="sendChatMessage" aria-label="ارسال پیام"
-                        class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] disabled:opacity-50 hover:brightness-110 transition">
-                    <span class="material-symbols-rounded text-lg rotate-180">send</span>
-                </button>
+                <x-ui.buttons.form x-on:click.prevent="sendMessage"
+                        wire:loading.attr="disabled" wire:target="sendChatMessage"
+                        loading="sendChatMessage"
+                        class="flex-shrink-0 w-10 h-10 p-0 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 transition"
+                        aria-label="ارسال پیام">
+                    <span wire:loading.remove wire:target="sendChatMessage" class="material-symbols-rounded text-lg rotate-180">send</span>
+                </x-ui.buttons.form>
             </div>
         </div>
         @error('chatComposer.body') <p class="text-xs text-[var(--md-sys-color-error)] px-1 pb-1">{{ $message }}</p> @enderror

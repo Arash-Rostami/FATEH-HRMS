@@ -233,6 +233,7 @@ if (!function_exists('getEventStyles')) {
             'birthday' => 'bg-pink-50 text-pink-600 ring-1 ring-pink-100',
             'anniversary' => 'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
             'holiday' => 'bg-rose-50 text-rose-600 ring-1 ring-rose-100',
+            'reminder' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
             default => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]'
         };
     }

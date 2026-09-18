@@ -20,7 +20,7 @@
                     <button type="button" wire:click="setReportStatusFilter('{{ $chip['key'] }}')" aria-pressed="{{ $isStatusActive ? 'true' : 'false' }}"
                             class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $chip['class'] }} hover:brightness-110 active:scale-95 transition {{ $isStatusActive ? 'ring-2 ring-[var(--md-sys-color-primary)] outline-none' : '' }}">
                         <span class="material-symbols-rounded text-[14px]">{{ $chip['icon'] }}</span>
-                        <span class="tabular-nums">{{ convertToPersian($count) }}</span>
+                        <span>{{ convertToPersian($count) }}</span>
                         <span>{{ $chip['label'] }}</span>
                     </button>
                 @endif
@@ -28,7 +28,7 @@
             @if($s['overdue'] > 0)
                 <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] hover:brightness-110 active:scale-95 transition">
                     <span class="material-symbols-rounded text-[14px]">notification_important</span>
-                    <span class="tabular-nums">{{ convertToPersian((int) $s['overdue']) }}</span>
+                    <span>{{ convertToPersian((int) $s['overdue']) }}</span>
                     <span>سررسید گذشته</span>
                 </span>
             @endif

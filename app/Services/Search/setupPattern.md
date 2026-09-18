@@ -118,6 +118,7 @@ The base calls `$this->scope()`, `$this->action()`, etc., so polymorphism runs e
 | `$titleField` | ?string | title column; `null` ⇒ override `titleFor()` | `null` |
 | `$subtitleField` | ?string | subtitle column; `null` ⇒ falls back to `$group` | `null` |
 | `$orderBy` | string | tie-break ordering after relevance | `'id'` |
+| `$recencyMonths` | int | months bounding the `created_at` scan (§7); 0 = unbounded | `0` |
 | `$groupLimit` | int | max rows returned per group | `5` |
 | `action($row)` | method | **required** — builds the deep-link (see §5) | — |
 | `scope(Builder $q)` | method | optional — restrict visible rows (no-op by default) | no-op |
@@ -225,3 +226,19 @@ return 'url:' . route('channels', [
 ```
 
 Keep this shape stable — the palette JS and the `record-focus` flow depend on it.
+
+---
+
+## 7. Recency window (bounded by default, expanded explicitly)
+
+The content engine's coarse filter is a leading-wildcard `LIKE` per token — non-sargable, so every query is O(table size). On the high-volume history tables that grows linearly forever; benchmarked at ~150–730ms per query at only ~2.5K total rows (TicketResource heaviest, 28ms alone).
+
+The fix is the standard ERP pattern — **bound by default, expand explicitly**:
+
+- **`$recencyMonths`** on the resource (default `0` = unbounded, for small/static tables). The 7 high-volume resources set `6`: `TicketResource`, `DmsResource`, `ChannelMessageResource`, `MessageResource`, `FeedResource`, `PostResource`, `ReservationResource`. `applyRecencyWindow()` in the base adds `WHERE created_at >= now() - N months` **before** the LIKE filter, so the sargable date range prunes the scan set.
+- **`SearchContext::$allHistory`** — a per-request escape hatch. `ContentService::search($query, $allHistory = false)` threads it through, and a resource with `$recencyMonths > 0` skips its window when it's true.
+- **UI** (`CommandPalette`) — the bound is ambient, not one-shot: the content-mode placeholder names «۶ ماه اخیر»; the footer scope badge (replacing the old "Heuristic" chip) always shows the live scope — `history` + «۶ ماه اخیر» ⇄ `all_inclusive` + «کل تاریخ»; a "جستجو در کل تاریخ" chip appears when results are thin (≤ 5) letting the user re-run whole-history (`searchAllHistory()`); an active-mode chip confirms the expansion; and the no-results empty state in content mode explicitly says the window was the reason («در ۶ ماه اخیر نتیجه‌ای نبود؛ دکمهٔ «جستجو در کل تاریخ» را بزنید») instead of a generic "try another term". `toggleMode()` and `resetPalette()` both clear `allHistory`, so it's always an explicit per-query act.
+
+**Indexes:** the window only helps if `created_at` is indexed — migration `2026_09_14_000001_add_created_at_indexes_for_content_search.php` covers `tickets`, `dms`, `channel_messages`, `messages`, `reservations` (feeds/posts already had one). When adding `$recencyMonths > 0` to a new resource, check `SHOW INDEX` for its table first and extend the migration pattern if needed.
+
+**Rule:** a resource that grows without bound (user-generated content, messages, tickets) ships with `$recencyMonths = 6` + a `created_at` index from day one — not as a retrofit when the palette starts feeling slow. Small/static tables (people, skills, links…) stay `0` so nothing is silently hidden.

@@ -1,4 +1,4 @@
-<div class="h-full min-h-[480px] flex flex-col items-center justify-center p-8 md:p-12 rounded-2xl bg-[var(--md-sys-color-surface)]
+<div wire:key="suggestion-panel-empty" class="h-full min-h-[480px] flex flex-col items-center justify-center p-8 md:p-12 rounded-2xl bg-[var(--md-sys-color-surface)]
  border-2 border-dashed border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]">
 
     <div class="contents" wire:loading wire:target="selectSuggestion">

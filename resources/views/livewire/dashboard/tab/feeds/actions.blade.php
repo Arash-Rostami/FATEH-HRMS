@@ -6,7 +6,7 @@
 
     <div class="flex-shrink-0 flex items-center gap-1 h-9 px-2.5 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-[15px] leading-none">thumb_up</span>
-        <span class="text-xs font-semibold tabular-nums leading-none">{{ $feed->reactions->count() }}</span>
+        <span class="text-xs font-semibold leading-none">{{ convertToPersian($feed->reactions->count()) }}</span>
     </div>
 
     <div class="flex items-center gap-0.5 py-1 overflow-visible"

@@ -9,6 +9,7 @@ use App\Models\Concerns\HasPublicAssetUrl;
 use App\Services\ContentSanitizerService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,11 @@ class Post extends Model
         'pinned',
         'user_id'
     ];
+
+    public function scopeNotPinned(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->where('pinned', '<>', 1)->orWhereNull('pinned'));
+    }
 
     public function user(): BelongsTo
     {

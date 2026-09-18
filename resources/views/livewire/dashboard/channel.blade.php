@@ -5,13 +5,13 @@
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
     x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
     role="region"
-    aria-label="کانال‌ها"
+    aria-label="گروه‌ها"
     class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
     style="scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) transparent;">
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
 
-        <x-ui.title icon="campaign" title="کانال‌ها">
+        <x-ui.title icon="campaign" title="گروه‌ها">
             <x-slot:actions>
                 <button
                     type="button"
@@ -24,12 +24,12 @@
                 <button
                     type="button"
                     @click="$dispatch('open-modal', { name: 'messaging-feature-legend' })"
-                    title="راهنمای پیام‌رسان و کانال"
+                    title="راهنمای پیام‌رسان و گروه"
                     class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                 >
                     <span class="material-symbols-rounded text-lg">help</span>
                 </button>
-                <span x-text="channelCount + ' ' + 'کانال'"
+                <span x-text="channelCount + ' ' + 'گروه'"
                       class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]"></span>
             </x-slot:actions>
         </x-ui.title>
@@ -55,17 +55,25 @@
                     'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
                 ])>
                     @if($createMode)
-                        @include('livewire.dashboard.channel.create')
+                        <div wire:key="pane-create" class="contents">
+                            @include('livewire.dashboard.channel.create')
+                        </div>
                     @elseif($browseMode)
-                        @include('livewire.dashboard.channel.browse')
+                        <div wire:key="pane-browse" class="contents">
+                            @include('livewire.dashboard.channel.browse')
+                        </div>
                     @elseif($activeChannelId && $this->activeChannel)
-                        @include('livewire.dashboard.channel.header')
-                        <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
-                        @include('livewire.dashboard.channel.messages')
-                        @include('livewire.dashboard.channel.composer')
-                        @include('livewire.dashboard.channel.info')
+                        <div wire:key="pane-active" class="contents">
+                            @include('livewire.dashboard.channel.header')
+                            <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
+                            @include('livewire.dashboard.channel.messages')
+                            @include('livewire.dashboard.channel.composer')
+                            @include('livewire.dashboard.channel.info')
+                        </div>
                     @else
-                        @include('livewire.dashboard.channel.empty')
+                        <div wire:key="pane-empty" class="contents">
+                            @include('livewire.dashboard.channel.empty')
+                        </div>
                     @endif
                 </main>
             @endisland

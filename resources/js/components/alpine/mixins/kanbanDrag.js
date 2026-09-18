@@ -1,4 +1,5 @@
 const COLUMN_SELECTOR = "[data-column]";
+const ATTR_COLUMN = "data-column";
 const DRAG_EFFECT_MOVE = "move";
 const DRAG_DATA_TEXT = "text/plain";
 const OPACITY_WHILE_DRAGGING = "0.5";
@@ -18,32 +19,46 @@ export default function kanbanDragMixin() {
         col(el) {
             if (!el) return undefined;
             const closest = el.closest(COLUMN_SELECTOR);
-            return closest ? closest.dataset.column : undefined;
+            return closest ? closest.getAttribute(ATTR_COLUMN) : undefined;
         },
 
         handleDragStart(event, taskId) {
             this.dragTask = taskId;
+            this.isDragging = true;
 
             const dt = event.dataTransfer;
-            dt.effectAllowed = DRAG_EFFECT_MOVE;
-            dt.setData(DRAG_DATA_TEXT, taskId);
+            if (dt) {
+                dt.effectAllowed = DRAG_EFFECT_MOVE;
+                dt.setData(DRAG_DATA_TEXT, taskId);
+            }
 
             const el = event.target;
-            requestAnimationFrame(() => { el.style.opacity = OPACITY_WHILE_DRAGGING; });
+            if (el) {
+                requestAnimationFrame(() => {
+                    el.style.opacity = OPACITY_WHILE_DRAGGING;
+                });
+            }
         },
 
         handleDragEnd(event) {
             this.dragTask = null;
             this.isDragging = false;
 
-            event.target.style.opacity = OPACITY_NORMAL;
+            const el = event.target;
+            if (el) {
+                requestAnimationFrame(() => {
+                    el.style.opacity = OPACITY_NORMAL;
+                });
+            }
         },
 
         handleDragOver(event) {
             if (!this.dragTask) return;
 
             event.preventDefault();
-            event.dataTransfer.dropEffect = DRAG_EFFECT_MOVE;
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = DRAG_EFFECT_MOVE;
+            }
         },
 
         handleDrop(event, status) {
@@ -70,6 +85,6 @@ export default function kanbanDragMixin() {
             if (taskId === targetTaskId) return;
 
             this.$wire.reorderTask(taskId, targetTaskId, targetStatus);
-        },
+        }
     };
 }

@@ -16,7 +16,7 @@ class UpdateTaskStatusAction
 
         $task = Task::query()->with('detail:id,task_id,state')->find($taskId);
 
-        if (!$task?->can_change_status) {
+        if (!$task?->can_change_status || $task->ticket_id) {
             return false;
         }
 

@@ -71,7 +71,7 @@
 
             <div class="scale-[0.70] sm:scale-100 origin-right">
                 <div title="last update: {{ config('app.last_update') }}"
-                     class="group relative flex items-stretch rounded-sm cursor-help transition-all duration-300 overflow-visible">
+                     class="group relative flex items-stretch rounded-sm transition-all duration-300 overflow-visible">
 
                     <div class="relative flex items-center px-3 py-0.5 rounded-l-md transition-colors duration-300
                  bg-[var(--md-sys-color-surface-variant)]/30 group-hover:bg-[var(--md-sys-color-primary)]/5
@@ -83,9 +83,13 @@
                  bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]
                  transition-all duration-300
                  group-hover:bg-[var(--md-sys-color-primary)] group-hover:text-[var(--md-sys-color-on-primary)]">
-                <span class="text-[10px] font-bold font-mono tracking-wide">
-                    v:{{ config('app.version') }}
-                </span>
+                        <x-dashboard.modal.release>
+                            <x-slot:trigger>
+                                <span class="text-[10px] font-bold font-mono tracking-wide">
+                                    v:{{ config('app.version') }}
+                                </span>
+                            </x-slot:trigger>
+                        </x-dashboard.modal.release>
                     </div>
                 </div>
             </div>

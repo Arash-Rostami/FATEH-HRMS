@@ -104,7 +104,9 @@
                 </div>
             @endif
         @empty
-            <x-ui.empty icon="workspace_premium" title="هنوز مهارتی ثبت نکرده‌اید" variant="list" />
+            <div wire:key="skills-empty" class="contents">
+                <x-ui.empty icon="workspace_premium" title="هنوز مهارتی ثبت نکرده‌اید" variant="list" />
+            </div>
         @endforelse
     </div>
 

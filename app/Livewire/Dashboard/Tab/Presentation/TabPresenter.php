@@ -2,14 +2,39 @@
 
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
+use App\Enums\PresenceStatus;
+use App\Models\ChannelMessage;
 use App\Models\DMS;
 use App\Models\Event;
+use App\Models\Message;
+use App\Models\Reminder;
 use App\Models\Task;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class TabPresenter
 {
+    public function teamPulse(): Collection
+    {
+        return $this->rankedOnlineUsers()->reject(fn(User $u) => $u->id === auth()->id())->take(18)->values();
+    }
+
+    public function rankedOnlineUsers(): Collection
+    {
+        return ModelCacheVersion::rememberGlobal('home_team_pulse', fn(): Collection =>
+            User::active()
+                ->whereIn('presence', [PresenceStatus::Onsite->value, PresenceStatus::Busy->value])
+                ->with(['profile', 'profile.details' => fn($q) => $q->where('key', 'display_name')])
+                ->get()
+                ->sortBy(fn(User $u) => $u->rank())
+                ->values(),
+            now()->addSeconds(60)
+        );
+    }
+
     public function stats(): array
     {
         $uid = auth()->id();
@@ -42,6 +67,20 @@ class TabPresenter
                 'label' => 'رویدادهای هفته پیش‌رو',
                 'value' => Event::whereBetween('date', [now(), now()->addWeek()])->where(fn($q) => $q->where('user_id', $uid)->orWhere('private', false)->orWhereHas('shares', fn($sq) => $sq->where('user_id', $uid)))->count(),
                 'nav' => ['type' => 'tab', 'tab' => 'calendar'],
+            ],
+            [
+                'key' => 'messages',
+                'icon' => 'chat_bubble',
+                'label' => 'پیام‌های خوانده‌نشده',
+                'value' => Message::totalUnreadFor($uid) + ChannelMessage::totalUnreadFor($uid),
+                'nav' => ['type' => 'route', 'name' => 'contact'],
+            ],
+            [
+                'key' => 'reminders',
+                'icon' => 'alarm',
+                'label' => 'یادآورهای سررسید',
+                'value' => Reminder::dueBadgeCount($uid),
+                'nav' => ['type' => 'event', 'name' => 'open-reminders'],
             ],
         ]);
     }
@@ -86,31 +125,47 @@ class TabPresenter
 
     public function shortcuts(): array
     {
-        $tab   = fn (string $key, string $title, string $icon, string $target) =>
-        ['key' => $key, 'title' => $title, 'icon' => $icon, 'type' => 'tab',   'target' => $target, 'url' => null];
-        $route = fn (string $key, string $title, string $icon, string $name) =>
-        ['key' => $key, 'title' => $title, 'icon' => $icon, 'type' => 'route', 'target' => $name,   'url' => route($name)];
-
-        return [
-            $tab('home',     'خانه',              'home',            'home'),
-            $tab('post',     'اعلانات',           'campaign',        'post'),
-            $tab('feed',     'اخبار و فیدها',     'rss_feed',        'feed'),
-            $tab('calendar', 'تقویم کاری',        'calendar_month',  'calendar'),
-            $tab('gallery',  'گالری تصاویر',      'photo_library',   'gallery'),
-            $tab('reports',  'گزارشات',           'show_chart',      'reports'),
-            $tab('links',    'لینک ها', 'open_in_new',     'links'),
-            $tab('status',   'وضعیت همکاران',     'badge',           'status'),
-            $tab('faqs',     'پرسش‌های متداول',   'help',            'faqs'),
-            $route('dms',          'مدیریت اسناد',     'folder_managed',         'dms'),
-            $route('ths',          'سیستم تیکت',       'support_agent',          'ths'),
-            $route('tasks',        'تسک بورد',         'view_kanban',            'tasks'),
-            $route('reservation',  'رزرو فضا و منابع', 'meeting_room',           'reservation'),
-            $route('ads',          'فرصت‌های شغلی',    'work',                   'ads'),
-            $route('suggestion',   'پیشنهادات',        'lightbulb',              'suggestion'),
-            $route('authority',    'اختیارات',         'verified_user',          'authority'),
-            $route('contact',      'پیام‌رسان داخلی',  'perm_contact_calendar',  'contact'),
-            $route('energy',       'پرسش‌نامه انرژی',  'electric_bolt',          'energy'),
-            ['key' => 'profile', 'title' => 'پروفایل من', 'icon' => 'person', 'type' => 'url', 'target' => 'profile', 'url' => route('profile')],
+        $shortcuts = [
+            ['key' => 'home', 'title' => 'خانه', 'icon' => 'home', 'type' => 'tab', 'target' => 'home', 'url' => null],
         ];
+
+        foreach (config('modules', []) as $module) {
+            $nav = $module['nav'] ?? null;
+
+            if ($nav === null) {
+                continue;
+            }
+
+            $shortcuts[] = [
+                'key'    => $nav['key'] ?? $module['id'],
+                'title'  => $nav['title'] ?? trim($module['title']),
+                'icon'   => $nav['icon'] ?? $module['icon'],
+                'type'   => $nav['type'],
+                'target' => $nav['target'],
+                'url'    => $nav['type'] === 'tab' ? null : route($nav['target']),
+            ];
+        }
+
+        return $shortcuts;
+    }
+
+    public function heroGadgetCatalog(): array
+    {
+        return collect($this->shortcuts())
+            ->reject(fn (array $s) => $s['key'] === 'home')
+            ->map(fn (array $s) => [
+                'title' => $s['title'],
+                'icon' => $s['icon'],
+                'src' => $this->embedSrc($s),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function embedSrc(array $s): string
+    {
+        $url = $s['url'] ?? route('dashboard', ['tab' => $s['target']]);
+
+        return $url . (str_contains($url, '?') ? '&' : '?') . 'embed=1';
     }
 }

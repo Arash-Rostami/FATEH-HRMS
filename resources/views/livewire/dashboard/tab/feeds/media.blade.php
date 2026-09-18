@@ -46,50 +46,30 @@
     @endforeach
 
     @if(count($images) > 0)
-        <template x-teleport="body">
-            <div
-                x-cloak
-                x-show="open"
-                x-transition.opacity.duration.200ms
-                class="fixed inset-0 z-[99998] bg-[var(--md-sys-color-primary)]/90 animate-lightbox-in"
-                @keydown.escape.window="open = false"
-                @click.self="open = false"
-            >
-                <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
-                    <div class="relative w-full max-w-[min(96vw,1600px)]">
-                        @foreach($images as $i => $url)
-                            <img
-                                src="{{ $url }}"
-                                x-show="index === {{ $i }}"
-                                alt="Feed Media"
-                                class="max-h-[92vh] w-full select-none object-contain cursor-pointer"
-                            >
-                        @endforeach
+        <x-ui.modals.lightbox state="open" z="z-[99998]" backdrop="bg-[var(--md-sys-color-primary)]/90">
+            @foreach($images as $i => $url)
+                <img
+                    src="{{ $url }}"
+                    x-show="index === {{ $i }}"
+                    alt="Feed Media"
+                    class="max-h-[92vh] w-full select-none object-contain cursor-pointer"
+                >
+            @endforeach
 
-                        @if(count($images) > 1)
-                            <button
-                                @click="index = (index - 1 + {{ count($images) }}) % {{ count($images) }}"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                            >
-                                <span class="material-symbols-rounded">chevron_right</span>
-                            </button>
-                            <button
-                                @click="index = (index + 1) % {{ count($images) }}"
-                                class="absolute left-2 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                            >
-                                <span class="material-symbols-rounded">chevron_left</span>
-                            </button>
-                        @endif
-
-                        <button
-                            @click="open = false"
-                            class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                        >
-                            <span class="material-symbols-rounded">close</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </template>
+            @if(count($images) > 1)
+                <button
+                    @click="index = (index - 1 + {{ count($images) }}) % {{ count($images) }}"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
+                >
+                    <span class="material-symbols-rounded">chevron_right</span>
+                </button>
+                <button
+                    @click="index = (index + 1) % {{ count($images) }}"
+                    class="absolute left-2 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
+                >
+                    <span class="material-symbols-rounded">chevron_left</span>
+                </button>
+            @endif
+        </x-ui.modals.lightbox>
     @endif
 </div>

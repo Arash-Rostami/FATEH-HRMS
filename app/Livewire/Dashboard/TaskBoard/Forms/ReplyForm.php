@@ -7,7 +7,7 @@ use Livewire\Form;
 
 class ReplyForm extends Form
 {
-    #[Validate('required_without:files|string|max:4000')]
+    #[Validate('required_without:files|string|max:4000', onUpdate: false)]
     public string $body = '';
 
     #[Validate([

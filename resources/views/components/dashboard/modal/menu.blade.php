@@ -250,12 +250,13 @@
 
                             <!-- Left Side: Version, Notifications, Shortcut Hint -->
                             <div class="flex items-center gap-3">
-                                <div class="flex h-8 items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] pl-2 pr-3 text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)]">
-                                    <span>v:{{ config('app.version') }}</span>
-                                    <div class="h-4 w-[1px] bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]"></div>
-                                    <div class="flex h-5 w-5 scale-75 items-center justify-center">
-                                        <x-dashboard.modal.release/>
-                                    </div>
+                                <div class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)]"
+                                     title="v:{{ config('app.version') }}">
+                                    <x-dashboard.modal.release>
+                                        <x-slot:trigger>
+                                            <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">new_releases</span>
+                                        </x-slot:trigger>
+                                    </x-dashboard.modal.release>
                                 </div>
 
                                 <div x-show="typeof notifiedCount === 'number' && notifiedCount > 0"
@@ -291,6 +292,13 @@
                                 <div class="flex items-center">
                                     <x-dashboard.modal.menu.audio-toggle/>
                                 </div>
+
+                                <button type="button"
+                                        @click="$dispatch('open-reminders'); closeMenu()"
+                                        title="یادآوری‌ها"
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] active:scale-95">
+                                    <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">alarm</span>
+                                </button>
 
                                 <!-- Sleek Modern Divider -->
                                 <div class="h-6 w-[1px] rounded-full bg-[var(--md-sys-color-primary-container)]"></div>

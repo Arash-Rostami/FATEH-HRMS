@@ -81,7 +81,7 @@
                             <h4 class="text-xs font-bold text-[var(--md-sys-color-primary)] uppercase tracking-widest flex items-center gap-1.5">
                                 <span class="material-symbols-rounded text-[15px]">account_tree</span>
                                 زیرمجموعه‌ها
-                                <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] text-[10px] font-bold tabular-nums">{{ convertToPersian($this->aboutMeDirectReports->count()) }}</span>
+                                <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] text-[10px] font-bold">{{ convertToPersian($this->aboutMeDirectReports->count()) }}</span>
                             </h4>
                             <div class="flex flex-wrap gap-3">
                                 @foreach($this->aboutMeDirectReports as $report)

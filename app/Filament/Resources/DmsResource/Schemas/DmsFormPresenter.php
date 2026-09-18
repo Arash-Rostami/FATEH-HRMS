@@ -166,7 +166,10 @@ class DmsFormPresenter
     public static function type(): Toggle
     {
         return Toggle::make('type')
-            ->label(__('resources/dms/strings.fields.type_label'))
+            ->label(fn($state) => $state
+                ? __('resources/dms/strings.type.systematic')
+                : __('resources/dms/strings.type.non_systematic')
+            )
             ->default(true)
             ->columnSpanFull()
             ->live()

@@ -1,5 +1,5 @@
 @if($selectedTicket)
-    <template x-teleport="body">
+    <template wire:key="ths-modal" x-teleport="body">
         <div x-data="{
                 max: false,
                 isClosing: false,
@@ -87,7 +87,7 @@
 
                     <div class="p-6 overflow-y-auto overscroll-contain custom-scrollbar flex-1 bg-[var(--md-sys-color-surface-container-lowest)]">
                         @if($modalTab === 'request')
-                            <div class="space-y-6"
+                            <div wire:key="ths-modal-request" class="space-y-6"
                                  x-data
                                  x-show="true"
                                  x-transition:enter="transition ease-out duration-300 delay-100"
@@ -98,7 +98,7 @@
                                     $sm = $presenter->statusMeta($selectedTicket['status']);
                                     $pm = $presenter->priorityMeta($selectedTicket['priority']);
                                 @endphp
-                                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                     <div class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
                                         <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
                                             <span class="material-symbols-rounded text-[18px]">{{ $presenter->requestAreaIcon($selectedTicket['request_area']) }}</span>
@@ -160,7 +160,7 @@
                                                         <div class="flex-1 h-[3px] rounded-full {{ $steps[$i + 1]['state'] !== 'upcoming' ? 'bg-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-outline-variant)]/50' }}"></div>
                                                     @endif
                                                 </div>
-                                                <span class="text-[11px] font-bold whitespace-nowrap {{ $step['state'] === 'upcoming' ? 'text-[var(--md-sys-color-on-surface-variant)] opacity-70' : 'text-[var(--md-sys-color-on-surface)]' }}">{{ $step['label'] }}</span>
+                                                <span class="text-[11px] font-bold max-sm:whitespace-normal max-sm:text-center max-sm:leading-tight whitespace-nowrap {{ $step['state'] === 'upcoming' ? 'text-[var(--md-sys-color-on-surface-variant)] opacity-70' : 'text-[var(--md-sys-color-on-surface)]' }}">{{ $step['label'] }}</span>
                                             </div>
                                         @endforeach
                                     </div>
@@ -214,7 +214,7 @@
                         @endif
 
                         @if($modalTab === 'response')
-                            <div class="space-y-6"
+                            <div wire:key="ths-modal-response" class="space-y-6"
                                  x-data
                                  x-show="true"
                                  x-transition:enter="transition ease-out duration-300 delay-100"
@@ -222,7 +222,7 @@
                                  x-transition:enter-end="opacity-100 translate-y-0">
 
                                 @if($selectedTicket['completion_date'])
-                                    <div class="flex justify-end text-left border-b border-[var(--md-sys-color-outline-variant)]/40 pb-4 mb-2">
+                                    <div wire:key="ths-modal-completion" class="flex justify-end text-left border-b border-[var(--md-sys-color-outline-variant)]/40 pb-4 mb-2">
                                         <div class="bg-[var(--md-sys-color-surface-container-low)] px-4 py-2 rounded-xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
                                             <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] font-bold tracking-wider uppercase text-right">تاریخ تکمیل</p>
                                             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-1.5 mt-1 justify-end" dir="ltr">
@@ -236,7 +236,7 @@
                                 <livewire:dashboard.ths.workspace :ticket-id="$selectedTicket['id']" :key="'ticket-workspace-'.$selectedTicket['id']" />
 
                                 @if($selectedTicket['satisfaction_score'] > 0)
-                                    <div class="mt-8 border-t border-[var(--md-sys-color-outline-variant)]/40 pt-8">
+                                    <div wire:key="ths-modal-rating" class="mt-8 border-t border-[var(--md-sys-color-outline-variant)]/40 pt-8">
                                         <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm max-w-2xl mx-auto">
                                             <h5 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-4 text-center">ارزیابی ثبت شده شما</h5>
 

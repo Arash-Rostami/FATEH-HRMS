@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 class ChannelResource extends SearchResource
 {
     protected string $type = 'channel';
-    protected string $group = 'کانال‌ها';
+    protected string $group = 'گروه‌ها';
     protected string $icon = 'campaign';
     protected string $model = Channel::class;
     protected array $columns = ['name', 'description'];

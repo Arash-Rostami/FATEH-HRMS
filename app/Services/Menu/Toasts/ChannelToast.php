@@ -34,7 +34,7 @@ class ChannelToast implements MenuEdge
     public function title($subject, User $user): string
     {
         if (isset($this->invited[$user->id])) {
-            return 'دعوت به کانال: ' . $subject->name;
+            return 'دعوت به گروه: ' . $subject->name;
         }
 
         return 'شما را منشن کرده است';
@@ -43,7 +43,7 @@ class ChannelToast implements MenuEdge
     public function body($subject, User $user): string
     {
         if (isset($this->invited[$user->id])) {
-            return "شما به کانال «{$subject->name}» دعوت شده‌اید. برای ورود روی آن کلیک کنید.";
+            return "شما به گروه «{$subject->name}» دعوت شده‌اید. برای ورود روی آن کلیک کنید.";
         }
 
         return $this->mentioned[$user->id] ?? $subject->name;

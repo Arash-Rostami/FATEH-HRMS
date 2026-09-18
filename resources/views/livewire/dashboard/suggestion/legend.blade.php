@@ -44,19 +44,38 @@
         ],
     ];
 
-    $notes = [
-        'شناسهٔ هر پیشنهاد به‌صورت SN-YYYYMMDD-NNNNNN است — با جستجوی «SN-» هم در پنل کاربری و هم ادمین یافت می‌شود.',
-        'واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه و واحد MA از آن حذف می‌شود؛ در زمان ساخت یک ردیف بررسی برای واحد ثبت‌کننده ساخته می‌شود.',
-        'نشان اعلان روی کارت فهرست یعنی واحد شما از شما انتظار پاسخ دارد (requiresMyAction) — نه اعلان عمومی.',
-        'دکمهٔ «فقط نیازمند اقدام من» زیرِ جستجو، فهرست را به همان کارت‌هایی محدود می‌کند که نشان اعلان می‌گیرند — نتیجه برای همهٔ نقش‌ها (پاسخ واحد، تکمیل اقدام، تصمیم ارشد) بر اساس تک‌مبنای نشانِ اعلان محاسبه می‌شود و سرویس‌سمت است، نه محلی. راهنمای هر کارت نیز اولویت (کم/متوسط/زیاد) را با همان رنگ جزئیات نشان می‌دهد.',
-        'فهرست پیشنهادها اولویت‌محور است: «زیاد» همیشه بالای «متوسط» و «کم» می‌نشیند و درون هر سطح، تازه‌ترین‌ها اول‌اند — پس اولویتِ بالا یعنی زودتر دیده و رسیدگی می‌شود. اولویت را خودِ ثبت‌کننده هنگام ثبت انتخاب می‌کند و ادمین می‌تواند بعداً تغییرش دهد.',
-        'با انتخاب یک پیشنهاد، اسکلتِ جزئیات بلافاصله جای پنل خالی می‌نشیند (نه لودر سراسری) و پس از رسیدن پاسخ، جزئیات واقعی با اسکلت خودش ادامه می‌دهد — یعنی هیچ لحظهٔ «هیچ‌چیز» دیده نمی‌شود.',
-        'مرحلهٔ پیشنهاد دستی عوض نمی‌شود؛ syncStage با هر بازخورد جدید آن را از روی وضعیت همهٔ بازخوردها محاسبه می‌کند.',
-        'جدول برترین‌ها بالای صفحه، سه کاربر برتر را بر اساس تعداد پیشنهادهای پذیرفته‌شده نشان می‌دهد.',
+    $noteGroups = [
+        'list' => [
+            'label' => 'شناسه و فهرست',
+            'icon' => 'tag',
+            'notes' => [
+                'شناسهٔ هر پیشنهاد به‌صورت SN-YYYYMMDD-NNNNNN است — با جستجوی «SN-» هم در پنل کاربری و هم ادمین یافت می‌شود.',
+                'فهرست پیشنهادها اولویت‌محور است: «زیاد» همیشه بالای «متوسط» و «کم» می‌نشیند و درون هر سطح، تازه‌ترین‌ها اول‌اند — پس اولویتِ بالا یعنی زودتر دیده و رسیدگی می‌شود. اولویت را خودِ ثبت‌کننده هنگام ثبت انتخاب می‌کند و ادمین می‌تواند بعداً تغییرش دهد.',
+                'جدول برترین‌ها بالای صفحه، سه کاربر برتر را بر اساس تعداد پیشنهادهای پذیرفته‌شده نشان می‌دهد.',
+                'پایین هر کارت پیشنهاد، کنار تاریخ ثبت، یک آیکون زنگ یادآوری هست که فقط با نگه‌داشتن نشانگر روی کارت نمایان می‌شود؛ اگر برای آن پیشنهاد یادآوری تنظیم کرده باشید، همیشه با رنگ اصلی برنامه نمایان می‌ماند و با کلیک، همان یادآوری موجود برای ویرایش باز می‌شود.',
+            ],
+        ],
+        'action' => [
+            'label' => 'اقدام و نقش‌ها',
+            'icon' => 'pending_actions',
+            'notes' => [
+                'واحد ثبت‌کننده خودکار به فهرست ذی‌نفعان اضافه و واحد MA از آن حذف می‌شود؛ در زمان ساخت یک ردیف بررسی برای واحد ثبت‌کننده ساخته می‌شود.',
+                'نشان اعلان روی کارت فهرست یعنی واحد شما از شما انتظار پاسخ دارد (requiresMyAction) — نه اعلان عمومی.',
+                'دکمهٔ «فقط نیازمند اقدام من» زیرِ جستجو، فهرست را به همان کارت‌هایی محدود می‌کند که نشان اعلان می‌گیرند — نتیجه برای همهٔ نقش‌ها (پاسخ واحد، تکمیل اقدام، تصمیم ارشد) بر اساس تک‌مبنای نشانِ اعلان محاسبه می‌شود و سرویس‌سمت است، نه محلی. راهنمای هر کارت نیز اولویت (کم/متوسط/زیاد) را با همان رنگ جزئیات نشان می‌دهد.',
+            ],
+        ],
+        'flow' => [
+            'label' => 'جریان و نمایش',
+            'icon' => 'visibility',
+            'notes' => [
+                'با انتخاب یک پیشنهاد، اسکلتِ جزئیات بلافاصله جای پنل خالی می‌نشیند (نه لودر سراسری) و پس از رسیدن پاسخ، جزئیات واقعی با اسکلت خودش ادامه می‌دهد — یعنی هیچ لحظهٔ «هیچ‌چیز» دیده نمی‌شود.',
+                'مرحلهٔ پیشنهاد دستی عوض نمی‌شود؛ syncStage با هر بازخورد جدید آن را از روی وضعیت همهٔ بازخوردها محاسبه می‌کند.',
+            ],
+        ],
     ];
 @endphp
 
-<div x-data="{ tab: 'stages', stageSub: 'flow', role: 'submitter' }">
+<div x-data="{ tab: 'stages', stageSub: 'flow', role: 'submitter', noteSub: 'list' }">
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($pills as $pill)
             <button
@@ -181,11 +200,31 @@
         @endforeach
     </div>
 
-    <div x-show="tab === 'notes'" x-cloak class="space-y-2">
-        @foreach($notes as $note)
-            <div class="flex items-start gap-2 px-1">
-                <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
-                <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $note }}</p>
+    <div x-show="tab === 'notes'" x-cloak>
+        <div class="flex p-1 mb-4 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+            @foreach($noteGroups as $key => $group)
+                <button
+                    type="button"
+                    @click="noteSub = '{{ $key }}'"
+                    :class="noteSub === '{{ $key }}'
+                        ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
+                        : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
+                    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[12px] font-bold transition-all duration-200"
+                >
+                    <span class="material-symbols-rounded text-[17px]">{{ $group['icon'] }}</span>
+                    {{ $group['label'] }}
+                </button>
+            @endforeach
+        </div>
+
+        @foreach($noteGroups as $key => $group)
+            <div x-show="noteSub === '{{ $key }}'" x-cloak class="space-y-2">
+                @foreach($group['notes'] as $note)
+                    <div class="flex items-start gap-2 px-1">
+                        <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
+                        <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $note }}</p>
+                    </div>
+                @endforeach
             </div>
         @endforeach
     </div>

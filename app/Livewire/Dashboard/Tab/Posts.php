@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab;
 
 use App\Livewire\Dashboard\Tab\Actions\MarkPostAsReadAction;
 use App\Models\Post;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -88,7 +89,7 @@ class Posts extends Component
     {
         return Post::query()
             ->with('user')
-            ->where(fn ($query) => $query->where('pinned', '<>', 1)->orWhereNull('pinned'))
+            ->notPinned()
             ->orderByDesc('created_at')
             ->take($this->page * 3)
             ->get();
@@ -105,6 +106,17 @@ class Posts extends Component
     #[Computed]
     public function totalPosts()
     {
-        return Post::count();
+        return ModelCacheVersion::remember(Post::class, 'total_count', now()->addMinutes(15), fn () => Post::count());
+    }
+
+    #[Computed]
+    public function hasMorePosts(): bool
+    {
+        return $this->posts()->count() < ModelCacheVersion::remember(
+            Post::class,
+            'non_pinned_count',
+            now()->addMinutes(15),
+            fn () => Post::query()->notPinned()->count()
+        );
     }
 }

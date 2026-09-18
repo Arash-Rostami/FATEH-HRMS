@@ -41,9 +41,11 @@
 </head>
 <body
     class="antialiased container-scrollbar custom-scrollbar min-h-screen flex flex-col bg-[var(--md-sys-color-background)] text-[var(--md-sys-color-on-background)] transition-colors duration-500">
-<div class="loading-line"></div>
+@unless(request()->boolean('embed'))
+    <div class="loading-line"></div>
+@endunless
 
-@unless(View::hasSection('minimal_layout'))
+@unless(request()->boolean('embed') || View::hasSection('minimal_layout'))
     <x-dashboard.header/>
     @livewire(\App\Livewire\Dashboard\Countdown::class)
     @livewire(\App\Livewire\Dashboard\EventReminder::class)
@@ -59,7 +61,7 @@
 </div>
 
 
-@unless(View::hasSection('minimal_layout'))
+@unless(request()->boolean('embed') || View::hasSection('minimal_layout'))
     <x-dashboard.global/>
     <x-dashboard.footer/>
 @endunless
@@ -67,6 +69,8 @@
 
 @filamentScripts
 @livewireScripts
-@livewire(\App\Livewire\Dashboard\UnreadNotifications::class)
+@unless(request()->boolean('embed'))
+    @livewire(\App\Livewire\Dashboard\UnreadNotifications::class)
+@endunless
 </body>
 </html>

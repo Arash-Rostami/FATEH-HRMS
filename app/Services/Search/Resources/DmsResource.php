@@ -13,6 +13,8 @@ class DmsResource extends SearchResource
     protected string $icon = 'folder_managed';
     protected string $model = DMS::class;
     protected array $columns = ['title', 'code'];
+
+    protected int $recencyMonths = 6;
     protected ?string $titleField = 'title';
     protected ?string $subtitleField = 'code';
 

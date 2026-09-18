@@ -6,6 +6,7 @@ use App\Enums\TaskActivityType;
 use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Livewire\Dashboard\Project\Actions\ForceDeleteProjectAction;
 use App\Models\Concerns\HasPrunableStatus;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasReplies;
 use App\Services\ProjectTask\ActivityLogger;
 use Carbon\Carbon;
@@ -25,7 +26,8 @@ class Project extends Model
         HasReplies,
         SoftDeletes,
         Prunable,
-        HasPrunableStatus;
+        HasPrunableStatus,
+        HasReminders;
 
     protected $fillable = [
         'name',
@@ -134,10 +136,17 @@ class Project extends Model
 
     public function otherSettings(): array
     {
-        return collect($this->settings ?? [])
-            ->reject(fn($value, $key) => in_array($key, self::KNOWN_SETTING_KEYS, true) || $value === null || $value === '')
-            ->map(fn($value) => is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE))
-            ->all();
+        $out = [];
+
+        foreach ($this->settings ?? [] as $key => $value) {
+            if (in_array($key, self::KNOWN_SETTING_KEYS, true) || $value === null || $value === '') {
+                continue;
+            }
+
+            $out[$key] = is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE);
+        }
+
+        return $out;
     }
 
     public function tasks(): HasMany

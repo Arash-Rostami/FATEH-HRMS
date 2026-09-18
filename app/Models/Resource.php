@@ -50,7 +50,7 @@ class Resource extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, ?string $floor = null, bool $allowOverlap = false): Builder
+    public function scopeAvailable(Builder $query, string $type, Carbon $start, Carbon $end, bool $allowOverlap = false): Builder
     {
         $isFullDay = ResourceType::tryFrom($type)?->isFullDay() ?? false;
         $day = strtolower($start->englishDayOfWeek);
@@ -58,7 +58,6 @@ class Resource extends Model
         return $query
             ->where('type', $type)
             ->where('status', 'active')
-            ->when($floor, fn($q) => $q->where('metadata->floor', $floor))
             ->where(fn($q) => $q
                 ->whereNull('metadata->available_days')
                 ->orWhereJsonContains('metadata->available_days', $day)

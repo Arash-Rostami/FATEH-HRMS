@@ -9,6 +9,7 @@
 @endphp
 
 @if($hasLinks)
+    <div wire:key="links-launch" class="contents">
     <div class="flex items-center justify-center gap-1.5 py-1 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-[14px]">keyboard</span>
         <span>کلیدهای ۱ تا ۹ = دسترسی سریع به لینک‌های ابتدایی</span>
@@ -76,10 +77,15 @@
             @endif
         @endforeach
     </div>
+    </div>
 @else
     @if($search !== '' || $activeFilter !== 'all')
-        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        <div wire:key="links-launch-empty-filtered" class="contents">
+            <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        </div>
     @else
-        <x-ui.empty icon="link_off" title="هیچ لینکی تعریف نشده" description="لینک‌ها توسط مدیر تعریف می‌شوند." variant="list" />
+        <div wire:key="links-launch-empty" class="contents">
+            <x-ui.empty icon="link_off" title="هیچ لینکی تعریف نشده" description="لینک‌ها توسط مدیر تعریف می‌شوند." variant="list" />
+        </div>
     @endif
 @endif

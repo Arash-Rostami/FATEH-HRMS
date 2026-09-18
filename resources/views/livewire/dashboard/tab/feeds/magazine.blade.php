@@ -88,7 +88,7 @@
         </div>
     @endif
 @else
-    <div class="w-full h-full flex items-center justify-center px-8">
+    <div wire:key="feeds-empty-magazine" class="w-full h-full flex items-center justify-center px-8">
         <x-ui.empty icon="feed" title="هیچ خبری برای نمایش وجود ندارد" description="هنوز هیچ پستی در فید منتشر نشده است." variant="welcome" />
     </div>
 @endif

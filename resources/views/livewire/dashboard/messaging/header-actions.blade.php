@@ -4,13 +4,15 @@
     <span class="material-symbols-rounded text-base">search</span>
 </button>
 
+<button type="button" x-on:click="typeFilterOpen = !typeFilterOpen" aria-label="فیلتر نوع محتوا" title="فیلتر نوع محتوا"
+        class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+        :class="typeFilterOpen ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
+    <span class="material-symbols-rounded text-base" :class="!typeFilterOpen && typeFilter ? 'text-[var(--md-sys-color-primary)]' : ''">filter_alt</span>
+</button>
+
 {{ $sound ?? '' }}
 
-<button type="button" @click="toggleHighlight()" aria-label="پیش زمینه چت" title="پیش زمینه چت"
-        class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
-        :class="isHighlighted ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
-    <span class="material-symbols-rounded text-base" x-text="isHighlighted ? 'hide_image' : 'texture'"></span>
-</button>
+@include('livewire.dashboard.messaging.pattern-picker')
 
 <button type="button" @click="toggleMaximize()"
         :title="max ? 'کوچک کردن' : 'بزرگ کردن'"

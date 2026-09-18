@@ -5,7 +5,8 @@ import chatBase from "../mixins/chatBase.js";
 import fancyboxMixin from "../mixins/fancybox.js";
 
 const SCOPE = 'channel';
-const POLL_INTERVAL_MS = 10000;
+const OPEN_POLL_CEILING_MS = 20000;
+const IDLE_POLL_CEILING_MS = 30000;
 const MOBILE_BREAKPOINT = 768;
 const MAX_BODY_LENGTH = 4000;
 const UNDO_TOAST_MS = 4000;
@@ -19,12 +20,14 @@ const TOTAL_UNREAD_ATTR = 'data-total-unread';
 const DATA_SENDER_NAME_ATTR = 'data-sender-name';
 const DATA_RF_MESSAGE_PREFIX = 'channel-message';
 
+const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
+
 export default function channel() {
     return {
         ...maximizeMixin(),
         ...clipboardMixin(),
         ...pasteImageMixin(),
-        ...chatBase(),
+        ...chatBase(SCOPE),
         ...fancyboxMixin(),
         channelCount: 0,
         cancelInviteeId: null,
@@ -32,7 +35,7 @@ export default function channel() {
         isEditing: false,
         editingMsgId: null,
         editingBody: '',
-        quoteChip: {visible: false, x: 0, y: 0, id: 0, sender: '', snippet: ''},
+        quoteChip: { visible: false, x: 0, y: 0, id: 0, sender: '', snippet: '' },
         activeSender: null,
         chipsVisible: true,
         chipsFadeTimer: null,
@@ -43,34 +46,56 @@ export default function channel() {
 
         init() {
             this.initFancybox();
-            const saved = localStorage.getItem('chat-settings');
+
+            const saved = localStorage.getItem(`chat-settings:${SCOPE}`);
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
                     this.isHighlighted = data.isHighlighted ?? false;
                     this.backgroundPattern = data.backgroundPattern ?? 'off';
-                } catch (e) {}
+                    this.backgroundPatternType = data.backgroundPatternType ?? 'mesh';
+                } catch {}
             }
+
             this.syncChannelCount();
             this.syncPushNotify();
             this.startPolling();
-            this._onVisibility = () => document.hidden ? this.stopPolling() : this.startPolling();
+
+            this._onVisibility = () => {
+                if (document.hidden) {
+                    this.stopPolling();
+                    return;
+                }
+                this.resetPollInterval();
+                this.startPolling();
+                this._pollTick().catch(() => {});
+            };
             document.addEventListener('visibilitychange', this._onVisibility);
 
             const vp = document.getElementById(MSG_VIEWPORT_ID);
+            this._msgViewportEl = vp;
+
             if (vp) {
                 vp.style.overflowAnchor = 'none';
                 let ticking = false;
+
                 this._onScroll = () => {
                     if (!ticking) {
                         this._scrollRaf = requestAnimationFrame(() => {
                             this._scrollRaf = null;
                             this.quoteChip.visible = false;
                             this.openActionsId = null;
-                            this.showScrollFab = (vp.scrollHeight - vp.scrollTop - vp.clientHeight) > SCROLL_FAB_DISTANCE_THRESHOLD;
-                            if (vp.scrollTop < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
+
+                            const st = vp.scrollTop;
+                            const sh = vp.scrollHeight;
+                            const ch = vp.clientHeight;
+
+                            this.showScrollFab = (sh - st - ch) > SCROLL_FAB_DISTANCE_THRESHOLD;
+
+                            if (st < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
                                 this._loadingOlder = true;
-                                const prevHeight = vp.scrollHeight;
+                                const prevHeight = sh;
+
                                 this.$wire.$island('messages').loadOlder()
                                     .then(() => {
                                         this.$nextTick(() => {
@@ -86,35 +111,46 @@ export default function channel() {
                         ticking = true;
                     }
                 };
-                vp.addEventListener('scroll', this._onScroll, {passive: true});
+                vp.addEventListener('scroll', this._onScroll, { passive: true });
             }
 
             this._onSelection = () => {
                 if (this._selRaf) return;
                 this._selRaf = requestAnimationFrame(() => {
                     this._selRaf = null;
+
                     const sel = window.getSelection();
                     if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
                         this.quoteChip.visible = false;
                         return;
                     }
+
                     const node = sel.anchorNode;
                     if (!node) { this.quoteChip.visible = false; return; }
-                    const vp = document.getElementById(MSG_VIEWPORT_ID);
+
+                    const vp = this._msgViewportEl;
                     if (!vp || !vp.contains(node)) { this.quoteChip.visible = false; return; }
+
                     const el = node.nodeType === 1 ? node : node.parentElement;
                     if (!el || el.closest('input, textarea, [contenteditable]')) {
                         this.quoteChip.visible = false;
                         return;
                     }
+
                     const row = el.closest(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
                     if (!row) { this.quoteChip.visible = false; return; }
+
                     const text = sel.toString().trim();
                     if (!text) { this.quoteChip.visible = false; return; }
-                    const id = parseInt(row.getAttribute('data-rf').split('-').pop(), 10) || 0;
+
+                    const attr = row.getAttribute('data-rf');
+                    const id = parseInt(attr.substring(RF_ID_OFFSET), 10) || 0;
+
                     const senderEl = row.querySelector('[data-sender]');
+                    const sender = senderEl ? senderEl.getAttribute('data-sender') : '';
                     const rect = sel.getRangeAt(0).getBoundingClientRect();
-                    this.quoteChip = {visible: true, x: rect.left, y: rect.top, id, sender: senderEl ? senderEl.getAttribute('data-sender') : '', snippet: text.slice(0, 120)};
+
+                    this.quoteChip = { visible: true, x: rect.left, y: rect.top, id, sender, snippet: text.substring(0, 120) };
                 });
             };
             document.addEventListener('selectionchange', this._onSelection);
@@ -122,9 +158,11 @@ export default function channel() {
             this._onSlash = (e) => {
                 if (e.key !== '/' || e.isComposing) return;
                 if (!this.$root.contains(e.target)) return;
+
                 const ae = document.activeElement;
                 if (ae && ae.closest && ae.closest('input, textarea, select, [contenteditable]')) return;
                 if (this.searchMessages) return;
+
                 e.preventDefault();
                 this.openMessageSearch();
             };
@@ -165,18 +203,57 @@ export default function channel() {
             });
         },
 
-        startPolling() {
-            if (this._timer) return;
-            this._timer = setInterval(() => this.$wire.$island('sidebar').refreshUnread().then(() => { this.syncChannelCount(); this.syncPushNotify(); }), POLL_INTERVAL_MS);
+        async _pollTick() {
+            const unreadBefore = this._readUnread();
+            const activeOpen = !!this.$wire.activeChannelId;
+            const lastMsgBefore = activeOpen ? this._readLastMessageMarker() : null;
+            const typingBefore = activeOpen ? this._readTypingMarker() : null;
+            let changed = false;
+
+            try {
+                await this.$wire.$island('sidebar').refreshUnread();
+                this.syncChannelCount();
+                this.syncPushNotify();
+                changed = this._readUnread() !== unreadBefore;
+
+                if (activeOpen) {
+                    await this.$wire.$island('messages').refreshActive();
+                    if (this._readLastMessageMarker() !== lastMsgBefore) changed = true;
+                    if (this._readTypingMarker() !== typingBefore) changed = true;
+                }
+            } catch {}
+
+            this._applyPollResult(changed, activeOpen ? OPEN_POLL_CEILING_MS : IDLE_POLL_CEILING_MS);
+        },
+
+        _sendTypingPing() {
+            return this.$wire.$island('messages').pingTyping();
+        },
+
+        _readUnread() {
+            const el = document.querySelector(`[${TOTAL_UNREAD_ATTR}]`);
+            return parseInt(el?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+        },
+
+        _readLastMessageMarker() {
+            const rows = this._msgViewportEl?.querySelectorAll(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
+            return rows && rows.length ? rows[rows.length - 1].getAttribute('data-rf') : null;
+        },
+
+        _readTypingMarker() {
+            return document.querySelector('[data-typing]')?.getAttribute('data-typing') ?? null;
         },
 
         destroy() {
             this.stopPolling();
             document.removeEventListener('visibilitychange', this._onVisibility);
-            const vp = document.getElementById(MSG_VIEWPORT_ID);
+
+            const vp = this._msgViewportEl;
             if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
+
             document.removeEventListener('selectionchange', this._onSelection);
             document.removeEventListener('keydown', this._onSlash);
+
             if (this._scrollRaf) cancelAnimationFrame(this._scrollRaf);
             if (this._selRaf) cancelAnimationFrame(this._selRaf);
             if (this.chipsFadeTimer) clearTimeout(this.chipsFadeTimer);
@@ -184,38 +261,52 @@ export default function channel() {
 
         syncChannelCount() {
             const el = document.querySelector('[data-channel-count]');
-            if (el) this.channelCount = parseInt(el.dataset.channelCount) || 0;
+            if (el) this.channelCount = parseInt(el.getAttribute('data-channel-count'), 10) || 0;
         },
 
         syncPushNotify() {
             const el = document.querySelector(`[${TOTAL_UNREAD_ATTR}]`);
-            const now = parseInt(el?.dataset.totalUnread) || 0;
+            const now = parseInt(el?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+
             if (this._lastUnread !== undefined && now > this._lastUnread) {
-                this.$store.push.notify('پیام جدید', 'یک کانال پیام جدید دارد', SCOPE);
+                this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);
             }
             this._lastUnread = now;
         },
 
         get mentionMatches() {
             if (!this.mentionOpen) return [];
+
             const q = (this.mentionQuery || '').toLowerCase();
             const list = this.$wire.mentionMemberNames || [];
-            const filtered = q ? list.filter(n => (n || '').toLowerCase().includes(q)) : list;
-            return filtered.slice(0, 8);
+            if (!q) return list.slice(0, 8);
+
+            const filtered = [];
+            for (let i = 0; i < list.length; i++) {
+                const n = list[i];
+                if ((n || '').toLowerCase().includes(q)) {
+                    filtered.push(n);
+                    if (filtered.length === 8) break;
+                }
+            }
+            return filtered;
         },
 
         openMentionPicker() {
             const ta = document.getElementById(MSG_TEXTAREA_ID);
             if (!ta) return;
+
             const pos = ta.selectionStart ?? ta.value.length;
             const val = ta.value;
             const needsSpace = pos > 0 && !/\s/.test(val[pos - 1]);
             const insert = (needsSpace ? ' ' : '') + '@';
-            const next = val.slice(0, pos) + insert + val.slice(pos);
+            const next = val.substring(0, pos) + insert + val.substring(pos);
+
             ta.value = next;
             const at = pos + (needsSpace ? 1 : 0);
             ta.focus();
             ta.selectionStart = ta.selectionEnd = at + 1;
+
             this.$wire.set('composer.body', next);
             this.$wire.loadMentionMemberNames().catch(() => {});
             this.mentionQuery = '';
@@ -224,15 +315,20 @@ export default function channel() {
         },
 
         detectMention(e) {
+            this.resetPollInterval();
+            this.pingTyping();
             const ta = e.target;
             const pos = ta.selectionStart;
-            const before = ta.value.slice(0, pos);
+            const before = ta.value.substring(0, pos);
             const at = before.lastIndexOf('@');
+
             if (at < 0) { this.mentionOpen = false; return; }
-            const segment = before.slice(at + 1);
+            const segment = before.substring(at + 1);
             if (/[\s@]/.test(segment)) { this.mentionOpen = false; return; }
+
             const prev = at > 0 ? before[at - 1] : ' ';
             if (!/\s/.test(prev)) { this.mentionOpen = false; return; }
+
             if (!this.mentionOpen) this.$wire.loadMentionMemberNames().catch(() => {});
             this.mentionQuery = segment;
             this.mentionActiveIndex = 0;
@@ -240,11 +336,15 @@ export default function channel() {
         },
 
         onComposerKeydown(e) {
-            if (this.mentionOpen && this.mentionMatches.length) {
-                if (e.key === 'ArrowDown') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex + 1) % this.mentionMatches.length; return; }
-                if (e.key === 'ArrowUp') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex - 1 + this.mentionMatches.length) % this.mentionMatches.length; return; }
-                if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); this.pickMention(this.mentionActiveIndex); return; }
-                if (e.key === 'Escape') { e.preventDefault(); this.mentionOpen = false; return; }
+            if (this.mentionOpen) {
+                const matches = this.mentionMatches;
+                const len = matches.length;
+                if (len) {
+                    if (e.key === 'ArrowDown') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex + 1) % len; return; }
+                    if (e.key === 'ArrowUp') { e.preventDefault(); this.mentionActiveIndex = (this.mentionActiveIndex - 1 + len) % len; return; }
+                    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); this.pickMention(this.mentionActiveIndex); return; }
+                    if (e.key === 'Escape') { e.preventDefault(); this.mentionOpen = false; return; }
+                }
             }
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendMessage(); }
         },
@@ -252,14 +352,19 @@ export default function channel() {
         pickMention(i) {
             const name = this.mentionMatches[i];
             if (!name) { this.mentionOpen = false; return; }
+
             const ta = document.getElementById(MSG_TEXTAREA_ID);
             if (!ta) { this.mentionOpen = false; return; }
+
             const pos = ta.selectionStart;
             const val = ta.value;
-            const at = val.slice(0, pos).lastIndexOf('@');
+            const at = val.substring(0, pos).lastIndexOf('@');
+
             if (at < 0) { this.mentionOpen = false; return; }
+
             const insert = name + ' ';
-            const next = val.slice(0, at + 1) + insert + val.slice(pos);
+            const next = val.substring(0, at + 1) + insert + val.substring(pos);
+
             this.mentionOpen = false;
             this.mentionQuery = '';
             this.$wire.set('composer.body', next);
@@ -297,7 +402,7 @@ export default function channel() {
             if (el) {
                 document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
                 el.style.animation = 'none';
-                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 el.classList.add('record-focus-flash');
                 return;
             }
@@ -307,11 +412,19 @@ export default function channel() {
         filterSender(name) {
             this.activeSender = name;
             let latestId = 0;
-            document.querySelectorAll(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`).forEach(r => {
-                if (r.dataset.senderName !== name) return;
-                const id = parseInt(r.getAttribute('data-rf').slice(DATA_RF_MESSAGE_PREFIX.length + 1), 10);
+
+            const rows = document.querySelectorAll(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
+            const len = rows.length;
+
+            for (let i = 0; i < len; i++) {
+                const r = rows[i];
+                if (r.getAttribute(DATA_SENDER_NAME_ATTR) !== name) continue;
+
+                const attr = r.getAttribute('data-rf');
+                const id = parseInt(attr.substring(RF_ID_OFFSET), 10);
                 if (id > latestId) latestId = id;
-            });
+            }
+
             if (latestId) {
                 this.scrollToMessage(latestId);
                 return;
@@ -339,6 +452,12 @@ export default function channel() {
 
         selectChannel(id) {
             if (!id) return;
+            this.resetPollInterval();
+
+            const ta = document.getElementById(MSG_TEXTAREA_ID);
+            this.resetAutoResize(ta);
+            if (ta) ta.dir = 'rtl';
+
             this.replyingTo = null;
             this.activeSender = null;
             this.isEditing = false;
@@ -348,12 +467,17 @@ export default function channel() {
             this.deletingId = null;
             this.openActionsId = null;
             this.searchMessages = false;
+
             this.$wire.cancelReply();
             this.$wire.$island('messages').selectChannel(id)
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
                 .then(() => this.$nextTick(() => this.scrollToBottom(true)))
                 .then(() => { this.chipsVisible = true; this.scheduleChipsFade(); })
-                .then(() => { if (window.innerWidth < MOBILE_BREAKPOINT) this.$nextTick(() => { document.getElementById(MSG_TEXTAREA_ID)?.focus(); }); });
+                .then(() => {
+                    if (window.innerWidth < MOBILE_BREAKPOINT && ta) {
+                        this.$nextTick(() => ta.focus());
+                    }
+                });
         },
 
         toggleBrowse() {
@@ -381,7 +505,7 @@ export default function channel() {
 
         leaveChannel(id) {
             if (!id) return;
-            if (!confirm('از این کانال خارج می‌شوید؟')) return;
+            if (!confirm('از این گروه خارج می‌شوید؟')) return;
             this.searchMessages = false;
             this.$wire.$island('messages').leaveChannel(id)
                 .then(() => this.$wire.$island('sidebar').refreshUnread())
@@ -409,10 +533,11 @@ export default function channel() {
 
         startReply(id, senderName, body) {
             if (!id) return;
-            this.replyingTo = {id, sender: {name: senderName || 'Unknown'}, body: body || ''};
+            this.replyingTo = { id, sender: { name: senderName || 'Unknown' }, body: body || '' };
             this.quoteChip.visible = false;
             this.deletingId = null;
             this.openActionsId = null;
+
             this.$wire.replyTo(id);
             this.$wire.cancelEdit();
             this.$nextTick(() => document.getElementById(MSG_TEXTAREA_ID)?.focus());
@@ -426,6 +551,7 @@ export default function channel() {
             this.editingOriginal = body || '';
             this.editingBody = body || '';
             this.isEditing = true;
+
             this.$wire.cancelReply();
             this.$wire.editMessage(id);
         },
@@ -442,13 +568,15 @@ export default function channel() {
             if (!id || id !== this.editingMsgId) return;
             const body = this.editingBody || '';
             if (body === this.editingOriginal) return;
+
             if (body.length > MAX_BODY_LENGTH) {
                 this.toast('متن پیام نباید بیشتر از ۴۰۰۰ کاراکتر باشد.', 'warning');
                 return;
             }
+
             try {
                 await this.$wire.$island('messages').saveEdit(id, body);
-            } catch (error) {
+            } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             }
         },
@@ -478,6 +606,7 @@ export default function channel() {
 
         async sendMessage() {
             if (this.sending) return;
+            this.resetPollInterval();
 
             const ta = document.getElementById(MSG_TEXTAREA_ID);
             const body = ta?.value ? ta.value.trim() : '';
@@ -498,7 +627,7 @@ export default function channel() {
                 await this.$wire.$island('messages').send();
                 this.replyingTo = null;
                 this.$wire.$island('sidebar').refreshUnread().catch(() => {});
-            } catch (error) {
+            } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {
                 setTimeout(() => {

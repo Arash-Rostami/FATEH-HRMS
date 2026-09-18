@@ -26,6 +26,7 @@ use App\Models\User;
 use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
@@ -33,6 +34,7 @@ use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Js;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\Response;
@@ -456,6 +458,11 @@ class Main extends Component
         unset($this->channels);
     }
 
+    public function refreshActive(): void
+    {
+        unset($this->messages, $this->groupedMessages);
+    }
+
     public function setFilter(string $filter): void
     {
         $this->filter = $filter;
@@ -515,9 +522,9 @@ class Main extends Component
             $this->createRecipientIds = [];
             unset($this->channels, $this->joinableChannels, $this->activeChannel, $this->memberCandidates);
             $this->selectChannel($channel->id);
-            $this->dispatch('show-toast', message: 'کانال ایجاد شد', type: 'success');
+            $this->dispatch('show-toast', message: 'گروه ایجاد شد', type: 'success');
         } catch (ValidationException $e) {
-            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ایجاد کانال', type: 'error');
+            $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ایجاد گروه', type: 'error');
         } catch (\Exception $e) {
             report($e);
             $this->dispatch('show-toast', message: 'خطای سیستمی رخ داده است', type: 'error');
@@ -572,6 +579,49 @@ class Main extends Component
         unset($this->messages);
     }
 
+    #[Renderless]
+    public function pingTyping(): void
+    {
+        if (!$this->activeChannelId) {
+            return;
+        }
+
+        $key = "typing:ch:{$this->activeChannelId}";
+        $now = now()->timestamp;
+        $map = collect(Cache::get($key, []))->filter(fn($entry) => $entry[1] > $now)->all();
+        $map[auth()->id()] = [auth()->user()->name, $now + 8];
+        Cache::put($key, $map, now()->addSeconds(60));
+    }
+
+    #[Computed]
+    public function typingMembers(): array
+    {
+        if (!$this->activeChannelId) {
+            return [];
+        }
+
+        $now = now()->timestamp;
+        $myId = auth()->id();
+
+        return collect(Cache::get("typing:ch:{$this->activeChannelId}", []))
+            ->filter(fn($entry, $userId) => $entry[1] > $now && (int) $userId !== $myId)
+            ->map(fn($entry) => $entry[0])
+            ->values()
+            ->all();
+    }
+
+    private function clearOwnTyping(): void
+    {
+        if (!$this->activeChannelId) {
+            return;
+        }
+
+        $key = "typing:ch:{$this->activeChannelId}";
+        $map = Cache::get($key, []);
+        unset($map[auth()->id()]);
+        Cache::put($key, $map, now()->addSeconds(60));
+    }
+
     public function send(SendChannelMessageAction $action): void
     {
         if (!$this->activeChannelId) {
@@ -580,6 +630,7 @@ class Main extends Component
 
         try {
             $action->execute($this->composer, $this->activeChannelId);
+            $this->clearOwnTyping();
             $this->composer->reset();
             $this->editingMsg = null;
             $this->focusAnchorId = null;
@@ -655,7 +706,7 @@ class Main extends Component
             $this->messageSearch = '';
         }
         unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
-        $this->dispatch('show-toast', message: 'از کانال خارج شدید', type: 'info');
+        $this->dispatch('show-toast', message: 'از گروه خارج شدید', type: 'info');
     }
 
     public function openManageMembers(int $channelId): void
@@ -693,7 +744,7 @@ class Main extends Component
         unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
 
         if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
-            $this->dispatch('show-toast', message: 'اعضای کانال به‌روزرسانی شد', type: 'success');
+            $this->dispatch('show-toast', message: 'اعضای گروه به‌روزرسانی شد', type: 'success');
         }
     }
 

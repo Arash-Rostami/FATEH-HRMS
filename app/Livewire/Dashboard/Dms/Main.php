@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Dms\Actions\ConfirmReadAction;
 use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Models\DMS;
 use App\Models\Read;
+use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -111,29 +112,36 @@ class Main extends Component
     #[Computed]
     public function filterGroups(): array
     {
-        $groups = [];
+        return ModelCacheVersion::remember(
+            DMS::class,
+            'filter_groups:' . $this->activeTab . ':' . (int) auth()->id(),
+            now()->addMinutes(15),
+            function () {
+                $groups = [];
 
-        $this->visibleTabQuery()
-            ->get()
-            ->each(function ($item) use (&$groups) {
-                foreach (['type', 'Type'] as $k) {
-                    foreach ((array)($item->extra[$k] ?? []) as $v) {
-                        if ($v) {
-                            $groups['type'][] = $v;
+                $this->visibleTabQuery()
+                    ->get()
+                    ->each(function ($item) use (&$groups) {
+                        foreach (['type', 'Type'] as $k) {
+                            foreach ((array)($item->extra[$k] ?? []) as $v) {
+                                if ($v) {
+                                    $groups['type'][] = $v;
+                                }
+                            }
                         }
-                    }
-                }
-                foreach (($item->tags ?? []) as $key => $vals) {
-                    $group = strtolower($key);
-                    foreach ((array)$vals as $v) {
-                        if ($v) {
-                            $groups[$group][] = $v;
+                        foreach (($item->tags ?? []) as $key => $vals) {
+                            $group = strtolower($key);
+                            foreach ((array)$vals as $v) {
+                                if ($v) {
+                                    $groups[$group][] = $v;
+                                }
+                            }
                         }
-                    }
-                }
-            });
+                    });
 
-        return array_map(fn($v) => array_values(array_unique($v)), $groups);
+                return array_map(fn($v) => array_values(array_unique($v)), $groups);
+            }
+        );
     }
 
     public function getAuthorizedFile(string $filename): Response
@@ -297,6 +305,7 @@ class Main extends Component
         }
 
         $this->docIds = array_merge($this->docIds, $newIds);
+        $this->hasMorePages = count($this->docIds) < count($ids);
         unset($this->docs);
     }
 
@@ -437,20 +446,23 @@ class Main extends Component
                 $needle = $this->search;
                 $escapedNeedle = trim(json_encode($needle), '"');
 
-                return $query->where(fn($q) => $q
-                    ->whereRaw('INSTR(title, ?) > 0', [$needle])
-                    ->orWhereRaw('INSTR(code, ?) > 0', [$needle])
-                    ->orWhereRaw('INSTR(version, ?) > 0', [$needle])
-                    ->orWhereRaw('INSTR(revision, ?) > 0', [$needle])
-                    ->orWhereJsonContains('extra->category', $needle)
-                    ->orWhereJsonContains('extra->Category', $needle)
-                    ->orWhereJsonContains('extra->type', $needle)
-                    ->orWhereJsonContains('extra->Type', $needle)
-                    ->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$needle])
-                    ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$needle])
-                    ->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$escapedNeedle])
-                    ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$escapedNeedle])
-                );
+                return $query->where(function ($q) use ($needle, $escapedNeedle) {
+                    $q->whereRaw('INSTR(title, ?) > 0', [$needle])
+                        ->orWhereRaw('INSTR(code, ?) > 0', [$needle])
+                        ->orWhereRaw('INSTR(version, ?) > 0', [$needle])
+                        ->orWhereRaw('INSTR(revision, ?) > 0', [$needle])
+                        ->orWhereJsonContains('extra->category', $needle)
+                        ->orWhereJsonContains('extra->Category', $needle)
+                        ->orWhereJsonContains('extra->type', $needle)
+                        ->orWhereJsonContains('extra->Type', $needle)
+                        ->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$needle])
+                        ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$needle]);
+
+                    if ($escapedNeedle !== $needle) {
+                        $q->orWhereRaw('INSTR(CAST(extra AS CHAR), ?) > 0', [$escapedNeedle])
+                            ->orWhereRaw('INSTR(CAST(tags AS CHAR), ?) > 0', [$escapedNeedle]);
+                    }
+                });
             })
             ->when(
                 $this->activeFilter !== 'all' && $this->parsedActiveFilter()[0] === 'type',

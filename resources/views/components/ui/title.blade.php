@@ -15,7 +15,7 @@
     @if($count !== null)
         <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg
                      bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
-            {{ $count }} {{ $countLabel }}
+            {{ convertToPersian($count) }} {{ $countLabel }}
         </span>
     @endif
 </div>

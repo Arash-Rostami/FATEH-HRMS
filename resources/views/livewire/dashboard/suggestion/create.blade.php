@@ -1,4 +1,4 @@
-<div class="space-y-4 suggestion-form-enter">
+<div wire:key="suggestion-panel-create" class="space-y-4 suggestion-form-enter">
 
     <div class="rounded-2xl overflow-hidden shadow-sm relative bg-[var(--md-sys-color-surface)]">
         <div class="absolute inset-0 pointer-events-none bg-[var(--md-sys-color-primary-container)]"></div>
@@ -150,14 +150,14 @@
 
             <div>
                 @if($this->form->attachment)
-                    <div class="flex items-center justify-between p-4 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-variant)] shadow-sm">
+                    <div wire:key="suggestion-attachment-preview" class="flex items-center justify-between p-4 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-variant)] shadow-sm">
                         <div class="flex items-center gap-4 overflow-hidden">
                             @if(in_array(strtolower($this->form->attachment->extension()), ['png', 'jpg', 'jpeg', 'webp']))
-                                <a href="{{ $this->form->attachment->temporaryUrl() }}" target="_blank" class="shrink-0 w-16 h-16 rounded-lg border border-[var(--md-sys-color-outline-variant)] overflow-hidden shadow-sm hover:brightness-90 transition-all cursor-zoom-in">
+                                <a wire:key="suggestion-attachment-image" href="{{ $this->form->attachment->temporaryUrl() }}" target="_blank" class="shrink-0 w-16 h-16 rounded-lg border border-[var(--md-sys-color-outline-variant)] overflow-hidden shadow-sm hover:brightness-90 transition-all cursor-zoom-in">
                                     <img src="{{ $this->form->attachment->temporaryUrl() }}" class="w-full h-full object-cover" alt="Preview">
                                 </a>
                             @else
-                                <div class="shrink-0 w-16 h-16 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm">
+                                <div wire:key="suggestion-attachment-file" class="shrink-0 w-16 h-16 rounded-lg bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm">
                                     <span class="material-symbols-rounded text-3xl">description</span>
                                 </div>
                             @endif
@@ -174,7 +174,7 @@
 
                         <div class="flex items-center gap-2 shrink-0">
                             @if(in_array(strtolower($this->form->attachment->extension()), ['png', 'jpg', 'jpeg', 'webp']))
-                                <a href="{{ $this->form->attachment->temporaryUrl() }}" target="_blank" class="w-10 h-10 rounded-lg bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center transition-colors shadow-sm" title="مشاهده فایل">
+                                <a wire:key="suggestion-attachment-view" href="{{ $this->form->attachment->temporaryUrl() }}" target="_blank" class="w-10 h-10 rounded-lg bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] border border-[var(--md-sys-color-outline-variant)] flex items-center justify-center transition-colors shadow-sm" title="مشاهده فایل">
                                     <span class="material-symbols-rounded text-lg">visibility</span>
                                 </a>
                             @endif
@@ -184,7 +184,7 @@
                         </div>
                     </div>
                 @else
-                    <label for="suggestion-attachment"
+                    <label wire:key="suggestion-attachment-picker" for="suggestion-attachment"
                            class="flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed cursor-pointer transition-all"
                            :class="uploading ? 'opacity-60 cursor-wait' : 'hover:brightness-95'"
                            style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 65%, transparent); background: var(--md-sys-color-surface-variant)">
@@ -217,7 +217,7 @@
             <x-ui.buttons.toggle wire:click="$toggle('form.selfFill')" :checked="$this->form->selfFill" icon="group" title="بازخورد سایر اعضا" description="با فعال کردن این گزینه، می‌توانید نظرات ذی‌نفعان را خودتان ثبت کنید." name="form.selfFill" bordered="true"/>
 
             @if($this->form->selfFill)
-                <div style="border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent)">
+                <div wire:key="suggestion-selffill-block" style="border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 40%, transparent)">
 
                     <div class="p-5">
                         <p class="text-sm font-bold mb-3 flex items-center gap-2 text-[var(--md-sys-color-on-surface)]">
@@ -238,7 +238,7 @@
                     </div>
 
                     @foreach($this->form->departments as $dept)
-                        <div class="px-5 pb-5 pt-4" style="border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 30%, transparent)">
+                        <div wire:key="suggestion-selffill-dept-{{ $dept }}" class="px-5 pb-5 pt-4" style="border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 30%, transparent)">
                             <p class="text-sm font-bold mb-3 flex items-center gap-2 text-[var(--md-sys-color-on-surface)]">
                                 <span class="material-symbols-rounded text-base text-[var(--md-sys-color-secondary)]">corporate_fare</span>
                                 <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold text-[var(--md-sys-color-on-secondary-container)] bg-[var(--md-sys-color-secondary-container)]">

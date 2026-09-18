@@ -66,8 +66,8 @@
                         </span>
 
                         @if($selectionMode)
-                            <span class="ms-1 text-xs tabular-nums">
-                                {{ count($selectedTasks ?? []) }}
+                            <span wire:key="taskboard-selection-count" class="ms-1 text-xs">
+                                {{ convertToPersian(count($selectedTasks ?? [])) }}
                             </span>
                         @endif
                     </x-ui.buttons.form>
@@ -117,12 +117,13 @@
                             class="{{ $presenter->toolbarButtonClass() }}"
                         />
                         @if($this->activeFilterCount > 0)
-                            <span class="absolute -top-1 -left-1 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-sm bg-[var(--md-sys-color-tertiary)] px-1 text-[9px] font-bold leading-none text-[var(--md-sys-color-on-tertiary)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ $this->activeFilterCount > 9 ? '9+' : $this->activeFilterCount }}</span>
+                            <span wire:key="taskboard-filter-count" class="absolute -top-1 -left-1 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-sm bg-[var(--md-sys-color-tertiary)] px-1 text-[9px] font-bold leading-none text-[var(--md-sys-color-on-tertiary)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ $this->activeFilterCount > 9 ? '9+' : $this->activeFilterCount }}</span>
                         @endif
                     </span>
 
                     @if($this->activeFilterCount > 0)
                         <x-ui.buttons.form
+                            wire:key="taskboard-clear-filters"
                             variant="tonal"
                             size="icon"
                             wire:click="clearFilters"
@@ -154,7 +155,7 @@
 
                             @foreach($deadlineOptions as $opt)
                                 <option value="{{ $opt['value'] }}">
-                                    {{ $opt['label'] }}@if($opt['count'] > 0) ({{ $opt['count'] }})@endif
+                                    {{ $opt['label'] }}@if($opt['count'] > 0) ({{ convertToPersian($opt['count']) }})@endif
                                 </option>
                             @endforeach
                         </x-ui.forms.select>
@@ -229,7 +230,7 @@
                     </div>
 
                     @if(count($this->assigneeOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-assignee" class="min-w-0">
                             <x-ui.forms.select
                                 label="مسئول انجام"
                                 name="assigneeFilter"
@@ -249,6 +250,7 @@
 
                     @if(count($this->labelOptions))
                         <div
+                            wire:key="taskboard-filter-labels"
                             class="relative min-w-0 md3-input-group"
                             x-data="{ open: false }"
                             @click.away="open = false"
@@ -312,7 +314,7 @@
                     @endif
 
                     @if(count($this->schemeOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-scheme" class="min-w-0">
                             <x-ui.forms.select
                                 label="طرح"
                                 name="schemeFilter"
@@ -331,7 +333,7 @@
                     @endif
 
                     @if(count($this->unitOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-unit" class="min-w-0">
                             <x-ui.forms.select
                                 label="واحد"
                                 name="unitFilter"
@@ -350,7 +352,7 @@
                     @endif
 
                     @if(count($this->sectionOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-section" class="min-w-0">
                             <x-ui.forms.select
                                 label="بخش"
                                 name="sectionFilter"
@@ -369,7 +371,7 @@
                     @endif
 
                     @if(count($this->actionSourceDomainOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-source-domain" class="min-w-0">
                             <x-ui.forms.select
                                 label="حوزهٔ منبع اقدام"
                                 name="actionSourceDomainFilter"
@@ -388,7 +390,7 @@
                     @endif
 
                     @if(count($this->actionSourceOptions))
-                        <div class="min-w-0">
+                        <div wire:key="taskboard-filter-source" class="min-w-0">
                             <x-ui.forms.select
                                 label="منبع اقدام"
                                 name="actionSourceFilter"

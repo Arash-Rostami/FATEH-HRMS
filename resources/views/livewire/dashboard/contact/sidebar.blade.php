@@ -63,20 +63,9 @@
             </div>
         </div>
 
-        @include('livewire.dashboard.messaging.search-field', [
-            'model' => 'search',
-            'name' => 'search',
-            'id' => 'search',
-            'debounce' => 200,
-            'placeholder' => 'جستجوی همکاران...',
-            'ariaLabel' => 'جستجوی همکاران',
-            'overlayTitle' => 'جستجوی همکاران',
-            'refreshSidebarOnClose' => true,
-            'showLabel' => true,
-            'loadingDisabled' => false,
-            'wireIgnoreSelf' => true,
-            'inputClass' => 'md3-input peer pr-10 pl-10 h-10 leading-[40px] rounded-xl text-sm outline-none transition-all focus:ring-2 w-full bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 placeholder-transparent',
-        ])
+        <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+                                 placeholder="جستجوی همکاران..." aria-label="جستجوی همکاران" overlay-title="جستجوی همکاران"
+                                 refresh-sidebar-on-close show-label />
     </div>
 
     <div
@@ -149,7 +138,7 @@
 
                         @if($contact['last_message'])
                             <time @class([
-                                'text-[10px] shrink-0 tabular-nums select-none tracking-tight leading-tight',
+                                'text-[10px] shrink-0 select-none tracking-tight leading-tight',
                                 'font-bold text-[var(--md-sys-color-primary)]' => $contact['unread'],
                                 'font-normal text-[var(--md-sys-color-on-surface-variant)] opacity-70' => !$contact['unread'],
                             ]) datetime="{{ $contact['last_message']['datetime'] }}">

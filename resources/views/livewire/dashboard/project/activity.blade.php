@@ -45,10 +45,10 @@
                 </div>
             </div>
 
-            <button type="submit" wire:loading.attr="disabled" wire:target="postComment"
-                    class="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 active:scale-95 disabled:opacity-50 transition shadow-sm">
+            <x-ui.buttons.form type="submit" wire:loading.attr="disabled" wire:target="postComment"
+                    class="shrink-0 w-10 h-10 p-0 rounded-xl gap-0 shadow-sm">
                 <span class="material-symbols-rounded text-lg rotate-180">send</span>
-            </button>
+            </x-ui.buttons.form>
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-1">
@@ -64,7 +64,7 @@
                     <span class="material-symbols-rounded text-[13px] text-[var(--tool-amethyst-color)]">notifications</span>
                     <span x-text="willNotify.join('، ')"></span>
                 </p>
-                <span class="text-[11px] tabular-nums" :style="{ color: counterTone }"
+                <span class="text-[11px]" :style="{ color: counterTone }"
                       x-text="(value || '').length + ' / ' + maxLength"></span>
             </div>
         </div>
@@ -141,7 +141,7 @@
     @endif
 
     <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
-        <div id="activity-viewport" role="log" aria-live="polite" class="relative flex flex-col gap-4 max-h-[28rem] overflow-y-auto custom-scrollbar p-4">
+        <div id="activity-viewport" role="log" aria-live="polite" @scroll.passive="$store.activityReactionPicker.close()" class="relative flex flex-col gap-4 max-h-[28rem] overflow-y-auto custom-scrollbar p-4">
             @if(count($this->activityFeed['rows']))
                 <div class="absolute top-4 bottom-4 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
             @endif
@@ -250,37 +250,40 @@
                                                                 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] hover:bg-[var(--md-sys-color-surface-variant)]/60' => !$reactors->contains(fn($r) => (int) $r['user_id'] === auth()->id()),
                                                             ])>
                                                         <span class="text-[13px] leading-none">{{ $emoji }}</span>
-                                                        <span class="tabular-nums">{{ convertToPersian($reactors->count()) }}</span>
+                                                        <span>{{ convertToPersian($reactors->count()) }}</span>
                                                     </button>
                                                 @endforeach
 
                                                 <button type="button"
-                                                        @click="$store.activityReactionPicker.open({{ $entry['id'] }})"
+                                                        @click="$store.activityReactionPicker.open({{ $entry['id'] }}, $event.currentTarget)"
                                                         class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60 hover:text-[var(--md-sys-color-primary)] active:scale-95 transition"
                                                         title="افزودن واکنش">
                                                     <span class="material-symbols-rounded text-[15px]">add_reaction</span>
                                                 </button>
                                             </div>
 
-                                            <div x-show="$store.activityReactionPicker.is({{ $entry['id'] }})" x-cloak
-                                                 x-transition:enter="transition ease-out duration-150"
-                                                 x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.97]"
-                                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                                 x-transition:leave="transition ease-in duration-100"
-                                                 x-transition:leave-start="opacity-100"
-                                                 x-transition:leave-end="opacity-0"
-                                                 @click.outside="$store.activityReactionPicker.close()"
-                                                 class="absolute top-full mt-1.5 right-0 z-30 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/50 shadow-[0_12px_32px_color-mix(in_srgb,var(--md-sys-color-scrim)_22%,transparent)]">
-                                                <div class="grid grid-cols-7 gap-0.5 max-w-[260px]">
-                                                    <template x-for="emoji in $root.activityReactions" :key="emoji">
-                                                        <button type="button"
-                                                                @click="$root.toggleReactionAndClose({{ $entry['id'] }}, emoji)"
-                                                                class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--md-sys-color-primary-container)]/40 hover:scale-110 active:scale-90 transition text-base">
-                                                            <span x-text="emoji"></span>
-                                                        </button>
-                                                    </template>
+                                            <template x-teleport="body">
+                                                <div x-show="$store.activityReactionPicker.is({{ $entry['id'] }})" x-cloak
+                                                     x-transition:enter="transition ease-out duration-150"
+                                                     x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.97]"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                     x-transition:leave="transition ease-in duration-100"
+                                                     x-transition:leave-start="opacity-100"
+                                                     x-transition:leave-end="opacity-0"
+                                                     @click.outside="$store.activityReactionPicker.close()"
+                                                     :style="{ top: $store.activityReactionPicker.top + 'px', right: $store.activityReactionPicker.right + 'px' }"
+                                                     class="fixed z-30 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/50 shadow-[0_12px_32px_color-mix(in_srgb,var(--md-sys-color-scrim)_22%,transparent)]">
+                                                    <div class="grid grid-cols-7 gap-0.5 max-w-[260px]">
+                                                        <template x-for="emoji in $store.activityReactionPicker.reactions" :key="emoji">
+                                                            <button type="button"
+                                                                    @click="$store.activityReactionPicker.close(); $wire.toggleReaction({{ $entry['id'] }}, emoji).catch(() => {})"
+                                                                    class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--md-sys-color-primary-container)]/40 hover:scale-110 active:scale-90 transition text-base">
+                                                                <span x-text="emoji"></span>
+                                                            </button>
+                                                        </template>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </template>
 
                                             <div class="flex items-center gap-0.5 mt-1.5 -mb-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
                                                 <button type="button"
@@ -350,7 +353,7 @@
                                     <span class="material-symbols-rounded text-[13px]">{{ $entry['icon'] }}</span>
                                     <span dir="auto">{{ $entry['body'] }}</span>
                                     @if($entry['task_progress'] !== null)
-                                        <span class="mr-1 pr-1.5 border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] tabular-nums" title="پیشرفت چک‌لیست وظیفه">{{ convertToPersian($entry['task_progress']) }}٪</span>
+                                        <span class="mr-1 pr-1.5 border-r border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]" title="پیشرفت چک‌لیست وظیفه">{{ convertToPersian($entry['task_progress']) }}٪</span>
                                     @endif
                                 </span>
                                 <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($entry['created_at']) }}">{{ toJalaliRelative($entry['created_at']) }}</span>

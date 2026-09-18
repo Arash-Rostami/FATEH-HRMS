@@ -54,13 +54,10 @@
             <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">اعضا</label>
 
             @if(count($this->memberCandidates) > 0)
-                <div class="relative mb-2">
-                    <span class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--md-sys-color-on-surface-variant)] pointer-events-none">search</span>
-                    <input type="text" x-model="memberQuery" placeholder="جستجوی کاربر..."
-                           class="md3-input w-full rounded-xl text-sm outline-none focus:ring-2 pr-9 h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
-                </div>
+                <div wire:key="project-form-members-candidates" class="contents">
+                <x-dashboard.member-search/>
 
-                <div class="max-h-72 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
+                <div class="h-72 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
                     @foreach($this->memberCandidates as $candidate)
                         <label x-show="memberQuery === '' || @js($candidate['name'] ?? '').toLowerCase().includes(memberQuery.toLowerCase())"
                                class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-surface-container)]/60 cursor-pointer transition-colors">
@@ -70,10 +67,10 @@
                         </label>
                     @endforeach
                 </div>
+                </div>
             @else
-                <div class="text-center py-8 text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 rounded-2xl">
-                    <span class="material-symbols-rounded text-4xl mb-2 block opacity-40">group</span>
-                    <p class="text-sm">کاربر فعال دیگری برای افزودن وجود ندارد.</p>
+                <div wire:key="project-form-members-empty" class="contents">
+                    <x-ui.empty icon="group" title="کاربر فعال دیگری برای افزودن وجود ندارد." />
                 </div>
             @endif
             @error('projectForm.memberIds') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror

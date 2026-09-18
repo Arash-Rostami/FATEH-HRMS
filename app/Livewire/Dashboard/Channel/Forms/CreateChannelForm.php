@@ -28,14 +28,14 @@ class CreateChannelForm extends Form
     protected function messages(): array
     {
         return [
-            'name.required' => 'نام کانال الزامی است.',
-            'name.max' => 'نام کانال نباید بیشتر از ۱۰۰ کاراکتر باشد.',
-            'slug.required' => 'اسلاگ کانال الزامی است.',
+            'name.required' => 'نام گروه الزامی است.',
+            'name.max' => 'نام گروه نباید بیشتر از ۱۰۰ کاراکتر باشد.',
+            'slug.required' => 'اسلاگ گروه الزامی است.',
             'slug.max' => 'اسلاگ نباید بیشتر از ۱۲۰ کاراکتر باشد.',
             'slug.unique' => 'این اسلاگ قبلا استفاده شده است.',
             'description.max' => 'توضیحات نباید بیشتر از ۵۰۰ کاراکتر باشد.',
-            'type.required' => 'نوع کانال الزامی است.',
-            'type.in' => 'نوع کانال نامعتبر است.',
+            'type.required' => 'نوع گروه الزامی است.',
+            'type.in' => 'نوع گروه نامعتبر است.',
         ];
     }
 }

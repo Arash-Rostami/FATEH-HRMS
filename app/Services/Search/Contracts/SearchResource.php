@@ -33,6 +33,14 @@ abstract class SearchResource implements Searchable
     /** Tie-breaker ordering column applied after relevance. */
     protected string $orderBy = 'id';
 
+    /**
+     * Recency window (months) bounding the scan on high-volume history tables
+     * so the leading-wildcard LIKE never degrades to a whole-history scan.
+     * 0 = unbounded (small/static tables). Overridden per request by the
+     * palette's "search all history" expansion via SearchContext::$allHistory.
+     */
+    protected int $recencyMonths = 0;
+
     /** Build the deep-link action string for a matched row (e.g. "url:/..."). */
     abstract public function action($row): string;
 
@@ -42,6 +50,7 @@ abstract class SearchResource implements Searchable
         $builder = ($this->model)::query();
 
         $this->applyScope($builder);
+        $this->applyRecencyWindow($builder, $context);
         $this->applyTokenFilter($builder, $context->tokens);
 
         [$relevanceSql, $bindings] = $this->relevanceExpression($context);
@@ -57,6 +66,8 @@ abstract class SearchResource implements Searchable
             return [];
         }
 
+        $this->rowsFetched($rows);
+
         return [
             'type' => $this->type,
             'group' => $this->group,
@@ -64,6 +75,10 @@ abstract class SearchResource implements Searchable
             'score' => (int) ($rows->max('search_relevance') ?? 0),
             'items' => $rows->map(fn ($row) => $this->shapeRow($row))->all(),
         ];
+    }
+
+    protected function rowsFetched($rows): void
+    {
     }
 
     /**
@@ -87,6 +102,13 @@ abstract class SearchResource implements Searchable
         $builder->where(function (Builder $query) {
             $this->scope($query);
         });
+    }
+
+    protected function applyRecencyWindow(Builder $builder, SearchContext $context): void
+    {
+        if ($this->recencyMonths > 0 && ! $context->allHistory) {
+            $builder->where('created_at', '>=', now()->subMonths($this->recencyMonths));
+        }
     }
 
     /** Coarse filter — every token must appear in at least one column. */

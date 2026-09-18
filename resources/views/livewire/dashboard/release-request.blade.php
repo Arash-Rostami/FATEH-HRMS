@@ -1,7 +1,9 @@
 <div class="contents" @open-release-request.window="$wire.open($event.detail?.type)">
 
-    <button type="button" wire:click="open" class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/50 active:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center relative group" title="پشتیبانی و بازخورد">
-        <span class="material-symbols-rounded text-[22px] opacity-70 group-hover:opacity-100 transition-opacity">support</span>
+    <button type="button" wire:click="open"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
+        <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">support</span>
+        پشتیبانی و بازخورد
     </button>
 
     <x-ui.modals.action
@@ -37,6 +39,7 @@
             />
 
             @if($activeTab === 'submit')
+                <div wire:key="release-request-tab-submit" class="mt-5 space-y-5">
                 <div class="rounded-md border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-variant)]/25 p-4 space-y-3">
                     <span class="block text-right text-[11px] font-bold uppercase tracking-widest text-[var(--md-sys-color-on-surface-variant)]/70">نوع درخواست</span>
 
@@ -56,7 +59,7 @@
                     </nav>
 
                     @error('form.type')
-                    <div id="form-type-error" class="flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-error)]">
+                    <div id="form-type-error" wire:key="release-request-type-error" class="flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-error)]">
                         <span class="material-symbols-rounded text-sm">error</span>
                         <span>{{ $message }}</span>
                     </div>
@@ -79,9 +82,9 @@
                     </div>
 
                     @if(!empty($form->attachments))
-                        <ul class="space-y-1.5 mt-2">
+                        <ul wire:key="release-request-attachments" class="space-y-1.5 mt-2">
                             @foreach($form->attachments as $index => $file)
-                                <li class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
+                                <li wire:key="release-request-attachment-{{ $index }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--md-sys-color-surface-container)] text-xs">
                                     <span class="flex items-center gap-1.5 text-[var(--md-sys-color-on-surface)] truncate">
                                         @if(str_starts_with($file->getMimeType() ?? '', 'image/'))
                                             <img src="{{ $file->temporaryUrl() }}" class="w-5 h-5 rounded object-cover flex-shrink-0" alt="">
@@ -101,14 +104,16 @@
 
                     @foreach(['attachments', 'attachments.*'] as $errorKey)
                         @error($errorKey)
-                        <div class="flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-error)] mt-1.5">
+                        <div wire:key="release-request-error-{{ $loop->index }}" class="flex items-center gap-1.5 text-[11px] text-[var(--md-sys-color-error)] mt-1.5">
                             <span class="material-symbols-rounded text-sm">error</span>
                             <span>{{ $message }}</span>
                         </div>
                         @enderror
                     @endforeach
                 </div>
+                </div>
             @else
+                <div wire:key="release-request-tab-history" class="mt-5 space-y-5">
                 <div class="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-hover-reveal pr-1">
                     @forelse($this->myRequests as $item)
                         @php
@@ -165,12 +170,14 @@
                             <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-1.5 block">{{ toJalali($item->created_at, 'j F Y - H:i') }}</span>
                         </div>
                     @empty
-                        <x-ui.empty icon="inbox" title="درخواستی ثبت نشده" description="درخواست‌های پشتیبانی، پیشنهاد و گزارش باگ شما اینجا نمایش داده می‌شود." variant="list" />
+                        <div wire:key="release-request-empty" class="contents">
+                            <x-ui.empty icon="inbox" title="درخواستی ثبت نشده" description="درخواست‌های پشتیبانی، پیشنهاد و گزارش باگ شما اینجا نمایش داده می‌شود." variant="list" />
+                        </div>
                     @endforelse
                 </div>
 
                 @if($this->myRequests->hasMorePages())
-                    <div class="flex justify-center pt-1">
+                    <div wire:key="release-request-load-more" class="flex justify-center pt-1">
                         <x-ui.buttons.load-more
                             action="loadMore"
                             text="موارد بیشتر"
@@ -180,6 +187,7 @@
                         />
                     </div>
                 @endif
+                </div>
             @endif
 
         </div>

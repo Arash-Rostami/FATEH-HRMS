@@ -1,4 +1,5 @@
 <div
+    wire:key="calendar-now-line"
     x-data="{ ...calendarNow({ startIso: @js($startIso), spanHours: @js($spanHours ?? 18) }) }"
     x-show="nowTop >= 0"
     x-cloak

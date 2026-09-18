@@ -4,6 +4,7 @@
      x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
      class="space-y-4">
     @if(!empty($customSchema))
+        <div wire:key="taskboard-form-meta-schema" class="contents">
         <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">این فیلدها توسط مدیر پروژه برای این پروژه تعریف شده است.</p>
 
         @foreach($customSchema as $key => $def)
@@ -11,7 +12,9 @@
                               wire:model="form.meta.{{ $key }}" :disabled="$isReadOnly" dir="auto"
                               wire:key="meta-schema-{{ $key }}"/>
         @endforeach
+        </div>
     @else
+        <div wire:key="taskboard-form-meta-free" class="contents">
         <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">دیتای سفارشی برای این وظیفه؛ بدون طرح پیش‌فرض، کلید و مقدار دلخواه اضافه کنید.</p>
 
         <div class="space-y-2">
@@ -29,7 +32,7 @@
                     @endunless
                 </div>
             @empty
-                <div class="rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/50 py-8 text-center">
+                <div wire:key="taskboard-form-meta-empty" class="rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)]/50 py-8 text-center">
                     <span class="material-symbols-rounded text-3xl text-[var(--md-sys-color-outline)]">sell</span>
                     <p class="text-xs text-[var(--md-sys-color-outline)] mt-1">هنوز دیتای سفارشی ثبت نشده است.</p>
                 </div>
@@ -49,6 +52,7 @@
                     </button>
                 </div>
             @endunless
+        </div>
         </div>
     @endif
 

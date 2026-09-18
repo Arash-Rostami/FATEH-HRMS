@@ -45,7 +45,7 @@
     @include('livewire.dashboard.tab.calendar.reservation-banner', ['reservations' => $reservations, 'columnsStyle' => 'grid-template-columns: 3rem repeat(7, minmax(0, 1fr))', 'gridSpan' => 'grid-column: 2 / span 7', 'keyPrefix' => 'week-res'])
 
     @if(!empty($spanningReservations))
-        <div class="grid gap-1" style="grid-template-columns: 3rem repeat(7, minmax(0, 1fr))">
+        <div wire:key="calendar-week-spanning" class="grid gap-1" style="grid-template-columns: 3rem repeat(7, minmax(0, 1fr))">
             <div></div>
             @foreach($spanningReservations as $s)
                 <div

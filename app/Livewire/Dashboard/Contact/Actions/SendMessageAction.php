@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Models\Message;
+use App\Models\User;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ class SendMessageAction
     public function execute(MessageComposerForm $form, int $recipientId): Message
     {
         $form->validate();
+
+        User::visibleOnBoard()->findOrFail($recipientId);
 
         $senderId = auth()->id();
 

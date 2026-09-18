@@ -59,6 +59,7 @@
                 <main class="flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex"
                       :class="{ 'hidden': !mobileShowChat }">
                     @if($this->activeProject)
+                        <div wire:key="pane-active" class="contents">
                         <div class="flex-shrink-0 p-4 md:p-5 border-b border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
                             @include('livewire.dashboard.project.header')
                         </div>
@@ -73,7 +74,7 @@
                                     class="!mb-0"
                                     :tabs="[
                                         ['id' => 'activity', 'icon' => 'timeline', 'label' => 'فعالیت‌ها و نظرات', 'description' => 'رویدادهای سیستمی وظایف به‌همراه نظرات باز؛ قابل مشاهده و مشارکت برای همهٔ اعضای پروژه', 'unread' => $this->tabDirty['activity'] ? 1 : 0],
-                                        ['id' => 'teamChat', 'icon' => 'forum', 'label' => 'چت زندهٔ تیم', 'description' => 'پیام‌رسانی آنی بین همهٔ اعضای پروژه، مثل یک کانال گفتگوی گروهی', 'unread' => $this->tabDirty['teamChat'] ? 1 : 0],
+                                        ['id' => 'teamChat', 'icon' => 'forum', 'label' => 'چت زندهٔ تیم', 'description' => 'پیام‌رسانی آنی بین همهٔ اعضای پروژه، مثل یک گروه گفتگوی گروهی', 'unread' => $this->tabDirty['teamChat'] ? 1 : 0],
                                         ['id' => 'projectCalendar', 'icon' => 'calendar_month', 'label' => 'تقویم', 'unread' => $this->tabDirty['projectCalendar'] ? 1 : 0],
                                         ['id' => 'kanban', 'icon' => 'view_kanban', 'label' => 'برد وظایف'],
                                         ['id' => 'report', 'icon' => 'summarize', 'label' => 'گزارش'],
@@ -83,7 +84,7 @@
 
                                 @if($activeTab === 'teamChat' && $this->activeChannel)
                                     <a href="{{ route('channels', ['open' => $this->activeChannel->id]) }}" target="_blank" rel="noopener noreferrer"
-                                       title="مشاهده در کانال کامل (پیوست فایل، ویرایش، حذف، پاسخ و امکانات بیشتر)"
+                                       title="مشاهده در گروه کامل (پیوست فایل، ویرایش، حذف، پاسخ و امکانات بیشتر)"
                                        class="ms-auto flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
                                         <span class="material-symbols-rounded text-lg">open_in_new</span>
                                     </a>
@@ -111,8 +112,11 @@
                                 />
                             @endif
                         </div>
+                        </div>
                     @else
-                        <x-ui.empty icon="workspaces" title="پروژه‌ای انتخاب نشده" description="یک پروژه از فهرست کنار انتخاب کنید یا پروژهٔ جدیدی بسازید." fill/>
+                        <div wire:key="pane-empty" class="contents">
+                            <x-ui.empty icon="workspaces" title="پروژه‌ای انتخاب نشده" description="یک پروژه از فهرست کنار انتخاب کنید یا پروژهٔ جدیدی بسازید." fill/>
+                        </div>
                     @endif
                 </main>
             @endisland

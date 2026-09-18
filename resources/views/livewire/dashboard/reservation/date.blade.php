@@ -20,7 +20,7 @@
         </button>
 
         @if($this->dateWindow !== null)
-            <div class="flex items-center gap-1">
+            <div wire:key="reservation-month-nav" class="flex items-center gap-1">
                 <button type="button" wire:click="prevMonth" {{ $this->canPrevMonth ? '' : 'hidden disabled' }}
                     class="flex w-7 h-7 items-center justify-center rounded-lg text-[var(--md-sys-color-on-surface-variant)] transition-all hover:bg-[var(--md-sys-color-surface-variant)] active:scale-90">
                     <span class="material-symbols-rounded text-[18px]">chevron_right</span>

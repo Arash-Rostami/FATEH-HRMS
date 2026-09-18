@@ -9,9 +9,9 @@ use App\Services\Menu\Notifications\TaskOverdueNudge;
 use App\Services\Menu\Toasts\TaskDueSoonToast;
 use Illuminate\Console\Command;
 
-class NudgeOverdueTasks extends Command
+class SweepOverdueTasks extends Command
 {
-    protected $signature = 'tasks:nudge-overdue';
+    protected $signature = 'tasks:sweep-overdue';
 
     protected $description = 'Sweep tasks whose deadline has passed with no accompanying save (so no Eloquent event fired) and reconcile the overdue bell nudge for each, plus tasks that silently entered the due-soon (≤24h) window and reconcile the due-soon edge toast — the only time-driven triggers in the nudge/edge systems, everything else is event-driven.';
 

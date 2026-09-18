@@ -64,8 +64,8 @@
                                 @endif
                                 {!! superClean($option) !!}
                             </span>
-                            <span class="shrink-0 text-[11px] font-bold tabular-nums text-[var(--md-sys-color-on-surface-variant)]">
-                                {{ $state['count'] }}@if($poll['total'] > 0)<span class="opacity-50 mx-0.5">·</span>%{{ $state['pct'] }}@endif
+                            <span class="shrink-0 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                {{ convertToPersian($state['count']) }}@if($poll['total'] > 0)<span class="opacity-50 mx-0.5">·</span>%{{ convertToPersian($state['pct']) }}@endif
                             </span>
                         </span>
                     </button>
@@ -73,7 +73,7 @@
 
                 <div class="flex items-center justify-between px-1 pt-0.5">
                     <span class="flex items-center gap-1.5">
-                        <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $poll['total'] }} رأی</span>
+                        <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ convertToPersian($poll['total']) }} رأی</span>
                         @if($poll['isMultiple'])
                             <span class="text-[10px] font-medium rounded px-1.5 py-0.5 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">چندانتخابی</span>
                         @endif

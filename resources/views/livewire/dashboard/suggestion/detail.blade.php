@@ -94,7 +94,7 @@
                             {{ $stat['icon'] }}
                         </span>
                         <div class="text-xl font-bold {{ $stat['color'] }}">
-                            {{ $stat['count'] }}
+                            {{ convertToPersian($stat['count']) }}
                         </div>
                         <div class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
                             {{ $stat['label'] }}
@@ -141,11 +141,11 @@
                                 <span
                                     class="inline-flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-lg font-semibold {{ $item['badge_classes'] }}">
                                     @if($item['state'] === 'active')
-                                        <span class="material-symbols-rounded text-[14px] animate-spin leading-none">
+                                        <span wire:key="suggestion-workflow-active" class="material-symbols-rounded text-[14px] animate-spin leading-none">
                                             progress_activity
                                         </span>
                                     @else
-                                        <span class="material-symbols-rounded text-[14px] leading-none">
+                                        <span wire:key="suggestion-workflow-idle" class="material-symbols-rounded text-[14px] leading-none">
                                             {{ $item['display_icon'] }}
                                         </span>
                                     @endif
@@ -298,7 +298,7 @@
 
     {{-- ══ DEPARTMENTS STATUS ══ --}}
     @if(count($p->suggestion()->departments ?? []))
-        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]">
+        <div wire:key="suggestion-departments" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]">
             <x-ui.title icon="corporate_fare" title="واحدهای ذی‌نفع"/>
             <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($p->departmentStatuses() as $dept)
@@ -322,9 +322,9 @@
                             ارجاع
                         </span>
                             @if($dept['is_complete'])
-                                <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
+                                <span wire:key="suggestion-dept-complete" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
                             @elseif($dept['has_review'])
-                                <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
+                                <span wire:key="suggestion-dept-pending" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                             @endif
                         @endif
                     </div>
@@ -335,12 +335,12 @@
 
     {{-- ══ REVIEWS ══ --}}
     @if($p->suggestion()->reviews->isNotEmpty())
-        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
+        <div wire:key="suggestion-reviews" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                 border border-[var(--md-sys-color-outline-variant)]">
             <x-ui.title icon="rate_review" title="بازخوردها"/>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 @foreach($p->reviewItems() as $item)
-                    <div @class([
+                    <div wire:key="suggestion-review-{{ $item['review']->id }}" @class([
                     'rounded-xl p-4 space-y-3 border transition-all duration-200 relative overflow-hidden',
                     $item['bg_class'] => true,
                     'border-r-[3px] border-r-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)]' => $item['is_ma'],
@@ -422,9 +422,9 @@
                                 ارجاع
                             </span>
                                 @if($item['review']->complete)
-                                    <span class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
+                                    <span wire:key="suggestion-review-complete" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
                                 @else
-                                    <span class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
+                                    <span wire:key="suggestion-review-pending" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                                 @endif
                             @endif
                         </div>
@@ -436,7 +436,7 @@
 
     {{-- ══ MARK IMPLEMENTATION COMPLETE ══ --}}
     @if($this->canMarkComplete)
-        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
+        <div wire:key="suggestion-complete-section" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
             <x-ui.title icon="task_alt" title="تکمیل اقدام واحد"/>
             <p class="mt-3 text-sm leading-7 text-[var(--md-sys-color-on-surface-variant)]">
@@ -456,7 +456,7 @@
 
     {{-- ══ DEPT FEEDBACK ══ --}}
     @if($this->canGiveFeedback)
-        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
+        <div wire:key="suggestion-feedback-section" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
             <x-ui.title icon="add_comment" title="ثبت بازخورد"/>
@@ -508,7 +508,7 @@
 
     {{-- ══ CEO DECISION ══ --}}
     @if($this->canDecide)
-        <div class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
+        <div wire:key="suggestion-decision-section" class="rounded-2xl p-5 shadow-sm bg-[var(--md-sys-color-surface)]
                     border border-[var(--md-sys-color-outline-variant)]">
 
             <x-ui.title icon="gavel" title="تصمیم نهایی"/>
@@ -560,7 +560,7 @@
                 />
 
                 @if($decisionForm->decision === 'accepted')
-                    <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]">
+                    <div wire:key="suggestion-decision-referral" class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]">
 
                         <div class="flex items-center gap-2 px-4 py-3 bg-[var(--md-sys-color-surface-variant)]">
                             <span class="material-symbols-rounded text-base text-[var(--md-sys-color-primary)]">
@@ -598,7 +598,7 @@
                         </div>
 
                         @if($decisionForm->referralDepts)
-                            <div
+                            <div wire:key="suggestion-referral-note"
                                 class="p-4 border-t border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)]">
                                 <x-ui.forms.textarea
                                     label="دستورالعمل اقدام"

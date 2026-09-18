@@ -8,8 +8,8 @@
             <div class="flex items-center gap-2.5">
                 <span class="material-symbols-rounded text-[22px] text-[var(--md-sys-color-primary)]">explore</span>
                 <div>
-                    <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">کانال‌های عمومی</h2>
-                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">برای پیوستن روی کانال کلیک کنید</p>
+                    <h2 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">گروه‌های عمومی</h2>
+                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">برای پیوستن روی گروه کلیک کنید</p>
                 </div>
             </div>
             <button x-on:click="toggleBrowse()" aria-label="بستن"
@@ -39,7 +39,7 @@
                 </x-ui.buttons.form>
             </div>
         @empty
-            <x-ui.empty icon="campaign" title="کانال عمومی‌ای برای پیوستن وجود ندارد" variant="default" />
+            <x-ui.empty icon="campaign" title="گروه عمومی‌ای برای پیوستن وجود ندارد" variant="default" />
         @endforelse
     </div>
 </div>

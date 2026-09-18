@@ -137,6 +137,12 @@ class Main extends Component
     }
 
     #[Computed]
+    public function presenter(): ProjectPresenter
+    {
+        return new ProjectPresenter();
+    }
+
+    #[Computed]
     public function activeProject(): ?Project
     {
         return $this->activeProjectId

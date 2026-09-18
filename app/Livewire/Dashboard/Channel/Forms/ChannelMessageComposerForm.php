@@ -7,7 +7,7 @@ use Livewire\Form;
 
 class ChannelMessageComposerForm extends Form
 {
-    #[Validate('required_without:attachments|string|min:1|max:4000')]
+    #[Validate('required_without:attachments|string|min:1|max:4000', onUpdate: false)]
     public string $body = '';
 
     #[Validate([

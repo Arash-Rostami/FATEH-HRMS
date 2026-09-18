@@ -35,6 +35,12 @@ class Calendar extends Component
         return view('livewire.dashboard.project.calendar.placeholder');
     }
 
+    #[Computed]
+    public function presenter(): ProjectPresenter
+    {
+        return new ProjectPresenter();
+    }
+
     public function mount(?int $activeProjectId = null): void
     {
         $this->activeProjectId = $activeProjectId;

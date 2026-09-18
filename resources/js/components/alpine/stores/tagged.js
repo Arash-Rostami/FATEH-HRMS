@@ -1,4 +1,13 @@
-const KEYS = { contact: 'tagged-contacts', channel: 'tagged-channels', project: 'tagged-projects', task: 'tagged-tasks' };
+const SCOPES = ['contact', 'channel', 'project', 'task', 'ths', 'reservation'];
+
+const KEYS = {
+    contact: 'tagged-contacts',
+    channel: 'tagged-channels',
+    project: 'tagged-projects',
+    task: 'tagged-tasks',
+    ths: 'tagged-ths',
+    reservation: 'tagged-reservations'
+};
 
 const INK = [
     'var(--tool-amethyst-color)',
@@ -14,23 +23,36 @@ const WASH = [
     'var(--tool-gold-bg)',
 ];
 
-export default (Alpine) => {
+const INK_LEN = 4;
+
+export default function tagged(Alpine) {
     Alpine.store('tagged', {
-        maps: { contact: {}, channel: {}, project: {}, task: {} },
+        maps: { contact: null, channel: null, project: null, task: null, ths: null, reservation: null },
         palette: INK,
 
         init() {
-            for (const scope of Object.keys(KEYS)) this.maps[scope] = this._load(KEYS[scope]);
+            for (let i = 0; i < 6; i++) {
+                const scope = SCOPES[i];
+                this.maps[scope] = this._load(KEYS[scope]);
+            }
         },
 
         _load(key) {
             try {
                 const saved = JSON.parse(localStorage.getItem(key));
                 if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+
                 const out = {};
-                for (const k of Object.keys(saved)) {
+                const keys = Object.keys(saved);
+                const len = keys.length;
+
+                for (let i = 0; i < len; i++) {
+                    const k = keys[i];
                     const idx = Number(saved[k]);
-                    if (Number.isInteger(idx) && idx >= 0 && idx < INK.length) out[k] = idx;
+
+                    if (Number.isInteger(idx) && idx >= 0 && idx < INK_LEN) {
+                        out[Number(k)] = idx;
+                    }
                 }
                 return out;
             } catch {
@@ -39,32 +61,52 @@ export default (Alpine) => {
         },
 
         _persist(scope) {
-            try {
-                localStorage.setItem(KEYS[scope], JSON.stringify(this.maps[scope]));
-            } catch {}
+            const data = Alpine.raw(this.maps[scope]);
+            if (!data) return;
+
+            queueMicrotask(() => {
+                try {
+                    localStorage.setItem(KEYS[scope], JSON.stringify(data));
+                } catch {}
+            });
         },
 
         getTag(id, scope = 'contact') {
-            return this.maps[scope]?.[Number(id)] ?? null;
+            const m = this.maps[scope];
+            if (!m) return null;
+            const t = m[Number(id)];
+            return t !== undefined ? t : null;
         },
 
         isTagged(id, scope = 'contact') {
-            return this.getTag(id, scope) !== null;
+            const m = this.maps[scope];
+            return m ? m[Number(id)] !== undefined : false;
         },
 
         setTag(id, color, scope = 'contact') {
-            const m = this.maps[scope];
+            const raw = Alpine.raw(this.maps[scope]);
+            if (!raw) return;
+
             const idx = Number(color);
-            if (m && Number.isInteger(idx) && idx >= 0 && idx < INK.length) {
-                m[Number(id)] = idx;
+            if (Number.isInteger(idx) && idx >= 0 && idx < INK_LEN) {
+                const next = Object.assign({}, raw);
+                next[Number(id)] = idx;
+
+                this.maps[scope] = next;
                 this._persist(scope);
             }
         },
 
         clearTag(id, scope = 'contact') {
-            const m = this.maps[scope];
-            if (m) {
-                delete m[Number(id)];
+            const raw = Alpine.raw(this.maps[scope]);
+            if (!raw) return;
+
+            const numId = Number(id);
+            if (raw[numId] !== undefined) {
+                const next = Object.assign({}, raw);
+                delete next[numId];
+
+                this.maps[scope] = next;
                 this._persist(scope);
             }
         },
@@ -74,8 +116,10 @@ export default (Alpine) => {
         },
 
         tagBg(id, scope = 'contact') {
-            const t = this.getTag(id, scope);
-            return t === null ? null : WASH[t] ?? null;
-        },
+            const m = this.maps[scope];
+            if (!m) return null;
+            const t = m[Number(id)];
+            return t !== undefined ? WASH[t] : null;
+        }
     });
-};
+}

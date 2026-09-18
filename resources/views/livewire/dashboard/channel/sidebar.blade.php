@@ -13,7 +13,7 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) aria-label="لیست کانال‌ها" data-channel-count="{{ count($this->channels) }}" data-total-unread="{{ $totalUnread }}">
+]) aria-label="لیست گروه‌ها" data-channel-count="{{ count($this->channels) }}" data-total-unread="{{ $totalUnread }}">
 
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
         <div class="flex items-center justify-between mb-4">
@@ -22,18 +22,18 @@
                     <span class="material-symbols-rounded text-[18px] font-fill">campaign</span>
                 </div>
                 <div>
-                    <h1 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)]">کانال‌ها</h1>
+                    <h1 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)]">گروه‌ها</h1>
                     @php
                         $listCount = count($channelList);
                         $openCount = count(array_filter($channelList, fn($c) => ($c['type'] ?? '') === 'open'));
                         $privateCount = $listCount - $openCount;
-                        $summaryParts = $listCount ? array_merge([convertToPersian((string) $listCount) . ' کانال'], array_filter([
+                        $summaryParts = $listCount ? array_merge([convertToPersian((string) $listCount) . ' گروه'], array_filter([
                             $openCount ? convertToPersian((string) $openCount) . ' عمومی' : '',
                             $privateCount ? convertToPersian((string) $privateCount) . ' خصوصی' : '',
                         ])) : [];
                     @endphp
-                    <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="تفکیک کانال‌های شما بر اساس نوع">
-                        {{ $listCount ? implode(' · ', $summaryParts) : 'کانال‌های موضوعی' }}
+                    <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="تفکیک گروه‌های شما بر اساس نوع">
+                        {{ $listCount ? implode(' · ', $summaryParts) : 'گروه‌های موضوعی' }}
                     </p>
                 </div>
             </div>
@@ -49,8 +49,8 @@
                     <button type="button"
                             x-on:click="$store.sound.toggleAll({{ $allChannelIds }}, 'channel')"
                             :aria-pressed="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel')"
-                            :aria-label="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه کانال‌ها' : 'بی‌صدا کردن همه کانال‌ها'"
-                            :title="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه کانال‌ها' : 'بی‌صدا کردن همه کانال‌ها'"
+                            :aria-label="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
+                            :title="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
                             class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                             :class="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                         <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
@@ -68,26 +68,15 @@
             </div>
         </div>
 
-        @include('livewire.dashboard.messaging.search-field', [
-            'model' => 'search',
-            'name' => 'search',
-            'id' => 'search',
-            'debounce' => 200,
-            'placeholder' => 'جستجوی کانال...',
-            'ariaLabel' => 'جستجوی کانال',
-            'overlayTitle' => 'جستجوی کانال',
-            'refreshSidebarOnClose' => true,
-            'showLabel' => true,
-            'loadingDisabled' => false,
-            'wireIgnoreSelf' => true,
-            'inputClass' => 'md3-input peer pr-10 pl-10 h-10 leading-[40px] rounded-xl text-sm outline-none transition-all focus:ring-2 w-full bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50 placeholder-transparent',
-        ])
+        <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+                                 placeholder="جستجوی گروه..." aria-label="جستجوی گروه" overlay-title="جستجوی گروه"
+                                 refresh-sidebar-on-close show-label />
     </div>
 
     <div class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
 
     <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5">
-        <div role="tablist" aria-label="فیلتر کانال‌ها" class="flex items-center gap-1.5">
+        <div role="tablist" aria-label="فیلتر گروه‌ها" class="flex items-center gap-1.5">
             @foreach([['all','همه'],['unread','خوانده‌نشده']] as $f)
                 <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
                         aria-selected="{{ $filter === $f[0] ? 'true' : 'false' }}"
@@ -99,15 +88,15 @@
             @endforeach
         </div>
 
-        <button x-on:click="openCreate()" type="button" aria-label="ساخت کانال جدید" title="ساخت کانال جدید"
+        <button x-on:click="openCreate()" type="button" aria-label="ساخت گروه جدید" title="ساخت گروه جدید"
                 class="ms-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]
                        hover:!bg-[var(--md-sys-color-primary)] hover:!text-[var(--md-sys-color-on-primary)]">
             <span class="material-symbols-rounded text-[18px]">add_circle</span>
         </button>
 
-        <button x-on:click="toggleBrowse()" type="button" aria-label="کاوش و پیوستن به کانال جدید"
-                title="کاوش و پیوستن به کانال جدید"
+        <button x-on:click="toggleBrowse()" type="button" aria-label="کاوش و پیوستن به گروه جدید"
+                title="کاوش و پیوستن به گروه جدید"
                 class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90
                        bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
                 :class="$wire.browseMode
@@ -133,7 +122,7 @@
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeChannelId !== $ch['id'],
                 ])>
 
-                <x-ui.row-actions :id="$ch['id']" scope="channel" pin-noun="کانال" mute-noun="کانال"/>
+                <x-ui.row-actions :id="$ch['id']" scope="channel" pin-noun="گروه" mute-noun="گروه"/>
 
                 <div class="relative flex-shrink-0">
                     <div @class([
@@ -206,7 +195,7 @@
                 </div>
             </div>
         @empty
-            <x-ui.empty icon="campaign" title="کانالی یافت نشد" variant="search" />
+            <x-ui.empty icon="campaign" title="گروهی یافت نشد" variant="search" />
         @endforelse
 
         @if($hasMoreChannels)

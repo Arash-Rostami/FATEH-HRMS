@@ -28,6 +28,8 @@ class Home extends Component
             'tools' => $presenter->tools(),
             'stats' => $presenter->stats(),
             'shortcuts' => $presenter->shortcuts(),
+            'teamPulse' => $presenter->teamPulse(),
+            'gadgetCatalog' => $presenter->heroGadgetCatalog(),
         ]);
     }
 

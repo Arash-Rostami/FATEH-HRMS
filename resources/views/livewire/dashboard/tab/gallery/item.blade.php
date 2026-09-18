@@ -92,7 +92,7 @@
                         <span
                             x-show="duration"
                             x-cloak
-                            class="absolute bottom-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/55 text-white text-[10px] font-medium tabular-nums backdrop-blur-sm"
+                            class="absolute bottom-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/55 text-white text-[10px] font-medium backdrop-blur-sm"
                             x-text="duration ? formatDuration(duration) : ''"
                         ></span>
                     </div>
@@ -105,7 +105,7 @@
         @if($hiddenImageCount > 0)
             <div
                 class="absolute bottom-4 right-4 z-30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-full px-3 py-1 text-xs font-bold shadow-lg">
-                +{{ $hiddenImageCount }}
+                +{{ convertToPersian($hiddenImageCount) }}
             </div>
         @endif
     </div>

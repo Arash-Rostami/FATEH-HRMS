@@ -1,7 +1,9 @@
 @if($this->resources->isEmpty())
-    <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="برای تاریخ و فیلترهای انتخاب شده، هیچ موردی جهت رزرو وجود ندارد. لطفاً تاریخ دیگری را امتحان کنید یا فیلترها را تغییر دهید." variant="list" watermark="event_busy" />
+    <div wire:key="reservation-empty-resources" class="mt-6">
+        <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="برای تاریخ و فیلترهای انتخاب شده، هیچ موردی جهت رزرو وجود ندارد. لطفاً تاریخ دیگری را امتحان کنید یا فیلترها را تغییر دهید." variant="list" watermark="event_busy" />
+    </div>
 @else
-    <div x-data="{ zoomImageUrl: null }"
+    <div wire:key="reservation-resources-grid"
          class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6 w-full">
 
         @foreach($this->resources as $resource)
@@ -9,7 +11,6 @@
         @endforeach
 
         <x-ui.modals.base
-            @click="zoomImageUrl = null"
             wire:model="zoomImageUrl" :title="null"
             contentClass="!p-0 !w-screen !max-w-none !bg-transparent !border-none !shadow-none md:!w-auto md:!max-w-7xl"
         >
@@ -29,7 +30,7 @@
     </div>
 
     @if($this->totalResources > count($this->resources))
-        <div class="mt-8 flex justify-center relative z-1">
+        <div wire:key="reservation-load-more" class="mt-8 flex justify-center relative z-1">
             <x-ui.buttons.load-more
                 action="loadMoreResources"
                 text="نمایش موارد بیشتر"

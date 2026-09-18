@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class ToggleReplyReactionAction
 {
-    private const ALLOWED_EMOJI = ['👍', '❤️', '😂', '🎉', '👀'];
+    private const ALLOWED_EMOJI = ['👍', '❤️', '😂', '😮', '😢', '💔', '👏', '🔥', '🎉', '😍', '🤔', '💯', '🙌', '😤', '🥺', '😎', '🫶', '💪', '🤩', '😇', '🙏', '👀'];
 
     public function execute(int $replyId, string $emoji, int $userId): array
     {

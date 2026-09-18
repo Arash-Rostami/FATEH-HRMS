@@ -24,7 +24,7 @@
                     <div class="relative flex-1 grid" style="grid-template-columns: repeat({{ $days }}, minmax(30px, 1fr))">
                         @foreach ($gantt['dayNumbers'] as $idx => $num)
                             <div wire:key="gantt-day-{{ $idx }}" @class([
-                                'h-9 flex items-start justify-center pt-1.5 text-[10px] font-bold tabular-nums',
+                                'h-9 flex items-start justify-center pt-1.5 text-[10px] font-bold',
                                 'text-[var(--md-sys-color-primary)]' => $idx === $gantt['todayIndex'],
                                 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' => $idx !== $gantt['todayIndex'],
                             ])>{{ convertToPersian($num) }}</div>

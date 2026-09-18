@@ -1,42 +1,59 @@
-<div wire:loading.delay
-     class="absolute inset-0 z-50 flex items-center justify-center rounded-2xl bg-[var(--md-sys-color-surface)]/55 backdrop-blur-[1px]">
-    <x-ui.loaders.spin-badge text="در حال به‌روزرسانی..."/>
-</div>
+@php
+    $rows = [
+        ['icon' => 'edit_document', 'color' => 'error', 'label' => 'نیازمند تایید دریافت', 'text' => 'سند تازه به کارتابل شما رسیده و هنوز تایید نکرده‌اید که آن را دریافت کرده‌اید.'],
+        ['icon' => 'menu_book', 'color' => 'tertiary', 'label' => 'نیازمند تایید مطالعه', 'text' => 'دریافت سند را تایید کرده‌اید؛ اکنون باید محتوای آن را مطالعه و تایید مطالعه کنید.'],
+        ['icon' => 'check_circle', 'color' => 'primary', 'label' => 'مطالعه شده', 'text' => 'هر دو تایید (دریافت و مطالعه) ثبت شده و اقدامی از شما لازم نیست.'],
+    ];
+@endphp
 
-@if($this->receivePendingCount > 0 || $this->readPendingCount > 0)
-    <div class="relative z-20 flex gap-3 rounded-2xl border border-[var(--md-sys-color-error)]/20 bg-[var(--md-sys-color-error)]/10 p-4 shadow-sm animate-fade-in-up">
-        <div class="mt-0.5 shrink-0">
-            <span class="material-symbols-rounded text-2xl text-[var(--md-sys-color-error)]">error</span>
+<div class="space-y-2">
+    @foreach($rows as $row)
+        @php
+            $chipClasses = match ($row['color']) {
+                'error' => 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]',
+                'tertiary' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
+                'primary' => 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
+            };
+        @endphp
+        <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ $chipClasses }}">
+                <span class="material-symbols-rounded text-[16px]">{{ $row['icon'] }}</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">{{ $row['label'] }}</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">{{ $row['text'] }}</p>
+            </div>
         </div>
+    @endforeach
 
-        <div class="min-w-0 flex-1 text-sm leading-7 text-justify text-[var(--md-sys-color-on-error-container)]">
-            <p class="mb-1.5 font-bold">اقدام مورد نیاز</p>
-            <p>
-                در کارتابل شما،
-                @if($this->receivePendingCount > 0)
-                    <button type="button" wire:click="togglePendingFilter('receive')"
-                            class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'receive' ? 'bg-[var(--md-sys-color-error)] text-white' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
-                    >{{ convertToPersian($this->receivePendingCount) }}</button>
-                    سند نیاز به تایید دریافت
-                @endif
-                @if($this->receivePendingCount > 0 && $this->readPendingCount > 0)
-                    و
-                @endif
-                @if($this->readPendingCount > 0)
-                    <button type="button" wire:click="togglePendingFilter('read')"
-                            class="font-bold rounded px-1.5 transition-colors {{ $pendingFilter === 'read' ? 'bg-[var(--md-sys-color-error)] text-white' : 'underline decoration-dotted underline-offset-4 hover:text-[var(--md-sys-color-error)]' }}"
-                    >{{ convertToPersian($this->readPendingCount) }}</button>
-                    سند نیاز به تایید مطالعه
-                @endif
-                دارند؛ لطفاً اقدام بفرمایید. این اقدام به عنوان امضای دیجیتال، تأیید آگاهی شما از اطلاعات ارائه شده تلقی می‌شود.
-            </p>
-            @if($pendingFilter)
-                <button type="button" wire:click="clearPendingFilter"
-                        class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--md-sys-color-on-error-container)]/80 transition-colors hover:text-[var(--md-sys-color-error)]">
-                    <span class="material-symbols-rounded text-[14px]">filter_alt_off</span>
-                    نمایش همه اسناد
-                </button>
-            @endif
+    <div class="mt-5 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2">
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">info</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">این دو تایید جداگانه، معادل امضای دیجیتال است: تایید دریافت یعنی «سند را دیده‌ام»، تایید مطالعه یعنی «محتوای آن را خوانده و پذیرفته‌ام». تا هر دو ثبت نشود، سند در کارتابل به‌عنوان اقدام مورد نیاز باقی می‌ماند.</p>
         </div>
     </div>
-@endif
+
+    <div class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/40 space-y-2.5">
+        <p class="px-1 text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">نکات</p>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sync</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی را که قبلاً خوانده‌اید دوباره در کارتابل «اقدام مورد نیاز» دیدید، فایل یا توضیحات بازبینیِ آن به‌روزرسانی شده و تأیید شما بازنشانی شده است — باید نسخهٔ جدید را دوباره مطالعه و تأیید کنید.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">sort</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اسنادِ تأییدنشده یا خوانده‌نشده خودکار بالای فهرست می‌آیند تا اقدام مورد نیاز از قلم نیفتد.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">link_off</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر فایل سند باز نمی‌شود (صفحهٔ ۴۰۴)، آن سند برای واحد شما منتشر نشده یا فعال نیست — دسترسی فایل از مسیر امن بررسی می‌شود.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">visibility</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر بیش از یک‌بار سندی را مطالعه کرده باشید، زیر دکمهٔ «مشاهده مجدد» تعداد دفعات («بازدید شما: N بار») نمایش داده می‌شود.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">alarm</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">آیکون زنگ یادآوری در گوشهٔ چپ هر سند فقط با نگه‌داشتن نشانگر روی ردیف نمایان می‌شود؛ اگر برای آن سند یادآوری تنظیم کرده باشید، همیشه با رنگ اصلی برنامه نمایان می‌ماند و با کلیک، همان یادآوری موجود برای ویرایش باز می‌شود.</p>
+        </div>
+    </div>
+</div>

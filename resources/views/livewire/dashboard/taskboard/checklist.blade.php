@@ -21,7 +21,7 @@
                                 :stroke-dashoffset="(2 * Math.PI * 11.25) * (1 - checklistProgress / 100)"/>
                     </svg>
                     <span
-                        class="absolute inset-0 flex items-center justify-center text-[10px] font-bold tabular-nums"
+                        class="absolute inset-0 flex items-center justify-center text-[10px] font-bold"
                         :style="{ color: checklistCompleted === checklistTotal ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)' }"
                         x-text="checklistCompleted + '/' + checklistTotal"></span>
                 </div>
@@ -34,6 +34,7 @@
         <div x-show="foldChecklist" x-collapse
              class="p-3.5 sm:p-5 space-y-4 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
             @unless($isReadOnly)
+                <div wire:key="taskboard-checklist-composer" class="contents">
                 <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] px-0.5">
                     اگر فقط می‌خواهید بگویید چه کاری انجام داده‌اید، همین‌جا یک مورد کافی است. برای گزارش دقیق‌تر، کار را به چند بخش تقسیم کنید و با کشیدن روی هر ردیف، سهم (٪) هرکدام را مشخص کنید.
                 </p>
@@ -66,7 +67,7 @@
 
                         <div class="flex items-center gap-2 shrink-0">
                             <span x-show="checklist.length > 0"
-                                  class="inline-flex items-center justify-center h-6 px-2.5 rounded-md text-[11px] font-black tabular-nums bg-[var(--md-sys-color-surface-container-high)]/90 text-[var(--md-sys-color-on-surface-variant)] backdrop-blur-sm border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] shadow-xs">
+                                  class="inline-flex items-center justify-center h-6 px-2.5 rounded-md text-[11px] font-black bg-[var(--md-sys-color-surface-container-high)]/90 text-[var(--md-sys-color-on-surface-variant)] backdrop-blur-sm border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] shadow-xs">
                                 <span x-text="(checklist.reduce((s, i) => s + Number(i.weight || 0), 0)) + '٪'"></span>
                             </span>
 
@@ -80,8 +81,9 @@
                         </div>
                     </div>
                 </div>
+                </div>
             @else
-                <div class="relative flex items-center justify-between h-11 px-4 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden"
+                <div wire:key="taskboard-checklist-readonly" class="relative flex items-center justify-between h-11 px-4 rounded-xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] overflow-hidden"
                      x-show="checklist.length > 0">
                     <div dir="ltr" class="absolute inset-0 flex items-stretch pointer-events-none overflow-hidden select-none">
                         <template x-for="(item, index) in checklist" :key="'aggregate-ro-' + item._uid">
@@ -95,7 +97,7 @@
                         </template>
                     </div>
                     <span class="relative z-10 text-xs font-bold text-[var(--md-sys-color-on-surface-variant)]">مجموع سهم مراحل</span>
-                    <span class="relative z-10 text-xs font-black tabular-nums text-[var(--md-sys-color-primary)]"
+                    <span class="relative z-10 text-xs font-black text-[var(--md-sys-color-primary)]"
                           x-text="(checklist.reduce((s, i) => s + Number(i.weight || 0), 0)) + '٪'"></span>
                 </div>
             @endunless
@@ -201,7 +203,7 @@
                                            :value="item.weight"
                                            @click.stop
                                            @input="setChecklistWeight(index, $event.target.value)"
-                                           class="w-full h-full bg-transparent text-center text-xs sm:text-[13px] font-bold tabular-nums text-[var(--md-sys-color-on-surface)] outline-none border-none p-0 pe-4 focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"/>
+                                           class="w-full h-full bg-transparent text-center text-xs sm:text-[13px] font-bold text-[var(--md-sys-color-on-surface)] outline-none border-none p-0 pe-4 focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"/>
                                     <span
                                         class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--md-sys-color-outline)] pointer-events-none font-black select-none">٪</span>
                                 </div>
@@ -209,7 +211,7 @@
                                 <button type="button"
                                         @click.stop="startEditingChecklistItem(index)"
                                         aria-label="ویرایش متن"
-                                        class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:shadow-sm active:scale-90 transition-all duration-200">
+                                        class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] hover:shadow-sm active:scale-90 transition-all duration-200">
                                     <span class="material-symbols-rounded text-[18px]">edit</span>
                                 </button>
 
@@ -223,7 +225,7 @@
                             </div>
                         @else
                             <span
-                                class="relative z-10 text-[11px] font-bold tabular-nums text-[var(--md-sys-color-on-surface-variant)] shrink-0"
+                                class="relative z-10 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] shrink-0"
                                 x-text="item.weight + '٪'"></span>
                         @endunless
                     </div>
@@ -308,9 +310,9 @@
                 </div>
 
                 @if(!empty($form->attachments))
-                    <ul class="mt-2 space-y-1.5">
+                    <ul wire:key="taskboard-checklist-staged" class="mt-2 space-y-1.5">
                         @foreach($form->attachments as $index => $file)
-                            <li class="flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-lg bg-[var(--md-sys-color-surface-container)]">
+                            <li wire:key="staged-task-file-{{ $index }}" class="flex items-center justify-between gap-2 px-3 py-2 text-xs rounded-lg bg-[var(--md-sys-color-surface-container)]">
                                 <span class="flex items-center gap-1.5 truncate text-[var(--md-sys-color-on-surface)]">
                                     @if(str_starts_with($file->getMimeType() ?? '', 'image/'))
                                         <img src="{{ $file->temporaryUrl() }}" class="object-cover w-5 h-5 rounded flex-shrink-0" alt="">

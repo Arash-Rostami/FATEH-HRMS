@@ -44,7 +44,8 @@ App\Services\Menu\
 │   ├── ThsBadge.php                key=ths-controller        isActive = auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)
 │   ├── DmsBadge.php                key=dms-controller        isActive = auth()->user() !== null && DMS::hasPendingFor($user->id)
 │   ├── TasksImminent.php           key=tasks-deadline        isActive = one of the user's non-done/pending tasks has deadline ≤3 days out or overdue (Task::urgency_state kind ∈ {overdue,due}); no dot surface, bell-only
-│   └── TasksPendingApproval.php    key=tasks-pending-approval isActive = user owns a requires_approval project holding a done task with approved_at IS NULL; bell-only (taskboardPattern.md §19.2)
+│   ├── TasksPendingApproval.php    key=tasks-pending-approval isActive = user owns a requires_approval project holding a done task with approved_at IS NULL; bell-only (taskboardPattern.md §19.2)
+│   └── ReminderBadge.php           key=reminders-controller  isActive = auth()->user() !== null && a forUser().active() reminder due_at <= today's end exists whose channels pass Reminder::channelEnabled(..., 'badge') and whose host record (if any) is not soft-deleted (Reminder::hostTrashed())
 ├── Notifications\
 │   ├── AdNudge.php          key=ads-controller:nudge        triggers=Ad created/updated/deleted
 │   ├── SharedEventsNudge.php       key=shared-events:nudge         triggers=EventShare created/deleted + Event updated/deleted
@@ -54,17 +55,19 @@ App\Services\Menu\
 │   ├── PhotoNudge.php              key=gallery-controller:nudge   triggers=Photo created/updated/deleted show=true  for=dept-scoped (Photo.all_departments + 'MA', empty→all active)
 │   ├── ReportNudge.php             key=reports-controller:nudge   triggers=Report created/updated/deleted show=$report->active  for=User::active()
 │   ├── TaskNudge.php               key=tasks-controller:nudge     triggers=Task created/updated/deleted/restored/forceDeleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not owner)  for=owner + otherReplyParticipants([user_id, assigned_to]) + task->detail->collaborators
-│   ├── TaskOverdueNudge.php        key=tasks-controller:overdue-nudge  triggers=Task updated (self)  show=urgency_state['kind']==='overdue'  for=owner (assigned_to ?? user_id)  badgeSuppressesCreate=false  — the only time-driven trigger: also swept by `tasks:nudge-overdue` (hourly console command), not just the Task-save event
+│   ├── TaskOverdueNudge.php        key=tasks-controller:overdue-nudge  triggers=Task updated (self)  show=urgency_state['kind']==='overdue'  for=owner (assigned_to ?? user_id)  badgeSuppressesCreate=false  — the only time-driven trigger: also swept by `tasks:sweep-overdue` (hourly console command), not just the Task-save event
 │   ├── TaskApprovalNudge.php       key=tasks-controller:approval-nudge  triggers=Task updated (self)  show=isPendingApproval()  for=project owner only  badgeSuppressesCreate=false (the key does not end in the literal ':nudge', so the derived badge-suppress would no-op — explicit opt-out per the key-shape gotcha below)  title escalates: '' → 'یادآوری: ' >24h → '⏰ فوری: ' >48h, anchored on updated_at — known limitation: escalation only advances on a Task-save reconcile (no hourly sweep like TaskOverdueNudge's) and any save (e.g. a reply) resets the 24h/48h clock; accepted per plan §H/K2 (taskboardPattern.md §19.2)
 │   ├── ProjectNudge.php            key=projects-controller:nudge  triggers=Project created (self) + Reply created (subject=$reply->repliable, Assignment-type + payload.added-guarded)  show=true  for=newly-added member ids (from the Assignment reply's payload, or all member_ids minus owner on the create trigger)
 │   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not currentActionRecipient)  for=currentActionRecipient + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
-│   └── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
+│   ├── ContactNudge.php            key=contacts-controller:nudge  triggers=Message created/updated/deleted/forceDeleted/restored  subject=sender User  show=true  for=active recipients with unread (Message::unreadCountsFrom($sender), for()-primes-body idiom)  badgeSuppressesCreate=false  — mark-as-read is a mass Builder::update() (bypasses the `updated` Eloquent event), so `MarkMessagesAsReadAction` dispatches `ReconcileNudge('contacts-controller:nudge', User::class, $contactId)` explicitly after commit (Channel/ShareEventAction precedent below); fixed 2026-09-04 — previously the bell's per-sender row never cleared on read
+│   └── ReminderOverdueNudge.php    key=reminders-controller:due-nudge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at <= today's end, channelEnabled(..., 'nudge'), and not hostTrashed()  for=[owner]  badgeSuppressesCreate=false (the badge is a superset window — due-today-or-overdue vs the nudge's own identical window here, but the badge's `badge` channel and this nudge's `nudge` channel can be toggled independently, so a badge-lit user must still get their own nudge if they enabled it)  also swept by `reminders:sweep-due` (hourly console command), like `TaskOverdueNudge`  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null
 ├── Toasts\
 │   ├── ChannelToast.php            key=channels-controller:edge   triggers=ChannelMessage created/deleted + ChannelMember/Channel events  for=invited (Channel::invitedUserIds) ∪ mentioned (mentionedSenders regex)  icon=mail (invited) / alternate_email (mentioned)  url=route('channels',['open'=>id])
 │   ├── ProjectToast.php            key=projects-controller:edge  triggers=Project created + Reply created (added ids) + ChannelMember created (unopened project channel)  for=resolveAddedIds ∪ Channel::invitedUserIds(channel_id)  icon=group_add (added) / workspaces (unopened)  url=route('projects',['open'=>id])
-│   └── TaskDueSoonToast.php        key=tasks-controller:due-soon-edge  triggers=Task created/updated (event) + hourly `tasks:nudge-overdue` sweep (time — see taskboardPattern.md §18, deadline BETWEEN now and now+24h)  show=deadline within 24h, not past, status not done/pending — tighter than TasksImminent's 3-day badge window, deliberately coexisting  for=owner (assigned_to ?? user_id)  icon=schedule  url=route('tasks',['open'=>id])
+│   ├── TaskDueSoonToast.php        key=tasks-controller:due-soon-edge  triggers=Task created/updated (event) + hourly `tasks:sweep-overdue` sweep (time — see taskboardPattern.md §18, deadline BETWEEN now and now+24h)  show=deadline within 24h, not past, status not done/pending — tighter than TasksImminent's 3-day badge window, deliberately coexisting  for=owner (assigned_to ?? user_id)  icon=schedule  url=route('tasks',['open'=>id])
+│   └── ReminderDueTodayEdge.php    key=reminders-controller:due-today-edge  triggers=Reminder created/updated/deleted  subject=self  show=not completed, not future-snoozed, due_at->isToday(), channelEnabled(..., 'edge'), and not hostTrashed() — strictly today, tighter than the nudge's due-or-overdue window  for=[owner]  icon=notifications  url=route('tasks'|'ths'|'projects'|'dms'|'reservation', ['open'=>id]) keyed on remindable_type (Task/Ticket/Project/DMS/Reservation), else null  also swept by `reminders:sweep-due`
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 ├── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
@@ -97,7 +100,7 @@ interface MenuBadge {
 ```
 
 An indicator is a **stateless, read-only** object: `isActive()` reads the DB (or `auth()->user()`)
-fresh and returns a bool. It owns no row and writes nothing. **All 13 indicators implement it**,
+fresh and returns a bool. It owns no row and writes nothing. **All 14 indicators implement it**,
 all structurally identical (no per-user method, no sub-interface).
 
 | Indicator | `getKey()` | `isActive()` |
@@ -115,6 +118,7 @@ all structurally identical (no per-user method, no sub-interface).
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
 | `DmsBadge` | `dms-controller` | `auth()->user() !== null && DMS::hasPendingFor($user->id)` |
 | `TasksImminent` | `tasks-deadline` | `auth()->user() !== null` and one of the user's non-done/pending tasks (`forUser`) has a deadline that is overdue or ≤3 days out (`Task::urgency_state['kind']` ∈ `{overdue, due}`) |
+| `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` today's end exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) |
 
 `SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
 `EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`.
@@ -356,14 +360,15 @@ for tab-hosted modules) — the same `?open={id}` param `App\Traits\FocusOnRecor
 title/body: set `refresh() => true` and an edit re-fires reconcile to rewrite `url` on a still-
 **unread** row; a **read** row's `url` is never rewritten.
 
-All 14 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
+All 15 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
 `SharedEventsNudge`→`route('dashboard', ['tab'=>'calendar', …])`, `SuggestionNudge`→`route('suggestion', …)`,
 `PostNudge`→`route('dashboard', ['tab'=>'post', …])`, `FeedNudge`→`route('dashboard', ['tab'=>'feed', …])`,
 `PhotoNudge`→`route('dashboard', ['tab'=>'gallery', …])`, `ReportNudge`→`route('dashboard', ['tab'=>'reports', …])`,
 `TaskNudge`→`route('tasks', …)`, `TaskOverdueNudge`→`route('tasks', …)`, `ProjectNudge`→`route('projects', …)`,
 `ThsNudge`→`route('ths', …)`, `DmsNudge`→`route('dms', …)`,
 `ChannelNudge`→`route('channels', …)`, `ContactNudge`→`route('contact', …)` (subject is the message
-sender `User`, so this links to the conversation, not a specific message).
+sender `User`, so this links to the conversation, not a specific message), `ReminderOverdueNudge`→`route('tasks', …)`
+when `remindable_type=Task`, else `null`.
 
 ### Engine — `register()`
 
@@ -495,7 +500,7 @@ declare several triggers sharing the same key.
 | `Report` | created, updated, deleted | self | `$report->active` | `User::active()->get()` |
 | `Task` | created, updated, deleted, restored, forceDeleted | self | `true` (false when `latestReply` is own & not owner) | owner (`assigned_to ?? user_id`) + `otherReplyParticipants([user_id, assigned_to])` + `task->detail->collaborators` (only once a reply exists) |
 | `Reply` (Task) | created | `$reply->repliable` (repliable_type-guarded) | same `TaskNudge` class | same `TaskNudge` class |
-| `Task` (overdue) | updated | self | `$task->urgency_state['kind'] === 'overdue'` (model-as-source-of-truth, same accessor `TasksImminent` badge partially reuses) | owner (`assigned_to ?? user_id`) — also swept hourly by `tasks:nudge-overdue`, see below |
+| `Task` (overdue) | updated | self | `$task->urgency_state['kind'] === 'overdue'` (model-as-source-of-truth, same accessor `TasksImminent` badge partially reuses) | owner (`assigned_to ?? user_id`) — also swept hourly by `tasks:sweep-overdue`, see below |
 | `Project` | created | self | `true` | newly-added member ids: on `created`, `member_ids` minus `owner_id`; see `Reply` row |
 | `Reply` (Project) | created | `$reply->repliable` (repliable_type-guarded, `TaskActivityType::Assignment`-guarded, empty `payload.added`→null) | same `ProjectNudge` class | `payload['added']` ids from the latest Assignment reply |
 | `Ticket` | created, updated, deleted | self | `true` (false when `latestReply` is own & not currentActionRecipient) | `Ticket::currentActionRecipient()` + `otherReplyParticipants([requester_id, assigned_to])` |
@@ -505,6 +510,7 @@ declare several triggers sharing the same key.
 | `Channel` | deleted, forceDeleted | self | `true` | invited∪unread (cleanup) |
 | `ChannelMessage` | created, deleted | `$msg->channel` | `true` | invited∪unread |
 | `Message` | created, updated, deleted, forceDeleted, restored | sender `User` | `true` | active recipients with unread (`unreadCountsFrom`) |
+| `Reminder` | created, updated, deleted | self | not completed, not future-snoozed, `due_at <=` today's end, `Reminder::channelEnabled($subject->channels, 'nudge')`, and not `Reminder::hostTrashed()` | `[owner]` (`user_id`) — also swept hourly by `reminders:sweep-due`, same shape as `Task` (overdue) |
 
 - Suggestion + Review share `suggestion-controller:nudge`, `item_id = suggestion id`.
 - EventShare + Event share `shared-events:nudge`, `item_id = event id` (EventShare sets
@@ -532,8 +538,8 @@ declare several triggers sharing the same key.
 - **`TaskOverdueNudge` — the only time-driven trigger.** Every other nudge in the system reconciles
   purely off an Eloquent event; this one's `triggers()` still declares a normal `Task {updated}` (a
   save that flips a task overdue reconciles immediately, same as any other nudge), but a task can also
-  cross its deadline with **no accompanying save at all** — nothing fires. `App\Console\Commands\NudgeOverdueTasks`
-  (`tasks:nudge-overdue`, scheduled `->hourly()->between('06:00','22:00')` in `routes/console.php`) closes
+  cross its deadline with **no accompanying save at all** — nothing fires. `App\Console\Commands\SweepOverdueTasks`
+  (`tasks:sweep-overdue`, scheduled `->hourly()->between('06:00','22:00')` in `routes/console.php`) closes
   that gap: it sweeps `Task::whereNull('archived_at')->where('status','!=','done')->whereNotNull('deadline')->where('deadline','<',now())`
   in `chunkById(200)` and dispatches the same `ReconcileNudge` job per row — an artificial "re-check"
   rather than a new trigger class, so `NudgeService`'s engine is untouched. `show()` still re-derives
@@ -574,7 +580,7 @@ badge's `attentionRequired` scope already uses — single source of truth, no dr
 |---|---|---|---|
 | what | permanent status signal (menu dot) | one-time nudge (bell entry) | persistent floating card |
 | granularity | one row **per indicator** | one row **per qualifying record** | one row **per (toast × user × subject)** |
-| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event (one exception: `TaskOverdueNudge` is additionally swept hourly by `tasks:nudge-overdue`, a console command re-checking for silent deadline crossings — it still calls the same per-record `ReconcileNudge`, not a bespoke mechanism) | push to materialize (reconciled on the Eloquent event into `edges`) + pull to render (read on page load) |
+| trigger | pull — reconciled on menu render (`StateService::get()`) | push — reconciled on the record's Eloquent event (one exception: `TaskOverdueNudge` is additionally swept hourly by `tasks:sweep-overdue`, a console command re-checking for silent deadline crossings — it still calls the same per-record `ReconcileNudge`, not a bespoke mechanism) | push to materialize (reconciled on the Eloquent event into `edges`) + pull to render (read on page load) |
 | key shape | bare `ads-controller` / `suggestion-controller` / `shared-events` | suffixed `ads-controller:nudge` / … | suffixed `channels-controller:edge` / … (own `edges` table — the suffix is convention, not partitioning) |
 | dismissal | not dismissable (lit while true) | dismissable (`markAsRead`); never resurfaces | dismissible (× → `snooze()` by `dismissRule()`; default forever → `dismissed_at`, never resurfaces; a duration → `snoozed_until`, resurfaces after expiry) |
 | no-resurface mechanism | `syncBatch()` `existingByKey` leaves `read_at` alone | `reconcile()` `exists()` branch leaves `read_at` alone | `reconcile()` existing-row branch leaves `dismissed_at`/`snoozed_until` alone; `scopeVisible` re-includes after snooze expiry |
@@ -966,7 +972,7 @@ id):
   unconditional). `badgeSuppressesCreate = false` — a `Read` on an already-badge-lit doc must still
   CREATE a nudge for the newly-pending recipient. `title`/`body` embed the doc's type label via the
   Filament lang strings (`__('resources/dms/strings.type.systematic')` / `non_systematic` →
-  «سیستمی»/«غیر سیستمی») and flavor: `requiresSignFor` → «نیازمند تأیید», else «نیازمند مطالعه».
+  «اسناد»/«سوابق») and flavor: `requiresSignFor` → «نیازمند تأیید», else «نیازمند مطالعه».
   `refresh = true` so signing rewrites the same row from «نیازمند تأیید» to «نیازمند مطالعه» (the
   row persists across the sign→read transition rather than being recreated).
   `badgeSuppressesCreate = false` — opted OUT, like `SharedEventsNudge`/`ContactNudge`, because the
@@ -1054,7 +1060,7 @@ is explicitly `false` rather than left at the (silently-broken, see above) defau
 (assigned_to ?? user_id)`; `show = urgency_state['kind'] === 'overdue'`; `refresh = true` so the row's
 day-count label (`{days} روز تأخیر`, read off the same accessor at reconcile time) stays current while
 unread. `triggers()` declares only `Task {updated}` — a save that flips a task overdue reconciles
-immediately like any other nudge — but `App\Console\Commands\NudgeOverdueTasks` (`tasks:nudge-overdue`)
+immediately like any other nudge — but `App\Console\Commands\SweepOverdueTasks` (`tasks:sweep-overdue`)
 additionally sweeps tasks whose deadline silently passed with **no** accompanying save (see "The
 rules" above for the query + schedule). `url()` → `route('tasks', ['open' => $subject->getKey()])`.
 
@@ -1224,7 +1230,7 @@ stale claim — see below):
 ## Audit 2026-08-29 — `TaskOverdueNudge` added; full re-audit against source
 
 `TaskOverdueNudge` is the system's first genuinely time-driven trigger (see its own section above and
-the `tasks:nudge-overdue` bullet under "The rules"). Auditing it surfaced that this doc had drifted
+the `tasks:sweep-overdue` bullet under "The rules"). Auditing it surfaced that this doc had drifted
 from the live code independently of that addition — two indicator/nudge classes existed with **no**
 documentation at all, and several counts were stale:
 
@@ -1287,7 +1293,7 @@ stays flat with no `subgroups()` entry since it already satisfies max-2 as a pla
 
 | Group | Subgroups (≤2 items each) |
 |---|---|
-| `tasks` (9 rows → 5 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `tickets` (`ths-controller`) |
+| `tasks` (12 rows → 7 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `tickets` (`ths-controller`) · `reminders` (`reminders-controller:due-nudge`, `reminders-controller:due-today-edge`) · `reminders-badge` (`reminders-controller`) |
 | `notifications` (4 rows → 2 subgroups) | `direct` (`posts-controller`, `contacts-controller`) · `channels` (`channels-controller`, `channels-controller:edge`) |
 | `content` (4 rows → 2 subgroups) | `calendar` (`shared-events`, `special-days`) · `media` (`feeds`, `gallery-controller`) |
 | `compliance` (3 rows → 2 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) |

@@ -1,7 +1,7 @@
 @php
 $tabs = [
     ['id' => 'contacts', 'label' => 'پیام‌رسان', 'icon' => 'perm_contact_calendar', 'route' => route('contact'), 'unread' => (int) $contactsUnread],
-    ['id' => 'channels', 'label' => 'کانال‌ها', 'icon' => 'campaign', 'route' => route('channels'), 'unread' => (int) $channelsUnread],
+    ['id' => 'channels', 'label' => 'گروه‌ها', 'icon' => 'campaign', 'route' => route('channels'), 'unread' => (int) $channelsUnread],
 ];
 @endphp
 <div wire:poll.10s="refreshCounts" x-data="{ navigating: false }" class="flex p-1 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit mb-6 shadow-sm overflow-hidden relative">

@@ -22,8 +22,8 @@ class ChannelNudge implements MenuNudge
     public function body($subject, User $user): string
     {
         return isset($this->invited[$user->id])
-            ? "شما به کانال «{$subject->name}» دعوت شده‌اید. برای ورود روی آن کلیک کنید."
-            : 'شما ' . ($this->unread[$user->id] ?? 0) . ' پیام خوانده‌نشده در این کانال دارید.';
+            ? "شما به گروه «{$subject->name}» دعوت شده‌اید. برای ورود روی آن کلیک کنید."
+            : 'شما ' . ($this->unread[$user->id] ?? 0) . ' پیام خوانده‌نشده در این گروه دارید.';
     }
 
     public function for($subject): Collection
@@ -52,8 +52,8 @@ class ChannelNudge implements MenuNudge
     public function title($subject, User $user): string
     {
         $prefix = isset($this->invited[$user->id])
-            ? 'دعوت به کانال'
-            : 'پیام جدید در کانال';
+            ? 'دعوت به گروه'
+            : 'پیام جدید در گروه';
 
         return $prefix . ': ' . $subject->name;
     }

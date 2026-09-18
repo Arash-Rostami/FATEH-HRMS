@@ -146,7 +146,7 @@ return [
         ],
 
         'ai_assistant' => [
-            'access' => 'lock',
+            'access' => true,
             'lang' => 'fa',
         ],
     ],

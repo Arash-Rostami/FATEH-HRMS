@@ -88,13 +88,13 @@
                                     @if(($row['replies_count'] ?? 0) > 0)
                                         <span class="inline-flex items-center gap-0.5 text-[var(--tool-sapphire-text)]" title="{{ $row['replies_count'] }} پاسخ">
                                             <span class="material-symbols-rounded text-[14px]">forum</span>
-                                            <span class="text-[12px] tabular-nums">{{ convertToPersian((int) $row['replies_count']) }}</span>
+                                            <span class="text-[12px]">{{ convertToPersian((int) $row['replies_count']) }}</span>
                                         </span>
                                     @endif
                                     @if(($row['attachments_count'] ?? 0) > 0)
                                         <span class="inline-flex items-center gap-0.5 text-[var(--tool-gold-text)]" title="{{ $row['attachments_count'] }} فایل">
                                             <span class="material-symbols-rounded text-[14px]">attach_file</span>
-                                            <span class="text-[12px] tabular-nums">{{ convertToPersian((int) $row['attachments_count']) }}</span>
+                                            <span class="text-[12px]">{{ convertToPersian((int) $row['attachments_count']) }}</span>
                                         </span>
                                     @endif
                                     @if(($row['checklist']['total'] ?? 0) > 0)
@@ -102,7 +102,7 @@
                                         @php($cd = (int) $row['checklist']['done'])
                                         <span class="inline-flex items-center gap-0.5 text-[var(--md-sys-color-on-surface-variant)]" title="چک‌لیست: {{ $cd }} از {{ $ct }}">
                                             <span class="material-symbols-rounded text-[14px] @if($cd === $ct) text-[var(--md-sys-color-tertiary)] @endif">task_alt</span>
-                                            <span class="text-[12px] tabular-nums">{{ convertToPersian($cd) }}/{{ convertToPersian($ct) }}</span>
+                                            <span class="text-[12px]">{{ convertToPersian($cd) }}/{{ convertToPersian($ct) }}</span>
                                         </span>
                                     @endif
                                     @if(in_array($rf['kind'], ['overdue', 'due'], true))

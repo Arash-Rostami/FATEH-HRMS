@@ -3,7 +3,9 @@
 namespace App\Services\ProjectTask;
 
 use App\Enums\TaskActivityType;
+use App\Models\Project;
 use App\Models\Reply;
+use App\Models\User;
 
 class DeleteReplyAction
 {
@@ -22,6 +24,10 @@ class DeleteReplyAction
         }
 
         $projectId = $reply->projectId();
+
+        if ($projectId && !Project::whereKey($projectId)->visibleTo(User::findOrFail($userId))->exists()) {
+            return false;
+        }
 
         $reply->delete();
 

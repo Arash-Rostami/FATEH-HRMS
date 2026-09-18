@@ -20,7 +20,7 @@
                 </div>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">کل وظایف</span>
-                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] tabular-nums">{{ convertToPersian((int) $summary['total']) }}</span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] ">{{ convertToPersian((int) $summary['total']) }}</span>
                 </div>
             </div>
 
@@ -30,7 +30,7 @@
                 </div>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">انجام‌شده</span>
-                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] tabular-nums">{{ convertToPersian((int) ($summary['done'] ?? 0)) }} <span class="text-xs font-normal opacity-70">({{ convertToPersian((int) round($summary['percent'] ?? 0)) }}٪)</span></span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] ">{{ convertToPersian((int) ($summary['done'] ?? 0)) }} <span class="text-xs font-normal opacity-70">({{ convertToPersian((int) round($summary['percent'] ?? 0)) }}٪)</span></span>
                 </div>
             </div>
 
@@ -40,7 +40,7 @@
                 </div>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">سررسید گذشته</span>
-                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] tabular-nums">{{ convertToPersian((int) ($summary['overdue'] ?? 0)) }}</span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] ">{{ convertToPersian((int) ($summary['overdue'] ?? 0)) }}</span>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="flex flex-col min-w-0">
                                     <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $kpi['label'] }}</span>
-                                    <span class="text-sm font-bold tabular-nums text-[var(--md-sys-color-on-surface)]">{{ convertToPersian($kpi['value']) }}</span>
+                                    <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ convertToPersian($kpi['value']) }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -104,7 +104,7 @@
                                                 <th class="text-left align-middle pr-2 py-1 text-[var(--md-sys-color-on-surface)] font-semibold whitespace-nowrap">{{ $p['label'] }}</th>
                                                 @foreach($matrix['statuses'] as $j => $s)
                                                     @php($cell = $presenter->heatmapCell($matrix, $p['value'], $s['value']))
-                                                    <td class="text-center align-middle tabular-nums rounded-lg py-2.5 font-semibold transition-colors"
+                                                    <td class="text-center align-middle rounded-lg py-2.5 font-semibold transition-colors"
                                                         @class([
                                                             'text-[var(--md-sys-color-on-surface)]',
                                                             'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' => $cell['isFire'],

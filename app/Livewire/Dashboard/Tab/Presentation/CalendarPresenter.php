@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Tab\Presentation;
 
 use App\Models\Event;
 use App\Models\Profile;
+use App\Models\Reminder;
 use App\Services\HolidayService;
 use App\Services\Reservation\EventSyncService;
 use App\Values\CalendarLayout;
@@ -23,7 +24,7 @@ class CalendarPresenter
     private const START_HOUR = CalendarLayout::GRID_START_MINUTES / 60;
     private const END_HOUR = CalendarLayout::DAY_END_MINUTES / 60;
     private const WEEK_DAY_LABELS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
-    private const ICON_BY_TYPE = ['holiday' => 'event_busy', 'birthday' => 'cake', 'anniversary' => 'celebration'];
+    private const ICON_BY_TYPE = ['holiday' => 'event_busy', 'birthday' => 'cake', 'anniversary' => 'celebration', 'reminder' => 'alarm'];
 
     private array $monthDaysCache = [];
     private array $rangeCache = [];
@@ -31,6 +32,11 @@ class CalendarPresenter
     private ?array $holidaysAllCache = null;
     private ?Collection $userReservationsCache = null;
     private ?array $userReservationsRange = null;
+    private ?Collection $remindersCache = null;
+    private ?array $remindersRange = null;
+    private ?int $authIdCache = null;
+    private bool $authIdResolved = false;
+    private ?string $todayKeyCache = null;
 
     public function activeDate(string $selectedDate): array
     {
@@ -160,62 +166,97 @@ class CalendarPresenter
         $gridEnd = CalendarLayout::DAY_END_MINUTES;
         $fullDayMinutes = $gridEnd - $gridStart;
 
+        $timedRemindersById = [];
+        foreach ($this->remindersInRange($range->start, $range->end) as $reminder) {
+            $startMinutes = ($reminder->due_at->hour * 60) + $reminder->due_at->minute;
+            if ($startMinutes < $gridStart || $startMinutes >= $gridEnd) {
+                continue;
+            }
+
+            $key = Jalalian::fromCarbon($reminder->due_at)->format('Y-m-d');
+            $isSnoozed = $reminder->snoozed_until && $reminder->snoozed_until->isFuture();
+
+            $byDay[$key][] = [
+                'id' => 'reminder-' . $reminder->id,
+                'type' => 'reminder',
+                'is_full_day' => false,
+                'is_multi_day' => false,
+                'title' => $reminder->title,
+                'description' => $reminder->notes ?? '',
+                'time' => Jalalian::fromCarbon($reminder->due_at)->format('H:i'),
+                'start_minutes' => $startMinutes,
+                'duration_minutes' => 30,
+                'is_owner' => false,
+                'private' => true,
+                'is_shared' => false,
+                'is_reservation_linked' => false,
+                'reservation_id' => null,
+                'remind_hours' => null,
+                'locked' => true,
+                'mtime' => null,
+                'is_snoozed' => $isSnoozed,
+                'snoozed_hours' => $isSnoozed ? (int) ceil(now()->diffInMinutes($reminder->snoozed_until) / 60) : null,
+            ];
+            $timedRemindersById['reminder-' . $reminder->id] = true;
+        }
+
+        $isDayView = $view === 'day';
         foreach ($byDay as $key => $pills) {
-            if ($view === 'day') {
-                $timed = array_filter(
-                    $pills,
-                    fn($p) => empty($p['is_full_day'])
-                        && empty($p['is_multi_day'])
-                        && ($p['start_minutes'] ?? 0) >= $gridStart
-                        && ($p['start_minutes'] ?? 0) < $gridEnd
-                );
-                $allDayRes = array_filter(
-                    $pills,
-                    fn($p) => !empty($p['is_reservation_linked'])
-                        && (!empty($p['is_full_day']) || !empty($p['is_multi_day']))
-                );
-                $allDayRes = array_map(
-                    fn($p) => array_merge($p, ['start_minutes' => $gridStart, 'duration_minutes' => $fullDayMinutes]),
-                    array_values($allDayRes)
-                );
-                $outOfGrid = array_filter(
-                    $pills,
-                    fn($p) => empty($p['is_full_day'])
-                        && empty($p['is_multi_day'])
-                        && (($p['start_minutes'] ?? 0) < $gridStart || ($p['start_minutes'] ?? 0) >= $gridEnd)
-                );
+            if ($isDayView) {
+                $timed = [];
+                $allDayRes = [];
+                $outOfGrid = [];
+                foreach ($pills as $p) {
+                    $isFullOrMulti = !empty($p['is_full_day']) || !empty($p['is_multi_day']);
+                    if ($isFullOrMulti) {
+                        if (!empty($p['is_reservation_linked'])) {
+                            $p['start_minutes'] = $gridStart;
+                            $p['duration_minutes'] = $fullDayMinutes;
+                            $allDayRes[] = $p;
+                        }
+                        continue;
+                    }
+                    $start = $p['start_minutes'] ?? 0;
+                    if ($start >= $gridStart && $start < $gridEnd) {
+                        $timed[] = $p;
+                    } else {
+                        $outOfGrid[] = $p;
+                    }
+                }
                 $byDay[$key] = array_merge(
-                    CalendarLayout::pack(array_merge(array_values($timed), $allDayRes)),
-                    array_values($outOfGrid)
+                    CalendarLayout::pack(array_merge($timed, $allDayRes)),
+                    $outOfGrid
                 );
             } else {
-                $banner = array_filter(
-                    $pills,
-                    fn($p) => !empty($p['is_reservation_linked'])
-                        && empty($p['is_multi_day'])
-                        && (
-                            !empty($p['is_full_day'])
-                            || ($p['start_minutes'] ?? 0) < $gridStart
-                            || ($p['start_minutes'] ?? 0) >= $gridEnd
-                        )
-                );
-                $timed = array_filter(
-                    $pills,
-                    fn($p) => empty($p['is_full_day'])
-                        && empty($p['is_multi_day'])
-                        && ($p['start_minutes'] ?? 0) >= $gridStart
-                        && ($p['start_minutes'] ?? 0) < $gridEnd
-                );
-                $byDay[$key] = array_merge(
-                    CalendarLayout::pack(array_values($timed)),
-                    array_values($banner)
-                );
+                $timed = [];
+                $banner = [];
+                foreach ($pills as $p) {
+                    if (!empty($p['is_multi_day'])) {
+                        continue;
+                    }
+                    $isFullDay = !empty($p['is_full_day']);
+                    $start = $p['start_minutes'] ?? 0;
+                    $outsideGrid = $start < $gridStart || $start >= $gridEnd;
+                    if (!empty($p['is_reservation_linked']) && ($isFullDay || $outsideGrid)) {
+                        $banner[] = $p;
+                        continue;
+                    }
+                    if (!$isFullDay && !$outsideGrid) {
+                        $timed[] = $p;
+                    }
+                }
+                $byDay[$key] = array_merge(CalendarLayout::pack($timed), $banner);
             }
         }
 
+        $allDayEntries = array_values(array_filter(
+            $this->buildAllDayEntries($range),
+            fn ($e) => !isset($timedRemindersById[$e['id']])
+        ));
+
         return [
             'byDay' => $byDay,
-            'allDayEntries' => $this->buildAllDayEntries($range),
+            'allDayEntries' => $allDayEntries,
             'spanningReservations' => $spanningReservations,
         ];
     }
@@ -249,6 +290,7 @@ class CalendarPresenter
             }
         }
 
+        $isDayView = $view === 'day';
         $daysMeta = [];
         foreach ($days as $day) {
             $jalali = Jalalian::fromCarbon($day);
@@ -259,10 +301,14 @@ class CalendarPresenter
 
             $dayPills = $byDay[$jKey] ?? [];
             $enriched = [];
-            foreach ($dayPills as $p) {
-                $enriched[] = $view === 'day'
-                    ? $this->withGeometry($p, $gridHeight)
-                    : (empty($p['is_full_day']) ? $this->withGeometry($p, $gridHeight) : $p);
+            if ($isDayView) {
+                foreach ($dayPills as $p) {
+                    $enriched[] = $this->withGeometry($p, $gridHeight);
+                }
+            } else {
+                foreach ($dayPills as $p) {
+                    $enriched[] = empty($p['is_full_day']) ? $this->withGeometry($p, $gridHeight) : $p;
+                }
             }
 
             $daysMeta[] = [
@@ -417,6 +463,27 @@ class CalendarPresenter
                 ];
             });
 
+        $monthStart = $gregorianDate->copy()->startOfMonth();
+        $monthEnd = $gregorianDate->copy()->endOfMonth();
+
+        $reminders = $this->remindersInRange($monthStart, $monthEnd)
+            ->filter(fn (Reminder $r) => $r->due_at->isSameDay($gregorianDate))
+            ->map(function (Reminder $r) {
+                $isSnoozed = $r->snoozed_until && $r->snoozed_until->isFuture();
+
+                return [
+                    'id' => 'reminder-' . $r->id,
+                    'type' => 'reminder',
+                    'title' => $r->title,
+                    'description' => $r->notes ?? '',
+                    'time' => Jalalian::fromCarbon($r->due_at)->format('H:i'),
+                    'is_owner' => false,
+                    'private' => true,
+                    'is_snoozed' => $isSnoozed,
+                    'snoozed_hours' => $isSnoozed ? (int) ceil(now()->diffInMinutes($r->snoozed_until) / 60) : null,
+                ];
+            });
+
         $profiles = $this->getProfilesWithDates();
 
         $birthdays = $profiles->filter(fn($p) => $p->birthdate?->month === $month && $p->birthdate?->day === $day)
@@ -453,8 +520,6 @@ class CalendarPresenter
             }
         }
 
-        $monthStart = $gregorianDate->copy()->startOfMonth();
-        $monthEnd = $gregorianDate->copy()->endOfMonth();
         $dayReservations = collect($this->userReservationsByDay($monthStart, $monthEnd)[$selectedDate] ?? [])
             ->filter(fn(Reservation $r) => !isset($existingResIds[$r->id]))
             ->map(fn(Reservation $r) => $this->reservationPill($r, $selectedDate));
@@ -463,6 +528,7 @@ class CalendarPresenter
             ->concat($holidays)
             ->concat($events)
             ->concat($dayReservations)
+            ->concat($reminders)
             ->concat($birthdays)
             ->concat($anniversaries);
     }
@@ -548,7 +614,12 @@ class CalendarPresenter
 
     private function authId(): ?int
     {
-        return once(fn () => Auth::id());
+        if (!$this->authIdResolved) {
+            $this->authIdCache = Auth::id();
+            $this->authIdResolved = true;
+        }
+
+        return $this->authIdCache;
     }
 
     private function userReservationsByDay(Carbon $start, Carbon $end): array
@@ -598,6 +669,27 @@ class CalendarPresenter
         }
 
         return $byDay;
+    }
+
+    private function remindersInRange(Carbon $start, Carbon $end): Collection
+    {
+        $start = $start->copy()->startOfDay();
+        $end = $end->copy()->endOfDay();
+
+        if ($this->remindersCache === null
+            || $this->remindersRange === null
+            || $start < $this->remindersRange[0]
+            || $end > $this->remindersRange[1]
+        ) {
+            $this->remindersCache = Reminder::query()
+                ->forUser($this->authId() ?? 0)
+                ->whereNull('completed_at')
+                ->whereBetween('due_at', [$start, $end])
+                ->get();
+            $this->remindersRange = [$start, $end];
+        }
+
+        return $this->remindersCache->filter(fn (Reminder $r) => $r->due_at->between($start, $end));
     }
 
     private function userReservationsSpanning(Carbon $start, Carbon $end): array
@@ -693,7 +785,7 @@ class CalendarPresenter
 
     private function todayKey(): string
     {
-        return once(fn () => Jalalian::now()->format('Y-m-d'));
+        return $this->todayKeyCache ??= Jalalian::now()->format('Y-m-d');
     }
 
     private function range(string $navDateYmd, string $view): CalendarRange
@@ -708,6 +800,13 @@ class CalendarPresenter
             ->with('user:id,name')
             ->where(fn($q) => $q->whereNotNull('birthdate')->orWhereNotNull('start_date'))
             ->get();
+    }
+
+    private function reminderCountsByDay(Carbon $start, Carbon $end): array
+    {
+        return $this->remindersInRange($start, $end)
+            ->countBy(fn (Reminder $r) => Jalalian::fromCarbon($r->due_at)->format('Y-m-d'))
+            ->all();
     }
 
     private function getAllHolidays(): array
@@ -804,6 +903,7 @@ class CalendarPresenter
             }
         }
         $reservationsByDay = $this->userReservationsByDay($startDate, $endDate);
+        $reminderCountsByDay = $this->reminderCountsByDay($startDate, $endDate);
 
         $profiles = $this->getProfilesWithDates();
         $birthdays = $profiles->pluck('birthdate')->filter()->map(fn($d) => $d->format('m-d'))->flip();
@@ -858,16 +958,20 @@ class CalendarPresenter
                 $hasReservations = $resCount > 0;
                 $eventCount += $resCount;
 
+                $reminderCount = $reminderCountsByDay[$dateString] ?? 0;
+                $eventCount += $reminderCount;
+
                 $days[] = [
                     'day' => $day,
                     'date' => $dateString,
                     'isToday' => $dateString === $todayStr,
                     'isSelected' => $dateString === $selectedDate,
-                    'hasEvents' => $hasEvent,
+                    'hasEvents' => $hasEvent || $reminderCount > 0,
                     'hasReservations' => $hasReservations,
                     'longHoldDays' => $longHoldDays,
                     'hasBirthday' => $hasBirthday,
                     'hasAnniversary' => $hasAnniversary,
+                    'hasReminder' => $reminderCount > 0,
                     'eventCount' => $eventCount,
                     'hasShared' => $hasShared,
                     'hasImminentShared' => $hasImminentShared,
@@ -890,6 +994,9 @@ class CalendarPresenter
         $holidays = $this->getAllHolidays();
         $holidayIndex = 0;
 
+        $remindersByDay = $this->remindersInRange($range->start, $range->end)
+            ->groupBy(fn (Reminder $r) => Jalalian::fromCarbon($r->due_at)->format('Y-m-d'));
+
         $profiles = $this->getProfilesWithDates();
 
         $birthdayLookup = [];
@@ -907,6 +1014,22 @@ class CalendarPresenter
         foreach ($range->days() as $carbon) {
             $jalaliKey = Jalalian::fromCarbon($carbon)->format('Y-m-d');
             $mdKey = $carbon->format('m-d');
+
+            foreach ($remindersByDay[$jalaliKey] ?? [] as $reminder) {
+                $isSnoozed = $reminder->snoozed_until && $reminder->snoozed_until->isFuture();
+                $entries[] = [
+                    'id' => 'reminder-' . $reminder->id,
+                    'type' => 'reminder',
+                    'title' => $reminder->title,
+                    'description' => $reminder->notes ?? '',
+                    'time' => Jalalian::fromCarbon($reminder->due_at)->format('H:i'),
+                    'is_owner' => false,
+                    'locked' => true,
+                    'date' => $jalaliKey,
+                    'is_snoozed' => $isSnoozed,
+                    'snoozed_hours' => $isSnoozed ? (int) ceil(now()->diffInMinutes($reminder->snoozed_until) / 60) : null,
+                ];
+            }
 
             if (isset($holidays[$jalaliKey])) {
                 foreach ($holidays[$jalaliKey] as $holiday) {

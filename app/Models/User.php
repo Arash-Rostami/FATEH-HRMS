@@ -309,6 +309,13 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->hasOne(Profile::class);
     }
 
+    public function getCasualNameAttribute(): string
+    {
+        $displayName = $this->profile?->detailsMap()->get('display_name');
+
+        return filled($displayName) ? (string) $displayName : $this->name;
+    }
+
     public function reactions(): HasMany
     {
         return $this->hasMany(Reaction::class);

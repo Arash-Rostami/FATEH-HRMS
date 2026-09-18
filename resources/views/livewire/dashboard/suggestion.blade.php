@@ -70,7 +70,9 @@
                                 lazy="on-load"
                             />
                         @else
-                            <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>
+                            <div wire:key="suggestion-detail-loading" class="contents">
+                                <x-ui.loaders.spin-badge text="در حال بارگذاری..."/>
+                            </div>
                         @endif
                     @endif
                 </main>

@@ -62,7 +62,7 @@
                             </div>
 
                             <span
-                                class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] tabular-nums"
+                                class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]"
                                 title="{{ toJalali($post->created_at) }}">
                                 {{ toJalaliRelative($post->created_at) }}
                             </span>
@@ -93,22 +93,24 @@
                 </article>
             @endforeach
         @else
-            <div class="col-span-full">
+            <div wire:key="posts-empty-grid" class="col-span-full">
                 <x-ui.empty icon="feed" title="هیچ اعلانی یافت نشد." variant="list" />
             </div>
         @endif
     </div>
 
-    <div class="mt-8 mb-20 flex justify-center">
-        <x-ui.buttons.load-more
-            action="loadMore"
-            text="نمایش بیشتر"
-            loading-text="در حال دریافت..."
-            icon="expand_more"
-            icon-size="text-xl"
-            wire:island="posts"
-            class="text-xs font-bold px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm hover:shadow-md hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] active:scale-95 duration-300"
-        />
-    </div>
+    @if($this->hasMorePosts)
+        <div class="mt-8 mb-20 flex justify-center">
+            <x-ui.buttons.load-more
+                action="loadMore"
+                text="نمایش بیشتر"
+                loading-text="در حال دریافت..."
+                icon="expand_more"
+                icon-size="text-xl"
+                wire:island="posts"
+                class="text-xs font-bold px-5 py-2.5 rounded-xl bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm hover:shadow-md hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] active:scale-95 duration-300"
+            />
+        </div>
+    @endif
 
 </section>

@@ -63,41 +63,8 @@
                                     </div>
                                 </div>
 
-                                <div x-data="{ open: false, pos: {} }" @keydown.escape.window="open = false" class="relative">
-                                    <button type="button"
-                                            x-ref="trigger"
-                                            @click="pos = $refs.trigger.getBoundingClientRect().toJSON(); open = !open"
-                                            title="فیلتر بازه تاریخ"
-                                            :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': open, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !open }"
-                                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-                                        <span class="material-symbols-rounded text-[18px]">date_range</span>
-                                        @if($this->dateSpanActive())
-                                            <span class="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-[var(--md-sys-color-error)]"></span>
-                                        @endif
-                                    </button>
-
-                                    <template x-teleport="body">
-                                        <div x-show="open"
-                                             x-cloak
-                                             dir="rtl"
-                                             @click.away="if (!$refs.trigger.contains($event.target)) open = false"
-                                             x-transition
-                                             :style="{ position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
-                                             class="w-80 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2.5 shadow-2xl z-50">
-                                            <x-ui.forms.date-span apply="applyDateSpan" clear="clearDateSpan"
-                                                                  :startYear="\Morilog\Jalali\Jalalian::now()->getYear() - 15"
-                                                                  :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1">
-                                                @foreach(['created' => 'ایجاد', 'updated' => 'بروزرسانی'] as $basisKey => $basisLabel)
-                                                    <button type="button"
-                                                            wire:click="setDateBasis('{{ $basisKey }}')"
-                                                            class="flex-1 rounded-lg border py-1.5 text-[11px] font-semibold transition-colors {{ $dateBasis === $basisKey ? 'border-transparent bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)]' }}">
-                                                        {{ $basisLabel }}
-                                                    </button>
-                                                @endforeach
-                                            </x-ui.forms.date-span>
-                                        </div>
-                                    </template>
-                                </div>
+                                <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"
+                                                             :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1"/>
                             </div>
                         </div>
                     </th>
@@ -182,15 +149,15 @@
 
                             <div class="absolute right-0 top-0 z-20 cursor-help pr-1 transition-transform duration-200 group-hover:scale-105">
                                 @if (!$isConfirmed)
-                                    <div class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]" title="نیازمند تایید دریافت">
+                                    <div wire:key="dms-icon-unconfirmed" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]" title="نیازمند تایید دریافت">
                                         <span class="material-symbols-rounded text-[20px]">edit_document</span>
                                     </div>
                                 @elseif ($isConfirmed && !$isRead)
-                                    <div class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="نیازمند تایید مطالعه">
+                                    <div wire:key="dms-icon-unread" class="flex h-10 w-10 animate-pulse items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]" title="نیازمند تایید مطالعه">
                                         <span class="material-symbols-rounded text-[20px]">menu_book</span>
                                     </div>
                                 @else
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]" title="مطالعه شده">
+                                    <div wire:key="dms-icon-read" class="flex h-10 w-10 items-center justify-center rounded-bl-xl border-b border-l border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]" title="مطالعه شده">
                                         <span class="material-symbols-rounded text-[20px]">check_circle</span>
                                     </div>
                                 @endif
@@ -233,7 +200,7 @@
                                 $versionPopover = $this->presenter->versionPopover($doc);
                             @endphp
                             @if($versionPopover)
-                                <div x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-center">
+                                <div wire:key="dms-version-popover" x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-center">
                                     <button type="button" @click="open = !open"
                                             class="inline-flex items-center gap-1 rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1 whitespace-nowrap transition-colors hover:bg-[var(--md-sys-color-surface-container-highest)]"
                                             title="تاریخ ایجاد و بروزرسانی">
@@ -260,7 +227,7 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1">
+                                <span wire:key="dms-version-plain" class="rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1">
                                     {{ $doc->code ?? '' }} - {{ $doc->version ?? 'N/A' }}
                                 </span>
                             @endif
@@ -282,13 +249,13 @@
 
                         <td data-col="details" class="min-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle">
                             @if($extraDetails->count() > 0)
-                                <div x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
+                                <div wire:key="dms-details-popover" x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
                                     <button type="button" @click="open = !open"
                                             title="نمایش جزییات"
                                             class="inline-flex w-max items-center gap-1.5 rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1 text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[var(--md-sys-color-surface-container-highest)]">
                                         <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">list</span>
                                         <span>جزییات</span>
-                                        <span class="rounded-full bg-[var(--md-sys-color-primary-container)] px-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]">{{ $extraDetails->count() }}</span>
+                                        <span class="rounded-full bg-[var(--md-sys-color-primary-container)] px-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian($extraDetails->count()) }}</span>
                                         <span class="material-symbols-rounded text-[12px] opacity-60 transition-transform duration-200" :class="{ 'rotate-180': open }">expand_more</span>
                                     </button>
                                     <div x-show="open" x-transition.origin
@@ -305,7 +272,7 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="flex flex-col gap-1.5 text-xs">
+                                <div wire:key="dms-details-empty" class="flex flex-col gap-1.5 text-xs">
                                     @forelse($extraDetails as $key => $value)
                                         <div class="flex items-center gap-2">
                                             <span class="whitespace-nowrap rounded bg-[var(--md-sys-color-primary-container)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--md-sys-color-on-primary-container)]">{{ $key }}</span>
@@ -328,7 +295,7 @@
 
                                     @if ($isConfirmed)
                                         @if (count($renditions) > 1)
-                                            <div x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
+                                            <div wire:key="dms-renditions-popover" x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
                                                 <button type="button"
                                                         @click="open = !open"
                                                         title="نمایش نسخه‌ها"
@@ -360,7 +327,7 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <a href="{{ route('secure-file', $doc->file) }}"
+                                            <a wire:key="dms-rendition-link" href="{{ route('secure-file', $doc->file) }}"
                                                target="_blank"
                                                wire:click="incrementRead({{ $doc->id }})"
                                                x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
@@ -370,7 +337,7 @@
                                             </a>
                                         @endif
                                     @else
-                                        <div class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm {{ $primaryIcon['bg'] }} {{ $primaryIcon['text'] }}">
+                                        <div wire:key="dms-rendition-locked" class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm {{ $primaryIcon['bg'] }} {{ $primaryIcon['text'] }}">
                                             <span class="material-symbols-rounded text-[15px]">{{ $primaryIcon['icon'] }}</span>
                                             <span class="text-[11px] font-semibold">{{ $primaryIcon['label'] }}</span>
                                         </div>
@@ -400,82 +367,97 @@
                             </div>
                         </td>
 
-                        <td data-col="action" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
-                            @if ($doc->file)
-                                @if(!$isConfirmed)
-                                    <button type="button"
-                                            wire:click="confirmRead({{ $doc->id }})"
-                                            class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-error)]/15 bg-[var(--md-sys-color-error)]/5 px-3 py-2.5 text-[var(--md-sys-color-error)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-error)] hover:text-white hover:shadow-md">
-                                        <span class="material-symbols-rounded text-[22px]">edit_document</span>
-                                        <span class="text-[11px] font-bold">تایید دریافت</span>
-                                    </button>
-                                @elseif ($isConfirmed && !$isRead)
-                                    <a href="{{ route('secure-file', $doc->file) }}"
-                                       target="_blank"
-                                       wire:click="incrementRead({{ $doc->id }})"
-                                       x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
-                                       class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
-                                        <span class="material-symbols-rounded text-[22px]">menu_book</span>
-                                        <span class="text-[11px] font-bold">مشاهده و تایید</span>
-                                    </a>
-                                @else
-                                    <a href="{{ route('secure-file', $doc->file) }}"
-                                       target="_blank"
-                                       wire:click="incrementRead({{ $doc->id }})"
-                                       x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
-                                       class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-transparent px-3 py-2.5 text-[var(--md-sys-color-on-surface-variant)] transition-all duration-300 hover:border-[var(--md-sys-color-primary)]/30 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
-                                        <span class="material-symbols-rounded text-[22px]">visibility</span>
-                                        <span class="text-[11px] font-medium">مشاهده مجدد</span>
-                                    </a>
-                                @endif
-                            @else
-                                <span class="inline-flex items-center gap-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] px-3 py-2 text-xs text-[var(--md-sys-color-outline)]">
-                                        <span class="material-symbols-rounded text-[14px]">link_off</span>
-                                        فایل ندارد
-                                    </span>
-                            @endif
+                        <td data-col="action" class="relative whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                            <div class="absolute left-2 top-2 z-20">
+                                <x-dashboard.reminder-trigger :for="$doc" variant="corner" tooltip-position="right"/>
+                            </div>
 
-                            @if($readCount > 0)
-                                <p class="mt-1.5 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">بازدید شما: {{ convertToPersian($readCount) }} بار</p>
-                            @endif
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="flex items-center gap-1">
+                                    @if ($doc->file)
+                                        @if(!$isConfirmed)
+                                            <button type="button"
+                                                    wire:key="dms-row-confirm"
+                                                    wire:click="confirmRead({{ $doc->id }})"
+                                                    class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-error)]/15 bg-[var(--md-sys-color-error)]/5 px-3 py-2.5 text-[var(--md-sys-color-error)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-error)] hover:text-white hover:shadow-md">
+                                                <span class="material-symbols-rounded text-[22px]">edit_document</span>
+                                                <span class="text-[11px] font-bold">تایید دریافت</span>
+                                            </button>
+                                        @elseif ($isConfirmed && !$isRead)
+                                            <a wire:key="dms-row-open" href="{{ route('secure-file', $doc->file) }}"
+                                               target="_blank"
+                                               wire:click="incrementRead({{ $doc->id }})"
+                                               x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
+                                               class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
+                                                <span class="material-symbols-rounded text-[22px]">menu_book</span>
+                                                <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                                            </a>
+                                        @else
+                                            <a wire:key="dms-row-reopen" href="{{ route('secure-file', $doc->file) }}"
+                                               target="_blank"
+                                               wire:click="incrementRead({{ $doc->id }})"
+                                               x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
+                                               class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-transparent px-3 py-2.5 text-[var(--md-sys-color-on-surface-variant)] transition-all duration-300 hover:border-[var(--md-sys-color-primary)]/30 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                                                <span class="material-symbols-rounded text-[22px]">visibility</span>
+                                                <span class="text-[11px] font-medium">مشاهده مجدد</span>
+                                            </a>
+                                        @endif
+                                    @else
+                                        <span wire:key="dms-row-nofile" class="inline-flex items-center gap-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] px-3 py-2 text-xs text-[var(--md-sys-color-outline)]">
+                                                <span class="material-symbols-rounded text-[14px]">link_off</span>
+                                                فایل ندارد
+                                            </span>
+                                    @endif
+                                </div>
+
+                                @if($readCount > 0)
+                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">بازدید شما: {{ convertToPersian($readCount) }} بار</p>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr wire:key="dms-empty-row">
                         <td colspan="7" class="py-8">
                             @if($pendingFilter)
-                                <x-ui.empty icon="task_alt"
-                                            title="هیچ سند معوقی باقی نمانده"
-                                            description="فیلتر سندهای نیازمند اقدام فعال است"
-                                            variant="filtered" />
+                                <div wire:key="dms-empty-pending" class="contents">
+                                    <x-ui.empty icon="task_alt"
+                                                title="هیچ سند معوقی باقی نمانده"
+                                                description="فیلتر سندهای نیازمند اقدام فعال است"
+                                                variant="filtered" />
 
-                                <div class="mt-3 flex justify-center">
-                                    <button type="button"
-                                            wire:click="clearPendingFilter"
-                                            class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
-                                        <span class="material-symbols-rounded text-[16px]">filter_alt_off</span>
-                                        نمایش همه اسناد
-                                    </button>
+                                    <div class="mt-3 flex justify-center">
+                                        <button type="button"
+                                                wire:click="clearPendingFilter"
+                                                class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                                            <span class="material-symbols-rounded text-[16px]">filter_alt_off</span>
+                                            نمایش همه اسناد
+                                        </button>
+                                    </div>
                                 </div>
                             @elseif($this->dateSpanActive())
-                                <x-ui.empty icon="event_busy"
-                                            title="سندی در این بازه تاریخ یافت نشد"
-                                            description="فیلتر بازه تاریخ فعال است"
-                                            variant="filtered" />
+                                <div wire:key="dms-empty-datespan" class="contents">
+                                    <x-ui.empty icon="event_busy"
+                                                title="سندی در این بازه تاریخ یافت نشد"
+                                                description="فیلتر بازه تاریخ فعال است"
+                                                variant="filtered" />
 
-                                <div class="mt-3 flex justify-center">
-                                    <button type="button"
-                                            wire:click="clearDateSpan"
-                                            class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
-                                        <span class="material-symbols-rounded text-[16px]">event_available</span>
-                                        حذف فیلتر تاریخ
-                                    </button>
+                                    <div class="mt-3 flex justify-center">
+                                        <button type="button"
+                                                wire:click="clearDateSpan"
+                                                class="inline-flex items-center gap-1.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-4 py-2 text-sm font-medium text-[var(--md-sys-color-primary)] shadow-sm transition hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                                            <span class="material-symbols-rounded text-[16px]">event_available</span>
+                                            حذف فیلتر تاریخ
+                                        </button>
+                                    </div>
                                 </div>
                             @else
-                                <x-ui.empty icon="folder_off"
-                                            title="هیچ سندی یافت نشد"
-                                            description="لطفاً فیلترها را بررسی کنید"
-                                            variant="filtered" />
+                                <div wire:key="dms-empty-none" class="contents">
+                                    <x-ui.empty icon="folder_off"
+                                                title="هیچ سندی یافت نشد"
+                                                description="لطفاً فیلترها را بررسی کنید"
+                                                variant="filtered" />
+                                </div>
                             @endif
                         </td>
                     </tr>

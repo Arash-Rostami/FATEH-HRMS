@@ -7,7 +7,7 @@ use Livewire\Attributes\Validate;
 
 class EditMessageForm extends Form
 {
-    #[Validate('required|string|min:1|max:2000')]
+    #[Validate('required|string|min:1|max:2000', onUpdate: false)]
     public string $editingBody = '';
 
     protected function messages(): array

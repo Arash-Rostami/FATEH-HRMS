@@ -3,25 +3,49 @@
 @endphp
 
 @php $chipNames = count($this->groupedMessages) > 0 ? array_keys($this->mentionMemberMap) : []; @endphp
-<div x-show="{{ count($chipNames) }} > 1" x-cloak
-     x-on:mouseenter="revealChips()"
+<div x-show="{{ count($chipNames) }} > 1 || typeFilterOpen || typeFilter" x-cloak
+     x-on:mouseenter="revealChips(); syncChipScroll()"
      x-on:mouseleave="scheduleChipsFade()"
-     :class="chipsVisible ? 'opacity-100' : 'opacity-0'"
-     class="flex-shrink-0 px-4 md:px-8 pt-3 pb-1 bg-[var(--md-sys-color-surface)] transition-opacity duration-500">
-    <div class="flex items-center gap-1.5 overflow-x-auto msg-scrollbar" :class="chipsVisible ? '' : 'pointer-events-none'">
-        <button type="button" x-on:click="clearSenderFilter()"
-                :class="activeSender === null ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
-                class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95">
-            همه
+     :class="chipsVisible || typeFilterOpen || typeFilter ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'"
+     class="flex-shrink-0 sticky top-0 z-10 px-3 md:px-6 py-1.5 md:py-2 bg-[var(--md-sys-color-surface)] border-b border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300">
+    <div class="flex flex-row-reverse items-center gap-1.5 md:gap-2.5 min-w-0" :class="chipsVisible || typeFilterOpen || typeFilter ? '' : 'pointer-events-none'">
+
+        <div x-show="typeFilterOpen || typeFilter" x-cloak class="flex-shrink-0">
+            @include('livewire.dashboard.messaging.type-filter')
+        </div>
+
+        <div x-show="{{ count($chipNames) }} > 1" class="flex-1 min-w-0 flex items-center gap-1 md:gap-1.5">
+            <button type="button" x-show="chipScroll.prev" x-cloak x-on:click="pageChips(1)" aria-label="نام‌های قبلی"
+                    class="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] hover:border-[var(--md-sys-color-primary)]/40 hover:bg-[var(--md-sys-color-surface-container)] transition-all duration-150 active:scale-95 shadow-xs">
+                <span class="material-symbols-rounded text-[13px] md:text-[15px]">chevron_right</span>
+            </button>
+
+            <div id="sender-chip-track" x-init="syncChipScroll()" x-on:scroll.passive="syncChipScroll()"
+                 class="flex-1 min-w-0 flex items-center gap-1 md:gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+                @foreach($chipNames as $name)
+                    <button type="button" wire:key="chip-{{ $name }}" x-on:click="filterSender(@js($name))"
+                            :class="activeSender === @js($name)
+                                ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-xs border-transparent font-semibold'
+                                : 'bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/30 hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] hover:border-[var(--md-sys-color-outline-variant)]/60 font-medium'"
+                            class="flex-shrink-0 inline-flex items-center justify-center h-6 md:h-7 px-2.5 md:px-3 rounded-lg border text-[10px] md:text-[11px] leading-none tracking-tight whitespace-nowrap transition-all duration-150 select-none active:scale-95">
+                        {{ $name }}
+                    </button>
+                @endforeach
+            </div>
+
+            <button type="button" x-show="chipScroll.next" x-cloak x-on:click="pageChips(-1)" aria-label="نام‌های بعدی"
+                    class="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] hover:border-[var(--md-sys-color-primary)]/40 hover:bg-[var(--md-sys-color-surface-container)] transition-all duration-150 active:scale-95 shadow-xs">
+                <span class="material-symbols-rounded text-[13px] md:text-[15px]">chevron_left</span>
+            </button>
+        </div>
+
+        <button type="button" x-show="typeFilter || activeSender" x-cloak x-on:click="clearAllFilters()"
+                class="flex-shrink-0 inline-flex items-center gap-1 h-6 md:h-7 px-2 md:px-2.5 rounded-lg border border-dashed border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-lowest)] text-[10px] md:text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] hover:border-[var(--md-sys-color-error)]/50 hover:bg-[var(--md-sys-color-error-container)]/15 transition-all duration-150 active:scale-95">
+            <span class="material-symbols-rounded text-[13px] md:text-[14px]">close</span>
+            <span>همه</span>
         </button>
-        @foreach($chipNames as $name)
-            <button type="button" wire:key="chip-{{ $name }}" x-on:click="filterSender(@js($name))"
-                    :class="activeSender === @js($name) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
-                    class="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all hover:brightness-95 active:scale-95">{{ $name }}</button>
-        @endforeach
     </div>
 </div>
-
 <div id="msg-viewport"
      class="flex flex-col flex-1 overflow-y-auto px-4 md:px-8 border-none shadow-[inset_0_4px_20px_color-mix(in_srgb,var(--md-sys-color-shadow)_3%,transparent)] py-6 space-y-1 msg-scrollbar relative"
      x-bind:class="{
@@ -29,7 +53,7 @@
          'bg-[var(--md-sys-color-surface)]': !isHighlighted
      }"
      role="log"
-     aria-label="پیام‌های کانال"
+     aria-label="پیام‌های گروه"
      aria-live="polite"
      aria-relevant="additions">
 
@@ -66,6 +90,8 @@
             <div wire:key="cmsg-{{ $msg['id'] }}"
                  data-rf="channel-message-{{ $msg['id'] }}"
                  data-sender-name="{{ $msg['sender_name'] }}"
+                 data-types="{{ $msg['type_flags'] }}"
+                 x-show="passesTypeFilter($el.dataset.types)"
                  x-on:click="if(window.getSelection().toString().trim()==='' && !$event.target.closest('a,button,[role=button],[contenteditable],input,textarea')) toggleActions({{ $msg['id'] }})"
                  :class="activeSender && $el.dataset.senderName !== activeSender ? 'opacity-40 grayscale transition-opacity' : ''"
                  @class([
@@ -170,7 +196,7 @@
                                     <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
                                     <span class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
                                 @endif
-                                <time class="text-[10px] font-medium tabular-nums text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
+                                <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 @if($msg['is_mine'])
                                     @php
                                         $rs = $this->presenter->readerSummary($msg);
@@ -192,7 +218,7 @@
                                                 @endforeach
                                             </span>
                                             @if($rs['extra'] > 0)
-                                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-70" dir="ltr">+{{ $rs['extra'] }}</span>
+                                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-70" dir="ltr">+{{ convertToPersian($rs['extra']) }}</span>
                                             @endif
                                         @endif
                                     </span>
@@ -211,7 +237,7 @@
             </div>
             <div>
                 <p class="text-base font-bold text-[var(--md-sys-color-on-surface)]">شروع گفتگو در {{ $this->activeChannel->name }}</p>
-                <p class="text-[11px] mt-2 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اولین پیام خود را در این کانال ارسال کنید</p>
+                <p class="text-[11px] mt-2 leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اولین پیام خود را در این گروه ارسال کنید</p>
             </div>
         </div>
     @endforelse

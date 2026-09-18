@@ -1,5 +1,5 @@
 @if($this->internalLinks->isNotEmpty())
-    <section class="relative group/section" x-data="{
+    <section wire:key="links-internal" class="relative group/section" x-data="{
             hasOverflow: false,
             checkScroll() {
                 const el = this.$refs.container;
@@ -116,8 +116,12 @@
     </section>
 @else
     @if($search !== '' || $activeFilter !== 'all')
-        <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        <div wire:key="links-internal-empty-filtered" class="mt-6">
+            <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="جستجو یا فیلتر را تغییر دهید." variant="list" />
+        </div>
     @else
-        <x-ui.empty icon="link_off" title="هیچ سامانه داخلی تعریف نشده" description="سامانه‌های درون‌سازمانی توسط مدیر تعریف می‌شوند." variant="list" />
+        <div wire:key="links-internal-empty" class="mt-6">
+            <x-ui.empty icon="link_off" title="هیچ سامانه داخلی تعریف نشده" description="سامانه‌های درون‌سازمانی توسط مدیر تعریف می‌شوند." variant="list" />
+        </div>
     @endif
 @endif

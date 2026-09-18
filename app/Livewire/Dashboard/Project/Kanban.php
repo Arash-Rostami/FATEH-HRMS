@@ -61,6 +61,18 @@ class Kanban extends Component
     }
 
     #[Computed]
+    public function taskBoardPresenter(): TaskBoardPresenter
+    {
+        return new TaskBoardPresenter();
+    }
+
+    #[Computed]
+    public function dmsPresenter(): DmsPresenter
+    {
+        return new DmsPresenter();
+    }
+
+    #[Computed]
     public function staffMembers(): array
     {
         return User::getCachedActiveOptions()

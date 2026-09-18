@@ -85,6 +85,10 @@
                     </div>
                 </div>
 
+                <div class="absolute left-0 -top-1 z-20">
+                    <x-dashboard.reminder-trigger :for="$reservation" variant="corner" tooltip-position="right"/>
+                </div>
+
                 @if($activeHistoryTab === 'upcoming')
                     <button x-data
                             @click="$dispatch('open-confirmation', {
@@ -120,11 +124,13 @@
                 @endif
             </div>
         @empty
-            <x-ui.empty icon="{{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="صندوق خالی است" description="موردی برای نمایش وجود ندارد." variant="list" />
+            <div wire:key="reservation-history-empty" class="contents">
+                <x-ui.empty icon="{{ match($activeHistoryTab) { 'upcoming' => 'event_available', 'previous' => 'history_toggle_off', 'cancelled' => 'block', 'released' => 'autorenew', default => 'done_all' } }}" title="صندوق خالی است" description="موردی برای نمایش وجود ندارد." variant="list" />
+            </div>
         @endforelse
 
         @if($this->totalHistoryReservations > count($this->historyReservations))
-            <div class="mt-2 flex justify-center w-full">
+            <div wire:key="reservation-history-load-more" class="mt-2 flex justify-center w-full">
                 <x-ui.buttons.load-more
                     action="loadMoreHistory"
                     text="موارد بیشتر"

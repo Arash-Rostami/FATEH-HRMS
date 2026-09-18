@@ -111,7 +111,7 @@
                 </div>
 
             @empty
-                <div class="col-span-full">
+                <div wire:key="credentials-empty" class="col-span-full">
                     <div class="flex flex-col items-center justify-center py-16 text-center bg-[var(--md-sys-color-surface)] rounded-2xl border border-dashed border-[var(--md-sys-color-outline-variant)] shadow-sm">
                         <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" description="هیچ سامانه‌ای با عبارت «{{ $search }}» مطابقت ندارد." variant="search" :animate="true">
                             <button type="button" wire:click="$set('search', '')" class="mt-5 px-5 py-2 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] font-bold text-sm hover:brightness-95 transition-all">پاک کردن جستجو</button>

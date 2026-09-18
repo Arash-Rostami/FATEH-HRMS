@@ -12,7 +12,7 @@ return [
         'owner'       => 'مالک',
         'member_ids'  => 'اعضا',
         'departments' => 'دپارتمان‌ها',
-        'channel'     => 'کانال گفتگو',
+        'channel'     => 'گروه گفتگو',
         'tasks_count' => 'تعداد وظایف',
         'progress'    => 'پیشرفت',
         'archived_at' => 'تاریخ آرشیو',

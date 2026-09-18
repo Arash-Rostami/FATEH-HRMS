@@ -3,7 +3,9 @@
 namespace App\Services\ProjectTask;
 
 use App\Enums\TaskActivityType;
+use App\Models\Project;
 use App\Models\Reply;
+use App\Models\User;
 
 class SaveEditReplyAction
 {
@@ -26,12 +28,18 @@ class SaveEditReplyAction
             return false;
         }
 
+        $projectId = $reply->projectId();
+
+        if ($projectId && !Project::whereKey($projectId)->visibleTo(User::findOrFail($userId))->exists()) {
+            return false;
+        }
+
         $reply->update([
             'body' => $body,
             'payload' => [...($reply->payload ?? []), 'edited_at' => now()->toIso8601String()],
         ]);
 
-        if ($projectId = $reply->projectId()) {
+        if ($projectId) {
             ProjectHeartbeat::bump($projectId, 'activity');
         }
 

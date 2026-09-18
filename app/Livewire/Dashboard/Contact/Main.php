@@ -17,6 +17,7 @@ use App\Models\Message;
 use App\Models\User;
 use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
@@ -25,6 +26,7 @@ use Livewire\Attributes\Isolate;
 use Livewire\Attributes\Js;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +40,7 @@ class Main extends Component
 
     public MessageComposerForm $composer;
     public EditMessageForm $edit;
+    #[Locked]
     public ?int $activeUserId = null;
     public string $search = '';
     public string $filter = 'all';
@@ -228,6 +231,7 @@ class Main extends Component
     public function refreshActive(): void
     {
         $this->invalidateMessageCache();
+        unset($this->activeContact);
     }
 
     #[Computed]
@@ -347,10 +351,31 @@ class Main extends Component
         unset($this->contacts);
     }
 
+    #[Renderless]
+    public function pingTyping(): void
+    {
+        if (!$this->activeUserId) {
+            return;
+        }
+
+        Cache::put("typing:dm:" . auth()->id() . ":{$this->activeUserId}", true, now()->addSeconds(8));
+    }
+
+    #[Computed]
+    public function peerTyping(): bool
+    {
+        if (!$this->activeUserId) {
+            return false;
+        }
+
+        return (bool) Cache::get("typing:dm:{$this->activeUserId}:" . auth()->id());
+    }
+
     public function send(SendMessageAction $action): void
     {
         try {
             $action->execute($this->composer, $this->activeUserId);
+            Cache::forget("typing:dm:" . auth()->id() . ":{$this->activeUserId}");
             $this->composer->reset();
             $this->focusAnchorId = null;
             $this->focusOlder = 5;

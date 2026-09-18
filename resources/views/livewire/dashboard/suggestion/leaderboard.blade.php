@@ -1,5 +1,5 @@
 @if($this->topContributors->count() > 0)
-    <div x-data="{ open: false }" class="fixed right-0 top-[20%] z-[60] flex items-start">
+    <div wire:key="suggestion-leaderboard" x-data="{ open: false }" class="fixed right-0 top-[20%] z-[60] flex items-start">
         <button @click="open = true"
                 class="bg-gradient-to-b from-[var(--md-sys-color-surface-variant)] to-[var(--md-sys-color-surface)] border-y border-l border-[var(--md-sys-color-outline-variant)]/50 shadow-md p-3 rounded-l-2xl flex flex-col items-center justify-center transition-all duration-300 hover:pr-4"
                 x-show="!open"
@@ -60,14 +60,14 @@
                             ])>
                                 <span class="flex items-center gap-1 cursor-help" title="مجموع پیشنهادات">
                                     <span class="material-symbols-rounded !text-[14px]">lightbulb</span>
-                                    {{ $contributor->total_suggestions }}
+                                    {{ convertToPersian($contributor->total_suggestions) }}
                                 </span>
                                 <span @class([
                                     'flex items-center gap-1 cursor-help',
                                     'text-[var(--md-sys-color-primary)]' => $index > 2,
                                 ]) title="پیشنهادات پذیرفته شده">
                                     <span class="material-symbols-rounded !text-[14px]">check_circle</span>
-                                    {{ $contributor->accepted_suggestions ?? 0 }}
+                                    {{ convertToPersian($contributor->accepted_suggestions ?? 0) }}
                                 </span>
                             </div>
                         </div>

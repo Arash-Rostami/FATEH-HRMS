@@ -1,6 +1,5 @@
 @php ($cal = $this->calendarDays)
-@php ($presenter = new \App\Livewire\Dashboard\Project\Presentation\ProjectPresenter())
-@php ($legend = $presenter->lifecycleLegend())
+@php ($legend = $this->presenter->lifecycleLegend())
 @php ($calModes = [
     ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای شبکه‌ای'],
     ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای فهرستی'],
@@ -45,14 +44,14 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 @foreach ($this->overdueCarry as $carry)
-                    @php ($carryDate = $presenter->carryDateText($carry))
+                    @php ($carryDate = $this->presenter->carryDateText($carry))
                     <button type="button" wire:key="carry-{{ $carry['task_id'] }}"
                             x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $carry['task_id'] }} })"
                             class="inline-flex items-center gap-1.5 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_60%,transparent)] text-[var(--md-sys-color-on-error-container)] px-2.5 py-1.5 text-[10px] md:text-[11px] font-semibold hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_18%,transparent)] transition-colors max-w-full">
                         <span class="material-symbols-rounded text-[13px]">schedule</span>
                         <span class="truncate max-w-[18ch]" title="{{ $carry['title'] }}">{{ $carry['title'] }}</span>
                         <span class="opacity-70 whitespace-nowrap" dir="rtl">{{ $carryDate }}</span>
-                        @if ($carrySlip = $presenter->slipText($carry))
+                        @if ($carrySlip = $this->presenter->slipText($carry))
                             <span class="shrink-0 rounded px-1 bg-[var(--md-sys-color-warning-container)] text-[var(--md-sys-color-on-warning-container)] text-[9px] font-bold">{{ $carrySlip }}</span>
                         @endif
                     </button>
@@ -124,7 +123,7 @@
                                             'text-[var(--md-sys-color-outline)]' => !$day['hasOpenDeadline'] && !$day['isSelected'],
                                         ])>{{ $legend['deadline']['icon'] }}</span>
                                         @if ($day['deadlineCount'] > 1)
-                                            <span class="text-[7px] sm:text-[8px] md:text-[9.5px] font-bold tabular-nums leading-none {{ $day['isSelected'] ? 'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_90%,transparent)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ convertToPersian($day['deadlineCount'] - 1) }}</span>
+                                            <span class="text-[7px] sm:text-[8px] md:text-[9.5px] font-bold leading-none {{ $day['isSelected'] ? 'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_90%,transparent)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ convertToPersian($day['deadlineCount'] - 1) }}</span>
                                         @endif
                                     </div>
                                 @endif
@@ -162,7 +161,7 @@
                     </thead>
                     <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/10">
                     @forelse ($this->selectedDayTimeline as $event)
-                        @php ($d = $presenter->lifecycleEventData($event))
+                        @php ($d = $this->presenter->lifecycleEventData($event))
                         <tr wire:key="timeline-{{ $event['marker'] }}-{{ $event['task_id'] }}-{{ $event['time'] }}"
                             x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $event['task_id'] }} })" dir="auto"
                             class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 cursor-pointer group">
@@ -209,7 +208,7 @@
                 </thead>
                 <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/10">
                 @forelse ($this->monthAgenda as $event)
-                    @php ($d = $presenter->lifecycleEventData($event))
+                    @php ($d = $this->presenter->lifecycleEventData($event))
                     <tr wire:key="agenda-{{ $event['date'] }}-{{ $event['marker'] }}-{{ $event['task_id'] }}-{{ $event['time'] }}"
                         wire:click="selectCalendarDay('{{ $event['date'] }}')" dir="rtl"
                         class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 cursor-pointer group">
@@ -246,6 +245,6 @@
     </div>
 
     <div wire:key="calendar-gantt-pane-{{ $activeProjectId }}" x-show="calView === 'gantt'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-        @include('livewire.dashboard.project.calendar.gantt')
+        @include('livewire.dashboard.project.calendar.gantt', ['presenter' => $this->presenter])
     </div>
 </div>

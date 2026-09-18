@@ -10,6 +10,7 @@ use App\Services\Menu\Notifications\FeedNudge;
 use App\Services\Menu\Notifications\PhotoNudge;
 use App\Services\Menu\Notifications\PostNudge;
 use App\Services\Menu\Notifications\ProjectNudge;
+use App\Services\Menu\Notifications\ReminderOverdueNudge;
 use App\Services\Menu\Notifications\ReportNudge;
 use App\Services\Menu\Notifications\SharedEventsNudge;
 use App\Services\Menu\Notifications\SuggestionNudge;
@@ -40,5 +41,6 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new ThsNudge());
         NudgeService::register(new DmsNudge());
         NudgeService::register(new ChannelNudge());
+        NudgeService::register(new ReminderOverdueNudge());
     }
 }

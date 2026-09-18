@@ -12,6 +12,8 @@ class FeedResource extends SearchResource
     protected string $icon = 'rss_feed';
     protected string $model = Feed::class;
     protected array $columns = ['content', 'category'];
+
+    protected int $recencyMonths = 6;
     protected ?string $subtitleField = 'content';
 
     public function action($row): string

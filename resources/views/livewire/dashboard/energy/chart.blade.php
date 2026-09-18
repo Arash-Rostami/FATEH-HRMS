@@ -100,7 +100,7 @@
                                 </div>
                                 <p class="text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] text-center line-clamp-1">{{ $sectionTitle }}</p>
                                 <p class="text-lg font-bold leading-none"
-                                   style="color: var({{ $colorVar }}, var(--md-sys-color-on-surface));">{{ $score }}</p>
+                                   style="color: var({{ $colorVar }}, var(--md-sys-color-on-surface));">{{ convertToPersian((string) $score) }}</p>
                             </div>
                         @endforeach
                     </div>

@@ -27,8 +27,8 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 text-xs text-[var(--md-sys-color-on-surface-variant)]">
-            <span class="tabular-nums">{{ convertToPersian($row['completed']) }} تکمیل‌شده</span>
-            <span class="inline-flex items-center gap-1 tabular-nums">
+            <span>{{ convertToPersian($row['completed']) }} تکمیل‌شده</span>
+            <span class="inline-flex items-center gap-1">
                 {{ $row['on_time_percent'] !== null ? convertToPersian($row['on_time_percent']) . '٪ به‌موقع' : '—' }}
                 @if($type === 'project')
                     @php($health = $presenter->projectHealthChip($row))
@@ -39,8 +39,8 @@
                     @endif
                 @endif
             </span>
-            <span class="tabular-nums">{{ convertToPersian($row['still_overdue']) }} معوق</span>
-            <span class="tabular-nums">{{ convertToPersian($row['in_progress']) }} در جریان</span>
+            <span>{{ convertToPersian($row['still_overdue']) }} معوق</span>
+            <span>{{ convertToPersian($row['in_progress']) }} در جریان</span>
         </div>
 
         @if($type === 'project' && !$readOnly)

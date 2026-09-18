@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasMenuState;
+use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasStageHelpers;
 use App\Models\Concerns\HasSuggestionAlert;
 use App\Services\ContentSanitizerService;
@@ -19,6 +20,7 @@ class Suggestion extends Model
 {
     use HasMenuState,
         HasFactory,
+        HasReminders,
         HasStageHelpers,
         HasSuggestionAlert,
         CleansAttachedFiles;

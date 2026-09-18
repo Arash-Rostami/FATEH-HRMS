@@ -110,7 +110,7 @@ DB_CONNECTION=mysql  DB_HOST=127.0.0.1  DB_DATABASE=...
 SESSION_DRIVER=database  QUEUE_CONNECTION=database  CACHE_STORE=database  MAIL_MAILER=log
 ```
 
-- **`config/modules.php`** — the module registry (id, icon, title, category, descriptions). Edit to add/reorder modules; both panels pick it up automatically.
+- **`config/modules.php`** — the module registry (id, icon, title, category, descriptions + an optional `nav` mapping: `type` tab/route/url, `target`, with optional `key`/`title`/`icon` overrides for the compact workspace face). Edit to add/reorder modules; both panels pick it up automatically, and entries carrying `nav` automatically appear in the user-panel home surfaces (quick-access launchpad + hero gadget picker) via `TabPresenter::shortcuts()`.
 - **`config/app.php`** — env-driven brand keys (name, company/organization, slogan, logo, version, support) consumed across Blade views.
 - **Theme / PWA** — Tailwind 4 theme tokens and the Workbox PWA config live under `resources/` and `vite.config.js`.
 

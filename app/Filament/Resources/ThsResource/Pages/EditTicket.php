@@ -27,10 +27,12 @@ class EditTicket extends EditRecord
 
     protected function afterSave(): void
     {
-        if (!$this->record->wasChanged(['assigned_to', 'priority'])) {
-            return;
+        if ($this->record->wasChanged(['assigned_to', 'priority'])) {
+            app(AssignTicketAction::class)->syncForAdmin($this->record, $this->record->assigned_to);
         }
 
-        app(AssignTicketAction::class)->syncForAdmin($this->record, $this->record->assigned_to);
+        if ($this->record->wasChanged('status') && $this->record->status === 'closed') {
+            app(AssignTicketAction::class)->markLinkedTaskDone($this->record);
+        }
     }
 }

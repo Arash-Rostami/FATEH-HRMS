@@ -13,6 +13,7 @@ import registerActivityReactionPickerStore from './stores/activityReactionPicker
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
 import home from "./data/home.js";
+import heroDeck from "./data/heroDeck.js";
 import shortcut from "./data/shortcut.js";
 import scrollManager from "./data/scrollManager.js";
 import mobile from "./data/mobile.js";
@@ -62,6 +63,7 @@ export default function initAlpine() {
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)
         Alpine.data('home', home)
+        Alpine.data('heroDeck', heroDeck)
         Alpine.data('shortcut', shortcut)
         Alpine.data('scrollManager', scrollManager)
         Alpine.data('mobile', mobile)

@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Builder;
 class ChannelMessageResource extends SearchResource
 {
     protected string $type = 'channel-message';
-    protected string $group = 'پیام‌های کانال';
+    protected string $group = 'پیام‌های گروه';
     protected string $icon = 'forum';
     protected string $model = ChannelMessage::class;
     protected array $columns = ['body'];
+
+    protected int $recencyMonths = 6;
     protected ?string $subtitleField = 'body';
 
     public function action($row): string

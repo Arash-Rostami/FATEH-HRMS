@@ -1,5 +1,9 @@
 <div class="space-y-5">
     @if($this->ticket)
+        <div class="flex items-center justify-end">
+            <x-dashboard.reminder-trigger :for="$this->ticket"/>
+        </div>
+
         {{-- Assignee card + assign control --}}
         <div class="flex items-center gap-4 bg-[var(--md-sys-color-primary-container)] p-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm flex-wrap">
             <div class="w-12 h-12 rounded-lg text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center font-bold text-lg shadow-inner bg-[var(--md-sys-color-secondary-container)]">
@@ -13,14 +17,53 @@
             </div>
 
             @if($this->canAssign)
+                @php($selectedAssignee = $this->assignableUsers->firstWhere('id', (int) $assigneeId))
                 <div class="mr-auto flex items-center gap-2">
-                    <select wire:model="assigneeId"
-                            class="text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-3 py-2 text-[var(--md-sys-color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
-                        <option value="">انتخاب کارشناس...</option>
-                        @foreach($this->assignableUsers as $candidate)
-                            <option value="{{ $candidate->id }}">{{ $candidate->name }}</option>
-                        @endforeach
-                    </select>
+                    <div x-data="{ open: false }" class="relative">
+                        <button type="button"
+                                x-on:click="open = !open"
+                                x-on:click.outside="open = false"
+                                class="flex items-center gap-2 text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] pr-2 pl-3 py-1.5 text-[var(--md-sys-color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] min-w-[170px]">
+                            @if($selectedAssignee)
+                                <div wire:key="ths-assignee-selected" class="relative flex-shrink-0">
+                                    <div class="w-6 h-6 rounded-lg overflow-hidden">
+                                        <x-ui.avatar :existingImage="$selectedAssignee->getProfileImageUrl() ?? $selectedAssignee->getInitialsAvatarUrl()"
+                                                     :alt="$selectedAssignee->name" icon-size="text-xs" class="rounded-lg"/>
+                                    </div>
+                                    @if($selectedAssignee->presence)
+                                        <span class="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $selectedAssignee->presence->activeClass() }}"></span>
+                                    @endif
+                                </div>
+                            @endif
+                            <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب کارشناس...' }}</span>
+                            <span class="material-symbols-rounded text-[16px] mr-auto text-[var(--md-sys-color-on-surface-variant)]">expand_more</span>
+                        </button>
+
+                        <div x-show="open" x-transition style="display: none;"
+                             class="absolute z-50 mt-1 w-60 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-xl shadow-lg overflow-hidden">
+                            <ul class="max-h-56 overflow-y-auto custom-scrollbar">
+                                @foreach($this->assignableUsers as $candidate)
+                                    <li wire:key="ths-assignee-{{ $candidate->id }}">
+                                        <button type="button"
+                                                wire:click="$set('assigneeId', '{{ $candidate->id }}')"
+                                                x-on:click="open = false"
+                                                class="w-full flex items-center gap-2 text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors {{ $candidate->id === (int) $assigneeId ? 'bg-[var(--md-sys-color-primary-container)]/50 font-bold' : '' }}">
+                                            <div class="relative flex-shrink-0">
+                                                <div class="w-7 h-7 rounded-lg overflow-hidden">
+                                                    <x-ui.avatar :existingImage="$candidate->getProfileImageUrl() ?? $candidate->getInitialsAvatarUrl()"
+                                                                 :alt="$candidate->name" icon-size="text-xs" class="rounded-lg"/>
+                                                </div>
+                                                @if($candidate->presence)
+                                                    <span class="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $candidate->presence->activeClass() }}"></span>
+                                                @endif
+                                            </div>
+                                            <span class="truncate">{{ $candidate->name }}</span>
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
                     <x-ui.buttons.form type="button" wire:click="assign" loading="assign"
                             class="!h-auto !px-3 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110">
                         تخصیص
@@ -59,7 +102,7 @@
                 @endif
 
                 @if($this->canClose && $this->ticket->status !== 'closed')
-                    <x-ui.buttons.form type="button" wire:click="closeTicket" loading="closeTicket"
+                    <x-ui.buttons.form wire:key="ths-close-ticket" type="button" wire:click="closeTicket" loading="closeTicket"
                             class="mt-3 !h-auto !px-4 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] hover:brightness-110">
                         بستن تیکت
                     </x-ui.buttons.form>
@@ -81,19 +124,21 @@
                 @forelse($this->ticket->replies as $reply)
                     @include('livewire.dashboard.ths.workspace.reply-bubble', ['reply' => $reply, 'animateIn' => $loop->last])
                 @empty
-                    <p class="text-xs italic opacity-70 text-[var(--md-sys-color-on-surface-variant)] text-center py-4">هنوز پاسخی ثبت نشده است...</p>
+                    <div wire:key="ths-replies-empty" class="contents">
+                        <x-ui.empty icon="forum" title="هنوز پاسخی برای این تیکت ثبت نشده است" />
+                    </div>
                 @endforelse
             </div>
 
             @if($this->canReply)
-                <form wire:submit.prevent="postReply" x-data="{ empty: true }" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
+                <form wire:key="ths-reply-composer" wire:submit.prevent="postReply" x-data="{ empty: true }" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
                     <textarea wire:model.defer="replyForm.body" rows="2" placeholder="پاسخ خود را بنویسید..."
                               @input="empty = $event.target.value.trim().length === 0"
                               class="w-full rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)]"></textarea>
                     @error('replyForm.body') <p class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
 
                     @if(count($replyForm->files))
-                        <div class="flex flex-wrap items-center gap-1.5">
+                        <div wire:key="ths-reply-staged" class="flex flex-wrap items-center gap-1.5">
                             @foreach($replyForm->files as $i => $file)
                                 <div wire:key="staged-ths-reply-file-{{ $i }}"
                                      class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg max-w-[180px] bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40">
@@ -126,7 +171,7 @@
                     @error('replyForm.files') <p class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
                 </form>
             @elseif($this->ticket->status === 'closed')
-                <p class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 text-[11px] text-center italic opacity-60 text-[var(--md-sys-color-on-surface-variant)]">
+                <p wire:key="ths-reply-closed" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 text-[11px] text-center italic opacity-60 text-[var(--md-sys-color-on-surface-variant)]">
                     این تیکت بسته شده و امکان ارسال پاسخ جدید وجود ندارد.
                 </p>
             @endif
