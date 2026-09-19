@@ -92,7 +92,7 @@ return [
         ],
 
         'ai_assistant' => [
-            'access' => true,
+            'access' => false,
             'lang' => 'fa',
         ],
     ],

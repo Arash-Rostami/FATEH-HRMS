@@ -89,7 +89,7 @@ The minimal invite flow: the **owner** adds/removes members (the membership row 
 
 ## 4. Data model (3 tables)
 
-### `channels` (`2026_07_05_000001`)
+### `channels` (`2026_09_19_000041`)
 ```
 id (PK, bigIncrements)
 name        string(100)
@@ -102,7 +102,7 @@ indexes: slug, owner_id, deleted_at
 ```
 Model: `App\Models\Channel` — `SoftDeletes, Prunable, HasPrunableStatus, CleansAttachedFiles, HasFactory`. Fillable: `name,slug,description,type,owner_id`. Casts: `type=>ChannelType, deleted_at=>datetime`. Relations: `owner` (User), `members` (HasMany ChannelMember), `memberUsers` (belongsToMany User via `channel_members`), `messages` (HasMany ChannelMessage). `booted()`: `static::created` → `memberUsers()->attach($owner_id, [joined_at, entered_at=>now(), last_read_message_id=>null, created_at, updated_at])` (owner is entered immediately, never invite-nudged); `static::forceDeleted` → `CleansAttachedFiles::deleteStoredDirectory("channel_messages/{$id}")`. `prunable()` = soft-deleted >30 days; `prune()` → `ForceDeleteChannelAction`.
 
-### `channel_messages` (`2026_07_05_000002`)
+### `channel_messages` (`2026_09_19_000042`)
 ```
 id (PK)
 channel_id  unsignedBigInteger  -- FK channels cascadeOnDelete
@@ -116,7 +116,7 @@ indexes: idx_channel_messages_covering (channel_id, deleted_at, id), reply_to_id
 ```
 Model: `App\Models\ChannelMessage` — `SoftDeletes, Prunable, HasPrunableStatus, CleansAttachedFiles, HasFactory`. Retention via `HasPrunableStatus::getPruneDays()` (default 30). Fillable: `channel_id,sender_id,body,attachments,reply_to_id,is_edited`. Casts: `attachments=>array, is_edited=>boolean, deleted_at=>datetime`. Relations: `channel, sender` (User sender_id), `replyTo` (self reply_to_id), `replies` (HasMany self). `body(): Attribute` setter → `ContentSanitizerService::clean($value)` (NO property hooks — keep the mutator). `attachmentUrls()` maps `Storage::url` over attachments. **`lastIdForChannel(int $channelId): ?int`** = `withoutTrashed()->where('channel_id', $channelId)->max('id')` — returns **null when the channel has no messages** (every caller MUST null-guard). `booted()`: `static::forceDeleted` → `CleansAttachedFiles::deleteStoredDirectory("channel_messages/{$channel_id}/{$id}")`.
 
-### `channel_members` (`2026_07_05_000003`)
+### `channel_members` (`2026_09_19_000043`)
 ```
 user_id              unsignedBigInteger  -- composite PK (user_id FIRST)
 channel_id           unsignedBigInteger  -- composite PK
@@ -176,7 +176,7 @@ app/Filament/Resources/ChannelResource/RelationManagers/{ChannelMessages,Channel
 app/Filament/Resources/ChannelResource/Schemas/{ChannelFormPresenter,ChannelInfolistPresenter,ChannelTablePresenter}.php
 app/Filament/Resources/ChannelResource/Exports/ChannelExporter.php
 
-database/migrations/migrated/2026_07_05_00000{1,2,3}_*.php   channels / messages / members
+database/migrations/migrated/2026_09_19_0000{41,42,43}_*.php   channels / channel_messages / channel_members
 
 resources/views/livewire/dashboard/
 ├── channel.blade.php                  root view (x-data=channel(), two @island blocks)

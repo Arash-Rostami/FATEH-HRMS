@@ -156,8 +156,8 @@ app/Filament/Resources/SuggestionResource/
 ├── RelationManagers/ReviewsRelationManager.php
 └── Schemas/{SuggestionFormPresenter,SuggestionInfolistPresenter,SuggestionTablePresenter}.php
 
-database/migrations/migrated/2026_06_30_000037_create_reviews_table.php
-database/migrations/migrated/2026_06_30_000039_create_suggestions_table.php
+database/migrations/migrated/2026_09_19_000038_create_reviews_table.php
+database/migrations/migrated/2026_09_19_000039_create_suggestions_table.php
 
 tests/Feature/Livewire/Dashboard/SuggestionTest.php
 ```

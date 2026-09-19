@@ -87,9 +87,9 @@ The migration **removed `chat-ready` entirely** (no event, no `dispatchReady` pa
 
 ## 4. Data model (no new tables from this migration)
 
-Contact rides the existing `messages` + `users` tables. No migration was added by the island migration. (The covering indexes that make `FetchContactsAction` fast — `idx_sent_covering` (`[sender_id, deleted_at, recipient_id, id]`) and `idx_received_covering` (`[recipient_id, deleted_at, read_at, sender_id, id]`) — live in the `2026_06_30_000019_create_messages_table.php` migration; `FetchContactsAction` went 1103ms → 8.8ms via `UNION ALL` + covering indexes. See `project_perf_audit_2026_06`.)
+Contact rides the existing `messages` + `users` tables. No migration was added by the island migration. (The covering indexes that make `FetchContactsAction` fast — `idx_sent_covering` (`[sender_id, deleted_at, recipient_id, id]`) and `idx_received_covering` (`[recipient_id, deleted_at, read_at, sender_id, id]`) — live in the `2026_09_19_000026_create_messages_table.php` migration; `FetchContactsAction` went 1103ms → 8.8ms via `UNION ALL` + covering indexes. See `project_perf_audit_2026_06`.)
 
-`messages` columns Contact uses: `sender_id`, `recipient_id`, `body`, `attachments` (JSON), `is_edited`, `read_at` (nullable), `reply_to_id` (nullable FK → messages), `created_at`, `deleted_at` (SoftDeletes). `sender_id`/`recipient_id` are `onDelete('cascade')` (a deleted user's messages are removed, not orphaned); `reply_to_id` is `onDelete('set null')`. The `ناشناس` sender fallback in the presenter is defensive — unreachable under cascade (the FKs are defined in the same `2026_06_30_000019_create_messages_table.php` migration referenced above; no schema change was added by the island migration).
+`messages` columns Contact uses: `sender_id`, `recipient_id`, `body`, `attachments` (JSON), `is_edited`, `read_at` (nullable), `reply_to_id` (nullable FK → messages), `created_at`, `deleted_at` (SoftDeletes). `sender_id`/`recipient_id` are `onDelete('cascade')` (a deleted user's messages are removed, not orphaned); `reply_to_id` is `onDelete('set null')`. The `ناشناس` sender fallback in the presenter is defensive — unreachable under cascade (the FKs are defined in the same `2026_09_19_000026_create_messages_table.php` migration referenced above; no schema change was added by the island migration).
 
 ---
 

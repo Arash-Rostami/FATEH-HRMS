@@ -1340,7 +1340,7 @@ One row **per (toast × user × subject)**. Columns: `user_id`, `edge_key`, `sub
 `title`, `body`, `url`, `dismissed_at` (null until forever-dismissed), `snoozed_until` (set by a
 duration dismiss; row re-appears once it passes). `scopeVisible` =
 `whereNull('dismissed_at')->where(fn $q => $q->whereNull('snoozed_until')->orWhere('snoozed_until','<=',now()))`.
-Migration `2026_08_29_000001_create_edges_table.php`; run `php artisan migrate` before exercising the
+Migration `database/migrations/migrated/2026_09_19_000051_create_edges_table.php`; run `php artisan migrate` before exercising the
 path — until then `reconcile()` hits a SQL error, the job retries 3× then lands in `failed_jobs`, but
 the originating post-commit model save is **not** broken.
 

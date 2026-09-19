@@ -1,0 +1,43 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        if (!Schema::hasTable('dms')) {
+            Schema::create('dms', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->string('file', 191);
+                $table->longText('extra_files')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
+                $table->string('code', 191);
+                $table->string('version', 191);
+                $table->string('title', 191);
+                $table->enum('status', ['live', 'under_review', 'obsolete']);
+                $table->boolean('type')->default(1);
+                $table->longText('owners')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
+                $table->longText('users')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
+                $table->text('revision')->nullable();
+                $table->integer('combined_read_count')->default(0);
+                $table->longText('extra')->charset('utf8mb4')->collation('utf8mb4_bin')->nullable();
+                $table->json('tags')->nullable();
+                $table->timestamp('created_at')->nullable();
+                $table->timestamp('updated_at')->nullable();
+                $table->charset('utf8mb4');
+                $table->collation('utf8mb4_unicode_ci');
+                $table->index('status', 'dms_status_index');
+                $table->index(['status', 'type'], 'dms_status_type_index');
+                $table->index('code', 'idx_dms_code');
+                $table->index('created_at', 'idx_dms_created_at');
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('dms');
+    }
+};
