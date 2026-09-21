@@ -17,6 +17,58 @@
         </div>
     </div>
 
+    {{-- Change Own Password (collapsed by default) --}}
+    <div x-data="{ open: false }" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shadow-sm w-full overflow-hidden">
+        <button type="button" @click="open = !open"
+                class="w-full flex items-center justify-between gap-2 px-4 py-3 text-right hover:bg-[var(--md-sys-color-surface-variant)]/30 transition-colors">
+            <span class="flex items-center gap-2 text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">password</span>
+                تغییر رمز عبور
+            </span>
+            <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+        </button>
+
+        <div x-show="open" x-collapse x-cloak style="display:none" class="px-4 pb-4 pt-1 border-t border-[var(--md-sys-color-outline-variant)]/60">
+            <form wire:submit.prevent="savePassword" class="space-y-4">
+                <x-ui.forms.input
+                    type="password"
+                    wire:model="passwordForm.current_password"
+                    name="passwordForm.current_password"
+                    label="رمز عبور فعلی"
+                    icon="lock"
+                />
+
+                <x-ui.forms.input
+                    type="password"
+                    wire:model="passwordForm.password"
+                    name="passwordForm.password"
+                    label="رمز عبور جدید"
+                    icon="key"
+                />
+
+                <x-ui.forms.input
+                    type="password"
+                    wire:model="passwordForm.password_confirmation"
+                    name="passwordForm.password_confirmation"
+                    label="تکرار رمز عبور جدید"
+                    icon="key"
+                />
+
+                <div class="flex items-center justify-end pt-2">
+                    <x-ui.buttons.form
+                        type="submit"
+                        loading="savePassword"
+                        loading-text="در حال ذخیره..."
+                        icon="save"
+                        class="px-5 py-2 rounded-xl text-sm font-bold hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:shadow-md duration-300"
+                    >
+                        تغییر رمز عبور
+                    </x-ui.buttons.form>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @include('components.dashboard.header.focus-chip')
 
     @if($this->hasAnyCredentials)

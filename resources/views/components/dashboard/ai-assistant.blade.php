@@ -36,18 +36,13 @@
 
                     <div class="flex items-center gap-2 shrink-0">
                         <button @click="toggleMaximized()"
-                                class="flex items-center justify-center rounded-xl border border-white/10 transition-all duration-150 hover:-translate-y-px hover:bg-white/14 active:scale-95"
-                                style="width:40px;height:40px;background:rgba(255,255,255,.10);"
-                                :aria-label="maximized ? 'کوچک کردن' : 'بزرگ کردن'">
-                            <span x-show="!maximized" class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:20px;">open_in_full</span>
-                            <span x-show="maximized" class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:20px;">close_fullscreen</span>
+                                class="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] active:scale-[0.92] transition-all duration-200 ease-out hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-on-primary)_40%,transparent)]"
+                                :aria-label="maximized ? 'کوچک کردن' : 'بزرگ کردن'"
+                                :title="maximized ? 'کوچک کردن' : 'بزرگ کردن'">
+                            <span x-show="!maximized" class="material-symbols-rounded text-[20px]">open_in_full</span>
+                            <span x-show="maximized" class="material-symbols-rounded text-[20px]">close_fullscreen</span>
                         </button>
-                        <button @click="close()"
-                                class="flex items-center justify-center rounded-xl border border-white/10 transition-all duration-150 hover:-translate-y-px hover:bg-red-500/50 active:scale-95"
-                                style="width:40px;height:40px;background:rgba(255,255,255,.10);"
-                                aria-label="بستن">
-                            <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:20px;">close</span>
-                        </button>
+                        <x-ui.modals.close-button close="close()" tone="on-primary" size="lg" class="hover:-translate-y-px"/>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,7 @@
 
     <x-ui.modals.base
         wire:model="showAboutModal"
-        contentClass="!w-full md:!w-7xl bg-[var(--md-sys-color-surface)] rounded-3xl shadow-2xl overflow-x-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
+        contentClass="!w-full md:!w-7xl bg-[var(--md-sys-color-surface)] rounded-2xl shadow-2xl overflow-x-hidden flex flex-col max-h-[90vh] !p-0 border border-[var(--md-sys-color-outline-variant)]/30 relative">
 
         <div class="absolute inset-0 pointer-events-none z-0 opacity-[0.03] dark:opacity-[0.05]"
              style="background-image: radial-gradient(circle, var(--md-sys-color-on-surface) 1px, transparent 1px); background-size: 28px 28px;">
@@ -99,7 +99,7 @@
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 translate-y-4"
                          x-transition:enter-end="opacity-100 translate-y-0"
-                         class="relative bg-gradient-to-br from-[var(--md-sys-color-primary-container)]/20 to-transparent rounded-3xl p-6 sm:p-8 border border-[var(--md-sys-color-primary)]/10 shadow-sm group overflow-hidden">
+                         class="relative bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_35%,var(--md-sys-color-surface))] rounded-2xl p-6 sm:p-8 border border-[var(--md-sys-color-primary)]/10 shadow-sm group overflow-hidden">
 
                         <div class="absolute top-0 inset-x-0 h-[3px] bg-[var(--md-sys-color-primary)] shadow-[0_0_15px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)]"></div>
 
@@ -214,7 +214,7 @@
 
                     <div x-show="!aboutMe.bio && !aboutMe.movies && !aboutMe.music && !aboutMe.hobbies && !aboutMe.food && !aboutMe.sports && !extraKeys.length"
                          class="flex flex-col items-center justify-center py-20 px-4 text-center">
-                        <div class="w-24 h-24 rounded-3xl bg-[var(--md-sys-color-surface-variant)]/30 flex items-center justify-center mb-6 relative overflow-hidden">
+                        <div class="w-24 h-24 rounded-2xl bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center mb-6 relative overflow-hidden">
                             <span class="material-symbols-rounded text-5xl text-[var(--md-sys-color-on-surface-variant)]/40 font-fill">contact_page</span>
                             <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-[var(--md-sys-color-primary)]/5 to-transparent"></div>
                         </div>

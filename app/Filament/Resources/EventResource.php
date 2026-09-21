@@ -168,6 +168,7 @@ class EventResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     EventInfolistPresenter::date(),
@@ -175,8 +176,12 @@ class EventResource extends Resource
                     EventInfolistPresenter::private(),
                     EventInfolistPresenter::remindHours(),
                     EventInfolistPresenter::countdown(),
+
+                    EventInfolistPresenter::divider(),
                     EventInfolistPresenter::title(),
                     EventInfolistPresenter::description(),
+
+                    EventInfolistPresenter::divider(),
                     EventInfolistPresenter::createdAt(),
                     EventInfolistPresenter::updatedAt(),
                 ])

@@ -98,7 +98,23 @@ class ProjectFormPresenter
                         ->mapWithKeys(fn($item) => [$item['key'] => ['label' => $item['label']]])
                         ->all())
                     ->columnSpanFull(),
+
+                Repeater::make('extraSettings')
+                    ->label(__('resources/project/strings.fields.extra_settings'))
+                    ->helperText(__('resources/project/strings.hints.extra_settings'))
+                    ->defaultItems(0)
+                    ->schema([
+                        TextInput::make('key')
+                            ->label(__('resources/project/strings.fields.extra_key'))
+                            ->maxLength(40),
+                        TextInput::make('value')
+                            ->label(__('resources/project/strings.fields.extra_value'))
+                            ->maxLength(255),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull(),
             ])
-            ->columns(2);
+            ->columns(2)
+            ->columnSpanFull();
     }
 }

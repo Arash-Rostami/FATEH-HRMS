@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ThsResource\Pages;
 use App\Filament\Resources\ThsResource;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Traits\{FilamentHeaderActions, FilamentPageBehavior, FilamentDateHandler};
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateTicket extends CreateRecord
 {

@@ -58,6 +58,7 @@ App\Services\Menu\
 │   ├── TaskOverdueNudge.php        key=tasks-controller:overdue-nudge  triggers=Task updated (self)  show=urgency_state['kind']==='overdue'  for=owner (assigned_to ?? user_id)  badgeSuppressesCreate=false  — the only time-driven trigger: also swept by `tasks:sweep-overdue` (hourly console command), not just the Task-save event
 │   ├── TaskApprovalNudge.php       key=tasks-controller:approval-nudge  triggers=Task updated (self)  show=isPendingApproval()  for=project owner only  badgeSuppressesCreate=false (the key does not end in the literal ':nudge', so the derived badge-suppress would no-op — explicit opt-out per the key-shape gotcha below)  title escalates: '' → 'یادآوری: ' >24h → '⏰ فوری: ' >48h, anchored on updated_at — known limitation: escalation only advances on a Task-save reconcile (no hourly sweep like TaskOverdueNudge's) and any save (e.g. a reply) resets the 24h/48h clock; accepted per plan §H/K2 (taskboardPattern.md §19.2)
 │   ├── ProjectNudge.php            key=projects-controller:nudge  triggers=Project created (self) + Reply created (subject=$reply->repliable, Assignment-type + payload.added-guarded)  show=true  for=newly-added member ids (from the Assignment reply's payload, or all member_ids minus owner on the create trigger)
+│   ├── WorkflowStepNudge.php       key=workflow:nudge             triggers=Workflow updated (self; subject resolver returns the workflow only when current_step changed while active OR status just flipped to completed, AND the project isn't soft-deleted — else null, no-op)  show=true  for=current step's assignees minus the populated step's driver (already got a TaskNudge), or owner-only when the cycle just completed
 │   ├── ThsNudge.php                key=ths-controller:nudge       triggers=Ticket created/updated/deleted + Reply created (subject=$reply->repliable, repliable_type-guarded)  show=true (false when latestReply is own & not currentActionRecipient)  for=currentActionRecipient + otherReplyParticipants([requester_id, assigned_to])  badgeSuppressesCreate=false
 │   ├── DmsNudge.php                key=dms-controller:nudge       triggers=DMS created/updated/deleted + Read created/updated/deleted show=true  for=DMS::pendingRecipients() (visible live + pending users)  badgeSuppressesCreate=false
 │   ├── ChannelNudge.php            key=channels-controller:nudge  dual-state row migrates on entered_at (invited=entered_at IS NULL via Channel::invitedUserIds; unread=entered + count>0 via Channel::unreadCountsFor, whereNotNull(entered_at) + whereNull(msg.deleted_at)) like ThsNudge  triggers=Channel deleted/forceDeleted (cleanup) + ChannelMessage created/deleted (subject=$msg->channel)  show=true  for=invited∪unread (two indexed queries, for()-primes-body idiom)  reuses the three existing dispatch sites (SyncChannelMembers/MarkChannelRead/LeaveChannel); send path covered by ChannelMessage::created → no new dispatch
@@ -360,11 +361,12 @@ for tab-hosted modules) — the same `?open={id}` param `App\Traits\FocusOnRecor
 title/body: set `refresh() => true` and an edit re-fires reconcile to rewrite `url` on a still-
 **unread** row; a **read** row's `url` is never rewritten.
 
-All 15 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
+All 17 nudges implement `url()`: `AdNudge`→`route('ads', …)`,
 `SharedEventsNudge`→`route('dashboard', ['tab'=>'calendar', …])`, `SuggestionNudge`→`route('suggestion', …)`,
 `PostNudge`→`route('dashboard', ['tab'=>'post', …])`, `FeedNudge`→`route('dashboard', ['tab'=>'feed', …])`,
 `PhotoNudge`→`route('dashboard', ['tab'=>'gallery', …])`, `ReportNudge`→`route('dashboard', ['tab'=>'reports', …])`,
-`TaskNudge`→`route('tasks', …)`, `TaskOverdueNudge`→`route('tasks', …)`, `ProjectNudge`→`route('projects', …)`,
+`TaskNudge`→`route('tasks', …)`, `TaskOverdueNudge`→`route('tasks', …)`, `TaskApprovalNudge`→`route('tasks', …)`,
+`ProjectNudge`→`route('projects', …)`, `WorkflowStepNudge`→`route('projects', ['tab'=>'workflow', …])`,
 `ThsNudge`→`route('ths', …)`, `DmsNudge`→`route('dms', …)`,
 `ChannelNudge`→`route('channels', …)`, `ContactNudge`→`route('contact', …)` (subject is the message
 sender `User`, so this links to the conversation, not a specific message), `ReminderOverdueNudge`→`route('tasks', …)`
@@ -503,6 +505,7 @@ declare several triggers sharing the same key.
 | `Task` (overdue) | updated | self | `$task->urgency_state['kind'] === 'overdue'` (model-as-source-of-truth, same accessor `TasksImminent` badge partially reuses) | owner (`assigned_to ?? user_id`) — also swept hourly by `tasks:sweep-overdue`, see below |
 | `Project` | created | self | `true` | newly-added member ids: on `created`, `member_ids` minus `owner_id`; see `Reply` row |
 | `Reply` (Project) | created | `$reply->repliable` (repliable_type-guarded, `TaskActivityType::Assignment`-guarded, empty `payload.added`→null) | same `ProjectNudge` class | `payload['added']` ids from the latest Assignment reply |
+| `Workflow` | updated | self (subject resolver returns `null`, no-op, unless `current_step` changed while active OR status just became completed, AND the project isn't soft-deleted) | `true` | current step's `assignee_user_ids` minus the populated step's driver (already got a `TaskNudge` on task creation) — or `[owner]` only when the subject just completed |
 | `Ticket` | created, updated, deleted | self | `true` (false when `latestReply` is own & not currentActionRecipient) | `Ticket::currentActionRecipient()` + `otherReplyParticipants([requester_id, assigned_to])` |
 | `Reply` (Ticket) | created | `$reply->repliable` (repliable_type-guarded) | same `ThsNudge` class | same `ThsNudge` class |
 | `DMS` | created, updated, deleted | self | `true` | `DMS::pendingRecipients()` |

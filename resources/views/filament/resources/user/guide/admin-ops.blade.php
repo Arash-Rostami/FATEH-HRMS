@@ -37,6 +37,7 @@
         ['label' => 'دسترسی‌ها', 'icon' => 'shield_person', 'note' => 'فقط برای مدیران — سوپرادمین/abilities/ماژولهای مستثنی.'],
         ['label' => 'مهارت‌ها', 'icon' => 'school', 'note' => 'فقط‌خواندنی — تنها اگر کاربر مهارتی داشته باشد ظاهر می‌شود.'],
         ['label' => 'تسک‌ها', 'icon' => 'task_alt', 'note' => 'تسکهای محول‌شده به این کاربر (assigned_to) — شامل فیلتر زباله‌دان.'],
+        ['label' => 'چرخه‌های کاری', 'icon' => 'conversion_path', 'note' => 'چرخه‌های واقعی و الگوهای متعلق به این کاربر (owner_id) — فقط مشاهده و لغوِ چرخهٔ فعال؛ اعمال الگو روی پروژه فقط از خودِ همان پروژه در ProjectResource انجام می‌شود.'],
         ['label' => 'تیکت‌ها', 'icon' => 'confirmation_number', 'note' => 'تیکت‌هایی که این کاربر درخواست‌کنندهٔ آنهاست (requester_id).'],
         ['label' => 'رزروها', 'icon' => 'event', 'note' => 'رزروهای منابع این کاربر — با عملیات لغو و آزادسازی.'],
         ['label' => 'گزارش‌ها', 'icon' => 'description', 'note' => 'گزارش‌های منتشرشدهٔ این کاربر.'],
@@ -52,7 +53,7 @@
         <p class="text-[14px] font-black text-[var(--md-sys-color-on-surface)]">کار شما: ساخت کاربر، تنظیم دسترسی و نظارت بر فعالیت‌های او</p>
     </div>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        روی هر ردیف سه دکمهٔ عملیات (پس از سلول‌ها) وجود دارد: مشاهده، ویرایش، حذف. دکمهٔ «ساخت کاربر» در هدر صفحه قرار دارد. رمز عبور فقط در زمان ساخت وارد می‌شود. زیرِ صفحهٔ ویرایش، تا ده مدیریت ارتباط ظاهر می‌شود که فعالیت‌های کاربر را در یک جا نشان می‌دهد.
+        روی هر ردیف سه دکمهٔ عملیات (پس از سلول‌ها) وجود دارد: مشاهده، ویرایش، حذف. دکمهٔ «ساخت کاربر» در هدر صفحه قرار دارد. رمز عبور فقط در زمان ساخت وارد می‌شود. زیرِ صفحهٔ ویرایش، تا یازده مدیریت ارتباط ظاهر می‌شود که فعالیت‌های کاربر را در یک جا نشان می‌دهد.
     </p>
 
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
@@ -80,7 +81,7 @@
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden animate-slide-up-fade">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-on-tertiary-container)]">linked_services</span>
-            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">ده مدیریت ارتباط زیرِ صفحهٔ ویرایش</p>
+            <p class="text-[13px] font-black text-[var(--md-sys-color-on-tertiary-container)]">یازده مدیریت ارتباط زیرِ صفحهٔ ویرایش</p>
         </div>
         <div class="divide-y divide-[var(--md-sys-color-outline-variant)]">
             @foreach($rms as $rm)

@@ -247,18 +247,19 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
 
-        <x-ui.forms.select label="تعیین تکلیف" name="form.state" wire:model="form.state" :disabled="$isReadOnly">
-            <option value="">انتخاب کنید</option>
-            @foreach(\App\Filament\Resources\TaskResource\Enums\TaskState::cases() as $stateCase)
-                <option value="{{ $stateCase->value }}">{{ $stateCase->getLabel() }}</option>
-            @endforeach
-        </x-ui.forms.select>
+        <div class="md:col-span-2">
+            <x-ui.forms.select label="تعیین تکلیف" name="form.state" wire:model="form.state" :disabled="$isReadOnly">
+                <option value="">انتخاب کنید</option>
+                @foreach(\App\Filament\Resources\TaskResource\Enums\TaskState::cases() as $stateCase)
+                    <option value="{{ $stateCase->value }}">{{ $stateCase->getLabel() }}</option>
+                @endforeach
+            </x-ui.forms.select>
+        </div>
 
-        <x-ui.forms.select label="همکاران" name="form.collaborators" wire:model="form.collaborators" multiple class="min-h-[100px]" :disabled="$isReadOnly">
-            @foreach($staffMembers as $staff)
-                <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
-            @endforeach
-        </x-ui.forms.select>
+        <div class="md:col-span-2">
+            <label class="{{ $labelClass }}">همکاران</label>
+            <x-dashboard.member-picker model="form.collaborators" :candidates="$staffMembers" nameKey="full_name" height="max-h-40" :disabled="$isReadOnly"/>
+        </div>
 
         <div class="md:col-span-2">
             <label class="{{ $labelClass }}">پیوست‌ها</label>

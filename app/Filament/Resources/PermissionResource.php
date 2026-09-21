@@ -156,14 +156,14 @@ class PermissionResource extends Resource
     {
         return $schema->components([
             Section::make()
-                ->hiddenLabel()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->schema([
                     PermissionInfolistPresenter::user(),
                     PermissionInfolistPresenter::isSuperAdmin(),
-
+                    PermissionInfolistPresenter::divider(),
                     PermissionInfolistPresenter::abilities(),
                     PermissionInfolistPresenter::excludedModules(),
-
+                    PermissionInfolistPresenter::divider(),
                     PermissionInfolistPresenter::createdAt(),
                     PermissionInfolistPresenter::updatedAt(),
                 ])

@@ -137,6 +137,7 @@ class FeedResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     FeedInfolistPresenter::user(),
@@ -144,14 +145,17 @@ class FeedResource extends Resource
                     FeedInfolistPresenter::commentsCount(),
                     FeedInfolistPresenter::reactionsCount(),
 
+                    FeedInfolistPresenter::divider(),
                     FeedInfolistPresenter::content(),
                     FeedInfolistPresenter::pollOptions(),
                     FeedInfolistPresenter::pollSettings(),
                     FeedInfolistPresenter::pollsTotal(),
 
+                    FeedInfolistPresenter::divider(),
                     FeedInfolistPresenter::mediaImages(),
                     FeedInfolistPresenter::mediaVideosCount(),
 
+                    FeedInfolistPresenter::divider(),
                     FeedInfolistPresenter::createdAt(),
                     FeedInfolistPresenter::updatedAt(),
                 ])

@@ -32,6 +32,14 @@
                     <span>سررسید گذشته</span>
                 </span>
             @endif
+            @if($activeWorkflowCount > 0)
+                <button type="button" x-on:click="Livewire.dispatch('project-switch-tab', { tab: 'workflow' })"
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--tool-sapphire-bg)] text-[var(--tool-sapphire-text)] hover:brightness-110 active:scale-95 transition">
+                    <span class="material-symbols-rounded text-[14px]">conversion_path</span>
+                    <span>{{ convertToPersian($activeWorkflowCount) }}</span>
+                    <span>چرخه فعال</span>
+                </button>
+            @endif
         </div>
         <div class="flex items-center gap-3">
             <x-ui.decor.progress-ring :percent="$percent" :size="36" :stroke="4" :color="$percent >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>

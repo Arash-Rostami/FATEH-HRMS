@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Enums\SkillRequestStatus;
 use App\Enums\SkillTier;
 use App\Models\SkillUser;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

@@ -6,7 +6,7 @@ use App\Filament\Resources\LinkResource;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditLink extends EditRecord
 {

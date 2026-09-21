@@ -20,6 +20,7 @@ const TAB_DOMAIN = {
     projectCalendar: 'task',
     kanban: 'task',
     report: 'task',
+    workflow: 'task',
 };
 const TAB_REFRESH_EVENT = {
     activity: 'project-activity-refresh',
@@ -27,6 +28,7 @@ const TAB_REFRESH_EVENT = {
     projectCalendar: 'project-calendar-refresh',
     kanban: 'project-kanban-refresh',
     report: 'project-report-refresh',
+    workflow: 'project-workflow-refresh',
 };
 const WARMABLE_TABS = new Set(['report', 'analytics', 'projectCalendar', 'kanban', 'activity']);
 

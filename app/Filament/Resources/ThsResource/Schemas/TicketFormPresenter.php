@@ -109,7 +109,7 @@ class TicketFormPresenter
             required: false,
             yearFrom: 1400,
             fullWidth: false,
-        )->columnSpan(2)
+        )
             ->helperText(__('resources/ths/strings.hints.completion_deadline_date'));
     }
 

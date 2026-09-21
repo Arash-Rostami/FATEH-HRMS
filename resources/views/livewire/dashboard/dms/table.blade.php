@@ -1,9 +1,6 @@
 <div class="relative">
-    <div class="relative min-h-[300px] overflow-hidden rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
-
-        <div class="w-full overflow-x-auto">
-            <table class="dms-doc-table min-w-full w-full border-separate border-spacing-0 text-sm">
-                <thead class="bg-[var(--md-sys-color-surface-container-high)] text-xs uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)]">
+    <x-ui.table tableClass="dms-doc-table min-w-full w-full border-separate border-spacing-0 text-sm">
+        <x-slot:head>
                 <tr x-show="openSettings" x-collapse>
                     <th colspan="7" class="px-5 pb-3 pt-2">
                         <div class="flex justify-end border-b border-[var(--md-sys-color-outline-variant)]/30 bg-transparent" @click.stop>
@@ -12,14 +9,7 @@
                                 $sortIsDefault = $this->presenter->sortIsDefault($sort, $sortDir);
                             @endphp
                             <div class="inline-flex items-center gap-1">
-                                <button type="button"
-                                        @click="$store.density.toggle()"
-                                        :title="$store.density.compact ? 'نمایش عادی' : 'نمایش فشرده'"
-                                        :aria-label="$store.density.compact ? 'نمایش عادی' : 'نمایش فشرده'"
-                                        :class="{ 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]': $store.density.compact, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !$store.density.compact }"
-                                        class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-                                    <span class="material-symbols-rounded text-[18px]" x-text="$store.density.compact ? 'view_comfy' : 'view_compact'"></span>
-                                </button>
+                                <x-ui.table.density-toggle/>
 
                                 <button type="button"
                                         wire:click="resetSort"
@@ -29,39 +19,7 @@
                                     <span class="material-symbols-rounded text-[18px]">restart_alt</span>
                                 </button>
 
-                                <div x-data="{ open: false }" @click.away="open = false" class="relative">
-                                    <button type="button"
-                                            @click="open = !open"
-                                            title="نمایش و مخفی کردن ستون‌ها"
-                                            :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': open, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !open }"
-                                            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-                                        <span class="material-symbols-rounded text-[18px]">view_column</span>
-                                        <span x-show="$store.colVisibility.hidden.length > 0" class="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--md-sys-color-error)] px-1 text-[9px] font-bold text-white" x-text="$store.colVisibility.hidden.length" style="display: none;"></span>
-                                    </button>
-
-                                    <div x-show="open"
-                                         x-transition.origin
-                                         style="display: none;"
-                                         class="absolute left-0 top-11 z-30 w-60 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2 shadow-2xl">
-                                        <div class="mb-1.5 flex items-center justify-between px-1.5">
-                                            <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">ستون‌ها</span>
-                                            <button type="button"
-                                                    @click="$store.colVisibility.reset()"
-                                                    :disabled="$store.colVisibility.hidden.length === 0"
-                                                    class="text-[10px] font-semibold text-[var(--md-sys-color-primary)] transition-opacity hover:opacity-70 disabled:opacity-40 disabled:no-underline">
-                                                نمایش همه
-                                            </button>
-                                        </div>
-                                        <div class="flex flex-col gap-0.5">
-                                            @foreach($columns as $colKey => $colLabel)
-                                                <button type="button" @click="$store.colVisibility.toggle('{{ $colKey }}')" class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-right transition-colors hover:bg-[var(--md-sys-color-surface-container-highest)]">
-                                                    <span class="material-symbols-rounded text-[18px]" :class="$store.colVisibility.isHidden('{{ $colKey }}') ? 'text-[var(--md-sys-color-outline)]' : 'text-[var(--md-sys-color-primary)]'" x-text="$store.colVisibility.isHidden('{{ $colKey }}') ? 'check_box_outline_blank' : 'check_box'"></span>
-                                                    <span class="flex-1 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $colLabel }}</span>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
+                                <x-ui.table.col-toggle :scope="'dms'" :columns="$columns"/>
 
                                 <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"
                                                              :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1"/>
@@ -122,9 +80,8 @@
                         @include('livewire.dashboard.dms.toolbar')
                     </th>
                 </tr>
-                </thead>
+        </x-slot:head>
 
-                <tbody>
                 @forelse($this->docs as $doc)
                     @php
                         $r = $this->presenter->rowState($doc, $this->confirmedDocs, $this->readDocs, $this->readCounts);
@@ -384,14 +341,24 @@
                                                 <span class="text-[11px] font-bold">تایید دریافت</span>
                                             </button>
                                         @elseif ($isConfirmed && !$isRead)
-                                            <a wire:key="dms-row-open" href="{{ route('secure-file', $doc->file) }}"
-                                               target="_blank"
-                                               wire:click="incrementRead({{ $doc->id }})"
-                                               x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
-                                               class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
-                                                <span class="material-symbols-rounded text-[22px]">menu_book</span>
-                                                <span class="text-[11px] font-bold">مشاهده و تایید</span>
-                                            </a>
+                                            @if(str_ends_with(strtolower($doc->file), '.pdf'))
+                                                <button type="button" wire:key="dms-row-open"
+                                                        data-url="{{ route('secure-file', $doc->file) }}"
+                                                        x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.dataset.url }); confirmAndSend({{ $doc->id }}, @js($doc->file))"
+                                                        class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
+                                                    <span class="material-symbols-rounded text-[22px]">menu_book</span>
+                                                    <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                                                </button>
+                                            @else
+                                                <a wire:key="dms-row-open" href="{{ route('secure-file', $doc->file) }}"
+                                                   target="_blank"
+                                                   wire:click="incrementRead({{ $doc->id }})"
+                                                   x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
+                                                   class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
+                                                    <span class="material-symbols-rounded text-[22px]">menu_book</span>
+                                                    <span class="text-[11px] font-bold">مشاهده و تایید</span>
+                                                </a>
+                                            @endif
                                         @else
                                             <a wire:key="dms-row-reopen" href="{{ route('secure-file', $doc->file) }}"
                                                target="_blank"
@@ -462,10 +429,7 @@
                         </td>
                     </tr>
                 @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    </x-ui.table>
 </div>
 
 @if($hasMorePages)

@@ -257,18 +257,26 @@ class Main extends Component
     }
 
     #[Computed]
+    protected function activeChannelMemberUsers(): Collection
+    {
+        if (!$this->activeChannel) {
+            return collect();
+        }
+
+        return $this->activeChannel->memberUsers()
+            ->with('profile')
+            ->get();
+    }
+
+    #[Computed]
     public function readers(): array
     {
         if (!$this->activeChannelId) {
             return [];
         }
 
-        $users = $this->activeChannel->memberUsers()
-            ->with('profile')
-            ->get();
-
         $map = [];
-        foreach ($users as $user) {
+        foreach ($this->activeChannelMemberUsers as $user) {
             $map[(int) $user->id] = [
                 'cursor' => (int) ($user->pivot->last_read_message_id ?? 0),
                 'name'   => $user->name ?? '—',
@@ -290,6 +298,29 @@ class Main extends Component
             ->select('users.id', 'users.name', 'users.presence')
             ->orderBy('users.name')
             ->get();
+    }
+
+    #[Computed]
+    public function channelMembers(): array
+    {
+        if (!$this->activeChannel) {
+            return [];
+        }
+
+        $ownerId = $this->activeChannel->owner_id;
+
+        return $this->activeChannelMemberUsers
+            ->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar_url' => $user->getProfileImageUrl(),
+                'is_owner' => $ownerId !== null && $user->id === $ownerId,
+                'presence_label' => $user->presence?->label(),
+                'presence_class' => $user->presence?->activeClass(),
+            ])
+            ->sortByDesc('is_owner')
+            ->values()
+            ->all();
     }
 
     #[Computed]
@@ -367,7 +398,7 @@ class Main extends Component
 
         $this->markRead($channelId);
 
-        unset($this->channels, $this->messages, $this->activeChannel, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
+        unset($this->channels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
     }
 
     public function focusRecord(int $channelId): bool
@@ -545,7 +576,7 @@ class Main extends Component
         $this->messageSearch = '';
         $this->composer->reset();
         $this->edit->reset();
-        unset($this->channels, $this->messages, $this->activeChannel, $this->joinableChannels, $this->pendingInvitees);
+        unset($this->channels, $this->messages, $this->activeChannel, $this->joinableChannels, $this->activeChannelMemberUsers, $this->readers, $this->channelMembers, $this->pendingInvitees);
     }
 
     public function replyTo(int $messageId): void
@@ -705,7 +736,7 @@ class Main extends Component
             $this->focusOlder = 5;
             $this->messageSearch = '';
         }
-        unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
+        unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
         $this->dispatch('show-toast', message: 'از گروه خارج شدید', type: 'info');
     }
 
@@ -741,7 +772,7 @@ class Main extends Component
 
         $this->isManageMembersOpen = false;
         $this->memberRecipientIds = [];
-        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->channelMembersForMentions, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
+        unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
 
         if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
             $this->dispatch('show-toast', message: 'اعضای گروه به‌روزرسانی شد', type: 'success');

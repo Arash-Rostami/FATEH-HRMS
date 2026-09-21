@@ -5,7 +5,7 @@ namespace App\Filament\Resources\GalleryResource\Pages;
 use App\Filament\Resources\GalleryResource;
 use App\Models\Photo;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

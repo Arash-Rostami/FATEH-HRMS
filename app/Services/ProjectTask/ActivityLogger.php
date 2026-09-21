@@ -25,6 +25,7 @@ use App\Services\ProjectTask\Renderers\ResponsibleChangeRenderer;
 use App\Services\ProjectTask\Renderers\SettingsChangeRenderer;
 use App\Services\ProjectTask\Renderers\StateChangeRenderer;
 use App\Services\ProjectTask\Renderers\StatusChangeRenderer;
+use App\Services\ProjectTask\Renderers\WorkflowStepRenderer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -46,6 +47,7 @@ class ActivityLogger
         'project_change' => ProjectChangeRenderer::class,
         'meta_change' => MetaChangeRenderer::class,
         'settings_change' => SettingsChangeRenderer::class,
+        'workflow_step' => WorkflowStepRenderer::class,
     ];
 
     private static array $rendererInstances = [];

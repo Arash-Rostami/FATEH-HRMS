@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Project;
 use App\Models\User;
+use Filament\Facades\Filament;
 
 final class ProjectAccessPolicy
 {
@@ -14,6 +15,6 @@ final class ProjectAccessPolicy
 
     public static function canManageAudience(Project $project, ?User $user): bool
     {
-        return $user !== null && $project->owner_id === $user->id;
+        return $user !== null && ($project->owner_id === $user->id || Filament::getCurrentPanel()?->getId() === 'admin');
     }
 }

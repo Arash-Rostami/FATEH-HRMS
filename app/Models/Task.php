@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TaskActivityType;
 use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Livewire\Dashboard\Project\Actions\AdvanceWorkflowStepAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\ForceDeleteTaskAction;
 use App\Models\Concerns\HasJalaliAdminLabels;
 use App\Models\Concerns\HasMenuState;
@@ -165,6 +166,11 @@ class Task extends Model
             && $this->project?->setting('requires_approval') === true;
     }
 
+    public function isGenuinelyDone(): bool
+    {
+        return $this->status === 'done' && $this->approved_at !== null;
+    }
+
     public function prunable(): Builder
     {
         return static::with('detail')
@@ -313,6 +319,12 @@ class Task extends Model
             if (!$task->wasRecentlyCreated && $task->wasChanged('project_id') && $task->project_id === null) {
                 $task->detail?->update(['project' => null]);
             }
+        });
+
+        static::updated(function (self $task) {
+            if (!$task->project_id || $task->status !== 'done' || $task->approved_at === null) return;
+            if (!$task->wasChanged('status') && !$task->wasChanged('approved_at')) return;
+            app(AdvanceWorkflowStepAction::class)->completeForTask($task);
         });
     }
 

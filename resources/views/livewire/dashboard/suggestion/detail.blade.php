@@ -574,27 +574,12 @@
                             </span>
                         </div>
 
-                        <div
-                            class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-[var(--md-sys-color-surface)] max-h-60 overflow-y-auto">
-                            @foreach($this->allDepartments as $code => $name)
-                                <label class="flex items-center gap-2 p-2.5 rounded-xl cursor-pointer select-none transition-all
-                                              border border-transparent
-                                              hover:border-[var(--md-sys-color-outline-variant)]
-                                              hover:bg-[var(--md-sys-color-surface-variant)]
-                                              has-[:checked]:border-[var(--md-sys-color-primary)]
-                                              has-[:checked]:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_50%,transparent)]">
-
-                                    <input type="checkbox" wire:model.live="decisionForm.referralDepts"
-                                           value="{{ $code }}"
-                                           class="w-4 h-4 accent-[var(--md-sys-color-primary)]">
-
-                                    <span class="text-sm text-[var(--md-sys-color-on-surface)]"
-                                          title="{{ $this->allDepartmentTooltips[$code] ?? '' }}">
-                                        {{ $name }}
-                                    </span>
-
-                                </label>
-                            @endforeach
+                        <div class="p-3 bg-[var(--md-sys-color-surface)]">
+                            <x-ui.forms.select label="واحدهای ذی‌نفع" name="decisionForm.referralDepts" wire:model.live="decisionForm.referralDepts" multiple class="max-h-60">
+                                @foreach($this->allDepartments as $code => $name)
+                                    <option value="{{ $code }}" title="{{ $this->allDepartmentTooltips[$code] ?? '' }}">{{ $name }}</option>
+                                @endforeach
+                            </x-ui.forms.select>
                         </div>
 
                         @if($decisionForm->referralDepts)

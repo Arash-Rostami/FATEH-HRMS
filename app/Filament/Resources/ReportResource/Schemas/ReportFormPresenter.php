@@ -62,7 +62,6 @@ class ReportFormPresenter
             ->searchable()
             ->preload()
             ->nullable()
-            ->columnSpan(2)
             ->helperText(__('resources/report/strings.hints.departments'));
     }
 

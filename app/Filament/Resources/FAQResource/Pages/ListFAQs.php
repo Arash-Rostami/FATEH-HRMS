@@ -5,7 +5,7 @@ namespace App\Filament\Resources\FAQResource\Pages;
 use App\Filament\Resources\FAQResource;
 use App\Models\FAQ;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

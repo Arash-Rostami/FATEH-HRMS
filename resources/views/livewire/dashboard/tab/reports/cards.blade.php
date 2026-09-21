@@ -29,7 +29,7 @@
                     wire:key="report-{{ $report->id }}"
                     data-rf="reports-{{ $report->id }}"
                     data-report-id="{{ $report->id }}"
-                    class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-3xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
+                    class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-2xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
                     :class="{
                         'md:scale-[1.15] z-30': activeId == {{ $report->id }},
                         'md:scale-95 z-10': activeId != {{ $report->id }}

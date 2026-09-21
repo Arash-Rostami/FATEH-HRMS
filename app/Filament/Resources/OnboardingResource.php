@@ -161,49 +161,75 @@ class OnboardingResource extends Resource
                                     OnboardingInfolistPresenter::createdAt(),
                                     OnboardingInfolistPresenter::updatedAt(),
                                 ])
+                                ->columnSpanFull()
                                 ->columns(4),
                         ]),
 
-                    Tab::make(__('resources/onboarding/strings.infolist.tab_content'))
+                    Tab::make(__('resources/onboarding/strings.fields.welcome'))
+                        ->icon('heroicon-o-hand-raised')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([OnboardingInfolistPresenter::welcome()])
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.fields.mission'))
+                        ->icon('heroicon-o-flag')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([OnboardingInfolistPresenter::mission()])
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.fields.vision'))
+                        ->icon('heroicon-o-eye')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([OnboardingInfolistPresenter::vision()])
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.fields.schedule'))
+                        ->icon('heroicon-o-calendar-days')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([OnboardingInfolistPresenter::schedule()])
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.fields.videos'))
+                        ->icon('heroicon-o-video-camera')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
+                                ->schema([OnboardingInfolistPresenter::videos()])
+                                ->columnSpanFull(),
+                        ]),
+
+                    Tab::make(__('resources/onboarding/strings.fields.guides'))
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Section::make(__('resources/onboarding/strings.fields.welcome'))
-                                ->icon('heroicon-o-hand-raised')
-                                ->schema([OnboardingInfolistPresenter::welcome()])
-                                ->collapsed(),
-
-                            Section::make(__('resources/onboarding/strings.fields.mission'))
-                                ->icon('heroicon-o-flag')
-                                ->schema([OnboardingInfolistPresenter::mission()])
-                                ->collapsed(),
-
-                            Section::make(__('resources/onboarding/strings.fields.vision'))
-                                ->icon('heroicon-o-eye')
-                                ->schema([OnboardingInfolistPresenter::vision()])
-                                ->collapsed(),
-
-                            Section::make(__('resources/onboarding/strings.fields.schedule'))
-                                ->icon('heroicon-o-calendar-days')
-                                ->schema([OnboardingInfolistPresenter::schedule()])
-                                ->collapsed(),
-
-                            Section::make(__('resources/onboarding/strings.fields.videos'))
-                                ->icon('heroicon-o-video-camera')
-                                ->schema([OnboardingInfolistPresenter::videos()])
-                                ->collapsed(),
-
-                            Section::make(__('resources/onboarding/strings.fields.guides'))
-                                ->icon('heroicon-o-document-text')
+                            Section::make()
+                                ->hiddenLabel()
                                 ->schema([OnboardingInfolistPresenter::guides()])
-                                ->collapsed(),
+                                ->columnSpanFull(),
+                        ]),
 
-                            Section::make(__('resources/onboarding/strings.fields.extras'))
-                                ->icon('heroicon-o-squares-2x2')
+                    Tab::make(__('resources/onboarding/strings.fields.extras'))
+                        ->icon('heroicon-o-squares-2x2')
+                        ->schema([
+                            Section::make()
+                                ->hiddenLabel()
                                 ->schema([OnboardingInfolistPresenter::extras()])
-                                ->collapsed(),
+                                ->columnSpanFull(),
                         ]),
                 ])
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->persistTabInQueryString(),
         ]);
     }
 

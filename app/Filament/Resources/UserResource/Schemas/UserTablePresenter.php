@@ -103,6 +103,8 @@ class UserTablePresenter
             ->badge()
             ->formatStateUsing(fn($state): string => $state instanceof PresenceStatus ? $state->label() : ($state ?? '-'))
             ->color(fn($state): string => $state instanceof PresenceStatus ? $state->color() : 'info')
+            ->icon(fn(User $record): ?string => $record->isFocusing() ? 'heroicon-o-clock' : null)
+            ->tooltip(fn(User $record): ?string => $record->isFocusing() ? 'متمرکز تا ' . toJalali($record->focus_until, 'H:i') : null)
             ->toggleable(isToggledHiddenByDefault: true);
     }
 

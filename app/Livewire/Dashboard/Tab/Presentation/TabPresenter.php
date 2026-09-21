@@ -19,7 +19,7 @@ class TabPresenter
 {
     public function teamPulse(): Collection
     {
-        return $this->rankedOnlineUsers()->reject(fn(User $u) => $u->id === auth()->id())->take(18)->values();
+        return $this->rankedOnlineUsers()->reject(fn(User $u) => $u->id === auth()->id())->values();
     }
 
     public function rankedOnlineUsers(): Collection

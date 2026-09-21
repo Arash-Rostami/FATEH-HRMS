@@ -40,12 +40,8 @@
                     <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">نمایش فقط برای خودم</p>
                 </div>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox"
-                       wire:model="form.private"
-                       class="sr-only peer">
-                <div
-                    class="w-12 h-7 bg-[var(--md-sys-color-surface-variant)] peer-focus:outline-none rounded-xl peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-xl after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--md-sys-color-primary)] shadow-inner"></div>
+            <label class="cursor-pointer">
+                <x-ui.forms.switch name="form.private"/>
             </label>
         </div>
 

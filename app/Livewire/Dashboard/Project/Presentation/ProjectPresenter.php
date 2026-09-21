@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Project\Presentation;
 
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Project;
+use App\Models\Workflow;
 use App\Traits\BuildsMessageGroups;
 use App\Traits\RiskEscalationChip;
 use Carbon\Carbon;
@@ -48,9 +49,29 @@ class ProjectPresenter
             'chipClass' => 'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
             'label' => 'مهلت پروژه', 'icon' => 'sports_score',
         ],
+        'cycle-start' => [
+            'colorClass' => 'bg-[var(--md-sys-color-secondary)]',
+            'iconColorClass' => 'text-[var(--md-sys-color-secondary)]',
+            'chipClass' => 'bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+            'label' => 'چرخهٔ کاری', 'icon' => 'conversion_path',
+        ],
     ];
 
     private const RESOLVED_CHIP_CLASS = 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]';
+
+    private const BADGE_PALETTE = [
+        ['bg' => 'bg-[var(--md-sys-color-primary-container)]', 'text' => 'text-[var(--md-sys-color-on-primary-container)]', 'ring' => 'ring-[var(--md-sys-color-primary)]'],
+        ['bg' => 'bg-[var(--md-sys-color-tertiary-container)]', 'text' => 'text-[var(--md-sys-color-on-tertiary-container)]', 'ring' => 'ring-[var(--md-sys-color-tertiary)]'],
+        ['bg' => 'bg-[var(--md-sys-color-secondary-container)]', 'text' => 'text-[var(--md-sys-color-on-secondary-container)]', 'ring' => 'ring-[var(--md-sys-color-secondary)]'],
+        ['bg' => 'bg-[var(--md-sys-color-success-container)]', 'text' => 'text-[var(--md-sys-color-on-success-container)]', 'ring' => 'ring-[var(--md-sys-color-success)]'],
+        ['bg' => 'bg-[var(--md-sys-color-warning-container)]', 'text' => 'text-[var(--md-sys-color-on-warning-container)]', 'ring' => 'ring-[var(--md-sys-color-warning)]'],
+        ['bg' => 'bg-[var(--md-sys-color-error-container)]', 'text' => 'text-[var(--md-sys-color-on-error-container)]', 'ring' => 'ring-[var(--md-sys-color-error)]'],
+    ];
+
+    public function badgeColors(int $id): array
+    {
+        return self::BADGE_PALETTE[$id % count(self::BADGE_PALETTE)];
+    }
 
     public function lifecycleLegend(): array
     {
@@ -59,21 +80,32 @@ class ProjectPresenter
 
     public function lifecycleEventData(array $event): array
     {
-        $meta = self::LIFECYCLE_LEGEND[$event['marker']];
+        $legendKey = $event['marker'] === 'cycle-end' ? 'cycle-start' : $event['marker'];
+        $meta = self::LIFECYCLE_LEGEND[$legendKey];
         $isResolvedDeadline = $event['marker'] === 'deadline' && ($event['isResolved'] ?? false);
+        $isCancelledCycle = $event['marker'] === 'cycle-end' && ($event['status'] ?? null) === Workflow::STATUS_CANCELLED;
+        $muted = $isResolvedDeadline || $isCancelledCycle;
 
         return [
-            'colorClass' => $isResolvedDeadline ? 'bg-[var(--md-sys-color-outline)]' : $meta['colorClass'],
-            'iconColorClass' => $isResolvedDeadline ? 'text-[var(--md-sys-color-outline)]' : $meta['iconColorClass'],
-            'chipClass' => $isResolvedDeadline ? self::RESOLVED_CHIP_CLASS : $meta['chipClass'],
+            'colorClass' => $muted ? 'bg-[var(--md-sys-color-outline)]' : $meta['colorClass'],
+            'iconColorClass' => $muted ? 'text-[var(--md-sys-color-outline)]' : $meta['iconColorClass'],
+            'chipClass' => $muted ? self::RESOLVED_CHIP_CLASS : $meta['chipClass'],
             'icon' => $isResolvedDeadline ? 'task_alt' : $meta['icon'],
-            'markerLabel' => $isResolvedDeadline ? 'مهلت (برطرف‌شده)' : $meta['label'],
-            'badge' => '#' . convertToPersian($event['task_id']),
-            'title' => $event['title'],
+            'markerLabel' => match (true) {
+                $isResolvedDeadline => 'مهلت (برطرف‌شده)',
+                $isCancelledCycle => 'لغو چرخه',
+                $event['marker'] === 'cycle-start' => 'شروع چرخه',
+                $event['marker'] === 'cycle-end' => 'پایان چرخه',
+                default => $meta['label'],
+            },
+            'badge' => '#' . convertToPersian($event['task_id'] ?? $event['workflow_id']),
+            'title' => $event['title'] ?? $event['name'],
             'time' => $event['time'],
             'line' => match ($event['marker']) {
                 'start' => 'وظیفه ایجاد شد.',
                 'deadline' => ($isResolvedDeadline ? 'مهلت — برطرف‌شده' : 'سررسید مهلت') . $this->deadlineSlipSuffix($event),
+                'cycle-start' => sprintf('چرخه «%s» آغاز شد.', $event['name']),
+                'cycle-end' => sprintf('چرخه «%s» %s شد.', $event['name'], $isCancelledCycle ? 'لغو' : 'تکمیل'),
                 default => sprintf(
                     'وضعیت از «%s» به «%s» تغییر کرد.',
                     $this->taskStatusLabel($event['from'] ?? null),
@@ -232,6 +264,7 @@ class ProjectPresenter
     public function tabs(?int $activeProjectId): array
     {
         return [
+            'workflow' => ['component' => 'dashboard.project.workflow', 'key' => 'tab-workflow-' . $activeProjectId, 'lazy' => true],
             'report' => ['component' => 'dashboard.project.report', 'key' => 'tab-report-' . $activeProjectId, 'lazy' => true],
             'analytics' => ['component' => 'dashboard.project.analytics', 'key' => 'tab-analytics-' . $activeProjectId, 'lazy' => true],
             'activity' => ['component' => 'dashboard.project.activity', 'key' => 'tab-activity-' . $activeProjectId, 'lazy' => true],
@@ -247,13 +280,7 @@ class ProjectPresenter
                 'key' => 'details',
                 'label' => 'جزئیات و اعضا',
                 'icon' => 'workspaces',
-                'errors' => ['projectForm.name', 'projectForm.memberIds'],
-            ],
-            [
-                'key' => 'departments',
-                'label' => 'دپارتمان‌ها',
-                'icon' => 'corporate_fare',
-                'errors' => ['projectForm.departments'],
+                'errors' => ['projectForm.name', 'projectForm.memberIds', 'projectForm.departments'],
             ],
             [
                 'key' => 'settings',

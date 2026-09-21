@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\SkillResource\RelationManagers;
 
 use App\Filament\Resources\SkillRequestResource\Schemas\SkillRequestTablePresenter;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

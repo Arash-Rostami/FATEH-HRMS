@@ -45,7 +45,6 @@ return [
 
     'infolist' => [
         'section_meta' => 'اطلاعات',
-        'tab_content'  => 'محتوای آنبوردینگ',
     ],
 
     'filters' => [

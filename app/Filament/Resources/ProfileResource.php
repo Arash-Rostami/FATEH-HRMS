@@ -231,7 +231,8 @@ class ProfileResource extends Resource
                     Tab::make(__('resources/profile/strings.infolist.section_identity'))
                         ->icon('heroicon-o-user-circle')
                         ->schema([
-                            Section::make(__('resources/profile/strings.infolist.section_identity'))
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->schema([
                                     ProfileInfolistPresenter::id(),
                                     ProfileInfolistPresenter::personnelId(),
@@ -243,12 +244,7 @@ class ProfileResource extends Resource
                                     ProfileInfolistPresenter::age(),
                                     ProfileInfolistPresenter::maritalStatus(),
                                     ProfileInfolistPresenter::numberOfChildren(),
-                                ])
-                                ->columns(2)
-                                ->columnSpan(1),
-
-                            Section::make(__('resources/profile/strings.infolist.section_contact'))
-                                ->schema([
+                                    ProfileInfolistPresenter::divider(),
                                     ProfileInfolistPresenter::cellphone(),
                                     ProfileInfolistPresenter::landline(),
                                     ProfileInfolistPresenter::emergencyPhone(),
@@ -258,62 +254,83 @@ class ProfileResource extends Resource
                                     ProfileInfolistPresenter::address(),
                                     ProfileInfolistPresenter::accessibility(),
                                 ])
-                                ->columns(2)
-                                ->columnSpan(1),
-                        ])
-                        ->columns(2),
+                                ->columns(3),
+                        ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_employment'))
                         ->icon('heroicon-o-briefcase')
                         ->schema([
-                            ProfileInfolistPresenter::department(),
-                            ProfileInfolistPresenter::unit(),
-                            ProfileInfolistPresenter::section(),
-                            ProfileInfolistPresenter::position(),
-                            ProfileInfolistPresenter::employmentType(),
-                            ProfileInfolistPresenter::employmentStatus(),
-                            ProfileInfolistPresenter::degree(),
-                            ProfileInfolistPresenter::field(),
-                            ProfileInfolistPresenter::insurance(),
-                            ProfileInfolistPresenter::startDate(),
-                            ProfileInfolistPresenter::endDate(),
-                            ProfileInfolistPresenter::workExperience(),
-                        ])
-                        ->columns(2),
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->schema([
+                                    ProfileInfolistPresenter::department(),
+                                    ProfileInfolistPresenter::unit(),
+                                    ProfileInfolistPresenter::section(),
+                                    ProfileInfolistPresenter::position(),
+                                    ProfileInfolistPresenter::employmentType(),
+                                    ProfileInfolistPresenter::employmentStatus(),
+                                    ProfileInfolistPresenter::degree(),
+                                    ProfileInfolistPresenter::field(),
+                                    ProfileInfolistPresenter::insurance(),
+                                    ProfileInfolistPresenter::divider(),
+                                    ProfileInfolistPresenter::startDate(),
+                                    ProfileInfolistPresenter::endDate(),
+                                    ProfileInfolistPresenter::workExperience(),
+                                ])
+                                ->columns(3),
+                        ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_media'))
                         ->icon('heroicon-o-paper-clip')
                         ->schema([
-                            ProfileInfolistPresenter::image(),
-                            ProfileInfolistPresenter::attachments(),
-                        ])
-                        ->columns(2),
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->schema([
+                                    ProfileInfolistPresenter::image(),
+                                    ProfileInfolistPresenter::attachments(),
+                                ])
+                                ->columns(2),
+                        ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_skills'))
                         ->icon('heroicon-o-academic-cap')
                         ->schema([
-                            ProfileInfolistPresenter::skills(),
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->schema([
+                                    ProfileInfolistPresenter::skills(),
+                                ]),
                         ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_about'))
                         ->icon('heroicon-o-information-circle')
                         ->schema([
-                            ProfileInfolistPresenter::interests(),
-                            ProfileInfolistPresenter::favoriteColors(),
-                            ProfileInfolistPresenter::aboutMe(),
-                            ProfileInfolistPresenter::createdAt(),
-                            ProfileInfolistPresenter::updatedAt(),
-                        ])
-                        ->columns(2),
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->schema([
+                                    ProfileInfolistPresenter::interests(),
+                                    ProfileInfolistPresenter::favoriteColors(),
+                                    ProfileInfolistPresenter::aboutMe(),
+                                    ProfileInfolistPresenter::divider(),
+                                    ProfileInfolistPresenter::createdAt(),
+                                    ProfileInfolistPresenter::updatedAt(),
+                                ])
+                                ->columns(2),
+                        ]),
 
                     Tab::make(__('resources/profile/strings.infolist.section_details'))
                         ->icon('heroicon-o-list-bullet')
                         ->schema([
-                            ProfileInfolistPresenter::details(),
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->schema([
+                                    ProfileInfolistPresenter::details(),
+                                ]),
                         ]),
                 ])
                 ->columnSpanFull()
-                ->persistTabInQueryString(),
+                ->persistTabInQueryString()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

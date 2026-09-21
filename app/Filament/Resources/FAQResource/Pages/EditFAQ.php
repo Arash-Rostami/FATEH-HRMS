@@ -6,7 +6,7 @@ use App\Filament\Resources\FAQResource;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditFAQ extends EditRecord
 {

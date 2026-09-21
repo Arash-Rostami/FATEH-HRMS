@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReservationPolicyResource\Pages;
 
 use App\Filament\Resources\ReservationPolicyResource;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 
 class ListPolicies extends ListRecords
 {

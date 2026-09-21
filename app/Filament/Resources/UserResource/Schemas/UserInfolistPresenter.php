@@ -5,17 +5,24 @@ use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Models\User;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\IconPosition;
 
 class UserInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function id(): TextEntry
     {
         return TextEntry::make('id')
             ->label(__('resources/user/strings.infolist.id'))
             ->badge()
+            ->icon('heroicon-o-hashtag')
+            ->copyable()
             ->color('zinc');
     }
 
@@ -43,6 +50,9 @@ class UserInfolistPresenter
         return TextEntry::make('email_verified_at')
             ->label(__('resources/user/strings.infolist.email_verified_at'))
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->placeholder('تأیید نشده')
             ->icon('heroicon-o-check-badge')
             ->color(fn ($state) => $state ? 'success' : 'danger');
@@ -84,13 +94,16 @@ class UserInfolistPresenter
             ->label(__('resources/user/strings.infolist.presence'))
             ->badge()
             ->formatStateUsing(fn ($state): string => $state instanceof PresenceStatus ? $state->label() : ($state ?? '-'))
-            ->color(fn ($state): string => $state instanceof PresenceStatus ? $state->color() : 'info');
+            ->color(fn ($state): string => $state instanceof PresenceStatus ? $state->color() : 'info')
+            ->icon(fn (User $record): ?string => $record->isFocusing() ? 'heroicon-o-clock' : null)
+            ->tooltip(fn (User $record): ?string => $record->isFocusing() ? 'متمرکز تا ' . toJalali($record->focus_until, 'H:i') : null);
     }
 
     public static function maximum(): TextEntry
     {
         return TextEntry::make('maximum')
             ->label(__('resources/user/strings.infolist.maximum'))
+            ->icon('heroicon-o-calendar-days')
             ->numeric()
             ->suffix(' رزرو')
             ->color('warning');
@@ -151,6 +164,7 @@ class UserInfolistPresenter
         return TextEntry::make('last_seen')
             ->label(__('resources/user/strings.infolist.last_seen'))
             ->formatStateUsing(fn ($state) => $state ? toJalaliRelative($state) : '—')
+            ->icon('heroicon-o-eye')
             ->placeholder('-')
             ->color('sky');
     }
@@ -160,6 +174,10 @@ class UserInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/user/strings.infolist.created_at'))
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('zinc');
     }
 
@@ -168,6 +186,10 @@ class UserInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/user/strings.infolist.updated_at'))
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-arrow-path')
             ->color('zinc');
     }
 }

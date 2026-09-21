@@ -9,10 +9,7 @@
                        x-text="$wire.create.type === 'private' ? 'گروه خصوصی — فقط با دعوت مدیر' : 'گروه عمومی — همه می‌توانند پیوستن'"></p>
                 </div>
             </div>
-            <button x-on:click="closeCreate()" aria-label="بستن"
-                    class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:brightness-95 active:scale-90 transition-all">
-                <span class="material-symbols-rounded text-[18px]">close</span>
-            </button>
+            <x-ui.modals.close-button close="closeCreate()"/>
         </div>
 
         <div class="bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] rounded-xl p-5 space-y-4">
@@ -54,7 +51,7 @@
                 </div>
             </div>
 
-            <div x-data="{ memberQuery: '' }">
+            <div>
                 <div class="flex items-center justify-between mb-1.5">
                     <label class="block text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)]">
                         اعضای اولیه
@@ -65,22 +62,7 @@
                 <p class="text-[10px] mb-2 text-[var(--md-sys-color-on-surface-variant)]"
                    x-text="$wire.create.type === 'private' ? 'تنها اعضای انتخاب‌شده به گروه خصوصی دسترسی دارند — دیگران نمی‌توانند خودشان پیوستن.' : 'اختیاری — در گروه عمومی دیگران می‌توانند از طریق مرور پیوستن.'"></p>
 
-                @if(count($this->memberCandidates) > 0)
-                    <x-dashboard.member-search/>
-
-                    <div class="max-h-56 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
-                        @foreach($this->memberCandidates as $u)
-                            <label x-show="memberQuery === '' || @js($u['name'] ?? '').toLowerCase().includes(memberQuery.toLowerCase())"
-                                   class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-surface-container)]/60 cursor-pointer transition-colors">
-                                <input type="checkbox" value="{{ $u['id'] }}" wire:model="createRecipientIds"
-                                       class="w-4 h-4 rounded text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)] focus:ring-[var(--md-sys-color-primary)]">
-                                <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)]">{{ $u['name'] }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                @else
-                    <x-ui.empty icon="group" title="کاربر فعال دیگری برای افزودن وجود ندارد." />
-                @endif
+                <x-dashboard.member-picker wire:key="channel-create-member-picker" model="createRecipientIds" :candidates="$this->memberCandidates" height="max-h-56"/>
             </div>
 
             <div class="flex items-center gap-2 pt-1">

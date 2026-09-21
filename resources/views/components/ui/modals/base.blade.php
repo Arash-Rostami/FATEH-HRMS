@@ -17,10 +17,9 @@
         x-transition:enter="transition duration-0"
         x-transition:leave="transition duration-1000 delay-1000"
     >
-        <div
-            class="modal-close-icon"
-            @click="show = false"
-        ></div>
+        <x-ui.modals.close-button close="show = false" tone="on-primary" size="lg"
+            class="!absolute top-10 right-10 z-[10002]"
+            x-bind:class="active ? 'opacity-100 duration-500 delay-1000' : 'opacity-0 duration-500'"/>
 
         <div class="custom-modal-content scrollbar-hover-reveal {{ $contentClass }}">
             @if($title)

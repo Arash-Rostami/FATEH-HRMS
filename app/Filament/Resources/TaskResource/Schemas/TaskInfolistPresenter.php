@@ -2,22 +2,30 @@
 
 namespace App\Filament\Resources\TaskResource\Schemas;
 
+use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 
 class TaskInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function archivedAt(): TextEntry
     {
         return TextEntry::make('archived_at')
             ->label(__('resources/task/strings.fields.archived_at'))
             ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('archived_at', null))
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->placeholder('—')
             ->color('gray')
             ->icon('heroicon-o-archive-box')
@@ -29,6 +37,7 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.action_source')
             ->label(__('resources/task/strings.fields.action_source'))
             ->placeholder('—')
+            ->icon('heroicon-o-link')
             ->extraAttributes(['style' => 'white-space: pre-wrap;'])
             ->columnSpanFull();
     }
@@ -38,6 +47,7 @@ class TaskInfolistPresenter
         return TextEntry::make('detail.action_source_domain')
             ->label(__('resources/task/strings.fields.action_source_domain'))
             ->placeholder('—')
+            ->icon('heroicon-o-globe-alt')
             ->extraAttributes(['style' => 'white-space: pre-wrap;'])
             ->columnSpanFull();
     }
@@ -90,6 +100,7 @@ class TaskInfolistPresenter
             ->label(__('resources/task/strings.fields.collaborators'))
             ->getStateUsing(fn($record) => $record->detail?->collaboratorNames() ?? [])
             ->badge()
+            ->icon('heroicon-o-user-group')
             ->placeholder('—');
     }
 
@@ -98,6 +109,9 @@ class TaskInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/task/strings.fields.created_at'))
             ->formatStateUsing(fn($state, $record) => $record->createdLabel())
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -147,6 +161,9 @@ class TaskInfolistPresenter
         return TextEntry::make('deleted_at')
             ->label(__('resources/task/strings.fields.deleted_at'))
             ->formatStateUsing(fn($state, $record) => $record->adminDateLabel('deleted_at', null))
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->placeholder('—')
             ->color('danger')
             ->icon('heroicon-o-trash')
@@ -195,6 +212,7 @@ class TaskInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/task/strings.fields.description'))
             ->placeholder('—')
+            ->icon('heroicon-o-document-text')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -203,6 +221,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('detail.project')
             ->label(__('resources/task/strings.fields.project'))
+            ->icon('heroicon-o-folder')
             ->placeholder('—');
     }
 
@@ -246,7 +265,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('priority')
             ->label(__('resources/task/strings.fields.priority'))
-            ->getStateUsing(fn($record) => $record->priority)
+            ->getStateUsing(fn($record) => TaskPriority::tryFrom($record->priority ?? ''))
             ->badge()
             ->placeholder('—');
     }
@@ -262,13 +281,20 @@ class TaskInfolistPresenter
                 $percent = $record->progress_percent ?? 0;
 
                 return $total > 0 ? "{$done} از {$total} ({$percent}٪)" : '—';
+            })
+            ->badge()
+            ->icon('heroicon-o-clipboard-document-check')
+            ->color(fn($record) => match (true) {
+                ($record->progress_percent ?? 0) >= 100 => 'success',
+                ($record->progress_percent ?? 0) > 0 => 'warning',
+                default => 'gray',
             });
     }
 
     public static function activityStream(): RepeatableEntry
     {
         return RepeatableEntry::make('replies')
-            ->hiddenLabel()
+            ->label(__('resources/task/strings.infolist.section_activity'))
             ->schema([
                 TextEntry::make('user.name')
                     ->hiddenLabel()
@@ -299,6 +325,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('detail.scheme')
             ->label(__('resources/task/strings.fields.scheme'))
+            ->icon('heroicon-o-swatch')
             ->placeholder('—');
     }
 
@@ -306,6 +333,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('detail.section')
             ->label(__('resources/task/strings.fields.section'))
+            ->icon('heroicon-o-rectangle-group')
             ->placeholder('—');
     }
 
@@ -330,6 +358,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('title')
             ->label(__('resources/task/strings.fields.title'))
+            ->weight(FontWeight::Bold)
             ->size(TextSize::Large)
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
@@ -339,6 +368,7 @@ class TaskInfolistPresenter
     {
         return TextEntry::make('detail.unit')
             ->label(__('resources/task/strings.fields.unit'))
+            ->icon('heroicon-o-squares-2x2')
             ->placeholder('—');
     }
 
@@ -347,6 +377,9 @@ class TaskInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/task/strings.fields.updated_at'))
             ->formatStateUsing(fn($state, $record) => $record->updatedLabel())
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

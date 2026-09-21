@@ -4,7 +4,7 @@ namespace App\Filament\Resources\DepartmentResource\Pages;
 
 use App\Filament\Resources\DepartmentResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateDepartment extends CreateRecord
 {

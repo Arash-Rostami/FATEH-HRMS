@@ -5,7 +5,8 @@
     @foreach($edges as $e)
         @if($e['localRoute'] === null || $e['localRoute'] === $currentRoute)
             <div wire:key="edge-{{ $e['key'] }}:{{ $e['subject_id'] }}"
-                 class="pointer-events-auto relative overflow-hidden flex flex-col gap-3 p-5 sm:p-6 rounded-[1.5rem] animate-toast-in
+                 x-bind:class="{ 'animate-toast-in': !$store.focus.active }"
+                 class="pointer-events-auto relative overflow-hidden flex flex-col gap-3 p-5 sm:p-6 rounded-[1.5rem]
                     bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                     dark:bg-[var(--md-sys-color-surface)] shadow-lg
                     dark:shadow-[0_14px_44px_-4px_rgba(0,0,0,0.6)]

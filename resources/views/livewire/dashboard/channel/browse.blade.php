@@ -12,10 +12,7 @@
                     <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]">برای پیوستن روی گروه کلیک کنید</p>
                 </div>
             </div>
-            <button x-on:click="toggleBrowse()" aria-label="بستن"
-                    class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:brightness-95 active:scale-90 transition-all">
-                <span class="material-symbols-rounded text-[18px]">close</span>
-            </button>
+            <x-ui.modals.close-button close="toggleBrowse()"/>
         </div>
 
         @forelse($browseList as $ch)

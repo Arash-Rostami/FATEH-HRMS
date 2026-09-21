@@ -4,7 +4,7 @@ namespace App\Filament\Resources\AuthorityResource\Pages;
 
 use App\Filament\Resources\AuthorityResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateAuthority extends CreateRecord
 {

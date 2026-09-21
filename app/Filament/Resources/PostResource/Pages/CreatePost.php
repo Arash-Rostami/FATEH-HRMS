@@ -5,7 +5,7 @@ namespace App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreatePost extends CreateRecord
 {

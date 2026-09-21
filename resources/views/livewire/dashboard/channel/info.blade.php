@@ -19,10 +19,7 @@
     <div class="p-5 space-y-5 border-none">
         <div class="flex items-center justify-between">
             <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">اطلاعات گروه</h3>
-            <button x-on:click="showInfo = false" aria-label="بستن"
-                    class="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]">
-                <span class="material-symbols-rounded text-base" aria-hidden="true">close</span>
-            </button>
+            <x-ui.modals.close-button close="showInfo = false"/>
         </div>
         <div class="flex flex-col items-center gap-3 py-4">
             <div class="w-20 h-20 rounded-xl flex items-center justify-center text-2xl shadow-lg bg-[linear-gradient(135deg,var(--md-sys-color-primary),var(--md-sys-color-secondary))] text-[var(--md-sys-color-on-primary)]">

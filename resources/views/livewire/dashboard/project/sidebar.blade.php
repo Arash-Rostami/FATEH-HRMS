@@ -1,3 +1,6 @@
+@php
+    $allProjectIds = collect($this->myProjects['rows'])->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
+@endphp
 <aside class="flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
        :class="{ 'hidden': mobileShowChat }"
        aria-label="لیست پروژه‌ها">
@@ -19,6 +22,17 @@
                 @endif
             </div>
             <div class="flex items-center gap-1.5">
+                @if(count($this->myProjects['rows']))
+                    <button type="button"
+                            x-on:click="$store.sound.toggleAll({{ $allProjectIds }}, 'project')"
+                            :aria-pressed="$store.sound.isAllMuted({{ $allProjectIds }}, 'project')"
+                            :aria-label="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
+                            :title="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            :class="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
+                        <span class="material-symbols-rounded text-[18px]" x-text="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'volume_off' : 'volume_up'"></span>
+                    </button>
+                @endif
                 <a href="{{ route('tasksheet') }}" target="_blank" rel="noopener noreferrer" title="تسک‌شیت" aria-label="تسک‌شیت"
                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
                     <span class="material-symbols-rounded text-[18px]">assignment_turned_in</span>
@@ -56,12 +70,9 @@
 
                 <x-ui.row-actions :id="$project['id']" scope="project" pin-noun="پروژه" mute-noun="پروژه" :for="\App\Models\Project::make(['id' => $project['id']])"/>
 
+                @php($badge = $this->presenter->badgeColors($project['id']))
                 <span class="relative flex-shrink-0">
-                    <span @class([
-                            'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold select-none shadow-sm ring-1',
-                            'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-[var(--md-sys-color-tertiary)]' => $activeProjectId === $project['id'],
-                            'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]' => $activeProjectId !== $project['id'],
-                        ])>{{ mb_substr($project['name'], 0, 1) }}</span>
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold select-none shadow-sm ring-1 {{ $badge['bg'] }} {{ $badge['text'] }} {{ $activeProjectId === $project['id'] ? $badge['ring'] : 'ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]' }}">{{ mb_substr($project['name'], 0, 1) }}</span>
                     @if($project['pending'])
                         <span class="absolute -top-0.5 -left-0.5 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] ring-2 ring-[var(--md-sys-color-surface)]" title="دعوت در انتظار"></span>
                     @endif
@@ -76,6 +87,15 @@
 
                     <x-ui.decor.progress-ring :percent="$project['percent']" :size="24" :stroke="4" class="shrink-0"
                         :color="$project['percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>
+
+                    @if($project['workflowCount'] > 0)
+                        <span wire:key="project-workflow-badge-{{ $project['id'] }}"
+                              class="inline-flex items-center gap-0.5 h-[22px] px-1.5 rounded-md bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_14%,transparent)] text-[var(--md-sys-color-secondary)] text-[10px] font-bold tabular-nums shrink-0"
+                              title="{{ $project['workflowCount'] === 1 ? 'چرخهٔ کاری — مرحلهٔ '.convertToPersian($project['workflowStep']).' از '.convertToPersian($project['workflowTotal']) : convertToPersian($project['workflowCount']).' چرخهٔ کاری فعال' }}">
+                            <span class="material-symbols-rounded text-[13px]">conversion_path</span>
+                            {{ $project['workflowCount'] === 1 ? convertToPersian($project['workflowStep']).'/'.convertToPersian($project['workflowTotal']) : '×'.convertToPersian($project['workflowCount']) }}
+                        </span>
+                    @endif
                 </div>
             </div>
         @empty

@@ -77,18 +77,11 @@
                         این پیشنهاد در راستای کدام قاعده سازمان است؟
                     </p>
 
-                    <div class="space-y-2">
+                    <x-ui.forms.select label="قواعد سازمان" name="form.rule" wire:model="form.rule" multiple class="min-h-[140px]">
                         @foreach($rules as $value => $label)
-                            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:brightness-95 select-none bg-[var(--md-sys-color-surface-variant)]">
-                                <input type="checkbox" wire:model="form.rule" value="{{ $value }}" class="w-4 h-4 rounded-lg accent-[var(--md-sys-color-primary)]">
-                                <span class="text-sm text-[var(--md-sys-color-on-surface)]">{{ $label }}</span>
-                            </label>
+                            <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
-                    </div>
-
-                    @error('form.rule')
-                    <p class="mt-2 text-xs text-[var(--md-sys-color-error)]">{{ $message }}</p>
-                    @enderror
+                    </x-ui.forms.select>
                 </div>
 
                 <div>
@@ -97,18 +90,11 @@
                         این پیشنهاد موجب کدام بهبودها خواهد شد؟
                     </p>
 
-                    <div class="space-y-2">
+                    <x-ui.forms.select label="بهبودهای موردنظر" name="form.purpose" wire:model="form.purpose" multiple class="min-h-[140px]">
                         @foreach($purposes as $value => $label)
-                            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:brightness-95 select-none bg-[var(--md-sys-color-surface-variant)]">
-                                <input type="checkbox" wire:model="form.purpose" value="{{ $value }}" class="w-4 h-4 rounded-lg accent-[var(--md-sys-color-primary)]">
-                                <span class="text-sm text-[var(--md-sys-color-on-surface)]">{{ $label }}</span>
-                            </label>
+                            <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
-                    </div>
-
-                    @error('form.purpose')
-                    <p class="mt-2 text-xs text-[var(--md-sys-color-error)]">{{ $message }}</p>
-                    @enderror
+                    </x-ui.forms.select>
                 </div>
             </div>
 

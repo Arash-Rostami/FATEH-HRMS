@@ -6,7 +6,7 @@ use App\Filament\Resources\ReportResource\Schemas\ReportFormPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportInfolistPresenter;
 use App\Filament\Resources\ReportResource\Schemas\ReportTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;

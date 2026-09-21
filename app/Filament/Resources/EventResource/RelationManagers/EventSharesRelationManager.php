@@ -4,7 +4,7 @@ namespace App\Filament\Resources\EventResource\RelationManagers;
 
 use App\Filament\Resources\EventResource;
 use Filament\Actions\Action;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;

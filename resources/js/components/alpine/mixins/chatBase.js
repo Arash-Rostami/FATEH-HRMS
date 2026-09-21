@@ -16,8 +16,10 @@ const ID_TA = 'msg-ta';
 const ID_CHIP_TRACK = 'sender-chip-track';
 const ID_SEARCH_INPUT = 'msg-search-input';
 
+const ATTR_MANUAL_RESIZE = 'data-manual-resize';
+
 export default function chatBase(scope) {
-    const settingsKey = `chat-settings:${scope}`;
+    const settingsKey = 'chat-settings:' + scope;
 
     return {
         ...highlightMatchMixin(),
@@ -60,13 +62,15 @@ export default function chatBase(scope) {
         },
 
         startPolling() {
-            if (this._timer) return;
+            if (this._timer !== null) return;
             this._schedulePollTick();
         },
 
         stopPolling() {
-            if (this._timer) clearTimeout(this._timer);
-            this._timer = null;
+            if (this._timer !== null) {
+                clearTimeout(this._timer);
+                this._timer = null;
+            }
         },
 
         resetPollInterval() {
@@ -74,7 +78,7 @@ export default function chatBase(scope) {
         },
 
         initAutoResize(el) {
-            if (!el || el._autoResizeInit) return;
+            if (el === null || el._autoResizeInit) return;
             el._autoResizeInit = true;
             let programmatic = false;
 
@@ -83,7 +87,7 @@ export default function chatBase(scope) {
                     programmatic = false;
                     return;
                 }
-                el.dataset.manualResize = '1';
+                el.setAttribute(ATTR_MANUAL_RESIZE, '1');
             }).observe(el);
 
             el._setAutoHeight = (value) => {
@@ -93,14 +97,16 @@ export default function chatBase(scope) {
         },
 
         autoGrow(el, maxPx) {
-            if (!el || !el._setAutoHeight) return;
+            if (el === null || el._setAutoHeight === undefined) return;
 
-            if (el._agRaf) cancelAnimationFrame(el._agRaf);
+            if (el._agRaf !== null && el._agRaf !== undefined) {
+                cancelAnimationFrame(el._agRaf);
+            }
 
             el._agRaf = requestAnimationFrame(() => {
                 el._agRaf = null;
 
-                if (el.dataset.manualResize === '1') {
+                if (el.getAttribute(ATTR_MANUAL_RESIZE) === '1') {
                     const sh = el.scrollHeight;
                     if (sh > el.clientHeight) el._setAutoHeight(sh + 'px');
                     return;
@@ -113,28 +119,30 @@ export default function chatBase(scope) {
         },
 
         autoDirection(el) {
-            if (!el || typeof el.value !== 'string') return;
+            if (el === null || typeof el.value !== 'string') return;
 
             const val = el.value;
             const idx = val.search(DIR_RE);
-            let dir = 'rtl';
+            let nextDir = 'rtl';
 
             if (idx !== -1) {
                 const c = val.charCodeAt(idx);
                 if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
-                    dir = 'ltr';
+                    nextDir = 'ltr';
                 }
             }
 
-            if (el.dir !== dir) {
-                el.dir = dir;
+            if (el.dir !== nextDir) {
+                el.dir = nextDir;
             }
         },
 
         resetAutoResize(el) {
-            if (!el) return;
-            delete el.dataset.manualResize;
+            if (el === null) return;
+
+            el.removeAttribute(ATTR_MANUAL_RESIZE);
             el.style.height = '';
+
             if (el._agRaf) {
                 cancelAnimationFrame(el._agRaf);
                 el._agRaf = null;
@@ -147,12 +155,12 @@ export default function chatBase(scope) {
         },
 
         _schedulePollTick() {
-            const jitter = this._pollIntervalMs * (0.9 + Math.random() * 0.2);
+            const delay = this._pollIntervalMs * (0.9 + Math.random() * 0.2);
             this._timer = setTimeout(() => {
                 this._pollTick().finally(() => {
                     if (this._timer !== null) this._schedulePollTick();
                 });
-            }, jitter);
+            }, delay);
         },
 
         toast(message, type = 'info') {
@@ -162,7 +170,7 @@ export default function chatBase(scope) {
 
         scrollToBottom(smooth = false) {
             const vp = document.getElementById(ID_VIEWPORT);
-            if (!vp) return;
+            if (vp === null) return;
 
             vp.scrollTo({
                 top: SCROLL_TO_BOTTOM_PX,
@@ -171,20 +179,27 @@ export default function chatBase(scope) {
         },
 
         isEmojiOnly(text) {
-            if (!text || typeof text !== 'string') return false;
+            if (typeof text !== 'string' || text === '') return false;
+
             const stripped = text.replace(HTML_TAG_RE, '').trim();
-            if (!stripped) return false;
+            if (stripped === '') return false;
 
             const segments = segmenter.segment(stripped);
-            for (const { segment } of segments) {
-                if (!emojiSet.has(segment) && !WS_ONLY_RE.test(segment)) return false;
+            // Avoid object destructuring {segment} in hot loops
+            for (const data of segments) {
+                const seg = data.segment;
+                if (!emojiSet.has(seg) && !WS_ONLY_RE.test(seg)) {
+                    return false;
+                }
             }
             return true;
         },
 
         toggleHighlight() {
-            this.isHighlighted = !this.isHighlighted;
+            const next = !this.isHighlighted;
+            this.isHighlighted = next;
             this.backgroundPattern = this.backgroundPattern === 'on' ? 'off' : 'on';
+
             queueMicrotask(() => this._persistChatSettings());
         },
 
@@ -204,25 +219,37 @@ export default function chatBase(scope) {
         },
 
         openMessageSearch() {
-            this.searchMessages = !this.searchMessages;
-            if (this.searchMessages) {
+            const next = !this.searchMessages;
+            this.searchMessages = next;
+
+            if (next) {
+                this.typeFilterOpen = false;
                 this.$nextTick(() => {
                     const input = document.getElementById(ID_SEARCH_INPUT);
-                    if (input) input.focus();
+                    if (input !== null) input.focus();
                 });
             }
+        },
+
+        toggleFilterPanel() {
+            const next = !this.typeFilterOpen;
+            this.typeFilterOpen = next;
+            if (next) this.searchMessages = false;
         },
 
         focusSearchResult(id) {
             if (!id) return;
             this.searchMessages = false;
-            this.$wire.$island('messages').focusMessage(id).catch(() => {});
+            if (this.$wire !== undefined) {
+                this.$wire.$island('messages').focusMessage(id).catch(() => {});
+            }
         },
 
         insertEmoji(e) {
             if (typeof e !== 'string') return;
+
             const ta = document.getElementById(ID_TA);
-            if (!ta) return;
+            if (ta === null) return;
 
             const s = ta.selectionStart;
             const val = ta.value;
@@ -237,15 +264,17 @@ export default function chatBase(scope) {
         },
 
         copyMessage(text) {
-            if (typeof text !== 'string' || !text) return;
+            if (typeof text !== 'string' || text === '') return;
             this.copyText(text, 'پیام کپی شد', 'info');
         },
 
         toggleTypeFilter(t) {
             const current = this.typeFilter;
-            this.typeFilter = current.includes(t)
-                ? current.replace(t, '')
-                : current + t;
+            if (current.includes(t)) {
+                this.typeFilter = current.replace(t, '');
+            } else {
+                this.typeFilter = current + t;
+            }
         },
 
         clearAllFilters() {
@@ -255,8 +284,8 @@ export default function chatBase(scope) {
 
         passesTypeFilter(types) {
             const filter = this.typeFilter;
-            if (!filter) return true;
-            if (!types) return false;
+            if (filter === '') return true;
+            if (types === undefined || types === null || types === '') return false;
 
             let start = 0;
             const len = types.length;
@@ -275,33 +304,36 @@ export default function chatBase(scope) {
 
         syncChipScroll() {
             const el = document.getElementById(ID_CHIP_TRACK);
-            if (!el) return;
+            if (el === null) return;
 
-            const cw = el.clientWidth;
-            const max = el.scrollWidth - cw;
+            const max = el.scrollWidth - el.clientWidth;
             const pos = Math.abs(el.scrollLeft);
 
             const prev = max > 2 && pos > 2;
             const next = pos < max - 2;
 
-            if (this.chipScroll.prev !== prev) this.chipScroll.prev = prev;
-            if (this.chipScroll.next !== next) this.chipScroll.next = next;
+            const state = this.chipScroll;
+            if (state.prev !== prev) state.prev = prev;
+            if (state.next !== next) state.next = next;
         },
 
         pageChips(dir) {
             const el = document.getElementById(ID_CHIP_TRACK);
-            if (!el) return;
+            if (el === null) return;
             el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
         },
 
         useQuoteChip() {
-            if (!this.quoteChip?.visible || !this.quoteChip?.id) return;
-            this.startReply(this.quoteChip.id, this.quoteChip.sender, this.quoteChip.snippet);
+            const q = this.quoteChip;
+            if (q === undefined || !q.visible || !q.id) return;
+            this.startReply(q.id, q.sender, q.snippet);
         },
 
         cancelReply() {
             this.replyingTo = null;
-            this.$wire.cancelReply();
+            if (this.$wire !== undefined) {
+                this.$wire.cancelReply();
+            }
         },
 
         cancelDelete() {
@@ -309,10 +341,11 @@ export default function chatBase(scope) {
         },
 
         async deleteMessage() {
-            if (!this.deletingId) return;
+            const id = this.deletingId;
+            if (!id) return;
 
             try {
-                await this.$wire.$island('messages').deleteMessage(this.deletingId);
+                await this.$wire.$island('messages').deleteMessage(id);
                 this.deletingId = null;
                 this.openActionsId = null;
             } catch {
@@ -322,7 +355,9 @@ export default function chatBase(scope) {
 
         destroy() {
             this.stopPolling();
-            if (this.undoTimeout) clearTimeout(this.undoTimeout);
+            if (this.undoTimeout !== null) {
+                clearTimeout(this.undoTimeout);
+            }
         }
     };
 }

@@ -27,7 +27,9 @@ return [
     'form' => [
         'section_main' => 'اطلاعات گزارش',
         'section_description' => 'اطلاعات پایه گزارش را وارد کنید.',
-        'section_files' => 'فایل‌ها',
+        'section_meta' => 'تنظیمات و انتشار',
+        'section_files' => 'فایل گزارش',
+        'section_cover' => 'کاور گزارش',
         'tab_main' => 'اطلاعات اصلی',
         'tab_files' => 'فایل‌ها',
     ],

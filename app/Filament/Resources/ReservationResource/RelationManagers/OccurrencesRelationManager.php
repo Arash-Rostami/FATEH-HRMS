@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReservationResource\RelationManagers;
 
 use App\Enums\ReservationStatus;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;

@@ -21,10 +21,7 @@
                         <span class="material-symbols-rounded text-xl text-[var(--md-sys-color-primary)]">workspace_premium</span>
                         <h3 class="font-bold text-sm">برترین مشارکت‌کنندگان</h3>
                     </div>
-                    <button @click="open = false"
-                            class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] transition-colors rounded-lg p-1 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-lg">close</span>
-                    </button>
+                    <x-ui.modals.close-button close="open = false" size="sm" class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/30"/>
                 </div>
 
                 <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">

@@ -110,6 +110,14 @@
                                 @if ($day['hasCompleted'])
                                     <span class="material-symbols-rounded text-[10px] sm:text-[12px] md:text-[15px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : $legend['completed']['iconColorClass'] }} drop-shadow-sm">{{ $legend['completed']['icon'] }}</span>
                                 @endif
+                                @if ($day['hasCycleStart'] || $day['hasCycleEnd'])
+                                    <div class="flex items-center gap-[1px]">
+                                        <span class="material-symbols-rounded text-[8px] sm:text-[10px] md:text-[12px] opacity-70 {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : $legend['cycle-start']['iconColorClass'] }}">{{ $legend['cycle-start']['icon'] }}</span>
+                                        @if ($day['cycleCount'] > 1)
+                                            <span class="text-[7px] sm:text-[8px] md:text-[9.5px] font-bold leading-none opacity-70 {{ $day['isSelected'] ? 'text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_90%,transparent)]' : 'text-[var(--md-sys-color-on-surface-variant)]' }}">+{{ convertToPersian($day['cycleCount'] - 1) }}</span>
+                                        @endif
+                                    </div>
+                                @endif
                                 @if ($day['hasProjectDeadline'])
                                     <span class="material-symbols-rounded text-[10px] sm:text-[12px] md:text-[15px] {{ $day['isSelected'] ? 'text-[var(--md-sys-color-on-primary)]' : $legend['projectDeadline']['iconColorClass'] }} drop-shadow-sm">{{ $legend['projectDeadline']['icon'] }}</span>
                                 @endif
@@ -129,7 +137,7 @@
                                 @endif
                             </div>
 
-                            @if ($day['isToday'] && !$day['isSelected'] && !$day['hasStart'] && !$day['hasChange'] && !$day['hasCompleted'] && !$day['hasDeadline'] && !$day['hasProjectDeadline'])
+                            @if ($day['isToday'] && !$day['isSelected'] && !$day['hasStart'] && !$day['hasChange'] && !$day['hasCompleted'] && !$day['hasCycleStart'] && !$day['hasCycleEnd'] && !$day['hasDeadline'] && !$day['hasProjectDeadline'])
                                 <div class="absolute bottom-1.5 md:bottom-2 w-1 h-1 rounded-full bg-[var(--md-sys-color-primary)] opacity-50"></div>
                             @endif
 
@@ -142,8 +150,8 @@
             </div>
         </div>
 
-        <div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_80%,transparent)] backdrop-blur-xl shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] overflow-hidden">
-            <div class="px-5 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-lowest)_40%,transparent)]">
+        <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
+            <div class="px-5 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
                 <h3 class="text-xs md:text-sm font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
                     <span class="material-symbols-rounded text-[18px] md:text-[20px] text-[var(--md-sys-color-primary)]">list_alt</span>
                     رویدادهای روز انتخاب شده
@@ -151,7 +159,7 @@
             </div>
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="min-w-full text-sm text-right">
-                    <thead class="text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-[9px] md:text-[10px] tracking-wider border-b border-[var(--md-sys-color-outline-variant)]/20">
+                    <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs tracking-wider border-b border-[var(--md-sys-color-outline-variant)]">
                     <tr>
                         <th class="px-5 md:px-6 py-3 md:py-4">رویداد</th>
                         <th class="px-5 md:px-6 py-3 md:py-4">وظیفه</th>
@@ -159,12 +167,12 @@
                         <th class="px-5 md:px-6 py-3 md:py-4">زمان</th>
                     </tr>
                     </thead>
-                    <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/10">
+                    <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
                     @forelse ($this->selectedDayTimeline as $event)
                         @php ($d = $this->presenter->lifecycleEventData($event))
-                        <tr wire:key="timeline-{{ $event['marker'] }}-{{ $event['task_id'] }}-{{ $event['time'] }}"
-                            x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $event['task_id'] }} })" dir="auto"
-                            class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 cursor-pointer group">
+                        <tr wire:key="timeline-{{ $event['marker'] }}-{{ $event['task_id'] ?? $event['workflow_id'] }}-{{ $event['time'] }}"
+                            @if (isset($event['task_id'])) x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $event['task_id'] }} })" @endif dir="auto"
+                            class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 group {{ isset($event['task_id']) ? 'cursor-pointer' : '' }}">
                             <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg border border-[var(--md-sys-color-outline-variant)] {{ $d['chipClass'] }}">
                                         <span class="material-symbols-rounded text-[11px] md:text-[13px] {{ $d['iconColorClass'] }}">{{ $d['icon'] }}</span>
@@ -194,10 +202,10 @@
         </div>
     </div>
 
-    <div wire:key="calendar-list-pane-{{ $activeProjectId }}" x-show="calView === 'list'" class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_85%,transparent)] backdrop-blur-xl shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] overflow-hidden" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+    <div wire:key="calendar-list-pane-{{ $activeProjectId }}" x-show="calView === 'list'" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
         <div class="overflow-x-auto custom-scrollbar">
             <table class="min-w-full text-sm text-right" dir="rtl">
-                <thead class="text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-[9px] md:text-[10px] tracking-wider border-b border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-lowest)_40%,transparent)]">
+                <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs tracking-wider border-b border-[var(--md-sys-color-outline-variant)]">
                 <tr>
                     <th class="px-5 md:px-6 py-3 md:py-4 text-center">روز</th>
                     <th class="px-5 md:px-6 py-3 md:py-4">رویداد</th>
@@ -206,10 +214,10 @@
                     <th class="px-5 md:px-6 py-3 md:py-4">زمان</th>
                 </tr>
                 </thead>
-                <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/10">
+                <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
                 @forelse ($this->monthAgenda as $event)
                     @php ($d = $this->presenter->lifecycleEventData($event))
-                    <tr wire:key="agenda-{{ $event['date'] }}-{{ $event['marker'] }}-{{ $event['task_id'] }}-{{ $event['time'] }}"
+                    <tr wire:key="agenda-{{ $event['date'] }}-{{ $event['marker'] }}-{{ $event['task_id'] ?? $event['workflow_id'] }}-{{ $event['time'] }}"
                         wire:click="selectCalendarDay('{{ $event['date'] }}')" dir="rtl"
                         class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 cursor-pointer group">
                         <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap align-middle">

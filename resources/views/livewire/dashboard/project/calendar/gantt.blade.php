@@ -2,8 +2,8 @@
 @php ($days = (int) $gantt['daysCount'])
 @php ($cellPct = $days > 0 ? round(100 / $days, 4) : 0)
 
-<div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_85%,transparent)] backdrop-blur-xl shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] overflow-hidden slide-up" style="animation-delay: 0.1s">
-    <div class="flex items-center gap-2 px-5 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/20 bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-lowest)_40%,transparent)]">
+<div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden slide-up" style="animation-delay: 0.1s">
+    <div class="flex items-center gap-2 px-5 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
         <span class="material-symbols-rounded text-[18px] md:text-[20px] text-[var(--md-sys-color-primary)]">view_timeline</span>
         <h3 class="text-xs md:text-sm font-bold text-[var(--md-sys-color-on-surface)]">خط زمانی وظایف</h3>
     </div>
@@ -17,7 +17,7 @@
     @else
         <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[32rem]">
             <div class="min-w-max">
-                <div class="sticky top-0 z-30 flex bg-[var(--md-sys-color-surface)]/95 backdrop-blur-sm border-b border-[var(--md-sys-color-outline-variant)]/20">
+                <div class="sticky top-0 z-30 flex bg-[var(--md-sys-color-surface-container-low)] border-b border-[var(--md-sys-color-outline-variant)]">
                     <div class="sticky start-0 z-20 w-40 md:w-56 shrink-0 bg-[var(--md-sys-color-surface)] flex items-end px-4 pb-2">
                         <span class="text-[9px] md:text-[10px] font-bold tracking-wider text-[var(--md-sys-color-on-surface-variant)]">وظیفه</span>
                     </div>

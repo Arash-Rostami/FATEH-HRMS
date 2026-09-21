@@ -3,12 +3,16 @@
 namespace App\Filament\Resources\CredentialResource\Schemas;
 
 use App\Models\Credential;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontFamily;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class CredentialInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function appName(): TextEntry
     {
         return TextEntry::make('app_name')
@@ -80,6 +84,10 @@ class CredentialInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/credential/strings.fields.created_at'))
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-m-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -89,6 +97,10 @@ class CredentialInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/credential/strings.fields.updated_at'))
             ->formatStateUsing(fn ($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-m-arrow-path')
             ->color('gray')
             ->placeholder('-');
     }

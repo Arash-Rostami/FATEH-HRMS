@@ -1,5 +1,16 @@
 @props(['title' => 'حساب کاربری'])
 
+@php
+    $exclusiveOnboarding = auth()->check()
+        ? \Illuminate\Support\Facades\Cache::remember(
+            \App\Services\Cache\ModelCacheVersion::key(\App\Models\Onboarding::class, 'exclusive:' . auth()->id()),
+            now()->addDay(),
+            fn() => \App\Models\Onboarding::where('user_id', auth()->id())->where('is_active', true)->first(['updated_at']),
+        )
+        : null;
+    $onboardingHighlighted = $exclusiveOnboarding && $exclusiveOnboarding->updated_at->diffInDays(now()) <= 7;
+@endphp
+
 <div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
             class="group relative flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 shadow-sm outline-none"
@@ -45,6 +56,17 @@
                 class="md:hidden px-3 py-2 border-b border-[var(--md-sys-color-outline-variant)]/10 mb-1 opacity-70 text-xs text-right">
                 {{ auth()->user()->name ?? 'مهمان' }}
             </div>
+
+            <a href="{{ url('/profile?tab=onboarding') }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               @if($onboardingHighlighted) title="محتوای آنبوردینگ اختصاصی شما آماده است" @endif
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
+                        <span
+                            class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">apartment</span>
+                آنبوردینگ
+                <x-ui.pulse-dot :show="$onboardingHighlighted"/>
+            </a>
 
             <a href="{{ url('/profile?tab=info') }}"
                target="_blank"

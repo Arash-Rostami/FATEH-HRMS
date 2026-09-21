@@ -26,7 +26,7 @@
                      @click="closeModal()"></div>
 
                 <div class="relative w-full bg-[var(--md-sys-color-on-primary)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ring-1 ring-[var(--md-sys-color-outline-variant)]/20"
-                     :class="max ? 'h-full max-w-none max-h-none rounded-none' : 'max-w-4xl max-h-[90vh] rounded-3xl'"
+                     :class="max ? 'h-full max-w-none max-h-none rounded-none' : 'max-w-4xl max-h-[90vh] rounded-2xl'"
                      x-show="!isClosing"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
@@ -62,11 +62,7 @@
                                     class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--md-sys-color-surface-container-highest)] hover:text-[var(--md-sys-color-on-surface)] transition-all focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
                                 <span class="material-symbols-rounded text-[20px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
                             </button>
-                            <button @click="closeModal()"
-                                    title="بستن"
-                                    class="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-error)]">
-                                <span class="material-symbols-rounded text-[20px]">close</span>
-                            </button>
+                            <x-ui.modals.close-button close="closeModal()" size="lg"/>
                         </div>
                     </div>
 

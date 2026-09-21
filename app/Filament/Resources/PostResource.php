@@ -132,24 +132,19 @@ class PostResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
-                    PostInfolistPresenter::title(),
-                    PostInfolistPresenter::body(),
-                ])
-                ->columns(2)
-                ->columnSpanFull(),
-
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    PostInfolistPresenter::image(),
                     PostInfolistPresenter::user(),
                     PostInfolistPresenter::pinned(),
                     PostInfolistPresenter::createdAt(),
                     PostInfolistPresenter::updatedAt(),
+
+                    PostInfolistPresenter::divider(),
+                    PostInfolistPresenter::title(),
+                    PostInfolistPresenter::body(),
+                    PostInfolistPresenter::image(),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

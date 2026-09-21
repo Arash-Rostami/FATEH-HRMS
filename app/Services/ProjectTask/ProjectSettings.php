@@ -37,6 +37,22 @@ final class ProjectSettings
         return $bag;
     }
 
+    public function mergeExtra(array $settings, array $rows): array
+    {
+        $out = array_intersect_key($settings, array_flip(Project::KNOWN_SETTING_KEYS));
+
+        foreach ($rows as $row) {
+            $key = trim((string) ($row['key'] ?? ''));
+            $value = trim((string) ($row['value'] ?? ''));
+
+            if ($key !== '' && $value !== '' && !in_array($key, Project::KNOWN_SETTING_KEYS, true)) {
+                $out[$key] = $value;
+            }
+        }
+
+        return $out;
+    }
+
     public function fillForm(ProjectForm $form, Project $project): void
     {
         $settings = $project->settings ?? [];

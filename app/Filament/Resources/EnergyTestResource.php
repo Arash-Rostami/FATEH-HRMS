@@ -94,26 +94,26 @@ class EnergyTestResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
-                    Section::make()
-                        ->hiddenLabel()
-                        ->schema([
-                            EnergyTestInfolistPresenter::user(),
-                            EnergyTestInfolistPresenter::completedAt(),
-                            EnergyTestInfolistPresenter::createdAt(),
+                    EnergyTestInfolistPresenter::user(),
+                    EnergyTestInfolistPresenter::completedAt(),
+                    EnergyTestInfolistPresenter::createdAt(),
 
-                            EnergyTestInfolistPresenter::overallScore(),
-                            EnergyTestInfolistPresenter::physiqueScore(),
-                            EnergyTestInfolistPresenter::emotionScore(),
-                            EnergyTestInfolistPresenter::mindScore(),
-                            EnergyTestInfolistPresenter::soulScore(),
-                            EnergyTestInfolistPresenter::questionsDetail(),
+                    EnergyTestInfolistPresenter::divider(),
+                    EnergyTestInfolistPresenter::overallScore(),
+                    EnergyTestInfolistPresenter::physiqueScore(),
+                    EnergyTestInfolistPresenter::emotionScore(),
+                    EnergyTestInfolistPresenter::mindScore(),
+                    EnergyTestInfolistPresenter::soulScore(),
 
-                            EnergyTestInfolistPresenter::answers(),
-                        ])->columns(4),
+                    EnergyTestInfolistPresenter::divider(),
+                    EnergyTestInfolistPresenter::questionsDetail(),
+                    EnergyTestInfolistPresenter::answers(),
                 ])
                 ->columnSpanFull()
+                ->columns(4),
         ]);
     }
 

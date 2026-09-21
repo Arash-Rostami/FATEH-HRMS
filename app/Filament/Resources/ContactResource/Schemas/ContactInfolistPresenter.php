@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ContactResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -9,6 +10,9 @@ use Filament\Support\Enums\IconPosition;
 
 class ContactInfolistPresenter
 {
+    use FilamentFormDivider;
+
+
     public static function attachments(): RepeatableEntry
     {
         return RepeatableEntry::make('attachments')

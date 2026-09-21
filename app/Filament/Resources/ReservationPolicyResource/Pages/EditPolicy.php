@@ -7,7 +7,7 @@ use App\Models\ReservationPolicy;
 use App\Services\Reservation\ValidationService;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class EditPolicy extends EditRecord

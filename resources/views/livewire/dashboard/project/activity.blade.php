@@ -96,15 +96,22 @@
 
     @if(count($this->activityFeed['rows']))
         <div class="flex flex-wrap items-center gap-2">
-            <div class="relative flex-1 min-w-[200px]">
-                <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)] absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none">search</span>
-                <input type="text" x-model="activitySearch" placeholder="جستجو در فعالیت‌ها…"
-                       :class="activitySearch !== '' ? 'border-[var(--md-sys-color-primary)]' : 'border-[var(--md-sys-color-outline-variant)]'"
-                       class="w-full h-9 pr-9 pl-9 rounded-xl text-xs bg-[var(--md-sys-color-surface-container-highest)] border outline-none transition-colors text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/60"/>
-                <button type="button" x-show="activitySearch !== ''" x-cloak @click="activitySearch = ''"
-                        class="absolute top-1/2 -translate-y-1/2 left-2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
-                    <span class="material-symbols-rounded text-[16px]">close</span>
+            <div class="relative group flex-1 min-w-[200px]" x-data="{ fullscreen: false, get value() { return activitySearch }, set value(v) { activitySearch = v } }">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors">
+                    <span class="material-symbols-rounded text-[20px]">search</span>
+                </div>
+
+                <x-ui.forms.maximize-trigger class="inset-y-0 left-10"/>
+
+                <input type="text" x-model="activitySearch" placeholder="جستجو در فعالیت‌ها…" autocomplete="off" spellcheck="false"
+                       class="md3-input w-full pr-10 pl-20 h-9 rounded-xl text-xs outline-none transition-all focus:ring-2 bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]"/>
+
+                <button type="button" title="حذف" x-show="activitySearch !== ''" x-cloak @click="activitySearch = ''"
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
+                    <span class="material-symbols-rounded text-[18px]">close</span>
                 </button>
+
+                <x-ui.forms.maximize-overlay icon="search" title="جستجو در فعالیت‌ها"/>
             </div>
             <button type="button" @click="activityPinnedOnly = !activityPinnedOnly"
                     :class="activityPinnedOnly
@@ -200,10 +207,8 @@
                                         </header>
 
                                         @if($editingReplyId === $entry['id'])
-                                            <div class="space-y-1.5 mt-1">
-                                                <textarea wire:model.defer="editingReplyBody" rows="2"
-                                                          class="w-full rounded-xl border border-[var(--md-sys-color-outline-variant)]/50 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]"></textarea>
-                                                @error('editingReplyBody') <p class="text-[10px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
+                                            <div wire:key="activity-comment-edit" class="space-y-1.5 mt-1">
+                                                <x-ui.forms.textarea label="ویرایش نظر" name="editingReplyBody" wire:model.defer="editingReplyBody" :rows="2"/>
                                                 <div class="flex items-center justify-end gap-1.5">
                                                     <button type="button" wire:click="cancelEditComment"
                                                             class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
@@ -216,6 +221,7 @@
                                                 </div>
                                             </div>
                                         @else
+                                        <div wire:key="activity-comment-view" class="contents">
                                             <p class="text-sm leading-6 break-words whitespace-pre-wrap text-[var(--md-sys-color-on-surface)]" dir="auto">{!! $entry['body_html'] !!}</p>
 
                                             @if(!empty($entry['files']))
@@ -343,6 +349,7 @@
                                                     </button>
                                                 </div>
                                             @endif
+                                        </div>
                                         @endif
                                     </div>
                                 </div>

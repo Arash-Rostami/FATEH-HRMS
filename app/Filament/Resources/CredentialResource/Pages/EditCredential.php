@@ -8,7 +8,7 @@ use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditCredential extends EditRecord
 {

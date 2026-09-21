@@ -2,7 +2,7 @@
     $presence = \App\Enums\PresenceStatus::tryFrom($this->activeContact->presence->value ?? '');
 @endphp
 
-<header class="relative z-10 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 backdrop-blur-xl transition-all duration-300
+<header class="relative z-20 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 backdrop-blur-xl transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
                shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">

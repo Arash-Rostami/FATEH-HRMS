@@ -68,25 +68,21 @@
                             </button>
 
                             <div class="relative w-24 sm:w-56 shrink-0 group">
-                                <span class="material-symbols-rounded absolute right-2 top-1/2 -translate-y-1/2 text-[13px] text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_70%,transparent)] group-focus-within:text-[var(--md-sys-color-on-primary)] transition-colors pointer-events-none">search</span>
+                                <span class="material-symbols-rounded absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_70%,transparent)] group-focus-within:text-[var(--md-sys-color-on-primary)] transition-colors pointer-events-none">search</span>
                                 <input x-ref="searchInput"
                                        x-model="search"
                                        type="text"
                                        title="جستجوی سریع ماژول‌ها و ابزارها... (کلید /)"
                                        placeholder=" جستجو..."
-                                       class="w-full h-8 pr-7 pl-6 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_10%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] text-[11px] text-[var(--md-sys-color-on-primary)] placeholder-[color-mix(in_srgb,var(--md-sys-color-on-primary)_60%,transparent)] outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-on-primary)_55%,transparent)] focus:border-transparent focus:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_16%,transparent)] transition-all duration-200">
+                                       class="w-full h-8 pr-8 pl-7 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_10%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] text-[11px] text-[var(--md-sys-color-on-primary)] placeholder-[color-mix(in_srgb,var(--md-sys-color-on-primary)_60%,transparent)] outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-on-primary)_55%,transparent)] focus:border-transparent focus:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_16%,transparent)] transition-all duration-200">
                                 <button x-show="search"
                                         @click="search = ''; $refs.searchInput.focus()"
-                                        class="absolute left-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_75%,transparent)] hover:text-[var(--md-sys-color-on-primary)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] transition-all">
-                                    <span class="material-symbols-rounded text-[12px]">close</span>
+                                        class="absolute left-1.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_75%,transparent)] hover:text-[var(--md-sys-color-on-primary)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] transition-all">
+                                    <span class="material-symbols-rounded text-[13px]">close</span>
                                 </button>
                             </div>
 
-                            <button @click="closeMenu"
-                                    class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] active:scale-95 border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none"
-                                    aria-label="بستن منو">
-                                <span class="material-symbols-rounded text-[16px]">close</span>
-                            </button>
+                            <x-ui.modals.close-button close="closeMenu" label="بستن منو" tone="on-primary"/>
                         </div>
                     </div>
 

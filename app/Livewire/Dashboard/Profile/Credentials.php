@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\Profile;
 
+use App\Actions\Fortify\UpdateUserPassword;
+use App\Livewire\Dashboard\Profile\Forms\PasswordForm;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -14,9 +16,26 @@ class Credentials extends Component
 
     public string $search = '';
 
+    public PasswordForm $passwordForm;
+
     public function placeholder(): View
     {
         return view('livewire.dashboard.profile.credentials.placeholder');
+    }
+
+    public function savePassword(UpdateUserPassword $action): void
+    {
+        $this->passwordForm->validate();
+
+        $action->update(Auth::user(), [
+            'current_password' => $this->passwordForm->current_password,
+            'password' => $this->passwordForm->password,
+            'password_confirmation' => $this->passwordForm->password_confirmation,
+        ]);
+
+        $this->passwordForm->reset();
+
+        $this->dispatch('toast', message: 'رمز عبور با موفقیت تغییر کرد.', type: 'success');
     }
 
     #[Computed]

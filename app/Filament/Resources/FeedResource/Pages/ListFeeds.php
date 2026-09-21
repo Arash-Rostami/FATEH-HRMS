@@ -6,7 +6,7 @@ use App\Filament\Resources\FeedResource;
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Feed;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

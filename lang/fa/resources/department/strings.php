@@ -34,6 +34,8 @@ return [
     'form' => [
         'section_main' => 'اطلاعات واحد سازمانی',
         'section_description' => 'مشخصات واحد سازمانی را وارد کنید.',
+        'section_structure' => 'ساختار و نمودار سازمانی',
+        'section_tickets' => 'گزینه‌های تیکت',
     ],
 
     'infolist' => [

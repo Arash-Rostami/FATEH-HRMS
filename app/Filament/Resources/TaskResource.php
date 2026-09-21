@@ -187,6 +187,7 @@ class TaskResource extends Resource
                         ->icon('heroicon-o-clipboard-document-list')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     TaskInfolistPresenter::status(),
@@ -195,10 +196,12 @@ class TaskResource extends Resource
                                     TaskInfolistPresenter::assignee(),
                                     TaskInfolistPresenter::delegatedIcon(),
 
+                                    TaskInfolistPresenter::divider(),
                                     TaskInfolistPresenter::title(),
                                     TaskInfolistPresenter::description(),
                                     TaskInfolistPresenter::deadline(),
 
+                                    TaskInfolistPresenter::divider(),
                                     TaskInfolistPresenter::createdAt(),
                                     TaskInfolistPresenter::updatedAt(),
                                     TaskInfolistPresenter::lastTouchedBy(),
@@ -214,6 +217,7 @@ class TaskResource extends Resource
                         ->icon('heroicon-o-chart-bar-square')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     TaskInfolistPresenter::department(),
@@ -221,11 +225,15 @@ class TaskResource extends Resource
                                     TaskInfolistPresenter::section(),
                                     TaskInfolistPresenter::project(),
                                     TaskInfolistPresenter::scheme(),
+
+                                    TaskInfolistPresenter::divider(),
                                     TaskInfolistPresenter::actionSourceDomain(),
                                     TaskInfolistPresenter::actionSource(),
                                     TaskInfolistPresenter::collaborators(),
                                     TaskInfolistPresenter::responsibleUser(),
                                     TaskInfolistPresenter::state(),
+
+                                    TaskInfolistPresenter::divider(),
                                     TaskInfolistPresenter::meta(),
                                     TaskInfolistPresenter::attachments(),
                                 ])
@@ -237,26 +245,24 @@ class TaskResource extends Resource
                         ->icon('heroicon-o-rectangle-stack')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     TaskInfolistPresenter::linkedProject(),
                                     TaskInfolistPresenter::priority(),
                                     TaskInfolistPresenter::labels(),
                                     TaskInfolistPresenter::checklistCompletion(),
+
+                                    TaskInfolistPresenter::divider(),
+                                    TaskInfolistPresenter::activityStream(),
                                 ])
                                 ->columnSpanFull()
                                 ->columns(2),
-
-                            Section::make(__('resources/task/strings.infolist.section_activity'))
-                                ->icon('heroicon-o-chat-bubble-left-right')
-                                ->schema([
-                                    TaskInfolistPresenter::activityStream(),
-                                ])
-                                ->columnSpanFull(),
                         ]),
                 ])
                 ->columnSpanFull()
-                ->persistTabInQueryString(),
+                ->persistTabInQueryString()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

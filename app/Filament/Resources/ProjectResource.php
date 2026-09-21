@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjectResource\Pages\{CreateProject, EditProject, ListProjects};
 use App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager;
+use App\Filament\Resources\ProjectResource\RelationManagers\WorkflowsRelationManager;
 use App\Filament\Resources\ProjectResource\Schemas\{ProjectFormPresenter, ProjectInfolistPresenter, ProjectTablePresenter};
 use App\Models\Project;
 use App\Traits\AuthorizesByPermission;
@@ -34,6 +35,7 @@ class ProjectResource extends Resource
         ['label' => 'بررسی', 'icon' => 'menu_book', 'view' => 'filament.resources.project.guide.overview'],
         ['label' => 'دسترسی و اعضا', 'icon' => 'group', 'view' => 'filament.resources.project.guide.membership'],
         ['label' => 'گروه گفتگو', 'icon' => 'forum', 'view' => 'filament.resources.project.guide.channel'],
+        ['label' => 'چرخهٔ کاری', 'icon' => 'conversion_path', 'view' => 'filament.resources.project.guide.workflow'],
         ['label' => 'عملیات ادمین', 'icon' => 'admin_panel_settings', 'view' => 'filament.resources.project.guide.admin-ops'],
     ];
 
@@ -56,7 +58,8 @@ class ProjectResource extends Resource
                     ProjectFormPresenter::name(),
                     ProjectFormPresenter::owner(),
                 ])
-                ->columns(2),
+                ->columns(2)
+                ->columnSpan(2),
 
             Section::make(__('resources/project/strings.form.section_audience'))
                 ->icon('heroicon-o-users')
@@ -65,10 +68,10 @@ class ProjectResource extends Resource
                     ProjectFormPresenter::memberIds(),
                     ProjectFormPresenter::departments(),
                 ])
-                ->columns(2),
+                ->columns(1),
 
             ProjectFormPresenter::settings(),
-        ]);
+        ])->columns(3);
     }
 
     public static function getEloquentQuery(): Builder
@@ -76,7 +79,10 @@ class ProjectResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScope(SoftDeletingScope::class)
             ->with(['owner', 'channel'])
-            ->withCount('tasks');
+            ->withCount('tasks')
+            ->withCount(['tasks as overdue_tasks_count' => fn(Builder $query) => $query
+                ->whereNotIn('status', ['done'])
+                ->where('deadline', '<', now())]);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -129,16 +135,21 @@ class ProjectResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     ProjectInfolistPresenter::name(),
                     ProjectInfolistPresenter::owner(),
                     ProjectInfolistPresenter::channel(),
+                    ProjectInfolistPresenter::divider(),
                     ProjectInfolistPresenter::tasksCount(),
                     ProjectInfolistPresenter::progress(),
+                    ProjectInfolistPresenter::reportSummary(),
+                    ProjectInfolistPresenter::divider(),
                     ProjectInfolistPresenter::memberIds(),
                     ProjectInfolistPresenter::departments(),
                     ProjectInfolistPresenter::settingsSummary(),
+                    ProjectInfolistPresenter::divider(),
                     ProjectInfolistPresenter::createdAt(),
                     ProjectInfolistPresenter::updatedAt(),
                     ProjectInfolistPresenter::deletedAt(),
@@ -160,6 +171,7 @@ class ProjectResource extends Resource
                 ProjectTablePresenter::channel(),
                 ProjectTablePresenter::tasksCount(),
                 ProjectTablePresenter::progress(),
+                ProjectTablePresenter::overdueCount(),
                 ProjectTablePresenter::settingsSummary(),
                 ProjectTablePresenter::createdAt(),
                 ProjectTablePresenter::deletedAt(),
@@ -194,6 +206,7 @@ class ProjectResource extends Resource
     {
         return [
             TasksRelationManager::class,
+            WorkflowsRelationManager::class,
         ];
     }
 }

@@ -516,6 +516,16 @@
         @apply !rounded-2xl !bg-[var(--md-sys-color-surface)] !shadow-[var(--md-sys-elevation-1)] !p-5;
     }
 
+    .fi-infolist-panel .fi-section {
+        @apply !rounded-2xl
+        !bg-[color-mix(in_srgb,var(--md-sys-color-primary-container),_var(--md-sys-color-surface)_35%)]
+        !shadow-[var(--md-sys-elevation-1)];
+    }
+
+    .fi-sc-tabs.fi-infolist-panel.fi-contained {
+        @apply !bg-transparent !shadow-none !ring-0;
+    }
+
     .fi-section:hover,
     .fi-card:hover {
         @apply shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_18%)] -translate-y-px;
@@ -594,6 +604,14 @@
         @apply !rounded-3xl
         !bg-[var(--md-sys-color-surface)]
         !shadow-[4px_0_40px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_18%)];
+    }
+
+    .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window {
+        @apply !h-[85dvh] !overflow-y-auto;
+    }
+
+    .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) .fi-modal-content {
+        @apply !flex-1;
     }
 
 
@@ -954,7 +972,7 @@
 
     .tb-banner-hero::before {
         content: '';
-        @apply absolute w-64 h-64 rounded-full blur-3xl opacity-[0.2]
+        @apply absolute w-64 h-64 rounded-full opacity-[0.2]
         bg-[var(--md-sys-color-primary)] -top-16 -left-16 pointer-events-none;
     }
 

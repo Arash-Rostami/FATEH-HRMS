@@ -6,7 +6,7 @@ use App\Filament\Resources\CredentialResource\Schemas\CredentialFormPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialInfolistPresenter;
 use App\Filament\Resources\CredentialResource\Schemas\CredentialTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;

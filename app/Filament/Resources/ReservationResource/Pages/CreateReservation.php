@@ -10,7 +10,7 @@ use App\Services\Reservation\ValidationService;
 use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateReservation extends CreateRecord
 {

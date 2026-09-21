@@ -7,7 +7,7 @@ use App\Filament\Resources\ProfileResource\Schemas\ProfileInfolistPresenter;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileTablePresenter;
 use App\Traits\FilamentActions;
 use Filament\Actions\CreateAction;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;

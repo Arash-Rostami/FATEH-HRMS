@@ -35,11 +35,9 @@
                 <div
                     class="bg-[var(--md-sys-color-surface-container)] px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] flex justify-between items-center">
                     <h3 class="text-xl font-bold text-[var(--md-sys-color-on-surface)]">{{ $title }}</h3>
-                    <button x-on:click="show = false"
-                            class="text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-error)] transition-colors rounded-lg p-1 hover:bg-[var(--md-sys-color-error-container)]">
-                        <span class="sr-only">بستن</span>
-                        <span class="material-symbols-rounded text-2xl">close</span>
-                    </button>
+
+                    <x-ui.modals.close-button/>
+
                 </div>
             @endif
 

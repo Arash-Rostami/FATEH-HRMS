@@ -8,7 +8,7 @@ use App\Filament\Resources\OnboardingResource\Schemas\OnboardingFormPresenter;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditOnboarding extends EditRecord
 {

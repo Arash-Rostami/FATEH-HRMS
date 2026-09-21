@@ -61,6 +61,7 @@ return [
         'section_deadline' => 'سررسید',
         'section_bi'       => 'طبقه‌بندی و گزارش‌گیری',
         'section_project'  => 'پروژه، اولویت و برچسب‌ها',
+        'section_extras'   => 'پیوست‌ها و متادیتا',
         'tab_main'         => 'اطلاعات وظیفه',
         'tab_bi'           => 'اطلاعات تکمیلی (BI)',
         'tab_project'      => 'پروژه و فعالیت',

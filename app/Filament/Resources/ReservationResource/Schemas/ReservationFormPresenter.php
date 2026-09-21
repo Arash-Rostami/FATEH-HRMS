@@ -64,7 +64,6 @@ class ReservationFormPresenter
             ->default('17:00')
             ->nullable()
             ->visible(fn(Get $get) => !$get('is_full_day'))
-            ->columnSpan(2)
             ->helperText(__('resources/reservation/strings.hints.end_time'));
     }
 
@@ -184,7 +183,6 @@ class ReservationFormPresenter
             ->default('09:00')
             ->nullable()
             ->visible(fn(Get $get) => !$get('is_full_day'))
-            ->columnSpan(2)
             ->helperText(__('resources/reservation/strings.hints.start_time'));
     }
 

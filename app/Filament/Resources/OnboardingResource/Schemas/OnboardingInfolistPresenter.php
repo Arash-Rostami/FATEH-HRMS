@@ -2,19 +2,26 @@
 
 namespace App\Filament\Resources\OnboardingResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Support\Facades\Storage;
 
 class OnboardingInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
             ->label(__('resources/onboarding/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -93,6 +100,7 @@ class OnboardingInfolistPresenter
     {
         return TextEntry::make('mission')
             ->label(__('resources/onboarding/strings.fields.mission'))
+            ->icon('heroicon-o-flag')
             ->html()
             ->placeholder('—')
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
@@ -103,6 +111,7 @@ class OnboardingInfolistPresenter
     {
         return TextEntry::make('schedule')
             ->label(__('resources/onboarding/strings.fields.schedule'))
+            ->icon('heroicon-o-calendar-days')
             ->html()
             ->placeholder('—')
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
@@ -114,6 +123,9 @@ class OnboardingInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/onboarding/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }
@@ -157,6 +169,7 @@ class OnboardingInfolistPresenter
     {
         return TextEntry::make('vision')
             ->label(__('resources/onboarding/strings.fields.vision'))
+            ->icon('heroicon-o-eye')
             ->html()
             ->placeholder('—')
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
@@ -167,7 +180,9 @@ class OnboardingInfolistPresenter
     {
         return TextEntry::make('welcome')
             ->label(__('resources/onboarding/strings.fields.welcome'))
+            ->icon('heroicon-o-hand-raised')
             ->html()
+            ->placeholder('—')
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }

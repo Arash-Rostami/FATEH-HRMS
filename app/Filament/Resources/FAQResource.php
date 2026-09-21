@@ -143,30 +143,23 @@ class FAQResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->hiddenLabel()
                 ->schema([
-                    Section::make()
-                        ->hiddenLabel()
-                        ->schema([
-                            FAQInfolistPresenter::question(),
-                            FAQInfolistPresenter::answer(),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull(),
+                    FAQInfolistPresenter::id(),
+                    FAQInfolistPresenter::category(),
+                    FAQInfolistPresenter::user(),
+                    FAQInfolistPresenter::department(),
 
-                    Section::make()
-                        ->hiddenLabel()
-                        ->schema([
-                            FAQInfolistPresenter::id(),
-                            FAQInfolistPresenter::category(),
-                            FAQInfolistPresenter::user(),
-                            FAQInfolistPresenter::department(),
-                            FAQInfolistPresenter::createdAt(),
-                            FAQInfolistPresenter::updatedAt(),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull(),
+                    FAQInfolistPresenter::divider(),
+                    FAQInfolistPresenter::question(),
+                    FAQInfolistPresenter::answer(),
+
+                    FAQInfolistPresenter::divider(),
+                    FAQInfolistPresenter::createdAt(),
+                    FAQInfolistPresenter::updatedAt(),
                 ])
-                ->columns(1)
+                ->columns(3)
                 ->columnSpanFull(),
         ]);
     }

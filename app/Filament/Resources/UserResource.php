@@ -16,6 +16,7 @@ use App\Filament\Resources\UserResource\RelationManagers\SkillsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\SuggestionsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\TicketsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\WorkflowsRelationManager;
 use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
@@ -61,7 +62,8 @@ class UserResource extends Resource
                     UserFormPresenter::divider(),
                     UserFormPresenter::password(),
                     UserFormPresenter::passwordConfirmation(),
-                ])->columns(1),
+                ])->columns(2)
+                ->columnSpan(2),
 
             Section::make(__('resources/user/strings.form.section_access'))
                 ->schema([
@@ -71,7 +73,7 @@ class UserResource extends Resource
                     UserFormPresenter::divider(),
                     UserFormPresenter::status(),
                     UserFormPresenter::maximum(),
-                ])->columns(2),
+                ])->columns(1),
 
             Section::make(__('resources/user/strings.form.section_booking'))
                 ->schema([
@@ -82,7 +84,7 @@ class UserResource extends Resource
                 ->schema([
                     UserFormPresenter::extra(),
                 ])->columnSpanFull(),
-        ]);
+        ])->columns(3);
     }
 
     public static function getEloquentQuery(): Builder
@@ -157,7 +159,8 @@ class UserResource extends Resource
             SkillsRelationManager::class,
             SuggestionsRelationManager::class,
             TasksRelationManager::class,
-            TicketsRelationManager::class
+            TicketsRelationManager::class,
+            WorkflowsRelationManager::class,
         ];
     }
 
@@ -170,50 +173,43 @@ class UserResource extends Resource
                         Tabs\Tab::make(__('resources/user/strings.infolist.section_identity'))
                             ->icon('heroicon-o-user-circle')
                             ->schema([
-                                Section::make(__('resources/user/strings.infolist.section_identity'))
+                                Section::make()
+                                    ->extraAttributes(['class' => 'fi-infolist-panel'])
                                     ->schema([
                                         UserInfolistPresenter::id(),
                                         UserInfolistPresenter::name(),
                                         UserInfolistPresenter::email(),
                                         UserInfolistPresenter::emailVerifiedAt(),
-                                    ])->columns(2),
-
-                                Section::make(__('resources/user/strings.infolist.section_access'))
-                                    ->schema([
+                                        UserInfolistPresenter::divider(),
                                         UserInfolistPresenter::type(),
                                         UserInfolistPresenter::role(),
                                         UserInfolistPresenter::status(),
                                         UserInfolistPresenter::presence(),
                                         UserInfolistPresenter::maximum(),
-                                    ])->columns(2),
-
-                                Section::make(__('resources/user/strings.infolist.section_booking'))
-                                    ->schema([
+                                        UserInfolistPresenter::divider(),
                                         UserInfolistPresenter::booking(),
-                                    ])->columnSpanFull(),
-
+                                    ])->columns(3),
                             ])
                             ->columnSpanFull(),
 
                         Tabs\Tab::make(__('resources/user/strings.infolist.section_extra'))
-                            ->icon('heroicon-o-user-circle')
+                            ->icon('heroicon-o-adjustments-horizontal')
                             ->schema([
-                                Section::make(__('resources/user/strings.infolist.section_extra'))
+                                Section::make()
+                                    ->extraAttributes(['class' => 'fi-infolist-panel'])
                                     ->schema([
                                         UserInfolistPresenter::extra(),
-                                    ])->columnSpanFull(),
-
-                                Section::make(__('resources/user/strings.infolist.section_meta'))
-                                    ->schema([
+                                        UserInfolistPresenter::divider(),
                                         UserInfolistPresenter::lastSeen(),
                                         UserInfolistPresenter::createdAt(),
                                         UserInfolistPresenter::updatedAt(),
                                     ])->columns(3),
                             ])
-                            ->columnSpanFull()
+                            ->columnSpanFull(),
                     ])
                     ->columnSpanFull()
-                    ->persistTabInQueryString(),
+                    ->persistTabInQueryString()
+                    ->extraAttributes(['class' => 'fi-infolist-panel']),
             ]);
     }
 

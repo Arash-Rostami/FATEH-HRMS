@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources\ChannelResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 
 class ChannelInfolistPresenter
 {
+    use FilamentFormDivider;
+
+
     public static function name(): TextEntry
     {
         return TextEntry::make('name')
@@ -21,6 +25,7 @@ class ChannelInfolistPresenter
         return TextEntry::make('slug')
             ->label(__('resources/channel/strings.fields.slug'))
             ->icon('heroicon-o-hashtag')
+            ->copyable()
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;']);
     }
 

@@ -52,18 +52,29 @@ class DepartmentResource extends Resource
                 ->schema([
                     DepartmentFormPresenter::code(),
                     DepartmentFormPresenter::name(),
-                    DepartmentFormPresenter::divider(),
                     DepartmentFormPresenter::description(),
+                    DepartmentFormPresenter::divider(),
                     DepartmentFormPresenter::units(),
                     DepartmentFormPresenter::sections(),
-                    DepartmentFormPresenter::divider(),
+                ])
+                ->columns(2)
+                ->columnSpan(2),
+
+            Section::make(__('resources/department/strings.form.section_structure'))
+                ->icon('heroicon-o-squares-2x2')
+                ->schema([
                     DepartmentFormPresenter::level(),
                     DepartmentFormPresenter::subordinateTo(),
+                ])
+                ->columns(1),
+
+            Section::make(__('resources/department/strings.form.section_tickets'))
+                ->icon('heroicon-o-ticket')
+                ->schema([
                     DepartmentFormPresenter::ticketOptions(),
                 ])
-                ->columnSpanFull()
-                ->columns(2),
-        ]);
+                ->columnSpanFull(),
+        ])->columns(3);
     }
 
     public static function getEloquentQuery(): Builder
@@ -138,17 +149,21 @@ class DepartmentResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/department/strings.infolist.section_main'))
-                ->icon('heroicon-o-building-office-2')
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->schema([
                     DepartmentInfolistPresenter::code(),
                     DepartmentInfolistPresenter::name(),
                     DepartmentInfolistPresenter::usersCount(),
                     DepartmentInfolistPresenter::description(),
+
+                    DepartmentInfolistPresenter::divider(),
                     DepartmentInfolistPresenter::units(),
                     DepartmentInfolistPresenter::sections(),
                     DepartmentInfolistPresenter::level(),
                     DepartmentInfolistPresenter::subordinateTo(),
+
+                    DepartmentInfolistPresenter::divider(),
                     DepartmentInfolistPresenter::createdAt(),
                     DepartmentInfolistPresenter::updatedAt(),
                 ])

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
 use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateTask extends CreateRecord
 {

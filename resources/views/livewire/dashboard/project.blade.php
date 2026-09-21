@@ -3,6 +3,7 @@
      x-on:project-open-task.window="$wire.openProjectTask($event.detail.taskId)"
      x-on:project-open-task-create.window="$wire.openCreateModal()"
      x-on:project-duplicate-task.window="$wire.duplicateTask($event.detail.taskId)"
+     x-on:project-switch-tab.window="$wire.switchTab($event.detail.tab)"
      class="w-full h-[calc(100dvh-60px)] md:h-[calc(100dvh-80px)] relative px-4 py-4 md:px-6 md:py-8 overflow-hidden animate-fade"
     >
 
@@ -73,6 +74,7 @@
                                     :warm-ms="150"
                                     class="!mb-0"
                                     :tabs="[
+                                        ['id' => 'workflow', 'icon' => 'conversion_path', 'label' => 'چرخهٔ کاری'],
                                         ['id' => 'activity', 'icon' => 'timeline', 'label' => 'فعالیت‌ها و نظرات', 'description' => 'رویدادهای سیستمی وظایف به‌همراه نظرات باز؛ قابل مشاهده و مشارکت برای همهٔ اعضای پروژه', 'unread' => $this->tabDirty['activity'] ? 1 : 0],
                                         ['id' => 'teamChat', 'icon' => 'forum', 'label' => 'چت زندهٔ تیم', 'description' => 'پیام‌رسانی آنی بین همهٔ اعضای پروژه، مثل یک گروه گفتگوی گروهی', 'unread' => $this->tabDirty['teamChat'] ? 1 : 0],
                                         ['id' => 'projectCalendar', 'icon' => 'calendar_month', 'label' => 'تقویم', 'unread' => $this->tabDirty['projectCalendar'] ? 1 : 0],

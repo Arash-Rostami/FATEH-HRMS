@@ -3,11 +3,15 @@
 namespace App\Filament\Resources\AuthorityResource\Schemas;
 
 use App\Filament\Resources\AuthorityResource\Enums\{DelegationLevel, ExecutionProcedure, ImpactScore, RepeatFrequency};
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\{IconEntry, TextEntry};
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;
 
 class AuthorityInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function duty(): TextEntry
     {
         return TextEntry::make('duty')
@@ -103,6 +107,9 @@ class AuthorityInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/authority/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -112,6 +119,9 @@ class AuthorityInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/authority/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

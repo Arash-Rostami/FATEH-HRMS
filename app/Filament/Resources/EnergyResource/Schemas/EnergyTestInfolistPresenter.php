@@ -4,6 +4,7 @@ namespace App\Filament\Resources\EnergyResource\Schemas;
 
 use App\Models\EnergyTest;
 use App\Services\EnergyQuestionService;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Support\Enums\FontWeight;
@@ -12,6 +13,8 @@ use Filament\Support\Enums\TextSize;
 
 class EnergyTestInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function answers(): ViewEntry
     {
         return ViewEntry::make('answers')
@@ -28,9 +31,9 @@ class EnergyTestInfolistPresenter
             ->placeholder('—')
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
-            ->icon('heroicon-o-clock')
+            ->alignRight()
             ->iconPosition(IconPosition::After)
-            ->alignEnd()
+            ->icon('heroicon-o-clock')
             ->tooltip(fn($state) => $state ? toJalaliRelative($state) : null)
             ->color('gray');
     }
@@ -41,6 +44,9 @@ class EnergyTestInfolistPresenter
             ->label(__('resources/energy/strings.fields.created_at'))
             ->placeholder('—')
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->icon('heroicon-o-calendar')
             ->tooltip(fn($state) => $state ? toJalaliRelative($state) : null)
             ->color('gray');
@@ -48,12 +54,12 @@ class EnergyTestInfolistPresenter
 
     public static function emotionScore(): TextEntry
     {
-        return self::scoreEntry('emotion_score', '❤️');
+        return self::scoreEntry('emotion_score', 'heroicon-o-heart');
     }
 
     public static function mindScore(): TextEntry
     {
-        return self::scoreEntry('mind_score', '🧠');
+        return self::scoreEntry('mind_score', 'heroicon-o-cpu-chip');
     }
 
     public static function overallScore(): TextEntry
@@ -62,6 +68,7 @@ class EnergyTestInfolistPresenter
             ->label(__('resources/energy/strings.fields.overall_score'))
             ->placeholder('—')
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) . ' / 16' : '—')
+            ->icon('heroicon-o-chart-bar')
             ->weight(FontWeight::Bold)
             ->size(TextSize::Large)
             ->badge()
@@ -70,7 +77,7 @@ class EnergyTestInfolistPresenter
 
     public static function physiqueScore(): TextEntry
     {
-        return self::scoreEntry('physique_score', '🏋️‍♂️');
+        return self::scoreEntry('physique_score', 'heroicon-o-bolt');
     }
 
     public static function questionsDetail(): ViewEntry
@@ -93,7 +100,7 @@ class EnergyTestInfolistPresenter
 
     public static function soulScore(): TextEntry
     {
-        return self::scoreEntry('soul_score', '✨');
+        return self::scoreEntry('soul_score', 'heroicon-o-sparkles');
     }
 
     public static function user(): TextEntry
@@ -106,12 +113,13 @@ class EnergyTestInfolistPresenter
     }
 
 
-    private static function scoreEntry(string $field, string $emoji = ''): TextEntry
+    private static function scoreEntry(string $field, string $icon): TextEntry
     {
         return TextEntry::make($field)
             ->label(__("resources/energy/strings.fields.{$field}"))
             ->placeholder('—')
             ->formatStateUsing(fn($state) => $state !== null ? number_format($state, 1) : '—')
+            ->icon($icon)
             ->color(fn($state) => match (true) {
                 $state === null => 'gray',
                 $state >= 3 => 'danger',

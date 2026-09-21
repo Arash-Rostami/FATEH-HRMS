@@ -4,7 +4,7 @@ namespace App\Filament\Resources\DmsResource\Pages;
 
 use App\Filament\Resources\DmsResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateDms extends CreateRecord
 {

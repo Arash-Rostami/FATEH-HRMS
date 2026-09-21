@@ -2,14 +2,18 @@
 
 namespace App\Filament\Resources\PostResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class PostInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function body(): TextEntry
     {
         return TextEntry::make('body')
@@ -24,6 +28,9 @@ class PostInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/post/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -65,6 +72,9 @@ class PostInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/post/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

@@ -2,7 +2,6 @@
 <div
     class="relative w-full h-full p-4 md:p-8 overflow-y-auto scrollbar-hide animate-fade"
     x-data="settings()"
-    x-init="initPattern()"
     @confirmation-confirmed.window="$wire.call($event.detail.method, $event.detail.params)"
     dir="rtl"
 >

@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\ThsResource\Schemas;
 
-use App\Filament\Resources\ThsResource\Enums\{TicketPriority, TicketStatus};
+use App\Filament\Resources\ThsResource\Enums\{RequestType, TicketPriority, TicketStatus};
 use App\Models\Ticket;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TicketInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function actionResult(): TextEntry
     {
         return TextEntry::make('action_result')
@@ -84,6 +87,9 @@ class TicketInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/ths/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -115,6 +121,7 @@ class TicketInfolistPresenter
                 : null
             )
             ->placeholder('—')
+            ->icon('heroicon-o-star')
             ->color(fn($record) => match (true) {
                 $record->effectiveness === null => 'gray',
                 (int)$record->effectiveness >= 4 => 'success',
@@ -135,8 +142,8 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
-            ->getStateUsing(fn($record) => Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null))
+            ->icon(fn($record) => $record->request_area ? Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null) : null)
+            ->getStateUsing(fn($record) => $record->request_area ? Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null) : null)
             ->placeholder('—');
     }
 
@@ -144,7 +151,7 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => $record->request_type)
+            ->getStateUsing(fn($record) => RequestType::tryFrom($record->request_type))
             ->badge();
     }
 
@@ -179,6 +186,7 @@ class TicketInfolistPresenter
                 : null
             )
             ->placeholder('—')
+            ->icon('heroicon-o-star')
             ->helperText(fn($record) => $record->extra['satisfaction_comment'] ?? null)
             ->color(fn($record) => match (true) {
                 $record->satisfaction_score === null => 'gray',
@@ -222,6 +230,7 @@ class TicketInfolistPresenter
             ->label(__('resources/ths/strings.fields.ticket_id'))
             ->getStateUsing(fn($record) => TicketTablePresenter::formatTicketId($record))
             ->weight(FontWeight::Bold)
+            ->icon('heroicon-o-hashtag')
             ->copyable();
     }
 
@@ -230,6 +239,9 @@ class TicketInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/ths/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

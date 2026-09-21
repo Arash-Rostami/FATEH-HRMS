@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ReportResource\Pages;
 use App\Filament\Resources\ReportResource;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateReport extends CreateRecord
 {

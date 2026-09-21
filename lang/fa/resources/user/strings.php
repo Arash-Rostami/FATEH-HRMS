@@ -70,10 +70,7 @@ return [
 
     'infolist' => [
         'section_identity' => 'اطلاعات هویتی',
-        'section_access'   => 'دسترسی و نقش',
-        'section_booking'  => 'مجوزهای رزرو',
         'section_extra'    => 'اطلاعات تکمیلی',
-        'section_meta'     => 'متادیتا',
 
         'id'                => 'شناسه',
         'name'              => 'نام',

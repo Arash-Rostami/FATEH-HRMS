@@ -5,7 +5,7 @@ namespace App\Filament\Resources\PermissionResource\Pages;
 use App\Filament\Resources\PermissionResource;
 use App\Models\Permission;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

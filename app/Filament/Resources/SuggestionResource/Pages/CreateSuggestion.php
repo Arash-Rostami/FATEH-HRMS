@@ -8,7 +8,7 @@ use App\Models\Suggestion;
 use App\Models\User;
 use App\Support\SuggestionAccessPolicy;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

@@ -1,6 +1,10 @@
 <div class="contents" wire:poll.visible.60s="$refresh">
 
-    @if($variant === 'corner')
+    @if($variant === 'embedded')
+        <div wire:key="reminder-embedded" class="space-y-5" dir="rtl">
+            @include('livewire.dashboard.reminder.list')
+        </div>
+    @elseif($variant === 'corner')
         <button type="button" wire:click="open"
                 aria-label="یادآوری‌ها"
                 @class([
@@ -39,46 +43,48 @@
         </button>
     @endif
 
-    <x-ui.modals.action
-        wire:model="show"
-        wire:key="reminder-modal"
-        title="یادآوری‌ها"
-        action="{{ $editingId ? 'update' : 'create' }}"
-        confirm-text="{{ $editingId ? 'بروزرسانی' : 'ثبت یادآوری' }}"
-        cancel-text="انصراف"
-        :readonly="$activeTab !== 'form'"
-        class="!max-w-3xl !w-full"
-    >
-        <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
+    @unless($variant === 'embedded')
+        <x-ui.modals.action
+            wire:model="show"
+            wire:key="reminder-modal"
+            title="یادآوری‌ها"
+            action="{{ $editingId ? 'update' : 'create' }}"
+            confirm-text="{{ $editingId ? 'بروزرسانی' : 'ثبت یادآوری' }}"
+            cancel-text="انصراف"
+            :readonly="$activeTab !== 'form'"
+            class="!max-w-3xl !w-full"
+        >
+            <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6 space-y-5" dir="rtl">
 
-            @if($this->hostUrl())
-                <a href="{{ $this->hostUrl() }}" wire:navigate
-                   class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[var(--md-sys-color-primary)] hover:opacity-80 transition-opacity -mb-2">
-                    <span class="material-symbols-rounded text-[14px]">{{ $this->hostIcon() }}</span>
-                    مشاهده و ویرایش رکورد
-                </a>
-            @endif
+                @if($this->hostUrl())
+                    <a href="{{ $this->hostUrl() }}" wire:navigate
+                       class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[var(--md-sys-color-primary)] hover:opacity-80 transition-opacity -mb-2">
+                        <span class="material-symbols-rounded text-[14px]">{{ $this->hostIcon() }}</span>
+                        مشاهده و ویرایش رکورد
+                    </a>
+                @endif
 
-            <x-ui.buttons.tab-selector
-                :tabs="[
-                    ['id' => 'form', 'icon' => 'add_circle', 'label' => 'یادآوری جدید'],
-                    ['id' => 'list', 'icon' => 'list', 'label' => 'لیست'],
-                ]"
-                :active-tab="$activeTab"
-                class="!mb-0"
-            />
+                <x-ui.buttons.tab-selector
+                    :tabs="[
+                        ['id' => 'form', 'icon' => 'add_circle', 'label' => 'یادآوری جدید'],
+                        ['id' => 'list', 'icon' => 'list', 'label' => 'لیست'],
+                    ]"
+                    :active-tab="$activeTab"
+                    class="!mb-0"
+                />
 
-            @if($activeTab === 'list')
-                <div wire:key="reminder-tab-list" class="mt-5 space-y-5">
-                    @include('livewire.dashboard.reminder.list')
-                </div>
-            @endif
+                @if($activeTab === 'list')
+                    <div wire:key="reminder-tab-list" class="mt-5 space-y-5">
+                        @include('livewire.dashboard.reminder.list')
+                    </div>
+                @endif
 
-            @if($activeTab === 'form')
-                @include('livewire.dashboard.reminder.form')
-            @endif
+                @if($activeTab === 'form')
+                    @include('livewire.dashboard.reminder.form')
+                @endif
 
-        </div>
-    </x-ui.modals.action>
+            </div>
+        </x-ui.modals.action>
+    @endunless
 
 </div>

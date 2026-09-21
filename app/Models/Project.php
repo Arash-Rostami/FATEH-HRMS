@@ -154,12 +154,24 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function workflows(): HasMany
+    {
+        return $this->hasMany(Workflow::class);
+    }
+
     protected static function booted(): void
     {
         static::saved(function (self $project) {
             $project->syncChannelMembershipIfNeeded();
             $project->logMembershipChangesIfNeeded();
             $project->logSettingsChangesIfNeeded();
+        });
+
+        static::deleting(function (self $project) {
+            if (!$project->isForceDeleting()) {
+                Workflow::forProject($project->id)->where('status', Workflow::STATUS_ACTIVE)
+                    ->update(['status' => Workflow::STATUS_CANCELLED]);
+            }
         });
     }
 

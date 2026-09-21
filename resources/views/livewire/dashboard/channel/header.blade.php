@@ -7,7 +7,7 @@
         && (int) $this->activeChannel->owner_id === (int) auth()->id();
 @endphp
 
-<header class="relative z-10 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 transition-all duration-300
+<header class="relative z-20 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
                shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
@@ -40,9 +40,34 @@
                 <span class="truncate font-semibold text-[var(--md-sys-color-primary)]" dir="auto">{{ $header['slug_handle'] }}</span>
                 <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] inline-flex items-center gap-0.5" title="تعداد اعضا">
-                <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ convertToPersian($header['members_count']) }}
-            </span>
+            <div class="relative" x-data="{ open: false }">
+                <button type="button" x-on:click="open = !open" x-on:click.outside="open = false"
+                        class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] inline-flex items-center gap-0.5 transition-colors" title="تعداد اعضا">
+                    <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ convertToPersian($header['members_count']) }}
+                </button>
+
+                <div x-show="open" x-cloak x-transition
+                     class="absolute top-full mt-1.5 right-0 z-40 w-64 max-h-72 overflow-y-auto custom-scrollbar p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]">
+                    @foreach($this->channelMembers as $member)
+                        <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
+                            <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
+                                <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1 flex-wrap">
+                                    <span class="truncate text-xs font-bold text-[var(--md-sys-color-on-surface)]">{{ $member['name'] }}</span>
+                                    @if($member['is_owner'])
+                                        <span class="text-[9px] font-bold px-1 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">مالک</span>
+                                    @endif
+                                    @if($member['presence_label'])
+                                        <span class="inline-flex items-center px-1 py-0.5 rounded-full text-[9px] font-bold {{ $member['presence_class'] }}">{{ $member['presence_label'] }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
             <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             <span class="truncate font-medium inline-flex items-center gap-1.5 {{ count($this->typingMembers) ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
                   data-typing="{{ count($this->typingMembers) }}"

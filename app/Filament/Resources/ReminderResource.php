@@ -87,26 +87,26 @@ class ReminderResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->hiddenLabel()
                 ->schema([
                     ReminderInfolistPresenter::id(),
                     ReminderInfolistPresenter::user(),
                     ReminderInfolistPresenter::title(),
                     ReminderInfolistPresenter::notes(),
+
+                    ReminderInfolistPresenter::divider(),
                     ReminderInfolistPresenter::dueAt(),
                     ReminderInfolistPresenter::recurs(),
                     ReminderInfolistPresenter::completedAt(),
                     ReminderInfolistPresenter::snoozedUntil(),
                     ReminderInfolistPresenter::createdAt(),
+
+                    ReminderInfolistPresenter::divider(),
+                    ReminderInfolistPresenter::channels(),
                 ])
                 ->columnSpanFull()
                 ->columns(2),
-
-            Section::make(__('resources/reminder/strings.infolist.section_notify'))
-                ->icon('heroicon-o-bell-alert')
-                ->schema([
-                    ReminderInfolistPresenter::channels(),
-                ])
-                ->columnSpanFull(),
         ]);
     }
 

@@ -142,17 +142,8 @@
                                                                               :color="$result['progress_percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>
 
                                                     @if(!empty($result['collaborator_avatars']))
-                                                        <div class="flex items-center -space-x-1.5 rtl:space-x-reverse shrink-0" title="همکاران: {{ implode('، ', array_column($result['collaborator_avatars'], 'name')) }}">
-                                                            @foreach(array_slice($result['collaborator_avatars'], 0, 3) as $collaborator)
-                                                                <img src="{{ $collaborator['avatar_url'] }}" alt="{{ $collaborator['name'] }}"
-                                                                     class="w-4 h-4 rounded-full border border-[var(--md-sys-color-surface)] object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                                                            @endforeach
-                                                            @if(count($result['collaborator_avatars']) > 3)
-                                                                <span class="w-4 h-4 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[8px] font-bold flex items-center justify-center border border-[var(--md-sys-color-surface)] ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                                                                    +{{ convertToPersian(count($result['collaborator_avatars']) - 3) }}
-                                                                </span>
-                                                            @endif
-                                                        </div>
+                                                        <x-ui.decor.avatar-stack :users="$result['collaborator_avatars']" compact
+                                                            title="همکاران: {{ implode('، ', array_column($result['collaborator_avatars'], 'name')) }}"/>
                                                     @endif
                                                 </div>
                                             @endif

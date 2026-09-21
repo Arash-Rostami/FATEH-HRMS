@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ThsResource\Pages;
 use App\Filament\Resources\ThsResource;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Traits\{FilamentDateHandler, FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior};
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditTicket extends EditRecord
 {

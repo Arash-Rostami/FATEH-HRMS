@@ -2,15 +2,19 @@
 
 namespace App\Filament\Resources\ReportResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function active(): IconEntry
     {
         return IconEntry::make('active')
@@ -46,6 +50,10 @@ class ReportInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/report/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -58,6 +66,7 @@ class ReportInfolistPresenter
             ->tooltip(fn(?Model $record): string => $record?->department?->tooltipLabel() ?? '-')
             ->badge()
             ->color('info')
+            ->icon('heroicon-o-building-office-2')
             ->placeholder('-');
     }
 
@@ -66,6 +75,7 @@ class ReportInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/report/strings.fields.description'))
             ->html()
+            ->icon('heroicon-o-document-text')
             ->placeholder('-')
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
@@ -76,6 +86,10 @@ class ReportInfolistPresenter
         return TextEntry::make('expires_at')
             ->label(__('resources/report/strings.fields.expires_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-calendar-days')
             ->color(fn($state) => $state && $state < now() ? 'danger' : 'gray')
             ->placeholder('-');
     }
@@ -85,6 +99,7 @@ class ReportInfolistPresenter
         return TextEntry::make('file_type')
             ->label(__('resources/report/strings.fields.file_type'))
             ->badge()
+            ->icon('heroicon-o-document')
             ->color(fn(string $state): string => match ($state) {
                 'pdf' => 'danger',
                 'docx', 'doc' => 'info',
@@ -108,6 +123,10 @@ class ReportInfolistPresenter
         return TextEntry::make('report_date')
             ->label(__('resources/report/strings.fields.report_date'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-calendar')
             ->color('gray')
             ->placeholder('-');
     }
@@ -136,6 +155,10 @@ class ReportInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/report/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-arrow-path')
             ->color('gray')
             ->placeholder('-');
     }
@@ -145,6 +168,7 @@ class ReportInfolistPresenter
         return TextEntry::make('user.name')
             ->label(__('resources/report/strings.fields.user'))
             ->badge()
+            ->icon('heroicon-o-user')
             ->color('gray')
             ->placeholder('-');
     }

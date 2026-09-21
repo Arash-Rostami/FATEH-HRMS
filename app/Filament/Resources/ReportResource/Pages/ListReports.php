@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ReportResource\Pages;
 use App\Filament\Resources\ReportResource;
 use App\Models\Report;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

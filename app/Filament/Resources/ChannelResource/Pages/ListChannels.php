@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ChannelResource\Pages;
 
 use App\Filament\Resources\ChannelResource;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 
 class ListChannels extends ListRecords
 {

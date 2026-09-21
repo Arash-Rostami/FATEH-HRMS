@@ -169,6 +169,7 @@ class ThsResource extends Resource
                         ->icon('heroicon-o-inbox-arrow-down')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     TicketInfolistPresenter::ticketId(),
@@ -176,12 +177,18 @@ class ThsResource extends Resource
                                     TicketInfolistPresenter::priority(),
                                     TicketInfolistPresenter::requestType(),
                                     TicketInfolistPresenter::requestArea(),
+
+                                    TicketInfolistPresenter::divider(),
                                     TicketInfolistPresenter::requester(),
                                     TicketInfolistPresenter::department(),
                                     TicketInfolistPresenter::targetDepartment(),
+
+                                    TicketInfolistPresenter::divider(),
                                     TicketInfolistPresenter::subject(),
                                     TicketInfolistPresenter::description(),
                                     TicketInfolistPresenter::requesterFiles(),
+
+                                    TicketInfolistPresenter::divider(),
                                     TicketInfolistPresenter::createdAt(),
                                     TicketInfolistPresenter::updatedAt(),
                                 ])
@@ -192,21 +199,27 @@ class ThsResource extends Resource
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     TicketInfolistPresenter::assignee(),
                                     TicketInfolistPresenter::completionDeadline(),
                                     TicketInfolistPresenter::completionDate(),
+
+                                    TicketInfolistPresenter::divider(),
                                     TicketInfolistPresenter::effectiveness(),
                                     TicketInfolistPresenter::satisfaction(),
                                     TicketInfolistPresenter::actionResult(),
                                     TicketInfolistPresenter::additionalNotes(),
+
+                                    TicketInfolistPresenter::divider(),
                                     TicketInfolistPresenter::assigneeFiles(),
                                 ])
                                 ->columns(4),
                         ]),
                 ])
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

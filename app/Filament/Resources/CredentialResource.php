@@ -128,15 +128,17 @@ class CredentialResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/credential/strings.infolist.section_main'))
-                ->icon('heroicon-o-key')
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->schema([
                     CredentialInfolistPresenter::appName(),
                     CredentialInfolistPresenter::owner(),
                     CredentialInfolistPresenter::username(),
                     CredentialInfolistPresenter::password(),
+                    CredentialInfolistPresenter::divider(),
                     CredentialInfolistPresenter::link(),
                     CredentialInfolistPresenter::note(),
+                    CredentialInfolistPresenter::divider(),
                     CredentialInfolistPresenter::createdAt(),
                     CredentialInfolistPresenter::updatedAt(),
                 ])

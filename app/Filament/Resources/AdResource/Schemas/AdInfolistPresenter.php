@@ -4,11 +4,15 @@ namespace App\Filament\Resources\AdResource\Schemas;
 
 use App\Filament\Resources\AdResource\Enums\AdGender;
 use App\Filament\Resources\AdResource\Enums\AdStatus;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Support\Enums\IconPosition;
 
 class AdInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function active(): TextEntry
     {
         return TextEntry::make('active')
@@ -24,6 +28,7 @@ class AdInfolistPresenter
         return TextEntry::make('certificate')
             ->label(__('resources/ad/strings.fields.certificate'))
             ->placeholder('-')
+            ->icon('heroicon-o-academic-cap')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -33,6 +38,10 @@ class AdInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/ad/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -42,6 +51,7 @@ class AdInfolistPresenter
         return TextEntry::make('experience')
             ->label(__('resources/ad/strings.fields.experience'))
             ->placeholder('-')
+            ->icon('heroicon-o-briefcase')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -55,7 +65,9 @@ class AdInfolistPresenter
                     ->label(__('resources/ad/strings.fields.extra_key'))
                     ->weight('bold'),
                 TextEntry::make('value')
-                    ->label(__('resources/ad/strings.fields.extra_value')),
+                    ->label(__('resources/ad/strings.fields.extra_value'))
+                    ->placeholder('-')
+                    ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;']),
             ])
             ->columns(2)
             ->columnSpanFull();
@@ -75,6 +87,9 @@ class AdInfolistPresenter
     {
         return TextEntry::make('id')
             ->label('ID')
+            ->badge()
+            ->icon('heroicon-o-hashtag')
+            ->copyable()
             ->color('gray');
     }
 
@@ -82,6 +97,7 @@ class AdInfolistPresenter
     {
         return TextEntry::make('link')
             ->label(__('resources/ad/strings.fields.link'))
+            ->icon('heroicon-o-link')
             ->url(fn($record) => $record->link)
             ->openUrlInNewTab()
             ->placeholder('-');
@@ -92,7 +108,8 @@ class AdInfolistPresenter
         return TextEntry::make('position')
             ->label(__('resources/ad/strings.fields.position'))
             ->placeholder('-')
-            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;']);
+            ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
+            ->icon('heroicon-o-briefcase');
     }
 
     public static function skill(): TextEntry
@@ -100,6 +117,7 @@ class AdInfolistPresenter
         return TextEntry::make('skill')
             ->label(__('resources/ad/strings.fields.skill'))
             ->placeholder('-')
+            ->icon('heroicon-o-cpu-chip')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -109,6 +127,10 @@ class AdInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/ad/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-arrow-path')
             ->color('gray')
             ->placeholder('-');
     }

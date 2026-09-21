@@ -6,7 +6,7 @@ use App\Filament\Resources\ReservationResource\Schemas\ReservationFormPresenter;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationInfolistPresenter;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;

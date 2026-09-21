@@ -5,6 +5,7 @@
     $key = $key ?? ('orgc-node-' . $user->id);
     $d = $statusPresenter->nodeData($user, $tier);
     $p = $d['p'];
+    $focusUntil = $d['focusUntil'];
     $obscured = $d['obscured'];
     $img = $d['img'];
     $position = $d['position'];
@@ -50,7 +51,10 @@
         </div>
 
         <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full {{ $presenceBg }} ring-[2.5px] ring-[var(--md-sys-color-surface)] flex items-center justify-center shadow-sm">
-            <span class="material-symbols-rounded text-white text-[8px] font-bold leading-none">{{ $p->icon() }}</span>
+            <span class="material-symbols-rounded text-white text-[8px] font-bold leading-none">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
+            @if($focusUntil)
+                <x-ui.modals.tooltip text="متمرکز تا {{ $focusUntil }}" position="top"/>
+            @endif
         </span>
     </div>
 

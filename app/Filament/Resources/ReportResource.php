@@ -154,17 +154,24 @@ class ReportResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     ReportInfolistPresenter::thumbnail(),
                     ReportInfolistPresenter::title(),
                     ReportInfolistPresenter::description(),
+
+                    ReportInfolistPresenter::divider(),
                     ReportInfolistPresenter::department(),
                     ReportInfolistPresenter::audience(),
                     ReportInfolistPresenter::user(),
                     ReportInfolistPresenter::fileType(),
+
+                    ReportInfolistPresenter::divider(),
                     ReportInfolistPresenter::active(),
                     ReportInfolistPresenter::pinned(),
+
+                    ReportInfolistPresenter::divider(),
                     ReportInfolistPresenter::reportDate(),
                     ReportInfolistPresenter::expiresAt(),
                     ReportInfolistPresenter::createdAt(),

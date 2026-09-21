@@ -8,10 +8,11 @@
         <div @click="open = true" class="cursor-pointer">{{ $trigger }}</div>
     @else
         <button type="button" @click="open = true"
+                @if(appUpdateIsRecent()) title="به‌روزرسانی اخیر — کمتر از یک هفته پیش" @endif
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors group">
             <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)] group-hover:scale-110 transition-transform">new_releases</span>
             یادداشت‌های انتشار
-            <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)] mr-auto"></span>
+            <x-ui.pulse-dot/>
         </button>
     @endif
 
@@ -24,7 +25,9 @@
              x-transition:leave="transition duration-1000 delay-1000"
              dir="rtl">
 
-            <div class="modal-close-icon" @click="open = false"></div>
+            <x-ui.modals.close-button close="open = false" tone="on-primary" size="lg"
+                class="!absolute top-10 right-10 z-[10002]"
+                x-bind:class="active ? 'opacity-100 duration-500 delay-1000' : 'opacity-0 duration-500'"/>
 
             <div class="custom-modal-content text-right overflow-y-auto custom-scrollbar container-scrollbar max-h-[85vh]">
 

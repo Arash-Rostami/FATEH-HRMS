@@ -145,7 +145,9 @@ class AdResource extends Resource
                     Tab::make(__('resources/ad/strings.infolist.tab_main'))
                         ->icon('heroicon-o-megaphone')
                         ->schema([
-                            Section::make(__('resources/ad/strings.infolist.section_main'))
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
                                 ->schema([
                                     AdInfolistPresenter::id(),
                                     AdInfolistPresenter::position(),
@@ -161,17 +163,14 @@ class AdResource extends Resource
                         ->icon('heroicon-o-clipboard-document-list')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
                                 ->schema([
                                     AdInfolistPresenter::certificate(),
                                     AdInfolistPresenter::skill(),
                                     AdInfolistPresenter::experience(),
-                                ])
-                                ->columns(1)
-                                ->columnSpanFull(),
 
-                            Section::make()
-                                ->schema([
-
+                                    AdInfolistPresenter::divider(),
                                     AdInfolistPresenter::createdAt(),
                                     AdInfolistPresenter::updatedAt(),
                                 ])
@@ -183,6 +182,8 @@ class AdResource extends Resource
                         ->icon('heroicon-o-document-text')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
                                 ->schema([
                                     AdInfolistPresenter::extra(),
                                 ])
@@ -191,7 +192,8 @@ class AdResource extends Resource
                         ]),
                 ])
                 ->columnSpanFull()
-                ->persistTabInQueryString(),
+                ->persistTabInQueryString()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

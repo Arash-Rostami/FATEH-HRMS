@@ -6,7 +6,7 @@ use App\Filament\Resources\EventResource;
 use App\Models\Event;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateEvent extends CreateRecord
 {

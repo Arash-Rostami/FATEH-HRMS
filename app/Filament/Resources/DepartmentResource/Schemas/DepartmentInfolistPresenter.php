@@ -2,13 +2,17 @@
 
 namespace App\Filament\Resources\DepartmentResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class DepartmentInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function code(): TextEntry
     {
         return TextEntry::make('code')
@@ -25,6 +29,10 @@ class DepartmentInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/department/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -85,6 +93,10 @@ class DepartmentInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/department/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-arrow-path')
             ->color('gray')
             ->placeholder('-');
     }

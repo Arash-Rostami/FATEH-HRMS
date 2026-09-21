@@ -87,9 +87,12 @@ class AuthorityTablePresenter
             ->searchable(query: fn(Builder $query, string $search) => $query->whereRaw(
                 "JSON_UNQUOTE(JSON_EXTRACT(details, '$.duty')) LIKE ?", ["%{$search}%"]
             ))
-            ->html()
+            ->formatStateUsing(fn($state) => trim(strip_tags(preg_replace('/(<br\s*\/?>|<\/p>)/i', ' ', $state))) ?: '—')
             ->limit(60)
-            ->tooltip(fn($state) => strlen($state) > 60 ? strip_tags($state) : null)
+            ->tooltip(function ($state) {
+                $text = trim(strip_tags(preg_replace('/(<br\s*\/?>|<\/p>)/i', ' ', $state)));
+                return mb_strlen($text) > 60 ? $text : null;
+            })
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->toggleable(isToggledHiddenByDefault: false);
     }

@@ -5,17 +5,21 @@ namespace App\Filament\Resources\ProjectResource\Schemas;
 use App\Models\Department;
 use App\Models\User;
 use App\Services\ProjectTask\ReportingService;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
 
 class ProjectInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function name(): TextEntry
     {
         return TextEntry::make('name')
             ->label(__('resources/project/strings.fields.name'))
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
-            ->icon('heroicon-o-rectangle-stack');
+            ->icon('heroicon-o-rectangle-stack')
+            ->copyable();
     }
 
     public static function owner(): TextEntry
@@ -64,6 +68,7 @@ class ProjectInfolistPresenter
     {
         return TextEntry::make('tasks_count')
             ->label(__('resources/project/strings.fields.tasks_count'))
+            ->icon('heroicon-o-list-bullet')
             ->badge()
             ->color('info');
     }
@@ -73,7 +78,29 @@ class ProjectInfolistPresenter
         return TextEntry::make('progress')
             ->label(__('resources/project/strings.fields.progress'))
             ->getStateUsing(fn($record) => app(ReportingService::class)->summary($record->id, 0)['percent'] . '٪')
+            ->icon('heroicon-o-chart-pie')
             ->badge();
+    }
+
+    public static function reportSummary(): TextEntry
+    {
+        return TextEntry::make('report_summary')
+            ->label(__('resources/project/strings.fields.report_summary'))
+            ->getStateUsing(function ($record) {
+                $s = app(ReportingService::class)->summary($record->id, 0);
+                $byStatus = $s['by_status'] ?? [];
+                $parts = [
+                    'انجام نشده ' . convertToPersian((string) ($byStatus['todo'] ?? 0)),
+                    'در حال انجام ' . convertToPersian((string) ($byStatus['in-progress'] ?? 0)),
+                    'در انتظار / بازنگری ' . convertToPersian((string) ($byStatus['pending'] ?? 0)),
+                    'فراتر از مهلت ' . convertToPersian((string) ($s['overdue'] ?? 0)),
+                    'در معرض ریسک ' . convertToPersian((string) ($s['at_risk'] ?? 0)),
+                ];
+
+                return implode(' · ', $parts);
+            })
+            ->icon('heroicon-o-chart-bar')
+            ->columnSpanFull();
     }
 
     public static function createdAt(): TextEntry

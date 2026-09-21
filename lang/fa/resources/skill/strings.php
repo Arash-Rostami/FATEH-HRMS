@@ -46,6 +46,7 @@ return [
     'form' => [
         'section_identity'             => 'مشخصات مهارت',
         'section_identity_description' => 'نام، دسته‌بندی و نماد این مهارت در کاتالوگ',
+        'section_extra'                => 'تنظیمات و توضیحات',
     ],
 
     'notifications' => [

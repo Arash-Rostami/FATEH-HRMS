@@ -13,7 +13,7 @@
 
     <div class="w-full hidden md:flex items-center gap-6" style="height: clamp(420px, calc(100svh - 200px), 800px);">
         @for($i = 0; $i < 4; $i++)
-            <div class="shrink-0 w-[380px] h-[90%] flex flex-col rounded-3xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)]">
+            <div class="shrink-0 w-[380px] h-[90%] flex flex-col rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)]">
                 <x-ui.loaders.skeleton.bar width="w-full" height="h-[60%]"/>
                 <div class="flex-1 flex flex-col justify-between px-5 py-4 border-t border-[var(--md-sys-color-outline-variant)]/30">
                     <div class="flex flex-col gap-2">
@@ -32,7 +32,7 @@
 
     <div class="w-full flex md:hidden flex-col gap-4">
         @for($i = 0; $i < 2; $i++)
-            <div class="w-full flex flex-col rounded-3xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)]">
+            <div class="w-full flex flex-col rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)]">
                 <x-ui.loaders.skeleton.bar width="w-full" height="h-40"/>
                 <div class="flex flex-col gap-2 px-5 py-4 border-t border-[var(--md-sys-color-outline-variant)]/30">
                     <x-ui.loaders.skeleton.bar width="w-4/5" height="h-4"/>

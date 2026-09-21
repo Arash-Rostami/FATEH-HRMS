@@ -5,7 +5,7 @@ namespace App\Filament\Resources\FeedResource\Pages;
 use App\Filament\Resources\FeedResource;
 use App\Filament\Resources\FeedResource\Schemas\FeedFormPresenter;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateFeed extends CreateRecord
 {

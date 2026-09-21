@@ -93,7 +93,7 @@
         x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0"
         :class="{ 'max-widget': max }"
-        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl rounded-[2rem] overflow-hidden slide-up"
+        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] rounded-2xl overflow-hidden slide-up"
     >
         <div class="w-full grid grid-cols-1 md:grid-cols-[30%_1fr] items-stretch min-h-0 flex-1">
             <div class="flex flex-col border-b md:border-b-0 md:border-l border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)] p-4 md:p-6 gap-6 min-h-0 h-auto">
@@ -124,7 +124,7 @@
         x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0"
         :class="{ 'max-widget': max }"
-        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl rounded-[2rem] overflow-hidden slide-up"
+        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] rounded-2xl overflow-hidden slide-up"
     >
         @include('livewire.dashboard.tab.calendar.view-header')
 
@@ -143,7 +143,7 @@
         x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0"
         :class="{ 'max-widget': max }"
-        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl rounded-[2rem] overflow-hidden slide-up"
+        class="w-full flex flex-col min-h-0 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:bg-[var(--md-sys-color-surface)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] rounded-2xl overflow-hidden slide-up"
     >
         @include('livewire.dashboard.tab.calendar.view-header')
 

@@ -6,6 +6,7 @@ use App\Enums\ResourceType;
 use App\Filament\Resources\ReservationPolicyResource\Pages\EditPolicy;
 use App\Filament\Resources\ReservationPolicyResource\Pages\ListPolicies;
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyFormPresenter;
+use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyInfolistPresenter;
 use App\Filament\Resources\ReservationPolicyResource\Schemas\PolicyTablePresenter;
 use App\Models\ReservationPolicy;
 use App\Traits\AuthorizesByPermission;
@@ -63,7 +64,7 @@ class ReservationPolicyResource extends Resource
                     PolicyFormPresenter::allowedHoursEnd(),
                     PolicyFormPresenter::allowedDays(),
                 ])
-                ->columns(2),
+                ->columns(1),
             Section::make(__('resources/policy/strings.form.section_permissions'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->schema([
@@ -85,15 +86,49 @@ class ReservationPolicyResource extends Resource
                             PolicyFormPresenter::errorLegend(),
                         ])->columnSpanFull(),
                 ])
-                ->columns(2),
-
-
-        ]);
+                ->columns(2)
+                ->columnSpan(2),
+        ])->columns(3);
     }
 
     public static function getEloquentQuery(): Builder
     {
         return ReservationPolicy::groupedByResourceType();
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->schema([
+                    PolicyInfolistPresenter::resourceType(),
+                    PolicyInfolistPresenter::rulesCount(),
+                    PolicyInfolistPresenter::lastUpdated(),
+
+                    PolicyInfolistPresenter::divider(),
+                    PolicyInfolistPresenter::windowDays(),
+                    PolicyInfolistPresenter::windowHours(),
+                    PolicyInfolistPresenter::minDurationMinutes(),
+                    PolicyInfolistPresenter::maxDurationMinutes(),
+                    PolicyInfolistPresenter::allowedHours(),
+                    PolicyInfolistPresenter::allowedDays(),
+
+                    PolicyInfolistPresenter::divider(),
+                    PolicyInfolistPresenter::maxPerUser(),
+                    PolicyInfolistPresenter::maxRangeDays(),
+                    PolicyInfolistPresenter::maxCancelCount(),
+
+                    PolicyInfolistPresenter::divider(),
+                    PolicyInfolistPresenter::allowFullDay(),
+                    PolicyInfolistPresenter::allowRepeat(),
+                    PolicyInfolistPresenter::allowPartialCancel(),
+                    PolicyInfolistPresenter::allowOverlapRelease(),
+                    PolicyInfolistPresenter::requiresApproval(),
+                ])
+                ->columnSpanFull()
+                ->columns(3),
+        ]);
     }
 
     public static function getModelLabel(): string
@@ -134,6 +169,7 @@ class ReservationPolicyResource extends Resource
             ])
             ->recordUrl(fn(ReservationPolicy $record): string => static::getUrl('edit', ['record' => $record->resource_type]))
             ->recordActions([
+                self::viewAction(),
                 PolicyTablePresenter::editAction(static::class),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')

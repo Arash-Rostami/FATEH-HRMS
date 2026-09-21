@@ -4,7 +4,7 @@ namespace App\Filament\Resources\FeedResource\RelationManagers;
 
 use App\Traits\FilamentActions;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\TextSize;

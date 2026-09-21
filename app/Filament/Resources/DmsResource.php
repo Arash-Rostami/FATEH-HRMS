@@ -16,6 +16,8 @@ use App\Traits\FilamentFilters;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
@@ -135,39 +137,57 @@ class DmsResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    DmsInfolistPresenter::title(),
-                    DmsInfolistPresenter::type(),
-                    DmsInfolistPresenter::code(),
-                    DmsInfolistPresenter::version(),
-                    DmsInfolistPresenter::status(),
-                    DmsInfolistPresenter::file(),
-                    DmsInfolistPresenter::extraFiles(),
-                    DmsInfolistPresenter::revision(),
+            Tabs::make()
+                ->tabs([
+                    Tab::make(__('resources/dms/strings.infolist.tab_main'))
+                        ->icon('heroicon-o-document-text')
+                        ->schema([
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
+                                ->schema([
+                                    DmsInfolistPresenter::title(),
+                                    DmsInfolistPresenter::type(),
+                                    DmsInfolistPresenter::code(),
+                                    DmsInfolistPresenter::version(),
+                                    DmsInfolistPresenter::status(),
 
-                    DmsInfolistPresenter::owners(),
-                    DmsInfolistPresenter::usersCount(),
-                    DmsInfolistPresenter::ownersPreview(),
+                                    DmsInfolistPresenter::divider(),
+                                    DmsInfolistPresenter::file(),
+                                    DmsInfolistPresenter::extraFiles(),
+                                    DmsInfolistPresenter::revision(),
 
-                    DmsInfolistPresenter::tags(),
-                    DmsInfolistPresenter::extra(),
-                    DmsInfolistPresenter::createdAt(),
-                    DmsInfolistPresenter::updatedAt(),
+                                    DmsInfolistPresenter::divider(),
+                                    DmsInfolistPresenter::owners(),
+                                    DmsInfolistPresenter::usersCount(),
+                                    DmsInfolistPresenter::ownersPreview(),
+
+                                    DmsInfolistPresenter::divider(),
+                                    DmsInfolistPresenter::tags(),
+                                    DmsInfolistPresenter::extra(),
+                                    DmsInfolistPresenter::createdAt(),
+                                    DmsInfolistPresenter::updatedAt(),
+                                ])
+                                ->columnSpanFull()
+                                ->columns(4),
+                        ]),
+
+                    Tab::make(__('resources/dms/strings.infolist.tab_reads'))
+                        ->icon('heroicon-o-eye')
+                        ->schema([
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
+                                ->schema([
+                                    DmsInfolistPresenter::readCount(),
+                                    DmsInfolistPresenter::reads(),
+                                ])
+                                ->columnSpanFull(),
+                        ]),
                 ])
                 ->columnSpanFull()
-                ->columns(4),
-
-            Section::make(__('resources/dms/strings.infolist.section_reads'))
-                ->icon('heroicon-o-eye')
-                ->schema([
-                    DmsInfolistPresenter::readCount(),
-                    DmsInfolistPresenter::reads(),
-                ])
-                ->columnSpanFull()
-                ->collapsible()
-                ->collapsed(),
+                ->persistTabInQueryString()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

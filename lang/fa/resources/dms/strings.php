@@ -57,6 +57,8 @@ return [
     ],
 
     'infolist' => [
+        'tab_main' => 'مشخصات سند',
+        'tab_reads' => 'بازدیدها',
         'section_ownership' => 'مالکیت و دسترسی',
         'section_reads' => 'تاریخچه مطالعه و تأیید',
         'section_extra' => 'اطلاعات تکمیلی',

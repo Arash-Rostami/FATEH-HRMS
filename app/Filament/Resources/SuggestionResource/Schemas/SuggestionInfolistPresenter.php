@@ -6,6 +6,7 @@ use App\Filament\Resources\SuggestionResource\Enums\SuggestionStage;
 use App\Livewire\Dashboard\Suggestion\Presentation\SuggestionPresenter;
 use App\Models\Department;
 use App\Models\Suggestion;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
@@ -16,6 +17,9 @@ use Illuminate\Support\Facades\Storage;
 
 class SuggestionInfolistPresenter
 {
+    use FilamentFormDivider;
+
+
     public static function agreeCount(): TextEntry
     {
         return TextEntry::make('agree_count')
@@ -42,6 +46,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('comments')
             ->label(__('resources/suggestion/strings.fields.comments'))
             ->placeholder('—')
+            ->icon('heroicon-o-chat-bubble-left-ellipsis')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -51,6 +56,9 @@ class SuggestionInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/suggestion/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -62,10 +70,7 @@ class SuggestionInfolistPresenter
             ->getStateUsing(fn($record) => (new SuggestionPresenter($record))->deadlineConfig())
             ->formatStateUsing(fn($state): string => is_array($state) ? ($state['formatted'] ?? '—') : '—')
             ->color(fn($state): string => (is_array($state) && ($state['passed'] ?? false)) ? 'danger' : 'primary')
-            ->alignRight()
-            ->icon(IconPosition::After)
-            ->icon('heroicon-o-calendar-days')
-            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;']);
+            ->icon('heroicon-o-calendar-days');
     }
 
     public static function departments(): TextEntry
@@ -73,6 +78,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('departments')
             ->label(__('resources/suggestion/strings.fields.departments'))
             ->badge()
+            ->icon('heroicon-o-building-office-2')
             ->color('info')
             ->getStateUsing(function ($record): array {
                 $map = Department::getCachedOptions()->toArray();
@@ -91,6 +97,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('description')
             ->label(__('resources/suggestion/strings.fields.description'))
             ->prose()
+            ->icon('heroicon-o-document-text')
             ->placeholder('—')
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
@@ -121,6 +128,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('purpose')
             ->label(__('resources/suggestion/strings.fields.purpose'))
             ->badge()
+            ->icon('heroicon-o-flag')
             ->color('warning')
             ->getStateUsing(fn($record): array => collect($record->purpose ?? [])
                 ->map(fn($key): string => Suggestion::PURPOSES[$key] ?? (string) $key)
@@ -134,6 +142,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('referral_actions')
             ->label(__('resources/suggestion/strings.fields.referral_actions'))
             ->placeholder('—')
+            ->icon('heroicon-o-clipboard-document-list')
             ->getStateUsing(fn($record): ?string => $record->reviews?->firstWhere('department_id', 'MA')?->actions)
             ->extraAttributes(['dir' => 'auto', 'style' => 'white-space: pre-wrap; unicode-bidi: isolate;'])
             ->columnSpanFull();
@@ -182,6 +191,7 @@ class SuggestionInfolistPresenter
         return TextEntry::make('rule')
             ->label(__('resources/suggestion/strings.fields.rule'))
             ->badge()
+            ->icon('heroicon-o-book-open')
             ->color('info')
             ->getStateUsing(fn($record): array => collect($record->rule ?? [])
                 ->map(fn($key): string => Suggestion::RULES[$key] ?? (string) $key)
@@ -262,6 +272,9 @@ class SuggestionInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/suggestion/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

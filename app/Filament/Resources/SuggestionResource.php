@@ -162,14 +162,13 @@ class SuggestionResource extends Resource
                     Tab::make(__('resources/suggestion/strings.infolist.tab_overview'))
                         ->icon('heroicon-o-light-bulb')
                         ->schema([
-                            Section::make(__('resources/suggestion/strings.infolist.section_workflow'))
-                                ->icon('heroicon-o-arrow-path-rounded-square')
-                                ->schema([SuggestionInfolistPresenter::workflow()])
-                                ->collapsible(),
-
-                            Section::make(__('resources/suggestion/strings.infolist.section_overview'))
-                                ->icon('heroicon-o-light-bulb')
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
                                 ->schema([
+                                    SuggestionInfolistPresenter::workflow(),
+
+                                    SuggestionInfolistPresenter::divider(),
                                     SuggestionInfolistPresenter::title(),
                                     SuggestionInfolistPresenter::serial(),
                                     SuggestionInfolistPresenter::stage(),
@@ -181,45 +180,40 @@ class SuggestionResource extends Resource
                                     SuggestionInfolistPresenter::rule(),
                                     SuggestionInfolistPresenter::departments(),
                                     SuggestionInfolistPresenter::deadline(),
+
+                                    SuggestionInfolistPresenter::divider(),
                                     SuggestionInfolistPresenter::createdAt(),
                                     SuggestionInfolistPresenter::updatedAt(),
-                                ])
-                                ->columns(3),
 
-                            Section::make(__('resources/suggestion/strings.infolist.section_content'))
-                                ->icon('heroicon-o-document-text')
-                                ->schema([
+                                    SuggestionInfolistPresenter::divider(),
                                     SuggestionInfolistPresenter::description(),
                                     SuggestionInfolistPresenter::attachment(),
                                 ])
-                                ->columns(2),
+                                ->columns(3),
                         ]),
 
                     Tab::make(__('resources/suggestion/strings.infolist.tab_reviews'))
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->schema([
-                            Section::make(__('resources/suggestion/strings.infolist.section_reviews'))
-                                ->icon('heroicon-o-chat-bubble-left-right')
+                            Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                                ->hiddenLabel()
                                 ->schema([
                                     SuggestionInfolistPresenter::agreeCount(),
                                     SuggestionInfolistPresenter::neutralCount(),
                                     SuggestionInfolistPresenter::disagreeCount(),
                                     SuggestionInfolistPresenter::reviews(),
-                                ])
-                                ->columns(3),
 
-                            Section::make(__('resources/suggestion/strings.infolist.section_decision'))
-                                ->icon('heroicon-o-scale')
-                                ->schema([
+                                    SuggestionInfolistPresenter::divider(),
                                     SuggestionInfolistPresenter::comments(),
                                     SuggestionInfolistPresenter::referralDepts(),
                                     SuggestionInfolistPresenter::referralActions(),
                                 ])
-                                ->columns(1)
-                                ->collapsed(),
+                                ->columns(3),
                         ]),
                 ])
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

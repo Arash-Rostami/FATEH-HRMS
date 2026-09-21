@@ -4,7 +4,7 @@ namespace App\Filament\Resources\CredentialResource\Pages;
 
 use App\Filament\Resources\CredentialResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateCredential extends CreateRecord
 {

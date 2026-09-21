@@ -4,12 +4,16 @@ namespace App\Filament\Resources\ReleaseRequestResource\Schemas;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;
 
 class ReleaseRequestInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function attachments(): RepeatableEntry
     {
         return RepeatableEntry::make('attachments')
@@ -53,6 +57,10 @@ class ReleaseRequestInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/release_request/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -67,6 +75,8 @@ class ReleaseRequestInfolistPresenter
                 config('app.organization_name'),
                 $state,
             ], 'strlen')))
+            ->icon('heroicon-o-hashtag')
+            ->copyable()
             ->color('gray');
     }
 
@@ -107,6 +117,7 @@ class ReleaseRequestInfolistPresenter
             ->label(__('resources/release_request/strings.fields.user'))
             ->formatStateUsing(fn(?Model $record): string => $record?->user?->name
                 ?? __('resources/release_request/strings.deleted_user'))
+            ->icon('heroicon-o-user')
             ->placeholder('-');
     }
 }

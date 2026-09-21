@@ -3,16 +3,21 @@
 namespace App\Filament\Resources\PermissionResource\Schemas;
 
 use App\Models\Permission;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 
 class PermissionInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function abilities(): TextEntry
     {
         return TextEntry::make('abilities')
             ->label(__('resources/permission/strings.fields.abilities'))
+            ->icon('heroicon-o-key')
             ->columnSpanFull()
             ->state(function ($record): string {
                 $modules = Permission::availableModules();
@@ -33,6 +38,10 @@ class PermissionInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/permission/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')
             ->placeholder('-');
     }
@@ -41,6 +50,7 @@ class PermissionInfolistPresenter
     {
         return TextEntry::make('excluded_modules')
             ->label(__('resources/permission/strings.fields.excluded_modules'))
+            ->icon('heroicon-o-no-symbol')
             ->columnSpanFull()
             ->visible(fn($record) => (bool)$record?->is_super_admin)
             ->state(function ($record): string {
@@ -63,6 +73,10 @@ class PermissionInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/permission/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '-')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-arrow-path')
             ->color('gray')
             ->placeholder('-');
     }
@@ -71,6 +85,8 @@ class PermissionInfolistPresenter
     {
         return TextEntry::make('user.name')
             ->label(__('resources/permission/strings.fields.user'))
-            ->weight(FontWeight::Bold);
+            ->weight(FontWeight::Bold)
+            ->badge()
+            ->color('primary');
     }
 }

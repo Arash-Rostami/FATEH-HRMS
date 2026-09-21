@@ -117,6 +117,7 @@ class ChannelResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     ChannelInfolistPresenter::name(),
@@ -125,7 +126,11 @@ class ChannelResource extends Resource
                     ChannelInfolistPresenter::owner(),
                     ChannelInfolistPresenter::membersCount(),
                     ChannelInfolistPresenter::messagesCount(),
+
+                    ChannelInfolistPresenter::divider(),
                     ChannelInfolistPresenter::description(),
+
+                    ChannelInfolistPresenter::divider(),
                     ChannelInfolistPresenter::createdAt(),
                     ChannelInfolistPresenter::updatedAt(),
                     ChannelInfolistPresenter::deletedAt(),

@@ -99,16 +99,22 @@ class ReleaseRequestResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->hiddenLabel()
                 ->schema([
                     ReleaseRequestInfolistPresenter::id(),
-                    ReleaseRequestInfolistPresenter::title(),
-                    ReleaseRequestInfolistPresenter::body(),
-                    ReleaseRequestInfolistPresenter::attachments(),
                     ReleaseRequestInfolistPresenter::user(),
                     ReleaseRequestInfolistPresenter::type(),
                     ReleaseRequestInfolistPresenter::status(),
-                    ReleaseRequestInfolistPresenter::response(),
                     ReleaseRequestInfolistPresenter::createdAt(),
+
+                    ReleaseRequestInfolistPresenter::divider(),
+                    ReleaseRequestInfolistPresenter::title(),
+                    ReleaseRequestInfolistPresenter::body(),
+                    ReleaseRequestInfolistPresenter::attachments(),
+
+                    ReleaseRequestInfolistPresenter::divider(),
+                    ReleaseRequestInfolistPresenter::response(),
                 ])
                 ->columnSpanFull()
                 ->columns(2),

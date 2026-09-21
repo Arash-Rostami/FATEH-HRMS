@@ -137,6 +137,7 @@ class ContactResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     ContactInfolistPresenter::sender(),
@@ -145,10 +146,12 @@ class ContactResource extends Resource
                     ContactInfolistPresenter::createdAt(),
                     ContactInfolistPresenter::readAt(),
 
+                    ContactInfolistPresenter::divider(),
                     ContactInfolistPresenter::replyTo(),
                     ContactInfolistPresenter::body(),
                     ContactInfolistPresenter::attachments(),
 
+                    ContactInfolistPresenter::divider(),
                     ContactInfolistPresenter::updatedAt(),
                     ContactInfolistPresenter::deletedAt(),
                     ContactInfolistPresenter::prunableWarning(),

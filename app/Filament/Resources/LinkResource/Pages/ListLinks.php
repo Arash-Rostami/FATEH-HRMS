@@ -5,7 +5,7 @@ namespace App\Filament\Resources\LinkResource\Pages;
 use App\Filament\Resources\LinkResource;
 use App\Models\Link;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

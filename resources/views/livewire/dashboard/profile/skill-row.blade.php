@@ -56,20 +56,15 @@
             </div>
 
             @if($totalEndorsements > 0 && !empty($endorsers))
-                <div class="flex items-center gap-2 pt-1">
-                    <div class="flex items-center -space-x-1.5 rtl:space-x-reverse">
-                        @foreach($endorsers as $endorser)
-                            <img src="{{ $endorser->getProfileImageUrl() ?? $endorser->getInitialsAvatarUrl() }}"
-                                 title="{{ $endorser->name }}"
-                                 alt="{{ $endorser->name }}"
-                                 class="w-5 h-5 rounded-full border border-[var(--md-sys-color-surface)] object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                        @endforeach
-                    </div>
-                    @if($totalEndorsements > count($endorsers))
-                        <span class="text-[10px] font-medium text-[var(--md-sys-color-outline)]">
-                            +{{ convertToPersian($totalEndorsements - count($endorsers)) }} دیگر
-                        </span>
-                    @endif
+                @php
+                    $endorserItems = $endorsers->map(fn($endorser) => [
+                        'avatar_url' => $endorser->getProfileImageUrl() ?? $endorser->getInitialsAvatarUrl(),
+                        'name' => $endorser->name,
+                    ])->all();
+                @endphp
+                <div class="pt-1">
+                    <x-ui.decor.avatar-stack :users="$endorserItems" :max="count($endorserItems)" :total="$totalEndorsements" suffix=" دیگر"
+                        title="{{ implode('، ', array_column($endorserItems, 'name')) }}"/>
                 </div>
             @endif
         </div>

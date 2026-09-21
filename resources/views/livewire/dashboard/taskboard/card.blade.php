@@ -425,17 +425,8 @@
     {{-- ═══ FOOTER ═══ --}}
     <div class="flex items-center justify-between gap-1 pt-2.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
         @if(!empty($collaboratorUsers))
-            <div wire:key="taskboard-card-collaborators" class="flex items-center -space-x-1.5 rtl:space-x-reverse shrink-0" title="همکاران: {{ implode('، ', array_column($collaboratorUsers, 'name')) }}">
-                @foreach(array_slice($collaboratorUsers, 0, 3) as $collaborator)
-                    <img src="{{ $collaborator['avatar_url'] }}" alt="{{ $collaborator['name'] }}"
-                         class="w-5 h-5 rounded-full border border-[var(--md-sys-color-surface)] object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                @endforeach
-                @if(count($collaboratorUsers) > 3)
-                    <span class="w-5 h-5 rounded-full bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[9px] font-bold flex items-center justify-center border border-[var(--md-sys-color-surface)] ring-1 ring-[var(--md-sys-color-outline-variant)]">
-                        +{{ convertToPersian(count($collaboratorUsers) - 3) }}
-                    </span>
-                @endif
-            </div>
+            <x-ui.decor.avatar-stack wire:key="taskboard-card-collaborators" :users="$collaboratorUsers"
+                title="همکاران: {{ implode('، ', array_column($collaboratorUsers, 'name')) }}"/>
         @else
             <span wire:key="taskboard-card-collaborators-empty"></span>
         @endif

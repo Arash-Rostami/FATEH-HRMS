@@ -185,6 +185,7 @@ class StatusPresenter
 
         return [
             'p' => $p,
+            'focusUntil' => $user->isFocusing() ? toJalali($user->focus_until, 'H:i') : null,
             'obscured' => $p->isObscured(),
             'img' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
             'position' => $position,
@@ -218,6 +219,7 @@ class StatusPresenter
 
         return [
             'p' => $p,
+            'focusUntil' => $user->isFocusing() ? toJalali($user->focus_until, 'H:i') : null,
             'obscured' => $obscured,
             'sms' => $sms,
             'ext' => $ext,

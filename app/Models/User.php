@@ -44,6 +44,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         'role',
         'status',
         'presence',
+        'focus_until',
         'booking',
         'last_seen',
         'extra',
@@ -270,6 +271,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->role === 'developer';
     }
 
+    public function isFocusing(): bool
+    {
+        return $this->presence === PresenceStatus::Busy && ($this->focus_until?->isFuture() ?? false);
+    }
+
     public function isOnline(int $minutes = 5): bool
     {
         return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
@@ -414,6 +420,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->hasMany(Ticket::class, 'requester_id');
     }
 
+    public function workflows(): HasMany
+    {
+        return $this->hasMany(Workflow::class, 'owner_id');
+    }
+
     public function touchLastSeen(): void
     {
         $was = $this->timestamps;
@@ -482,6 +493,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
             'password' => 'hashed',
             'maximum' => 'integer',
             'presence' => PresenceStatus::class,
+            'focus_until' => 'datetime',
         ];
     }
 

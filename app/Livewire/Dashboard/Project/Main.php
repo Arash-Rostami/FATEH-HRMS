@@ -8,9 +8,11 @@ use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
 use App\Models\Channel;
+use App\Models\Department;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\Workflow;
 use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\ChannelProvisioner;
 use App\Services\ProjectTask\CreateProjectAction;
@@ -43,13 +45,13 @@ class Main extends Component
         'channel_members.user_id as cm_user_id',
         'channel_members.entered_at',
     ];
-    private const TAB_DOMAIN = ['activity' => 'activity', 'teamChat' => 'chat', 'projectCalendar' => 'task'];
+    private const TAB_DOMAIN = ['activity' => 'activity', 'teamChat' => 'chat', 'projectCalendar' => 'task', 'workflow' => 'task'];
 
     #[Locked]
     public ?int $activeProjectId = null;
 
     #[Url(as: 'tab')]
-    public string $activeTab = 'activity';
+    public string $activeTab = 'workflow';
     public string $search = '';
     public int $projectsLimit = 30;
 
@@ -88,18 +90,27 @@ class Main extends Component
             ->get()
             ->groupBy('project_id');
 
+        $workflows = Workflow::whereIn('project_id', $page->pluck('id'))
+            ->where('status', Workflow::STATUS_ACTIVE)
+            ->get(['project_id', 'current_step', 'steps'])
+            ->groupBy('project_id');
+
         return [
             'rows' => $page
-                ->map(function ($p) use ($counts) {
+                ->map(function ($p) use ($counts, $workflows) {
                     $byStatus = ($counts->get($p->id) ?? collect())->pluck('aggregate', 'status');
                     $total = (int) $byStatus->sum();
                     $done = (int) ($byStatus['done'] ?? 0);
+                    $cycles = $workflows->get($p->id) ?? collect();
 
                     return [
                         'id' => $p->id,
                         'name' => $p->name,
                         'pending' => (bool) ($p->channel_id && $p->cm_user_id && !$p->entered_at),
                         'percent' => $total > 0 ? (int) round($done / $total * 100) : 0,
+                        'workflowCount' => $cycles->count(),
+                        'workflowStep' => $cycles->count() === 1 ? $cycles->first()->current_step + 1 : null,
+                        'workflowTotal' => $cycles->count() === 1 ? count($cycles->first()->steps) : null,
                     ];
                 })
                 ->values()
@@ -146,7 +157,7 @@ class Main extends Component
     public function activeProject(): ?Project
     {
         return $this->activeProjectId
-            ? Project::visibleTo(auth()->user())->with(['owner:id,name', 'owner.profile:id,user_id,image'])->find($this->activeProjectId)
+            ? Project::visibleTo(auth()->user())->with('owner:id,name')->find($this->activeProjectId)
             : null;
     }
 
@@ -216,7 +227,7 @@ class Main extends Component
         }
 
         $this->activeProjectId = $projectId;
-        $this->activeTab = 'activity';
+        $this->activeTab = 'workflow';
         $this->tabDirty = ['activity' => false, 'teamChat' => false, 'projectCalendar' => false];
 
         $channel = $this->activeChannel;
@@ -276,7 +287,7 @@ class Main extends Component
 
     public function switchTab(string $tab): void
     {
-        if (!in_array($tab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics'], true)) {
+        if (!in_array($tab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics', 'workflow'], true)) {
             return;
         }
 
@@ -295,7 +306,7 @@ class Main extends Component
     #[Renderless]
     public function warm(string $tab): void
     {
-        if (!$this->activeProjectId || !in_array($tab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics'], true)) {
+        if (!$this->activeProjectId || !in_array($tab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics', 'workflow'], true)) {
             return;
         }
 
@@ -355,6 +366,12 @@ class Main extends Component
             ->map(fn($name, $id) => ['id' => (int) $id, 'name' => $name])
             ->values()
             ->all();
+    }
+
+    #[Computed]
+    public function availableDepartments(): array
+    {
+        return Department::getCachedOptions()->all();
     }
 
     public function openCreate(): void
@@ -449,8 +466,8 @@ class Main extends Component
 
     public function render(): View
     {
-        if (!in_array($this->activeTab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics'], true)) {
-            $this->activeTab = 'activity';
+        if (!in_array($this->activeTab, ['activity', 'teamChat', 'projectCalendar', 'kanban', 'report', 'analytics', 'workflow'], true)) {
+            $this->activeTab = 'workflow';
         }
 
         $presenter = new ProjectPresenter();

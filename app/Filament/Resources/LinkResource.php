@@ -131,6 +131,7 @@ class LinkResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     LinkInfolistPresenter::urlTitle(),
@@ -138,15 +139,18 @@ class LinkResource extends Resource
                     LinkInfolistPresenter::linkType(),
                     LinkInfolistPresenter::sequence(),
 
+                    LinkInfolistPresenter::divider(),
                     LinkInfolistPresenter::url(),
                     LinkInfolistPresenter::internalUrl(),
                     LinkInfolistPresenter::companyIps(),
 
+                    LinkInfolistPresenter::divider(),
                     LinkInfolistPresenter::icon(),
                     LinkInfolistPresenter::iconDescription(),
                     LinkInfolistPresenter::image(),
                     LinkInfolistPresenter::imageDescription(),
 
+                    LinkInfolistPresenter::divider(),
                     LinkInfolistPresenter::createdAt(),
                     LinkInfolistPresenter::updatedAt(),
                 ])

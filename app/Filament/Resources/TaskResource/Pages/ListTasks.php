@@ -6,7 +6,7 @@ use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Task;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

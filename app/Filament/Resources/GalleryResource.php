@@ -115,15 +115,20 @@ class GalleryResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     GalleryInfolistPresenter::title(),
                     GalleryInfolistPresenter::description(),
-                    GalleryInfolistPresenter::photos(),
-                    GalleryInfolistPresenter::videos(),
                     GalleryInfolistPresenter::department(),
                     GalleryInfolistPresenter::photosCount(),
                     GalleryInfolistPresenter::eventDate(),
+
+                    GalleryInfolistPresenter::divider(),
+                    GalleryInfolistPresenter::photos(),
+                    GalleryInfolistPresenter::videos(),
+
+                    GalleryInfolistPresenter::divider(),
                     GalleryInfolistPresenter::createdAt(),
                     GalleryInfolistPresenter::updatedAt(),
                 ])

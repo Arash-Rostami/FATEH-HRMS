@@ -19,4 +19,5 @@ enum TaskActivityType: string
     case ProjectChange = 'project_change';
     case MetaChange = 'meta_change';
     case SettingsChange = 'settings_change';
+    case WorkflowStep = 'workflow_step';
 }

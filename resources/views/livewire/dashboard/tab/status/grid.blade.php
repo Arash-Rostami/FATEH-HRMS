@@ -4,6 +4,7 @@
             @php
                 $d = $statusPresenter->gridData($user, $skillId);
                 $p = $d['p'];
+                $focusUntil = $d['focusUntil'];
                 $obscured = $d['obscured'];
                 $sms = $d['sms'];
                 $ext = $d['ext'];
@@ -18,7 +19,7 @@
 
             <x-ui.decor.status :status="$p" wire:key="user-{{ $user->id }}-{{ $p->effectType() }}"
                                x-data
-                               title="{{ $p->sublabel() }}"
+                               title="{{ $p->sublabel() }}{{ $focusUntil ? ' · متمرکز تا '.$focusUntil : '' }}"
                                x-transition:enter="transition ease-out duration-300"
                                x-transition:enter-start="opacity-0 scale-95"
                                x-transition:enter-end="opacity-100 scale-100"
@@ -59,7 +60,7 @@
                         <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full
                                 bg-{{ $p->color() }}-500 flex items-center justify-center
                                 border-2 border-[var(--md-sys-color-surface)] shadow-sm {{ $p->badgeClasses() }}">
-                            <span class="material-symbols-rounded text-white leading-none text-[10px]">{{ $p->icon() }}</span>
+                            <span class="material-symbols-rounded text-white leading-none text-[10px]">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
                         </div>
                     </div>
 

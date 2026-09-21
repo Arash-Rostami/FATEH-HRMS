@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ChannelResource\Pages;
 use App\Filament\Resources\ChannelResource;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateChannel extends CreateRecord
 {

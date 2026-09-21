@@ -19,7 +19,6 @@
                 @php
                     $badgeCount = match($t['key']) {
                         'details' => count($projectForm->memberIds),
-                        'departments' => count($projectForm->departments),
                         'settings' => count($projectForm->customSchema),
                         default => 0,
                     };
@@ -48,55 +47,29 @@
         <div class="{{ $errorClass }} mb-4 p-3 rounded-xl bg-[var(--md-sys-color-error-container)]"><span class="material-symbols-rounded text-sm">error</span><span>{{ $message }}</span></div>
         @enderror
 
-        <div x-show="tab === 'details'" x-data="{ memberQuery: '' }" class="space-y-5">
+        <div x-show="tab === 'details'" class="space-y-5">
             <x-ui.forms.input label="نام پروژه" name="projectForm.name" wire:model="projectForm.name" icon="workspaces"/>
 
             <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">اعضا</label>
 
-            @if(count($this->memberCandidates) > 0)
-                <div wire:key="project-form-members-candidates" class="contents">
-                <x-dashboard.member-search/>
-
-                <div class="h-72 overflow-y-auto custom-scrollbar rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 divide-y divide-[var(--md-sys-color-outline-variant)]/20">
-                    @foreach($this->memberCandidates as $candidate)
-                        <label x-show="memberQuery === '' || @js($candidate['name'] ?? '').toLowerCase().includes(memberQuery.toLowerCase())"
-                               class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--md-sys-color-surface-container)]/60 cursor-pointer transition-colors">
-                            <input type="checkbox" value="{{ $candidate['id'] }}" wire:model="projectForm.memberIds"
-                                   class="w-4 h-4 rounded text-[var(--md-sys-color-primary)] border-[var(--md-sys-color-outline-variant)] focus:ring-[var(--md-sys-color-primary)]">
-                            <span class="text-sm font-medium text-[var(--md-sys-color-on-surface)]">{{ $candidate['name'] }}</span>
-                        </label>
-                    @endforeach
-                </div>
-                </div>
-            @else
-                <div wire:key="project-form-members-empty" class="contents">
-                    <x-ui.empty icon="group" title="کاربر فعال دیگری برای افزودن وجود ندارد." />
-                </div>
-            @endif
+            <x-dashboard.member-picker wire:key="project-form-members-candidates" model="projectForm.memberIds" :candidates="$this->memberCandidates" height="h-72"/>
             @error('projectForm.memberIds') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
-        </div>
 
-        <div x-show="tab === 'departments'" class="space-y-5">
-            <div class="space-y-2">
-                @foreach(\App\Models\Department::getCachedOptions() as $code => $label)
-                    <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:brightness-95 select-none bg-[var(--md-sys-color-surface-variant)]">
-                        <input type="checkbox" wire:model="projectForm.departments" value="{{ $code }}" class="w-4 h-4 rounded-lg accent-[var(--md-sys-color-primary)]">
-                        <span class="text-sm text-[var(--md-sys-color-on-surface)]">{{ $label }}</span>
-                    </label>
+            <x-ui.forms.select label="دپارتمان‌های ذی‌نفع" name="projectForm.departments" wire:model="projectForm.departments" icon="corporate_fare" multiple class="min-h-[160px]">
+                @foreach($this->availableDepartments as $code => $label)
+                    <option value="{{ $code }}">{{ $label }}</option>
                 @endforeach
-            </div>
-            @error('projectForm.departments') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+            </x-ui.forms.select>
         </div>
 
         <div x-show="tab === 'settings'" class="space-y-5">
             <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:brightness-95 select-none bg-[var(--md-sys-color-surface-variant)]">
-                <input type="checkbox" wire:model="projectForm.requiresApproval" class="w-4 h-4 rounded-lg accent-[var(--md-sys-color-primary)]">
+                <x-ui.forms.checkbox name="projectForm.requiresApproval"/>
                 <span class="text-sm text-[var(--md-sys-color-on-surface)]">تأیید مدیر پروژه هنگام «انجام‌شده»</span>
             </label>
             @error('projectForm.requiresApproval') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
 
             <x-ui.forms.input label="سقف ساعت SLA" name="projectForm.slaHours" wire:model="projectForm.slaHours" icon="schedule" type="number"/>
-            @error('projectForm.slaHours') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
 
             <x-ui.forms.date
                 label="مهلت پروژه (سقف مهلت وظایف)"
@@ -116,10 +89,12 @@
 
                 @foreach($projectForm->customSchema as $i => $row)
                     <div class="flex items-center gap-2">
-                        <input type="text" wire:model="projectForm.customSchema.{{ $i }}.key" placeholder="کلید (a-z، 0-9، _)" dir="ltr"
-                               class="md3-input w-2/5 rounded-xl text-xs outline-none h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
-                        <input type="text" wire:model="projectForm.customSchema.{{ $i }}.label" placeholder="برچسب"
-                               class="md3-input flex-1 rounded-xl text-xs outline-none h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
+                        <div class="w-2/5">
+                            <x-ui.forms.input label="کلید (a-z، 0-9، _)" name="projectForm.customSchema.{{ $i }}.key" wire:model="projectForm.customSchema.{{ $i }}.key" dir="ltr"/>
+                        </div>
+                        <div class="flex-1">
+                            <x-ui.forms.input label="برچسب" name="projectForm.customSchema.{{ $i }}.label" wire:model="projectForm.customSchema.{{ $i }}.label"/>
+                        </div>
                         <button type="button" wire:click="removeSchemaRow({{ $i }})" aria-label="حذف"
                                 class="flex items-center justify-center w-9 h-9 rounded-lg text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] transition-all active:scale-90">
                             <span class="material-symbols-rounded text-[18px]">close</span>
@@ -133,9 +108,7 @@
                     افزودن فیلد
                 </button>
 
-                @foreach(['projectForm.customSchema', 'projectForm.customSchema.*.key', 'projectForm.customSchema.*.label'] as $errorKey)
-                    @error($errorKey) <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
-                @endforeach
+                @error('projectForm.customSchema') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
             </div>
 
             <div class="space-y-2">
@@ -146,10 +119,12 @@
 
                 @foreach($projectForm->extraSettings as $i => $row)
                     <div class="flex items-center gap-2">
-                        <input type="text" wire:model="projectForm.extraSettings.{{ $i }}.key" placeholder="کلید (a-z، 0-9، _)" dir="ltr"
-                               class="md3-input w-2/5 rounded-xl text-xs outline-none h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
-                        <input type="text" wire:model="projectForm.extraSettings.{{ $i }}.value" placeholder="مقدار"
-                               class="md3-input flex-1 rounded-xl text-xs outline-none h-10 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
+                        <div class="w-2/5">
+                            <x-ui.forms.input label="کلید (a-z، 0-9، _)" name="projectForm.extraSettings.{{ $i }}.key" wire:model="projectForm.extraSettings.{{ $i }}.key" dir="ltr"/>
+                        </div>
+                        <div class="flex-1">
+                            <x-ui.forms.input label="مقدار" name="projectForm.extraSettings.{{ $i }}.value" wire:model="projectForm.extraSettings.{{ $i }}.value"/>
+                        </div>
                         <button type="button" wire:click="removeExtraSettingRow({{ $i }})" aria-label="حذف"
                                 class="flex items-center justify-center w-9 h-9 rounded-lg text-[var(--md-sys-color-error)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] transition-all active:scale-90">
                             <span class="material-symbols-rounded text-[18px]">close</span>
@@ -163,9 +138,7 @@
                     افزودن تنظیم
                 </button>
 
-                @foreach(['projectForm.extraSettings', 'projectForm.extraSettings.*.key', 'projectForm.extraSettings.*.value'] as $errorKey)
-                    @error($errorKey) <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
-                @endforeach
+                @error('projectForm.extraSettings') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>

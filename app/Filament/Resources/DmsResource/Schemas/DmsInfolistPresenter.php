@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DmsResource\Schemas;
 
 use App\Filament\Resources\DmsResource\Enums\DocumentStatus;
 use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -14,6 +15,8 @@ use Filament\Support\Enums\TextSize;
 
 class DmsInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function code(): TextEntry
     {
         return TextEntry::make('code')
@@ -96,6 +99,7 @@ class DmsInfolistPresenter
     {
         return TextEntry::make('owners_preview')
             ->label(__('resources/dms/strings.fields.owners_preview'))
+            ->icon('heroicon-o-list-bullet')
             ->getStateUsing(fn($record) => app(GenerateOwnerPreview::class)->handle($record->owners ?? []))
             ->markdown()
             ->placeholder('—')
@@ -125,12 +129,15 @@ class DmsInfolistPresenter
                 TextEntry::make('read_count')
                     ->label(__('resources/dms/strings.fields.read_count'))
                     ->badge()
+                    ->icon('heroicon-o-eye')
                     ->color('success'),
 
                 TextEntry::make('created_at')
                     ->label(__('resources/dms/strings.fields.confirmed_at'))
                     ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
                     ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+                    ->alignRight()
+                    ->iconPosition(IconPosition::After)
                     ->icon('heroicon-o-calendar'),
             ])
             ->columns(3)

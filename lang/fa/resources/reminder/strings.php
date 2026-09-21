@@ -49,8 +49,4 @@ return [
         'section_main'             => 'اطلاعات یادآوری',
         'section_main_description' => 'کاربر، عنوان، سررسید و تکرار یادآوری',
     ],
-
-    'infolist' => [
-        'section_notify' => 'کانال‌های اعلان',
-    ],
 ];

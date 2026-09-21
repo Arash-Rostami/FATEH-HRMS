@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EventResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Support\Enums\IconPosition;
 use Filament\Infolists\Components\{IconEntry, TextEntry};
 use Filament\Support\Enums\FontWeight;
@@ -9,11 +10,16 @@ use Filament\Support\Enums\TextSize;
 
 class EventInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
             ->label(__('resources/event/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -73,6 +79,8 @@ class EventInfolistPresenter
     {
         return TextEntry::make('title')
             ->label(__('resources/event/strings.fields.title'))
+            ->weight(FontWeight::Bold)
+            ->size(TextSize::Large)
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->columnSpanFull();
     }
@@ -82,6 +90,9 @@ class EventInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/event/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

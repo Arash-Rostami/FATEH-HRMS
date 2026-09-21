@@ -137,32 +137,26 @@ class AuthorityResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/authority/strings.infolist.section_general'))
-                ->icon('heroicon-o-information-circle')
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->schema([
                     AuthorityInfolistPresenter::duty(),
                     AuthorityInfolistPresenter::department(),
                     AuthorityInfolistPresenter::user(),
                     AuthorityInfolistPresenter::subDuty(),
-                ])
-                ->columns(2)
-                ->columnSpanFull(),
-
-            Section::make(__('resources/authority/strings.infolist.section_details'))
-                ->icon('heroicon-o-chart-bar')
-                ->schema([
+                    AuthorityInfolistPresenter::divider(),
                     AuthorityInfolistPresenter::executionProcedure(),
                     AuthorityInfolistPresenter::repeatFrequency(),
                     AuthorityInfolistPresenter::impactScore(),
                     AuthorityInfolistPresenter::proposedDelegation(),
                     AuthorityInfolistPresenter::approvedDelegation(),
                     AuthorityInfolistPresenter::coDelegate(),
+                    AuthorityInfolistPresenter::divider(),
                     AuthorityInfolistPresenter::createdAt(),
                     AuthorityInfolistPresenter::updatedAt(),
                 ])
-                ->columns(3)
-                ->columnSpanFull(),
-
+                ->columnSpanFull()
+                ->columns(3),
         ]);
     }
 

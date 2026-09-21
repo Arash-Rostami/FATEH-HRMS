@@ -26,9 +26,7 @@
                     <div class="flex items-center gap-4 text-xs flex-wrap">
                         @foreach($channelToggles as $ch)
                             <label class="flex items-center gap-1.5 {{ ($ch['disabled'] ?? false) ? 'opacity-40' : '' }}">
-                                <input type="checkbox"
-                                       @if($ch['disabled'] ?? false) disabled @else wire:model="{{ $ch['name'] }}" @endif
-                                       class="w-4 h-4 rounded accent-[var(--md-sys-color-primary)]">
+                                <x-ui.forms.checkbox :name="($ch['disabled'] ?? false) ? null : $ch['name']" :disabled="$ch['disabled'] ?? false"/>
                                 {{ $ch['label'] }}
                             </label>
                         @endforeach

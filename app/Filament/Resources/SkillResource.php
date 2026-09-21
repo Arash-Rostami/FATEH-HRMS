@@ -96,16 +96,20 @@ class SkillResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()->schema([
-                SkillInfolistPresenter::name(),
-                SkillInfolistPresenter::nameEn(),
-                SkillInfolistPresenter::category(),
-                SkillInfolistPresenter::icon(),
-                SkillInfolistPresenter::isActive(),
-                SkillInfolistPresenter::membersCount(),
-                SkillInfolistPresenter::description(),
-                SkillInfolistPresenter::createdAt(),
-            ])->columns(2)->columnSpanFull(),
+            Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
+                ->schema([
+                    SkillInfolistPresenter::name(),
+                    SkillInfolistPresenter::nameEn(),
+                    SkillInfolistPresenter::category(),
+                    SkillInfolistPresenter::icon(),
+                    SkillInfolistPresenter::isActive(),
+                    SkillInfolistPresenter::membersCount(),
+                    SkillInfolistPresenter::divider(),
+                    SkillInfolistPresenter::description(),
+                    SkillInfolistPresenter::divider(),
+                    SkillInfolistPresenter::createdAt(),
+                ])->columns(2)->columnSpanFull(),
         ]);
     }
 

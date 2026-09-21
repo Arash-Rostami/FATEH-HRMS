@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
 use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;
+use App\Models\Workflow;
 use App\Services\Cache\ModelCacheVersion;
 use App\Values\CalendarRange;
 use Carbon\Carbon;
@@ -53,11 +54,12 @@ class Calendar extends Component
     private function calendarBucketsCacheKey(int $projectId, string $navDate): string
     {
         return sprintf(
-            'project-calendar:%d:%s:t%s:r%s',
+            'project-calendar:%d:%s:t%s:r%s:w%s',
             $projectId,
             $navDate,
             ModelCacheVersion::version(Task::class),
-            ModelCacheVersion::version(Reply::class)
+            ModelCacheVersion::version(Reply::class),
+            ModelCacheVersion::version(Workflow::class)
         );
     }
 
@@ -104,6 +106,7 @@ class Calendar extends Component
         return [
             'deadlineByDay' => [],
             'lifecycleByDay' => [],
+            'cycleByDay' => [],
             'overdueCarry' => [],
             'gantt' => $this->emptyGantt(),
         ];
@@ -122,6 +125,34 @@ class Calendar extends Component
         $daysCount = count($range->days());
         $rangeStart = $range->start->copy()->startOfDay();
         $dayIndexOf = fn(Carbon $carbon): int => (int) round($rangeStart->diffInDays($carbon->copy()->startOfDay(), false));
+
+        $cycleByDay = [];
+        $workflows = Workflow::forProject($projectId)
+            ->whereIn('status', [Workflow::STATUS_ACTIVE, Workflow::STATUS_COMPLETED, Workflow::STATUS_CANCELLED])
+            ->get(['id', 'name', 'status', 'started_at', 'completed_at']);
+
+        foreach ($workflows as $wf) {
+            if ($wf->started_at && $wf->started_at->between($range->start, $range->end)) {
+                $day = Jalalian::fromCarbon($wf->started_at)->format('Y-m-d');
+                $cycleByDay[$day][] = [
+                    'marker' => 'cycle-start',
+                    'workflow_id' => $wf->id,
+                    'name' => $wf->name,
+                    'time' => Jalalian::fromCarbon($wf->started_at)->format('H:i'),
+                ];
+            }
+
+            if ($wf->completed_at && $wf->completed_at->between($range->start, $range->end)) {
+                $day = Jalalian::fromCarbon($wf->completed_at)->format('Y-m-d');
+                $cycleByDay[$day][] = [
+                    'marker' => 'cycle-end',
+                    'workflow_id' => $wf->id,
+                    'name' => $wf->name,
+                    'status' => $wf->status,
+                    'time' => Jalalian::fromCarbon($wf->completed_at)->format('H:i'),
+                ];
+            }
+        }
 
         $tasks = Task::where('project_id', $projectId)
             ->with('detail:id,task_id,checklist')
@@ -307,6 +338,7 @@ class Calendar extends Component
         return [
             'deadlineByDay' => $deadlineByDay,
             'lifecycleByDay' => $lifecycleByDay,
+            'cycleByDay' => $cycleByDay,
             'overdueCarry' => $overdueCarry,
             'gantt' => [
                 'rows' => $ganttRows,
@@ -342,6 +374,11 @@ class Calendar extends Component
     private function lifecycleEventsByDay(string $navDate): array
     {
         return $this->calendarBuckets($navDate)['lifecycleByDay'];
+    }
+
+    private function cycleEventsByDay(string $navDate): array
+    {
+        return $this->calendarBuckets($navDate)['cycleByDay'];
     }
 
     #[Computed]
@@ -388,6 +425,7 @@ class Calendar extends Component
 
         $byDay = $this->deadlineEventsByDay($this->calendarNavDate);
         $lifecycleByDay = $this->lifecycleEventsByDay($this->calendarNavDate);
+        $cycleByDay = $this->cycleEventsByDay($this->calendarNavDate);
         $projectDeadline = $this->calendarBuckets($this->calendarNavDate)['gantt']['projectDeadline'] ?? null;
         $today = Jalalian::now()->format('Y-m-d');
         $offset = $range->weekdayOffset();
@@ -400,6 +438,7 @@ class Calendar extends Component
             $dayNum = (int) Jalalian::fromCarbon($carbon)->format('j');
             $buckets = $byDay[$date] ?? [];
             $markerTypes = array_column($lifecycleByDay[$date] ?? [], 'marker');
+            $cycleMarkerTypes = array_column($cycleByDay[$date] ?? [], 'marker');
             $days[] = [
                 'day' => $dayNum,
                 'date' => $date,
@@ -411,6 +450,9 @@ class Calendar extends Component
                 'hasStart' => in_array('start', $markerTypes, true),
                 'hasChange' => in_array('change', $markerTypes, true),
                 'hasCompleted' => in_array('completed', $markerTypes, true),
+                'hasCycleStart' => in_array('cycle-start', $cycleMarkerTypes, true),
+                'hasCycleEnd' => in_array('cycle-end', $cycleMarkerTypes, true),
+                'cycleCount' => count($cycleByDay[$date] ?? []),
                 'hasProjectDeadline' => $projectDeadline !== null && $date === $projectDeadline,
             ];
         }
@@ -455,7 +497,18 @@ class Calendar extends Component
                 'to' => $e['to'] ?? null,
             ]));
 
-        return $deadlines->concat($lifecycle)
+        $cycles = collect($this->cycleEventsByDay($this->calendarNavDate))
+            ->flatMap(fn(array $events, string $date) => collect($events)->map(fn(array $e) => [
+                'marker' => $e['marker'],
+                'date' => $date,
+                'day' => (int) Jalalian::fromFormat('Y-m-d', $date)->format('j'),
+                'name' => $e['name'],
+                'workflow_id' => $e['workflow_id'],
+                'time' => $e['time'],
+                'status' => $e['status'] ?? null,
+            ]));
+
+        return $deadlines->concat($lifecycle)->concat($cycles)
             ->sortBy([['date', 'asc'], ['time', 'asc']])
             ->values()
             ->all();
@@ -502,11 +555,21 @@ class Calendar extends Component
     }
 
     #[Computed]
+    public function selectedDayCycle(): array
+    {
+        if (!$this->activeProjectId || $this->selectedCalendarDay === '') {
+            return [];
+        }
+
+        return $this->cycleEventsByDay($this->calendarNavDate)[$this->selectedCalendarDay] ?? [];
+    }
+
+    #[Computed]
     public function selectedDayTimeline(): array
     {
         $deadlines = collect($this->selectedDayDeadlines)->map(fn(array $e) => [...$e, 'marker' => 'deadline']);
 
-        return $deadlines->concat($this->selectedDayLifecycle)
+        return $deadlines->concat($this->selectedDayLifecycle)->concat($this->selectedDayCycle)
             ->sortBy('time')
             ->values()
             ->all();
@@ -547,13 +610,13 @@ class Calendar extends Component
     private function invalidateProjectCalendarComputeds(): void
     {
         $this->calendarBucketsCache = [];
-        unset($this->calendarDays, $this->selectedDayDeadlines, $this->selectedDayLifecycle, $this->selectedDayTimeline, $this->monthAgenda, $this->ganttRows, $this->overdueCarry);
+        unset($this->calendarDays, $this->selectedDayDeadlines, $this->selectedDayLifecycle, $this->selectedDayCycle, $this->selectedDayTimeline, $this->monthAgenda, $this->ganttRows, $this->overdueCarry);
     }
 
     public function refreshCalendar(): void
     {
         $this->calendarBucketsCache = [];
-        unset($this->calendarDays, $this->selectedDayDeadlines, $this->selectedDayLifecycle, $this->selectedDayTimeline, $this->monthAgenda, $this->ganttRows, $this->overdueCarry);
+        unset($this->calendarDays, $this->selectedDayDeadlines, $this->selectedDayLifecycle, $this->selectedDayCycle, $this->selectedDayTimeline, $this->monthAgenda, $this->ganttRows, $this->overdueCarry);
     }
 
     public function render(): View

@@ -13,17 +13,19 @@
                             </button>
                         @endforeach
                     </div>
-                    <button type="button" wire:click="openCreate" title="یادآوری جدید"
-                            class="shrink-0 p-1.5 rounded-lg text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] transition-colors">
-                        <span class="material-symbols-rounded text-[18px]">add</span>
-                    </button>
+                    @unless($variant === 'embedded')
+                        <button type="button" wire:click="openCreate" title="یادآوری جدید"
+                                class="shrink-0 p-1.5 rounded-lg text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] transition-colors">
+                            <span class="material-symbols-rounded text-[18px]">add</span>
+                        </button>
+                    @endunless
                 </div>
 
                 @if($this->reminders->isEmpty())
                     <div wire:key="reminder-empty-list" class="flex min-h-[300px] items-center justify-center rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
                         <x-ui.empty icon="alarm_off"
                                     title="یادآوری‌ای یافت نشد"
-                                    description="برای ساختن یادآوری از دکمه + یا تب «یادآوری جدید» استفاده کنید"
+                                    description="{{ $variant === 'embedded' ? 'یادآوری‌های شما اینجا نمایش داده می‌شوند.' : 'برای ساختن یادآوری از دکمه + یا تب «یادآوری جدید» استفاده کنید' }}"
                                     fill />
                     </div>
                 @else

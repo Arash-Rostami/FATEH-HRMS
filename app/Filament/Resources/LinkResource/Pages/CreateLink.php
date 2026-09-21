@@ -5,7 +5,7 @@ namespace App\Filament\Resources\LinkResource\Pages;
 use App\Filament\Resources\LinkResource;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateLink extends CreateRecord
 {

@@ -6,7 +6,7 @@ use App\Filament\Resources\AuthorityResource\Schemas\AuthorityFormPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityInfolistPresenter;
 use App\Filament\Resources\AuthorityResource\Schemas\AuthorityTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;

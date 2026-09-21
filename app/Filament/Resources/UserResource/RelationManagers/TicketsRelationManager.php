@@ -8,7 +8,7 @@ use App\Filament\Resources\ThsResource\Schemas\TicketTablePresenter;
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
 use App\Models\Ticket;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;

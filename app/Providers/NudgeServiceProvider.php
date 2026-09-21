@@ -18,6 +18,7 @@ use App\Services\Menu\Notifications\TaskApprovalNudge;
 use App\Services\Menu\Notifications\TaskNudge;
 use App\Services\Menu\Notifications\TaskOverdueNudge;
 use App\Services\Menu\Notifications\ThsNudge;
+use App\Services\Menu\Notifications\WorkflowStepNudge;
 use App\Services\Menu\NudgeService;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,6 +38,7 @@ class NudgeServiceProvider extends ServiceProvider
         NudgeService::register(new TaskOverdueNudge());
         NudgeService::register(new TaskApprovalNudge());
         NudgeService::register(new ProjectNudge());
+        NudgeService::register(new WorkflowStepNudge());
         NudgeService::register(new ContactNudge());
         NudgeService::register(new ThsNudge());
         NudgeService::register(new DmsNudge());

@@ -96,6 +96,56 @@ When rendering a Filament component (complex Table or Form) inside a custom User
 }
 ```
 
+### 4.4 Infolist Inner Panel — Explicit Marker Class, Not a `:has()` Guess (2026-09-21)
+An infolist's outer `Section::make()` render as TWO nested elements, not one: `Filament\Schemas\Components\Section`'s own blade wraps a layout-only `<div class="fi-sc-section">` (no visual styling — `flex flex-col gap-2`, nothing else) around an inner `<x-filament::section>` that actually renders as `<section class="fi-section">` and carries all real background/shadow/padding. `->extraAttributes()` on `Section::make()` lands on the OUTER `fi-sc-section` div, never on the inner `.fi-section` — so a same-class CSS rule written against `.fi-sc-section` (or a `:has()` guess targeting it) visually does nothing; verified by putting `background: magenta` on the naive selector first and seeing it appear only as a thin sliver at the panel's edge (the outer wrapper's `gap-2`), with the real `.fi-section` card opaquely covering the rest.
+
+The other half of the original bug still holds: `Tabs` defaults to `contained(true)`, drawing its own hardcoded `bg-white dark:bg-gray-900` card (vendor default, never MD3-mapped) *around* the inner `.fi-section` — a tabbed infolist showed a different panel color than a non-tabbed one purely from this un-overridden vendor default.
+
+Fix — the SAME explicit marker class on every infolist's outer `Section::make()` AND on every `Tabs::make()` (only the ~8 resources whose infolist actually uses Tabs need the second one):
+
+```php
+// every infolist's outer Section (and every per-tab Section, if Tabs are used)
+Section::make()
+    ->extraAttributes(['class' => 'fi-infolist-panel'])
+    ->schema([...]);
+
+// every infolist's Tabs — same marker class, scopes the card-strip rule below
+Tabs::make()
+    ->extraAttributes(['class' => 'fi-infolist-panel'])
+    ->tabs([...]);
+```
+
+**`->contained(false)` was tried first and reverted — it's the wrong lever.** It doesn't just remove `Tabs`'s background; the vendor CSS (`filament/support/resources/css/components/tabs.css`) also routes the *tab-button row* through a completely different, unrelated branch when not contained (`.fi-tabs:not(.fi-contained) { @apply mx-auto rounded-xl bg-white p-2 shadow-sm ring-1 ...; }`) — `mx-auto` re-centers the whole tab strip, which is how a one-line "remove this card" change turned into "why are my tabs suddenly centered instead of RTL-aligned" as a completely separate, non-obvious regression. Stay in `contained(true)` (the default) and strip the outer wrapper's own paint with CSS instead — the tab-button row's styling/alignment is entirely untouched by this:
+
+```css
+.fi-infolist-panel .fi-section {
+    @apply !rounded-2xl
+    !bg-[color-mix(in_srgb,var(--md-sys-color-primary-container),_var(--md-sys-color-surface)_35%)]
+    !shadow-[var(--md-sys-elevation-1)];
+}
+
+.fi-sc-tabs.fi-infolist-panel.fi-contained {
+    @apply !bg-transparent !shadow-none !ring-0;
+}
+```
+
+The descendant selector on the first rule (`.fi-infolist-panel .fi-section`, not `.fi-infolist-panel` alone) is required because the class sits on the OUTER wrapper while the real visual element is the inner `.fi-section`. The second rule targets the Tabs wrapper directly (same element the class lands on for `Tabs::make()`, no nesting quirk there) and only strips its background/shadow/ring — `.fi-contained`'s OTHER effects (border-b removed, tab-list layout) are untouched, so alignment stays exactly as vendor-default. Background is a primary-container tint over `surface` — a mild, unmistakably theme-colored (not neutral-gray) wash, distinct from `.fi-modal-window`'s own plain `--md-sys-color-surface` background so the panel doesn't visually vanish into its own modal. One themed card either way, whether or not `Tabs` wraps it — matching the "one bare Section, no card-stacking" infolist rule in `filamentPattern.md`. Reference implementation: `DepartmentResource::infolist()` (Section-only), `UserResource::infolist()` (Tabs).
+
+### 4.5 Modal Height Discipline
+Centered modals have one fixed standard height in `filament.css` — never taller, never collapsed:
+
+```css
+.fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window {
+    @apply !h-[85dvh] !overflow-y-auto;
+}
+
+.fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) .fi-modal-content {
+    @apply !flex-1;
+}
+```
+
+*Every centered modal (infolist/view/form/confirm) is exactly 85dvh; longer content scrolls inside the window, sparser content leaves breathing room with the footer pinned via `flex-1`.* Slide-overs (`fi-modal-slide-over`), full-screen (`fi-width-screen`), and the `#database-notifications` drawer (a slide-over) are excluded by the `:not()` guards — their geometry stays vendor/`notification.css`-owned. Vendor default is auto-height (window sizes to content), which is why sparse infolists used to collapse.
+
 ---
 
 ## 5. Notification UI Override (`notification.css`)

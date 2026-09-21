@@ -9,7 +9,7 @@ use App\Filament\Resources\SuggestionResource\Schemas\SuggestionTablePresenter;
 use App\Models\Suggestion;
 use App\Traits\FilamentActions;
 use Filament\Actions\CreateAction;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;

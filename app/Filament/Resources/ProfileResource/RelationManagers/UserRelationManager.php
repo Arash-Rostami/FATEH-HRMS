@@ -6,7 +6,7 @@ use App\Filament\Resources\UserResource\Schemas\UserFormPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserInfolistPresenter;
 use App\Filament\Resources\UserResource\Schemas\UserTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -55,27 +55,19 @@ class UserRelationManager extends RelationManager
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('resources/user/strings.infolist.section_identity'))
+            Section::make()
                 ->schema([
                     UserInfolistPresenter::id(),
                     UserInfolistPresenter::name(),
                     UserInfolistPresenter::email(),
                     UserInfolistPresenter::emailVerifiedAt(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/user/strings.infolist.section_access'))
-                ->schema([
+                    UserInfolistPresenter::divider(),
                     UserInfolistPresenter::type(),
                     UserInfolistPresenter::role(),
                     UserInfolistPresenter::status(),
                     UserInfolistPresenter::presence(),
                     UserInfolistPresenter::maximum(),
-                ])
-                ->columns(2),
-
-            Section::make(__('resources/user/strings.infolist.section_meta'))
-                ->schema([
+                    UserInfolistPresenter::divider(),
                     UserInfolistPresenter::lastSeen(),
                     UserInfolistPresenter::createdAt(),
                     UserInfolistPresenter::updatedAt(),

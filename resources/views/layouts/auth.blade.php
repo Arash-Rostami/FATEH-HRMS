@@ -141,17 +141,7 @@
 
                         <label class="flex items-center justify-between cursor-pointer select-none py-1">
                             <span class="text-sm font-bold text-gray-700 dark:text-gray-200">تکرار پس از پایان</span>
-                            <input x-model="loopVideo" type="checkbox" class="sr-only">
-                            <div
-                                class="relative w-[44px] h-[26px] rounded-full transition-colors duration-200 ease-in-out shadow-inner"
-                                :class="loopVideo ? 'bg-[var(--md-sys-color-primary)]' : 'bg-gray-200 dark:bg-black/40'">
-                                <div
-                                    class="absolute top-1/2 -translate-y-1/2 rtl:right-1 ltr:left-1 w-[18px] h-[18px] rounded-full bg-white shadow-md transform transition-all duration-200 flex items-center justify-center"
-                                    :class="loopVideo ? 'rtl:-translate-x-[18px] ltr:translate-x-[18px]' : 'translate-x-0'">
-                                    <span class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-primary)] transition-opacity duration-150"
-                                          :class="loopVideo ? 'opacity-100' : 'opacity-0'">check</span>
-                                </div>
-                            </div>
+                            <x-ui.forms.switch x-model="loopVideo"/>
                         </label>
 
                         <label

@@ -13,3 +13,16 @@
 ## `withExceptions()` — Utime/`CAP_FOWNER` suppression (managed hosting)
 
 The `\ErrorException` report-suppression for `str_contains($e->getMessage(), 'Utime failed')` is a cosmetic-log fix for containers lacking `CAP_FOWNER` (common on managed/PaaS hosting) — Livewire's `@island` directive's `touch()` call fails harmlessly there. Full context, diagnosis steps, and the "why `report()` not `dontReport()`" note (`dontReport()` only accepts exception class names, not closures — throws a `TypeError`) live in `temp/chbkn/setup.md` §13. Don't duplicate that here; this file just anchors the two `bootstrap/app.php` gotchas together.
+
+## `withExceptions()` — Livewire renderable: precise error messages for the user panel (2026-09-21)
+
+A `$exceptions->render()` closure presents exceptions through `App\Services\ExceptionPresenter` on two request lanes — **Livewire requests** (`x-livewire` header) get JSON `{message: title+"\n"+body}` (toasted client-side by `resources/js/core/livewire-errors.js`, see `scriptPattern.md` §18), and **full-page loads** with `app.debug` off get the real 500 error view rendered with the presenter's data: `errors.500` receives `trace_id` (the `ERR-…` reference — before this, the layout's "شناسه ردیابی" accordion always showed the literal `TRC-XXXXXXXX` placeholder), plus `heading`/`message` overrides for the presented title/body.
+
+Non-Livewire passthroughs (each deliberate): `HttpExceptionInterface` and `ModelNotFoundException` keep their dedicated error pages (404/403/419/429/503 — ModelNotFound converts to 404 only after renderables run, so it must be excluded explicitly or a missing record renders as a 500), and **`app.debug` on short-circuits BOTH lanes** (the whole renderable returns null) — development keeps Whoops on page loads and Livewire's error overlay with stack traces, so the presented path is exercised only in production or when a test forces `config(['app.debug' => false])`.
+
+**Admin Livewire requests are excluded too** (`$request->is('admin*')` → null, decision 2026-09-21): the toast bridge (`livewire-errors.js`) is deliberately NOT registered on the Filament panel — admin's precise-message path is the trait notifications, and its out-of-trait Livewire failures (filter apply, search, re-render) fall back to Livewire's default modal. The exclusion and the non-registration are a coupled pair — removing either one alone degrades the admin panel (see `scriptPattern.md` §18).
+
+Two rules that are easy to break:
+
+- **The exclusion list is contract, not decoration.** `ValidationException` (Livewire owns inline field errors), `AuthenticationException` (redirect flow), and Filament's `Halt`/`Cancel` (control flow, not errors) must keep bubbling — rendering any of them as a 500 error breaks validation display, login redirects, or Filament action halting. New "not really an error" exception types go into this list.
+- **This closure runs at request time, not boot.** The `config()`-at-boot trap (top section) applies only to the closure *registration*; calls inside the renderable callback body (like `ExceptionPresenter::present()` and the `config('app.debug')` gate) execute per-request, after the container is fully booted — safe. Don't move any of it into the registration closure body.

@@ -6,7 +6,7 @@ use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\SkillRequestResource;
 use App\Models\SkillUser;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

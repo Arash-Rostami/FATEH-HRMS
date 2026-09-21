@@ -41,36 +41,122 @@
                 </div>
 
                 @if($teamPulse->isNotEmpty())
-                    @php($visiblePulse = $teamPulse->take(5))
-                    @php($remainingPulse = max(0, $teamPulse->count() - $visiblePulse->count()))
-                    <button type="button" wire:key="home-team-pulse"
-                            wire:click='$dispatch("switch-tab", { tab: "status" })'
-                            aria-label="مشاهده وضعیت همکاران" title="مشاهده وضعیت همکاران"
-                            class="group/pulse shrink-0 flex items-center gap-2 h-7 -my-1 rounded-lg pl-2 pr-1 transition-colors duration-200
-                                       hover:bg-[var(--md-sys-color-on-primary-container)]/10
-                                       focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-on-primary-container)]/40">
+                    @php($visiblePulse = $teamPulse->take(15))
+                    @php($mobileRemainder = max(0, $teamPulse->count() - 5))
+                    @php($desktopRemainder = max(0, $teamPulse->count() - $visiblePulse->count()))
+                    <div wire:key="home-team-pulse" class="shrink-0 flex items-center gap-2 h-7 -my-1 rounded-lg pl-2 pr-1">
                             <span class="flex items-center -space-x-2 rtl:space-x-reverse">
                                 @foreach($visiblePulse as $member)
                                     @php($mp = presence($member->presence))
-                                    <span wire:key="home-team-pulse-{{ $member->id }}" class="relative shrink-0" title="{{ $member->casual_name }}">
-                                        <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
-                                             alt="{{ $member->name }}" loading="lazy"
-                                             class="w-6 h-6 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
-                                        <span
-                                            class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-{{ $mp->color() }}-500 border-2 border-[var(--md-sys-color-primary-container)]"></span>
-                                    </span>
+                                    <x-ui.hover-popover wire:key="home-team-pulse-{{ $member->id }}" width="w-48"
+                                                         class="shrink-0 {{ $loop->iteration > 5 ? 'hidden sm:inline-flex' : '' }}">
+                                        <x-slot:trigger>
+                                            <span class="relative block" title="{{ $member->casual_name }}">
+                                                <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
+                                                     alt="{{ $member->name }}" loading="lazy"
+                                                     class="w-6 h-6 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                                <span
+                                                    class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-{{ $mp->color() }}-500 border-2 border-[var(--md-sys-color-primary-container)]"></span>
+                                            </span>
+                                        </x-slot:trigger>
+                                        <x-slot:body>
+                                            <div class="p-3 flex flex-col items-center gap-2 text-center">
+                                                <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
+                                                     alt="{{ $member->name }}"
+                                                     class="w-10 h-10 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                                <div>
+                                                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">{{ $member->casual_name }}</p>
+                                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">می‌خواهید گفتگو را شروع کنید؟</p>
+                                                </div>
+                                                <a href="{{ route('contact', ['open' => $member->id]) }}" wire:navigate
+                                                   class="w-full text-center text-[11px] font-bold py-1.5 rounded-lg bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:opacity-90 transition-opacity">
+                                                    شروع گفتگو
+                                                </a>
+                                            </div>
+                                        </x-slot:body>
+                                    </x-ui.hover-popover>
                                 @endforeach
-                                @if($remainingPulse > 0)
-                                    <span wire:key="home-team-pulse-remainder"
-                                          class="relative shrink-0 w-6 h-6 rounded-md bg-[var(--md-sys-color-on-primary-container)]/15 text-[var(--md-sys-color-on-primary-container)] ring-2 ring-[var(--md-sys-color-primary-container)] flex items-center justify-center">
-                                        <span class="text-[9px] font-bold">+{{ convertToPersian($remainingPulse) }}</span>
-                                    </span>
+                                @if($mobileRemainder > 0)
+                                    <button type="button" wire:key="home-team-pulse-remainder-mobile"
+                                            wire:click="openTeamSearch(5)" aria-label="مشاهده بقیه همکاران آنلاین"
+                                            class="sm:hidden relative shrink-0 w-6 h-6 rounded-md bg-[var(--md-sys-color-on-primary-container)]/15 text-[var(--md-sys-color-on-primary-container)] ring-2 ring-[var(--md-sys-color-primary-container)] flex items-center justify-center hover:bg-[var(--md-sys-color-on-primary-container)]/25 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-on-primary-container)]/40">
+                                        <span class="text-[9px] font-bold">+{{ convertToPersian($mobileRemainder) }}</span>
+                                    </button>
+                                @endif
+                                @if($desktopRemainder > 0)
+                                    <button type="button" wire:key="home-team-pulse-remainder-desktop"
+                                            wire:click="openTeamSearch(15)" aria-label="مشاهده بقیه همکاران آنلاین"
+                                            class="hidden sm:flex relative shrink-0 w-6 h-6 rounded-md bg-[var(--md-sys-color-on-primary-container)]/15 text-[var(--md-sys-color-on-primary-container)] ring-2 ring-[var(--md-sys-color-primary-container)] items-center justify-center hover:bg-[var(--md-sys-color-on-primary-container)]/25 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-on-primary-container)]/40">
+                                        <span class="text-[9px] font-bold">+{{ convertToPersian($desktopRemainder) }}</span>
+                                    </button>
                                 @endif
                             </span>
-                        <span
-                            class="text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]/80 whitespace-nowrap">{{ convertToPersian($teamPulse->count()) }} حاضر</span>
-                    </button>
+                        <button type="button" wire:key="home-team-pulse-status-link"
+                                wire:click='$dispatch("switch-tab", { tab: "status" })'
+                                aria-label="مشاهده وضعیت همکاران" title="مشاهده وضعیت همکاران"
+                                class="text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]/80 whitespace-nowrap hover:underline focus:outline-none">
+                            {{ convertToPersian($teamPulse->count()) }} حاضر
+                        </button>
+                    </div>
                 @endif
+            </div>
+
+            <div wire:key="home-team-search" x-data="{ show: false }" x-on:open-team-search.window="show = true">
+                <x-ui.modals.panel icon="chat" title="گفتگو با همکاران آنلاین"
+                                    subtitle="برای شروع گفتگو، همکار مورد نظر را انتخاب کنید"
+                                    max-width="max-w-md sm:max-w-lg" height="h-[75dvh] sm:h-[560px]">
+                    <x-slot:search>
+                        <x-ui.forms.search name="teamSearch" model="teamSearch" placeholder="جستجوی همکار..."
+                                            debounce="300" icon="search" :clearable="true"/>
+                    </x-slot:search>
+
+                    <div class="px-4 py-2 flex flex-col gap-1">
+                        @forelse($this->remainingTeam->take($teamShowCount) as $member)
+                            @php($mp = presence($member->presence))
+                            <a wire:key="home-team-search-{{ $member->id }}"
+                               href="{{ route('contact', ['open' => $member->id]) }}" wire:navigate
+                               class="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
+                                <span class="relative shrink-0">
+                                    <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
+                                         alt="{{ $member->name }}" loading="lazy"
+                                         class="w-8 h-8 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                    <span
+                                        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-{{ $mp->color() }}-500 border-2 border-[var(--md-sys-color-surface)]"></span>
+                                </span>
+                                <span class="flex-1 min-w-0">
+                                    <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] truncate">{{ $member->casual_name }}</span>
+                                    <span class="block text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ $mp->label() }}</span>
+                                </span>
+                                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">chat</span>
+                            </a>
+                        @empty
+                            <div wire:key="home-team-search-empty" class="contents">
+                                <x-ui.empty icon="group" title="موردی یافت نشد"/>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    @if($this->remainingTeam->count() > $teamShowCount)
+                        <x-slot:footer>
+                            <div wire:key="home-team-search-load-more" class="flex justify-center py-3">
+                                <x-ui.buttons.load-more
+                                    action="loadMoreTeam"
+                                    text="بارگذاری بیشتر"
+                                    loading-text="در حال دریافت..."
+                                    icon="expand_more"
+                                    class="font-medium text-[var(--md-sys-color-primary)]
+                                           bg-[var(--md-sys-color-surface)]
+                                           px-5 py-2.5 rounded-xl
+                                           border border-[var(--md-sys-color-outline-variant)]
+                                           hover:bg-[var(--md-sys-color-primary-container)]
+                                           hover:text-[var(--md-sys-color-on-primary-container)]
+                                           hover:border-[var(--md-sys-color-primary)]
+                                           shadow-sm hover:shadow-md"
+                                />
+                            </div>
+                        </x-slot:footer>
+                    @endif
+                </x-ui.modals.panel>
             </div>
 
             <div
@@ -237,86 +323,54 @@
 
     {{-- ═══════════════════════ PANES ═══════════════════════ --}}
     <x-ui.modals.max-backdrop state="maximizedPane" close="toggleMaximize(null)"/>
-    <template x-teleport="body">
-        <div wire:key="hero-gadget-picker" x-show="pickerFor" x-cloak>
-            <div x-data="{ gadgetSearch: '', gadgetTitles: @js(collect($gadgetCatalog)->pluck('title')->values()) }"
-                 x-on:click.self="pickerFor = null; gadgetSearch = ''"
-                 class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-[var(--md-sys-color-primary)]/60 animate-slide-down"
-                 role="dialog" aria-modal="true" aria-label="افزودن ماژول به صفحه خانه">
+    <div wire:key="hero-gadget-picker" x-data="{ gadgetSearch: '', gadgetTitles: @js(collect($gadgetCatalog)->pluck('title')->values()) }">
+        <x-ui.modals.panel state="pickerFor" close="pickerFor = null; gadgetSearch = ''"
+                            icon="widgets" title="فهرست ماژول‌های فعال"
+                            subtitle="جهت استقرار در میز کار شناور، ماژول را انتخاب فرمایید"
+                            max-width="max-w-2xl" height="h-[85dvh] sm:h-[680px]">
+            <x-slot:search>
+                <div class="relative group w-full">
+                    <span
+                        class="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors pointer-events-none">search</span>
+                    <input type="text" x-model="gadgetSearch" placeholder="جستجوی عنوان ماژول..."
+                           class="md3-input w-full h-10 pr-10 pl-10 rounded-xl text-sm outline-none transition-all focus:ring-2 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/50">
+                    <button x-show="gadgetSearch" type="button" x-on:click="gadgetSearch = ''"
+                            class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
+                        <span class="material-symbols-rounded text-[18px]">close</span>
+                    </button>
+                </div>
+            </x-slot:search>
 
-                <div dir="rtl" x-on:click.stop
-                     class="w-full max-w-2xl h-[85dvh] sm:h-[680px] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-2xl shadow-2xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
+            <div class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                @foreach($gadgetCatalog as $item)
+                    <button type="button"
+                            data-title="{{ $item['title'] }}"
+                            data-icon="{{ $item['icon'] }}"
+                            data-src="{{ $item['src'] }}"
+                            x-show="!gadgetSearch || $el.dataset.title.toLowerCase().includes(gadgetSearch.toLowerCase())"
+                            x-on:click="pick({ title: $el.dataset.title, icon: $el.dataset.icon, src: $el.dataset.src }); gadgetSearch = ''"
+                            class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/25
+                           hover:border-[var(--md-sys-color-primary)]/50 hover:bg-[var(--md-sys-color-primary-container)]/25 hover:-translate-y-0.5
+                           hover:shadow-sm transition-all duration-200 group active:scale-95 text-center">
 
-                    <div
-                        class="px-4 sm:px-6 py-2.5 sm:py-4 bg-gradient-to-l from-[var(--md-sys-color-primary)] to-[color-mix(in_srgb,var(--md-sys-color-primary)_85%,transparent)] text-[var(--md-sys-color-on-primary)] border-b border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] shrink-0 flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                             <span
-                                class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] flex items-center justify-center shadow-md shrink-0">
-                                <span class="material-symbols-rounded text-lg sm:text-xl">widgets</span>
+                                class="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-variant)]/70 text-[var(--md-sys-color-primary)] group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary-container)] transition-all shadow-xs">
+                                <span class="material-symbols-rounded text-2xl"
+                                      aria-hidden="true">{{ $item['icon'] }}</span>
                             </span>
-                            <div class="flex flex-col flex-1 min-w-0">
-                                <h2 class="text-[15px] sm:text-base font-bold leading-tight truncate">فهرست
-                                    ماژول‌های فعال</h2>
-                                <p class="text-[11px] sm:text-xs text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_80%,transparent)] truncate mt-0.5">
-                                    جهت استقرار در میز کار شناور، ماژول را انتخاب فرمایید</p>
-                            </div>
-                        </div>
+                        <span
+                            class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight">{{ $item['title'] }}</span>
+                    </button>
+                @endforeach
 
-                        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                            <div class="relative w-24 sm:w-56 shrink-0 group">
-                                <span
-                                    class="material-symbols-rounded absolute right-2 top-1/2 -translate-y-1/2 text-[13px] text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_70%,transparent)] group-focus-within:text-[var(--md-sys-color-on-primary)] transition-colors pointer-events-none">search</span>
-                                <input type="text" x-model="gadgetSearch" placeholder="جستجو..."
-                                       title="جستجوی عنوان ماژول"
-                                       class="w-full h-8 pr-7 pl-6 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_10%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] text-[11px] text-[var(--md-sys-color-on-primary)] placeholder-[color-mix(in_srgb,var(--md-sys-color-on-primary)_60%,transparent)] outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-on-primary)_55%,transparent)] focus:border-transparent focus:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_16%,transparent)] transition-all duration-200">
-                                <button x-show="gadgetSearch" type="button" x-on:click="gadgetSearch = ''"
-                                        class="absolute left-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_75%,transparent)] hover:text-[var(--md-sys-color-on-primary)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] transition-all">
-                                    <span class="material-symbols-rounded text-[12px]">close</span>
-                                </button>
-                            </div>
-
-                            <button type="button" x-on:click="pickerFor = null; gadgetSearch = ''" title="بستن پنجره"
-                                    aria-label="بستن پنجره"
-                                    class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] active:scale-95 border border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)] transition-all duration-200 focus-visible:outline-none">
-                                <span class="material-symbols-rounded text-[16px]">close</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto custom-scrollbar">
-                        <div class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                            @foreach($gadgetCatalog as $item)
-                                <button type="button"
-                                        data-title="{{ $item['title'] }}"
-                                        data-icon="{{ $item['icon'] }}"
-                                        data-src="{{ $item['src'] }}"
-                                        x-show="!gadgetSearch || $el.dataset.title.toLowerCase().includes(gadgetSearch.toLowerCase())"
-                                        x-on:click="pick({ title: $el.dataset.title, icon: $el.dataset.icon, src: $el.dataset.src }); gadgetSearch = ''"
-                                        class="flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl border border-[var(--md-sys-color-outline-variant)]/25
-                                       hover:border-[var(--md-sys-color-primary)]/50 hover:bg-[var(--md-sys-color-primary-container)]/25 hover:-translate-y-0.5
-                                       hover:shadow-sm transition-all duration-200 group active:scale-95 text-center">
-
-                                        <span
-                                            class="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--md-sys-color-surface-variant)]/70 text-[var(--md-sys-color-primary)] group-hover:scale-110 group-hover:bg-[var(--md-sys-color-primary-container)] transition-all shadow-xs">
-                                            <span class="material-symbols-rounded text-2xl"
-                                                  aria-hidden="true">{{ $item['icon'] }}</span>
-                                        </span>
-                                    <span
-                                        class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)] leading-tight">{{ $item['title'] }}</span>
-                                </button>
-                            @endforeach
-
-                            <div x-cloak
-                                 x-show="gadgetSearch && !gadgetTitles.some(t => t.toLowerCase().includes(gadgetSearch.toLowerCase()))"
-                                 class="col-span-full py-8">
-                                <x-ui.empty icon="search_off" title="ماژولی با این عنوان یافت نشد"/>
-                            </div>
-                        </div>
-                    </div>
+                <div x-cloak
+                     x-show="gadgetSearch && !gadgetTitles.some(t => t.toLowerCase().includes(gadgetSearch.toLowerCase()))"
+                     class="col-span-full py-8">
+                    <x-ui.empty icon="search_off" title="ماژولی با این عنوان یافت نشد"/>
                 </div>
             </div>
-        </div>
-    </template>
+        </x-ui.modals.panel>
+    </div>
 </div>
 
 {{-- ═══════════════════════ QUICK ACCESS (SMART LAUNCHPAD + TEAM PULSE) ═══════════════════════ --}}
@@ -536,8 +590,8 @@
         </x-slot>
     </x-ui.title>
 
-    <div class="relative overflow-hidden rounded-3xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/25 shadow-sm">
-        <div class="absolute top-0 right-0 bottom-0 w-1.5 rounded-r-3xl bg-[var(--md-sys-color-secondary)]"></div>
+    <div class="relative overflow-hidden rounded-2xl bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/25 shadow-sm">
+        <div class="absolute top-0 right-0 bottom-0 w-1.5 rounded-r-2xl bg-[var(--md-sys-color-secondary)]"></div>
 
         <div class="grid lg:grid-cols-[280px_1fr] gap-0">
             <div class="p-6 md:p-8 lg:border-l border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-variant)]/15 flex flex-col justify-between gap-4">

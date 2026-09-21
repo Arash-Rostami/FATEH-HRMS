@@ -51,7 +51,7 @@ MD3 ships `primary/secondary/tertiary/error` role tokens but **not** `success`/`
 ## 4. Crafting the UI: Layouts & Components (`dashboard.css`)
 
 ### 4.1 Achieving True Glassmorphism
-The signature look of User Panel modals and cards relies on a specific `color-mix()` formula. The light-mode example below is the canonical pattern; the dark-mode block is the **one documented exception** to the §7 no-static-rgb rule — dark mode drops translucency for stark contrast and deep space, so a pure-black shadow is intentional here (matches `dashboard.css` lines 678/688).
+The signature look of User Panel modals and cards relies on a specific `color-mix()` formula. The light-mode example below is the canonical pattern; the dark-mode block is the **one documented exception** to the §7 no-static-rgb rule — dark mode drops translucency for stark contrast and deep space, so a pure-black shadow is intentional here (matches `dashboard.css`'s `.dark .modal-inner-card`/`:hover` rules — line numbers not cited, since they drift with unrelated edits elsewhere in the file; grep `.dark .modal-inner-card` instead of trusting a pinned line number).
 
 ```css
 .modal-inner-card {

@@ -109,6 +109,16 @@
                 <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری امروز میز کار، پارکینگ یا اتاق جلسه‌ای را رزرو کرده باشد، این نشان روی کارتش ظاهر می‌شود؛ برای میز کار، شمارهٔ داخلی مستقیماً روی کارت نمایش داده می‌شود و برای پارکینگ/اتاق جلسه فقط نشانگر. نگه‌داشتن نشانگر روی آن جزئیات کامل منبع (طبقه/واحد/داخلی برای میز کار، یا کارت پارکینگ، یا ظرفیت و برنامهٔ اتاق جلسه) را در راهنما نشان می‌دهد.</p>
             </div>
         </div>
+
+        <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[16px]">self_improvement</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">نشان حالت تمرکز</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری حالت تمرکز را در تنظیمات خودش فعال کرده باشد، آیکون نقطهٔ وضعیتِ او (روی کارت و نمودار سازمانی) به‌جای نشانِ معمولِ «مشغول» به این آیکون تغییر می‌کند؛ نگه‌داشتن نشانگر روی آن، ساعتِ پایانِ تمرکز را نشان می‌دهد.</p>
+            </div>
+        </div>
     </div>
 
     <div x-show="tab === 'structure'" x-cloak>

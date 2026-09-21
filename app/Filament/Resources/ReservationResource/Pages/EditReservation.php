@@ -10,7 +10,7 @@ use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditReservation extends EditRecord
 {

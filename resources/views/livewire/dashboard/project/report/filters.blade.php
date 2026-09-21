@@ -30,19 +30,8 @@
     ],
 ])
 <div class="flex flex-wrap items-center gap-2">
-    <div class="relative flex-1 min-w-[200px]">
-        <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-on-surface-variant)] absolute top-1/2 -translate-y-1/2 right-3 pointer-events-none">search</span>
-        <input type="text" wire:model.live.debounce.300ms="reportSearch" placeholder="جستجو در عنوان و توضیحات…"
-               @class([
-                   'w-full h-9 pr-9 pl-9 rounded-xl text-xs bg-[var(--md-sys-color-surface-container-highest)] border outline-none transition-colors text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]/60',
-                   'border-[var(--md-sys-color-primary)]' => $reportSearch !== '',
-                   'border-[var(--md-sys-color-outline-variant)]' => $reportSearch === '',
-               ])/>
-        @if($reportSearch !== '')
-            <button type="button" wire:click="$set('reportSearch', '')" class="absolute top-1/2 -translate-y-1/2 left-2 text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-surface)] transition-colors">
-                <span class="material-symbols-rounded text-[16px]">close</span>
-            </button>
-        @endif
+    <div class="flex-1 min-w-[200px]">
+        <x-ui.forms.search name="reportSearch" model="reportSearch" debounce="300" placeholder="جستجو در عنوان و توضیحات…"/>
     </div>
 
     <button type="button" wire:click="setReportStatusFilter('')" aria-pressed="{{ $reportStatusFilter === '' ? 'true' : 'false' }}"

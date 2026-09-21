@@ -7,7 +7,7 @@ use App\Filament\Resources\OnboardingResource\Pages\Action\EnforcesActiveOnboard
 use App\Filament\Resources\OnboardingResource\Schemas\OnboardingFormPresenter;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateOnboarding extends CreateRecord
 {

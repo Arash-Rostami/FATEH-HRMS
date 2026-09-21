@@ -17,12 +17,8 @@
             <div class="relative w-full max-w-[min(96vw,1600px)]">
                 {{ $slot }}
 
-                <button
-                    @click="{{ $state }} = false"
-                    class="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-black/55 text-white shadow-lg transition hover:scale-105 hover:bg-black/75"
-                >
-                    <span class="material-symbols-rounded">close</span>
-                </button>
+                <x-ui.modals.close-button :close="$state . ' = false'" tone="on-dark" size="lg"
+                    class="absolute right-3 top-3 shadow-lg hover:scale-105"/>
             </div>
         </div>
     </div>

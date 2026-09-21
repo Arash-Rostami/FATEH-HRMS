@@ -2,18 +2,25 @@
 
 namespace App\Filament\Resources\GalleryResource\Schemas;
 
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class GalleryInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function createdAt(): TextEntry
     {
         return TextEntry::make('created_at')
             ->label(__('resources/gallery/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -52,6 +59,9 @@ class GalleryInfolistPresenter
         return TextEntry::make('event_date')
             ->label(__('resources/gallery/strings.fields.event_date'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->placeholder('—')
             ->icon('heroicon-o-calendar');
     }
@@ -120,6 +130,9 @@ class GalleryInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/gallery/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }

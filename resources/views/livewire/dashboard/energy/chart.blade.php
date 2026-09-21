@@ -4,7 +4,7 @@
          @keydown.escape.window="if(maximizedWidget) toggleMaximize(null)">
     @if(empty($latestTest))
         <div
-            class="flex flex-col items-center justify-center min-h-[400px] rounded-3xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-8 text-center shadow-sm"
+            class="flex flex-col items-center justify-center min-h-[400px] rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-8 text-center shadow-sm"
             role="status" aria-label="داده‌ای موجود نیست">
             <span class="material-symbols-rounded text-6xl text-[var(--md-sys-color-on-surface-variant)] mb-4"
                   aria-hidden="true">query_stats</span>
@@ -20,9 +20,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-start flex-1 min-h-[300px] w-full">
             <div class="order-2 lg:order-1 h-full w-full">
 
-                <div :class="{ 'max-widget': maximizedWidget === 'history' }" class="w-full h-full rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
+                <div :class="{ 'max-widget': maximizedWidget === 'history' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
                     <header
-                        class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-3xl">
+                        class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-2xl">
                         <div
                             class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-secondary-container)]/60 text-[var(--md-sys-color-on-secondary-container)]">
                             <span class="material-symbols-rounded text-base" aria-hidden="true">trending_up</span>
@@ -48,7 +48,7 @@
 
             <div class="order-1 lg:order-2 h-full w-full">
 
-                <div :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
+                <div :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
                     <button @click="toggleMaximize('score')"
                             :title="maximizedWidget === 'score' ? 'کوچک کردن' : 'بزرگ کردن'"
                             :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'score' }"
@@ -57,7 +57,7 @@
                     </button>
 
                     <div
-                        class="absolute inset-0 bg-gradient-to-b from-[var(--md-sys-color-primary-container)]/10 to-transparent pointer-events-none rounded-3xl"></div>
+                        class="absolute inset-0 bg-gradient-to-b from-[var(--md-sys-color-primary-container)]/10 to-transparent pointer-events-none rounded-2xl"></div>
 
                     <div
                         class="z-10 flex flex-col items-center justify-center space-y-4 flex-1 w-full max-w-xl mt-4 lg:mt-0">
@@ -108,9 +108,9 @@
 
                 @if($isManager && count($teamMembersData))
                     <div class="w-full flex flex-col flex-1">
-                        <div :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
+                        <div :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
                             <header
-                                class="px-5 py-3 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between bg-[var(--md-sys-color-primary)]/60 top-0 z-10 rounded-t-3xl">
+                                class="px-5 py-3 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between bg-[var(--md-sys-color-primary)]/60 top-0 z-10 rounded-t-2xl">
                                 <div class="flex items-center gap-2">
                                     <div
                                         class="flex size-7 items-center justify-center rounded-xl bg-[var(--md-sys-color-primary-container)]/60 text-[var(--md-sys-color-on-primary-container)]">
@@ -159,8 +159,8 @@
             </div>
 
             <div class="order-3 h-full w-full">
-                <div :class="{ 'max-widget': maximizedWidget === 'radar' }" class="w-full h-full rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
-                    <header class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-3xl">
+                <div :class="{ 'max-widget': maximizedWidget === 'radar' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
+                    <header class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-2xl">
                         <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-tertiary-container)]/60 text-[var(--md-sys-color-on-tertiary-container)]">
                             <span class="material-symbols-rounded text-base" aria-hidden="true">radar</span>
                         </div>
@@ -183,7 +183,7 @@
         </div>
 
         @if(count($personalHistory))
-            <div class="rounded-3xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
+            <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
                  x-data="{ open: false }">
                 <button type="button" @click="open = !open"
                         class="w-full px-5 py-4 flex items-center gap-3 text-right">

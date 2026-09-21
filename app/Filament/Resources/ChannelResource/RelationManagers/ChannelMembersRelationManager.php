@@ -5,7 +5,7 @@ namespace App\Filament\Resources\ChannelResource\RelationManagers;
 use App\Models\ChannelMessage;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;

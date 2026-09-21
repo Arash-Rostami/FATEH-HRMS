@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ChannelResource\RelationManagers;
 
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;

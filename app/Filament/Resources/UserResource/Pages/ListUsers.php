@@ -6,7 +6,7 @@ use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\User;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

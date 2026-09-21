@@ -74,18 +74,7 @@
 
             <div class="flex items-center justify-between px-1">
                 <label class="flex items-center gap-2.5 cursor-pointer group select-none py-1">
-                    <input x-model="remember" type="checkbox" class="sr-only">
-                    <div
-                        class="relative w-[44px] h-[26px] rounded-full transition-colors duration-200 ease-in-out shadow-inner"
-                        :class="remember ? 'bg-[var(--md-sys-color-primary)]' : 'bg-[var(--md-sys-color-surface-container-highest)]'">
-                        <div
-                            class="absolute top-1/2 -translate-y-1/2 ltr:left-1 rtl:right-1 w-[18px] h-[18px] rounded-full bg-white shadow-md transform transition-all duration-200 ease-in-out flex items-center justify-center"
-                            :class="remember ? 'ltr:translate-x-[18px] rtl:-translate-x-[18px]' : 'translate-x-0'">
-                             <span
-                                 class="material-symbols-rounded text-[12px] text-[var(--md-sys-color-primary)] transition-opacity duration-150"
-                                 :class="remember ? 'opacity-100' : 'opacity-0'">check</span>
-                        </div>
-                    </div>
+                    <x-ui.forms.switch x-model="remember"/>
                     <span
                         class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-on-surface)] transition-colors">
                         مرا به خاطر بسپار

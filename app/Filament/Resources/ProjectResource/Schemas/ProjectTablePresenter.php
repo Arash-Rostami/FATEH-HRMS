@@ -71,6 +71,17 @@ class ProjectTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
+    public static function overdueCount(): TextColumn
+    {
+        return TextColumn::make('overdue_tasks_count')
+            ->label(__('resources/project/strings.fields.overdue_count'))
+            ->badge()
+            ->color(fn($state) => (int) $state > 0 ? 'danger' : 'gray')
+            ->formatStateUsing(fn($state) => (int) $state > 0 ? convertToPersian((string) $state) : '—')
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: false);
+    }
+
     public static function createdAt(): TextColumn
     {
         return TextColumn::make('created_at')

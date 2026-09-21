@@ -25,6 +25,17 @@ if (!function_exists('convertToPersian')) {
     }
 }
 
+if (!function_exists('appUpdateIsRecent')) {
+    function appUpdateIsRecent(int $days = 7): bool
+    {
+        try {
+            return Carbon::parse(config('app.last_update'))->diffInDays(now()) <= $days;
+        } catch (\Exception) {
+            return false;
+        }
+    }
+}
+
 if (!function_exists('stripHtml')) {
     function stripHtml(?string $text): string
     {

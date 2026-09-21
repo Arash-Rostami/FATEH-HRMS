@@ -55,7 +55,7 @@ class GalleryFormPresenter
             ->label(__('resources/gallery/strings.fields.description'))
             ->rows(2)
             ->maxLength(2000)
-            ->columnSpan(2)
+            ->columnSpanFull()
             ->helperText(__('resources/gallery/strings.hints.description'));
     }
 
@@ -67,7 +67,7 @@ class GalleryFormPresenter
             required: false,
             yearFrom: 1380,
             fullWidth: false,
-        )->columnSpan(2);
+        );
     }
 
     public static function path(): FileUpload
@@ -98,7 +98,7 @@ class GalleryFormPresenter
             ->downloadable()
             ->openable()
             ->required()
-            ->columnSpan(3)
+            ->columnSpanFull()
             ->helperText(__('resources/gallery/strings.hints.path'));
     }
 
@@ -107,7 +107,6 @@ class GalleryFormPresenter
         return TextInput::make('title')
             ->label(__('resources/gallery/strings.fields.title'))
             ->required()
-            ->columnSpan(2)
             ->maxLength(255)
             ->helperText(__('resources/gallery/strings.hints.title'));
     }

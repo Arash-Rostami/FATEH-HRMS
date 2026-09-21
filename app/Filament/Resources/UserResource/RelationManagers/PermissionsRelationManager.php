@@ -9,7 +9,7 @@ use App\Models\Permission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentFilters;
 use Filament\Actions\CreateAction;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;

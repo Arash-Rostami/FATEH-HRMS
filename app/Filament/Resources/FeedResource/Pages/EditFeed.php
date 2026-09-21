@@ -7,7 +7,7 @@ use App\Filament\Resources\FeedResource\Schemas\FeedFormPresenter;
 use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Pages\EditRecord;
 
 class EditFeed extends EditRecord
 {

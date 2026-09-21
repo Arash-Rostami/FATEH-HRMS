@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\EnergyResource\Schemas\EnergyTestInfolistPresenter;
 use App\Filament\Resources\EnergyResource\Schemas\EnergyTestTablePresenter;
 use App\Traits\FilamentActions;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;

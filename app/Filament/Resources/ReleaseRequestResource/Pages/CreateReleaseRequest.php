@@ -4,7 +4,7 @@ namespace App\Filament\Resources\ReleaseRequestResource\Pages;
 
 use App\Filament\Resources\ReleaseRequestResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 
 class CreateReleaseRequest extends CreateRecord

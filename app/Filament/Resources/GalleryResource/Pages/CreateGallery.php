@@ -4,7 +4,7 @@ namespace App\Filament\Resources\GalleryResource\Pages;
 
 use App\Filament\Resources\GalleryResource;
 use App\Traits\FilamentPageBehavior;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Pages\CreateRecord;
 
 class CreateGallery extends CreateRecord
 {

@@ -62,7 +62,7 @@ class Main extends Component
     #[On('open-reminders')]
     public function openFromShortcut(): void
     {
-        if ($this->remindableType !== null) {
+        if ($this->remindableType !== null || $this->variant === 'embedded') {
             return;
         }
 

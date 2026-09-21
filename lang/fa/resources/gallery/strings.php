@@ -25,7 +25,8 @@ return [
     ],
 
     'form' => [
-        'section_info' => 'اطلاعات گالری',
+        'section_info'   => 'اطلاعات گالری',
+        'section_access' => 'دسترسی و اشتراک',
         'section_photos' => 'محتوای گالری',
     ],
 

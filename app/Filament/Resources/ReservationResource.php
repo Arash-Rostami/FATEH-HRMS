@@ -155,10 +155,13 @@ class ReservationResource extends Resource
                         ->icon('heroicon-o-calendar')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     ReservationInfolistPresenter::user(),
                                     ReservationInfolistPresenter::resource(),
+
+                                    ReservationInfolistPresenter::divider(),
                                     ReservationInfolistPresenter::status(),
                                     ReservationInfolistPresenter::isFullDay(),
                                     ReservationInfolistPresenter::parentId(),
@@ -171,19 +174,25 @@ class ReservationResource extends Resource
                         ->icon('heroicon-o-clock')
                         ->schema([
                             Section::make()
+                                ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->hiddenLabel()
                                 ->schema([
                                     ReservationInfolistPresenter::startTime(),
                                     ReservationInfolistPresenter::endTime(),
+
+                                    ReservationInfolistPresenter::divider(),
                                     ReservationInfolistPresenter::cancelledBy(),
                                     ReservationInfolistPresenter::cancelledAt(),
                                     ReservationInfolistPresenter::cancelReason(),
+
+                                    ReservationInfolistPresenter::divider(),
                                     ReservationInfolistPresenter::createdAt(),
                                 ])
                                 ->columns(2),
                         ]),
                 ])
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->extraAttributes(['class' => 'fi-infolist-panel']),
         ]);
     }
 

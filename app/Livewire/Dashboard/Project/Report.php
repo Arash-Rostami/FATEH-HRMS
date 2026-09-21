@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Project;
 use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
+use App\Models\Workflow;
 use App\Services\ProjectTask\ReportingService;
 use App\Traits\HasReportSummary;
 use Illuminate\View\View;
@@ -78,6 +79,16 @@ class Report extends Component
             || $this->reportPriorityFilter !== null
             || $this->reportDepartmentFilter !== null
             || $this->reportSchemeFilter !== null;
+    }
+
+    #[Computed]
+    public function activeWorkflowCount(): int
+    {
+        if (!$this->activeProjectId) {
+            return 0;
+        }
+
+        return Workflow::forProject($this->activeProjectId)->where('status', Workflow::STATUS_ACTIVE)->count();
     }
 
     #[Computed]

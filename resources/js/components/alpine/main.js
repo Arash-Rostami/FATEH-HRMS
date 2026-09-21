@@ -6,6 +6,8 @@ import registerPushStore from './stores/push.js'
 import registerChromeStore from './stores/chrome.js'
 import registerDensityStore from './stores/density.js'
 import registerColVisibilityStore from './stores/colVisibility.js'
+import registerFocusStore from './stores/focus.js'
+import registerAccessibilityStore from './stores/accessibility.js'
 import registerPinStore from './stores/pinned.js'
 import registerTaggedStore from './stores/tagged.js'
 import registerActivityReactionPickerStore from './stores/activityReactionPicker.js'
@@ -56,6 +58,8 @@ export default function initAlpine() {
         registerChromeStore(Alpine)
         registerDensityStore(Alpine)
         registerColVisibilityStore(Alpine)
+        registerFocusStore(Alpine)
+        registerAccessibilityStore(Alpine)
         registerPinStore(Alpine)
         registerTaggedStore(Alpine)
         registerActivityReactionPickerStore(Alpine)

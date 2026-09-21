@@ -13,13 +13,9 @@
         <span class="material-symbols-rounded text-base">arrow_forward</span>
     </button>
 
-    <div class="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]"
-         style="background: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);">
-        @if($project->owner?->getProfileImageUrl())
-            <x-ui.avatar :existingImage="$project->owner->getProfileImageUrl()" :alt="$project->owner->name" class="w-full h-full object-cover"/>
-        @else
-            <span class="material-symbols-rounded text-2xl text-[var(--md-sys-color-primary)] font-fill">workspaces</span>
-        @endif
+    @php($badge = $this->presenter->badgeColors($project->id))
+    <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm ring-1 text-xl font-bold select-none {{ $badge['bg'] }} {{ $badge['text'] }} {{ $badge['ring'] }}">
+        {{ mb_substr($project->name, 0, 1) }}
     </div>
 
     <div class="min-w-0 flex-1">
@@ -45,7 +41,7 @@
                      class="absolute top-full mt-1.5 right-0 z-40 w-64 max-h-72 overflow-y-auto custom-scrollbar p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]">
                     @foreach($this->projectMembers as $member)
                         <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
-                            <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
+                            <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
                                 <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
                             </div>
                             <div class="min-w-0 flex-1">

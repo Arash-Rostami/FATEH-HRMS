@@ -43,9 +43,12 @@ class ContactTablePresenter
     {
         return TextColumn::make('body')
             ->label(__('resources/contact/strings.fields.body'))
+            ->formatStateUsing(fn($state) => trim(strip_tags(preg_replace('/(<br\s*\/?>|<\/p>)/i', ' ', $state ?? ''))) ?: '—')
             ->limit(80)
-            ->html()
-            ->tooltip(fn($state) => strlen($state ?? '') > 80 ? $state : null)
+            ->tooltip(function ($state) {
+                $text = trim(strip_tags(preg_replace('/(<br\s*\/?>|<\/p>)/i', ' ', $state ?? '')));
+                return mb_strlen($text) > 80 ? $text : null;
+            })
             ->extraAttributes(['dir' => 'auto', 'style' => 'unicode-bidi: isolate;'])
             ->searchable()
             ->toggleable(isToggledHiddenByDefault: false);

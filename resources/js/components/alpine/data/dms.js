@@ -61,7 +61,7 @@ export default function dms() {
                     url: documentUrl,
                     docId: docId,
                     isPdf: true,
-                    method: 'confirmRead',
+                    method: 'incrementRead',
                     type: 'livewire'
                 });
             } else {

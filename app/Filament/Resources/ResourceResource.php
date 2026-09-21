@@ -161,6 +161,7 @@ class ResourceResource extends Resource
     {
         return $schema->components([
             Section::make()
+                ->extraAttributes(['class' => 'fi-infolist-panel'])
                 ->hiddenLabel()
                 ->schema([
                     ResourceInfolistPresenter::name(),
@@ -168,6 +169,7 @@ class ResourceResource extends Resource
                     ResourceInfolistPresenter::status(),
                     ResourceInfolistPresenter::reservationsCount(),
 
+                    ResourceInfolistPresenter::divider(),
                     ResourceInfolistPresenter::floor(),
                     ResourceInfolistPresenter::unit(),
                     ResourceInfolistPresenter::cardNumber(),
@@ -177,6 +179,7 @@ class ResourceResource extends Resource
                     ResourceInfolistPresenter::timeSlots(),
                     ResourceInfolistPresenter::notes(),
 
+                    ResourceInfolistPresenter::divider(),
                     ResourceInfolistPresenter::createdAt(),
                     ResourceInfolistPresenter::updatedAt(),
                 ])

@@ -3,13 +3,18 @@
 namespace App\Filament\Resources\FeedResource\Schemas;
 
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
+use App\Traits\FilamentFormDivider;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\IconPosition;
 
 class FeedInfolistPresenter
 {
+    use FilamentFormDivider;
+
+
     public static function category(): TextEntry
     {
         return TextEntry::make('category')
@@ -43,6 +48,9 @@ class FeedInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/feed/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->columnSpan(2)
             ->icon('heroicon-o-clock');
@@ -158,6 +166,9 @@ class FeedInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/feed/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->columnSpan(2)
             ->icon('heroicon-o-arrow-path');

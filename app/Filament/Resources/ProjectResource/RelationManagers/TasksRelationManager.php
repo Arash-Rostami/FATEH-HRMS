@@ -9,7 +9,7 @@ use App\Models\Task;
 use App\Services\ProjectTask\ReportingService;
 use App\Traits\FilamentActions;
 use Filament\Actions\CreateAction;
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -112,6 +112,7 @@ class TasksRelationManager extends RelationManager
                 TaskTablePresenter::assignee(),
                 TaskTablePresenter::deadline(),
                 TaskTablePresenter::labels(),
+                TaskTablePresenter::archivedAt(),
                 TextColumn::make('progress')
                     ->label(__('resources/task/strings.fields.progress'))
                     ->html()
@@ -137,6 +138,7 @@ class TasksRelationManager extends RelationManager
                 TaskTablePresenter::statusFilter(),
                 TaskTablePresenter::priorityFilter(),
                 TaskTablePresenter::overdueFilter(),
+                TaskTablePresenter::archivedFilter(),
             ])
             ->filtersFormColumns(2)
             ->headerActions([

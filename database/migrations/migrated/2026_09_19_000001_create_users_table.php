@@ -19,6 +19,7 @@ return new class extends Migration {
                 $table->string('role')->default('user');
                 $table->string('status')->default('active');
                 $table->string('presence')->default('remote');
+                $table->timestamp('focus_until')->nullable();
                 $table->json('booking')->nullable();
                 $table->timestamp('last_seen')->nullable();
                 $table->json('extra')->nullable();

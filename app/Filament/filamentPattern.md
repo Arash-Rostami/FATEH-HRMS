@@ -163,10 +163,28 @@ class DepartmentResource extends Resource
                     DepartmentFormPresenter::code(),
                     DepartmentFormPresenter::name(),
                     DepartmentFormPresenter::description(),
+                    DepartmentFormPresenter::divider(),
+                    DepartmentFormPresenter::units(),
+                    DepartmentFormPresenter::sections(),
                 ])
-                ->columnSpanFull()
-                ->columns(2),
-        ]);
+                ->columns(2)
+                ->columnSpan(2),
+
+            Section::make(__('resources/department/strings.form.section_structure'))
+                ->icon('heroicon-o-squares-2x2')
+                ->schema([
+                    DepartmentFormPresenter::level(),
+                    DepartmentFormPresenter::subordinateTo(),
+                ])
+                ->columns(1),
+
+            Section::make(__('resources/department/strings.form.section_tickets'))
+                ->icon('heroicon-o-ticket')
+                ->schema([
+                    DepartmentFormPresenter::ticketOptions(),
+                ])
+                ->columnSpanFull(),
+        ])->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -197,9 +215,9 @@ class DepartmentResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
+        // Section stays unlabeled — see "Infolist layout — Section/Tabs discipline" below (§2.3)
         return $schema->components([
-            Section::make(__('resources/department/strings.infolist.section_main'))
-                ->icon('heroicon-o-building-office-2')
+            Section::make()
                 ->schema([
                     DepartmentInfolistPresenter::code(),
                     DepartmentInfolistPresenter::name(),
@@ -228,6 +246,8 @@ class DepartmentResource extends Resource
     }
 }
 ```
+
+**Form layout — multi-card discipline (added 2026-09-21).** Never ship a single full-width Section carrying all of a resource's fields. Split by domain into two or more cards and play the widths on a shared root grid: a fat content card at `->columnSpan(2)` beside a slim `->columnSpan(1)` settings rail on a `->columns(3)` root (Post and now `DepartmentResource::form()` are the references), or a 50/50 `Grid::make(2)` for two equal-weight domains (`SuggestionResource::form()`). Wide components that need horizontal room (multi-column `Repeater`s, full rich text) go in their own `columnSpanFull()` card below the pair — never squeezed into the rail. Fields that cross-talk via `Get`/`Set` (`level` + `subordinate_to`) belong in the SAME card so their interaction is visible.
 
 When the resource has many fields, use tabs in form and infolist to group logically connected data:
 
@@ -624,6 +644,21 @@ class UserInfolistPresenter
 ```
 Note my persian date helper ideal for table and infolist.
 Make maximum practical use of all infolist options. Apply color, icons, and badges purposefully for clarity and hierarchy.
+
+**Infolist layout — Section/Tabs discipline (added 2026-09-21, baseline reviewed from sibling project BMS-CM).** Every infolist wraps its entries in exactly **one unlabeled `Section::make()`** (no heading argument) per screen or per tab — never stack multiple headed sub-sections back to back; that reads as a wall of separately-boxed cards with repeated padding, not one polished view. `Tabs` exist only to separate genuinely distinct data domains (e.g. core profile fields vs. free-form admin metadata) — never as a substitute for what should be one flat Section. Each tab body is still just one bare Section with a `->columns(2|3)` grid, matched to field density. `ProjectResource::infolist()` is the reference (one Section, `columns(3)`, no tabs needed); `UserResource::infolist()` was the anti-pattern this fixed — 5 stacked headed Sections (`section_identity`/`section_access`/`section_booking`/`section_extra`/`section_meta`) across 2 tabs, collapsed down to one bare Section per tab. The same anti-pattern still exists, not yet fixed, in `DepartmentResource\RelationManagers\UsersRelationManager` and `ProfileResource\RelationManagers\UserRelationManager` (both embed the same over-segmented User infolist shape).
+
+Field-level checklist, applied to every infolist entry for a uniform, polished look:
+- Icon on every entry (`heroicon-o-*`), except a record's primary title field styled as a bold badge. **`KeyValueEntry` has NO `->icon()`** (unlike `TextEntry`/`IconEntry`) — calling it throws `BadMethodCallException` at render (`DmsInfolistPresenter::extra()` hit this during the 2026-09-21 rollout). Skip the icon on `KeyValueEntry` fields entirely.
+- `placeholder('-')` (or `'—'`) wherever the value can be empty.
+- `copyable()` on identifiers (id, name, email, slug, code).
+- `badge()->color(...)` for every enum/status field, color sourced from the enum itself where one exists.
+- Timestamp/date fields whose formatted value is `/`-separated Jalali digits (`toJalali()`) get `->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])->alignRight()->iconPosition(IconPosition::After)` so the icon and date separators sit correctly against the RTL flow instead of reordering — reference: `ProjectInfolistPresenter::createdAt()`, `UserInfolistPresenter::createdAt()`, `DmsInfolistPresenter::createdAt()`. Relative-time strings (`toJalaliRelative()`, already natural Persian prose) don't need this treatment. Never apply `dir: ltr` to prose/free-text — that's the separate pre-wrap rule below.
+- Long free text / repeatables get `columnSpanFull()`; short scalar fields stay in the grid.
+- Between logical field clusters inside the same flat Section, insert a hairline separator with `static::divider()` (the `App\Traits\FilamentFormDivider` trait — its name predates infolist usage, but it's a generic gradient-fade `TextEntry` divider that works identically in either context; add `use FilamentFormDivider;` to the Infolist presenter). Never re-introduce a headed sub-`Section` to achieve the same grouping effect. Reference: `UserInfolistPresenter`/`ProjectInfolistPresenter`.
+
+Every infolist's outer `Section::make()`, and every `Tabs::make()` if used, MUST carry `->extraAttributes(['class' => 'fi-infolist-panel'])` — the same marker class on both. The panel's actual background/shadow color itself is CSS-owned (`resources/css/adminStylesPattern.md` §4.4, targeting `.fi-infolist-panel .fi-section` and `.fi-sc-tabs.fi-infolist-panel.fi-contained`), and that marker class is what scopes the CSS to infolists — mandatory on every resource, not optional. Do NOT reach for `Tabs::make()->contained(false)` to strip its default card — it also reroutes the tab-BUTTON row through an unrelated vendor CSS branch that re-centers it (`mx-auto`), breaking RTL tab alignment as an unrelated side effect (see `adminStylesPattern.md` §4.4 for the incident). Never hand-roll a different `->extraAttributes(['style' => 'background: ...'])` per resource — the shared class is the single source so every infolist stays visually identical.
+
+**Explicitly wrong — flag on sight (added 2026-09-21):** any "card"-like nested container inside an infolist body — a `Section`/`Fieldset`/styled `Grid` with its own border, background, or shadow wrapping a sub-group of fields — is the same anti-pattern as a headed sub-Section, just re-skinned. This is especially bad when two or more such cards sit **side by side with their own titles**, which reads as a mini-dashboard bolted onto a record view rather than one coherent detail page. The divider is the only sanctioned separator between clusters; nothing else gets its own box.
 
 **RichEditor-stored fields in infolist/table MUST use `->html()` (or `->prose()`, which implies html).** A `RichEditor` column stores HTML (`<p><strong>…</strong></p>`); a bare `TextEntry::make('field')` renders that as literal `<p>`/`<strong>` text (raw tags visible). `->html()` renders it as real elements (bold, paragraphs) — the intended "view" behavior. This is safe-by-construction, NOT a stored-XSS vector: Filament's `CanFormatState::formatState()` runs `Str::sanitizeHtml()` on every `->html()` value before wrapping it in `HtmlString`, and `Str::sanitizeHtml` is Symfony's `HtmlSanitizer` with `->allowSafeElements()` (allowlist — `<script>`, `on*` event handlers, `<iframe>`, etc. are stripped). So `->html()` is sanitized output, not raw. Uniform across every RichEditor field: `Post` body/title, `FAQ` answer/question, `Feed` content, `Report` description, `Onboarding` value, `Suggestion` description (`->prose()`), `Authority` `details.duty` (read via `getStateUsing(fn $r => $r->details['duty'])` + `->html()`). The trap: a `getStateUsing()` that pulls RichEditor HTML from a JSON sub-field (`details.duty`) is easy to leave without `->html()` since the field name doesn't match a top-level column — always pair it with `->html()`.
 
@@ -1166,6 +1201,10 @@ class ListUsers extends ListRecords
 ```
 
 Available page types: `Manage`, `Create`, `Edit`, `List`, `View`.
+
+**Base-page imports (since 2026-09-21):** resource pages import `CreateRecord`/`EditRecord`/`ListRecords`/`ViewRecord` from **`App\Filament\Pages\`** — never from `Filament\Resources\Pages\`. Those four base pages wrap every save (`handleRecordCreation`/`handleRecordUpdate`) and action (`callMountedAction`) with the exception traits in `app/Filament/Traits/`: a crash surfaces a precise Persian notification (title + body + `ERR-…` reference from `App\Services\ExceptionPresenter`) instead of a generic error — and the record save rolls back (`Halt->rollBackDatabaseTransaction()`). ValidationException/Halt/Cancel are always re-thrown, never presented.
+
+**Relation managers (same rule):** every RelationManager class imports `RelationManager` from **`App\Filament\RelationManagers\`**, not `Filament\Resources\RelationManagers\`. This is NOT redundant with the page bases: vendor `RelationManager` is its own Livewire component carrying its own `InteractsWithActions` — its table/header/modal actions (including the create/edit modal writes) run on the RelationManager component, never on the hosting record page, so only the base-class trait covers them.
 
 Example page registration:
 
@@ -1890,6 +1929,8 @@ The setter discriminates by intent: a write that carries an **array** `preferenc
 
 Because the form's `KeyValue` only edits the `admin` bucket, `EditUser::mutateFormDataBeforeFill` extracts `$data['extra']['admin']` (and self-heals legacy rows that pre-date the split by gathering their loose top-level scalar keys into the KeyValue state, so they survive the next save rather than being dropped). `UserInfolistPresenter::extra()` displays `$record->extra['admin']` only — never the nested `preferences`.
 
+`users.focus_until` (nullable timestamp, user-panel Focus Mode — see `app/Livewire/Dashboard/Profile/profilePattern.md`) is a real, separate column, deliberately never routed through `extra` — any value written there outside the `preferences`/`admin` buckets above would be silently dropped or folded into `admin` and wiped by the next KeyValue save. `UserTablePresenter`/`UserInfolistPresenter`'s `presence()` render a read-only clock badge when it's set and in the future; there is no form field for it — it can only be set/cleared from the user panel.
+
 ### Other panel config
 
 ```php
@@ -2183,13 +2224,14 @@ Every admin resource has ONE feature-test file `tests/Feature/Filament/<Module>R
 - **RichEditor (Tiptap) quirk:** `->required()` does NOT register the `required` rule key in Livewire's validator (closure-based `getRequiredValidationRule` calls `$fail('validation.required')->translate()`), so `assertHasFormErrors(['field'=>'required'])` cannot match — use key-only `assertHasFormErrors(['field'])` or the message-string form `['field'=>'validation.required']`. The empty-Tiptap-doc value `{type:doc,content:[{type:paragraph,content:[]}]}` is what trips required (plain `''`/`null` does NOT). RichEditor stores HTML — DB assertions use `assertStringContainsString`, not exact match.
 - **Locale:** `.env.testing` forces `APP_LOCALE=en` but most `lang/en/...` option-translation files don't exist (only `lang/fa`). Any field whose options come from `__('resources/.../strings.*')` throws a `ViewException` ("Return value must be of type array, string returned") on mount under `en`. Add `$this->app->setLocale('fa')` in `setUp` (or per-test) when the FormPresenter/TablePresenter uses `__()` for option arrays — reach for it the moment you see that ViewException on mount.
 - **Pagination flake on `assertCanSeeTableRecords`:** the dev DB has many seeded rows and tables with `defaultSort` paginate at 10/page — a factory row with a mid-alphabet name can sort beyond page 1. Give factory rows `0`-prefix names/titles so they land on page 1 (test-data choice, not a production change).
-- **Read-only / List+Edit-only resources:** some resources hard-code `canCreate()=false` and register only an `EditAction` (no delete, no filters) — e.g. `ReservationPolicyResource`. Do NOT invent create/delete/filter tests; cover List + Edit mount + Edit save + 1-2 edit-form validation tests. A resource with only `index`+`view` pages (e.g. `EnergyTestResource`) gets List + View + filter tests only.
+- **Read-only / List+Edit-only resources:** some resources hard-code `canCreate()=false` and register only `EditAction` + `ViewAction` (no delete, no filters, no dedicated `view` page — `ReservationPolicyResource`, added 2026-09-21: its `infolist()` reads the EAV key/value rows through `ValidationService::getPolicies()`, cached, so `Section` entries call `getStateUsing()` against that array rather than direct model attributes). Do NOT invent create/delete/filter tests; cover List + Edit mount + Edit save + 1-2 edit-form validation tests + a View-action-mounts-without-error smoke test (`mountTableAction('view', $groupedRow)` against the `groupedByResourceType()` row, not a raw `ReservationPolicy::find()`, since the table's records come from that grouped scope). A resource with only `index`+`view` pages (e.g. `EnergyTestResource`) gets List + View + filter tests only.
 - **Embedded user-panel widgets on an admin Edit page can 403 the admin** (Rule 56, RESOLVED 2026-08-30): `ThsResource::form()` embeds `Ths\Workspace`, whose `mount()` enforces `TicketAccessPolicy::canView()` — which historically had no admin bypass (only requester/assignee/head-of-target-dept), so a non-involved admin/developer got a 403 mounting admin `EditTicket`. FIX: elevated-role bypass (`$user->hasElevatedRole()`) now leads `canView`/`canAssign`/`canSetEffectiveness` in `TicketAccessPolicy` (canReply/canClose inherit) — accepted side effect: elevated users see all tickets in the user panel too. The old test workaround (factory-creating the ticket with `requester_id => $admin->id`) is OBSOLETE and was removed from `ThsResourceTest` — create a proper `role => user` requester and let the linked-task owner assertion target the real requester (`AssignTicketAction::syncLinkedTask` deliberately sets `Task.user_id = ticket.requester_id`).
 - **`fillForm` must nest fields that live under a `Section::relationship('detail')`:** `->relationship($name)` calls `$this->statePath($name)` (`EntanglesStateWithSingularRelationship.php`), so a child `Repeater::make('checklist')` has state path `detail.checklist`, NOT `checklist`. A test `fillForm(['checklist' => […]])` writes the wrong path and the field saves its default `[]`. Use `fillForm(['detail' => ['checklist' => […]]])`. Symptom: the relationship save round-trips `[]` despite `assertHasNoFormErrors`.
 - **`TagsInput` has NO `maxItems()` in this Filament v5 install** — `maxItems` is on `CanLimitItemsLength` (`Repeater`/Builder/`Block` only). Calling `TagsInput::make('labels')->maxItems(10)` throws `BadMethodCallException` on render and breaks the whole form. To cap a `TagsInput`'s tag count, validate server-side: `->rules(['array', 'max:10', …])` (Laravel `max:N` on an array = element count). Per-tag constraints go in an invokable `App\Rules\*` (see `TaskLabelLength`). Symptom: every test mounting the form fails with `ViewException: Method …TagsInput::maxItems does not exist`. **Sibling gotcha — `TextInput` has NO `min()`/`max()` in this install** (same Macroable family); numeric bounds are `->numeric()->minValue(0)->maxValue(100)`, never `->min(0)->max(100)`, which throws `Method …TextInput::min does not exist` on render. Reference: `TaskFormPresenter::checklist()` weight field.
 - **A JSON-column `Repeater` (e.g. `checklist`) round-trips with non-insertion-order sub-keys** (the `array` cast re-serializes, producing alphabetical key order). Don't `assertSame` the whole item array — key-order mismatch fails it. Assert each sub-key by its sequence index (`assertSame('step one', $c[0]['text']); assertSame(true, $c[0]['done']); …`) to keep strict `===` + item ORDER without coupling to the cast's intra-item key order. Do NOT reach for `assertEqualsCanonicalizing` — it drops strict type AND item order, masking a real scrambling/coercion regression in an ordered list.
 - **Mounted modal `Action::form(fn ($record) => ...)` receives `$record = null` — never read record properties there.** The form-closure on a record `Action` runs before the record is bound (`Attempt to read property "id" on null`). To shape fields per-record, either inline data eagerly in the array construction (`return [...fields built from $record?->...)`) or use per-field lazy closures (`fn (?Model $record) => ...`, `Get $get`, etc.) that resolve at modal state time. Reference: `UserTablePresenter::shareTasksheet()` (radio + conditional Select, `->modalWidth(Width::Small)`).
 - **The reliable test route for state on a mounted table action is `mountTableAction` → `->set('mountedActions.0.data.FIELD', ...)` → `callMountedTableAction()`** — `callTableAction(name, record, data:)`/`fillForm()` does not write `mountedActions.0.data.*` in this install, so data arrives as null and required-field validation fails. Reference: `UserResourceTest::test_share_tasksheet_action_takes_recipient_and_invokes_service`. Related: never leave `config:cache` active in a dev/test environment — it bakes `app.env` so `app()->runningUnitTests()` returns false and every `fillForm` silently no-ops.
+- **Re-parent wiring test (since 2026-09-21, every ResourceTest carries one):** `test_pages_are_reparented_and_wired_for_exception_presentation` asserts each page's `get_parent_class()` is its `App\Filament\Pages\*` base, Create/Edit pages mix in BOTH `HandlesActionExceptions` + `HandlesSaveExceptions` (`class_uses_recursive`), and (resources with relation managers) every RelationManager extends `App\Filament\RelationManagers\RelationManager` with `HandlesActionExceptions`. The deep save-failure contract lives in `ProjectResourceTest` ONLY: a real MySQL 1406 through the Livewire create harness (200-char name → 207-char slug over `varchar(191)`) → `assertNotified` with the presented value-too-long title + no persisted row. **Do not "fix" `Project::generateSlug()` truncation without re-pointing that test** — it deliberately rides the real violation to prove the presenter wiring. The service itself has its own master `tests/Feature/Services/ExceptionPresenterTest.php` (all 17 driver codes, reference format, renderable lanes — see `coreTestPattern.md`'s reference list).
 
 ## Panel plugins — Count Up (registered)
 

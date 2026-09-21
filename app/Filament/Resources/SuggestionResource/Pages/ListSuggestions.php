@@ -5,7 +5,7 @@ namespace App\Filament\Resources\SuggestionResource\Pages;
 use App\Filament\Resources\SuggestionResource;
 use App\Models\Suggestion;
 use App\Traits\FilamentHeaderActions;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 

@@ -4,19 +4,24 @@ namespace App\Filament\Resources\ReservationResource\Schemas;
 
 use App\Enums\CancelReason;
 use App\Enums\ReservationStatus;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
 
 class ReservationInfolistPresenter
 {
+    use FilamentFormDivider;
+
     public static function cancelReason(): TextEntry
     {
         return TextEntry::make('cancel_reason')
             ->label(__('resources/reservation/strings.fields.cancel_reason'))
             ->badge()
             ->formatStateUsing(fn(?string $state) => $state ? (CancelReason::tryFrom($state)?->getLabel() ?? $state) : '—')
-            ->color('warning')->placeholder('—');
+            ->color('warning')
+            ->icon('heroicon-o-exclamation-triangle')
+            ->placeholder('—');
     }
 
     public static function cancelledAt(): TextEntry
@@ -27,6 +32,7 @@ class ReservationInfolistPresenter
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignRight()
             ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-x-circle')
             ->placeholder('—');
     }
 
@@ -34,6 +40,7 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('cancelledBy.name')
             ->label(__('resources/reservation/strings.fields.cancelled_by'))
+            ->icon('heroicon-o-user-minus')
             ->placeholder('—');
     }
 
@@ -45,6 +52,7 @@ class ReservationInfolistPresenter
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignRight()
             ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-clock')
             ->color('gray')->placeholder('-');
     }
 
@@ -55,7 +63,8 @@ class ReservationInfolistPresenter
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignRight()
-            ->iconPosition(IconPosition::After);
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-stop-circle');
     }
 
     public static function isFullDay(): TextEntry
@@ -64,7 +73,8 @@ class ReservationInfolistPresenter
             ->label(__('resources/reservation/strings.fields.is_full_day'))
             ->badge()
             ->formatStateUsing(fn(bool $state) => $state ? 'تمام‌روز' : 'ساعتی')
-            ->color(fn(bool $state) => $state ? 'info' : 'gray');
+            ->color(fn(bool $state) => $state ? 'info' : 'gray')
+            ->icon(fn(bool $state) => $state ? 'heroicon-o-calendar-days' : 'heroicon-o-clock');
     }
 
     public static function occurrencesCount(): TextEntry
@@ -72,6 +82,7 @@ class ReservationInfolistPresenter
         return TextEntry::make('occurrences_count')
             ->label(__('resources/reservation/strings.relations.occurrences'))
             ->badge()->color('info')
+            ->icon('heroicon-o-list-bullet')
             ->state(fn($record): int => $record->occurrences_count ?? $record->occurrences()->count());
     }
 
@@ -79,13 +90,17 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('parent.id')
             ->label(__('resources/reservation/strings.fields.parent_id'))
-            ->badge()->color('info')->placeholder('—');
+            ->badge()->color('info')
+            ->icon('heroicon-o-link')
+            ->placeholder('—');
     }
 
     public static function resource(): TextEntry
     {
         return TextEntry::make('resource.labeled_name')
-            ->label(__('resources/reservation/strings.fields.resource'));
+            ->label(__('resources/reservation/strings.fields.resource'))
+            ->icon('heroicon-o-archive-box')
+            ->placeholder('—');
     }
 
     public static function startTime(): TextEntry
@@ -95,7 +110,8 @@ class ReservationInfolistPresenter
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d H:i') : '—')
             ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
             ->alignRight()
-            ->iconPosition(IconPosition::After);
+            ->iconPosition(IconPosition::After)
+            ->icon('heroicon-o-play-circle');
     }
 
     public static function status(): TextEntry
@@ -112,6 +128,8 @@ class ReservationInfolistPresenter
     {
         return TextEntry::make('user.name')
             ->label(__('resources/reservation/strings.fields.user'))
-            ->weight(FontWeight::Bold);
+            ->weight(FontWeight::Bold)
+            ->badge()
+            ->color('primary');
     }
 }

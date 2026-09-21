@@ -674,49 +674,6 @@
         display: none;
     }
 
-    .modal-close-icon {
-        position: absolute;
-        top: 40px;
-        right: 40px;
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        z-index: 10002;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        border-radius: 0.5rem;
-    }
-
-    .custom-modal.active .modal-close-icon {
-        opacity: 1;
-        transition: opacity 0.5s ease 1s;
-    }
-
-    .modal-close-icon::before,
-    .modal-close-icon::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--md-sys-color-on-primary);
-        transform: rotate(45deg);
-        transition: transform 0.3s ease;
-    }
-
-    .modal-close-icon::after {
-        transform: rotate(-45deg);
-    }
-
-    .modal-close-icon:hover::before {
-        transform: rotate(135deg);
-    }
-
-    .modal-close-icon:hover::after {
-        transform: rotate(45deg);
-    }
-
     .loading-spinner {
         display: flex;
         justify-content: center;
@@ -898,6 +855,10 @@
     }
 
     .app-density-compact .reservation-command-table tbody td {
+        @apply !py-0
+    }
+
+    .app-density-compact .ths-ticket-table tbody td {
         @apply !py-0
     }
 

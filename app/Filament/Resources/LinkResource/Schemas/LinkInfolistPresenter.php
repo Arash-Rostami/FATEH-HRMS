@@ -3,13 +3,18 @@
 namespace App\Filament\Resources\LinkResource\Schemas;
 
 use App\Filament\Resources\LinkResource\Enums\LinkType;
+use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
 
 class LinkInfolistPresenter
 {
+    use FilamentFormDivider;
+
+
     public static function companyIps(): TextEntry
     {
         return TextEntry::make('extra')
@@ -25,6 +30,9 @@ class LinkInfolistPresenter
         return TextEntry::make('created_at')
             ->label(__('resources/link/strings.fields.created_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-clock');
     }
@@ -90,6 +98,7 @@ class LinkInfolistPresenter
         return TextEntry::make('sequence')
             ->label(__('resources/link/strings.fields.sequence'))
             ->badge()
+            ->icon('heroicon-o-bars-3')
             ->color('gray');
     }
 
@@ -98,6 +107,9 @@ class LinkInfolistPresenter
         return TextEntry::make('updated_at')
             ->label(__('resources/link/strings.fields.updated_at'))
             ->formatStateUsing(fn($state) => $state ? toJalali($state, 'Y/m/d') : '—')
+            ->extraAttributes(['dir' => 'ltr', 'style' => 'unicode-bidi: isolate;'])
+            ->alignRight()
+            ->iconPosition(IconPosition::After)
             ->color('gray')
             ->icon('heroicon-o-arrow-path');
     }
