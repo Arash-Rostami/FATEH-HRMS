@@ -4,7 +4,6 @@ namespace App\Models\Concerns;
 
 use App\Enums\ResourceTypeIcon;
 use App\Models\Department;
-use Illuminate\Support\Facades\Blade;
 
 trait HasTicketOptions
 {
@@ -70,10 +69,9 @@ trait HasTicketOptions
         if ($areaKey === '') return $label;
 
         $icon = self::getCustomHeroiconForArea($areaKey, $departmentCode);
+        $svg = svg($icon, 'w-5 h-5 text-gray-500 dark:text-gray-400')->toHtml();
 
-        return Blade::render(
-            "<div class='flex items-center gap-3'><x-icon name='{$icon}' class='w-5 h-5 text-gray-500 dark:text-gray-400' /> <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>"
-        );
+        return "<div class='flex items-center gap-3'>{$svg} <span class='font-medium text-gray-700 dark:text-gray-200'>{$label}</span></div>";
     }
 
     public static function getCustomHeroiconForArea(?string $area, ?string $departmentCode = null): string

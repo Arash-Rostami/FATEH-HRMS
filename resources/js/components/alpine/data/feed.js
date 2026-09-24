@@ -20,6 +20,7 @@ export default () => ({
     _scrollListener: null,
     _scrollTimeout: null,
     _morphHook: null,
+    _enforce: null,
 
     feed(el) {
         return el?.closest(FEED_SELECTOR)?.dataset.feed;
@@ -34,6 +35,16 @@ export default () => ({
         this._isDestroyed = false;
         this.view = this.$wire.get('view') || 'filmstrip';
         this.watchMonth();
+
+        this._enforce = () => {
+            if (window.innerWidth < DESKTOP_BREAKPOINT && this.view !== 'filmstrip') {
+                this.view = 'filmstrip';
+                this.$wire.call('toggleView', 'filmstrip');
+            }
+        };
+
+        this._enforce();
+        window.addEventListener('resize', this._enforce, { passive: true });
 
         this.$nextTick(() => {
             this.setupScrollListener();
@@ -160,6 +171,11 @@ export default () => ({
         if (typeof this._morphHook === 'function') {
             this._morphHook();
             this._morphHook = null;
+        }
+
+        if (this._enforce) {
+            window.removeEventListener('resize', this._enforce);
+            this._enforce = null;
         }
 
         if (this._scrollTimeout) {

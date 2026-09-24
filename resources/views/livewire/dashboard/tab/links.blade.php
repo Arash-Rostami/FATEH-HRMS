@@ -1,7 +1,7 @@
 <div
         x-data="links"
         @keydown.window="handleHotkey($event)"
-        class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] relative overflow-y-auto overflow-x-hidden space-y-6 pb-6 custom-scrollbar"
+        class="animate-fade w-full max-w-[88rem] mx-auto relative space-y-6"
         dir="rtl">
 
     @php($viewModes = [
@@ -34,9 +34,23 @@
     <div x-show="view === 'rail'" x-cloak class="space-y-6">
         @include('livewire.dashboard.tab.links.smart')
 
-        @include('livewire.dashboard.tab.links.internal')
+        <div class="md:hidden">
+            <x-ui.buttons.tab-selector
+                :tabs="[
+                    ['id' => 'internal', 'icon' => 'dataset_linked', 'label' => 'داخلی'],
+                    ['id' => 'external', 'icon' => 'public', 'label' => 'خارجی'],
+                ]"
+                :activeTab="$mobileSection"
+            />
+        </div>
 
-        @include('livewire.dashboard.tab.links.external')
+        <div class="{{ $mobileSection === 'internal' ? '' : 'hidden' }} md:block">
+            @include('livewire.dashboard.tab.links.internal')
+        </div>
+
+        <div class="{{ $mobileSection === 'external' ? '' : 'hidden' }} md:block">
+            @include('livewire.dashboard.tab.links.external')
+        </div>
     </div>
 
     <div x-show="view === 'launch'" x-cloak>

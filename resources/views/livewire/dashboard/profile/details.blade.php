@@ -17,13 +17,13 @@
             <div class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
 
                 {{-- Section header --}}
-                <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
+                <div class="px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
                     <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">{{ $group->materialIcon() }}</span>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">{{ $group->getLabel() }}</h3>
                 </div>
 
                 {{-- Section fields --}}
-                <div class="p-6">
+                <div class="p-4 md:p-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($section['fields'] as $key => $def)
                             @php($name = 'form.values.' . $key)

@@ -11,7 +11,7 @@ const LS_SETTINGS_KEY = 'chat-settings:project';
 const EVENT_TOAST = 'toast';
 const ID_CHAT_VP = 'team-chat-viewport';
 const ID_CHAT_TA = 'team-chat-ta';
-const ID_ACTIVITY_VP = 'activity-viewport';
+const ID_ACTIVITY_PANE = 'project-tab-pane';
 const CLASS_FLASH = 'record-focus-flash';
 
 const TAB_DOMAIN = {
@@ -69,6 +69,7 @@ export default function project() {
         activityTypeFilter: '',
         activityDeletingId: null,
         mobileShowChat: false,
+        openingProject: false,
 
         init() {
             this.initKanbanDrag();
@@ -119,31 +120,35 @@ export default function project() {
                 this.scrollToActivityEntry(focusEntry);
             }
 
-            const chatVp = document.getElementById(ID_CHAT_VP);
-            if (chatVp) {
-                chatVp.style.overflowAnchor = 'none';
-                chatVp.addEventListener('scroll', () => {
-                    if (this._scrollRaf) return;
-                    this._scrollRaf = requestAnimationFrame(() => {
-                        this._scrollRaf = null;
-                        const sh = chatVp.scrollHeight;
-                        const st = chatVp.scrollTop;
-                        const ch = chatVp.clientHeight;
-                        this.showScrollFab = (sh - st - ch) > 200;
-                    });
-                }, { passive: true });
-            }
+            this._onChatScroll = (e) => {
+                if (e.target.id !== ID_CHAT_VP) return;
+                if (this._scrollRaf) return;
+                this._scrollRaf = requestAnimationFrame(() => {
+                    this._scrollRaf = null;
+                    const chatVp = document.getElementById(ID_CHAT_VP);
+                    if (!chatVp) return;
+                    const sh = chatVp.scrollHeight;
+                    const st = chatVp.scrollTop;
+                    const ch = chatVp.clientHeight;
+                    this.showScrollFab = (sh - st - ch) > 200;
+                });
+            };
+            this.$el.addEventListener('scroll', this._onChatScroll, { capture: true, passive: true });
         },
 
         destroy() {
             this._isDestroyed = true;
             this.stopPolling();
             this.cancelWarm();
+            clearTimeout(this._openingTimeout);
 
             document.removeEventListener('visibilitychange', this._onVisibility);
 
             if (this._onActivityTyped) {
                 this.$el.removeEventListener('activity-typed', this._onActivityTyped);
+            }
+            if (this._onChatScroll) {
+                this.$el.removeEventListener('scroll', this._onChatScroll, { capture: true });
             }
             if (this._scrollRaf) {
                 cancelAnimationFrame(this._scrollRaf);
@@ -166,13 +171,8 @@ export default function project() {
         async loadOlderActivity() {
             if (this._loadingOlderActivity) return;
 
-            const vp = document.getElementById(ID_ACTIVITY_VP);
-            let prevHeight = 0;
-
-            if (vp) {
-                vp.style.overflowAnchor = 'none';
-                prevHeight = vp.scrollHeight;
-            }
+            const pane = document.getElementById(ID_ACTIVITY_PANE);
+            const prevHeight = pane ? pane.scrollHeight : 0;
 
             this._loadingOlderActivity = true;
 
@@ -180,9 +180,9 @@ export default function project() {
                 await this.$wire.loadOlderActivity();
 
                 this.$nextTick(() => {
-                    if (!vp) return;
-                    const delta = vp.scrollHeight - prevHeight;
-                    if (delta > 0) vp.scrollTop += delta;
+                    if (!pane) return;
+                    const delta = pane.scrollHeight - prevHeight;
+                    if (delta > 0) pane.scrollTop += delta;
                 });
             } catch {}
 
@@ -432,6 +432,9 @@ export default function project() {
             this._lastVersion = null;
             this._electLeaderFor(id);
             this.mobileShowChat = true;
+            this.openingProject = true;
+            clearTimeout(this._openingTimeout);
+            this._openingTimeout = setTimeout(() => { this.openingProject = false; }, 1000);
             const wire = this.$wire;
             wire.$island('workspace').selectProject(id)
                 .then(() => wire.$island('sidebar').refreshSidebar());

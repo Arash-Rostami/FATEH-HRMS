@@ -72,7 +72,25 @@
     <div
         class="w-full  lg:flex-1 flex flex-col justify-center items-right p-4 sm:p-8 lg:p-16 xl:p-24 z-20 order-2 transition-all duration-500 relative min-h-screen">
         <div
-            class="md:fixed md:top-8 md:right-8 z-50 flex items-center gap-2 md:animate-slide-in-right md:animate-delay-1500"
+            class="fixed top-3 right-3 md:top-8 md:right-8 z-50 flex items-center gap-2 animate-slide-in-right animate-delay-1500"
+            x-data="{
+                card: !!document.querySelector('[data-auth-card]'),
+                desktop: window.matchMedia('(min-width: 768px)').matches,
+                minimized: false,
+                init() {
+                    window.matchMedia('(min-width: 768px)').addEventListener('change', e => this.desktop = e.matches);
+                },
+                get shown() { return this.desktop || this.minimized || !this.card; }
+            }"
+            x-show="shown"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-2"
+            @card-minimize.window="minimized = true"
+            @card-restore.window="minimized = false"
             x-cloak>
             <div
                 class="glass-panel p-1.5 rounded-xl flex items-center gap-1.5 border border-gray-200 dark:border-white/10 shadow-2xl transition-all">
@@ -81,6 +99,40 @@
                     <span class="material-symbols-rounded text-[22px]" x-text="useVideo ? 'image' : 'movie'"></span>
                     <x-ui.modals.tooltip position="left">
                         <span x-text="useVideo ? 'توقف ویدیو (سیستم‌های ضعیف)' : 'پخش ویدیو'"></span>
+                    </x-ui.modals.tooltip>
+                </button>
+
+                <button type="button"
+                        x-data="{
+                            playing: false, audio: null,
+                            persist() { localStorage.setItem('auth-music', this.playing ? 'on' : 'off'); },
+                            toggle() {
+                                if (!this.audio) {
+                                    this.audio = new Audio('{{ asset('audio/music/login/auth.mp3') }}');
+                                    this.audio.loop = true;
+                                }
+                                if (this.playing) { this.audio.pause(); this.playing = false; }
+                                else { this.audio.play().then(() => this.playing = true).catch(() => {}); }
+                                this.persist();
+                            },
+                            init() {
+                                if (localStorage.getItem('auth-music') !== 'on') return;
+                                const resume = () => {
+                                    document.removeEventListener('click', resume);
+                                    document.removeEventListener('keydown', resume);
+                                    if (localStorage.getItem('auth-music') === 'on' && !this.playing) this.toggle();
+                                };
+                                document.addEventListener('click', resume);
+                                document.addEventListener('keydown', resume);
+                            }
+                        }"
+                        @click="toggle()"
+                        class="group relative w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[var(--md-sys-color-primary)] hover:dark:text-white hover:bg-gray-100/50 hover:dark:bg-white/10 transition-all">
+                    <span class="material-symbols-rounded text-[22px] transition-colors duration-200"
+                          :class="playing ? 'animate-pulse text-[var(--md-sys-color-primary)]' : ''"
+                          x-text="playing ? 'volume_up' : 'volume_off'"></span>
+                    <x-ui.modals.tooltip position="left">
+                        <span x-text="playing ? 'غیر فعال سازی صدا' : 'فعال سازی صدا'"></span>
                     </x-ui.modals.tooltip>
                 </button>
 

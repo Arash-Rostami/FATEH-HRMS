@@ -52,7 +52,7 @@
          class="space-y-5">
         <div
             class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
+            <div class="px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
                 <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">person</span>
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات پایه</h3>
@@ -60,7 +60,7 @@
                         پروفایل خود را مدیریت کنید.</p>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
                     <div class="space-y-3">
@@ -141,7 +141,7 @@
          class="space-y-5">
         <div
             class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
+            <div class="px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
                 <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">badge</span>
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات هویتی</h3>
@@ -149,7 +149,7 @@
                         را با دقت وارد نمایید.</p>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <x-ui.forms.select label="جنسیت" name="form.gender" wire:model="form.gender" icon="wc">
                         <option value="">انتخاب کنید</option>
@@ -192,7 +192,7 @@
 
         <div
             class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
+            <div class="px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
                 <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">contact_phone</span>
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات تماس و آدرس</h3>
@@ -200,7 +200,7 @@
                         سکونت.</p>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <x-ui.forms.input label="تلفن همراه" name="form.cellphone" wire:model="form.cellphone"
                                       icon="smartphone"/>
@@ -233,7 +233,7 @@
 
         <div
             class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
+            <div class="px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)]/60 flex items-center gap-3">
                 <span class="material-symbols-rounded text-[var(--md-sys-color-primary)] text-xl">tune</span>
                 <div>
                     <h3 class="font-bold text-[var(--md-sys-color-on-surface)] text-sm">اطلاعات تکمیلی</h3>
@@ -241,7 +241,7 @@
                         موارد.</p>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <x-ui.forms.select label="مدرک تحصیلی" name="form.degree" wire:model="form.degree" icon="school">
                         <option value="">انتخاب مدرک</option>

@@ -78,7 +78,7 @@ final class PersianDateFieldService
         return (new self($prefix, $label, $required, $yearFrom, $yearTo, $fullWidth, $gap, $carrierRule))->build();
     }
 
-    private static function assemble(mixed $year, mixed $month, mixed $day): ?string
+    public static function assemble(mixed $year, mixed $month, mixed $day): ?string
     {
         if (!filled($year) || !filled($month) || !filled($day)) {
             return null;
@@ -100,10 +100,8 @@ final class PersianDateFieldService
             ->native(false)
             ->required($this->required)
             ->preload()
-            ->live()
             ->optionsLimit(200)
-            ->dehydrated(false)
-            ->afterStateUpdated(fn(callable $set, callable $get) => $this->syncDate($set, $get, $prefix));
+            ->dehydrated(false);
     }
 
     /**
@@ -141,8 +139,22 @@ final class PersianDateFieldService
 
     private function hiddenField(string $prefix): Hidden
     {
+        $assembleOrKeep = function (mixed $state, callable $get) use ($prefix): mixed {
+            $year = $get("{$prefix}_year");
+            $month = $get("{$prefix}_month");
+            $day = $get("{$prefix}_day");
+
+            if (blank($year) && blank($month) && blank($day)) {
+                return $state;
+            }
+
+            return self::assemble($year, $month, $day);
+        };
+
         return Hidden::make($prefix)
             ->dehydrated(true)
+            ->dehydrateStateUsing($assembleOrKeep)
+            ->mutateStateForValidationUsing($assembleOrKeep)
             ->when($this->carrierRule !== null, fn (Hidden $field) => $field->rule($this->carrierRule))
             ->afterStateHydrated(function (callable $set, mixed $state) use ($prefix): void {
                 if (blank($state)) {
@@ -168,16 +180,15 @@ final class PersianDateFieldService
             placeholder: 'ماه',
             options: self::MONTH_NAMES,
             prefix: $prefix,
-        );
-    }
+        )
+            ->live()
+            ->afterStateUpdated(function (callable $set, callable $get) use ($prefix): void {
+                $max = $this->daysInMonth((int) $get("{$prefix}_month"));
 
-    private function syncDate(callable $set, callable $get, string $prefix): void
-    {
-        $set($prefix, self::assemble(
-            $get("{$prefix}_year"),
-            $get("{$prefix}_month"),
-            $get("{$prefix}_day")
-        ));
+                if ((int) $get("{$prefix}_day") > $max) {
+                    $set("{$prefix}_day", $max);
+                }
+            });
     }
 
     /**

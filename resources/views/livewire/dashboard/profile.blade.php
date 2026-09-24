@@ -6,8 +6,6 @@
     dir="rtl"
 >
     <div class="max-w-[88rem] mx-auto">
-        <x-ui.placeholder/>
-
         <x-ui.title
             :icon="$isProfileTab ? 'person' : 'apartment'"
             :title="$isProfileTab ? 'پروفایل کاربری' : 'آنبوردینگ'"
@@ -17,6 +15,7 @@
                     <button
                         type="button"
                         @click="$dispatch('open-modal', { name: 'profile-badge-legend' })"
+                        wire:key="profile-actions-badges"
                         title="راهنمای نشانگرهای اعلان"
                         class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                     >
@@ -25,6 +24,7 @@
                     <button
                         type="button"
                         @click="$dispatch('open-modal', { name: 'profile-legend' })"
+                        wire:key="profile-actions-legend"
                         title="راهنمای ماژول پروفایل"
                         class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                     >
@@ -34,6 +34,7 @@
                     <button
                         type="button"
                         @click="$dispatch('open-modal', { name: 'onboarding-legend' })"
+                        wire:key="profile-actions-onboarding"
                         title="راهنمای آنبوردینگ"
                         class="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                     >
@@ -44,6 +45,7 @@
         </x-ui.title>
 
         @if($isProfileTab)
+            <div wire:key="profile-legend-dialogs" class="contents">
             <x-ui.modals.dialog name="profile-legend" title="راهنمای ماژول پروفایل">
                 @include('livewire.dashboard.profile.legend')
             </x-ui.modals.dialog>
@@ -53,6 +55,7 @@
                 title="راهنمای نشانگرهای اعلان"
                 :groups="$badgeLegendGroups"
             />
+            </div>
         @endif
 
         <x-ui.modals.dialog name="onboarding-legend" title="راهنمای آنبوردینگ">
@@ -61,7 +64,9 @@
 
         <div class="w-full flex flex-col gap-5">
             @if($isProfileTab)
-                @include('livewire.dashboard.profile.header')
+                <div wire:key="profile-header-branch" class="contents">
+                    @include('livewire.dashboard.profile.header')
+                </div>
             @endif
 
             <div class="w-full bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)] rounded-2xl p-3 flex items-center gap-3 shadow-sm transition-all hover:bg-[var(--md-sys-color-surface-container-high)]">

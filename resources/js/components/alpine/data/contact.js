@@ -314,6 +314,17 @@ export default function contact() {
             this.deletingId = null;
         },
 
+        backToList() {
+            this.searchMessages = false;
+            this.replyingTo = null;
+            this.editingMsg = null;
+            this.deletingId = null;
+            this.openActionsId = null;
+            this.$wire.set('mobileShowChat', false, false);
+            this.$wire.$island('messages').backToList()
+                .then(() => this.$wire.$island('sidebar').refreshUnread());
+        },
+
         startReply(id, senderName, body) {
             if (!id) return;
             this.editingMsg = null;

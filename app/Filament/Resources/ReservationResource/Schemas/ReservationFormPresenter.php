@@ -28,7 +28,6 @@ class ReservationFormPresenter
             ->label(__('resources/reservation/strings.fields.cancel_reason'))
             ->options(CancelReason::class)
             ->nullable()
-            ->live()
             ->native(false)
             ->placeholder(__('resources/reservation/strings.fields.cancel_reason_placeholder'))
             ->columnSpanFull()
@@ -97,9 +96,19 @@ class ReservationFormPresenter
         return Select::make('parent_id')
             ->label(__('resources/reservation/strings.fields.parent_id'))
             ->helperText(__('resources/reservation/strings.descriptions.parent_id'))
-            ->options(fn() => Reservation::roots()->with(['resource', 'user'])->get()->pluck('resource_dropdown_label', 'id'))
             ->native(false)
             ->searchable()
+            ->getSearchResultsUsing(fn(string $search): array => Reservation::roots()
+                ->with(['resource', 'user'])
+                ->where(fn($q) => $q->where('id', 'like', "{$search}%")
+                    ->orWhereHas('resource', fn($r) => $r->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")))
+                ->latest('start_time')
+                ->limit(50)
+                ->get()
+                ->pluck('resource_dropdown_label', 'id')
+                ->toArray())
+            ->getOptionLabelUsing(fn($value): ?string => Reservation::with(['resource', 'user'])->find($value)?->resource_dropdown_label)
             ->nullable()
             ->columnSpanFull()
             ->placeholder('—');
@@ -139,8 +148,17 @@ class ReservationFormPresenter
         if ($get('is_full_day')) {
             return false;
         }
-        $start = $get('start_time_date');
-        $end = $get('end_time_date');
+
+        $start = PersianDateFieldService::assemble(
+            $get('start_time_date_year'),
+            $get('start_time_date_month'),
+            $get('start_time_date_day'),
+        );
+        $end = PersianDateFieldService::assemble(
+            $get('end_time_date_year'),
+            $get('end_time_date_month'),
+            $get('end_time_date_day'),
+        );
         if (!$start || !$end) {
             return false;
         }

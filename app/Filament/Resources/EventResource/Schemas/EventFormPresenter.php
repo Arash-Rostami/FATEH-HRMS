@@ -109,7 +109,6 @@ class EventFormPresenter
             ])
             ->default('happy')
             ->native(false)
-            ->live()
             ->visible(fn($get) => (bool) $get('enabled'))
             ->dehydrated(fn($get) => (bool) $get('enabled'));
     }
@@ -119,7 +118,6 @@ class EventFormPresenter
         return Toggle::make('confetti')
             ->label(__('resources/event/strings.fields.confetti'))
             ->helperText(__('resources/event/strings.hints.confetti'))
-            ->live()
             ->default(true)
             ->inline(false)
             ->visible(fn($get) => (bool) $get('enabled'))

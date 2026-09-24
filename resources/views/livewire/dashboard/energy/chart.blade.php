@@ -186,7 +186,7 @@
             <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
                  x-data="{ open: false }">
                 <button type="button" @click="open = !open"
-                        class="w-full px-5 py-4 flex items-center gap-3 text-right">
+                        class="w-full px-5 py-4 flex flex-wrap items-center gap-3 text-right">
                     <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
                         <span class="material-symbols-rounded text-base" aria-hidden="true">history</span>
                     </div>

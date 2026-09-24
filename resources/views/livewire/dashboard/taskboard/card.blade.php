@@ -109,13 +109,13 @@
                                         $fileIcon = $dmsPresenter->extensionIcon(pathinfo($attachment['path'] ?? '', PATHINFO_EXTENSION));
                                     @endphp
                                     @if($isImage)
-                                        <a href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" data-fancybox="task-{{ $taskId }}-attachments" data-caption="{{ $attachment['name'] ?? '' }}"
+                                        <a wire:key="taskboard-attachment-image-{{ crc32($attachment['path'] ?? '') }}" href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" data-fancybox="task-{{ $taskId }}-attachments" data-caption="{{ $attachment['name'] ?? '' }}"
                                            class="flex items-center gap-2 px-3 py-2 text-xs text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors">
                                             <img src="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" class="w-5 h-5 rounded object-cover shrink-0" alt="">
                                             <span class="truncate" dir="auto">{{ $attachment['name'] ?? basename($attachment['path']) }}</span>
                                         </a>
                                     @else
-                                        <a href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" target="_blank"
+                                        <a wire:key="taskboard-attachment-file-{{ crc32($attachment['path'] ?? '') }}" href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" target="_blank"
                                            class="flex items-center gap-2 px-3 py-2 text-xs text-[var(--md-sys-color-on-surface)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors">
                                             <span class="material-symbols-rounded text-[14px] {{ $fileIcon['text'] }}">{{ $fileIcon['icon'] }}</span>
                                             <span class="truncate" dir="auto">{{ $attachment['name'] ?? basename($attachment['path']) }}</span>
@@ -449,7 +449,7 @@
                     <button
                         wire:key="taskboard-edit-btn"
                         wire:click="editTask({{ $taskId }})"
-                        class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                        class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                         title="{{ $ticketId ? 'مشاهده' : 'ویرایش' }}"
                         aria-label="{{ $ticketId ? 'مشاهده' : 'ویرایش' }}"
                     >
@@ -459,7 +459,7 @@
                     <button
                         wire:key="taskboard-view-btn"
                         wire:click="viewTask({{ $taskId }})"
-                        class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                        class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                         title="مشاهده"
                         aria-label="مشاهده"
                     >
@@ -470,7 +470,7 @@
                 <button
                     wire:key="taskboard-open-btn"
                     x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $taskId }} })"
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center {{ $canChangeStatus ? 'text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]' }}"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center {{ $canChangeStatus ? 'text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]' }}"
                     title="{{ $canChangeStatus ? 'ویرایش' : 'مشاهده' }}"
                     aria-label="{{ $canChangeStatus ? 'ویرایش' : 'مشاهده' }}"
                 >
@@ -483,7 +483,7 @@
                     <button
                         x-on:click="open = !open"
                         x-on:click.outside="open = false"
-                        class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                        class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                         title="محول کردن"
                         aria-label="محول کردن"
                     >
@@ -529,7 +529,7 @@
                 <button
                     type="button"
                     x-on:click="tagOpen = !tagOpen"
-                    :class="$store.tagged.isTagged(@js($taskId), @js('task')) ? '!opacity-100' : 'opacity-0 group-hover:opacity-100'"
+                    :class="$store.tagged.isTagged(@js($taskId), @js('task')) ? '!opacity-100' : 'max-sm:opacity-100 opacity-0 group-hover:opacity-100'"
                     class="w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="رنگ‌آمیزی کارت"
                     aria-label="رنگ‌آمیزی کارت"
@@ -573,7 +573,7 @@
                 <button
                     type="button"
                     x-on:click="toggleFavorite({{ $taskId }})"
-                    :class="isFavorite({{ $taskId }}) ? '!opacity-100' : 'opacity-0 group-hover:opacity-100'"
+                    :class="isFavorite({{ $taskId }}) ? '!opacity-100' : 'max-sm:opacity-100 opacity-0 group-hover:opacity-100'"
                     class="w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="سنجاق"
                     aria-label="سنجاق"
@@ -590,7 +590,7 @@
                     @else
                         x-on:click="Livewire.dispatch('project-duplicate-task', { taskId: {{ $taskId }} })"
                     @endif
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="تکثیر"
                     aria-label="تکثیر"
                 >
@@ -601,14 +601,14 @@
             <x-ui.buttons.copy
                 :text="route('tasks', ['open' => $taskId])"
                 message="لینک وظیفه کپی شد"
-                class="opacity-0 group-hover:opacity-100 !w-6 !h-6 !p-0 !rounded-xl transition-all duration-200"
+                class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 !w-6 !h-6 !p-0 !rounded-xl transition-all duration-200"
             />
 
             @if($isPersonalBoard && $task['can_delete'] && $task['status'] === 'done' && !$isArchived && !$ticketId)
                 <button
                     wire:key="taskboard-archive-btn"
                     wire:click="archiveTask({{ $taskId }})"
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="آرشیو"
                     aria-label="آرشیو"
                 >
@@ -620,7 +620,7 @@
                 <button
                     wire:key="taskboard-unarchive-btn"
                     wire:click="unarchiveTask({{ $taskId }})"
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="خروج از آرشیو"
                     aria-label="خروج از آرشیو"
                 >
@@ -632,7 +632,7 @@
                 <button
                     wire:key="taskboard-undo-btn"
                     wire:click="undoAssignment({{ $taskId }})"
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="لغو واگذاری"
                     aria-label="لغو واگذاری"
                 >
@@ -644,7 +644,7 @@
                 <button
                     wire:key="taskboard-delete-btn"
                     wire:click="deleteTask({{ $taskId }})"
-                    class="opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
+                    class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="حذف"
                     aria-label="حذف"
                 >

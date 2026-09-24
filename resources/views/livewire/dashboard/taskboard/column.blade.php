@@ -37,6 +37,10 @@
                           style="background: color-mix(in srgb, var(--md-sys-color-{{ $config['color'] }}) 12%, transparent); border: 1px solid color-mix(in srgb, var(--md-sys-color-{{ $config['color'] }}) 25%, transparent); color: var(--md-sys-color-{{ $config['color'] }});">
                         {{ convertToPersian($taskCount) }}
                     </span>
+                    <span class="md:hidden px-1.5 py-0.5 rounded-sm text-[10px] font-bold leading-none bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]"
+                          title="موقعیت این ستون در برد">
+                        {{ convertToPersian((string) $colIndex) }}/{{ convertToPersian((string) $colTotal) }}
+                    </span>
                 </div>
                 <div class="flex items-center">
                     @if($isDoneColumn && $search === '')
@@ -100,7 +104,7 @@
             @endif
 
             <button
-                class="{{ $presenter->columnButtonBase() }} {{ $presenter->columnButtonIcon() }}"
+                class="hidden md:flex {{ $presenter->columnButtonBase() }} {{ $presenter->columnButtonIcon() }}"
                 @click="toggleMaximize(col($el))"
                 :title="maximizedColumn === col($el) ? 'کوچک کردن' : 'بزرگ کردن'"
                 :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedColumn === col($el) }"

@@ -1,3 +1,4 @@
+
 <div x-data="search()"
      @keydown.window.prevent.ctrl.k="toggle()"
      @keydown.window.prevent.cmd.k="toggle()"
@@ -5,28 +6,27 @@
      @open-command-palette.window="toggle()"
      class="relative z-[200]">
 
+    <template x-teleport="body">
+
     {{-- Backdrop --}}
     <div x-cloak
          x-show="open"
-         x-transition:enter="ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-[var(--md-sys-color-primary)]/60"
+         class="fixed inset-0 z-[200] bg-[var(--md-sys-color-primary)]/60 animate-backdrop-in"
          @click="open = false">
     </div>
+    </template>
 
     {{-- Modal Container --}}
+    <template x-teleport="body">
     <div x-cloak
          x-show="open"
+         dir="rtl"
          class="fixed inset-0 z-[201] flex items-start justify-center pt-[8vh] px-4 pb-4 pointer-events-none animate-slide-down">
 
         <div class="pointer-events-auto w-full max-w-3xl flex flex-col h-[75vh] rounded-[28px] shadow-2xl overflow-hidden bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/20 ring-1 ring-white/5 text-[var(--md-sys-color-on-surface)]">
 
             {{-- Header / Search Bar --}}
-            <div class="flex items-center gap-4 px-6 py-5 border-b border-[var(--md-sys-color-outline-variant)]/15 bg-[var(--md-sys-color-surface-container)]/40">
+            <div class="flex items-center gap-2 md:gap-4 px-4 md:px-6 py-5 border-b border-[var(--md-sys-color-outline-variant)]/15 bg-[var(--md-sys-color-surface-container)]/40">
                 <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-primary)] transition-all duration-300">
                     {{ $mode === 'content' ? 'travel_explore' : 'search' }}
                 </span>
@@ -55,7 +55,7 @@
                         :title="'{{ $mode === 'content' ? 'تغییر به ناوبری سریع' : 'تغییر به جستجوی محتوا' }}'"
                         class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border whitespace-nowrap bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline)]/20 hover:text-[var(--md-sys-color-primary)] hover:border-[var(--md-sys-color-primary)]/30 hover:shadow-sm hover:-translate-y-0.5">
                     <span class="material-symbols-rounded text-[20px]">{{ $mode === 'content' ? 'bolt' : 'manage_search' }}</span>
-                    <span>{{ $mode === 'content' ? 'ناوبری' : 'محتوا' }}</span>
+                    <span class="hidden sm:inline">{{ $mode === 'content' ? 'ناوبری' : 'محتوا' }}</span>
                 </button>
 
                 <button @click="open = false"
@@ -261,10 +261,10 @@
             </div>
 
             {{-- Metrics & Footer --}}
-            <div class="bg-[var(--md-sys-color-surface-container)]/60 px-6 py-3.5 border-t border-[var(--md-sys-color-outline-variant)]/15 flex items-center justify-between text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] rounded-b-[28px]">
+            <div class="bg-[var(--md-sys-color-surface-container)]/60 px-4 md:px-6 py-3.5 border-t border-[var(--md-sys-color-outline-variant)]/15 flex items-center justify-between text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] rounded-b-[28px]">
 
                 {{-- Keyboard Shortcuts --}}
-                <div class="flex items-center gap-5">
+                <div class="flex items-center gap-2 md:gap-5">
                     <span class="flex items-center gap-2">
                         <kbd class="bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/20 px-2 py-1 rounded-md shadow-sm min-w-[28px] text-center font-sans font-bold">Enter</kbd>
                         انتخاب
@@ -281,8 +281,7 @@
                 </div>
 
                 {{-- System Metrics --}}
-                <div class="flex items-center gap-2"
-                     x-data="{ ttl: 0, start: performance.now() }"
+                <div class="hidden md:flex items-center gap-2"
                      x-init="$watch('$wire.query', () => { start = performance.now(); }); $watch('$wire.results', () => { ttl = Math.round(performance.now() - start); })">
 
                     <div class="flex items-center gap-1.5 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/15 px-2 py-1 rounded-md shadow-sm">
@@ -308,19 +307,14 @@
                         </span>
                     </div>
 
-                    <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/15 px-2.5 py-1 rounded-md shadow-sm transition-colors duration-300"
-                         :class="ttl > 500 ? 'border-[var(--md-sys-color-error)]/30 bg-[var(--md-sys-color-error-container)]/10' : ''">
+                    <div class="flex items-center gap-2 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline)]/15 px-2.5 py-1 rounded-md shadow-sm transition-colors duration-300">
 
                         <span class="relative flex h-1.5 w-1.5">
-                            <span class="absolute inline-flex h-full w-full rounded-full opacity-75"
-                                  :class="(ttl > 0 && ttl < 500 ? 'animate-ping bg-[var(--md-sys-color-primary)]' : (ttl > 500 ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-primary)]'))"></span>
-                            <span class="relative inline-flex rounded-full h-1.5 w-1.5"
-                                  :class="ttl > 500 ? 'bg-[var(--md-sys-color-error)]' : 'bg-[var(--md-sys-color-primary)]'"></span>
+                            <span class="absolute inline-flex h-full w-full rounded-full opacity-75 bg-[var(--md-sys-color-primary)]"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--md-sys-color-primary)]"></span>
                         </span>
 
-                        <span class="text-[10px] font-bold tracking-widest uppercase"
-                              :class="ttl > 500 ? 'text-[var(--md-sys-color-error)]' : 'text-[var(--md-sys-color-primary)] opacity-90'"
-                              x-text="ttl > 0 ? ttl + 'ms' : 'READY'"></span>
+                        <span class="text-[10px] font-bold tracking-widest uppercase text-[var(--md-sys-color-primary)] opacity-90">READY</span>
                     </div>
                 </div>
             </div>
@@ -329,4 +323,5 @@
             </div>
         </div>
     </div>
+    </template>
 </div>

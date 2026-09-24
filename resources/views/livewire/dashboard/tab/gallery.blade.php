@@ -2,7 +2,6 @@
     x-data="gallery()"
     ax-load="visible"
     class="animate-fade"
-    max-height="max-h-[calc(100svh-10rem)]"
     gap="gap-0"
     dir="rtl"
 >

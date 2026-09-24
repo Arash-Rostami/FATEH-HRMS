@@ -7,7 +7,7 @@
                 class="mx-auto px-4 py-2 rounded-xl bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)] text-xs font-medium disabled:opacity-50" />
         @endif
 
-        <div id="team-chat-viewport" role="log" aria-live="polite" aria-relevant="additions" aria-label="پیام‌های گفتگوی تیم" class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-1 px-1">
+        <div id="team-chat-viewport" role="log" aria-live="polite" aria-relevant="additions" aria-label="پیام‌های گفتگوی تیم" class="no-anchor flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-1 px-1">
             @forelse($this->groupedTeamChatMessages as $group)
                 <div class="flex items-center gap-3 py-3" wire:key="date-{{ $group['date'] }}">
                     <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>

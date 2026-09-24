@@ -109,7 +109,7 @@ class Report extends Model
                     ->filter(fn($model, $code) => in_array($code, $codes, true))
                     ->values();
             }
-        );
+        )->shouldCache();
     }
 
     protected function description(): Attribute

@@ -1,4 +1,4 @@
-<section class="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar pr-1 pl-1 pb-20">
+<section class="flex-1 min-w-0 lg:h-full lg:overflow-y-auto custom-scrollbar pr-1 pl-1 lg:pb-20">
     <div class="flex items-center gap-3 mb-4 px-1">
         <div class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
             <span class="material-symbols-rounded text-base font-fill">feed</span>
@@ -76,7 +76,7 @@
     </div>
 
     @if($this->hasMorePosts)
-        <div class="mt-8 mb-20 flex justify-center">
+        <div class="mt-8 mb-4 lg:mb-20 flex justify-center">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="نمایش بیشتر"

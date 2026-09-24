@@ -1,6 +1,6 @@
 @php($s = $summary)
 @php($percent = (int) round($s['percent']))
-<div class="flex flex-wrap items-center gap-3 justify-between rounded-2xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-low)] px-6 py-3 shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)]">
+<div class="flex flex-wrap items-center gap-3 justify-between rounded-2xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-low)] px-4 md:px-6 py-3 shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)]">
     @if($s['total'] === 0)
         <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هنوز وظیفه‌ای ثبت نشده</p>
         <x-ui.decor.progress-ring :percent="0" :size="36" :stroke="4" :color="'var(--md-sys-color-on-surface-variant)'"/>

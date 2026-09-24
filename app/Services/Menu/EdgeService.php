@@ -89,6 +89,9 @@ class EdgeService
 
                 (clone $baseQuery)->whereNotIn('user_id', $ids)->delete();
 
+                $newRows = [];
+                $now = now();
+
                 foreach ($recipients as $user) {
                     if ($rule['hasShow'] && !$edge->show($subject, $user)) {
                         $existing->get($user->id)?->delete();
@@ -111,12 +114,18 @@ class EdgeService
                         continue;
                     }
 
-                    Edge::create([
+                    $newRows[] = [
                             'user_id' => $user->id,
                             'edge_key' => $ruleKey,
                             'subject_type' => $subjectClass,
                             'subject_id' => $itemId,
-                        ] + $payload);
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ] + $payload;
+                }
+
+                if ($newRows !== []) {
+                    Edge::insert($newRows);
                 }
             });
         } catch (LockTimeoutException) {

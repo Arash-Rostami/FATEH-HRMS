@@ -14,7 +14,7 @@
                 @foreach($group['attachments'] as $attachment)
                     @php($isImage = str_starts_with($attachment['mime'] ?? '', 'image/'))
                     @php($fileIcon = $dmsPresenter->extensionIcon(pathinfo($attachment['path'] ?? '', PATHINFO_EXTENSION)))
-                    <div class="flex flex-col gap-1 w-40 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-2">
+                    <div class="flex flex-col gap-1 w-[calc(50%-0.25rem)] md:w-40 rounded-xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-2">
                         @if($isImage)
                             <a href="{{ rtrim(asset('storage'), '/') }}/{{ $attachment['path'] }}" data-fancybox="task-{{ $group['task_id'] }}-attachments" data-caption="{{ $attachment['name'] ?? '' }}"
                                class="flex items-center gap-1.5 text-[11px] font-medium text-[var(--md-sys-color-primary)] truncate">

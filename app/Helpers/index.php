@@ -298,7 +298,7 @@ if (!function_exists('toJalali')) {
 
         try {
             if ($date instanceof CarbonInterface) {
-                return convertToPersian(Jalalian::fromCarbon($date)->format($format)) ?? '';
+                return convertToPersian(Jalalian::fromCarbon($date->copy()->setTimezone(config('app.timezone')))->format($format)) ?? '';
             }
 
             $dateString = str_replace('/', '-', (string)$date);
@@ -308,7 +308,7 @@ if (!function_exists('toJalali')) {
                 return convertToPersian($dateString) ?? $dateString;
             }
 
-            return convertToPersian(Jalalian::fromCarbon(Carbon::parse($dateString))->format($format)) ?? '';
+            return convertToPersian(Jalalian::fromCarbon(Carbon::parse($dateString)->setTimezone(config('app.timezone')))->format($format)) ?? '';
         } catch (\Throwable $e) {
             return '';
         }

@@ -20,14 +20,14 @@
 
     <div
         x-ref="timeline"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-4 md:px-12 relative"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-1 md:px-12 relative"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
         <x-ui.modals.max-backdrop state="maximizedFeed" close="toggleMaximize(null)" class="max-backdrop--sync"/>
 
         <div
             x-ref="feedContainer"
-            class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-6 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
+            class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-4 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
             :class="showTimeline ? 'md:gap-18 md:py-16' : 'md:gap-12 md:py-8 md:p-4'"
         >
             @foreach($this->feeds as $feed)
@@ -36,10 +36,10 @@
                     data-feed-id="{{ $feed->id }}"
                     data-feed="{{ $feed->id }}"
                     x-show="!month || month === @js(toJalali($feed->created_at, 'F Y'))"
-                    class="shrink-0 w-full max-w-md h-full md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
+                    class="shrink-0 w-full max-w-md h-full max-md:h-auto md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'scale-100 md:scale-[1.08]': activeId == {{ $feed->id }},
-                        'scale-95 opacity-100': activeId != {{ $feed->id }},
+                        'md:scale-95 opacity-100': activeId != {{ $feed->id }},
                         'max-widget-column !opacity-100': maximizedFeed === feed($el)
                     }"
                 >

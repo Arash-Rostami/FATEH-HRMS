@@ -193,6 +193,11 @@ export default function menu(options = {}) {
             return this.allVisibleItems;
         },
 
+        get searchEl() {
+            const mobile = this.$refs.searchInputMobile;
+            return mobile && mobile.offsetParent !== null ? mobile : this.$refs.searchInput;
+        },
+
         get notifiedCount() {
             let count = 0;
             const items = this.items;
@@ -410,7 +415,7 @@ export default function menu(options = {}) {
         handleGlobalKeydown(e) {
             if (!this.menuOpen) return;
 
-            const input = this.$refs.searchInput;
+            const input = this.searchEl;
             const inSearch = document.activeElement === input;
             const key = e.key;
 
@@ -436,7 +441,7 @@ export default function menu(options = {}) {
                 e.preventDefault();
                 this.search = key;
                 this.$nextTick(() => {
-                    if (this.$refs.searchInput) this.$refs.searchInput.focus();
+                    if (this.searchEl) this.searchEl.focus();
                 });
                 return;
             }

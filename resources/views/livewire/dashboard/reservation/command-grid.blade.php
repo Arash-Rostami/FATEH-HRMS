@@ -1,7 +1,7 @@
 <div>
     <x-ui.modals.max-backdrop/>
 
-    <div :class="{ 'max-widget': max }">
+    <div :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
         <div class="mb-4 flex items-center gap-2">
             <div class="flex-1">
                 <x-ui.forms.filters
@@ -55,25 +55,25 @@
         >
             <x-slot:head>
                 <tr>
-                    <th data-col="resource" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
+                    <th data-col="resource" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
                         <div class="flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">meeting_room</span>
                             <span>منبع</span>
                         </div>
                     </th>
-                    <th data-col="time" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">
+                    <th data-col="time" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
                         <div class="flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">calendar_today</span>
                             <span>زمان</span>
                         </div>
                     </th>
-                    <th data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold">
+                    <th data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">
                         <div class="flex items-center justify-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">info</span>
                             <span>وضعیت</span>
                         </div>
                     </th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
                         @php($gridColumns = ['resource' => 'منبع', 'time' => 'زمان', 'status' => 'وضعیت'])
                         <div class="flex items-center justify-end w-full gap-1">
                             <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="null"/>
@@ -97,7 +97,7 @@
             @forelse($this->gridReservations as $reservation)
                 <tr wire:key="command-grid-row-{{ $reservation->id }}" data-rf="reservation-{{ $reservation->id }}" class="group relative isolate transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-low)]">
 
-                    <td data-col="resource" class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 align-middle">
+                    <td data-col="resource" class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 align-middle">
                         <div class="absolute inset-0 -z-10 pointer-events-none transition-colors duration-200"
                              :style="{ 'background-color': $store.tagged.tagBg(@js($reservation->id), @js('reservation')) }"></div>
                         <div class="flex items-center gap-3">
@@ -114,7 +114,7 @@
                         </div>
                     </td>
 
-                    <td data-col="time" class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 align-middle text-[12px] text-[var(--md-sys-color-on-surface-variant)]">
+                    <td data-col="time" class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 align-middle text-[12px] text-[var(--md-sys-color-on-surface-variant)]">
                         {{ $reservation->display_time }}
                         @if(($reservation->series_count ?? 1) > 1)
                             <span wire:key="grid-series-count" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] text-[9px] font-bold ms-1">
@@ -123,7 +123,7 @@
                         @endif
                     </td>
 
-                    <td data-col="status" class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 align-middle text-center">
+                    <td data-col="status" class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 align-middle text-center">
                         @if($reservation->history_bucket === 'upcoming')
                             <span wire:key="grid-status-upcoming" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">
                                 <span class="material-symbols-rounded text-[14px]">event_upcoming</span>پیش‌رو
@@ -153,13 +153,13 @@
                         @endif
                     </td>
 
-                    <td class="relative border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                    <td class="relative border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                         <div class="reservation-action-cluster absolute left-2 top-0.5 z-20 flex items-center gap-1">
                             <div x-data="{ tagOpen: false }" class="relative shrink-0" x-on:click.away="tagOpen = false">
                                 <button
                                     type="button"
                                     x-on:click.stop="tagOpen = !tagOpen"
-                                    :class="$store.tagged.isTagged(@js($reservation->id), @js('reservation')) ? '!opacity-100' : 'opacity-0 group-hover:opacity-100'"
+                                    :class="$store.tagged.isTagged(@js($reservation->id), @js('reservation')) ? '!opacity-100' : 'max-sm:opacity-100 opacity-0 group-hover:opacity-100'"
                                     class="w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                                     title="رنگ‌آمیزی رزرو"
                                     aria-label="رنگ‌آمیزی رزرو"
@@ -201,7 +201,7 @@
                             <button
                                 type="button"
                                 x-on:click.stop="$store.pinned.togglePin({{ $reservation->id }}, 'reservation'); $wire.set('gridPinned', $store.pinned.getPinned('reservation'))"
-                                :class="$store.pinned.isPinned({{ $reservation->id }}, 'reservation') ? '!opacity-100 text-[var(--md-sys-color-tertiary)]' : 'opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-on-surface-variant)]'"
+                                :class="$store.pinned.isPinned({{ $reservation->id }}, 'reservation') ? '!opacity-100 text-[var(--md-sys-color-tertiary)]' : 'max-sm:opacity-100 opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-on-surface-variant)]'"
                                 class="w-6 h-6 p-0 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                                 title="سنجاق کردن رزرو"
                                 aria-label="سنجاق کردن رزرو"

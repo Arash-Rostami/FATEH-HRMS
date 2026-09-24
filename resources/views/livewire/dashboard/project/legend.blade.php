@@ -89,6 +89,7 @@
         'روی کارت‌های برد وظایف این پروژه، تب «دیتای سفارشی» مودال وظیفه همیشه فعال است: اگر پروژه فیلدهایی با برچسب تعریف کرده باشد همان‌ها ظاهر می‌شوند، وگرنه — روی هر وظیفه‌ای — کلید/مقدار آزاد می‌نویسید؛ کلید فقط حروف کوچک انگلیسی، رقم و زیرخط می‌پذیرد.',
         'وظیفهٔ انجام‌شده و تأییدشدهٔ این پروژه که مدتی (پیش‌فرض ۴۵ روز) از تأییدش بگذرد، خودکار شبانه آرشیو می‌شود و از برد این پروژه پنهان می‌شود؛ عددِ کنار آیکون آرشیو در سرستونِ «انجام‌شده» همیشه تعداد این موارد را نشان می‌دهد (حتی صفر). با «مشاهده و بازگردانی» زیر همان راهنما، فهرست وظایف آرشیوشدهٔ همین پروژه را می‌بینید و ایجادکنندهٔ هر وظیفه می‌تواند همان‌جا آن را از آرشیو خارج کند؛ سایرین فقط عنوان و تاریخ آرشیو را می‌بینند.',
         'دکمهٔ بلندگو در سربرگ فهرست پروژه‌ها، همهٔ پروژه‌ها را یک‌جا بی‌صدا یا باصدا می‌کند — مثل بی‌صداکردن تکی هر پروژه (با نگه‌داشتن اشاره‌گر روی آن)، فقط در همین مرورگر ذخیره می‌شود.',
+        'در نمایشگرهای کوچک (موبایل) بخش‌های فرعی سربرگ — نام و کپی لینک پروژه، مالک، شمارندهٔ اعضا، نشان‌های هشدار و ویرایش — حذف یا به منوی سه‌نقطه‌ای کنار سربرگ منتقل می‌شوند؛ دکمهٔ تمام‌صفحه پس از فعال‌شدن خودش از منو بیرون می‌آید. برگه‌هایی هم که در نوار جا نمی‌شوند زیر همان سه‌نقطه‌ی نوار برگه‌ها پیدا می‌شوند.',
     ];
 
     $chipClasses = fn($c) => match ($c) {
@@ -127,7 +128,7 @@
 
     $notesGroups = [
         ['id' => 'invite', 'icon' => 'person', 'label' => 'حریم و دعوت', 'rows' => [$notes[0], $notes[2]]],
-        ['id' => 'header', 'icon' => 'badge', 'label' => 'سربرگ و فهرست', 'rows' => [$notes[1], $notes[4], $notes[5], $notes[10]]],
+        ['id' => 'header', 'icon' => 'badge', 'label' => 'سربرگ و فهرست', 'rows' => [$notes[1], $notes[4], $notes[5], $notes[10], $notes[11]]],
         ['id' => 'tabs', 'icon' => 'forum', 'label' => 'برگه‌ها و گفتگو', 'rows' => [$notes[3], $notes[6], $notes[7]]],
         ['id' => 'tasks', 'icon' => 'task_alt', 'label' => 'وظایف و آرشیو', 'rows' => [$notes[8], $notes[9]]],
     ];
@@ -137,12 +138,13 @@
     <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $tab)
             <button type="button" @click="tab = '{{ $tab['id'] }}'@if(!empty($tab['sub'])) ; sub = '{{ $tab['sub'] }}'@endif"
+                    title="{{ $tab['label'] }}"
                     :class="tab === '{{ $tab['id'] }}'
                         ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
                         : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
                     class="flex-1 flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 rounded-xl text-[11px] font-bold transition-all duration-200">
                 <span class="material-symbols-rounded text-[18px]">{{ $tab['icon'] }}</span>
-                <span class="leading-tight text-center">{{ $tab['label'] }}</span>
+                <span class="hidden sm:block leading-tight text-center">{{ $tab['label'] }}</span>
             </button>
         @endforeach
     </div>
@@ -156,7 +158,7 @@
                                 :class="sub === '{{ $g['id'] }}'
                                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
                                     : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
-                                class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all duration-200">
+                                class="flex-1 flex items-center justify-center gap-1.5 px-1.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200">
                             <span class="material-symbols-rounded text-[17px]">{{ $g['icon'] }}</span>
                             {{ $g['label'] }}
                         </button>
@@ -185,7 +187,7 @@
                                 :class="sub === '{{ $g['id'] }}'
                                     ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md'
                                     : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60'"
-                                class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-bold transition-all duration-200">
+                                class="flex-1 flex items-center justify-center gap-1.5 px-1.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-[13px] font-bold transition-all duration-200">
                             <span class="material-symbols-rounded text-[17px]">{{ $g['icon'] }}</span>
                             {{ $g['label'] }}
                         </button>

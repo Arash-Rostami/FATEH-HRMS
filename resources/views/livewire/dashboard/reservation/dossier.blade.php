@@ -9,7 +9,7 @@
             <x-ui.empty icon="search_off" title="هیچ موردی یافت نشد" description="برای تاریخ و فیلترهای انتخاب شده، هیچ موردی جهت رزرو وجود ندارد. لطفاً تاریخ دیگری را امتحان کنید." variant="list" watermark="event_busy" />
         </div>
     @else
-        <div id="reservation-dossier-stage" wire:key="reservation-dossier-stage" class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-start">
+        <div id="reservation-dossier-stage" wire:key="reservation-dossier-stage" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-start">
             @foreach($this->resources as $resource)
                 @php($isBlocked = $this->bookingBlockReason !== null)
                 @php($hero = $resource->metadata['capacity'] ?? $resource->metadata['floor'] ?? null)

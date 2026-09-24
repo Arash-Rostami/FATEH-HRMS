@@ -1,6 +1,6 @@
 <div
     data-rf="feeds-{{ $feed->id }}"
-    class="flex flex-col h-full bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
+    class="flex flex-col h-full max-md:h-auto bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 relative group transition-all duration-300"
     :class="{
         'shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] ring-1 ring-[var(--md-sys-color-primary)]/30': activeId == {{ $feed->id }}
     }"
@@ -16,7 +16,7 @@
 
     @include('livewire.dashboard.tab.feeds.header', ['feed' => $feed])
 
-    <div class="flex-1 overflow-y-auto scrollbar-hover-reveal p-5 md:p-6 space-y-5 pb-6">
+    <div class="flex-1 overflow-y-auto max-md:overflow-y-visible scrollbar-hover-reveal p-5 md:p-6 space-y-5 pb-6">
         @if(!empty($feed?->media_paths))
             <div class="rounded-xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/10 bg-[var(--md-sys-color-surface-variant)] shadow-sm">
                 @include('livewire.dashboard.tab.feeds.media', ['media' => $feed->media_urls])

@@ -1,7 +1,7 @@
 @php
     $patterns = ['mesh' => 'پیش‌فرض', 'doodle' => 'آیکون‌دار', 'twill' => 'دیاموند', 'lattice' => 'شبکه', 'motif' => 'نگاره'];
 @endphp
-<div x-data="{ open: false, pos: {} }">
+<div x-data="{ open: false, pos: {} }" class="hidden md:block" x-on:open-pattern.window="pos = $event.detail; open = true">
     <button type="button" x-ref="patternTrigger"
             x-on:click="pos = $refs.patternTrigger.getBoundingClientRect().toJSON(); open = !open"
             aria-label="پیش زمینه چت" title="پیش زمینه چت"

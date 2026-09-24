@@ -295,12 +295,13 @@
             </ul>
 
             @if($isReadOnly)
-                <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]" x-show="existingAttachments.length === 0">
+                <p wire:key="taskboard-checklist-attachments-empty" class="text-xs text-[var(--md-sys-color-on-surface-variant)]" x-show="existingAttachments.length === 0">
                     پیوستی ثبت نشده است.
                 </p>
             @endif
 
             @unless($isReadOnly)
+                <div wire:key="taskboard-checklist-upload" class="contents">
                 <input type="file"
                        multiple
                        wire:model="form.attachments"
@@ -339,6 +340,7 @@
                     </div>
                     @enderror
                 @endforeach
+                </div>
             @endunless
         </div>
     </div>

@@ -42,7 +42,7 @@
         <livewire:dashboard.messaging.switch-tabs active="contacts"/>
 
         <x-ui.modals.max-backdrop/>
-        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max }">
+        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
 
             @island(name: 'sidebar')
                 @include('livewire.dashboard.contact.sidebar')
@@ -53,7 +53,7 @@
                             'hidden' => !$mobileShowChat,
                             'flex' => $mobileShowChat,
                             'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
-                        ])>
+                        ]) x-bind:class="{ 'hidden': !$wire.mobileShowChat, 'flex': $wire.mobileShowChat }">
                     @if($this->activeContact)
                         <div wire:key="pane-active" class="contents">
                             @include('livewire.dashboard.contact.header')

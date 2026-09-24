@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ProjectResource\Schemas;
 
-use App\Services\ProjectTask\ReportingService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
@@ -67,7 +66,7 @@ class ProjectTablePresenter
     {
         return TextColumn::make('progress')
             ->label(__('resources/project/strings.fields.progress'))
-            ->getStateUsing(fn($record) => app(ReportingService::class)->summary($record->id, 0)['percent'] . '٪')
+            ->getStateUsing(fn($record) => ($record->tasks_count > 0 ? round($record->done_tasks_count / $record->tasks_count * 100, 1) : 0.0) . '٪')
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

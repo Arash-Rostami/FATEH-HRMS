@@ -1,5 +1,5 @@
 <div
-    class="animate-fade h-full w-full max-w-[88rem] mx-auto max-h-[calc(100svh-8rem)] lg:max-h-[calc(100svh-6rem)] relative overflow-hidden flex flex-col gap-6"
+    class="animate-fade w-full max-w-[88rem] mx-auto relative flex flex-col gap-6 lg:h-full lg:max-h-[calc(100svh-6rem)] lg:overflow-hidden"
     dir="rtl"
     x-data="share()"
     wire:ignore.self
@@ -39,12 +39,12 @@
     @include('components.dashboard.header.focus-chip')
 
 
-    <div class="flex-1 w-full relative overflow-hidden flex flex-col gap-6">
+    <div class="w-full relative flex flex-col gap-6 lg:flex-1 lg:overflow-hidden">
         <div x-show="view === 'card'" x-cloak
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="flex-1 w-full relative overflow-hidden flex flex-col lg:flex-row gap-6">
+             class="w-full relative flex flex-col lg:flex-row gap-6 lg:flex-1 lg:overflow-hidden">
             @include('livewire.dashboard.tab.posts.pinned')
 
             @include('livewire.dashboard.tab.posts.grid')
@@ -54,7 +54,7 @@
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="flex-1 w-full overflow-hidden">
+             class="w-full lg:flex-1 lg:overflow-hidden">
             @include('livewire.dashboard.tab.posts.list')
         </div>
 

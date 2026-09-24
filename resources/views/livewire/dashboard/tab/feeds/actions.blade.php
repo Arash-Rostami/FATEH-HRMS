@@ -9,7 +9,7 @@
         <span class="text-xs font-semibold leading-none">{{ convertToPersian($feed->reactions->count()) }}</span>
     </div>
 
-    <div class="flex items-center gap-0.5 py-1 overflow-visible"
+    <div class="flex flex-wrap items-center gap-0.5 py-1 overflow-visible"
          wire:key="reaction-strip-{{ $feed->id }}-{{ $selectedEmoji }}"
          x-data="feedReactions({{ $feed->id }}, '{{ $selectedEmoji }}')">
 

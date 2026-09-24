@@ -206,7 +206,7 @@
         @endif
     </div>
 
-    <div wire:loading.remove wire:target="loadKanbanBoard" class="flex flex-col md:flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 snap-x snap-mandatory md:snap-none">
+    <div wire:loading.remove wire:target="loadKanbanBoard" class="flex flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 snap-x snap-mandatory md:snap-none">
         @foreach(['todo', 'in-progress', 'pending', 'done'] as $column)
             <div class="snap-center shrink-0 w-full sm:w-[calc(100%-2rem)] md:w-1/4 md:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-0 max-w-full">
                 @php
@@ -221,7 +221,7 @@
                      :class="{ 'bg-[var(--md-sys-color-primary-container)]/10 !border-dashed !border-[var(--md-sys-color-primary)]': dragTask }"
                      wire:loading.class="opacity-60 pointer-events-none"
                      wire:target="reorderTask,updateTaskStatus"
-                     class="flex flex-col flex-1 min-w-[240px] min-h-[240px] max-h-[calc(100vh-360px)] p-2.5 transition-all duration-300 border shadow-sm sm:min-w-[280px] md:min-w-0 md:p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)]/40">
+                     class="flex flex-col flex-1 min-w-[240px] min-h-[240px] md:max-h-[calc(100dvh-360px)] p-2.5 transition-all duration-300 border shadow-sm sm:min-w-[280px] md:min-w-0 md:p-3 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)]/40">
 
                     <div class="flex items-center justify-between w-full gap-2 pb-2.5 border-b border-[var(--md-sys-color-outline-variant)]/40">
                         <div class="flex items-center gap-2">
@@ -292,11 +292,13 @@
                         @endif
                     </div>
 
-                    <div class="flex flex-col flex-1 gap-2 p-1.5 mt-2.5 min-h-0 overflow-x-hidden overflow-y-auto scroll-smooth rounded-[14px] taskboard-column-list container-scrollbar custom-scrollbar">
+                    <div class="flex flex-col flex-1 gap-2 p-1.5 mt-2.5 min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth rounded-[14px] taskboard-column-list container-scrollbar custom-scrollbar">
                         @forelse($columnTasks as $task)
                             @include('livewire.dashboard.taskboard.card', ['task' => $task, 'column' => $column, 'isPersonalBoard' => false, 'presenter' => $this->taskBoardPresenter, 'dmsPresenter' => $this->dmsPresenter])
                         @empty
-                            <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" variant="list" />
+                            <div wire:key="project-kanban-empty" class="contents">
+                                <x-ui.empty icon="inbox" title="هیچ موردی وجود ندارد" variant="list" />
+                            </div>
                         @endforelse
 
                         <div x-show="dragTask"

@@ -40,7 +40,7 @@ trait BuildsMessageGroups
             $next = $i < $total - 1 ? $messages[$i + 1] : null;
             $isFirst = !$prev || (int)($prev['sender_id'] ?? 0) !== $senderId;
             $isLast = !$next || (int)($next['sender_id'] ?? 0) !== $senderId;
-            $createdAt = Carbon::parse($msg['created_at'] ?? now());
+            $createdAt = Carbon::parse($msg['created_at'] ?? now())->setTimezone(config('app.timezone'));
 
             $readers = [];
             $readCount = 0;

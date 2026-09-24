@@ -21,12 +21,12 @@
 
     <div
         x-ref="timeline"
-        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-4 md:px-12 z-10"
+        class="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide w-full h-full items-center gap-4 px-1 md:px-12 z-10"
         style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
     >
         <div
             x-ref="galleryContainer"
-            class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-6 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
+            class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible md:overflow-x-visible md:snap-x md:snap-mandatory gap-4 scrollbar-hide items-center md:items-stretch transition-all duration-500 ease-in-out"
             :class="showTimeline ? 'md:gap-18 md:py-16' : 'md:gap-12 md:py-8 md:p-4'"
         >
             @foreach($this->photos as $photo)
@@ -37,7 +37,7 @@
                     class="shrink-0 w-full max-w-md h-[70vh] md:h-[80vh] md:w-[400px] snap-center transition-all duration-500 ease-out relative group"
                     :class="{
                         'z-30 scale-100 md:scale-[1.15]': activeId == {{ $photo->id }},
-                        'z-10 scale-95 opacity-100': activeId != {{ $photo->id }}
+                        'z-10 scale-95 max-md:scale-100 opacity-100': activeId != {{ $photo->id }}
                     }"
                 >
                     <div
@@ -63,7 +63,7 @@
                         @endif
                     </div>
 
-                    <div class="relative z-20 h-full w-full md:scale-[0.9]">
+                    <div class="relative z-20 h-full w-full md:scale-[0.9] max-md:flex max-md:flex-col max-md:justify-center max-md:translate-y-12">
                         @include('livewire.dashboard.tab.gallery.item', ['photo' => $photo])
                     </div>
                 </div>

@@ -1,7 +1,9 @@
 @props([
-    'activeTab' => 'home',
+    'activeTab' => null,
     'direction' => 'up'
 ])
+
+@php($navbarIsHome = request()->routeIs('dashboard') && request('tab', 'home') === 'home')
 
 <div x-data='menu({ canAdmin: @json(canAdmin()), disabledReservationTypes: @json(disabledReservationTypes()), menuState: @json($menuState) })'
      id="navbar"
@@ -11,6 +13,7 @@
 
     <nav x-cloak
          dir="rtl"
+         :class="$store.focus.active ? 'focus-dim' : ''"
          class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] px-3 lg:px-6 flex justify-between items-center h-16 border-b border-[var(--md-sys-color-on-primary)]/10 shrink-0">
 
         {{-- Menu Modal --}}
@@ -18,7 +21,9 @@
 
         <div class="flex items-center gap-2 lg:gap-3">
             <x-dashboard.navbars.top.hamburger />
-            <x-dashboard.navbars.top.ai-assistant />
+            <div x-data="{ isHome: @json($navbarIsHome) }" x-on:tab-switched.window="isHome = $event.detail.tab === 'home'" :class="isHome ? '' : 'max-md:hidden'">
+                <x-dashboard.navbars.top.ai-assistant />
+            </div>
             <x-dashboard.navbars.top.home />
         </div>
         <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1"></div>

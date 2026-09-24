@@ -79,7 +79,7 @@
         @if($restoreFn)
             <button @click.stop="{{ $restoreFn }}" title="بزرگنمایی"
                     x-show="!({{ $alarm }})"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center
+                    class="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center
                            justify-center rounded-md w-[28px] h-[28px]
                            hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
                 <span class="material-symbols-rounded text-[18px]">open_in_full</span>
@@ -90,7 +90,7 @@
         @if($closeFn)
             <button @click.stop="{{ $closeFn }}" title="بستن"
                     x-show="!({{ $alarm }})"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center
+                    class="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center
                            justify-center rounded-md w-[28px] h-[28px]
                            hover:bg-red-500/10 hover:text-red-500 text-[var(--md-sys-color-outline)]">
                 <span class="material-symbols-rounded text-[18px]">close</span>

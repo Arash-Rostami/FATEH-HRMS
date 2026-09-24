@@ -58,7 +58,7 @@
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
-         class="w-full px-4 md:px-12 pb-8">
+         class="w-full md:px-12 pb-8">
 
         <section x-data="{ open: false }"
                  x-show="recent.length"

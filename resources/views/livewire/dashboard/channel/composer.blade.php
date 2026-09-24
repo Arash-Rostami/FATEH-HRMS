@@ -107,7 +107,7 @@
             <x-ui.buttons.form x-on:click.prevent="sendMessage"
                     wire:loading.attr="disabled" wire:target="send"
                     loading="send"
-                    class="flex-shrink-0 w-9 h-9 p-0 order-2 md:order-4 rounded-xl hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                    class="flex-shrink-0 w-9 h-9 p-0 order-3 md:order-4 rounded-xl hover:brightness-110 hover:-translate-y-0.5 disabled:hover:translate-y-0"
                     x-bind:class="($wire.composer.body && $wire.composer.body.length > 0) || $wire.composer.attachments.length > 0
                         ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
                         : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]'"
@@ -115,26 +115,62 @@
                 <span wire:loading.remove wire:target="send" class="material-symbols-rounded text-[18px] font-fill rotate-180">send</span>
             </x-ui.buttons.form>
 
-            <div class="basis-full h-0 order-3 md:hidden"></div>
-
             <button x-on:click.prevent="openMentionPicker()" type="button" aria-label="اشاره به کاربر"
-                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                 <span class="material-symbols-rounded text-[18px]" :class="mentionOpen ? 'text-[var(--md-sys-color-primary)]' : ''">alternate_email</span>
             </button>
 
             <button x-on:click="emojiOpen=!emojiOpen" type="button" aria-label="ایموجی"
-                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 ms-auto md:ms-0 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                    class="flex-shrink-0 w-8 h-8 order-4 md:order-2 ms-auto md:ms-0 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                 <span class="material-symbols-rounded text-[18px]"
                       :class="emojiOpen ? 'text-[var(--md-sys-color-primary)]' : ''"
                       x-text="emojiOpen ? 'sentiment_satisfied_alt' : 'sentiment_satisfied'"></span>
             </button>
 
             <label for="composer-cattachments" aria-label="افزودن فایل ضمیمه"
-                   class="flex-shrink-0 w-8 h-8 order-5 md:order-3 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 cursor-pointer bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                   class="flex-shrink-0 w-8 h-8 order-5 md:order-3 rounded-lg hidden md:flex items-center justify-center transition-all hover:brightness-95 active:scale-90 cursor-pointer bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                 <span class="material-symbols-rounded text-[18px]">attach_file</span>
             </label>
             <input id="composer-cattachments" type="file" multiple wire:model="composer.attachments" class="hidden"
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
+
+            <div x-data="{ open: false, pos: {} }">
+                <button type="button" x-ref="kebabTrigger"
+                        x-on:click="pos = $refs.kebabTrigger.getBoundingClientRect().toJSON(); open = !open"
+                        aria-label="ابزارهای بیشتر" title="ابزارهای بیشتر"
+                        class="md:hidden flex-shrink-0 w-8 h-8 order-2 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                    <span class="material-symbols-rounded text-[18px]">more_horiz</span>
+                </button>
+                <template x-teleport="body">
+                    <div x-show="open" x-cloak dir="rtl"
+                         x-on:click.away="if (!$refs.kebabTrigger?.contains($event.target)) open = false"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95 translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         :style="{ position: 'fixed', bottom: (window.innerHeight - pos.top + 8) + 'px', right: (window.innerWidth - pos.right) + 'px' }"
+                         class="p-1.5 rounded-xl z-40 bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
+                         role="menu" aria-label="ابزارهای بیشتر">
+                        <button type="button" x-on:click="open = false; openMentionPicker()"
+                                class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                            <span class="material-symbols-rounded text-[16px]">alternate_email</span>
+                            <span>اشاره به کاربر</span>
+                        </button>
+                        <button type="button" x-on:click="open = false; emojiOpen = !emojiOpen"
+                                class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                            <span class="material-symbols-rounded text-[16px]">sentiment_satisfied</span>
+                            <span>ایموجی</span>
+                        </button>
+                        <button type="button" x-on:click="open = false; document.getElementById('composer-cattachments').click()"
+                                class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                            <span class="material-symbols-rounded text-[16px]">attach_file</span>
+                            <span>افزودن فایل ضمیمه</span>
+                        </button>
+                    </div>
+                </template>
+            </div>
         </div>
 
         <p class="hidden md:grid grid-cols-3 items-center pb-2.5 px-4 text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" aria-hidden="true">

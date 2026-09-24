@@ -54,8 +54,7 @@ class TicketFormPresenter
             ->options(function (Get $get): array {
                 $dept = $get('extra.target_department');
                 return $dept
-                    ? User::whereHas('profile', fn($q) => $q->where('department_id', $dept))
-                        ->orderBy('name')->pluck('name', 'id')->toArray()
+                    ? User::getCachedDepartmentOptions($dept)->toArray()
                     : User::getCachedAllOptions()->toArray();
             })
             ->searchable()
@@ -188,7 +187,6 @@ class TicketFormPresenter
             ->required()
             ->disabledOn('edit')
             ->validatedWhenNotDehydrated(false)
-            ->live()
             ->helperText(__('resources/ths/strings.hints.request_area'));
     }
 

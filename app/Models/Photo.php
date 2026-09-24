@@ -61,7 +61,7 @@ class Photo extends Model
 
                 return Department::getCachedModels()->filter(fn($model, $code) => in_array($code, $codes, true))->values();
             }
-        );
+        )->shouldCache();
     }
 
     protected function allDepartments(): Attribute

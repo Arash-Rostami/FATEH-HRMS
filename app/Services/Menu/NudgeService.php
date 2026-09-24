@@ -4,6 +4,7 @@ namespace App\Services\Menu;
 
 use App\Jobs\ReconcileNudge;
 use App\Models\User;
+use App\Services\Cache\ModelCacheVersion;
 use App\Services\Menu\Contracts\MenuNudge;
 use Filament\Actions\Action;
 use Filament\Notifications\DatabaseNotification as FilamentDatabaseNotification;
@@ -79,6 +80,8 @@ class NudgeService
                 $show = $rule['show'];
                 $title = $rule['title'];
                 $body = $rule['body'];
+                $newRows = [];
+                $now = now();
 
                 foreach ($recipients as $user) {
                     if (!$show($subject, $user)) {
@@ -104,11 +107,21 @@ class NudgeService
                         continue;
                     }
 
-                    $user->notifications()->create([
+                    $newRows[] = [
                         'id' => (string)Str::uuid(),
                         'type' => FilamentDatabaseNotification::class,
-                        'data' => self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url']),
-                    ]);
+                        'notifiable_type' => User::class,
+                        'notifiable_id' => $user->id,
+                        'data' => json_encode(self::buildData($subject, $user, $title, $body, $ruleKey, $itemId, $rule['url'])),
+                        'read_at' => null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if ($newRows !== []) {
+                    DatabaseNotification::insert($newRows);
+                    ModelCacheVersion::bump(DatabaseNotification::class);
                 }
             });
         } catch (LockTimeoutException) {

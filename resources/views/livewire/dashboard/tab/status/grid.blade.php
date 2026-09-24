@@ -1,5 +1,5 @@
 <div class="@container w-full">
-    <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
+    <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
         @forelse($this->users as $user)
             @php
                 $d = $statusPresenter->gridData($user, $skillId);
@@ -96,7 +96,7 @@
                         @if($sms && !$obscured)
                             <button
                                 type="button"
-                                x-on:click.stop="$dispatch('open-sms-modal', { user: {{ \Illuminate\Support\Js::from($user->id) }} })"
+                                x-on:click.stop="$dispatch('toast', {message: 'ارسال پیامک به‌زودی فعال می‌شود', type: 'info'})"
                                 title="پیامک: {{ $sms }}"
                                 class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
                                        hover:text-[var(--md-sys-color-primary)]
@@ -116,13 +116,26 @@
                         @endif
 
                         @if($hasCall)
-                            <a href="tel:{{ $sms ?? $ext }}"
-                               x-on:click.stop
-                               title="تماس"
-                               class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
-                                      hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
-                                <span class="material-symbols-rounded text-[15px] block">call</span>
-                            </a>
+                            @if($sms)
+                                <a href="tel:{{ $sms }}"
+                                   wire:key="call-active-{{ $user->id }}"
+                                   x-on:click.stop
+                                   title="تماس"
+                                   class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
+                                          hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
+                                    <span class="material-symbols-rounded text-[15px] block">call</span>
+                                </a>
+                            @else
+                                <button
+                                    type="button"
+                                    wire:key="call-disabled-{{ $user->id }}"
+                                    x-on:click.stop="$dispatch('toast', {message: 'تماس با شمارهٔ داخلی به‌زودی فعال می‌شود', type: 'info'})"
+                                    title="تماس"
+                                    class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
+                                           hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
+                                    <span class="material-symbols-rounded text-[15px] block">call</span>
+                                </button>
+                            @endif
                         @endif
                     </div>
                 @else

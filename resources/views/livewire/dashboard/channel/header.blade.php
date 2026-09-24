@@ -7,12 +7,12 @@
         && (int) $this->activeChannel->owner_id === (int) auth()->id();
 @endphp
 
-<header class="relative z-20 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 transition-all duration-300
+<header class="relative z-20 flex flex-shrink-0 items-center gap-2 md:gap-4 border-b px-3 md:px-5 py-3 transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
                shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
 
-    <button x-on:click="backToList()" aria-label="بازگشت"
+    <button x-on:click="backToList()" aria-label="بازگشت" x-show="!max"
             class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] active:scale-95 md:hidden">
         <span class="material-symbols-rounded text-base">arrow_forward</span>
     </button>
@@ -37,10 +37,10 @@
         </div>
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
             @if(!empty($header['slug_handle']))
-                <span class="truncate font-semibold text-[var(--md-sys-color-primary)]" dir="auto">{{ $header['slug_handle'] }}</span>
-                <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
+                <span class="hidden md:inline truncate font-semibold text-[var(--md-sys-color-primary)]" dir="auto">{{ $header['slug_handle'] }}</span>
+                <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <div class="relative" x-data="{ open: false }">
+            <div class="relative hidden md:block" x-data="{ open: false }">
                 <button type="button" x-on:click="open = !open" x-on:click.outside="open = false"
                         class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] inline-flex items-center gap-0.5 transition-colors" title="تعداد اعضا">
                     <span class="material-symbols-rounded text-[12px]" aria-hidden="true">group</span>{{ convertToPersian($header['members_count']) }}
@@ -68,7 +68,7 @@
                     @endforeach
                 </div>
             </div>
-            <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
+            <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             <span class="truncate font-medium inline-flex items-center gap-1.5 {{ count($this->typingMembers) ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
                   data-typing="{{ count($this->typingMembers) }}"
                   @if(count($this->typingMembers)) title="{{ implode('، ', $this->typingMembers) }}" @endif>
@@ -98,17 +98,31 @@
                         :aria-pressed="$store.sound.isMuted({{ $header['id'] }})"
                         :aria-label="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"
                         :title="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"
-                        class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                        class="hidden md:flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
                         :class="$store.sound.isMuted({{ $header['id'] }}) ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
                     <span class="material-symbols-rounded text-base" x-text="$store.sound.isMuted({{ $header['id'] }}) ? 'volume_off' : 'volume_up'"></span>
                 </button>
+            @endslot
+            @slot('overflow')
+                <button type="button" x-on:click="open = false; $store.sound.toggleMute({{ $header['id'] }})"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                    <span class="material-symbols-rounded text-[16px]" x-text="$store.sound.isMuted({{ $header['id'] }}) ? 'volume_off' : 'volume_up'"></span>
+                    <span x-text="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"></span>
+                </button>
+                @if(!$isOwner)
+                    <button type="button" x-on:click="open = false; leaveChannel({{ $header['id'] }})"
+                            class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                        <span class="material-symbols-rounded text-[16px]">logout</span>
+                        <span>خروج از گروه</span>
+                    </button>
+                @endif
             @endslot
         @endcomponent
 
         @if(!$isOwner)
             <button x-on:click="leaveChannel({{ $header['id'] }})"
                     aria-label="خروج از گروه" title="خروج از گروه"
-                    class="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
+                    class="hidden md:flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
                 <span class="material-symbols-rounded text-base">logout</span>
             </button>
         @endif

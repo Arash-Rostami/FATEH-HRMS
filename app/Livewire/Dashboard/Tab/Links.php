@@ -24,6 +24,9 @@ class Links extends Component
     #[Locked]
     public string $view = 'rail';
 
+    #[Locked]
+    public string $mobileSection = 'internal';
+
     #[Computed]
     public function externalLinks()
     {
@@ -102,6 +105,15 @@ class Links extends Component
 
         $this->view = $view;
         session(['links_view_mode' => $view]);
+    }
+
+    public function switchTab(string $tab): void
+    {
+        if (!in_array($tab, ['internal', 'external'], true)) {
+            return;
+        }
+
+        $this->mobileSection = $tab;
     }
 
     public function updatedSearch(): void

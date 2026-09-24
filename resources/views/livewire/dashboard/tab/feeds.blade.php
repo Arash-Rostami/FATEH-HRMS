@@ -4,7 +4,6 @@
     @confirmation-confirmed.window="$wire.dispatch($event.detail.method, {commentId: $event.detail.params})"
     @keydown.escape.window="maximizedFeed && toggleMaximize(null)"
     class="animate-fade"
-    max-height="max-h-[calc(100svh-8rem)] lg:max-h-[calc(100svh-6rem)]"
     gap="gap-0"
     dir="rtl"
 >

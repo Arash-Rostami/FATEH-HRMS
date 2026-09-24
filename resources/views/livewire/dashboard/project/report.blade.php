@@ -18,22 +18,22 @@
             <table class="min-w-full text-sm text-right whitespace-nowrap lg:whitespace-normal">
                 <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs border-b border-[var(--md-sys-color-outline-variant)]">
                     <tr>
-                        <th class="px-6 py-4"></th>
-                        <th class="px-6 py-4">عنوان</th>
-                        <th class="px-6 py-4 hidden lg:table-cell">دپارتمان</th>
-                        <th class="px-6 py-4 hidden md:table-cell">مسئول</th>
-                        <th class="px-6 py-4">وضعیت</th>
+                        <th class="px-3 md:px-6 py-4"></th>
+                        <th class="px-3 md:px-6 py-4">عنوان</th>
+                        <th class="px-3 md:px-6 py-4 hidden lg:table-cell">دپارتمان</th>
+                        <th class="px-3 md:px-6 py-4 hidden md:table-cell">مسئول</th>
+                        <th class="px-3 md:px-6 py-4">وضعیت</th>
                         @include('livewire.dashboard.project.report.sort-th', ['field' => 'priority', 'label' => 'اولویت'])
                         @include('livewire.dashboard.project.report.sort-th', ['field' => 'deadline', 'label' => 'مهلت'])
                         @include('livewire.dashboard.project.report.sort-th', ['field' => 'last_activity_at', 'label' => 'آخرین فعالیت'])
-                        <th class="px-6 py-4 hidden md:table-cell">پیشرفت</th>
-                        <th class="px-6 py-4 text-center">شاخص‌ها</th>
+                        <th class="px-3 md:px-6 py-4 hidden md:table-cell">پیشرفت</th>
+                        <th class="px-3 md:px-6 py-4 text-center">شاخص‌ها</th>
                     </tr>
                 </thead>
                 <tbody x-data="{ expanded: null }" @keydown.escape.window="expanded = null" wire:loading.class="opacity-60 pointer-events-none" class="divide-y divide-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
                     @forelse($groupedReportRows as $deptKey => $rowsInGroup)
                     <tr class="bg-[var(--md-sys-color-surface-container-low)]">
-                        <td colspan="10" class="px-6 py-2 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                        <td colspan="10" class="px-3 md:px-6 py-2 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                             {{ $deptKey === '' ? 'بدون دپارتمان' : ($rowsInGroup->first()['department_label'] ?? $deptKey) }}
                             <span class="opacity-60 font-normal">({{ convertToPersian($rowsInGroup->count()) }})</span>
                         </td>
@@ -41,21 +41,21 @@
                     @foreach($rowsInGroup as $row)
                         @php($rf = $projectPresenter->reportRowFlag($row))
                         <tr wire:key="report-row-{{ $row['id'] }}" @click="expanded = (expanded === {{ $row['id'] }} ? null : {{ $row['id'] }})" :class="{ 'bg-[var(--md-sys-color-primary)]/[0.06]': expanded === {{ $row['id'] }} }" class="hover:bg-[var(--md-sys-color-primary)]/[0.03] transition-colors cursor-pointer">
-                            <td class="px-6 py-4">
+                            <td class="px-3 md:px-6 py-4">
                                 <button type="button" tabindex="0" @click.stop="expanded = (expanded === {{ $row['id'] }} ? null : {{ $row['id'] }})" @keydown.enter.prevent="expanded = (expanded === {{ $row['id'] }} ? null : {{ $row['id'] }})" @keydown.space.prevent="expanded = (expanded === {{ $row['id'] }} ? null : {{ $row['id'] }})" :aria-expanded="expanded === {{ $row['id'] }}" class="flex items-center justify-center w-6 h-6 rounded-lg hover:bg-[var(--md-sys-color-primary-container)]/40 transition-colors">
                                     <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-surface-variant)] transition-transform duration-200" :class="expanded === {{ $row['id'] }} ? 'rotate-90' : ''">chevron_left</span>
                                 </button>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-3 md:px-6 py-4">
                                 <div class="flex items-center gap-1">
                                     <a href="{{ route('tasks', ['open' => $row['id']]) }}" wire:navigate dir="auto" @click.stop class="hover:text-[var(--md-sys-color-primary)] hover:underline transition-colors">{{ superClean($row['title']) }}</a>
                                     <x-ui.buttons.copy :text="route('tasks', ['open' => $row['id']])" message="لینک وظیفه کپی شد" @click.stop class="!w-6 !h-6 !p-0"/>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 hidden lg:table-cell">{{ $row['department_label'] ?? '—' }}</td>
-                            <td class="px-6 py-4 hidden md:table-cell">{{ $row['assignee_name'] ?? '—' }}</td>
-                            <td class="px-6 py-4"><x-ui.decor.status-pill :state="$presenter->columnState($row['status'])"/></td>
-                            <td class="px-6 py-4">
+                            <td class="px-3 md:px-6 py-4 hidden lg:table-cell">{{ $row['department_label'] ?? '—' }}</td>
+                            <td class="px-3 md:px-6 py-4 hidden md:table-cell">{{ $row['assignee_name'] ?? '—' }}</td>
+                            <td class="px-3 md:px-6 py-4"><x-ui.decor.status-pill :state="$presenter->columnState($row['status'])"/></td>
+                            <td class="px-3 md:px-6 py-4">
                                 @php($chip = $presenter->priorityChip($row['priority'] ?? null))
                                 @if($chip)
                                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $chip['class'] }}">
@@ -66,7 +66,7 @@
                                     —
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-3 md:px-6 py-4">
                                 @if($row['deadline'])
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]
                                         @if($rf['overdue']) bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]
@@ -80,11 +80,11 @@
                                     —
                                 @endif
                             </td>
-                            <td class="px-6 py-4 hidden md:table-cell">{{ $row['last_activity_at'] ? toJalaliSmart($row['last_activity_at']) : '—' }}</td>
-                            <td class="px-6 py-4 hidden md:table-cell">
+                            <td class="px-3 md:px-6 py-4 hidden md:table-cell">{{ $row['last_activity_at'] ? toJalaliSmart($row['last_activity_at']) : '—' }}</td>
+                            <td class="px-3 md:px-6 py-4 hidden md:table-cell">
                                 <x-ui.decor.progress-ring :percent="$row['progress_percent']" :size="30" :stroke="4" :color="$row['progress_percent'] >= 100 ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-primary)'"/>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-3 md:px-6 py-4">
                                 <div class="flex items-center justify-center gap-2 text-[14px]">
                                     @if(($row['replies_count'] ?? 0) > 0)
                                         <span class="inline-flex items-center gap-0.5 text-[var(--tool-sapphire-text)]" title="{{ $row['replies_count'] }} پاسخ">
@@ -116,14 +116,14 @@
                         </tr>
                         <tr wire:key="report-detail-{{ $row['id'] }}" x-show="expanded === {{ $row['id'] }}" x-cloak x-transition class="bg-[var(--md-sys-color-surface-container-lowest)]">
                             <td colspan="10" class="p-0">
-                                <div class="px-6 py-5 ring-1 ring-inset ring-[var(--md-sys-color-primary)]/15 animate-bubble-in">
+                                <div class="px-3 md:px-6 py-5 ring-1 ring-inset ring-[var(--md-sys-color-primary)]/15 animate-bubble-in">
                                     @include('livewire.dashboard.project.report.detail', ['row' => $row])
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                     @empty
-                        <tr><td colspan="10" class="px-6 py-12">
+                        <tr><td colspan="10" class="px-3 md:px-6 py-12">
                             @if($anyFilter)
                                 <x-ui.empty icon="filter_alt_off" title="نتیجه‌ای یافت نشد" variant="list" description="با فیلتر فعلی نتیجه‌ای پیدا نشد. فیلترها را پاک کنید."/>
                                 <div class="flex justify-center mt-3">

@@ -55,13 +55,13 @@
 
 
         <div
-            class="spotlight-strip flex flex-col md:flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 pt-2 snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0"
+            class="spotlight-strip flex flex-row flex-1 min-h-0 items-start overflow-x-auto gap-3 md:gap-4 pb-2 pt-2 snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0"
             :class="{ 'is-spotlight-on': spotlightColumn }">
             @foreach($columns as $column)
                 <div
                     class="spotlight-item snap-center shrink-0 w-full sm:w-[calc(100%-2rem)] md:w-1/3 md:flex-1 min-w-[280px] sm:min-w-[320px] md:min-w-0 max-w-full md:max-w-md"
                     :class="{ 'is-spotlight': spotlightColumn === @js($column) }">
-                    @include('livewire.dashboard.taskboard.column', ['column' => $column])
+                    @include('livewire.dashboard.taskboard.column', ['column' => $column, 'colIndex' => $loop->index + 1, 'colTotal' => count($columns)])
                 </div>
             @endforeach
         </div>

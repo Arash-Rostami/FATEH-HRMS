@@ -15,7 +15,7 @@
 @endphp
 
 <div x-data="status()">
-    <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+    <div class="flex flex-wrap gap-y-1 p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $t)
             @continue(!$showFilterHint && $t['id'] === 'notes')
             <button

@@ -1,5 +1,6 @@
 <div class="space-y-5">
     @if($this->ticket)
+        <div wire:key="ths-workspace-ticket" class="contents">
         <div class="flex items-center justify-end">
             <x-dashboard.reminder-trigger :for="$this->ticket"/>
         </div>
@@ -18,7 +19,7 @@
 
             @if($this->canAssign)
                 @php($selectedAssignee = $this->assignableUsers->firstWhere('id', (int) $assigneeId))
-                <div class="mr-auto flex items-center gap-2">
+                <div wire:key="ths-workspace-assign" class="mr-auto flex items-center gap-2">
                     <div x-data="{ open: false }" class="relative">
                         <button type="button"
                                 x-on:click="open = !open"
@@ -31,7 +32,7 @@
                                                      :alt="$selectedAssignee->name" icon-size="text-xs" class="rounded-lg"/>
                                     </div>
                                     @if($selectedAssignee->presence)
-                                        <span class="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $selectedAssignee->presence->activeClass() }}"></span>
+                                        <span wire:key="ths-assignee-presence" class="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $selectedAssignee->presence->activeClass() }}"></span>
                                     @endif
                                 </div>
                             @endif
@@ -54,7 +55,7 @@
                                                                  :alt="$candidate->name" icon-size="text-xs" class="rounded-lg"/>
                                                 </div>
                                                 @if($candidate->presence)
-                                                    <span class="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $candidate->presence->activeClass() }}"></span>
+                                                    <span wire:key="ths-candidate-presence" class="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $candidate->presence->activeClass() }}"></span>
                                                 @endif
                                             </div>
                                             <span class="truncate">{{ $candidate->name }}</span>
@@ -74,14 +75,14 @@
 
         {{-- Effectiveness card --}}
         @if($this->canSetEffectiveness || $this->ticket->effectiveness)
-            <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
+            <div wire:key="ths-workspace-effectiveness" class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
                 <h5 class="text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] mb-3 flex items-center gap-1.5">
                     <span class="material-symbols-rounded text-[16px]">insights</span>
                     اثربخشی اقدام
                 </h5>
 
                 @if($this->canSetEffectiveness)
-                    <div class="flex flex-wrap gap-2">
+                    <div wire:key="ths-workspace-effect-form" class="flex flex-wrap gap-2">
                         @foreach(['5' => 'بسیار مؤثر', '4' => 'مؤثر', '3' => 'خنثی', '2' => 'کم‌اثر', '1' => 'بی‌اثر'] as $value => $label)
                             <x-ui.buttons.form type="button" wire:click="setEffectiveness('{{ $value }}')" loading="setEffectiveness('{{ $value }}')"
                                     @class([
@@ -94,11 +95,11 @@
                         @endforeach
                     </div>
                 @elseif($this->ticket->effectiveness)
-                    <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
+                    <p wire:key="ths-workspace-effect-set" class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">
                         {{ ['5' => '★★★★★ — بسیار مؤثر', '4' => '★★★★☆ — مؤثر', '3' => '★★★☆☆ — خنثی', '2' => '★★☆☆☆ — کم‌اثر', '1' => '★☆☆☆☆ — بی‌اثر'][$this->ticket->effectiveness] ?? '—' }}
                     </p>
                 @else
-                    <p class="text-xs italic opacity-70 text-[var(--md-sys-color-on-surface-variant)]">هنوز ثبت نشده است.</p>
+                    <p wire:key="ths-workspace-effect-none" class="text-xs italic opacity-70 text-[var(--md-sys-color-on-surface-variant)]">هنوز ثبت نشده است.</p>
                 @endif
 
                 @if($this->canClose && $this->ticket->status !== 'closed')
@@ -175,6 +176,7 @@
                     این تیکت بسته شده و امکان ارسال پاسخ جدید وجود ندارد.
                 </p>
             @endif
+        </div>
         </div>
     @endif
 </div>

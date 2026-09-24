@@ -2,12 +2,12 @@
     <div x-show="menuOpen" x-cloak>
         <div @click.self="closeMenu"
              @keydown.window="handleGlobalKeydown($event)"
-             class="transition-all duration-1000 fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-0 sm:items-center sm:p-6 animate-slide-down bg-[var(--md-sys-color-primary)]/60"
+             class="transition-all duration-1000 fixed inset-0 z-[100] flex items-start justify-center pt-2 px-2 pb-2 sm:items-center sm:p-6 animate-slide-down bg-[var(--md-sys-color-primary)]/60"
              role="dialog"
              aria-modal="true"
              aria-labelledby="main-menu-title">
 
-            <div class="w-full h-full sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-t-3xl sm:rounded-3xl shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            <div class="w-full max-h-full sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-3xl shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
                  @click.stop
                  @touchstart="touchStartX = $event.changedTouches[0].screenX"
                  @touchend="touchEndX = $event.changedTouches[0].screenX; handleSwipe()">
@@ -27,19 +27,21 @@
 
                         <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-                            <x-ui.buttons.view-toggle
-                                state="viewMode"
-                                action=""
-                                responsive
-                                :modes="[
-                                    ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای شبکه‌ای'],
-                                    ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای لیستی'],
-                                    ['value' => 'grouped', 'icon' => 'category', 'title' => 'نمای دسته‌بندی'],
-                                ]"
-                            />
+                            <div class="hidden sm:block">
+                                <x-ui.buttons.view-toggle
+                                    state="viewMode"
+                                    action=""
+                                    responsive
+                                    :modes="[
+                                        ['value' => 'grid', 'icon' => 'grid_view', 'title' => 'نمای شبکه‌ای'],
+                                        ['value' => 'list', 'icon' => 'view_list', 'title' => 'نمای لیستی'],
+                                        ['value' => 'grouped', 'icon' => 'category', 'title' => 'نمای دسته‌بندی'],
+                                    ]"
+                                />
+                            </div>
 
                             <button @click="typeof toggleSortAlpha === 'function' ? toggleSortAlpha() : null"
-                                    class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
+                                    class="w-8 h-8 shrink-0 hidden sm:flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
                                     :class="(typeof sortAlpha !== 'undefined' && sortAlpha)
                                         ? 'bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] border-transparent shadow-md'
                                         : 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)]'"
@@ -48,7 +50,7 @@
                             </button>
 
                             <button @click="typeof togglePinEdit === 'function' ? togglePinEdit() : null"
-                                    class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
+                                    class="w-8 h-8 shrink-0 hidden sm:flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
                                     :class="pinEditMode
                                         ? 'bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] border-transparent shadow-md'
                                         : 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)]'"
@@ -59,7 +61,7 @@
                             </button>
 
                             <button @click="typeof toggleRecentOnly === 'function' ? toggleRecentOnly() : null"
-                                    class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
+                                    class="w-8 h-8 shrink-0 hidden sm:flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border"
                                     :class="(typeof showRecentOnly !== 'undefined' && showRecentOnly)
                                         ? 'bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] border-transparent shadow-md'
                                         : 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)]'"
@@ -67,7 +69,7 @@
                                 <span class="material-symbols-rounded text-[16px]">history</span>
                             </button>
 
-                            <div class="relative w-24 sm:w-56 shrink-0 group">
+                            <div class="relative hidden sm:block w-56 shrink-0 group">
                                 <span class="material-symbols-rounded absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[color-mix(in_srgb,var(--md-sys-color-on-primary)_70%,transparent)] group-focus-within:text-[var(--md-sys-color-on-primary)] transition-colors pointer-events-none">search</span>
                                 <input x-ref="searchInput"
                                        x-model="search"
@@ -82,7 +84,97 @@
                                 </button>
                             </div>
 
+                            <div class="sm:hidden">
+                                <div x-data="{ open: false, pos: {} }" x-effect="if (!menuOpen) open = false">
+                                    <button type="button" x-ref="kebabTrigger"
+                                            x-on:click="pos = $refs.kebabTrigger.getBoundingClientRect().toJSON(); open = !open"
+                                            aria-label="ابزارهای بیشتر" title="ابزارهای بیشتر"
+                                            class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-on-primary)] focus-visible:outline-none border active:scale-95"
+                                            :class="open
+                                                ? 'bg-[var(--md-sys-color-on-primary)] text-[var(--md-sys-color-primary)] border-transparent shadow-md'
+                                                : 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_25%,transparent)] text-[var(--md-sys-color-on-primary)] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_20%,transparent)]'">
+                                        <span class="material-symbols-rounded text-[16px]">more_horiz</span>
+                                    </button>
+                                    <template x-teleport="body">
+                                        <div x-show="open" x-cloak dir="rtl"
+                                             x-on:click.away="if (!$refs.kebabTrigger?.contains($event.target)) open = false"
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0"
+                                             :style="{ position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }"
+                                             class="p-1.5 rounded-xl z-[110] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]"
+                                             role="menu" aria-label="ابزارهای بیشتر">
+                                            <button type="button" x-on:click="open = false; viewMode = 'grid'"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="viewMode === 'grid' ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]">grid_view</span>
+                                                <span>نمای شبکه‌ای</span>
+                                                <span class="ms-auto" x-show="viewMode === 'grid'"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+                                            <button type="button" x-on:click="open = false; viewMode = 'list'"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="viewMode === 'list' ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]">view_list</span>
+                                                <span>نمای لیستی</span>
+                                                <span class="ms-auto" x-show="viewMode === 'list'"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+                                            <button type="button" x-on:click="open = false; viewMode = 'grouped'"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="viewMode === 'grouped' ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]">category</span>
+                                                <span>نمای دسته‌بندی</span>
+                                                <span class="ms-auto" x-show="viewMode === 'grouped'"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+
+                                            <div class="my-1 h-px bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
+
+                                            <button type="button" x-on:click="open = false; typeof toggleSortAlpha === 'function' ? toggleSortAlpha() : null"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="sortAlpha ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]">sort_by_alpha</span>
+                                                <span>مرتب‌سازی الفبایی</span>
+                                                <span class="ms-auto" x-show="sortAlpha"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+                                            <button type="button" x-on:click="open = false; typeof togglePinEdit === 'function' ? togglePinEdit() : null"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="pinEditMode ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]" :class="pinEditMode ? 'font-fill rotate-45' : ''">push_pin</span>
+                                                <span x-text="pinEditMode ? 'پایان حالت سنجاق' : 'سنجاق‌کردن ماژول‌ها'"></span>
+                                                <span class="ms-auto" x-show="pinEditMode"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+                                            <button type="button" x-on:click="open = false; typeof toggleRecentOnly === 'function' ? toggleRecentOnly() : null"
+                                                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                                    :class="showRecentOnly ? 'text-[var(--md-sys-color-primary)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]' : 'hover:bg-[var(--md-sys-color-surface-container-high)]/50'">
+                                                <span class="material-symbols-rounded text-[16px]">history</span>
+                                                <span>ماژول‌های اخیر</span>
+                                                <span class="ms-auto" x-show="showRecentOnly"><span class="material-symbols-rounded text-[16px]">check</span></span>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
                             <x-ui.modals.close-button close="closeMenu" label="بستن منو" tone="on-primary"/>
+                        </div>
+                    </div>
+
+                    <div class="sm:hidden shrink-0 px-4 pt-3 pb-2.5 bg-[var(--md-sys-color-surface)] border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)]">
+                        <div class="relative w-full group">
+                            <span class="material-symbols-rounded absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors pointer-events-none">search</span>
+                            <input x-ref="searchInputMobile"
+                                   x-model="search"
+                                   type="text"
+                                   title="جستجوی سریع ماژول‌ها و ابزارها... (کلید /)"
+                                   placeholder=" جستجوی ماژول‌ها و ابزارها..."
+                                   class="w-full h-9 pr-9 pl-8 rounded-xl bg-[var(--md-sys-color-surface-variant)] border border-[var(--md-sys-color-outline-variant)]/50 text-xs text-[var(--md-sys-color-on-surface)] placeholder-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)] outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] focus:border-transparent transition-all duration-200">
+                            <button x-show="search"
+                                    @click="search = ''; $refs.searchInputMobile.focus()"
+                                    class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-surface-variant)] transition-all">
+                                <span class="material-symbols-rounded text-[13px]">close</span>
+                            </button>
                         </div>
                     </div>
 
@@ -255,6 +347,12 @@
                                     </x-dashboard.modal.release>
                                 </div>
 
+                                <div x-show="pinEditMode" x-cloak x-transition.opacity
+                                     class="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] px-3 text-[11px] font-medium text-[var(--md-sys-color-primary)]">
+                                    <span class="material-symbols-rounded text-[14px] font-fill inline-block rotate-45">push_pin</span>
+                                    <span>حالت سنجاق فعال</span>
+                                </div>
+
                                 <div x-show="typeof notifiedCount === 'number' && notifiedCount > 0"
                                      x-transition.opacity
                                      class="hidden h-8 items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] px-3 text-[11px] font-medium text-[var(--md-sys-color-primary)] sm:flex">
@@ -285,6 +383,7 @@
                                     </div>
                                 </template>
 
+
                                 <div class="flex items-center">
                                     <x-dashboard.modal.menu.audio-toggle/>
                                 </div>
@@ -295,6 +394,13 @@
                                         class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] active:scale-95">
                                     <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">alarm</span>
                                 </button>
+
+                                <a href="{{ route('dashboard') }}"
+                                        @click="closeMenu()"
+                                        title="خانه"
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] active:scale-95">
+                                    <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">home</span>
+                                </a>
 
                                 <!-- Sleek Modern Divider -->
                                 <div class="h-6 w-[1px] rounded-full bg-[var(--md-sys-color-primary-container)]"></div>

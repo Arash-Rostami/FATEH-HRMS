@@ -3,7 +3,7 @@
     wire:ignore.self
     @record-focus.window="if ($event.detail.type === 'faqs') { active = $event.detail.id; view = 'card' }"
 
-    class="animate-fade relative w-full max-w-[88rem] mx-auto max-h-[calc(100svh-10rem)] flex flex-col overflow-hidden"
+    class="animate-fade relative w-full max-w-[88rem] mx-auto flex flex-col"
     dir="rtl"
 >
 
@@ -32,7 +32,7 @@
     @include('livewire.dashboard.tab.faqs.filters')
 
     <div
-        class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative bg-[var(--md-sys-color-surface-container-lowest)]">
+        class="p-4 md:p-8 relative bg-[var(--md-sys-color-surface-container-lowest)]">
         <div wire:loading.delay
              class="absolute inset-0 bg-[var(--md-sys-color-surface-container-lowest)]/50 z-50 flex items-center justify-center">
             <x-ui.loaders.spin-badge text="در حال فیلتر کردن..."/>
@@ -61,7 +61,7 @@
         </div>
 
         @if($this->faqs->hasMorePages())
-            <div class="flex justify-center py-6 pb-12">
+            <div class="flex justify-center py-6">
                 <x-ui.buttons.load-more
                     action="loadMore"
                     text="بارگذاری بیشتر"

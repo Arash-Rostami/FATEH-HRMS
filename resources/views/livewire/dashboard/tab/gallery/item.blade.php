@@ -62,7 +62,7 @@
             <a href="{{ $url }}"
                @if($video) data-type="html5video" @endif
                data-fancybox="gallery-{{ $photo->id }}"
-               class="collage-item absolute w-40 h-40 md:w-56 md:h-56 rounded-xl overflow-hidden border-4 border-[var(--md-sys-color-surface)] cursor-pointer {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
+               class="collage-item absolute w-56 h-56 md:w-64 md:h-64 rounded-xl overflow-hidden border-4 border-[var(--md-sys-color-surface)] cursor-pointer {{ $t['z'] }} {{ $t['rotate'] }} {{ $t['hover'] }}"
             >
                 @if($video)
                     <div

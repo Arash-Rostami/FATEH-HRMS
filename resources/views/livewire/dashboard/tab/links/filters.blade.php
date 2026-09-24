@@ -13,7 +13,7 @@
             ['id' => 'external', 'icon' => 'public', 'label' => 'خارجی'],
         ];
     @endphp
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
         @foreach($filterOptions as $option)
             @php($isActive = $activeFilter === $option['id'])
             <button

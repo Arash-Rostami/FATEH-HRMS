@@ -416,9 +416,12 @@ try { Cache::lock("nudge:k{key}:i{itemId}", 10)->block(3, function () {
         if rule.badge_suppress
             && a bare-key badge row exists for user (menu_key = beforeLast(key, ':nudge')):
             continue
-        user->notifications()->create([ …unread row: title, body, menu_key, item_id ])
+        accumulate row [id, type, notifiable_type, notifiable_id, data (json_encode'd), read_at=null, timestamps] into newRows[]
+    if newRows: DatabaseNotification::insert(newRows); ModelCacheVersion::bump(DatabaseNotification::class)
 }); } catch (LockTimeoutException) { … }
 ```
+
+**Bulk insert bypasses Eloquent (2026-09-23 fix — was a per-recipient `create()` in a loop).** The genuinely-new rows for a broadcast trigger (`Post`/`Feed`/`Photo`/`Report`/`Ad` → `User::active()->get()`, i.e. every active employee) are now accumulated into one array and written with a single `DatabaseNotification::insert($newRows)` after the loop, mirroring the same pattern `BadgeSyncService::syncBatch()` already uses for this same table (see that section above) — `id` (`Str::uuid()`), `notifiable_type`/`notifiable_id`, `json_encode($data)`, and timestamps are all set manually since raw `insert()` fires no Eloquent events/casts. **This is why the manual `ModelCacheVersion::bump(DatabaseNotification::class)` line is required and NOT optional**: `UnreadNotifications.php`'s per-user badge count (`unread_menu_groups:{userId}`, Tier V versioned on `DatabaseNotification`, see `modelPattern.md`) is normally invalidated by the `saved` model event that a real `create()` fires — a raw `insert()` skips that event entirely, so without the explicit `bump()` every recipient's unread badge would sit stale for the full 15-minute TTL after a broadcast nudge. The existing-row update path (`$existing->update(['data' => $data])`) is untouched and still fires normal Eloquent events. `EdgeService::reconcile()` got the identical create-in-loop → bulk-insert treatment for its own genuinely-new rows, but needs **no** version bump — no cache anywhere is keyed on `Edge` (verified 2026-09-23; `Edge::forUser()` reads live, uncached).
 
 Design choices:
 

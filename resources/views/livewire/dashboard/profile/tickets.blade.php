@@ -14,31 +14,31 @@
     <x-ui.table tbodyClass="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
         <x-slot:head>
             <tr>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">شناسه</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">موضوع</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold">وضعیت</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold hidden lg:table-cell">مسئول</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold hidden sm:table-cell">پاسخ‌ها</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold hidden md:table-cell">تاریخ</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">اقدام</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">شناسه</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">موضوع</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">وضعیت</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold hidden lg:table-cell">مسئول</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold hidden sm:table-cell">پاسخ‌ها</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold hidden md:table-cell">تاریخ</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">اقدام</th>
             </tr>
         </x-slot:head>
 
         @forelse($this->tickets as $ticket)
                     @php($stat = $presenter->statusMeta($ticket->status))
                     <tr wire:key="profile-ticket-{{ $ticket->id }}" class="hover:bg-[var(--md-sys-color-primary)]/[0.03] transition-colors">
-                        <td class="px-6 py-4 font-mono text-[13px] text-[var(--md-sys-color-on-surface)]" dir="ltr">
+                        <td class="px-4 md:px-6 py-4 font-mono text-[13px] text-[var(--md-sys-color-on-surface)]" dir="ltr">
                             {{ $presenter->formatId($ticket->toArray()) }}
                         </td>
 
-                        <td class="px-6 py-4">
+                        <td class="px-4 md:px-6 py-4">
                             <span class="block truncate max-w-[220px] font-medium text-[13px] text-[var(--md-sys-color-on-surface)]"
                                   title="{{ $ticket->request_subject }}">
                                 {{ Str::limit($ticket->request_subject, 40) }}
                             </span>
                         </td>
 
-                        <td data-col="status" class="px-6 py-4 text-center">
+                        <td data-col="status" class="px-4 md:px-6 py-4 text-center">
                             @if($stat)
                                 <div dir="ltr" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide {{ $stat['textColor'] }} {{ $stat['bg'] }}">
                                     <span class="material-symbols-rounded text-[14px] {{ $stat['pulse'] ? 'animate-pulse' : '' }} {{ $stat['spin'] ? 'animate-spin' : '' }}">{{ $stat['icon'] }}</span>
@@ -47,19 +47,19 @@
                             @endif
                         </td>
 
-                        <td class="px-6 py-4 hidden lg:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                        <td class="px-4 md:px-6 py-4 hidden lg:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
                             {{ $ticket->assignee?->name ?? '—' }}
                         </td>
 
-                        <td class="px-6 py-4 hidden sm:table-cell text-center text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
+                        <td class="px-4 md:px-6 py-4 hidden sm:table-cell text-center text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
                             {{ convertToPersian($ticket->replies_count) }}
                         </td>
 
-                        <td class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
+                        <td class="px-4 md:px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
                             {{ toJalali($ticket->created_at, 'j F Y') }}
                         </td>
 
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-4 md:px-6 py-4 text-center">
                             <a href="{{ route('ths', ['open' => $ticket->id]) }}"
                                class="inline-flex items-center justify-center p-2 rounded-xl text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] transition-colors"
                                title="مشاهده در سامانه تیکت">
@@ -98,11 +98,11 @@
     <x-ui.table tbodyClass="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
         <x-slot:head>
             <tr>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">نوع</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">عنوان</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold">وضعیت</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold hidden md:table-cell">تاریخ</th>
-                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold last:rounded-tl-2xl">پاسخ</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">نوع</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">عنوان</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">وضعیت</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold hidden md:table-cell">تاریخ</th>
+                <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold last:rounded-tl-2xl">پاسخ</th>
             </tr>
         </x-slot:head>
 
@@ -110,14 +110,14 @@
             @php($type = $supportPresenter->typeMeta($item->type))
             @php($stat = $supportPresenter->statusMeta($item->status))
             <tr wire:key="profile-support-{{ $item->id }}" class="hover:bg-[var(--md-sys-color-primary)]/[0.03] transition-colors align-top">
-                <td class="px-6 py-4">
+                <td class="px-4 md:px-6 py-4">
                     <span dir="ltr" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold" style="background: color-mix(in srgb, {{ $type['color'] }} 15%, transparent); color: {{ $type['color'] }};">
                         <span class="material-symbols-rounded text-[13px]">{{ $type['icon'] }}</span>
                         {{ $type['label'] }}
                     </span>
                 </td>
 
-                <td class="px-6 py-4 max-w-[280px]">
+                <td class="px-4 md:px-6 py-4 max-w-[280px]">
                     <span class="block truncate font-medium text-[13px] text-[var(--md-sys-color-on-surface)]" title="{{ $item->title }}">{{ $item->title }}</span>
                     @if(filled($item->response))
                         <span class="flex items-center gap-1 text-[11px] mt-1" style="color: {{ $stat['responseColor'] }};">
@@ -127,18 +127,18 @@
                     @endif
                 </td>
 
-                <td class="px-6 py-4 text-center">
+                <td class="px-4 md:px-6 py-4 text-center">
                     <span dir="ltr" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold tracking-wide" style="background: color-mix(in srgb, {{ $stat['color'] }} 15%, transparent); color: {{ $stat['color'] }};">
                         <span class="material-symbols-rounded text-[14px]">{{ $stat['icon'] }}</span>
                         {{ $stat['label'] }}
                     </span>
                 </td>
 
-                <td class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
+                <td class="px-4 md:px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
                     {{ toJalali($item->created_at, 'j F Y') }}
                 </td>
 
-                <td class="px-6 py-4 max-w-[220px]">
+                <td class="px-4 md:px-6 py-4 max-w-[220px]">
                     @if(filled($item->response))
                         <span class="block text-[12px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] line-clamp-2" title="{{ $item->response }}">{{ $item->response }}</span>
                     @else

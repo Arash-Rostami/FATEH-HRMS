@@ -1,4 +1,4 @@
-<div class="sticky top-6 space-y-4 animate-slide-up-fade" style="animation-delay: 0.3s; height: calc(100vh - 8rem);">
+<div class="sticky top-6 space-y-4 animate-slide-up-fade" style="animation-delay: 0.3s;">
     <div class="flex items-center gap-3 mb-2">
         <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center shrink-0">
             <span class="material-symbols-rounded text-[20px] font-fill">schedule</span>
@@ -9,17 +9,10 @@
         <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)] min-w-[20px]" style="opacity: 0.5;"></div>
     </div>
 
-    <div class="bg-[var(--md-sys-color-surface)]">
+    <div class="w-fit mx-auto md:mx-0 z-1 mb-4">
         <x-ui.buttons.tab-selector
             :tabs="$historyTabs"
             :activeTab="$activeHistoryTab"
-            buttonBaseClass="flex-1 relative flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-[12px] sm:text-[13px] font-bold rounded-lg transition-all duration-300 outline-none whitespace-nowrap"
-            button-active-class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md shadow-[var(--md-sys-color-primary)]/20"
-            button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
-            icon-base-class="material-symbols-rounded text-xl"
-            icon-active-class="font-variation-fill"
-            icon-inactive-class="opacity-70 group-hover:opacity-100"
-            class="flex w-full mb-4 overflow-x-auto custom-scrollbar bg-[var(--md-sys-color-surface)]"
         />
     </div>
 
@@ -33,7 +26,7 @@
                  style="border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 20%, transparent); animation-delay: {{ ($loop->index ?? 0) * 0.05 }}s;">
 
                 @if($activeHistoryTab === 'upcoming')
-                    <div class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-[4px] rounded-xl bg-[var(--md-sys-color-primary)] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)]"></div>
+                    <div wire:key="reservation-history-rail" class="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-[4px] rounded-xl bg-[var(--md-sys-color-primary)] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)]"></div>
                 @endif
 
                 <div @class([
@@ -90,7 +83,7 @@
                 </div>
 
                 @if($activeHistoryTab === 'upcoming')
-                    <button x-data
+                    <button wire:key="reservation-history-action-cancel" x-data
                             @click="$dispatch('open-confirmation', {
                                         title: @json($reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو'),
                                         message: @json($reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟'),
@@ -103,11 +96,11 @@
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px] font-fill">delete</span>
                     </button>
                 @elseif($activeHistoryTab === 'previous')
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 shrink-0 ml-1">
+                    <div wire:key="reservation-history-action-done" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]/30 shrink-0 ml-1">
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px]">check</span>
                     </div>
                 @elseif($activeHistoryTab === 'cancelled')
-                    <div class="flex flex-col items-center justify-center ml-1">
+                    <div wire:key="reservation-history-action-cancelled" class="flex flex-col items-center justify-center ml-1">
                         <span @class([
                             'text-[9px] font-bold px-2 py-0.5 rounded-md',
                             'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' => $reservation->status === 'cancelled_admin',
@@ -118,7 +111,7 @@
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px] text-[var(--md-sys-color-error)] mt-1">block</span>
                     </div>
                 @elseif($activeHistoryTab === 'released')
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] shrink-0 ml-1" title="آزادشده">
+                    <div wire:key="reservation-history-action-released" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)] bg-[var(--md-sys-color-surface-variant)] shrink-0 ml-1" title="آزادشده">
                         <span class="material-symbols-rounded text-[18px] sm:text-[20px]">autorenew</span>
                     </div>
                 @endif

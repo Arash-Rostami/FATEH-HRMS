@@ -1,5 +1,5 @@
 <div
-    class="w-full max-w-[88rem] mx-auto !pt-0 pb-16 text-[var(--md-sys-color-on-surface)] transition-colors duration-300 antialiased selection:bg-[var(--md-sys-color-primary)] selection:text-[var(--md-sys-color-on-primary)]"
+    class="w-full max-w-[88rem] mx-auto !pt-0 text-[var(--md-sys-color-on-surface)] transition-colors duration-300 antialiased selection:bg-[var(--md-sys-color-primary)] selection:text-[var(--md-sys-color-on-primary)]"
     dir="rtl"
     x-data="home('{{ addslashes(shortGreeting(auth()->user()?->casual_name ?? '')) }}')">
 
@@ -48,8 +48,8 @@
                             <span class="flex items-center -space-x-2 rtl:space-x-reverse">
                                 @foreach($visiblePulse as $member)
                                     @php($mp = presence($member->presence))
-                                    <x-ui.hover-popover wire:key="home-team-pulse-{{ $member->id }}" width="w-48"
-                                                         class="shrink-0 {{ $loop->iteration > 5 ? 'hidden sm:inline-flex' : '' }}">
+                                    <span class="shrink-0 {{ $loop->iteration > 5 ? 'hidden sm:inline-flex' : 'inline-flex' }}">
+                                    <x-ui.hover-popover wire:key="home-team-pulse-{{ $member->id }}" width="w-48">
                                         <x-slot:trigger>
                                             <span class="relative block" title="{{ $member->casual_name }}">
                                                 <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
@@ -75,6 +75,7 @@
                                             </div>
                                         </x-slot:body>
                                     </x-ui.hover-popover>
+                                    </span>
                                 @endforeach
                                 @if($mobileRemainder > 0)
                                     <button type="button" wire:key="home-team-pulse-remainder-mobile"
@@ -201,7 +202,7 @@
                         @endif
                         class="group relative flex flex-col items-center justify-between p-3 sm:p-4 rounded-xl
                         bg-[var(--md-sys-color-surface)]/80 border border-[var(--md-sys-color-outline-variant)]/30
-                        min-w-[86px] sm:min-w-[104px] hover:-translate-y-1.5 hover:bg-[var(--md-sys-color-surface)]/95
+                        min-w-0 sm:min-w-[104px] hover:-translate-y-1.5 hover:bg-[var(--md-sys-color-surface)]/95
                         hover:border-[var(--md-sys-color-primary)]/50
                         hover:shadow-[0_12px_26px_color-mix(in_srgb,var(--md-sys-color-primary)_22%,transparent)]
                         active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2

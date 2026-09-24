@@ -38,7 +38,7 @@
 
         {{-- Cards Container --}}
         <div x-ref="container"
-             class="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-4 scrollbar-hide px-1 pt-1"
+             class="grid grid-cols-2 gap-3 md:flex md:overflow-x-auto md:snap-x md:snap-mandatory md:gap-5 md:pb-4 scrollbar-hide px-1 pt-1"
              style="-webkit-overflow-scrolling: touch;"
              @scroll.debounce.100ms="checkScroll"
         >
@@ -47,7 +47,7 @@
                     $d = $linkPresenter->cardData($link, 'external');
                     $pickedIcon = $d['pickedIcon'];
                 @endphp
-                <div wire:key="link-{{ $link->id }}" class="relative snap-start shrink-0 w-36 md:w-40 group/card">
+                <div wire:key="link-{{ $link->id }}" class="relative md:snap-start w-full md:shrink-0 md:w-40 group/card">
                     <a data-rf="links-{{ $link->id }}"
                        href="{{ $link->url }}"
                        target="_blank"

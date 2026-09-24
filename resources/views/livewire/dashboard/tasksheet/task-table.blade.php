@@ -22,10 +22,10 @@
         <table class="min-w-full w-full border-separate border-spacing-0 text-sm">
             <thead class="bg-[var(--md-sys-color-surface-container-high)] text-xs uppercase tracking-wider text-[var(--md-sys-color-on-surface-variant)]">
                 <tr>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold first:rounded-tr-2xl transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">عنوان</th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">اولویت</th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">وضعیت</th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">عنوان</th>
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">اولویت</th>
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">وضعیت</th>
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
                         @unless($readOnly)
                             <button type="button" @click="sort('deadline')" class="print:hidden flex w-full items-center justify-center gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)]" :class="sortKey === 'deadline' ? 'text-[var(--md-sys-color-primary)]' : ''">
                                 <span>مهلت</span>
@@ -34,7 +34,7 @@
                         @endunless
                         <span class="{{ $readOnly ? '' : 'hidden' }} print:inline">مهلت</span>
                     </th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
                         @unless($readOnly)
                             <button type="button" @click="sort('completedAt')" class="print:hidden flex w-full items-center justify-center gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)]" :class="sortKey === 'completedAt' ? 'text-[var(--md-sys-color-primary)]' : ''">
                                 <span>تاریخ تکمیل</span>
@@ -43,7 +43,7 @@
                         @endunless
                         <span class="{{ $readOnly ? '' : 'hidden' }} print:inline">تاریخ تکمیل</span>
                     </th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">
                         @unless($readOnly)
                             <button type="button" @click="sort('cycle')" class="print:hidden flex w-full items-center justify-center gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)]" :class="sortKey === 'cycle' ? 'text-[var(--md-sys-color-primary)]' : ''">
                                 <span>مدت انجام</span>
@@ -52,7 +52,7 @@
                         @endunless
                         <span class="{{ $readOnly ? '' : 'hidden' }} print:inline">مدت انجام</span>
                     </th>
-                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold last:rounded-tl-2xl transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">به‌موقع</th>
+                    <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)]">به‌موقع</th>
                 </tr>
             </thead>
             <tbody x-ref="tbody">
@@ -64,31 +64,31 @@
                         data-completed-at="{{ $task['completed_at'] ?? '' }}"
                         data-cycle="{{ $task['cycle_time_days'] !== null ? sprintf('%015.4f', $task['cycle_time_days']) : '' }}"
                         class="hover:bg-[var(--md-sys-color-surface-container-low)] transition-colors">
-                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle">
+                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-right align-middle">
                             <a href="{{ route('tasks', ['open' => $task['task_id']]) }}" wire:navigate dir="auto" class="font-medium text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] hover:underline transition-colors">
                                 {{ superClean($task['title']) }}
                             </a>
                         </td>
-                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             @if($priorityChip)
                                 <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold {{ $priorityChip['class'] }}">{{ $priorityChip['label'] }}</span>
                             @else
                                 —
                             @endif
                         </td>
-                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             <x-ui.decor.status-pill :state="$statusState"/>
                         </td>
-                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             {{ $task['deadline'] ? toJalaliSmart($task['deadline']) : '—' }}
                         </td>
-                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             {{ $task['completed_at'] ? toJalaliSmart($task['completed_at']) : '—' }}
                         </td>
-                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             {{ $task['cycle_time_days'] !== null ? convertToPersian(number_format($task['cycle_time_days'], 1)) . ' روز' : '—' }}
                         </td>
-                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             @if($task['on_time'] === true)
                                 <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-tertiary)]" title="به‌موقع">check_circle</span>
                             @elseif($task['on_time'] === false)

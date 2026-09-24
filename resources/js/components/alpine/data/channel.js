@@ -499,6 +499,7 @@ export default function channel() {
             this.searchMessages = false;
             this.activeSender = null;
             this.openActionsId = null;
+            this.$wire.set('mobileShowChat', false, false);
             this.$wire.$island('messages').backToList()
                 .then(() => this.$wire.$island('sidebar').refreshUnread());
         },

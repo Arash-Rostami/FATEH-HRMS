@@ -1,23 +1,28 @@
 <div class="flex w-full flex-col gap-3">
     <section class="{{ $presenter->toolbarSurface() }}">
         <div class="flex w-full flex-col">
-            <div class="flex min-h-[64px] w-full items-center gap-3 px-3 py-2.5 lg:px-4">
-                <div class="min-w-0 flex-1">
+            <div class="flex min-h-[64px] w-full flex-wrap items-center gap-3 px-3 py-2.5 lg:px-4">
+                <div class="min-w-0 flex-1 basis-full md:basis-44">
                     <x-ui.forms.search
                         model="search"
                         placeholder="جستجو در وظایف..."
                     />
                 </div>
 
-                <div class="flex shrink-0 items-center gap-2">
+                <div class="flex shrink-0 items-center gap-1.5">
                     <x-ui.buttons.form
                         wire:click="openCreateModal"
                         aria-label="ایجاد وظیفه جدید"
+                        title="ایجاد وظیفه جدید"
                         icon="add"
                         class="{{ $presenter->toolbarButtonClass() }} whitespace-nowrap"
                     >
-                        وظیفه جدید
+                        <span class="hidden md:inline">وظیفه جدید</span>
                     </x-ui.buttons.form>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-1.5">
+                    <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/30 mx-1.5"></div>
 
                     <x-ui.buttons.form
                         variant="tonal"
@@ -30,28 +35,9 @@
                             {{ $this->isMyTasks ? 'person' : 'assignment_ind' }}
                         </span>
 
-                        <span>
+                        <span class="hidden md:inline">
                             {{ $this->isMyTasks ? 'وظایف من' : 'محول شده' }}
                         </span>
-                    </x-ui.buttons.form>
-                </div>
-
-                <div class="hidden h-7 w-px bg-[var(--md-sys-color-outline-variant)]/30 lg:block"></div>
-
-                <div class="flex shrink-0 items-center gap-1.5">
-                    <x-ui.buttons.form
-                        variant="tonal"
-                        size="icon"
-                        @click="$store.density.toggle()"
-                        x-bind:class="$store.density.compact ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
-                        x-bind:title="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
-                        x-bind:aria-label="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
-                        class="{{ $presenter->toolbarButtonClass() }}"
-                    >
-                        <span
-                            class="material-symbols-rounded text-[20px] leading-none"
-                            x-text="$store.density.compact ? 'view_compact' : 'view_comfy'"
-                        ></span>
                     </x-ui.buttons.form>
 
                     <x-ui.buttons.form
@@ -71,27 +57,48 @@
                             </span>
                         @endif
                     </x-ui.buttons.form>
+                </div>
 
-                    <x-ui.buttons.form
-                        variant="tonal"
-                        size="icon"
-                        @click="toggleFavoritesOnly"
-                        x-bind:class="showFavoritesOnly ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
-                        title="فقط پین‌شده‌ها"
-                        aria-label="فقط پین‌شده‌ها"
-                        icon="push_pin"
-                        class="{{ $presenter->toolbarButtonClass() }}"
-                    />
+                <div class="flex shrink-0 items-center gap-1.5">
+                    <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/30 mx-1.5"></div>
 
-                    <x-ui.buttons.form
-                        variant="tonal"
-                        size="icon"
-                        wire:click="exportTasks"
-                        title="دریافت خروجی وظایف"
-                        aria-label="دریافت خروجی وظایف"
-                        icon="download"
-                        class="{{ $presenter->toolbarButtonClass() }}"
-                    />
+                    <div class="hidden md:flex items-center gap-1.5">
+                        <x-ui.buttons.form
+                            variant="tonal"
+                            size="icon"
+                            @click="$store.density.toggle()"
+                            x-bind:class="$store.density.compact ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
+                            x-bind:title="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
+                            x-bind:aria-label="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
+                            class="{{ $presenter->toolbarButtonClass() }}"
+                        >
+                            <span
+                                class="material-symbols-rounded text-[20px] leading-none"
+                                x-text="$store.density.compact ? 'view_compact' : 'view_comfy'"
+                            ></span>
+                        </x-ui.buttons.form>
+
+                        <x-ui.buttons.form
+                            variant="tonal"
+                            size="icon"
+                            @click="toggleFavoritesOnly"
+                            x-bind:class="showFavoritesOnly ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
+                            title="فقط پین‌شده‌ها"
+                            aria-label="فقط پین‌شده‌ها"
+                            icon="push_pin"
+                            class="{{ $presenter->toolbarButtonClass() }}"
+                        />
+
+                        <x-ui.buttons.form
+                            variant="tonal"
+                            size="icon"
+                            wire:click="exportTasks"
+                            title="دریافت خروجی وظایف"
+                            aria-label="دریافت خروجی وظایف"
+                            icon="download"
+                            class="{{ $presenter->toolbarButtonClass() }}"
+                        />
+                    </div>
 
                     <a
                         href="{{ route('tasksheet') }}"
@@ -418,7 +425,7 @@
         @click="dismissSwipeHint()"
         role="button"
         aria-label="بستن راهنما"
-        class="mx-auto flex w-max cursor-pointer items-center gap-2 rounded-full shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-shadow)_4%,transparent)] bg-[var(--md-sys-color-surface-container)] px-3.5 py-1.5 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] md:hidden"
+        class="mx-auto flex w-max cursor-pointer items-center gap-2 rounded-xl shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-shadow)_4%,transparent)] bg-[var(--md-sys-color-surface-container)] px-3.5 py-1.5 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] md:hidden"
     >
         <span class="material-symbols-rounded text-[14px]">
             chevron_right

@@ -7,12 +7,8 @@
         && (int) $this->activeChannel->owner_id === (int) auth()->id();
 @endphp
 <div x-show="showInfo"
-     x-transition:enter="ease-out duration-300"
-     x-transition:enter-start="opacity-0 -translate-x-8"
-     x-transition:enter-end="opacity-100 translate-x-0"
-     x-transition:leave="ease-in duration-200"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0 -translate-x-8"
+     x-transition:enter="animate-slide-fade-from-left"
+     x-transition:leave="animate-slide-fade-to-left"
      x-on:click.outside="showInfo = false"
      class="absolute inset-y-0 left-0 z-30 w-72 md:w-80 bg-[var(--md-sys-color-primary-container)] overflow-y-auto contact-scrollbar rounded-xl"
      role="dialog">

@@ -134,6 +134,7 @@ return [
             'contrast' => 1,
             'grayscale' => 0,
             'width' => '100%',
+            'fit' => 'top',
         ],
 
         'logo_display' => [

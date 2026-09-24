@@ -12,6 +12,7 @@ const BACKDROP_BRIGHTNESS = BACKDROP.brightness ?? 1;
 const BACKDROP_CONTRAST = BACKDROP.contrast ?? 1;
 const BACKDROP_GRAYSCALE = BACKDROP.grayscale ?? 0;
 const BACKDROP_WIDTH = BACKDROP.width || '100%';
+const BACKDROP_FIT = BACKDROP.fit || 'cover';
 
 const TABS_ORDER = ['home', 'post', 'feed', 'calendar', 'status', 'gallery', 'reports', 'links', 'faqs'];
 
@@ -78,6 +79,7 @@ export default (Alpine) => {
         contrast: BACKDROP_CONTRAST,
         grayscale: BACKDROP_GRAYSCALE,
         width: BACKDROP_WIDTH,
+        fit: BACKDROP_FIT,
         patterns: PATTERNS,
 
         toggleBackground(value) {

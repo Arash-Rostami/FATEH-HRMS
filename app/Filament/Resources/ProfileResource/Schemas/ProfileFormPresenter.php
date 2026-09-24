@@ -69,6 +69,7 @@ class ProfileFormPresenter
             ->addable()
             ->deletable()
             ->reorderable(false)
+            ->collapsed()
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.about_me'));
     }
@@ -135,6 +136,7 @@ class ProfileFormPresenter
             ->addable()
             ->deletable()
             ->reorderable(false)
+            ->collapsed()
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.attachments'))
             ->dehydrateStateUsing(fn(?array $state): array => array_values(array_filter(
@@ -327,6 +329,7 @@ class ProfileFormPresenter
             ->addable()
             ->deletable()
             ->reorderable(false)
+            ->collapsed()
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.favorite_colors'))
             ->afterStateHydrated(function (Repeater $component, mixed $state): void {
@@ -548,7 +551,11 @@ class ProfileFormPresenter
                     $payload = [
                         'skill_id' => $item['skill_id'],
                         'status' => $status,
-                        'last_used_at' => $item['last_used_at'] ?? null,
+                        'last_used_at' => PersianDateFieldService::assemble(
+                            $item['last_used_at_year'] ?? null,
+                            $item['last_used_at_month'] ?? null,
+                            $item['last_used_at_day'] ?? null,
+                        ),
                         'is_mentoring' => (bool)($item['is_mentoring'] ?? false),
                         'is_private' => (bool)($item['is_private'] ?? false),
                         'approved_at' => $isApproved ? now() : null,
@@ -577,6 +584,7 @@ class ProfileFormPresenter
             ->addable()
             ->deletable()
             ->reorderable(false)
+            ->collapsed()
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.skills'));
     }

@@ -129,7 +129,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.internal_url'))
             ->rules(['string', 'regex:' . self::URL_HOST_REGEX])
             ->maxLength(2048)
-            ->live()
+            ->live(onBlur: true)
             ->helperText(__('resources/link/strings.fields.internal_url_hint'))
             ->rule(self::extraRequiresInternalUrl());
     }
@@ -140,7 +140,6 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.link_type'))
             ->options(LinkType::class)
             ->required()
-            ->live()
             ->inline()
             ->helperText(__('resources/link/strings.hints.link_type'));
     }

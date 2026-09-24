@@ -46,12 +46,6 @@
         <x-ui.buttons.tab-selector
             :active-tab="$activeTab"
             :has-a11y="true"
-            button-base-class="group relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 outline-none flex-1 min-w-[140px]"
-            button-active-class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md shadow-[var(--md-sys-color-primary)]/20"
-            button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
-            icon-base-class="material-symbols-rounded text-xl"
-            icon-active-class="font-variation-fill"
-            icon-inactive-class="opacity-70 group-hover:opacity-100"
             :tabs="[
                 ['id' => 'rate', 'icon' => 'star','label' => 'ارزیابی','condition' => $ticketToRate ?? false],
                 ['id' => 'new','icon' => 'add_box','label' => 'تیکت جدید','condition' => !($ticketToRate ?? false)],
@@ -59,7 +53,7 @@
             ]"/>
 
         <div x-show="$wire.activeTab !== 'log'"
-             class='py-4 px-6 min-h-[400px] relative index-10 overflow-x-auto rounded-2xl  bg-[var(--md-sys-color-surface)] shadow-sm'>
+             class='py-4 px-4 md:px-6 min-h-[400px] relative index-10 overflow-x-auto rounded-2xl  bg-[var(--md-sys-color-surface)] shadow-sm'>
             <div x-show="$wire.activeTab === 'new' && !@js($ticketToRate)"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4"
@@ -79,7 +73,7 @@
              x-transition:enter="animate-fade"
              class="w-full">
             <x-ui.modals.max-backdrop/>
-            <div :class="{ 'max-widget': max }">
+            <div :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
                 <div class="flex mb-4">
                     <x-ui.buttons.toggle
                         wire:click="toggleActionableFilter"

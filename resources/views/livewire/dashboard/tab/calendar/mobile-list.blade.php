@@ -1,10 +1,13 @@
 @php
     $scope = $scope ?? 'day';
+    $hideEmpty = $hideEmpty ?? false;
     $agenda = $this->agendaItems($scope);
+    $allEmpty = collect($agenda)->every(fn($day) => empty($day['items']));
 @endphp
 
 <div class="w-full flex flex-col gap-3">
     @foreach($agenda as $day)
+        @continue($hideEmpty && empty($day['items']))
         <div wire:key="mobile-day-{{ $day['jKey'] }}" class="flex flex-col gap-2">
             <div class="flex items-center gap-2 px-1 py-1 border-b border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
                 <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">calendar_today</span>
@@ -33,4 +36,10 @@
             @endforelse
         </div>
     @endforeach
+
+    @if($hideEmpty && $allEmpty)
+        <div wire:key="calendar-mobile-month-empty" class="contents">
+            <x-ui.empty icon="calendar_today" title="رویدادی یافت نشد" description="برای این ماه هنوز هیچ برنامه‌ای ثبت نشده است." variant="list" :fill="true" />
+        </div>
+    @endif
 </div>

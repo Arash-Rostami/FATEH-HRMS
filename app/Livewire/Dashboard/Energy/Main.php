@@ -86,7 +86,14 @@ class Main extends Component
             return;
         }
 
-        [$category, $index] = explode('.', $name);
+        $parts = explode('.', $name, 2);
+
+        if (count($parts) < 2) {
+            $this->updateState();
+            return;
+        }
+
+        [$category, $index] = $parts;
         $index = (int) $index;
         $count = count($this->questions[$category]);
 

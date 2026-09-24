@@ -1,4 +1,4 @@
-<section class="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar pr-1 pl-1 pb-20">
+<section class="flex-none lg:flex-1 min-w-0 h-auto lg:h-full overflow-visible lg:overflow-y-auto custom-scrollbar pr-1 pl-1 lg:pb-20">
     <div class="flex items-center gap-3 mb-4 px-1">
         <div
             class="w-8 h-8 rounded-xl bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center">
@@ -8,13 +8,15 @@
         <div class="flex-1 h-px bg-[var(--md-sys-color-outline-variant)]/50"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-5">
         @if($this->posts->isNotEmpty())
             @foreach($this->posts as $post)
                 <article wire:key="post-{{ $post->id }}" data-rf="posts-{{ $post->id }}"
                          class="group relative flex flex-col bg-[var(--md-sys-color-surface)] rounded-2xl overflow-hidden shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:-translate-y-1 hover:border-[var(--md-sys-color-primary)]/30"
                          wire:key="post-{{ $post->id }}"
                 >
+                    <div class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
+
                     <div class="relative h-52 overflow-hidden cursor-pointer bg-[var(--md-sys-color-surface-variant)]"
                          wire:click="selectPost({{ $post->id }})">
                         <img
@@ -100,7 +102,7 @@
     </div>
 
     @if($this->hasMorePosts)
-        <div class="mt-8 mb-20 flex justify-center">
+        <div class="mt-8 mb-4 lg:mb-20 flex justify-center">
             <x-ui.buttons.load-more
                 action="loadMore"
                 text="نمایش بیشتر"

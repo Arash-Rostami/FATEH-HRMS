@@ -1,5 +1,5 @@
 @if ($ticketToRate)
-    <div wire:key="ths-rate" class="bg-[var(--md-sys-color-primary-container)]/10 p-6 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
+    <div wire:key="ths-rate" class="bg-[var(--md-sys-color-primary-container)]/10 p-4 sm:p-8 rounded-2xl shadow-sm max-w-2xl mx-auto relative overflow-hidden">
         {{-- Decorative background element --}}
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-[var(--md-sys-color-primary)] opacity-5 rounded-full "></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[var(--md-sys-color-secondary)] opacity-5 rounded-full"></div>

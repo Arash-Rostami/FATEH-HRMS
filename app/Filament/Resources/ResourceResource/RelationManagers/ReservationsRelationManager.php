@@ -2,13 +2,10 @@
 
 namespace App\Filament\Resources\ResourceResource\RelationManagers;
 
-use App\Filament\Resources\ReservationResource\Schemas\ReservationFormPresenter;
-use App\Filament\Resources\ReservationResource\Schemas\ReservationInfolistPresenter;
+use App\Filament\Resources\ReservationResource;
 use App\Filament\Resources\ReservationResource\Schemas\ReservationTablePresenter;
 use App\Traits\FilamentActions;
 use App\Filament\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,69 +17,11 @@ class ReservationsRelationManager extends RelationManager
 
     protected static string $relationship = 'reservations';
 
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            Section::make(__('resources/reservation/strings.form.section_main'))
-                ->icon('heroicon-o-user')
-                ->schema([
-                    ReservationFormPresenter::userId(),
-                    ReservationFormPresenter::parentId(),
-
-                    ReservationFormPresenter::divider(),
-                    ReservationFormPresenter::status(),
-                    ReservationFormPresenter::isRecurring(),
-                    ReservationFormPresenter::recurPattern(),
-                    ReservationFormPresenter::recurCount(),
-                ])
-                ->columns(2),
-            Section::make(__('resources/reservation/strings.form.section_time'))
-                ->icon('heroicon-o-clock')
-                ->schema([
-                    ReservationFormPresenter::isFullDay(),
-                    ReservationFormPresenter::fullDayDate(),
-                    ReservationFormPresenter::startTime(),
-                    ReservationFormPresenter::endTime(),
-
-                    ReservationFormPresenter::cancelReason()
-                ])
-                ->columns(3),
-        ]);
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('resources/reservation/strings.plural_label');
-    }
+    protected static ?string $relatedResource = ReservationResource::class;
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('resources/resource/strings.relations.reservations');
-    }
-
-    public function infolist(Schema $schema): Schema
-    {
-        return $schema->components([
-            Section::make()
-                ->hiddenLabel()
-                ->schema([
-                    ReservationInfolistPresenter::user(),
-                    ReservationInfolistPresenter::resource(),
-                    ReservationInfolistPresenter::status(),
-                    ReservationInfolistPresenter::parentId(),
-                    ReservationInfolistPresenter::occurrencesCount(),
-                    ReservationInfolistPresenter::startTime(),
-                    ReservationInfolistPresenter::endTime(),
-                    ReservationInfolistPresenter::isFullDay(),
-                    ReservationInfolistPresenter::cancelledBy(),
-                    ReservationInfolistPresenter::cancelledAt(),
-                    ReservationInfolistPresenter::cancelReason(),
-                    ReservationInfolistPresenter::createdAt(),
-
-                ])
-                ->columnSpanFull()
-                ->columns(2),
-        ]);
     }
 
     public function table(Table $table): Table
@@ -115,6 +54,7 @@ class ReservationsRelationManager extends RelationManager
                 ReservationTablePresenter::releaseAction(),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
+            ->toolbarActions([])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('start_time', 'desc')
             ->striped();

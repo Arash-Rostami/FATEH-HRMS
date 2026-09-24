@@ -151,7 +151,7 @@
         </div>
 
         <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
-            <div class="px-5 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
+            <div class="px-3 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)]">
                 <h3 class="text-xs md:text-sm font-bold text-[var(--md-sys-color-on-surface)] flex items-center gap-2">
                     <span class="material-symbols-rounded text-[18px] md:text-[20px] text-[var(--md-sys-color-primary)]">list_alt</span>
                     رویدادهای روز انتخاب شده
@@ -161,10 +161,10 @@
                 <table class="min-w-full text-sm text-right">
                     <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs tracking-wider border-b border-[var(--md-sys-color-outline-variant)]">
                     <tr>
-                        <th class="px-5 md:px-6 py-3 md:py-4">رویداد</th>
-                        <th class="px-5 md:px-6 py-3 md:py-4">وظیفه</th>
-                        <th class="px-5 md:px-6 py-3 md:py-4 hidden md:table-cell">جزئیات</th>
-                        <th class="px-5 md:px-6 py-3 md:py-4">زمان</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4">رویداد</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4">وظیفه</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell">جزئیات</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4">زمان</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
@@ -173,25 +173,25 @@
                         <tr wire:key="timeline-{{ $event['marker'] }}-{{ $event['task_id'] ?? $event['workflow_id'] }}-{{ $event['time'] }}"
                             @if (isset($event['task_id'])) x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ $event['task_id'] }} })" @endif dir="auto"
                             class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 group {{ isset($event['task_id']) ? 'cursor-pointer' : '' }}">
-                            <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                            <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg border border-[var(--md-sys-color-outline-variant)] {{ $d['chipClass'] }}">
                                         <span class="material-symbols-rounded text-[11px] md:text-[13px] {{ $d['iconColorClass'] }}">{{ $d['icon'] }}</span>
                                         <span class="text-[9px] md:text-[10px] font-medium">{{ $d['markerLabel'] }}</span>
                                     </span>
                             </td>
-                            <td class="px-5 md:px-6 py-3 md:py-4">
+                            <td class="px-3 md:px-6 py-3 md:py-4">
                                 <div class="flex flex-col gap-0.5 md:gap-1 max-w-[20ch]">
                                     <span class="text-[9px] md:text-[10px] font-bold tracking-wide text-[var(--md-sys-color-on-surface-variant)]" title="{{ $d['badge'] }}">{{ $d['badge'] }}</span>
                                     <span class="text-[11px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-primary)] transition-colors line-clamp-1" title="{{ $d['title'] }}">{{ $d['title'] }}</span>
                                 </div>
                             </td>
-                            <td class="px-5 md:px-6 py-3 md:py-4 hidden md:table-cell text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                            <td class="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)]">
                                 <div class="line-clamp-1 max-w-[28ch]" title="{{ $d['line'] }}">
                                     {{ $d['line'] }}
                                     @if ($d['pausedText']) <span class="mx-1 text-[var(--md-sys-color-outline-variant)]">•</span> <span class="text-[var(--md-sys-color-tertiary)]">{{ $d['pausedText'] }} در انتظار</span> @endif
                                 </div>
                             </td>
-                            <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $d['time'] }}</td>
+                            <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $d['time'] }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="4" class="py-10"><x-ui.empty icon="event_busy" title="رویدادی در این روز ثبت نشده" variant="list"/></td></tr>
@@ -207,11 +207,11 @@
             <table class="min-w-full text-sm text-right" dir="rtl">
                 <thead class="bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)] uppercase font-medium text-xs tracking-wider border-b border-[var(--md-sys-color-outline-variant)]">
                 <tr>
-                    <th class="px-5 md:px-6 py-3 md:py-4 text-center">روز</th>
-                    <th class="px-5 md:px-6 py-3 md:py-4">رویداد</th>
-                    <th class="px-5 md:px-6 py-3 md:py-4 text-center">وظیفه</th>
-                    <th class="px-5 md:px-6 py-3 md:py-4 hidden md:table-cell text-center">جزئیات</th>
-                    <th class="px-5 md:px-6 py-3 md:py-4">زمان</th>
+                    <th class="px-3 md:px-6 py-3 md:py-4 text-center">روز</th>
+                    <th class="px-3 md:px-6 py-3 md:py-4">رویداد</th>
+                    <th class="px-3 md:px-6 py-3 md:py-4 text-center">وظیفه</th>
+                    <th class="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell text-center">جزئیات</th>
+                    <th class="px-3 md:px-6 py-3 md:py-4">زمان</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--md-sys-color-outline-variant)]/40">
@@ -220,29 +220,29 @@
                     <tr wire:key="agenda-{{ $event['date'] }}-{{ $event['marker'] }}-{{ $event['task_id'] ?? $event['workflow_id'] }}-{{ $event['time'] }}"
                         wire:click="selectCalendarDay('{{ $event['date'] }}')" dir="rtl"
                         class="hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_4%,transparent)] transition-colors duration-200 cursor-pointer group">
-                        <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap align-middle">
+                        <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap align-middle">
                             <div class="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-lg bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] text-[var(--md-sys-color-primary)] text-xs md:text-sm font-bold shadow-sm group-hover:scale-105 transition-transform">
                                 {{ convertToPersian($event['day']) }}
                             </div>
                         </td>
-                        <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap align-middle">
+                        <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap align-middle">
                             <span class="inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg border border-[var(--md-sys-color-outline-variant)] {{ $d['chipClass'] }}">
                                 <span class="material-symbols-rounded text-[11px] md:text-[13px] {{ $d['iconColorClass'] }}">{{ $d['icon'] }}</span>
                                 <span class="text-[9px] md:text-[10px] font-medium">{{ $d['markerLabel'] }}</span>
                             </span>
                         </td>
-                        <td class="px-5 md:px-6 py-3 md:py-4 align-middle text-center">
+                        <td class="px-3 md:px-6 py-3 md:py-4 align-middle text-center">
                             <div class="flex flex-col items-center gap-0.5 md:gap-1 max-w-[20ch]">
                                 <span class="text-[9px] md:text-[10px] font-bold tracking-wide text-[var(--md-sys-color-on-surface-variant)]" title="{{ $d['badge'] }}">{{ $d['badge'] }}</span>
                                 <span class="text-[11px] md:text-xs font-semibold text-[var(--md-sys-color-on-surface)] group-hover:text-[var(--md-sys-color-primary)] transition-colors line-clamp-1" title="{{ $d['title'] }}">{{ $d['title'] }}</span>
                             </div>
                         </td>
-                        <td class="px-5 md:px-6 py-3 md:py-4 hidden md:table-cell text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] align-middle">
+                        <td class="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell text-[11px] md:text-xs text-[var(--md-sys-color-on-surface-variant)] align-middle">
                             <div class="flex justify-center">
                                 <div class="line-clamp-1 max-w-[28ch] text-center" title="{{ $d['line'] }}">{{ $d['line'] }}</div>
                             </div>
                         </td>
-                        <td class="px-5 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] align-middle" dir="ltr">{{ $d['time'] }}</td>
+                        <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] align-middle" dir="ltr">{{ $d['time'] }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="py-10"><x-ui.empty icon="calendar_month" title="رویدادی در این ماه ثبت نشده" variant="list"/></td></tr>

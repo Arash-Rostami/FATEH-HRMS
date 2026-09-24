@@ -14,6 +14,7 @@
             countLabel="مورد">
             <x-slot:actions>
                 <x-ui.buttons.view-toggle
+                    responsive
                     state="view"
                     action="toggleView"
                     :modes="[
@@ -89,17 +90,10 @@
             </div>
         @else
             <div wire:key="reservation-view-classic" class="contents">
-                <div class="w-fit z-1 bg-[var(--md-sys-color-surface)]">
+                <div class="w-fit mx-auto md:mx-0 z-1">
                     <x-ui.buttons.tab-selector
-                        wire:key="tab-selector-{{ $activeTab }}"
                         :active-tab="$activeTab"
                         :has-a11y="true"
-                        button-base-class="group relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 outline-none flex-1 min-w-[140px]"
-                        button-active-class="bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-md shadow-[var(--md-sys-color-primary)]/20"
-                        button-inactive-class="text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)] hover:text-[var(--md-sys-color-on-surface)]"
-                        icon-base-class="material-symbols-rounded text-xl"
-                        icon-active-class="font-variation-fill"
-                        icon-inactive-class="opacity-70 group-hover:opacity-100"
                         :tabs="$tabs"
                     />
                 </div>
@@ -109,8 +103,6 @@
                 </div>
 
                 <div class="mb-8 animate-slide-up-fade flex flex-col gap-6">
-                    <x-ui.placeholder/>
-
                     @includeWhen(!(\App\Enums\ResourceType::tryFrom($activeTab)?->isFullDay() ?? true), 'livewire.dashboard.reservation.time')
 
                     @if(count($this->facets) > 0)

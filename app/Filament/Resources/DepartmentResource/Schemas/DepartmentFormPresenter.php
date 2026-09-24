@@ -36,7 +36,6 @@ class DepartmentFormPresenter
             ->native(false)
             ->required()
             ->default(0)
-            ->live()
             ->helperText(__('resources/department/strings.hints.level'));
     }
 

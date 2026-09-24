@@ -10,7 +10,7 @@
                 @class([
                     'relative z-20 flex h-10 w-10 items-center justify-center transition-all duration-200 active:scale-95',
                     'opacity-100 text-[var(--md-sys-color-primary)]' => $this->hasActiveReminder,
-                    'opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-on-surface-variant)]' => ! $this->hasActiveReminder,
+                    'max-sm:opacity-100 opacity-0 group-hover:opacity-100 text-[var(--md-sys-color-on-surface-variant)]' => ! $this->hasActiveReminder,
                 ])>
             <span class="material-symbols-rounded text-[20px]">alarm</span>
             @if($this->dueCount > 0)

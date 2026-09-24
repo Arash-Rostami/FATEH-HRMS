@@ -82,7 +82,9 @@ class ProjectResource extends Resource
             ->withCount('tasks')
             ->withCount(['tasks as overdue_tasks_count' => fn(Builder $query) => $query
                 ->whereNotIn('status', ['done'])
-                ->where('deadline', '<', now())]);
+                ->where('deadline', '<', now())])
+            ->withCount(['tasks as done_tasks_count' => fn(Builder $query) => $query
+                ->where('status', 'done')]);
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array

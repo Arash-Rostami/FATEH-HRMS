@@ -5,7 +5,7 @@
         <p class="text-sm font-medium opacity-80">موردی در این ماه یافت نشد</p>
     </div>
 
-    <div class="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 [column-fill:balance]">
+    <div class="columns-1 sm:columns-3 md:columns-4 lg:columns-5 gap-4 [column-fill:balance]">
         @foreach($this->photos as $photo)
             @php
                 $w = $presenter->wallCardData($photo);
@@ -18,7 +18,7 @@
             <div wire:key="wall-{{ $photo->id }}"
                  data-photo-id="{{ $photo->id }}"
                  x-show="!month || month === @js($monthKey)"
-                 class="mb-3 break-inside-avoid relative group/wall rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm bg-[var(--md-sys-color-surface)] ring-1 ring-transparent hover:ring-[var(--md-sys-color-primary)]/30 transition-all duration-300">
+                 class="mb-4 break-inside-avoid relative group/wall rounded-2xl overflow-hidden border border-[var(--md-sys-color-outline-variant)]/20 shadow-sm bg-[var(--md-sys-color-surface)] ring-1 ring-transparent hover:ring-[var(--md-sys-color-primary)]/30 transition-all duration-300">
                 @if($lead)
                     <a href="{{ $lead }}" data-fancybox="gallery-{{ $photo->id }}" class="block relative overflow-hidden">
                         <img src="{{ $lead }}" alt="{{ $photo->title }}" class="w-full h-auto object-cover transition-transform duration-500 group-hover/wall:scale-105" loading="lazy">

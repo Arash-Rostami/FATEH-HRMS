@@ -79,7 +79,6 @@ class OnboardingFormPresenter
                     ->directory('onboarding/guides')
                     ->downloadable()
                     ->openable()
-                    ->live()
                     ->acceptedFileTypes([
                         'application/pdf',
                         'application/msword',

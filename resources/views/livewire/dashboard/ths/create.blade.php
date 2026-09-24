@@ -166,7 +166,7 @@
 
                                     @if($index > 0)
                                         <button type="button" wire:click="removeFileInput('{{ $key }}')"
-                                                class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] opacity-0 group-hover:opacity-100 active:scale-95 transition-all shadow-sm">
+                                                class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] max-sm:opacity-100 opacity-0 group-hover:opacity-100 active:scale-95 transition-all shadow-sm">
                                             <span class="material-symbols-rounded text-sm">close</span>
                                         </button>
                                     @endif

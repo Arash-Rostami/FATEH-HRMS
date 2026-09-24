@@ -5,7 +5,7 @@
              @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true; recordOpen(activeReport)">
 
             <div
-                class="w-full md:w-32 h-48 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0">
+                class="w-full md:w-32 h-56 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0">
                 <img src="{{ $report->thumbnail }}"
                      class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                 <div
@@ -36,10 +36,10 @@
                 </div>
             </div>
 
-            <div class="flex-shrink-0 md:mr-6 mt-4 md:mt-0">
+            <div class="flex-shrink-0 self-start md:self-auto md:mr-6 mt-2 md:mt-0">
                 <button wire:click.stop="download({{ $report->id }})"
-                        class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] hover:bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-primary)] transition-all shadow-sm hover:shadow-lg">
-                    <span class="material-symbols-rounded text-xl">download</span>
+                        class="p-2 rounded-xl bg-[var(--md-sys-color-surface-container-highest)] hover:bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-on-primary)] transition-all shadow-sm hover:shadow-lg">
+                    <span class="material-symbols-rounded text-lg">download</span>
                 </button>
             </div>
         </div>

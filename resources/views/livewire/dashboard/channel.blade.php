@@ -42,7 +42,7 @@
         <x-ui.modals.max-backdrop/>
         @include('livewire.dashboard.channel.manage-members')
 
-        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max }">
+        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
 
             @island(name: 'sidebar')
                 @include('livewire.dashboard.channel.sidebar')
@@ -53,7 +53,7 @@
                     'hidden' => !$mobileShowChat,
                     'flex' => $mobileShowChat,
                     'flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex',
-                ])>
+                ]) x-bind:class="{ 'hidden': !$wire.mobileShowChat, 'flex': $wire.mobileShowChat }">
                     @if($createMode)
                         <div wire:key="pane-create" class="contents">
                             @include('livewire.dashboard.channel.create')

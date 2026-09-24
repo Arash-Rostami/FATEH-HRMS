@@ -1,5 +1,5 @@
 @if(count($schemeProgress))
-    <div class="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-low)] px-6 py-3">
+    <div class="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-low)] px-4 md:px-6 py-3">
         @foreach($schemeProgress as $row)
             @php($percent = $row['total'] > 0 ? (int) round($row['done'] / $row['total'] * 100) : 0)
             <div class="flex items-center gap-3">

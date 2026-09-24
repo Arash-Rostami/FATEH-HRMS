@@ -24,7 +24,7 @@
         </div>
 
         <div x-show="show"
-             class="relative transform rounded-2xl overflow-hidden glass-panel transition-all w-full sm:max-w-2xl sm:mx-auto bg-[var(--md-sys-color-surface)]"
+             class="relative transform rounded-2xl overflow-hidden glass-panel transition-all w-full sm:max-w-2xl sm:mx-auto bg-[var(--md-sys-color-surface)] flex flex-col max-h-[calc(100dvh-6rem)]"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -41,7 +41,7 @@
                 </div>
             @endif
 
-            <div class="p-6">
+            <div class="p-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {{ $slot }}
             </div>
         </div>

@@ -59,10 +59,10 @@
                        accept=".jpeg,.jpg,.png,.gif,.bmp,.webp,.svg,.pdf,.doc,.docx,.xls,.xlsx,.odt,.ods"/>
             </label>
 
-            <div class="flex items-center gap-2">
-                <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1" x-show="willNotify.length > 0" x-cloak>
+            <div class="flex min-w-0 items-center gap-2">
+                <p class="min-w-0 text-[11px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1" x-show="willNotify.length > 0" x-cloak>
                     <span class="material-symbols-rounded text-[13px] text-[var(--tool-amethyst-color)]">notifications</span>
-                    <span x-text="willNotify.join('، ')"></span>
+                    <span class="truncate" x-text="willNotify.join('، ')"></span>
                 </p>
                 <span class="text-[11px]" :style="{ color: counterTone }"
                       x-text="(value || '').length + ' / ' + maxLength"></span>
@@ -148,7 +148,7 @@
     @endif
 
     <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">
-        <div id="activity-viewport" role="log" aria-live="polite" @scroll.passive="$store.activityReactionPicker.close()" class="relative flex flex-col gap-4 max-h-[28rem] overflow-y-auto custom-scrollbar p-4">
+        <div id="activity-viewport" role="log" aria-live="polite" class="relative flex flex-col gap-4 p-4">
             @if(count($this->activityFeed['rows']))
                 <div class="absolute top-4 bottom-4 right-[13px] w-px bg-[var(--md-sys-color-outline-variant)] opacity-30"></div>
             @endif
@@ -369,7 +369,9 @@
                     </div>
                 @endforeach
             @empty
-                <x-ui.empty icon="timeline" title="هنوز فعالیتی ثبت نشده" variant="list"/>
+                <div wire:key="project-activity-empty" class="contents">
+                    <x-ui.empty icon="timeline" title="هنوز فعالیتی ثبت نشده" variant="list"/>
+                </div>
             @endforelse
 
             @if(count($this->activityFeed['rows']))

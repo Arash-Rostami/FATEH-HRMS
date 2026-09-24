@@ -21,8 +21,9 @@
             loading="markAllRead"
             variant="tonal"
             icon="done_all"
+            title="علامت‌گذاری همه به‌عنوان خوانده‌شده"
         >
-            علامت‌گذاری همه به‌عنوان خوانده‌شده
+            <span class="hidden md:inline">علامت‌گذاری همه به‌عنوان خوانده‌شده</span>
         </x-ui.buttons.form>
     </div>
 

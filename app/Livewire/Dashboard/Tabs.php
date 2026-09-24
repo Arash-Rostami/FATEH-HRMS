@@ -60,6 +60,7 @@ class Tabs extends Component
         $keys = array_keys($this->tabs);
         $this->direction = array_search($tab, $keys) > array_search($this->activeTab, $keys) ? 'up' : 'down';
         $this->activeTab = $tab;
+        $this->dispatch('tab-switched', tab: $tab);
     }
 
     private function normalizeTab(?string $tab): string

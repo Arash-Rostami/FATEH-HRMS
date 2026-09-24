@@ -47,6 +47,15 @@ export default function background() {
             }
         },
 
+        get renderIndices() {
+            const store = this.$store?.background;
+            if (!store) return [];
+            const images = store.images || [];
+            if (store.backdropMode === 'time') return images.length ? [this.activeIndex] : [];
+
+            return images.map((_, i) => i);
+        },
+
         getClasses(index) {
             if (index === this.activeIndex) return ACTIVE_CLASSES;
             if (index === this.previousIndex) return PREVIOUS_CLASSES;

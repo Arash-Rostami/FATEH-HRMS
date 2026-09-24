@@ -117,7 +117,7 @@
                 <button
                     type="button"
                     x-on:click.stop="tagOpen = !tagOpen"
-                    :class="$store.tagged.isTagged(@js($ticket->id), @js('ths')) ? '!opacity-100' : 'opacity-0 group-hover:opacity-100'"
+                    :class="$store.tagged.isTagged(@js($ticket->id), @js('ths')) ? '!opacity-100' : 'max-sm:opacity-100 opacity-0 group-hover:opacity-100'"
                     class="w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="رنگ‌آمیزی تیکت"
                     aria-label="رنگ‌آمیزی تیکت"

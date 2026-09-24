@@ -17,7 +17,7 @@
         </div>
 
         @if($isOwner)
-            <div wire:key="workflow-owner-toolbar" class="flex items-center gap-2">
+            <div wire:key="workflow-owner-toolbar" class="flex flex-wrap items-center gap-2">
                 @if($templates->isNotEmpty())
                     <div wire:key="workflow-apply-template" class="flex items-center gap-2">
                         <div class="w-40">

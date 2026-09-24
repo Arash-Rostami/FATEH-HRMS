@@ -28,7 +28,7 @@
                     </th>
                 </tr>
                 <tr>
-                    <th data-col="title" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
+                    <th data-col="title" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
                         <button type="button" wire:click="sortBy('title')" class="flex w-full items-center justify-start gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)] {{ $sort === 'title' ? 'text-[var(--md-sys-color-primary)]' : '' }}">
                             <span class="material-symbols-rounded text-[18px]">description</span>
                             <span>عنوان سند</span>
@@ -38,7 +38,7 @@
                         </button>
                     </th>
 
-                    <th data-col="code" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold">
+                    <th data-col="code" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">
                         <button type="button" wire:click="sortBy('code')" class="flex w-full items-center justify-center gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)] {{ $sort === 'code' ? 'text-[var(--md-sys-color-primary)]' : '' }}">
                             <span class="material-symbols-rounded text-[18px]">tag</span>
                             <span>نسخه</span>
@@ -48,35 +48,35 @@
                         </button>
                     </th>
 
-                    <th data-col="dept" class="max-w-xs whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">
+                    <th data-col="dept" class="max-w-xs whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
                         <div class="flex items-center justify-start gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">group</span>
                             <span>واحد(های) ذی نفع</span>
                         </div>
                     </th>
 
-                    <th data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold">
+                    <th data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">
                         <div class="flex items-center justify-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">info</span>
                             <span>وضعیت</span>
                         </div>
                     </th>
 
-                    <th data-col="details" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">
+                    <th data-col="details" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
                         <div class="flex items-center justify-start gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">list</span>
                             <span>جزییات</span>
                         </div>
                     </th>
 
-                    <th data-col="desc" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-right font-bold">
+                    <th data-col="desc" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
                         <div class="flex items-center justify-start gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">comment</span>
                             <span>توضیحات</span>
                         </div>
                     </th>
 
-                    <th data-col="action" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
+                    <th data-col="action" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
                         @include('livewire.dashboard.dms.toolbar')
                     </th>
                 </tr>
@@ -152,7 +152,7 @@
                             </div>
                         </td>
 
-                        <td data-col="code" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle font-mono text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
+                        <td data-col="code" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle font-mono text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">
                             @php
                                 $versionPopover = $this->presenter->versionPopover($doc);
                             @endphp
@@ -190,21 +190,21 @@
                             @endif
                         </td>
 
-                        <td data-col="dept" class="max-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle">
+                        <td data-col="dept" class="max-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-right align-middle">
                             <div class="truncate text-xs font-medium leading-relaxed text-[var(--md-sys-color-on-surface-variant)]"
                                  title="{!! $deptLabels ?: 'بدون مالک' !!}">
                                 {!! $deptLabels ?: ' فردی (جدا از واحد)' !!}
                             </div>
                         </td>
 
-                        <td data-col="status" class="cursor-help border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td data-col="status" class="cursor-help border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                                 <span title="{{ $doc->getStatusInFarsi() }}"
                                       class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--md-sys-color-surface-container)] text-lg transition-colors hover:bg-[var(--md-sys-color-surface-container-high)]">
                                     {!! $doc->getStatusIcon() ?? '-' !!}
                                 </span>
                         </td>
 
-                        <td data-col="details" class="min-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle">
+                        <td data-col="details" class="min-w-[150px] border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-right align-middle">
                             @if($extraDetails->count() > 0)
                                 <div wire:key="dms-details-popover" x-data="{ open: false }" @click.away="open = false" class="relative flex flex-col items-start">
                                     <button type="button" @click="open = !open"
@@ -242,7 +242,7 @@
                             @endif
                         </td>
 
-                        <td data-col="desc" class="min-w-[180px] border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-right align-middle text-xs text-[var(--md-sys-color-on-surface-variant)]">
+                        <td data-col="desc" class="min-w-[180px] border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-right align-middle text-xs text-[var(--md-sys-color-on-surface-variant)]">
                             <div class="flex flex-col gap-2">
                                 @if ($doc->file)
                                     @php
@@ -324,7 +324,7 @@
                             </div>
                         </td>
 
-                        <td data-col="action" class="relative whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-6 py-4 text-center align-middle">
+                        <td data-col="action" class="relative whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             <div class="absolute left-2 top-2 z-20">
                                 <x-dashboard.reminder-trigger :for="$doc" variant="corner" tooltip-position="right"/>
                             </div>

@@ -16,14 +16,10 @@
         ></div>
 
         <div
-            @class([
-                    'fixed inset-y-0 left-0 w-full ' . $maxWidth . ' bg-[var(--md-sys-color-surface)] shadow-2xl flex flex-col border-r border-[var(--md-sys-color-outline-variant)]/20',
-                    'animate-slide-from-left' => $show,
-                    'animate-slide-to-left' => !$show,
-                ])
+            class="fixed inset-y-0 left-0 w-full {{ $maxWidth }} bg-[var(--md-sys-color-surface)] shadow-2xl flex flex-col border-r border-[var(--md-sys-color-outline-variant)]/20"
             x-show="{{ $show }}"
+            x-transition:enter="animate-slide-from-left"
             x-transition:leave="animate-slide-to-left"
-            x-transition:leave.duration.400ms
         >
             {{ $slot }}
         </div>

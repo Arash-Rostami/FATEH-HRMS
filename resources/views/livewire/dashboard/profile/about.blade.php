@@ -1,6 +1,6 @@
 @use('Illuminate\Support\Str')
 <div class="space-y-6" dir="rtl">
-    <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)] shadow-sm">
+    <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 md:p-6 border border-[var(--md-sys-color-outline-variant)] shadow-sm">
 
         <h3 class="text-[var(--md-sys-color-on-surface-variant)] mb-6 leading-relaxed">
             اطلاعات زیر در بخش "درباره من" در پروفایل شما برای سایر همکاران نمایش داده خواهد شد. این اطلاعات به سایر همکاران جدید شما کمک می‌کند تا با شما بهتر آشنا شوند.

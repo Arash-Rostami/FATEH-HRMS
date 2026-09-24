@@ -116,7 +116,7 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2 px-3 py-1.5 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/20 text-[10px] text-[var(--md-sys-color-on-surface-variant)]/70 select-none">
+                <div class="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/20 text-[10px] text-[var(--md-sys-color-on-surface-variant)]/70 select-none">
                     <span class="inline-flex items-center gap-1">
                         <kbd class="px-1 py-0.5 rounded bg-[var(--md-sys-color-surface-container-high)] border border-[var(--md-sys-color-outline-variant)]/40 font-sans font-semibold">Enter</kbd>
                         <span>ارسال</span>

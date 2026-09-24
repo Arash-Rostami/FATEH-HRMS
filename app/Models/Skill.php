@@ -45,6 +45,15 @@ class Skill extends Model
         );
     }
 
+    public static function cachedCategoryFilter(): array
+    {
+        return Cache::remember(
+            ModelCacheVersion::key(self::class, 'skill_category_filter'),
+            now()->addDay(),
+            fn() => self::whereNotNull('category')->distinct()->orderBy('category')->pluck('category', 'category')->toArray()
+        );
+    }
+
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'skill_user')->using(SkillUser::class);

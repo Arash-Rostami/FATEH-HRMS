@@ -43,7 +43,7 @@
 
     <aside @mouseenter="expand"
            @mouseleave="collapse"
-           :class="{'w-[84px]': isExpanded, 'w-[8px] md:w-[12px] lg:w-[52px]': !isExpanded}"
+           :class="{'w-[84px]': isExpanded, 'w-[8px] md:w-[12px] lg:w-[52px]': !isExpanded, 'focus-dim': $store.focus.active}"
            class="fixed left-0 z-50 flex flex-col shrink-0 gap-0.5 pt-8 md:gap-1 md:pt-10 top-[128px] lg:top-[148px] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]">
 
         <div @click="toggleExpand"
@@ -51,8 +51,8 @@
              x-transition:enter="transition-all duration-500 delay-200"
              x-transition:enter-start="opacity-0 scale-0"
              x-transition:enter-end="opacity-100 scale-100"
-             class="absolute left-0 flex items-center justify-end w-8 h-16 pr-1.5 transition-all duration-200 border-y border-r cursor-pointer lg:hidden top-1/2 -translate-y-1/2 rounded-r-xl active:scale-95 shadow-[4px_0_20px_var(--md-sys-color-primary)]/10 border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]/80 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
-            <span class="text-base animate-pulse material-symbols-rounded" style="animation-duration: 2s;">chevron_right</span>
+             class="group absolute left-0 flex items-center justify-end w-8 h-16 pr-1.5 transition-all duration-200 border-y border-r cursor-pointer lg:hidden top-1/2 -translate-y-1/2 rounded-r-xl active:scale-95 shadow-[4px_0_20px_var(--md-sys-color-primary)]/10 border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]/80 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+            <span class="text-base material-symbols-rounded transition-transform duration-200 group-hover:translate-x-0.5">chevron_right</span>
         </div>
 
         @foreach($navItems as $item)

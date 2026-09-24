@@ -1,4 +1,4 @@
-<div x-show="searchMessages" x-transition style="display:none;" class="absolute left-0 right-10 z-40">
+<div x-show="searchMessages" x-transition style="display:none;" class="absolute left-0 right-10 z-40 max-md:right-[-2rem]">
     <div class="rounded-2xl bg-[var(--md-sys-color-surface)] shadow-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] overflow-hidden">
         <x-ui.forms.search-field model="messageSearch" id="msg-search-input" debounce="600"
                                  :placeholder="$placeholder" :overlay-title="$overlayTitle"

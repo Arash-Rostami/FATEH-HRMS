@@ -50,7 +50,7 @@
 
         <x-ui.modals.max-backdrop/>
 
-        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max }">
+        <div class="chat-widget flex-1 min-h-0" :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
 
             @island(name: 'sidebar', always: true)
                 @include('livewire.dashboard.project.sidebar')
@@ -59,14 +59,18 @@
             @island(name: 'workspace', always: true)
                 <main class="flex-1 flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] relative bg-[var(--md-sys-color-background)] md:flex"
                       :class="{ 'hidden': !mobileShowChat }">
+                    <div wire:ignore x-show="openingProject" x-cloak x-transition.opacity
+                         class="absolute inset-0 z-30 bg-[var(--md-sys-color-surface-container-lowest)]/50 flex items-center justify-center">
+                        <x-ui.loaders.spin-badge text="در حال باز کردن پروژه..."/>
+                    </div>
                     @if($this->activeProject)
                         <div wire:key="pane-active" class="contents">
-                        <div class="flex-shrink-0 p-4 md:p-5 border-b border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
+                        <div class="relative z-20 flex-shrink-0 border-b px-3 md:px-5 py-3 transition-all duration-300 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
                             @include('livewire.dashboard.project.header')
                         </div>
 
-                        <div class="flex-1 min-h-0 flex flex-col overflow-y-auto custom-scrollbar p-4 md:p-6">
-                            <div class="flex items-center gap-2 mb-6 flex-shrink-0">
+                        <div class="flex-1 min-h-0 flex flex-col overflow-hidden p-4 md:p-6">
+                            <div class="flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-shrink-0">
                                 <x-ui.buttons.tab-selector
                                     :active-tab="$activeTab"
                                     has-a11y
@@ -85,18 +89,18 @@
                                 />
 
                                 @if($activeTab === 'teamChat' && $this->activeChannel)
-                                    <a href="{{ route('channels', ['open' => $this->activeChannel->id]) }}" target="_blank" rel="noopener noreferrer"
+                                    <a wire:key="project-open-channel" href="{{ route('channels', ['open' => $this->activeChannel->id]) }}" target="_blank" rel="noopener noreferrer"
                                        title="مشاهده در گروه کامل (پیوست فایل، ویرایش، حذف، پاسخ و امکانات بیشتر)"
-                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
-                                        <span class="material-symbols-rounded text-lg">open_in_new</span>
+                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
+                                        <span class="material-symbols-rounded text-base">open_in_new</span>
                                     </a>
                                 @endif
 
                                 @if($activeTab === 'kanban')
-                                    <a href="{{ route('tasks', array_filter(['project' => $this->activeProjectId, 'open' => $editingTaskId])) }}" target="_blank" rel="noopener noreferrer"
+                                    <a wire:key="project-open-taskboard" href="{{ route('tasks', array_filter(['project' => $this->activeProjectId, 'open' => $editingTaskId])) }}" target="_blank" rel="noopener noreferrer"
                                        title="مشاهده در برد کامل (آرشیو، محول‌کردن، حذف و امکانات بیشتر)"
-                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
-                                        <span class="material-symbols-rounded text-lg">open_in_new</span>
+                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
+                                        <span class="material-symbols-rounded text-base">open_in_new</span>
                                     </a>
                                 @endif
                             </div>
@@ -106,12 +110,14 @@
                             </div>
 
                             @if(isset($this->tabs[$activeTab]))
-                                <livewire:dynamic-component
-                                    :component="$this->tabs[$activeTab]['component']"
-                                    :wire:key="$this->tabs[$activeTab]['key']"
-                                    :lazy="$this->tabs[$activeTab]['lazy']"
-                                    :active-project-id="$activeProjectId"
-                                />
+                                <div id="project-tab-pane" wire:key="project-tab-pane" @scroll.passive="$store.activityReactionPicker.close()" class="no-anchor flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar">
+                                    <livewire:dynamic-component
+                                        :component="$this->tabs[$activeTab]['component']"
+                                        :wire:key="$this->tabs[$activeTab]['key']"
+                                        :lazy="$this->tabs[$activeTab]['lazy']"
+                                        :active-project-id="$activeProjectId"
+                                    />
+                                </div>
                             @endif
                         </div>
                         </div>

@@ -1,6 +1,7 @@
 import monthFilterMixin from "../mixins/monthFilter.js";
 
 const PHOTO_SELECTOR = '[data-photo-id]';
+const MOBILE_BREAKPOINT = 768;
 
 export default function gallery() {
     return {
@@ -16,11 +17,22 @@ export default function gallery() {
         _scrollListener: null,
         _scrollRaf: null,
         _morphHook: null,
+        _enforce: null,
 
         init() {
             this._isDestroyed = false;
             this.view = this.$wire.get('view') || 'filmstrip';
             this.watchMonth();
+
+            this._enforce = () => {
+                if (window.innerWidth < MOBILE_BREAKPOINT && this.view !== 'filmstrip') {
+                    this.view = 'filmstrip';
+                    this.$wire.call('toggleView', 'filmstrip');
+                }
+            };
+
+            this._enforce();
+            window.addEventListener('resize', this._enforce, { passive: true });
 
             this.$nextTick(() => {
                 this.setupScrollListener();
@@ -146,6 +158,11 @@ export default function gallery() {
             if (typeof this._morphHook === 'function') {
                 this._morphHook();
                 this._morphHook = null;
+            }
+
+            if (this._enforce) {
+                window.removeEventListener('resize', this._enforce);
+                this._enforce = null;
             }
 
             if (this._initTimeout) {

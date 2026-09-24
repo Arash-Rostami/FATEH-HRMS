@@ -27,7 +27,7 @@ class SkillTablePresenter
     {
         return SelectFilter::make('category')
             ->label(__('resources/skill/strings.fields.category'))
-            ->options(fn(): array => \App\Models\Skill::whereNotNull('category')->distinct()->orderBy('category')->pluck('category', 'category')->toArray())
+            ->options(fn(): array => \App\Models\Skill::cachedCategoryFilter())
             ->searchable();
     }
 

@@ -7,11 +7,13 @@
         default => 'bg-[var(--md-sys-color-surface)] rounded-xl shadow-xl border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden',
     };
     $side = str_contains($alignment, 'left-0') ? 'left' : 'right';
+    preg_match('/^w-(\d+)$/', $width, $__widthMatch);
+    $widthPx = isset($__widthMatch[1]) ? ((int) $__widthMatch[1]) * 4 : 224;
 @endphp
 
 <div
     {{ $attributes->merge(['class' => 'relative inline-flex']) }}
-    x-data="{ open: false, closeTimer: null, pos: {}, side: '{{ $side }}' }"
+    x-data="{ open: false, closeTimer: null, pos: {}, side: '{{ $side }}', w: {{ $widthPx }} }"
     @mouseenter="clearTimeout(closeTimer); pos = $refs.trigger.getBoundingClientRect().toJSON(); open = true"
     @mouseleave="closeTimer = setTimeout(() => open = false, 180)"
 >
@@ -31,9 +33,11 @@
             x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            :style="side === 'left'
-                ? { position: 'fixed', top: (pos.bottom + 8) + 'px', left: pos.left + 'px' }
-                : { position: 'fixed', top: (pos.bottom + 8) + 'px', right: (window.innerWidth - pos.right) + 'px' }"
+            :style="{
+                position: 'fixed',
+                top: (pos.bottom + 8) + 'px',
+                left: Math.min(Math.max((side === 'left' ? pos.left : pos.right - w), 8), window.innerWidth - w - 8) + 'px'
+            }"
             class="{{ $width }} {{ $surfaceClasses }} z-50"
         >
             {{ $body }}

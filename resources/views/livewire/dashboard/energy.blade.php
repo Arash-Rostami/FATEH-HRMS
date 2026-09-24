@@ -48,7 +48,6 @@
 
         <x-ui.buttons.tab-selector
             :activeTab="$activeTab"
-            class="gap-1"
             :tabs="[
                     ['id' => 'survey','label' => 'پرسشنامه','icon' => 'poll'],
                     ['id' => 'chart','label' => 'نتایج','icon' => 'bar_chart']

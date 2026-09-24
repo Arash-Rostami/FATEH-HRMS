@@ -2,6 +2,7 @@
 
 <div
     x-data="{ minimized: false }"
+    data-auth-card
     @card-restore.window="minimized = false"
     class="flex items-center justify-center max-h-screen w-full p-0 bg-transparent animate-slide-in-top animate-delay-1250">
 
@@ -46,17 +47,30 @@
         <div class="dark:hidden absolute -bottom-32 -right-32 pointer-events-none h-64 w-64 opacity-[0.06] bg-[image:repeating-linear-gradient(45deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_14px)] transition-opacity duration-700 ease-out group-hover:opacity-[0.12]"></div>
         <div class="dark:hidden absolute -bottom-32 -left-32 pointer-events-none h-64 w-64 overflow-hidden rounded-full opacity-[0.06] bg-[image:repeating-linear-gradient(0deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px),repeating-linear-gradient(90deg,var(--md-sys-color-tertiary)_0,var(--md-sys-color-tertiary)_1px,transparent_1px,transparent_12px)] transition-opacity duration-700 ease-out group-hover:opacity-[0.12]"></div>
 
+        @php
+            $lightLogoUrl = asset(tenantLogo(false, 'user', true));
+            $darkLogoUrl = asset(tenantLogo(true, 'user', true));
+        @endphp
+
         <div class="scale-[0.9] pt-14 px-8 pb-8 flex flex-col items-center justify-center relative z-10 w-full animate-scale-in transition-transform ease-out animate-delay-2500 isolate">
 
-            <img src="{{ asset(tenantLogo(false, 'user', true)) }}"
-                 alt="{{ config('app.name_en', 'WinterrA') }}"
-                 title="{{ config('app.name_en', 'WinterrA') }}"
-                 class="h-12 w-auto transition-all duration-700 block dark:hidden group-hover:scale-105 group-hover:-translate-y-0.5">
+            <div class="relative block dark:hidden">
+                <img src="{{ $lightLogoUrl }}"
+                     alt="{{ config('app.name_en', 'WinterrA') }}"
+                     title="{{ config('app.name_en', 'WinterrA') }}"
+                     class="h-12 w-auto transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-0.5">
+                <div class="absolute inset-0 pointer-events-none animate-logo-shine"
+                     style="-webkit-mask-image:url('{{ $lightLogoUrl }}');mask-image:url('{{ $lightLogoUrl }}');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>
+            </div>
 
-            <img src="{{ asset(tenantLogo(true, 'user', true)) }}"
-                 alt="{{ config('app.name_en', 'WinterrA') }}"
-                 title="{{ config('app.name_en', 'WinterrA') }}"
-                 class="h-12 w-auto transition-all duration-700  hidden dark:block group-hover:scale-105 group-hover:-translate-y-0.5">
+            <div class="relative hidden dark:block">
+                <img src="{{ $darkLogoUrl }}"
+                     alt="{{ config('app.name_en', 'WinterrA') }}"
+                     title="{{ config('app.name_en', 'WinterrA') }}"
+                     class="h-12 w-auto transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-0.5">
+                <div class="absolute inset-0 pointer-events-none animate-logo-shine"
+                     style="-webkit-mask-image:url('{{ $darkLogoUrl }}');mask-image:url('{{ $darkLogoUrl }}');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></div>
+            </div>
         </div>
 
         <div class="px-8 sm:px-14 pb-14 flex-1 flex flex-col relative z-10">

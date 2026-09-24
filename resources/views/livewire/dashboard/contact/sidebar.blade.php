@@ -13,7 +13,8 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) aria-label="لیست مکالمات" data-total-unread="{{ $totalUnread }}">
+]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768 }"
+   aria-label="لیست مکالمات" data-total-unread="{{ $totalUnread }}">
 
     {{-- Header --}}
     <div class="flex-shrink-0 px-4 pt-4 pb-3">

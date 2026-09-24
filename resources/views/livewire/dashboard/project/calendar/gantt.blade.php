@@ -15,7 +15,7 @@
                         variant="list"/>
         </div>
     @else
-        <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[32rem]">
+        <div class="overflow-x-auto overflow-y-auto overscroll-contain custom-scrollbar max-h-[32rem]">
             <div class="min-w-max">
                 <div class="sticky top-0 z-30 flex bg-[var(--md-sys-color-surface-container-low)] border-b border-[var(--md-sys-color-outline-variant)]">
                     <div class="sticky start-0 z-20 w-40 md:w-56 shrink-0 bg-[var(--md-sys-color-surface)] flex items-end px-4 pb-2">

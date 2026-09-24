@@ -1,5 +1,5 @@
 <div class="flex items-center justify-between gap-3 mb-4 p-5" dir="rtl">
-    <div class="flex items-center gap-3">
+    <div class="flex min-w-0 items-center gap-3">
         <div class="relative shrink-0">
             <img
                 class="h-10 w-10 rounded-xl object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]"
@@ -8,9 +8,9 @@
             >
         </div>
 
-        <div>
+        <div class="min-w-0">
             <div class="flex items-center gap-2">
-                <h4 class="text-sm font-semibold leading-tight text-[var(--md-sys-color-on-surface)]">
+                <h4 class="min-w-0 truncate text-sm font-semibold leading-tight text-[var(--md-sys-color-on-surface)]">
                     {{ $feed->user?->name ?? 'کاربر ناشناس' }}
                 </h4>
 
@@ -32,7 +32,7 @@
         @click="toggleMaximize(feed($el))"
         :title="maximizedFeed === feed($el) ? 'کوچک کردن' : 'بزرگ کردن'"
         :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedFeed === feed($el) }"
-        class="ripple-effect shrink-0 flex h-9 w-9 items-center justify-center rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95"
+        class="ripple-effect shrink-0 hidden md:flex h-9 w-9 items-center justify-center rounded-xl text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-200 active:scale-95"
     >
         <span
             class="material-symbols-rounded text-[18px]"

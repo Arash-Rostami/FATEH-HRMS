@@ -39,7 +39,7 @@
 @endphp
 
 <div x-data="{ tab: 'views' }">
-    <div class="flex p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
+    <div class="flex flex-wrap gap-y-1 p-1 mb-5 bg-[var(--md-sys-color-surface-variant)]/40 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($tabs as $tab)
             <button
                 type="button"

@@ -43,9 +43,8 @@
 
         @include('components.dashboard.header.focus-chip')
 
-        <div class="w-fit z-1 bg-[var(--md-sys-color-surface)] mb-6">
+        <div class="w-fit mx-auto md:mx-0 z-1 bg-[var(--md-sys-color-surface)] mb-6">
             <x-ui.buttons.tab-selector
-                wire:key="tab-selector-{{ $activeTab }}"
                 :active-tab="$activeTab"
                 :has-a11y="true"
                 :tabs="[
@@ -71,7 +70,7 @@
 
             <x-ui.modals.max-backdrop/>
 
-            <div :class="{ 'max-widget': max }">
+            <div :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
                 @include('livewire.dashboard.dms.table')
             </div>
 

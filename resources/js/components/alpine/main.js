@@ -47,6 +47,7 @@ import feedReactions from "./data/feedReactions.js";
 import countdown from "./data/countdown.js";
 import { calendarDrag, calendarNow, calendarResize, calendarView } from "./data/calendar.js";
 import status from "./data/status.js";
+import tabSelector from "./data/tabSelector.js";
 
 export default function initAlpine() {
     document.addEventListener('alpine:init', () => {
@@ -102,5 +103,6 @@ export default function initAlpine() {
         Alpine.data('calendarResize', calendarResize)
         Alpine.data('calendarView', calendarView)
         Alpine.data('status', status)
+        Alpine.data('tabSelector', tabSelector)
     })
 }

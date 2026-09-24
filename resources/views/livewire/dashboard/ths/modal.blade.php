@@ -37,7 +37,7 @@
                      role="dialog"
                      aria-modal="true">
 
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shrink-0">
+                    <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] shrink-0">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center shadow-sm">
                                 <span class="material-symbols-rounded text-xl">confirmation_number</span>
@@ -66,13 +66,11 @@
                         </div>
                     </div>
 
-                    <div class="px-6 py-3 border-b border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-container-lowest)] shrink-0 flex justify-center md:justify-start">
+                    <div class="px-4 md:px-6 py-3 border-b border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface-container-lowest)] shrink-0 flex justify-center md:justify-start">
                         <div class="w-full md:w-2/3 lg:w-1/2">
                             <x-ui.buttons.tab-selector
                                 :activeTab="$modalTab"
-                                action="$set('modalTab', "
-                                class="!w-full mb-0 shadow-sm"
-                                buttonBaseClass="flex-1 relative px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 z-10 flex items-center justify-center gap-2"
+                                class="!mb-0"
                                 :tabs="[
                                     ['id' => 'request','label' => 'جزئیات ','icon' => 'description'],
                                     ['id' => 'response', 'label' => 'پاسخ و پیگیری','icon' => 'forum']
@@ -81,7 +79,7 @@
                         </div>
                     </div>
 
-                    <div class="p-6 overflow-y-auto overscroll-contain custom-scrollbar flex-1 bg-[var(--md-sys-color-surface-container-lowest)]">
+                    <div class="p-4 md:p-6 overflow-y-auto overscroll-contain custom-scrollbar flex-1 bg-[var(--md-sys-color-surface-container-lowest)]">
                         @if($modalTab === 'request')
                             <div wire:key="ths-modal-request" class="space-y-6"
                                  x-data
@@ -137,7 +135,7 @@
                                 </div>
 
                                 @php $steps = $presenter->statusSteps($selectedTicket['status']); @endphp
-                                <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] shadow-sm p-6 mb-6">
+                                <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] shadow-sm p-4 md:p-6 mb-6">
                                     <div class="flex items-start justify-between">
                                         @foreach($steps as $i => $step)
                                             <div class="flex flex-col items-center gap-2 {{ $i === 0 || $i === count($steps) - 1 ? '' : 'flex-1' }}">
@@ -162,7 +160,7 @@
                                     </div>
                                 </div>
 
-                                <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm relative overflow-hidden">
+                                <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 md:p-6 border border-[var(--md-sys-color-outline-variant)]/40 shadow-sm relative overflow-hidden">
                                     <div class="absolute top-0 right-0 w-1.5 h-full bg-[var(--md-sys-color-primary)]"></div>
                                     <h4 class="text-[var(--md-sys-color-on-surface)] text-base font-bold mb-4 flex items-center gap-2">
                                         <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">subject</span>
@@ -188,7 +186,7 @@
                                                         <img src="{{ $file['file_url'] }}"
                                                              alt="Attachment"
                                                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                                                        <div class="absolute inset-0 bg-black/50 max-sm:opacity-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                                                             <span class="material-symbols-rounded text-white text-[24px]">zoom_in</span>
                                                         </div>
                                                     </a>
@@ -197,7 +195,7 @@
                                                        target="_blank"
                                                        class="group flex flex-col items-center justify-center w-24 h-24 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 hover:border-[var(--md-sys-color-primary)] transition-all overflow-hidden relative shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
                                                         <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors duration-300">description</span>
-                                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                                                        <div class="absolute inset-0 bg-black/50 max-sm:opacity-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                                                             <span class="material-symbols-rounded text-white text-[24px]">open_in_new</span>
                                                         </div>
                                                     </a>
@@ -233,7 +231,7 @@
 
                                 @if($selectedTicket['satisfaction_score'] > 0)
                                     <div wire:key="ths-modal-rating" class="mt-8 border-t border-[var(--md-sys-color-outline-variant)]/40 pt-8">
-                                        <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-6 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm max-w-2xl mx-auto">
+                                        <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 md:p-6 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm max-w-2xl mx-auto">
                                             <h5 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-4 text-center">ارزیابی ثبت شده شما</h5>
 
                                             <div class="flex justify-center gap-2 ltr-direction flex-row-reverse mb-4">

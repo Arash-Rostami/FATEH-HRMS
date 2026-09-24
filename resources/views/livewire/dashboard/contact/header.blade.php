@@ -2,12 +2,12 @@
     $presence = \App\Enums\PresenceStatus::tryFrom($this->activeContact->presence->value ?? '');
 @endphp
 
-<header class="relative z-20 flex flex-shrink-0 items-center gap-4 border-b px-5 py-3 backdrop-blur-xl transition-all duration-300
+<header class="relative z-20 flex flex-shrink-0 items-center gap-2 md:gap-4 border-b px-3 md:px-5 py-3 backdrop-blur-xl transition-all duration-300
                bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)]
                border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)]
                shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
 
-    <button wire:click="backToList" aria-label="بازگشت"
+    <button x-on:click="backToList()" aria-label="بازگشت" x-show="!max"
             class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)] active:scale-95 md:hidden">
         <span class="material-symbols-rounded text-base">arrow_forward</span>
     </button>
@@ -28,22 +28,22 @@
         <div class="flex flex-wrap items-center gap-2">
             <h2 class="truncate text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ $this->activeContact->name }}</h2>
             @if($presence)
-                <span class="rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide {{ $presence->iconBgClass() }}" title="{{ $presence->label() }}">
+                <span class="hidden md:inline-block rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide {{ $presence->iconBgClass() }}" title="{{ $presence->label() }}">
                     {{ $presence->label() }}
                 </span>
             @endif
         </div>
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
             @if($this->activeContact->profile?->has_display_position)
-                <span class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->display_position }}</span>
-                <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
+                <span class="hidden md:inline truncate font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $this->activeContact->profile->display_position }}</span>
+                <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
             @if($this->activeContact->profile?->department)
-                <span class="rounded-md bg-[var(--md-sys-color-secondary-container)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--md-sys-color-on-secondary-container)]"
+                <span class="hidden md:inline rounded-md bg-[var(--md-sys-color-secondary-container)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--md-sys-color-on-secondary-container)]"
                       title="{{ $this->activeContact->profile->department->tooltipLabel() }}">
                     {{ $this->activeContact->profile->department->displayLabel() }}
                 </span>
-                <span class="h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
+                <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
             <span class="font-medium inline-flex items-center gap-1.5 min-w-0 {{ $this->peerTyping ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
                   data-typing="{{ $this->peerTyping ? '1' : '0' }}">
@@ -69,9 +69,16 @@
                         :aria-pressed="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact')"
                         :aria-label="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'باصدا کردن' : 'بی‌صدا کردن'"
                         :title="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'باصدا کردن' : 'بی‌صدا کردن'"
-                        class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
+                        class="hidden md:flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
                         :class="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
                     <span class="material-symbols-rounded text-base" x-text="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
+                </button>
+            @endslot
+            @slot('overflow')
+                <button type="button" x-on:click="open = false; $store.sound.toggleMute({{ $this->activeContact->id }}, 'contact')"
+                        class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
+                    <span class="material-symbols-rounded text-[16px]" x-text="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
+                    <span x-text="$store.sound.isMuted({{ $this->activeContact->id }}, 'contact') ? 'باصدا کردن' : 'بی‌صدا کردن'"></span>
                 </button>
             @endslot
         @endcomponent
