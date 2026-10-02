@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ChannelType;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Concerns\HasPrunableStatus;
+use App\Services\Messaging\PollDigestService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -101,6 +102,14 @@ class Channel extends Model
         });
 
         static::forceDeleted(fn(self $channel) => static::deleteStoredDirectory("channel_messages/{$channel->id}"));
+
+        static::updated(function (self $channel) {
+            if ($channel->wasChanged(['name', 'type', 'deleted_at'])) {
+                DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$channel->id}"));
+            }
+        });
+
+        static::deleted(fn(self $channel) => DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$channel->id}")));
     }
 
     protected function casts(): array

@@ -4,11 +4,8 @@ namespace App\Filament\Resources\OnboardingResource\Pages\Action;
 
 use App\Models\Onboarding;
 
-class  EnforcesActiveOnboarding
+class EnforcesActiveOnboarding
 {
-    /**
-     * When a record is activated, deactivate all other records targeting the same audience (null user_id = global, or same user_id = personal).
-     */
     public static function deactivateConflicting(Onboarding $record): void
     {
         if (!$record->is_active) return;

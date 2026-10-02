@@ -1,4 +1,5 @@
-<div class="space-y-5">
+<div class="space-y-5"
+     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['closeTicket' => false]) }}">
     @if($this->ticket)
         <div wire:key="ths-workspace-ticket" class="contents">
         <div class="flex items-center justify-end">
@@ -103,7 +104,8 @@
                 @endif
 
                 @if($this->canClose && $this->ticket->status !== 'closed')
-                    <x-ui.buttons.form wire:key="ths-close-ticket" type="button" wire:click="closeTicket" loading="closeTicket"
+                    <x-ui.buttons.form wire:key="ths-close-ticket" type="button" loading="closeTicket"
+                            wire:click="closeTicket" wire:confirm="این تیکت بسته شود؟"
                             class="mt-3 !h-auto !px-4 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-tertiary)] text-[var(--md-sys-color-on-tertiary)] hover:brightness-110">
                         بستن تیکت
                     </x-ui.buttons.form>
@@ -132,9 +134,8 @@
             </div>
 
             @if($this->canReply)
-                <form wire:key="ths-reply-composer" wire:submit.prevent="postReply" x-data="{ empty: true }" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
+                <form wire:key="ths-reply-composer" wire:submit.prevent="postReply" class="mt-4 pt-4 border-t border-[var(--md-sys-color-outline-variant)]/30 space-y-2">
                     <textarea wire:model.defer="replyForm.body" rows="2" placeholder="پاسخ خود را بنویسید..."
-                              @input="empty = $event.target.value.trim().length === 0"
                               class="w-full rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-surface)]"></textarea>
                     @error('replyForm.body') <p class="text-[11px] text-[var(--md-sys-color-error)]">{{ $message }}</p> @enderror
 
@@ -164,7 +165,8 @@
                             <input type="file" multiple wire:model="replyForm.files" class="hidden"/>
                             پیوست
                         </label>
-                        <x-ui.buttons.form type="submit" loading="postReply" x-bind:disabled="empty"
+                        <x-ui.buttons.form type="submit" loading="postReply"
+                                x-bind:disabled="!$wire.replyForm.body.trim() && !$wire.replyForm.files.length"
                                 class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110">
                             ارسال پاسخ
                         </x-ui.buttons.form>

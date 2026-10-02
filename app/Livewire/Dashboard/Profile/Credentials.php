@@ -41,6 +41,10 @@ class Credentials extends Component
     #[Computed]
     public function credentials()
     {
+        if ($this->open && !Auth::user()->credentials()->whereKey($this->open)->exists()) {
+            $this->open = null;
+        }
+
         return Auth::user()->credentials()
             ->when(
                 $this->open,

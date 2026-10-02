@@ -22,7 +22,9 @@ class OnboardingResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
-        $query->where('is_active', 1);
+        $query
+            ->where('is_active', 1)
+            ->visibleTo($this->me());
     }
 
     protected function titleFor($row): string

@@ -509,10 +509,12 @@ class TasksheetService
 
     private function narrative(int $completed, int $assigned, ?float $onTimePercent, ?float $avgCycle, int $approvalsReceived, int $days): string
     {
-        $onTime = $onTimePercent !== null ? number_format($onTimePercent, 0) : '—';
-        $avg = $avgCycle !== null ? number_format($avgCycle, 1) : '—';
+        $onTime = $onTimePercent !== null ? convertToPersian(number_format($onTimePercent, 0)) : '—';
+        $avg = $avgCycle !== null ? convertToPersian(number_format($avgCycle, 1)) : '—';
 
-        return "در بازهٔ {$days} روزه، {$completed} از {$assigned} وظیفهٔ محول‌شده را تکمیل کرد (٪{$onTime} به‌موقع)، میانگین زمان انجام {$avg} روز و {$approvalsReceived} تأیید مدیر دریافت کرد.";
+        return 'در بازهٔ ' . convertToPersian($days) . ' روزه، ' . convertToPersian($completed) . ' از ' . convertToPersian($assigned)
+            . " وظیفهٔ محول‌شده را تکمیل کرد (٪{$onTime} به‌موقع)، میانگین زمان انجام {$avg} روز و " . convertToPersian($approvalsReceived)
+            . ' تأیید مدیر دریافت کرد.';
     }
 
     private function zeroStateReport(Carbon $start, Carbon $end, int $days): array

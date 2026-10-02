@@ -206,6 +206,10 @@ class Main extends Component
 
     public function create(CreateReminderAction $action): void
     {
+        if ($this->remindableType === null) {
+            $this->form->inAppBadge = false;
+        }
+
         $action->execute($this->form, (int) auth()->id(), $this->remindableType, $this->remindableId);
 
         $this->closeForm();
@@ -213,7 +217,13 @@ class Main extends Component
 
     public function update(UpdateReminderAction $action): void
     {
-        $action->execute($this->getReminder($this->editingId), $this->form, (int) auth()->id());
+        $reminder = $this->getReminder($this->editingId);
+
+        if ($reminder->remindable_type === null) {
+            $this->form->inAppBadge = false;
+        }
+
+        $action->execute($reminder, $this->form, (int) auth()->id());
 
         $this->closeForm();
     }
@@ -279,7 +289,7 @@ class Main extends Component
             'filterOptions' => ReminderPresenter::filterOptions(),
             'columns' => ReminderPresenter::columns(),
             'snoozePresets' => ReminderPresenter::snoozePresets(),
-            'channelToggles' => ReminderPresenter::channelToggles(),
+            'channelToggles' => ReminderPresenter::channelToggles($this->remindableType !== null),
         ]);
     }
 

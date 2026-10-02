@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Profile\Forms\ProfileForm;
 use App\Livewire\Dashboard\Profile\Presentation\InfoPresenter;
 use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -43,8 +44,7 @@ class Info extends Component
                 'id_booklet_number', 'degree', 'field', 'landline', 'cellphone',
                 'license_plate', 'zip_code', 'address', 'accessibility', 'insurance',
                 'emergency_phone', 'emergency_relationship', 'work_experience', 'interests'
-            ]))->merge(['email' => auth()->user()->email])
-                ->map(fn($v, $k) => match ($k) {
+            ]))->map(fn($v, $k) => match ($k) {
                     'number_of_children' => (int)($v ?? 0),
                     default => $v ?? '',
                 }, ARRAY_FILTER_USE_BOTH)->toArray()
@@ -64,7 +64,18 @@ class Info extends Component
         }
 
         $this->existingImage = $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl();
-        $this->form->email = $user->email ?? '';
+    }
+
+    public function updated(string $property): void
+    {
+        if ($property === 'form.image') {
+            try {
+                $this->form->validateOnly('image');
+            } catch (ValidationException $e) {
+                $this->form->image = null;
+                throw $e;
+            }
+        }
     }
 
     public function render(InfoPresenter $presenter)

@@ -246,7 +246,7 @@
             <div x-show="slide === pane" x-cloak x-transition.opacity.duration.300ms
                  class="absolute inset-0 p-3 sm:p-5 pb-16">
 
-                <div :class="maximizedPane === pane ? 'max-widget' : ''"
+                <div :class="{ 'max-widget': maximizedPane === pane, 'max-widget-leaving': maximizedPane === pane && maxLeaving }"
                      class="h-full flex flex-col rounded-xl overflow-hidden bg-[var(--md-sys-color-surface)]
                                 border border-[var(--md-sys-color-outline-variant)]/30
                                 shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-shadow)_16%,transparent)] transition-all">
@@ -323,7 +323,7 @@
     </div>
 
     {{-- ═══════════════════════ PANES ═══════════════════════ --}}
-    <x-ui.modals.max-backdrop state="maximizedPane" close="toggleMaximize(null)"/>
+    <x-ui.modals.max-backdrop state="maximizedPane" close="toggleMaximize(maximizedPane)"/>
     <div wire:key="hero-gadget-picker" x-data="{ gadgetSearch: '', gadgetTitles: @js(collect($gadgetCatalog)->pluck('title')->values()) }">
         <x-ui.modals.panel state="pickerFor" close="pickerFor = null; gadgetSearch = ''"
                             icon="widgets" title="فهرست ماژول‌های فعال"

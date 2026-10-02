@@ -6,8 +6,8 @@
     'mobileText' => 'یک گروه انتخاب کنید',
 ])
     @php
-        $channelsList = is_iterable($this->channels) ? $this->channels : [];
-        $totalUnread = $this->presenter?->totalUnread($channelsList) ?? 0;
+        $totalChannels = $this->myChannelsSummary['total'];
+        $totalUnread = $this->totalUnread;
     @endphp
 
     <div class="relative z-10 w-full max-w-md mx-auto mt-6" aria-label="آمار و وضعیت گروه‌ها">
@@ -21,7 +21,7 @@
                 </div>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] truncate">گروه‌ها</span>
-                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ number_format(count($channelsList)) }}</span>
+                    <span class="text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ number_format($totalChannels) }}</span>
                 </div>
             </div>
 

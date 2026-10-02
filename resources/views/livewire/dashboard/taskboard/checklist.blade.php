@@ -136,8 +136,7 @@
                                 <div class="w-2 h-[1px] rounded-full" :class="item.done ? 'bg-[var(--md-sys-color-tertiary)]' : 'bg-[var(--md-sys-color-primary)]'"></div>
                             </div>
 
-                            @unless($isReadOnly)
-                                <div @pointerdown.stop="startChecklistWeightDrag($event, index)"
+                                <div x-show="!$wire.isReadOnly" @pointerdown.stop="startChecklistWeightDrag($event, index)"
                                      role="slider"
                                      :aria-valuenow="item.weight"
                                      aria-valuemin="0"
@@ -160,7 +159,6 @@
                                         <div class="w-1 h-0.5 bg-current rounded-full opacity-80"></div>
                                     </div>
                                 </div>
-                            @endunless
                         </div>
 
                         <div class="relative z-10 flex items-center gap-3.5 flex-1 min-w-0 pointer-events-none">
@@ -168,7 +166,7 @@
                                 <input type="checkbox"
                                        :checked="item.done"
                                        @change="toggleChecklistItem(index)"
-                                       @disabled($isReadOnly)
+                                       :disabled="$wire.isReadOnly"
                                        class="peer appearance-none w-5 h-5 rounded-md border-2 border-[var(--md-sys-color-outline)] checked:border-[var(--md-sys-color-primary)] checked:bg-[var(--md-sys-color-primary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)] focus:ring-offset-0 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"/>
                                 <span
                                     class="material-symbols-rounded absolute text-[var(--md-sys-color-on-primary)] text-[15px] font-bold opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-200">check</span>
@@ -177,27 +175,24 @@
                             <template x-if="editingChecklistIndex !== index">
                                 <span
                                     class="text-right text-[13px] sm:text-sm select-none break-words flex-1 transition-all duration-300"
-                                    :class="[item.done ? 'line-through text-[var(--md-sys-color-outline)] opacity-70' : 'text-[var(--md-sys-color-on-surface)] font-medium', '{{ $isReadOnly ? '' : 'pointer-events-auto cursor-text' }}']"
-                                    @dblclick="{{ $isReadOnly ? '' : 'startEditingChecklistItem(index)' }}"
+                                    :class="[item.done ? 'line-through text-[var(--md-sys-color-outline)] opacity-70' : 'text-[var(--md-sys-color-on-surface)] font-medium', !$wire.isReadOnly ? 'pointer-events-auto cursor-text' : '']"
+                                    @dblclick="!$wire.isReadOnly && startEditingChecklistItem(index)"
                                     x-text="item.text"></span>
                             </template>
-                            @unless($isReadOnly)
-                                <template x-if="editingChecklistIndex === index">
-                                    <input type="text"
-                                           contenteditable="true"
-                                           x-model="item.text"
-                                           x-init="$nextTick(() => { $el.focus(); $el.select(); })"
-                                           @keydown.enter="saveChecklistItemText(index)"
-                                           @keydown.escape="editingChecklistIndex = null"
-                                           @blur="saveChecklistItemText(index)"
-                                           @click.stop
-                                           class="relative z-10 pointer-events-auto text-right text-[13px] sm:text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-surface)] font-medium"/>
-                                </template>
-                            @endunless
+                            <template x-if="editingChecklistIndex === index && !$wire.isReadOnly">
+                                <input type="text"
+                                       contenteditable="true"
+                                       x-model="item.text"
+                                       x-init="$nextTick(() => { $el.focus(); $el.select(); })"
+                                       @keydown.enter="saveChecklistItemText(index)"
+                                       @keydown.escape="editingChecklistIndex = null"
+                                       @blur="saveChecklistItemText(index)"
+                                       @click.stop
+                                       class="relative z-10 pointer-events-auto text-right text-[13px] sm:text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-surface)] font-medium"/>
+                            </template>
                         </div>
 
-                        @unless($isReadOnly)
-                            <div class="relative z-10 flex items-center gap-2.5 shrink-0 pointer-events-auto">
+                            <div x-show="!$wire.isReadOnly" class="relative z-10 flex items-center gap-2.5 shrink-0 pointer-events-auto">
                                 <div class="relative flex items-center h-8 w-16 rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_70%,transparent)] bg-[var(--md-sys-color-surface)]/70 backdrop-blur-sm transition-all duration-200 focus-within:border-[var(--md-sys-color-primary)] focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_20%,transparent)]">
                                     <input type="number" min="0" max="100" step="1"
                                            :value="item.weight"
@@ -223,11 +218,10 @@
                                     <span class="material-symbols-rounded text-[18px] sm:text-[19px] pointer-events-none">delete</span>
                                 </button>
                             </div>
-                        @else
                             <span
+                                x-show="$wire.isReadOnly"
                                 class="relative z-10 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] shrink-0"
                                 x-text="item.weight + '٪'"></span>
-                        @endunless
                     </div>
                 </template>
 

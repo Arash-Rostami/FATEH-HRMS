@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OnboardingResource\Schemas;
 
+use App\Filament\Resources\OnboardingResource\Pages\Action\EnforcesActiveOnboarding;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -35,7 +36,7 @@ class OnboardingTablePresenter
     {
         return Group::make('user_id')
             ->label(__('resources/onboarding/strings.fields.user_id'))
-            ->getTitleFromRecordUsing(fn($r) => $r->user?->name ?? __('resources/onboarding/strings.fields.global_audience'))
+            ->getTitleFromRecordUsing(fn($record) => $record?->user?->name ?? __('resources/onboarding/strings.fields.global_audience'))
             ->collapsible();
     }
 
@@ -82,6 +83,7 @@ class OnboardingTablePresenter
     {
         return ToggleColumn::make('is_active')
             ->label(__('resources/onboarding/strings.fields.is_active'))
+            ->afterStateUpdated(fn($record) => EnforcesActiveOnboarding::deactivateConflicting($record))
             ->toggleable(isToggledHiddenByDefault: false);
     }
 

@@ -43,27 +43,14 @@
                         'max-widget-column !opacity-100': maximizedFeed === feed($el)
                     }"
                 >
-                    <div
-                        x-show="showTimeline"
-                        x-transition:enter="transition ease-out duration-300 delay-100"
-                        x-transition:enter-start="opacity-0 scale-90 translate-x-4"
-                        x-transition:enter-end="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave-end="opacity-0 scale-90 translate-x-4"
-                        class="absolute top-1/2 -right-12 z-0 hidden md:flex flex-col items-center justify-center -translate-y-1/2 pointer-events-none"
-                    >
-                        <x-dashboard.timeline-date-bubble :id="$feed->id" :date="toJalali($feed->created_at, 'H:i')"/>
-
-                        <div
-                            class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
-                            :class="activeId == {{ $feed->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
-                        >
-                            <div class="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]"></div>
-                        </div>
-
-                        <x-dashboard.timeline-caption :id="$feed->id" :text="toJalaliRelative($feed->created_at)" :title="toJalali($feed->created_at)"/>
-                    </div>
+                    <x-dashboard.timeline-marker
+                        :id="$feed->id"
+                        :date="$presenter->categoryLabels()[$presenter->categoryValue($feed->category)] ?? $presenter->categoryValue($feed->category)"
+                        :caption="toJalali($feed->created_at, 'j F Y')"
+                        right="-right-12"
+                        z="z-0"
+                        :translate-x="false"
+                    />
 
                     <div class="relative z-20 h-full w-full">
                         @include('livewire.dashboard.tab.feeds.item', ['feed' => $feed])

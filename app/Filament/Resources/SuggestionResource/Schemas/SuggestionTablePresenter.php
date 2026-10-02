@@ -91,6 +91,7 @@ class SuggestionTablePresenter
             ->query(fn(Builder $query) => $query->whereHas('reviews', fn(Builder $query) => $query
                 ->where('department_id', 'MA')
                 ->whereNotNull('referral')
+                ->whereJsonLength('referral', '>', 0)
             ))
             ->toggle();
     }

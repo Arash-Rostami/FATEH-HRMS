@@ -2,7 +2,7 @@
     @forelse ($this->reports as $report)
         <div wire:key="report-list-{{ $report->id }}"
              class="flex flex-col md:flex-row items-center p-4 bg-[var(--md-sys-color-surface-container-low)] hover:bg-[var(--md-sys-color-surface-container)] rounded-xl transition-all duration-300 border border-[var(--md-sys-color-outline-variant)]/20 hover:border-[var(--md-sys-color-outline)] group cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md"
-             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true; recordOpen(activeReport)">
+             @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type', 'thumbnail']) + ['created_at_formatted' =>  toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; showModal = true; recordOpen(activeReport)">
 
             <div
                 class="w-full md:w-32 h-56 md:h-24 rounded-xl overflow-hidden flex-shrink-0 relative md:ml-6 mb-4 md:mb-0">

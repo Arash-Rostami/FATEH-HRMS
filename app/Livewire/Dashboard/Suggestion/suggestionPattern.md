@@ -65,6 +65,8 @@ MA review feedback = incomplete → under_review
 MA review feedback = anything else → awaiting_decision
 ```
 
+**`under_review` escape (2026-10-01).** The stage is no longer a dead end: the home department's head re-enters feedback from the Detail panel (`canGiveFeedback` has an `under_review` arm, §4); `SubmitFeedbackAction` resets the MA review's `incomplete` verdict to `unknown` before `syncStage()`, which falls to the default `awaiting_decision` arm — the CEO/chairman decides again. The loop is human-driven only: each cycle needs the MA to ask «تکمیل مجدد» again and the home head to answer. The 48h auto-resolve (§6) never touches `incomplete` MA verdicts.
+
 `updateStageIfChanged()` only writes (`saveQuietly`, no observers) when the stage actually differs — this is also what makes `suggestions.updated_at` a free, already-existing "entered this stage at" timestamp; no new column needed for the 48-hour staleness check.
 
 `departments[0]` is always the home/submitter department (guaranteed by `mergeDepartments()`'s `prepend()`), so both `syncStage()` and `SuggestionAccessPolicy` read it as a plain array index, never a live profile lookup.
@@ -76,7 +78,7 @@ MA review feedback = anything else → awaiting_decision
 | Method | Rule |
 |---|---|
 | `canDecide(?Suggestion)` | `Auth::user()->isSeniorDecisionMaker()` AND stage is `awaiting_decision` |
-| `canGiveFeedback(?Suggestion)` | user is a dept head, **not** a top executive, has a `department_id`; stage `team_remarks` → must be the **home** dept (`departments[0]`); stage `dept_remarks` → dept must be **any** listed dept; AND that dept's review doesn't already carry a valid verdict |
+| `canGiveFeedback(?Suggestion)` | user is a dept head, **not** a top executive, has a `department_id`; stage `team_remarks` → must be the **home** dept (`departments[0]`); stage `dept_remarks` → dept must be **any** listed dept; AND that dept's review doesn't already carry a valid verdict; stage `under_review` → home dept (`departments[0]`) again — the §3 escape — and the valid-verdict veto is **skipped** for that stage so the head can resubmit |
 | `canMarkComplete(?Suggestion)` | user is a dept head, **not** a top executive, has a `department_id`; the MA (CEO) review's `referral[]` must include that dept; that dept's own review must exist and not already be `complete` |
 | `ceoReview(?Suggestion)` | `reviews->firstWhere('department_id', 'MA')` |
 | `departmentReview(?Suggestion, deptId)` | `reviews->firstWhere('department_id', $deptId)` |
@@ -96,9 +98,10 @@ MA review feedback = anything else → awaiting_decision
 
 ## 5. Badge/nudge parity (`HasSuggestionAlert::scopeAttentionRequired`)
 
-Same three conditions `SuggestionAccessPolicy` encodes, expressed as a query scope (no pipeline branching — self-fill and normal suggestions both reach `team_remarks`/`dept_remarks` the same way once their placeholder/pre-filled rows are in):
+Same conditions `SuggestionAccessPolicy` encodes, expressed as a query scope (no pipeline branching — self-fill and normal suggestions both reach `team_remarks`/`dept_remarks` the same way once their placeholder/pre-filled rows are in):
 - `awaiting_decision` for senior decision-makers.
 - `team_remarks` for the home department's head — matched via the JSON-array-index path `departments->[0]` (see gotcha below).
+- `under_review` for the home department's head — the escape's rescue actor (§3), same `departments->[0]` path. Added 2026-10-01.
 - `dept_remarks` for any listed department's head, only where that dept hasn't answered yet.
 - referral `complete=false` rows for dept heads whose department was referred by the CEO.
 

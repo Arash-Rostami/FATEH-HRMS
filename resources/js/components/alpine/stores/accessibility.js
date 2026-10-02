@@ -73,7 +73,7 @@ export default function accessibilityStore(Alpine) {
             const scale = 1 + (level * SCALE_STEP);
 
             rootStyle.setProperty('--app-font-scale', scale);
-            rootStyle.fontSize = (scale * 100) + '%';
+            rootStyle.fontSize = Math.round(scale * 100) + '%';
 
             write(LS_FONT_SIZE, level);
         },
@@ -175,8 +175,8 @@ export default function accessibilityStore(Alpine) {
                         return;
                     }
 
+                    const ta = document.createElement('textarea');
                     try {
-                        const ta = document.createElement('textarea');
                         ta.value = text;
                         const taStyle = ta.style;
                         taStyle.position = 'fixed';
@@ -184,10 +184,11 @@ export default function accessibilityStore(Alpine) {
                         docBody.appendChild(ta);
                         ta.select();
                         document.execCommand('copy');
-                        docBody.removeChild(ta);
                         notify(true);
                     } catch (e) {
                         notify(false);
+                    } finally {
+                        if (ta.parentNode) docBody.removeChild(ta);
                     }
                 };
                 document.addEventListener('mouseup', copyHandler, { passive: true });

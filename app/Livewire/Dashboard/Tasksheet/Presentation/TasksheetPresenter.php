@@ -156,7 +156,7 @@ class TasksheetPresenter
 
         return [
             'icon' => 'schedule',
-            'text' => $stillOverdue . ' مورد دیرکرد در این پروژه',
+            'text' => convertToPersian($stillOverdue) . ' مورد دیرکرد در این پروژه',
             'classes' => $this->riskToneClasses($stillOverdue >= 3 ? 'error' : 'warning'),
         ];
     }

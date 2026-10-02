@@ -32,6 +32,10 @@ class Main extends Component
 
     public function mount(): void
     {
+        if (!in_array($this->activeTab, ['survey', 'chart'], true)) {
+            $this->activeTab = 'survey';
+        }
+
         $this->showSurvey = EnergyModel::canSubmit(auth()->id());
 
         if (!$this->showSurvey) return;
@@ -62,6 +66,10 @@ class Main extends Component
 
     public function submitTest(SubmitTestAction $action): void
     {
+        if (!$this->showSurvey) {
+            return;
+        }
+
         try {
             $action->execute($this->answers, $this->questions, $this->monthIndex);
         } catch (\InvalidArgumentException $e) {

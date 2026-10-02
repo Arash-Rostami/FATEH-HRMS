@@ -3,13 +3,6 @@ import { Fancybox } from "@fancyapps/ui";
 let initialized = false;
 
 const FANCYBOX_OPTIONS = {
-    Toolbar: {
-        display: {
-            left: ["infobar"],
-            middle: ["zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY"],
-            right: ["slideshow", "fullscreen", "download", "thumbs", "close"],
-        },
-    },
     animated: true,
     showClass: "f-fadeIn",
     hideClass: "f-fadeOut",
@@ -18,7 +11,16 @@ const FANCYBOX_OPTIONS = {
     keyboard: true,
     dragToClose: true,
     infinite: true,
-    Carousel: { transition: "slide" },
+    Carousel: {
+        transition: "slide",
+        Toolbar: {
+            display: {
+                left: [],
+                middle: [],
+                right: ["counter", "zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY", "reset", "autoplay", "fullscreen", "download", "thumbs", "close"],
+            },
+        },
+    },
     formatCaption: (fancybox, slide) => {
         if (!slide.caption) return "";
         const el = document.createElement("span");

@@ -8,7 +8,7 @@
             fn() => \App\Models\Onboarding::where('user_id', auth()->id())->where('is_active', true)->first(['updated_at']),
         )
         : null;
-    $onboardingHighlighted = $exclusiveOnboarding && $exclusiveOnboarding->updated_at->diffInDays(now()) <= 7;
+    $onboardingHighlighted = (bool) ($exclusiveOnboarding?->updated_at && $exclusiveOnboarding->updated_at->diffInDays(now()) <= 7);
 @endphp
 
 <div class="relative" x-data="{ open: false }">

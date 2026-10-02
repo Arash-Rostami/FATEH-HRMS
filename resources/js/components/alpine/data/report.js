@@ -39,9 +39,9 @@ export default function report() {
 
             try {
                 const saved = localStorage.getItem(RECENT_KEY);
-                if (saved && saved.length > 2) {
+                if (saved) {
                     const parsed = JSON.parse(saved);
-                    this.recent = Array.isArray(parsed) ? parsed : [];
+                    this.recent = Array.isArray(parsed) && parsed.length > 0 ? parsed : [];
                 }
             } catch {
                 this.recent = [];

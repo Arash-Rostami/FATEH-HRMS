@@ -36,7 +36,9 @@
                 </x-ui.buttons.form>
             </div>
         @empty
-            <x-ui.empty icon="campaign" title="گروه عمومی‌ای برای پیوستن وجود ندارد" variant="default" />
+            <div wire:key="channel-browse-empty" class="contents">
+                <x-ui.empty icon="campaign" title="گروه عمومی‌ای برای پیوستن وجود ندارد" variant="default" />
+            </div>
         @endforelse
     </div>
 </div>

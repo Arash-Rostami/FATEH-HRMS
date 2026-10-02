@@ -17,6 +17,7 @@ use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -36,7 +37,6 @@ class Main extends Component
 
     #[Url(as: 'tab')]
     public string $activeTab = 'new';
-    public string $direction = 'up';
     public string $modalTab = 'request';
     public array $requestAreas = [];
     public array $departmentOptions = [];
@@ -63,15 +63,17 @@ class Main extends Component
         $this->ticket->fileInputs[] = Str::random(13);
     }
 
-    public function focusRecord(int $id): void
+    public function focusRecord(int $id): bool
     {
         $ticket = Ticket::find($id);
 
         if ($ticket && TicketAccessPolicy::canView($ticket, auth()->user())) {
             $this->viewTicket($id);
             $this->modalTab = 'response';
-            $this->dispatch('ths-modal');
+            return true;
         }
+
+        return false;
     }
 
     public function loadMore(): void
@@ -177,15 +179,16 @@ class Main extends Component
         $this->departmentOptions = Department::getCachedOptionsExcludingEmptyTickets()->toArray();
         $this->loadRequestAreas();
 
-        $this->ticketToRate = Ticket::where('requester_id', auth()->id())
-            ->where('status', 'closed')
-            ->whereNull('satisfaction_score')
-            ->first();
+        $this->ticketToRate = $this->unratedTicket();
 
         $this->appliedDateParts = $this->dateParts();
 
         if ($this->ticketToRate) {
             $this->activeTab = 'rate';
+        }
+
+        if (!in_array($this->activeTab, $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'], true)) {
+            $this->activeTab = $this->ticketToRate ? 'rate' : 'new';
         }
     }
 
@@ -220,9 +223,13 @@ class Main extends Component
     {
         $action->execute($this->rating, $this->ticketToRate);
 
-        $this->ticketToRate = null;
-        $this->activeTab = 'new';
-        $this->direction = 'up';
+        $this->rating->reset();
+        $this->ticketToRate = $this->unratedTicket();
+
+        if ($this->ticketToRate === null) {
+            $this->activeTab = 'new';
+        }
+
         $this->dispatch('toast', message: 'از بازخورد شما سپاسگزاریم.', type: 'success');
     }
 
@@ -246,7 +253,6 @@ class Main extends Component
         $this->loadRequestAreas();
 
         $this->activeTab = 'log';
-        $this->direction = 'up';
         $this->dispatch('toast', message: 'درخواست شما با موفقیت ثبت شد.', type: 'success');
     }
 
@@ -259,12 +265,8 @@ class Main extends Component
 
         if ($this->activeTab === $tab) return;
 
-        $tabs = $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'];
-        $curr = array_search($this->activeTab, $tabs);
-        $next = array_search($tab, $tabs);
-
-        if ($curr !== false && $next !== false) {
-            $this->direction = $next > $curr ? 'down' : 'up';
+        if (!in_array($tab, $this->ticketToRate ? ['rate', 'log'] : ['new', 'log'], true)) {
+            return;
         }
 
         $this->activeTab = $tab;
@@ -289,10 +291,10 @@ class Main extends Component
             ->withCount('replies')
             ->where('requester_id', auth()->id())
             ->when($this->ticketSearch, fn($q) => $q->where(function ($sub) {
-                $term = "%{$this->ticketSearch}%";
+                $term = '%' . addcslashes($this->ticketSearch, '\\%_') . '%';
                 $sub->where('request_subject', 'like', $term)
                     ->orWhere('description', 'like', $term)
-                    ->orWhereRaw("CONCAT('TN-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, 6, '0')) LIKE ?", [$term]);
+                    ->orWhereRaw("CONCAT(UPPER(COALESCE(NULLIF(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ''), 'null'), 'T')), '-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, GREATEST(4, LENGTH(id)), '0')) LIKE ?", [$term]);
             }))
             ->when($this->dateSpan(), fn($query, $span) => $query->whereBetween($span[0], [$span[1], $span[2]]))
             ->orderByDesc('created_at')
@@ -302,7 +304,7 @@ class Main extends Component
     #[Computed]
     public function totalTickets(): int
     {
-        return $this->tickets->total();
+        return $this->activeTickets->total();
     }
 
     public function updated($prop): void
@@ -335,6 +337,8 @@ class Main extends Component
         $ticket = Ticket::with('assignee')->find($ticketId);
 
         if (!$ticket || !TicketAccessPolicy::canView($ticket, auth()->user())) {
+            $this->dispatch('toast', message: 'تیکت موردنظر در دسترس نیست.', type: 'error');
+            $this->selectedTicket = null;
             return;
         }
 
@@ -350,6 +354,28 @@ class Main extends Component
             fn ($file) => [...(array) $file, 'file_url' => Ticket::resolvePublicAssetUrl($file['file'] ?? null)],
             $files,
         );
+    }
+
+    #[On('ths-ticket-updated')]
+    public function refreshSelectedTicket(): void
+    {
+        unset($this->tickets, $this->inboxTickets, $this->activeTickets, $this->totalTickets);
+
+        if ($this->selectedTicket === null) {
+            return;
+        }
+
+        $tab = $this->modalTab;
+        $this->viewTicket($this->selectedTicket['id']);
+        $this->modalTab = $tab;
+    }
+
+    private function unratedTicket(): ?Ticket
+    {
+        return Ticket::where('requester_id', auth()->id())
+            ->where('status', 'closed')
+            ->whereNull('satisfaction_score')
+            ->first();
     }
 
     protected function recordFocusType(): string

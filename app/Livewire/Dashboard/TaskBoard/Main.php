@@ -325,6 +325,11 @@ class Main extends Component
                 $this->totalCount[$column] = $counts->get($column, 0);
             }
 
+            $lastPage = max(1, (int) ceil($this->totalCount[$column] / $this->perPage));
+            if ($this->page[$column] > $lastPage) {
+                $this->page[$column] = $lastPage;
+            }
+
             $columnResults[$column] = (clone $baseQuery)
                 ->where('status', $column)
                 ->when($isDone, $archivedScope)
@@ -651,7 +656,11 @@ class Main extends Component
             ->when($this->priorityFilter !== '', fn($q) => $q->where('priority', $this->priorityFilter))
             ->when(!empty($this->labelFilter), function (Builder $q) {
                 foreach ($this->labelFilter as $label) {
-                    $q->whereJsonContains('labels', $label);
+                    $canonical = str_replace(['ي', 'ك'], ['ی', 'ک'], $label);
+                    $variant = str_replace(['ی', 'ک'], ['ي', 'ك'], $canonical);
+                    $q->where(fn(Builder $sub) => $sub
+                        ->whereJsonContains('labels', $canonical)
+                        ->orWhereJsonContains('labels', $variant));
                 }
             })
             ->when(

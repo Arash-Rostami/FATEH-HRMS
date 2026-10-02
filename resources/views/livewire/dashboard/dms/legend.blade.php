@@ -55,5 +55,9 @@
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">alarm</span>
             <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">آیکون زنگ یادآوری در گوشهٔ چپ هر سند فقط با نگه‌داشتن نشانگر روی ردیف نمایان می‌شود؛ اگر برای آن سند یادآوری تنظیم کرده باشید، همیشه با رنگ اصلی برنامه نمایان می‌ماند و با کلیک، همان یادآوری موجود برای ویرایش باز می‌شود.</p>
         </div>
+        <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">event</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">تاریخی که در فیلتر وارد کرده‌اید اما هنوز اعمال نکرده‌اید، با «نمایش بیشتر» از بین می‌رود — ابتدا تاریخ را اعمال کنید، بعد فهرست را بیشتر کنید.</p>
+        </div>
     </div>
 </div>

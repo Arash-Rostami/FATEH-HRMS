@@ -82,7 +82,7 @@
                         <span class="max-w-[120px] truncate normal-case" dir="auto">{{ $projectLabel }}</span>
                     </span>
                 @endif
-                <span class="shrink-0">•</span>
+                <span wire:key="taskboard-card-project-dot" class="shrink-0">•</span>
             @endif
             <span class="truncate">{{ $task['created_formatted'] }}</span>
         </div>
@@ -144,7 +144,7 @@
         </x-ui.hover-popover>
 
         @if(!empty($task['description']))
-            <x-ui.hover-popover class="!block w-full" alignment="top-full right-0 mt-2 origin-top-right" width="w-64" surface="default">
+            <x-ui.hover-popover wire:key="taskboard-card-description" class="!block w-full" alignment="top-full right-0 mt-2 origin-top-right" width="w-64" surface="default">
                 <x-slot:trigger>
                     <p class="taskboard-card-description text-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed" dir="auto">
                         {{ superClean($task['description']) }}
@@ -273,7 +273,7 @@
                             $actionSourceChip['domain'] !== '' ? 'حوزهٔ منشأ: ' . $actionSourceChip['domain'] : null,
                         ])->filter()->implode(' — '));
                     @endphp
-                    <span title="{{ $actionSourceTitle }}"
+                    <span wire:key="taskboard-card-action-source" title="{{ $actionSourceTitle }}"
                           class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">
                         <span class="material-symbols-rounded text-[12px]">travel_explore</span>
                         <span class="max-w-[120px] truncate" dir="auto">{{ $actionSourceChip['label'] }}</span>
@@ -643,7 +643,8 @@
             @if($isPersonalBoard && $task['can_delete'] && !$ticketId && !$isArchived)
                 <button
                     wire:key="taskboard-delete-btn"
-                    wire:click="deleteTask({{ $taskId }})"
+                    type="button"
+                    x-on:click="{{ confirmDialog('deleteTask', 'حذف وظیفه', 'این وظیفه حذف خواهد شد. مطمئن هستید؟', $taskId) }}"
                     class="max-sm:opacity-100 opacity-0 group-hover:opacity-100 w-6 h-6 p-0 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)] transition-all duration-200 active:scale-95 flex items-center justify-center"
                     title="حذف"
                     aria-label="حذف"

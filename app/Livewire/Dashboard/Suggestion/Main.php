@@ -12,6 +12,7 @@ use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -38,12 +39,6 @@ class Main extends Component
     }
 
     #[Computed]
-    public function authIsManager(): bool
-    {
-        return Auth::user()?->isDeptHead() ?? false;
-    }
-
-    #[Computed]
     public function availableDepartments(): array
     {
         $exclude = array_filter([$this->authDeptCode, 'MA']);
@@ -59,11 +54,20 @@ class Main extends Component
         return Department::getCachedOptions()->toArray();
     }
 
-    public function focusRecord(int $id): void
+    public function focusRecord(int $id): bool
     {
         if (Suggestion::whereKey($id)->exists()) {
             $this->selectSuggestion($id);
+            return true;
         }
+
+        return false;
+    }
+
+    #[On(['decision-made', 'feedback-submitted', 'completion-marked'])]
+    public function refreshSuggestions(): void
+    {
+        unset($this->suggestions, $this->topContributors);
     }
 
     public function loadMore(): void
@@ -105,7 +109,7 @@ class Main extends Component
     public function topContributors()
     {
         return Suggestion::query()
-            ->select('user_id', \DB::raw('count(*) as total_suggestions'), \DB::raw("SUM(stage = 'accepted') as accepted_suggestions"))
+            ->select('user_id', \DB::raw('count(*) as total_suggestions'), \DB::raw("SUM(stage IN ('accepted', 'closed')) as accepted_suggestions"))
             ->with('user')
             ->groupBy('user_id')
             ->orderByDesc('accepted_suggestions')
@@ -118,14 +122,6 @@ class Main extends Component
     {
         $this->selectedId = $id;
         $this->panel = 'detail';
-    }
-
-    #[Computed]
-    public function selected(): ?Suggestion
-    {
-        return $this->selectedId
-            ? Suggestion::with(['user', 'reviews.department'])->find($this->selectedId)
-            : null;
     }
 
     public function submit(CreateSuggestionAction $action): void
@@ -146,12 +142,12 @@ class Main extends Component
             ->withReviewCounts()
             ->when($this->attentionOnly, fn($q) => $q->attentionRequired())
             ->when($this->search !== '', function ($q) {
-                $term = $this->search;
+                $term = '%' . addcslashes($this->search, '\\%_') . '%';
 
                 $q->where(function ($w) use ($term) {
-                    $w->where('title', 'like', "%{$term}%");
+                    $w->where('title', 'like', $term);
 
-                    preg_match('/^SN-(\d{2,8})(?:-(\d{1,6}))?$/i', $term, $m);
+                    preg_match('/^SN-(\d{2,8})(?:-(\d{1,6}))?$/i', $this->search, $m);
                     $digits = $m[1] ?? '';
                     $idPart = $m[2] ?? '';
 
@@ -164,13 +160,13 @@ class Main extends Component
                         $w->orWhere(function ($r) use ($dateLike, $idPart) {
                             $r->whereRaw('created_at like ?', [$dateLike . '%']);
                             if ($idPart !== '') {
-                                $r->whereRaw("LPAD(id, 6, '0') like ?", [$idPart . '%']);
+                                $r->whereRaw("LPAD(id, 6, '0') like ?", [str_pad($idPart, 6, '0', STR_PAD_LEFT) . '%']);
                             }
                         });
                     } else {
                         $w->orWhereRaw(
                             "CONCAT('SN-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 6, '0')) like ?",
-                            ["%{$term}%"]
+                            [$term]
                         );
                     }
                 });

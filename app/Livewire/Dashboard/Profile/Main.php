@@ -17,6 +17,13 @@ class Main extends Component
     #[Url(as: 'tab')]
     public string $activeTab = 'info';
 
+    public function mount(): void
+    {
+        if (!array_key_exists($this->activeTab, (new ProfilePresenter())->tabs())) {
+            $this->activeTab = 'info';
+        }
+    }
+
     public function confirmAction(string $event): void
     {
         $this->dispatch($event);
@@ -46,7 +53,7 @@ class Main extends Component
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        $this->activeTab = array_key_exists($tab, (new ProfilePresenter())->tabs()) ? $tab : 'info';
     }
 
     public function placeholder(): View

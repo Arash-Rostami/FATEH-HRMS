@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Contact;
 
 use App\Livewire\Dashboard\Contact\Actions\DeleteMessageAction;
+use App\Livewire\Dashboard\Contact\Actions\FetchArchivedContactsAction;
 use App\Livewire\Dashboard\Contact\Actions\FetchContactsAction;
 use App\Livewire\Dashboard\Contact\Actions\FocusMessageAction;
 use App\Livewire\Dashboard\Contact\Actions\MarkMessagesAsReadAction;
@@ -13,11 +14,14 @@ use App\Livewire\Dashboard\Contact\Actions\UndoDeleteAction;
 use App\Livewire\Dashboard\Contact\Forms\EditMessageForm;
 use App\Livewire\Dashboard\Contact\Forms\MessageComposerForm;
 use App\Livewire\Dashboard\Contact\Presentation\ContactPresenter;
+use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\Messaging\PollDigestService;
 use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
@@ -44,7 +48,9 @@ class Main extends Component
     public ?int $activeUserId = null;
     public string $search = '';
     public string $filter = 'all';
+    #[Locked]
     public int $contactsLimit = 30;
+    public bool $hasMoreContacts = false;
     public bool $mobileShowChat = false;
     #[Locked]
     public int $editTimeLimit = 600;
@@ -60,6 +66,10 @@ class Main extends Component
     public bool $hasOlder = false;
     #[Locked]
     public ?int $newMessagesAnchorId = null;
+    #[Locked]
+    public ?string $pollStamp = null;
+
+    private const MESSAGES_STAMP_THRESHOLD = 200;
 
     #[Computed]
     public function activeContact(): ?User
@@ -67,6 +77,13 @@ class Main extends Component
         return $this->activeUserId
             ? User::with(['profile.department', 'profile.details'])->find($this->activeUserId)
             : null;
+    }
+
+    #[Computed]
+    public function activeContactArchived(): bool
+    {
+        $contact = $this->activeContact;
+        return $contact !== null && ($contact->status !== 'active' || $contact->type === UserType::Guest->value);
     }
 
     public function backToList(): void
@@ -85,7 +102,11 @@ class Main extends Component
     #[Computed]
     public function contacts(): array
     {
-        $users = app(FetchContactsAction::class)->execute(auth()->id(), $this->search, $this->filter);
+        $users = $this->filter === 'archived'
+            ? app(FetchArchivedContactsAction::class)->execute(auth()->id(), $this->search, $this->contactsLimit + 1)
+            : app(FetchContactsAction::class)->execute(auth()->id(), $this->search, $this->filter, $this->contactsLimit + 1);
+        $this->hasMoreContacts = $users->count() > $this->contactsLimit;
+        $users = $users->take($this->contactsLimit);
 
         $messageIds = $users->pluck('last_message_id')->filter()->unique();
         $lastMessages = Message::withoutTrashed()
@@ -105,8 +126,40 @@ class Main extends Component
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
             'presence' => $user->presence,
-        ])->when($this->filter === 'online', fn($c) => $c->filter(fn($u) => $u['is_online'] ?? false))
-            ->values()->all();
+        ])->values()->all();
+    }
+
+    #[Computed]
+    public function totalUnread(): int
+    {
+        return Message::totalUnreadFor(auth()->id());
+    }
+
+    #[Computed]
+    public function visibleContactsBase(): \Illuminate\Support\Collection
+    {
+        return User::visibleOnBoard()
+            ->select('id', 'last_seen')
+            ->with('profile:id,user_id,birthdate,start_date,employment_status')
+            ->get();
+    }
+
+    #[Computed]
+    public function allContactIds(): array
+    {
+        return $this->visibleContactsBase->pluck('id')->map(fn($id) => (int) $id)->values()->all();
+    }
+
+    #[Computed]
+    public function onlineContactsCount(): int
+    {
+        return $this->visibleContactsBase->filter(fn(User $user) => $user->isOnline())->count();
+    }
+
+    #[Computed]
+    public function totalOccasions(): int
+    {
+        return $this->visibleContactsBase->filter(fn(User $user) => $user->profile?->todaysOccasionType() !== null)->count();
     }
 
     public function deleteMessage(DeleteMessageAction $action, int $deletingId): void
@@ -205,7 +258,7 @@ class Main extends Component
 
         $this->selectContact($userId);
 
-        $focusMsg = (int) request()->query('focus_msg', 0);
+        $focusMsg = (int) ($this->focusQueryParam('focus_msg') ?? 0);
         if ($focusMsg > 0) {
             return $this->focusMessage($focusMsg);
         }
@@ -223,6 +276,12 @@ class Main extends Component
         $this->invalidateMessageCache();
     }
 
+    #[Renderless]
+    public function pollDigest(): string
+    {
+        return PollDigestService::version("dm:sv:" . auth()->id());
+    }
+
     public function refreshUnread(): void
     {
         unset($this->contacts);
@@ -230,8 +289,41 @@ class Main extends Component
 
     public function refreshActive(): void
     {
+        if ($this->messagesLimit > self::MESSAGES_STAMP_THRESHOLD && $this->focusAnchorId === null) {
+            $stamp = $this->latestMessageStamp();
+            if ($stamp === $this->pollStamp) {
+                $this->skipRender();
+                return;
+            }
+            $this->pollStamp = $stamp;
+        }
+
         $this->invalidateMessageCache();
         unset($this->activeContact);
+    }
+
+    private function latestMessageStamp(): ?string
+    {
+        if (!$this->activeUserId) {
+            return null;
+        }
+
+        $me = auth()->id();
+        $peer = $this->activeUserId;
+
+        $direction = fn(int $senderId, int $recipientId) => Message::query()
+            ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
+            ->where('sender_id', $senderId)
+            ->where('recipient_id', $recipientId);
+
+        $latest = collect([
+            $direction($me, $peer)->latest('id')->first(['id', 'updated_at', 'deleted_at']),
+            $direction($peer, $me)->latest('id')->first(['id', 'updated_at', 'deleted_at']),
+        ])->filter()->sortByDesc('id')->first();
+
+        $typing = Cache::get("typing:dm:{$peer}:{$me}") ? '1' : '0';
+
+        return ($latest ? "{$latest->id}:{$latest->updated_at}:{$latest->deleted_at}" : 'none') . ":{$typing}";
     }
 
     #[Computed]
@@ -242,34 +334,32 @@ class Main extends Component
         }
 
         $me = auth()->id();
-        $baseQuery = Message::withoutTrashed()
-            ->where(fn($q) => $q
-                ->where(fn($q) => $q->where('sender_id', $me)->where('recipient_id', $this->activeUserId))
-                ->orWhere(fn($q) => $q->where('sender_id', $this->activeUserId)->where('recipient_id', $me))
-            );
+        $peer = $this->activeUserId;
+
+        $direction = fn(int $senderId, int $recipientId) => Message::query()
+            ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
+            ->where('sender_id', $senderId)
+            ->where('recipient_id', $recipientId);
 
         if ($this->focusAnchorId !== null) {
             $anchor = (int) $this->focusAnchorId;
-            $newer = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
-                ->where('id', '>=', $anchor)
-                ->oldest('id')
-                ->take(6)
-                ->get();
-            $older = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
-                ->where('id', '<', $anchor)
-                ->latest('id')
-                ->take($this->focusOlder + 1)
-                ->get();
+            $newer = $direction($me, $peer)->where('id', '>=', $anchor)->oldest('id')->take(6)->get()
+                ->merge($direction($peer, $me)->where('id', '>=', $anchor)->oldest('id')->take(6)->get())
+                ->sortBy('id')->take(6)->values();
+            $older = $direction($me, $peer)->where('id', '<', $anchor)->latest('id')->take($this->focusOlder + 1)->get()
+                ->merge($direction($peer, $me)->where('id', '<', $anchor)->latest('id')->take($this->focusOlder + 1)->get())
+                ->sortByDesc('id')->take($this->focusOlder + 1)->values();
             $this->hasOlder = $older->count() > $this->focusOlder;
             $rows = $older->take($this->focusOlder)->merge($newer)->sortBy('id')->values();
         } else {
-            $rows = (clone $baseQuery)->with(['sender.profile', 'replyTo.sender'])
-                ->latest('id')
-                ->take($this->messagesLimit + 1)
-                ->get();
+            $rows = $direction($me, $peer)->latest('id')->take($this->messagesLimit + 1)->get()
+                ->merge($direction($peer, $me)->latest('id')->take($this->messagesLimit + 1)->get())
+                ->sortByDesc('id')->take($this->messagesLimit + 1)->values();
             $this->hasOlder = $rows->count() > $this->messagesLimit;
             $rows = $rows->take($this->messagesLimit)->sortBy('id')->values();
         }
+
+        $rows->load(['sender.profile', 'replyTo.sender']);
 
         return collect($rows)->map(fn($m) => [
                 'id' => (int)$m->id,
@@ -373,6 +463,10 @@ class Main extends Component
 
     public function send(SendMessageAction $action): void
     {
+        if (!$this->activeUserId) {
+            return;
+        }
+
         try {
             $action->execute($this->composer, $this->activeUserId);
             Cache::forget("typing:dm:" . auth()->id() . ":{$this->activeUserId}");
@@ -411,7 +505,7 @@ class Main extends Component
     #[Computed]
     public function totalStaff(): int
     {
-        return User::visibleOnBoard()->count();
+        return count($this->visibleContactsBase);
     }
 
     #[Computed]

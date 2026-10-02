@@ -271,7 +271,7 @@ class Main extends Component
             }
         }
 
-        $result = app(TasksheetShareService::class)->shareWithManager($this->subject, $recipient, windowParams: request()->query());
+        $result = app(TasksheetShareService::class)->shareWithManager($this->subject, $recipient, windowParams: $this->windowParams());
 
         $this->dispatch('toast', message: $result['message'], type: $result['success'] ? 'success' : 'warning');
     }
@@ -298,10 +298,32 @@ class Main extends Component
         [$start, $end] = $parsed;
 
         if ($start->diffInDays($end) > 365) {
-            $end = $start->copy()->addYear();
+            $end = $start->copy()->addYear()->endOfDay();
         }
 
         return ['start' => $start, 'end' => $end];
+    }
+
+    private function windowParams(): array
+    {
+        $params = ['preset' => $this->preset];
+
+        if ($this->preset === 'custom') {
+            $params += array_filter([
+                'fy' => $this->fromYear,
+                'fm' => $this->fromMonth,
+                'fd' => $this->fromDay,
+                'ty' => $this->toYear,
+                'tm' => $this->toMonth,
+                'td' => $this->toDay,
+            ], fn ($value) => $value !== null);
+        }
+
+        if ($this->scopeProjectId !== null) {
+            $params['project'] = $this->scopeProjectId;
+        }
+
+        return $params;
     }
 
     private function parseCustomRange(): ?array

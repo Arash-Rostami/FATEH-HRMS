@@ -444,6 +444,18 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         }
     }
 
+    public function markOffline(): void
+    {
+        $was = $this->timestamps;
+        $this->timestamps = false;
+        try {
+            $this->forceFill(['last_seen' => now()->subMinutes(16)])->saveQuietly();
+            Cache::forget('last_seen:' . $this->id);
+        } finally {
+            $this->timestamps = $was;
+        }
+    }
+
     protected function booking(): Attribute
     {
         return Attribute::make(

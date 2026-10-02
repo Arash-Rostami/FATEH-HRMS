@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Channel;
 
 use App\Livewire\Dashboard\Channel\Actions\CreateChannelAction;
+use App\Livewire\Dashboard\Channel\Actions\DeleteChannelAction;
 use App\Livewire\Dashboard\Channel\Actions\DeleteChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
 use App\Livewire\Dashboard\Channel\Actions\FetchChannelsAction;
@@ -23,6 +24,7 @@ use App\Livewire\Dashboard\Channel\Presentation\ChannelPresenter;
 use App\Models\Channel;
 use App\Models\ChannelMessage;
 use App\Models\User;
+use App\Services\Messaging\PollDigestService;
 use App\Traits\ChatComposer;
 use App\Traits\FocusOnRecord;
 use Illuminate\Support\Collection;
@@ -46,7 +48,10 @@ use Illuminate\View\View;
 #[Lazy]
 class Main extends Component
 {
-    use ChatComposer, FocusOnRecord, WithFileUploads;
+    use ChatComposer, WithFileUploads;
+    use FocusOnRecord {
+        clearFocus as baseClearFocus;
+    }
 
     public ChannelMessageComposerForm $composer;
     public EditChannelMessageForm $edit;
@@ -58,7 +63,9 @@ class Main extends Component
     public string $search = '';
     public string $messageSearch = '';
     public string $filter = 'all';
+    #[Locked]
     public int $channelsLimit = 30;
+    public bool $hasMoreChannels = false;
     public bool $browseMode = false;
     public bool $createMode = false;
     public bool $mobileShowChat = false;
@@ -70,6 +77,11 @@ class Main extends Component
     #[Locked]
     public int $loadedLimit = 10;
     public bool $hasOlder = false;
+    #[Locked]
+    public ?string $pollStamp = null;
+
+    private const MESSAGES_STAMP_THRESHOLD = 200;
+
     #[Locked]
     public ?int $focusAnchorId = null;
     #[Locked]
@@ -101,7 +113,9 @@ class Main extends Component
     #[Computed]
     public function channels(): array
     {
-        $rows = app(FetchChannelsAction::class)->execute(auth()->id(), $this->search, $this->filter);
+        $rows = app(FetchChannelsAction::class)->execute(auth()->id(), $this->search, $this->filter, $this->channelsLimit + 1, $this->allChannelIds);
+        $this->hasMoreChannels = $rows->count() > $this->channelsLimit;
+        $rows = $rows->take($this->channelsLimit);
 
         $messageIds = $rows->pluck('last_message_id')->filter()->unique();
         $lastMessages = ChannelMessage::withoutTrashed()
@@ -128,6 +142,50 @@ class Main extends Component
                 ] : null,
             ];
         })->values()->all();
+    }
+
+    #[Computed]
+    public function totalUnread(): int
+    {
+        return DB::table('channel_messages')
+            ->join('channel_members', function ($j) {
+                $j->on('channel_members.channel_id', '=', 'channel_messages.channel_id')
+                  ->where('channel_messages.id', '>', DB::raw('COALESCE(channel_members.last_read_message_id, 0)'));
+            })
+            ->join('channels', function ($j) {
+                $j->on('channels.id', '=', 'channel_messages.channel_id')
+                  ->whereNull('channels.deleted_at');
+            })
+            ->whereNull('channel_messages.deleted_at')
+            ->where('channel_members.user_id', auth()->id())
+            ->count();
+    }
+
+    #[Computed]
+    public function myChannelMemberships(): Collection
+    {
+        return DB::table('channel_members')
+            ->join('channels', 'channels.id', '=', 'channel_members.channel_id')
+            ->whereNull('channels.deleted_at')
+            ->where('channel_members.user_id', auth()->id())
+            ->select('channel_members.channel_id', 'channels.type')
+            ->get();
+    }
+
+    #[Computed]
+    public function allChannelIds(): array
+    {
+        return $this->myChannelMemberships->pluck('channel_id')->map(fn($id) => (int) $id)->values()->all();
+    }
+
+    #[Computed]
+    public function myChannelsSummary(): array
+    {
+        $types = $this->myChannelMemberships->pluck('type');
+        $total = $types->count();
+        $open = $types->filter(fn($type) => $type === 'open')->count();
+
+        return ['total' => $total, 'open' => $open, 'private' => $total - $open];
     }
 
     #[Computed]
@@ -409,7 +467,7 @@ class Main extends Component
             return false;
         }
 
-        $focusMsg = (int) request()->query('focus_msg', 0);
+        $focusMsg = (int) ($this->focusQueryParam('focus_msg') ?? 0);
         if ($focusMsg > 0) {
             return $this->focusMessage($focusMsg);
         }
@@ -475,6 +533,8 @@ class Main extends Component
 
     public function clearFocus(): void
     {
+        $this->baseClearFocus();
+
         if ($this->focusAnchorId === null && $this->loadedLimit === 10) {
             return;
         }
@@ -484,6 +544,16 @@ class Main extends Component
         unset($this->messages, $this->groupedMessages);
     }
 
+    #[Renderless]
+    public function pollDigest(): string
+    {
+        $ids = $this->allChannelIds;
+        sort($ids);
+        $versions = implode(',', PollDigestService::versions(array_map(fn($id) => "ch:tv:{$id}", $ids)));
+
+        return crc32(implode(',', $ids)) . ':' . crc32($versions) . ':' . PollDigestService::version('ch:me:' . auth()->id());
+    }
+
     public function refreshUnread(): void
     {
         unset($this->channels);
@@ -491,7 +561,33 @@ class Main extends Component
 
     public function refreshActive(): void
     {
+        if ($this->loadedLimit > self::MESSAGES_STAMP_THRESHOLD && $this->focusAnchorId === null) {
+            $stamp = $this->latestMessageStamp();
+            if ($stamp === $this->pollStamp) {
+                $this->skipRender();
+                return;
+            }
+            $this->pollStamp = $stamp;
+        }
+
         unset($this->messages, $this->groupedMessages);
+    }
+
+    private function latestMessageStamp(): ?string
+    {
+        if (!$this->activeChannelId) {
+            return null;
+        }
+
+        $latest = ChannelMessage::where('channel_id', $this->activeChannelId)
+            ->latest('id')
+            ->first(['id', 'updated_at', 'deleted_at']);
+
+        $msg = $latest ? "{$latest->id}:{$latest->updated_at}:{$latest->deleted_at}" : 'none';
+        $typing = implode(',', $this->typingMembers);
+        $readVersion = PollDigestService::version("ch:rv:{$this->activeChannelId}");
+
+        return "{$msg}:{$typing}:{$readVersion}";
     }
 
     public function setFilter(string $filter): void
@@ -716,7 +812,11 @@ class Main extends Component
 
     public function joinChannel(JoinChannelAction $action, int $channelId): void
     {
-        $action->execute($channelId, auth()->id());
+        if (!$action->execute($channelId, auth()->id())) {
+            unset($this->channels, $this->joinableChannels);
+            $this->dispatch('show-toast', message: 'این گروه دیگر در دسترس نیست.', type: 'error');
+            return;
+        }
         $this->browseMode = false;
         unset($this->channels, $this->joinableChannels);
         $this->selectChannel($channelId);
@@ -738,6 +838,24 @@ class Main extends Component
         }
         unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
         $this->dispatch('show-toast', message: 'از گروه خارج شدید', type: 'info');
+    }
+
+    public function deleteChannel(DeleteChannelAction $action, int $channelId): void
+    {
+        if (!$action->execute($channelId, auth()->id())) {
+            return;
+        }
+        if ($this->activeChannelId === $channelId) {
+            $this->activeChannelId = null;
+            $this->mobileShowChat = false;
+            $this->loadedLimit = 10;
+            $this->hasOlder = false;
+            $this->focusAnchorId = null;
+            $this->focusOlder = 5;
+            $this->messageSearch = '';
+        }
+        unset($this->channels, $this->joinableChannels, $this->messages, $this->activeChannel, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
+        $this->dispatch('show-toast', message: 'گروه حذف شد', type: 'info');
     }
 
     public function openManageMembers(int $channelId): void
@@ -775,6 +893,7 @@ class Main extends Component
         unset($this->channels, $this->activeChannel, $this->memberCandidates, $this->activeChannelMemberUsers, $this->readers, $this->channelMembersForMentions, $this->channelMembers, $this->mentionMemberMap, $this->mentionMemberPresence, $this->pendingInvitees);
 
         if (($result['added'] ?? 0) || ($result['removed'] ?? 0)) {
+            $this->dispatch('channel-members-updated')->self();
             $this->dispatch('show-toast', message: 'اعضای گروه به‌روزرسانی شد', type: 'success');
         }
     }

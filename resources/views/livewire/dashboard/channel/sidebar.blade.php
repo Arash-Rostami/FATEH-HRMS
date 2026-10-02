@@ -1,10 +1,9 @@
 @php
     $p = $this->presenter;
     $channelList = $p->sidebar($this->channels, auth()->id());
-    $totalUnread = $p->totalUnread($this->channels);
-    $allChannelIds = collect($channelList)->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
-    $visibleChannelList = array_slice($channelList, 0, $channelsLimit);
-    $hasMoreChannels = count($channelList) > $channelsLimit;
+    $totalUnread = $this->totalUnread;
+    $allChannelIds = json_encode($this->allChannelIds);
+    $hasMoreChannels = $this->hasMoreChannels;
 @endphp
 <aside @class([
     'flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)]',
@@ -14,7 +13,7 @@
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
 ]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768 }"
-   aria-label="لیست گروه‌ها" data-channel-count="{{ count($this->channels) }}" data-total-unread="{{ $totalUnread }}">
+   aria-label="لیست گروه‌ها" data-channel-count="{{ count($this->allChannelIds) }}" data-total-unread="{{ $totalUnread }}">
 
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
         <div class="flex items-center justify-between mb-4">
@@ -25,12 +24,11 @@
                 <div>
                     <h1 class="text-sm font-semibold tracking-tight text-[var(--md-sys-color-on-surface)]">گروه‌ها</h1>
                     @php
-                        $listCount = count($channelList);
-                        $openCount = count(array_filter($channelList, fn($c) => ($c['type'] ?? '') === 'open'));
-                        $privateCount = $listCount - $openCount;
+                        $summary = $this->myChannelsSummary;
+                        $listCount = $summary['total'];
                         $summaryParts = $listCount ? array_merge([convertToPersian((string) $listCount) . ' گروه'], array_filter([
-                            $openCount ? convertToPersian((string) $openCount) . ' عمومی' : '',
-                            $privateCount ? convertToPersian((string) $privateCount) . ' خصوصی' : '',
+                            $summary['open'] ? convertToPersian((string) $summary['open']) . ' عمومی' : '',
+                            $summary['private'] ? convertToPersian((string) $summary['private']) . ' خصوصی' : '',
                         ])) : [];
                     @endphp
                     <p class="text-[10px] text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]" title="تفکیک گروه‌های شما بر اساس نوع">
@@ -108,7 +106,7 @@
     </div>
 
     <div id="channel-list" class="flex flex-col overflow-y-auto py-1 contact-scrollbar" role="listbox">
-        @forelse($visibleChannelList as $ch)
+        @forelse($channelList as $ch)
             <div wire:key="channel-{{ $ch['id'] }}" x-data="{ tagOpen: false }" x-on:click="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.enter.prevent="selectChannel({{ $ch['id'] }})"
                     x-on:keydown.space.prevent="selectChannel({{ $ch['id'] }})"
@@ -196,11 +194,13 @@
                 </div>
             </div>
         @empty
-            <x-ui.empty icon="campaign" title="گروهی یافت نشد" variant="search" />
+            <div wire:key="channel-list-empty" class="contents">
+                <x-ui.empty icon="campaign" title="گروهی یافت نشد" variant="search" />
+            </div>
         @endforelse
 
         @if($hasMoreChannels)
-            <x-ui.buttons.load-more action="loadMoreChannels" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
+            <x-ui.buttons.load-more action="loadMoreChannels" island="sidebar" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
                                      class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
         @endif
     </div>

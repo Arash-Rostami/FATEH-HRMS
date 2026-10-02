@@ -1,29 +1,50 @@
 import maximizeMixin from "../mixins/maximize.js";
-import settings from "./settings.js";
+
+const MAX_WIDGET_CLOSE_MS = 350;
 
 export default function energyChart(history, companyAverages, sections, latestTest) {
     return {
         ...maximizeMixin(),
         charts: {},
         maximizedWidget: null,
+        Chart: null,
 
         async init() {
-            if (!history?.length) return;
+            if (!history?.length && !latestTest) return;
             await import ('../../../core/chart.js');
+            this.Chart = window.Chart;
             this.$nextTick(() => {
-                this.renderHistoryChart();
-                this.renderRadarChart();
+                if (history?.length) this.renderHistoryChart();
+                if (latestTest) this.renderRadarChart();
             });
         },
 
-        toggleMaximize(name) {
-            this.maximizedWidget = this.maximizedWidget === name ? null : name;
-            this.applyMaximize(!!this.maximizedWidget);
+        destroy() {
+            for (const key in this.charts) {
+                this.charts[key]?.destroy();
+            }
+            this.charts = {};
         },
 
-        initPattern() {
-            const settingInstance = settings();
-            return settingInstance.initPattern();
+        toggleMaximize(name) {
+            if (name === null) name = this.maximizedWidget;
+            if (!name) return;
+
+            if (this.maximizedWidget === name) {
+                this.maxLeaving = true;
+                this.applyMaximize(false);
+                clearTimeout(this.maxTimer);
+                this.maxTimer = setTimeout(() => {
+                    this.maximizedWidget = null;
+                    this.maxLeaving = false;
+                }, MAX_WIDGET_CLOSE_MS);
+                return;
+            }
+
+            clearTimeout(this.maxTimer);
+            this.maxLeaving = false;
+            this.maximizedWidget = name;
+            this.applyMaximize(true);
         },
 
         getCssVar(name) {
@@ -47,7 +68,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
             );
             const dimLabels = { overall:'کل', ...labels };
 
-            this.charts.history = new Chart(el, {
+            this.charts.history = new this.Chart(el, {
                 type: 'line',
                 data: {
                     labels: history.map(r => r.date),
@@ -83,8 +104,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
                     scales: {
                         y: {
                             min: 0,
-                            max: 4,
-                            ticks: { stepSize: 1, color: this.getCssVar('--md-sys-color-on-surface-variant'), font: { size: 11 } },
+                            ticks: { color: this.getCssVar('--md-sys-color-on-surface-variant'), font: { size: 11 } },
                             grid: { color: this.getCssVar('--md-sys-color-outline-variant') + '40' },
                         },
                         x: {
@@ -110,7 +130,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
             const secondary = this.getCssVar('--md-sys-color-secondary');
             const surface = this.getCssVar('--md-sys-color-on-surface-variant');
 
-            this.charts.radar = new Chart(el, {
+            this.charts.radar = new this.Chart(el, {
                 type: 'radar',
                 data: {
                     labels,

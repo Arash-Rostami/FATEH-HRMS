@@ -125,9 +125,9 @@
 
                             @if(!empty($event['remind_hours']))
                                 <div class="flex items-center gap-1 text-[10px] text-[var(--md-sys-color-error)] bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_50%,transparent)] px-2 py-0.5 rounded-md"
-                                     title="یادآوری {{ $event['remind_hours'] }} ساعت قبل">
+                                     title="یادآوری {{ convertToPersian($event['remind_hours']) }} ساعت قبل">
                                     <span class="material-symbols-rounded text-[12px]">alarm</span>
-                                    <span>{{ $event['remind_hours'] }} ساعت قبل</span>
+                                    <span>{{ convertToPersian($event['remind_hours']) }} ساعت قبل</span>
                                 </div>
                             @endif
 

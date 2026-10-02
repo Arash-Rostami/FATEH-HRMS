@@ -66,9 +66,6 @@ class ProfileForm extends Form
     #[Validate('nullable|string|max:1000')]
     public ?string $interests = '';
 
-    #[Validate('nullable|string')]
-    public ?string $email = '';
-
     #[Validate('nullable|image|max:2048')]
     public $image = null;
 

@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\DB;
 
 class FetchChannelsAction
 {
-    public function execute(int $viewerId, string $search = '', string $filter = 'all'): Collection
+    public function execute(int $viewerId, string $search = '', string $filter = 'all', ?int $limit = null, ?array $myChannelIds = null): Collection
     {
+        $myChannelIds ??= DB::table('channel_members')->where('user_id', $viewerId)->select('channel_id');
+
         $lastMsgSub = DB::table('channel_messages')
             ->selectRaw('channel_id, MAX(id) as last_message_id')
             ->whereNull('deleted_at')
+            ->whereIn('channel_id', $myChannelIds)
             ->groupBy('channel_id');
 
         $unreadSub = DB::table('channel_messages')
@@ -27,6 +30,7 @@ class FetchChannelsAction
 
         $membersSub = DB::table('channel_members')
             ->selectRaw('channel_id, COUNT(*) as members_count')
+            ->whereIn('channel_id', $myChannelIds)
             ->groupBy('channel_id');
 
         return Channel::query()
@@ -41,6 +45,7 @@ class FetchChannelsAction
             ->orderByRaw('lm.last_message_id IS NULL')
             ->orderByDesc('lm.last_message_id')
             ->orderBy('channels.name')
+            ->when($limit !== null, fn($q) => $q->limit($limit))
             ->get();
     }
 }

@@ -194,7 +194,7 @@
                             <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)]" dir="ltr">{{ $d['time'] }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="py-10"><x-ui.empty icon="event_busy" title="رویدادی در این روز ثبت نشده" variant="list"/></td></tr>
+                        <tr wire:key="project-calendar-day-empty"><td colspan="4" class="py-10"><x-ui.empty icon="event_busy" title="رویدادی در این روز ثبت نشده" variant="list"/></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -245,7 +245,7 @@
                         <td class="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-[11px] md:text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] align-middle" dir="ltr">{{ $d['time'] }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="py-10"><x-ui.empty icon="calendar_month" title="رویدادی در این ماه ثبت نشده" variant="list"/></td></tr>
+                    <tr wire:key="project-calendar-agenda-empty"><td colspan="5" class="py-10"><x-ui.empty icon="calendar_month" title="رویدادی در این ماه ثبت نشده" variant="list"/></td></tr>
                 @endforelse
                 </tbody>
             </table>

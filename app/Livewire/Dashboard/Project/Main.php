@@ -73,6 +73,12 @@ class Main extends Component
     }
 
     #[Computed]
+    public function myProjectsTotal(): int
+    {
+        return $this->visibleProjectsWithMembership->count();
+    }
+
+    #[Computed]
     public function myProjects(): array
     {
         $needle = mb_strtolower(trim($this->search));
@@ -209,7 +215,7 @@ class Main extends Component
 
         $this->switchTab($requestedTab);
 
-        $focusEntry = (int) request()->query('focus_entry', 0);
+        $focusEntry = (int) ($this->focusQueryParam('focus_entry') ?? 0);
         if ($focusEntry > 0) {
             $project = $this->activeProject;
 

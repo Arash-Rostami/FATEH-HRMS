@@ -228,13 +228,7 @@
                                     type="button"
                                     wire:key="grid-cancel-button"
                                     x-data
-                                    @click="$dispatch('open-confirmation', {
-                                        title: @json($reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو'),
-                                        message: @json($reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟'),
-                                        method: 'cancel',
-                                        params: {{ $reservation->id }},
-                                        type: 'dispatch'
-                                    })"
+                                    @click="{{ confirmDialog('cancel', $reservation->cancel_warning ? 'لغو سری تکرارشونده' : 'لغو رزرو', $reservation->cancel_warning ?? 'آیا از لغو این رزرو اطمینان دارید؟', $reservation->id) }}"
                                     class="p-2 rounded-xl text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] transition-colors inline-flex"
                                     title="لغو رزرو">
                                     <span class="material-symbols-rounded text-[20px]">delete</span>

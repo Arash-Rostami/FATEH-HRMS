@@ -259,7 +259,7 @@
                                                         class="inline-flex w-max items-center gap-1.5 rounded-md border border-[var(--md-sys-color-outline-variant)]/30 bg-[var(--md-sys-color-surface-container)] px-2 py-1 text-[11px] font-semibold text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[var(--md-sys-color-surface-container-highest)]">
                                                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-primary)]">file_present</span>
                                                     <span>نسخه‌های سند</span>
-                                                    <span class="rounded-full bg-[var(--md-sys-color-primary-container)] px-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]">{{ count($renditions) }}</span>
+                                                    <span class="rounded-full bg-[var(--md-sys-color-primary-container)] px-1.5 text-[10px] font-bold text-[var(--md-sys-color-on-primary-container)]">{{ convertToPersian(count($renditions)) }}</span>
                                                     <span class="material-symbols-rounded text-[12px] opacity-60 transition-transform duration-200" :class="{ 'rotate-180': open }">expand_more</span>
                                                 </button>
 
@@ -273,6 +273,7 @@
                                                         @endphp
                                                         <a href="{{ $ri['route'] }}"
                                                            target="_blank"
+                                                           wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                            wire:click="incrementRead({{ $doc->id }})"
                                                            x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-right transition-colors hover:bg-[var(--md-sys-color-primary)]/10">
@@ -286,6 +287,7 @@
                                         @else
                                             <a wire:key="dms-rendition-link" href="{{ route('secure-file', $doc->file) }}"
                                                target="_blank"
+                                               wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                wire:click="incrementRead({{ $doc->id }})"
                                                x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                class="inline-flex w-max items-center gap-1.5 rounded-lg px-2.5 py-1 shadow-sm transition-all duration-200 hover:opacity-80 {{ $primaryIcon['bg'] }} {{ $primaryIcon['text'] }}">
@@ -325,16 +327,17 @@
                         </td>
 
                         <td data-col="action" class="relative whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
-                            <div class="absolute left-2 top-2 z-20">
+                            <div class="absolute left-1.5 top-1.5 z-20">
                                 <x-dashboard.reminder-trigger :for="$doc" variant="corner" tooltip-position="right"/>
                             </div>
 
-                            <div class="flex flex-col items-center gap-1.5">
+                            <div class="flex flex-col items-center gap-1.5 pt-9">
                                 <div class="flex items-center gap-1">
                                     @if ($doc->file)
                                         @if(!$isConfirmed)
                                             <button type="button"
                                                     wire:key="dms-row-confirm"
+                                                    wire:loading.attr="disabled" wire:target="confirmRead"
                                                     wire:click="confirmRead({{ $doc->id }})"
                                                     class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-error)]/15 bg-[var(--md-sys-color-error)]/5 px-3 py-2.5 text-[var(--md-sys-color-error)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-error)] hover:text-white hover:shadow-md">
                                                 <span class="material-symbols-rounded text-[22px]">edit_document</span>
@@ -352,6 +355,7 @@
                                             @else
                                                 <a wire:key="dms-row-open" href="{{ route('secure-file', $doc->file) }}"
                                                    target="_blank"
+                                                   wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                    wire:click="incrementRead({{ $doc->id }})"
                                                    x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                    class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[var(--md-sys-color-tertiary)]/15 bg-[var(--md-sys-color-tertiary)]/5 px-3 py-2.5 text-[var(--md-sys-color-tertiary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--md-sys-color-tertiary)] hover:text-white hover:shadow-md">
@@ -362,6 +366,7 @@
                                         @else
                                             <a wire:key="dms-row-reopen" href="{{ route('secure-file', $doc->file) }}"
                                                target="_blank"
+                                               wire:loading.class="pointer-events-none" wire:target="incrementRead"
                                                wire:click="incrementRead({{ $doc->id }})"
                                                x-on:click="recordClick({ id: $el.closest('tr').dataset.docId, title: $el.closest('tr').dataset.docTitle, url: $el.href })"
                                                class="inline-flex w-[122px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-transparent px-3 py-2.5 text-[var(--md-sys-color-on-surface-variant)] transition-all duration-300 hover:border-[var(--md-sys-color-primary)]/30 hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
@@ -378,7 +383,7 @@
                                 </div>
 
                                 @if($readCount > 0)
-                                    <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">بازدید شما: {{ convertToPersian($readCount) }} بار</p>
+                                    <p wire:key="dms-readcount" class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">بازدید شما: {{ convertToPersian($readCount) }} بار</p>
                                 @endif
                             </div>
                         </td>
@@ -433,7 +438,7 @@
 </div>
 
 @if($hasMorePages)
-    <div class="flex justify-center pb-2 pt-6">
+    <div wire:key="dms-load-more" class="flex justify-center pb-2 pt-6">
         <x-ui.buttons.load-more
             action="loadMore"
             text="بارگذاری بیشتر"

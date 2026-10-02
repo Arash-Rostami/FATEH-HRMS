@@ -8,7 +8,7 @@
     >
 
     <div class="max-w-[88rem] mx-auto page-wrapper h-full flex flex-col">
-        <x-ui.title icon="workspaces" title="پروژه‌ها" :count="$this->myProjects['total']" countLabel="پروژه">
+        <x-ui.title icon="workspaces" title="پروژه‌ها" :count="$this->myProjectsTotal" countLabel="پروژه">
             <x-slot:actions>
                 <button
                     type="button"

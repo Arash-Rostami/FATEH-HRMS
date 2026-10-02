@@ -606,7 +606,7 @@
         !shadow-[4px_0_40px_color-mix(in_srgb,var(--md-sys-color-primary),_transparent_18%)];
     }
 
-    .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window {
+    .fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window:has(fieldset, .fi-in-entry) {
         @apply !h-[85dvh] !overflow-y-auto;
     }
 

@@ -27,7 +27,7 @@
                 class="flex items-center gap-1.5 p-1 bg-[var(--md-sys-color-surface-container-high)]/60 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30 w-fit shadow-sm overflow-x-auto max-w-full">
                 @foreach($tabs as $t)
                     @continue($t['key'] === 'reply' && !$editingTaskId)
-                    @continue($t['key'] === 'history' && (!$editingTaskId || $this->editingTask?->project_id !== null))
+                    @continue($t['key'] === 'history' && (!$editingTaskId || $editingTaskHasProject))
                     @php
                         $badgeCount = $badgeCounts[$t['key']] ?? 0;
                     @endphp
@@ -302,7 +302,7 @@
             </div>
         @endif
 
-        @if($editingTaskId && $this->editingTask?->project_id === null)
+        @if($editingTaskId && !$editingTaskHasProject)
             <div wire:key="taskboard-history-tab" x-show="formTab === 'history'" x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
                  class="flex flex-col gap-3 h-96 overflow-y-auto custom-scrollbar pr-1 pl-1">

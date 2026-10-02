@@ -178,7 +178,7 @@
                         <div x-show="!uploading" class="text-center pointer-events-none flex flex-col items-center">
                             <span class="material-symbols-rounded text-4xl block mb-2 text-[var(--md-sys-color-on-surface-variant)]">upload_file</span>
                             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface-variant)]">انتخاب فایل</p>
-                            <p class="text-[11px] mt-1" style="color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 65%, transparent)">PDF, PNG, JPG — حداکثر ۱۰ مگابایت</p>
+                            <p class="text-[11px] mt-1" style="color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 65%, transparent)">PDF, PNG, JPG, WEBP — حداکثر ۱۰ مگابایت</p>
                         </div>
 
                         <div x-show="uploading" class="w-1/2 flex flex-col items-center gap-2">
@@ -253,7 +253,7 @@
     </div>
 
     <div class="flex justify-center gap-3 pb-8">
-        <x-ui.buttons.form class="w-40 justify-center" icon="send" loading="submit" wire:click="submit" wire:loading.attr="disabled">
+        <x-ui.buttons.form class="w-40 justify-center" icon="send" loading="submit" wire:click="submit">
             ارسال
         </x-ui.buttons.form>
 

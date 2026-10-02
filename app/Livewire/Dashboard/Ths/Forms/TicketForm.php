@@ -7,7 +7,6 @@ use Livewire\Form;
 
 class TicketForm extends Form
 {
-    public string $requester = '';
     public string $department = '';
     public string $targetDepartment = '';
 

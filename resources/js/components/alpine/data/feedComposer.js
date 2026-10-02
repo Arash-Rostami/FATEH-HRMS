@@ -6,6 +6,7 @@ export default (feedId) => ({
     fullscreen: false,
     panelStyle: '',
     emojis: feedEmojis,
+    sending: false,
 
     init() {
         // start the textarea at its natural single-line height (refs are ready next tick)
@@ -79,7 +80,9 @@ export default (feedId) => ({
     // Enter submits the comment; Shift+Enter inserts a newline (mirrors the original inline handler).
     onEnter(e) {
         if (!e.shiftKey) {
-            this.$wire.addComment(this.feedId);
+            if (this.sending) return;
+            this.sending = true;
+            this.$wire.addComment(this.feedId).catch(() => {}).finally(() => { this.sending = false; });
             return;
         }
         const el = e.target;

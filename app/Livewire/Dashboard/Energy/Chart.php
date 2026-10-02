@@ -55,7 +55,7 @@ class Chart extends Component
             ->where(fn($q) => $q->where('completed_at', '>=', $cutoff)->orWhere('created_at', '>=', $cutoff))
             ->orderBy('completed_at')
             ->selectRaw("
-                DATE_FORMAT(completed_at, '%Y-%m-%d') as date,
+                completed_at as date,
                 mind_score as mind,
                 emotion_score as emotion,
                 physique_score as physique,
@@ -63,6 +63,7 @@ class Chart extends Component
                 overall_score as overall
             ")
             ->get()
+            ->map(fn($row) => array_merge($row->toArray(), ['date' => toJalali($row->date, 'Y/m/d')]))
             ->toArray();
     }
 
@@ -92,14 +93,15 @@ class Chart extends Component
     public function personalHistory(): array
     {
         $service = app(EnergyQuestionService::class);
+        $banksByMonth = [];
 
         return EnergyTest::query()
             ->where('user_id', $this->user->id)
             ->orderByDesc('completed_at')
             ->limit(12)
             ->get()
-            ->map(function (EnergyTest $test) use ($service) {
-                $bank = $service->getQuestionsForMonth($test->month_index)['questions'];
+            ->map(function (EnergyTest $test) use ($service, &$banksByMonth) {
+                $bank = $banksByMonth[$test->month_index] ??= $service->getQuestionsForMonth($test->month_index)['questions'];
 
                 return [
                     'completed_at' => $test->completed_at,

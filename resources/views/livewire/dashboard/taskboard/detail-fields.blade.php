@@ -110,14 +110,13 @@
                         <span
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/40 transition-all">
                             <span x-text="label"></span>
-                            @unless($isReadOnly)
-                                <button type="button"
-                                        @click="removeLabel(index)"
-                                        class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-error)] transition-colors"
-                                        aria-label="حذف برچسب">
-                                    <span class="material-symbols-rounded text-[13px]">close</span>
-                                </button>
-                            @endunless
+                            <button type="button"
+                                    x-show="!$wire.isReadOnly"
+                                    @click="removeLabel(index)"
+                                    class="w-4 h-4 rounded-full flex items-center justify-center hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-error)] transition-colors"
+                                    aria-label="حذف برچسب">
+                                <span class="material-symbols-rounded text-[13px]">close</span>
+                            </button>
                         </span>
                     </template>
                     <div class="w-full py-4 text-center" x-show="labels.length === 0">

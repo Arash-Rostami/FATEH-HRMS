@@ -1,17 +1,4 @@
-<div class="space-y-6 animate-[fade-in_0.4s_ease-out]" dir="rtl"
-     x-data="{
-         openVideoModal: false,
-         videoSrc: '',
-         videoTitle: '',
-         handleVideoClose() {
-             const player = this.$refs.videoPlayer;
-             if (player) { player.pause(); player.currentTime = 0; }
-             this.openVideoModal = false;
-             this.videoSrc = '';
-             this.videoTitle = '';
-         }
-     }"
-     @keydown.escape.window="handleVideoClose()">
+<div class="space-y-6 animate-[fade-in_0.4s_ease-out]" dir="rtl">
 
 
     @if(!$presenter->hasContent($onboarding))
@@ -68,8 +55,9 @@
                 <div class="p-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($videos as $video)
-                            <div class="video-thumb-container group cursor-pointer"
-                                 @click="openVideoModal = true; videoSrc = '{{ $video['url'] }}'; videoTitle = '{{ addslashes($video['title']) }}'">
+                            <a href="{{ $video['url'] }}" data-fancybox="onboarding-videos" data-type="html5video"
+                               data-caption="{{ $video['title'] }}"
+                               class="video-thumb-container group cursor-pointer">
 
                                 <div
                                     class="relative aspect-video rounded-xl overflow-hidden bg-[var(--md-sys-color-surface-variant)] shadow-md">
@@ -108,14 +96,11 @@
                                 <h4 class="mt-3 text-sm font-bold text-[var(--md-sys-color-on-surface)] line-clamp-2 text-center">
                                     {{ $video['title'] }}
                                 </h4>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>
             </section>
-
-            <x-ui.modals.video/>
-
         @endif
 
         {{-- Card 3: Mission & Vision (Combined or Separate) --}}
@@ -240,7 +225,7 @@
             </section>
         @endif
 
-        {{-- Card 6: Extras  --}}
+        {{-- Card 6: Extras --}}
         @if($extras = $presenter->formatExtras($onboarding->extras))
             <section
                 class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden">

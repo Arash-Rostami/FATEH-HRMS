@@ -25,7 +25,19 @@ export default function status(view) {
         structureSub: 'layout',
 
         init() {
-            this.vBox = this.$root.closest('.custom-scrollbar') || document.scrollingElement || document.documentElement;
+            let node = this.$root.parentElement;
+            const body = document.body;
+            let scrollable = null;
+
+            while (node !== null && node !== body) {
+                if (node.scrollHeight > node.clientHeight + 1) {
+                    scrollable = node;
+                    break;
+                }
+                node = node.parentElement;
+            }
+
+            this.vBox = scrollable || document.scrollingElement || document.documentElement;
         },
 
         toggleDept(code) {

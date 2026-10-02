@@ -41,19 +41,18 @@
             <p x-show="mentionOpen && mentionMatches.length === 0" class="px-2.5 py-2 text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-60">کاربری یافت نشد</p>
         </div>
 
-        <template x-if="replyingTo">
-            <div class="mx-4 mt-3 flex items-center gap-2.5 px-3 py-2 rounded-t-xl rounded-b-md bg-[var(--md-sys-color-surface-variant)] border-r-2 border-[var(--md-sys-color-primary)]">
-                <span class="material-symbols-rounded text-[13px] flex-shrink-0 text-[var(--md-sys-color-primary)]">reply</span>
-                <div class="flex-1 min-w-0">
-                    <p class="text-[10px] font-bold text-[var(--md-sys-color-primary)]" x-text="replyingTo.sender.name"></p>
-                    <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]" x-text="replyingTo.body"></p>
-                </div>
-                <button x-on:click.prevent="cancelReply" aria-label="لغو پاسخ"
-                        class="w-6 h-6 rounded-md flex items-center justify-center transition-all hover:brightness-90 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]">
-                    <span class="material-symbols-rounded text-[14px]">close</span>
-                </button>
+        <div x-show="replyingTo" style="display: none;"
+             class="mx-4 mt-3 flex items-center gap-2.5 px-3 py-2 rounded-t-xl rounded-b-md bg-[var(--md-sys-color-surface-variant)] border-r-2 border-[var(--md-sys-color-primary)]">
+            <span class="material-symbols-rounded text-[13px] flex-shrink-0 text-[var(--md-sys-color-primary)]">reply</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-[10px] font-bold text-[var(--md-sys-color-primary)]" x-text="replyingTo?.sender?.name ?? ''"></p>
+                <p class="text-[11px] truncate text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]" x-text="replyingTo?.body ?? ''"></p>
             </div>
-        </template>
+            <button x-on:click.prevent="cancelReply" aria-label="لغو پاسخ"
+                    class="w-6 h-6 rounded-md flex items-center justify-center transition-all hover:brightness-90 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]">
+                <span class="material-symbols-rounded text-[14px]">close</span>
+            </button>
+        </div>
 
         @if(count($composer->attachments))
             <div class="flex flex-wrap items-center gap-1.5 mx-4 mt-3 px-3 py-2 rounded-xl bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_50%,transparent)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]">
@@ -88,7 +87,7 @@
                          ? 'border-[var(--md-sys-color-primary)]'
                          : 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)]'
                  ]">
-                <textarea id="msg-ta" wire:ref="body" dir="rtl"
+                <textarea id="msg-ta" dir="rtl"
                           wire:model.defer="composer.body"
                           wire:loading.attr="disabled" wire:target="send"
                           x-on:keydown="onComposerKeydown($event)"
@@ -135,15 +134,15 @@
                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
 
             <div x-data="{ open: false, pos: {} }">
-                <button type="button" x-ref="kebabTrigger"
-                        x-on:click="pos = $refs.kebabTrigger.getBoundingClientRect().toJSON(); open = !open"
+                <button type="button" id="composer-tools-trigger"
+                        x-on:click="pos = $el.getBoundingClientRect().toJSON(); open = !open"
                         aria-label="ابزارهای بیشتر" title="ابزارهای بیشتر"
                         class="md:hidden flex-shrink-0 w-8 h-8 order-2 rounded-lg flex items-center justify-center transition-all hover:brightness-95 active:scale-90 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="material-symbols-rounded text-[18px]">more_horiz</span>
                 </button>
                 <template x-teleport="body">
                     <div x-show="open" x-cloak dir="rtl"
-                         x-on:click.away="if (!$refs.kebabTrigger?.contains($event.target)) open = false"
+                         x-on:click.away="if (!document.getElementById('composer-tools-trigger')?.contains($event.target)) open = false"
                          x-transition:enter="transition ease-out duration-150"
                          x-transition:enter-start="opacity-0 scale-95 translate-y-1"
                          x-transition:enter-end="opacity-100 scale-100 translate-y-0"

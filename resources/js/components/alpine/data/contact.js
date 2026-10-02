@@ -4,6 +4,7 @@ import maximizeMixin from "../mixins/maximize.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
+import fancyboxMixin from "../mixins/fancybox.js";
 
 const SCOPE = 'contact';
 const OPEN_POLL_CEILING_MS = 20000;
@@ -20,113 +21,70 @@ const MSG_TEXTAREA_ID = 'msg-ta';
 const TOTAL_UNREAD_ATTR = 'data-total-unread';
 const DATA_RF_MESSAGE_PREFIX = 'message';
 const INPUT_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
-
-const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
 const LS_SETTINGS_KEY = `chat-settings:${SCOPE}`;
 const SEARCH_FOCUS_PARAM = 'focus_msg';
+const POLL_FALLBACK_EVERY = 10;
+const TOO_LONG_MSG = 'متن پیام نباید بیشتر از ۲۰۰۰ کاراکتر باشد.';
+
+const RF_ID_OFFSET = DATA_RF_MESSAGE_PREFIX.length + 1;
+const ROW_SEL = `[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`;
+
+const ta = () => document.getElementById(MSG_TEXTAREA_ID);
 
 export default function contact() {
+    let ac, vpAc, scrollRaf, selRaf, unreadObs, digest, ticks = 0;
+
     return {
         ...maximizeMixin(),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
+        ...fancyboxMixin(),
         bgOption: 'a',
         editingMsg: null,
         quoteChip: { visible: false, x: 0, y: 0, id: null, sender: '', snippet: '' },
-        _onSelectionChange: null,
-        _onKeyDown: null,
-        _unreadObserver: null,
-        _scrollRaf: null,
 
         init() {
+            this.initFancybox();
             this.initPattern();
             this.syncPushNotify();
 
-            this._unreadObserver = new MutationObserver(() => this.syncPushNotify());
-            this._unreadObserver.observe(document.body, { subtree: true, attributes: true, attributeFilter: [TOTAL_UNREAD_ATTR] });
+            unreadObs = new MutationObserver(() => this.syncPushNotify());
+            unreadObs.observe(document.body, { subtree: true, attributes: true, attributeFilter: [TOTAL_UNREAD_ATTR] });
 
             const saved = localStorage.getItem(LS_SETTINGS_KEY);
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    this.isHighlighted = data.isHighlighted ?? false;
-                    this.backgroundPattern = data.backgroundPattern ?? 'off';
-                    this.backgroundPatternType = data.backgroundPatternType ?? 'mesh';
-                } catch {}
-            }
+            if (saved) try {
+                const d = JSON.parse(saved);
+                this.isHighlighted = d.isHighlighted ?? false;
+                this.backgroundPattern = d.backgroundPattern ?? 'off';
+                this.backgroundPatternType = d.backgroundPatternType ?? 'mesh';
+            } catch {}
 
             this.startPolling();
-            this._onVisibility = () => {
-                if (document.hidden) {
-                    this.stopPolling();
-                    return;
-                }
-                this.resetPollInterval();
-                this.startPolling();
-                this._pollTick().catch(() => {});
-            };
-            document.addEventListener('visibilitychange', this._onVisibility);
 
-            const vp = document.getElementById(MSG_VIEWPORT_ID);
-            this._msgViewportEl = vp;
+            ac = new AbortController();
+            const { signal } = ac;
 
-            if (vp) {
-                vp.style.overflowAnchor = 'none';
-                let ticking = false;
-                this._onScroll = () => {
-                    if (!ticking) {
-                        this._scrollRaf = requestAnimationFrame(() => {
-                            this._scrollRaf = null;
-                            this.quoteChip.visible = false;
-                            this.openActionsId = null;
+            document.addEventListener('visibilitychange', () => document.hidden ? this.stopPolling() : this._repollNow(), { signal });
 
-                            const st = vp.scrollTop;
-                            const sh = vp.scrollHeight;
-                            const ch = vp.clientHeight;
+            this._bindViewport();
 
-                            this.showScrollFab = (sh - st - ch) > SCROLL_FAB_DISTANCE_THRESHOLD;
-
-                            if (st < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
-                                this._loadingOlder = true;
-                                const prevHeight = sh;
-                                this.$wire.$island('messages').loadMoreMessages()
-                                    .then(() => {
-                                        this.$nextTick(() => {
-                                            const delta = vp.scrollHeight - prevHeight;
-                                            if (delta > 0) vp.scrollTop += delta;
-                                        });
-                                    })
-                                    .catch(() => {})
-                                    .finally(() => { this._loadingOlder = false; });
-                            }
-                            ticking = false;
-                        });
-                        ticking = true;
-                    }
-                };
-                vp.addEventListener('scroll', this._onScroll, { passive: true });
-            }
-
-            this._onSelectionChange = () => {
-                if (this._selRaf) return;
-                this._selRaf = requestAnimationFrame(() => {
-                    this._selRaf = null;
+            document.addEventListener('selectionchange', () => {
+                if (selRaf) return;
+                selRaf = requestAnimationFrame(() => {
+                    selRaf = null;
                     this._updateQuoteChip();
                 });
-            };
-            document.addEventListener('selectionchange', this._onSelectionChange);
+            }, { signal });
 
-            this._onKeyDown = (e) => {
+            document.addEventListener('keydown', (e) => {
                 if (e.key !== '/' || e.isComposing) return;
                 const el = document.activeElement;
-                const tag = el?.tagName;
-                if (INPUT_TAGS.has(tag) || el?.isContentEditable) return;
+                if (INPUT_TAGS.has(el?.tagName) || el?.isContentEditable) return;
                 if (this.searchMessages) return;
                 e.preventDefault();
                 this.openMessageSearch();
-            };
-            document.addEventListener('keydown', this._onKeyDown);
+            }, { signal });
 
             this.$wire.on('message-sent', () => {
                 this.scrollToBottom(true);
@@ -135,84 +93,115 @@ export default function contact() {
                 setTimeout(() => this.scrollToBottom(true), POST_SEND_SCROLL_DELAY_MS);
             });
 
-            this.$wire.on('message-error', () => {
-                this.$nextTick(() => {
-                    this.sending = false;
-                });
-            });
-
+            this.$wire.on('message-error', () => this.$nextTick(() => { this.sending = false; }));
             this.$wire.on('show-toast', (e) => this.toast(e.message, e.type ?? 'info'));
-
             this.$wire.on('show-undo-toast', (e) => this.toast(e.message, 'warning'));
-
             this.$wire.on('attachments-updated', () => {
-                this.$wire.$island('messages').syncAttachments().catch(() => {});
+                this._isl().syncAttachments().catch(() => {});
             });
 
             this.$watch('$wire.lastDeleted', (val) => {
                 clearTimeout(this.undoTimeout);
-                if (val) {
-                    this.showUndo = true;
-                    this.undoTimeout = setTimeout(() => {
-                        this.showUndo = false;
-                    }, UNDO_TOAST_MS);
-                } else {
-                    this.showUndo = false;
-                }
+                this.showUndo = !!val;
+                if (val) this.undoTimeout = setTimeout(() => { this.showUndo = false; }, UNDO_TOAST_MS);
             });
 
-            const focusMsg = parseInt(new URLSearchParams(window.location.search).get(SEARCH_FOCUS_PARAM), 10) || 0;
+            const focusMsg = parseInt(new URLSearchParams(location.search).get(SEARCH_FOCUS_PARAM), 10) || 0;
             if (this.$wire.activeUserId && focusMsg <= 0) {
                 this.$nextTick(() => {
                     this.scrollToBottom(false);
-                    if (window.innerWidth < MOBILE_BREAKPOINT) {
-                        const ta = document.getElementById(MSG_TEXTAREA_ID);
-                        if (ta) ta.focus();
-                    }
+                    if (innerWidth < MOBILE_BREAKPOINT) ta()?.focus();
                 });
             }
         },
 
         destroy() {
+            this._destroyed = true;
             this.stopPolling();
-            if (this._onVisibility) document.removeEventListener('visibilitychange', this._onVisibility);
-            const vp = this._msgViewportEl;
-            if (vp && this._onScroll) vp.removeEventListener('scroll', this._onScroll);
-            if (this._scrollRaf) cancelAnimationFrame(this._scrollRaf);
-            if (this._selRaf) cancelAnimationFrame(this._selRaf);
-            if (this._onSelectionChange) document.removeEventListener('selectionchange', this._onSelectionChange);
-            if (this._onKeyDown) document.removeEventListener('keydown', this._onKeyDown);
-            if (this._unreadObserver) this._unreadObserver.disconnect();
+            ac?.abort();
+            vpAc?.abort();
+            unreadObs?.disconnect();
+            cancelAnimationFrame(scrollRaf);
+            cancelAnimationFrame(selRaf);
         },
 
-        async _pollTick() {
-            const unreadBefore = this._readUnread();
-            const activeOpen = !!this.$wire.activeUserId;
-            const lastMsgBefore = activeOpen ? this._readLastMessageMarker() : null;
-            const typingBefore = activeOpen ? this._readTypingMarker() : null;
+        // #msg-viewport lives inside the messages island's pane-active branch, destroyed and
+        // re-mounted every time a conversation opens/closes — this component's own init() runs
+        // once, so a reference captured there goes stale (null forever if mounted with no
+        // conversation open, detached after the first close-then-reopen). Re-binding here, called
+        // from both init() and every selectContact() resolution, keeps scroll-to-load-older, the
+        // scroll FAB, and the quote-chip feature working across conversation switches.
+        _bindViewport() {
+            const vp = document.getElementById(MSG_VIEWPORT_ID);
+            this._msgViewportEl = vp;
+            if (!vp) return;
+
+            vp.style.overflowAnchor = 'none';
+            vpAc?.abort();
+            vpAc = new AbortController();
+
+            vp.addEventListener('scroll', () => {
+                if (scrollRaf) return;
+                scrollRaf = requestAnimationFrame(() => {
+                    scrollRaf = null;
+                    this.quoteChip.visible = false;
+                    this.openActionsId = null;
+
+                    const { scrollTop: st, scrollHeight: sh, clientHeight: ch } = vp;
+                    this.showScrollFab = sh - st - ch > SCROLL_FAB_DISTANCE_THRESHOLD;
+
+                    if (st < LOAD_OLDER_SCROLL_THRESHOLD && !this._loadingOlder && this.$wire.hasOlder) {
+                        this._loadingOlder = true;
+                        this._isl().loadMoreMessages()
+                            .then(() => this.$nextTick(() => {
+                                const delta = vp.scrollHeight - sh;
+                                if (delta > 0) vp.scrollTop += delta;
+                            }))
+                            .catch(() => {})
+                            .finally(() => { this._loadingOlder = false; });
+                    }
+                });
+            }, { passive: true, signal: vpAc.signal });
+        },
+
+        _isl() { return this.$wire.$island('messages'); },
+        _sidebar() { return this.$wire.$island('sidebar').refreshUnread(); },
+
+        _overLimit(body) {
+            if (body.length <= MAX_BODY_LENGTH) return false;
+            this.toast(TOO_LONG_MSG, 'warning');
+            return true;
+        },
+
+        async _pollTick(force = false) {
+            const fullSidebar = force || ++ticks % POLL_FALLBACK_EVERY === 0;
+            const open = !!this.$wire.activeUserId;
+            const lastBefore = open ? this._readLastMessageMarker() : null;
+            const typingBefore = open ? this._readTypingMarker() : null;
             let changed = false;
 
             try {
-                await this.$wire.$island('sidebar').refreshUnread();
-                changed = this._readUnread() !== unreadBefore;
+                const d = await this.$wire.pollDigest();
+                if (fullSidebar || d !== digest) {
+                    const unreadBefore = this._readUnread();
+                    await this._sidebar();
+                    digest = d;
+                    changed = this._readUnread() !== unreadBefore;
+                }
 
-                if (activeOpen) {
-                    await this.$wire.$island('messages').refreshActive();
-                    if (this._readLastMessageMarker() !== lastMsgBefore) changed = true;
-                    if (this._readTypingMarker() !== typingBefore) changed = true;
+                if (open) {
+                    await this._isl().refreshActive();
+                    changed ||= this._readLastMessageMarker() !== lastBefore || this._readTypingMarker() !== typingBefore;
                 }
             } catch {}
 
-            this._applyPollResult(changed, activeOpen ? OPEN_POLL_CEILING_MS : IDLE_POLL_CEILING_MS);
+            this._applyPollResult(changed, open ? OPEN_POLL_CEILING_MS : IDLE_POLL_CEILING_MS);
         },
 
-        _sendTypingPing() {
-            return this.$wire.$island('messages').pingTyping();
-        },
+        _sendTypingPing() { return this._isl().pingTyping(); },
 
         _readUnread() {
-            const el = document.querySelector(`[${TOTAL_UNREAD_ATTR}]`);
-            return parseInt(el?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+            return parseInt(document.querySelector(`[${TOTAL_UNREAD_ATTR}]`)?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
         },
 
         _readTypingMarker() {
@@ -220,13 +209,12 @@ export default function contact() {
         },
 
         _readLastMessageMarker() {
-            const rows = this._msgViewportEl?.querySelectorAll(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
-            return rows && rows.length ? rows[rows.length - 1].getAttribute('data-rf') : null;
+            const rows = this._msgViewportEl?.querySelectorAll(ROW_SEL);
+            return rows?.length ? rows[rows.length - 1].getAttribute('data-rf') : null;
         },
 
         syncPushNotify() {
-            const el = document.querySelector(`[${TOTAL_UNREAD_ATTR}]`);
-            const now = parseInt(el?.getAttribute(TOTAL_UNREAD_ATTR), 10) || 0;
+            const now = this._readUnread();
             if (this._lastUnread !== undefined && now > this._lastUnread) {
                 this.$store.push.notify('پیام جدید', 'یک گفتگو پیام جدید دارد', SCOPE);
             }
@@ -240,10 +228,10 @@ export default function contact() {
         },
 
         focusSearch() {
-            const searchInput = document.getElementById('search');
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
+            const el = document.getElementById('search');
+            if (el) {
+                el.focus();
+                el.select();
             }
         },
 
@@ -259,52 +247,41 @@ export default function contact() {
         },
 
         toggleActions(id, e) {
-            const sel = window.getSelection();
+            const sel = getSelection();
             if (sel && sel.toString().trim() !== '') return;
             if (e.target.closest('a,button,[role="button"],[contenteditable],input,textarea')) return;
-            this.openActionsId = (this.openActionsId === id ? null : id);
+            this.openActionsId = this.openActionsId === id ? null : id;
         },
 
         scrollToMessage(id) {
             if (!id) return;
             const el = document.querySelector(`[data-rf="${DATA_RF_MESSAGE_PREFIX}-${id}"]`);
-            if (el) {
-                const flashes = document.querySelectorAll('.record-focus-flash');
-                const len = flashes.length;
-                for (let i = 0; i < len; i++) {
-                    flashes[i].classList.remove('record-focus-flash');
-                }
+            if (!el) { this._isl().focusMessage(id).catch(() => {}); return; }
 
-                el.style.animation = 'none';
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.classList.add('record-focus-flash');
-                return;
-            }
-            this.$wire.$island('messages').focusMessage(id).catch(() => {});
+            document.querySelectorAll('.record-focus-flash').forEach(n => n.classList.remove('record-focus-flash'));
+            el.style.animation = 'none';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('record-focus-flash');
         },
 
         selectContact(id) {
             if (!id) return;
-            this.resetPollInterval();
+            this._repollNow(false);
 
-            const ta = document.getElementById(MSG_TEXTAREA_ID);
-            this.resetAutoResize(ta);
-            if (ta) ta.dir = 'rtl';
+            const el = ta();
+            this.resetAutoResize(el);
+            if (el) el.dir = 'rtl';
 
-            this.replyingTo = null;
-            this.editingMsg = null;
-            this.deletingId = null;
+            this.resetUI();
             this.openActionsId = null;
             this.searchMessages = false;
 
             this.$wire.cancelReply();
-            this.$wire.$island('messages').selectContact(id)
-                .then(() => this.$wire.$island('sidebar').refreshUnread())
-                .then(() => this.$nextTick(() => this.scrollToBottom(true)))
+            this._isl().selectContact(id)
+                .then(() => this._sidebar())
+                .then(() => this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(true); }))
                 .then(() => {
-                    if (window.innerWidth < MOBILE_BREAKPOINT && ta) {
-                        this.$nextTick(() => ta.focus());
-                    }
+                    if (innerWidth < MOBILE_BREAKPOINT && el) this.$nextTick(() => el.focus());
                 });
         },
 
@@ -316,13 +293,12 @@ export default function contact() {
 
         backToList() {
             this.searchMessages = false;
-            this.replyingTo = null;
-            this.editingMsg = null;
-            this.deletingId = null;
+            this.resetUI();
             this.openActionsId = null;
-            this.$wire.set('mobileShowChat', false, false);
-            this.$wire.$island('messages').backToList()
-                .then(() => this.$wire.$island('sidebar').refreshUnread());
+            this._msgViewportEl = null;
+            const wire = this.$wire;
+            wire.set('mobileShowChat', false, false);
+            wire.$island('messages').backToList().then(() => wire.$island('sidebar').refreshUnread());
         },
 
         startReply(id, senderName, body) {
@@ -335,46 +311,38 @@ export default function contact() {
 
             this.$wire.replyTo(id);
             this.$wire.cancelEdit();
-            this.$nextTick(() => document.getElementById(MSG_TEXTAREA_ID)?.focus());
+            this.$nextTick(() => ta()?.focus());
         },
 
         _updateQuoteChip() {
-            const sel = window.getSelection();
-            if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-                this.quoteChip.visible = false;
-                return;
-            }
-            const anchor = sel.anchorNode;
-            if (!anchor) { this.quoteChip.visible = false; return; }
+            const chip = this._quoteChipFromSelection();
+            if (chip) this.quoteChip = chip;
+            else this.quoteChip.visible = false;
+        },
 
-            const vp = this._msgViewportEl;
-            if (!vp || !vp.contains(anchor)) { this.quoteChip.visible = false; return; }
+        _quoteChipFromSelection() {
+            const sel = getSelection();
+            if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+
+            const anchor = sel.anchorNode;
+            if (!anchor || !this._msgViewportEl?.contains(anchor)) return;
 
             const node = anchor.nodeType === 3 ? anchor.parentElement : anchor;
-            if (node?.closest('textarea, input, [contenteditable="true"], [contenteditable=""]')) {
-                this.quoteChip.visible = false;
-                return;
-            }
+            if (node?.closest('textarea, input, [contenteditable="true"], [contenteditable=""]')) return;
 
-            const row = node?.closest(`[data-rf^="${DATA_RF_MESSAGE_PREFIX}-"]`);
-            if (!row) { this.quoteChip.visible = false; return; }
+            const row = node?.closest(ROW_SEL);
+            if (!row) return;
 
             const text = sel.toString().trim();
-            if (!text) { this.quoteChip.visible = false; return; }
+            if (!text) return;
 
-            const attr = row.getAttribute('data-rf');
-            const id = parseInt(attr.substring(RF_ID_OFFSET), 10);
-            if (!id) { this.quoteChip.visible = false; return; }
+            const id = parseInt(row.getAttribute('data-rf').substring(RF_ID_OFFSET), 10);
+            if (!id) return;
 
-            const senderEl = row.querySelector('[data-sender]');
-            const rect = sel.getRangeAt(0).getBoundingClientRect();
-
-            this.quoteChip = {
-                visible: true,
-                x: rect.left,
-                y: rect.top,
-                id,
-                sender: senderEl?.getAttribute('data-sender') || '',
+            const { left: x, top: y } = sel.getRangeAt(0).getBoundingClientRect();
+            return {
+                visible: true, x, y, id,
+                sender: row.querySelector('[data-sender]')?.getAttribute('data-sender') || '',
                 snippet: text.substring(0, 120),
             };
         },
@@ -387,14 +355,6 @@ export default function contact() {
 
             this.$wire.cancelReply();
             this.$wire.set('edit.editingBody', body);
-
-            this.$nextTick(() => {
-                const ta = document.querySelector('textarea[wire\\:model\\.live="edit.editingBody"]');
-                if (ta) {
-                    ta.focus();
-                    ta.selectionStart = ta.selectionEnd = ta.value.length;
-                }
-            });
         },
 
         cancelEdit() {
@@ -405,9 +365,11 @@ export default function contact() {
         async saveEdit(id) {
             if (!id || id !== this.editingMsg?.id) return;
 
+            const wire = this.$wire;
             try {
-                await this.$wire.$island('messages').saveEdit(id);
+                await this._isl().saveEdit(id);
                 if (this.editingMsg?.id === id) this.cancelEdit();
+                this._syncSidebarAfterOwnAction(wire);
             } catch {
                 this.toast('خطا در ذخیره ویرایش پیام.', 'error');
             }
@@ -415,40 +377,38 @@ export default function contact() {
 
         confirmDelete(id) {
             if (!id) return;
-            this.replyingTo = null;
-            this.editingMsg = null;
+            this.resetUI();
             this.deletingId = id;
+        },
+
+        async undoDelete() {
+            const wire = this.$wire;
+            try {
+                await wire.$island('messages').undoDelete();
+                this._syncSidebarAfterOwnAction(wire);
+            } catch {}
         },
 
         async sendMessage() {
             if (this.sending) return;
-            this.resetPollInterval();
 
-            const ta = document.getElementById(MSG_TEXTAREA_ID);
-            const body = ta?.value ? ta.value.trim() : '';
-            const attachments = this.$wire.composer?.attachments || [];
-
-            if (body.length === 0 && attachments.length === 0) {
+            const body = ta()?.value?.trim() ?? '';
+            if (!body && !this.$wire.composer?.attachments?.length) {
                 this.toast('پیام نمی‌تواند خالی باشد.', 'warning');
                 return;
             }
-
-            if (body.length > MAX_BODY_LENGTH) {
-                this.toast('متن پیام نباید بیشتر از ۲۰۰۰ کاراکتر باشد.', 'warning');
-                return;
-            }
+            if (this._overLimit(body)) return;
 
             this.sending = true;
+            const wire = this.$wire;
             try {
-                await this.$wire.$island('messages').send();
+                await this._isl().send();
                 this.replyingTo = null;
-                this.$wire.$island('sidebar').refreshUnread().catch(() => {});
+                this._syncSidebarAfterOwnAction(wire);
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {
-                setTimeout(() => {
-                    this.sending = false;
-                }, SEND_LOCK_RESET_MS);
+                setTimeout(() => { this.sending = false; }, SEND_LOCK_RESET_MS);
             }
         },
     };

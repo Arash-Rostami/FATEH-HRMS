@@ -33,6 +33,7 @@
                                         </div>
                                     @endif
                                     <button type="button" wire:click="shareWithManager" @click="open = false"
+                                            wire:loading.attr="disabled" wire:target="shareWithManager"
                                             class="inline-flex items-center justify-center h-9 rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] text-xs font-medium">
                                         ارسال
                                     </button>
@@ -40,7 +41,7 @@
                             </x-slot:body>
                         </x-ui.hover-popover>
 
-                        <x-ui.buttons.form wire:click="export" variant="tonal" size="icon" icon="download" title="خروجی اکسل"/>
+                        <x-ui.buttons.form wire:click="export" wire:loading.attr="disabled" wire:target="export" variant="tonal" size="icon" icon="download" title="خروجی اکسل"/>
                         <x-ui.buttons.form type="button" variant="tonal" size="icon" icon="print" title="چاپ گزارش"
                                             x-on:click="printExpandAll()"/>
                     </div>

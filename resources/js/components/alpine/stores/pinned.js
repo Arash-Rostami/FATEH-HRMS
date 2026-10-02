@@ -36,6 +36,7 @@ export default function pinned(Alpine) {
                         if (isMenu) {
                             if (val) set.add(String(val));
                         } else {
+                            if (val === null || val === undefined) continue;
                             const num = Number(val);
                             if (Number.isFinite(num)) set.add(num);
                         }

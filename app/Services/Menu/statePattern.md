@@ -119,7 +119,7 @@ all structurally identical (no per-user method, no sub-interface).
 | `ThsBadge` | `ths-controller` | `auth()->user() !== null && Ticket::hasUnclosedActionFor($user->id)` |
 | `DmsBadge` | `dms-controller` | `auth()->user() !== null && DMS::hasPendingFor($user->id)` |
 | `TasksImminent` | `tasks-deadline` | `auth()->user() !== null` and one of the user's non-done/pending tasks (`forUser`) has a deadline that is overdue or ≤3 days out (`Task::urgency_state['kind']` ∈ `{overdue, due}`) |
-| `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` today's end exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) |
+| `ReminderBadge` | `reminders-controller` | `auth()->user() !== null` and a `forUser().active()` reminder with `due_at <=` today's end exists whose `channels` pass `Reminder::channelEnabled(..., 'badge')` and whose host record (if any) is not soft-deleted (`Reminder::hostTrashed()`) — the `badge` channel is scoped-only (2026-10-01: `Reminder\Main` strips it from unscoped reminders, so in practice only record-attached reminders light this; see `reminderPattern.md` §6) |
 
 `SharedEvents`, `TasksTodo`, `TasksImminent`, `UnreadPosts`, `UnreadFeeds`, `UnreadMessages`,
 `EnergyTestBadge`, `ThsBadge`, `DmsBadge` read the logged-in user **explicitly** inside `isActive()`.
@@ -143,7 +143,10 @@ inside that per-user closure, so `auth()->user()` is available.
 >   (b) `stage = 'dept_remarks'` targeting their dept (`whereJsonContains('departments', $deptId)`)
 >   whose dept hasn't yet submitted a review (`agree`/`disagree`/`neutral`), or (c) MA referred a
 >   suggestion to their dept (a review with `department_id = 'MA'` whose `referral` JSON contains
->   their dept) and their dept's own review is still `complete = false`.
+>   their dept) and their dept's own review is still `complete = false`, or (d) `stage =
+>   'under_review'` routed to their home dept (`departments->[0] = deptId`) — added 2026-10-01
+>   with the under_review escape (suggestionPattern.md §3): the home head is the only actor who
+>   can rescue the suggestion, so the dot/bell must surface it to them.
 > `PendingSuggestions` is action-based (clears only by submitting the review/decision, never by
 > merely viewing the Suggestions page), not global-status like `ActiveAds`.
 > `SuggestionNudge::show()` reuses `Suggestion::requiresAttentionFor($s, $user)` — one condition,

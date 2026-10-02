@@ -25,7 +25,7 @@
     <!-- Steps -->
     <div class="space-y-4">
         @foreach($steps as $i => $step)
-            <div wire:key="workflow-step-{{ $i }}" class="group relative flex flex-col rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] p-4 sm:p-5 space-y-5 transition-all duration-300 ease-out hover:border-[color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)] hover:shadow-sm">
+            <div wire:key="workflow-step-{{ $stepKeys[$i] ?? $i }}" class="group relative flex flex-col rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-lowest)] p-4 sm:p-5 space-y-5 transition-all duration-300 ease-out hover:border-[color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)] hover:shadow-sm">
 
                 <!-- Step Header: Number, Title, Remove -->
                 <div class="flex items-center gap-3">

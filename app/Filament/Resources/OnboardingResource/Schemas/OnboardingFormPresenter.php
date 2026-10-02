@@ -31,7 +31,7 @@ class OnboardingFormPresenter
                 ->multiple()
                 ->native(false)
                 ->dehydrated(false)
-                ->options(fn() => ExtrasTemplate::options())
+                ->options(fn(Get $get) => ExtrasTemplate::options($get('extras') ?? []))
                 ->helperText(fn(Get $get): string => ExtrasTemplate::hint($get))
                 ->afterStateUpdated(fn($state, Set $set, Get $get) => ExtrasTemplate::add($state, $set, $get))
                 ->afterStateHydrated(fn($state, Get $get, Set $set) => ExtrasTemplate::sync($state, $get, $set))
@@ -106,7 +106,7 @@ class OnboardingFormPresenter
     {
         $data['guides'] = collect($data['guides'] ?? [])
             ->map(function ($guide) {
-                if (empty($guide['url']) || !empty($guide['ext']) || !Storage::disk('public')->exists($guide['url'])) return $guide;
+                if (empty($guide['url']) || !Storage::disk('public')->exists($guide['url'])) return $guide;
 
                 $guide['ext'] = pathinfo($guide['url'], PATHINFO_EXTENSION);
                 $bytes = Storage::disk('public')->size($guide['url']);

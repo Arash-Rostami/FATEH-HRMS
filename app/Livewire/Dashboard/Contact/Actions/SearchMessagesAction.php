@@ -2,6 +2,7 @@
 namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Models\Message;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SearchMessagesAction
@@ -25,17 +26,17 @@ class SearchMessagesAction
 
         $booleanQuery = implode(' ', array_map(fn($w) => "+{$w}*", $words));
 
-        return Message::query()
+        $direction = fn(int $senderId, int $recipientId) => Message::query()
+            ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
             ->select(['id', 'body', 'sender_id', 'created_at'])
-            ->where(fn($qb) => $qb
-                ->where('sender_id', $authId)->where('recipient_id', $userId)
-                ->orWhere(fn($q2) => $q2->where('sender_id', $userId)->where('recipient_id', $authId))
-            )
-            ->whereRaw('MATCH(body) AGAINST(? IN BOOLEAN MODE)', [$booleanQuery])
-            ->with('sender:id,name')
-            ->latest('id')
-            ->limit(self::LIMIT)
-            ->get()
+            ->where('sender_id', $senderId)
+            ->where('recipient_id', $recipientId)
+            ->whereRaw('MATCH(body) AGAINST(? IN BOOLEAN MODE)', [$booleanQuery]);
+
+        return $direction($authId, $userId)->latest('id')->limit(self::LIMIT)->get()
+            ->merge($direction($userId, $authId)->latest('id')->limit(self::LIMIT)->get())
+            ->sortByDesc('id')->take(self::LIMIT)->values()
+            ->load('sender:id,name')
             ->map(fn (Message $m) => [
                 'id' => $m->id,
                 'body' => Str::limit(strip_tags($m->body), 80),

@@ -421,6 +421,34 @@ if (!function_exists('jalaliSpanFromParts')) {
     }
 }
 
+if (!function_exists('confirmDialog')) {
+    function confirmDialog(string $method, string $title, string $message, mixed $params = null, ?string $type = 'dispatch'): string
+    {
+        $payload = ['title' => $title, 'message' => $message, 'method' => $method];
+
+        if ($params !== null) {
+            $payload['params'] = $params;
+        }
+
+        if ($type !== null) {
+            $payload['type'] = $type;
+        }
+
+        return "\$dispatch('open-confirmation', " . json_encode($payload, JSON_UNESCAPED_UNICODE) . ')';
+    }
+}
+
+if (!function_exists('confirmDialogListener')) {
+    function confirmDialogListener(array $methods): string
+    {
+        return implode('; ', array_map(
+            fn (string $method, bool $takesParams) => "if (\$event.detail.method === '{$method}') \$wire.call('{$method}'" . ($takesParams ? ", \$event.detail.params" : '') . ')',
+            array_keys($methods),
+            $methods,
+        ));
+    }
+}
+
 if (!function_exists('canAdmin')) {
     function canAdmin(): bool
     {

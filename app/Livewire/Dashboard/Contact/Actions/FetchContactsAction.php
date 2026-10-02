@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class FetchContactsAction
 {
-    public function execute(int $viewerId, string $search = '', string $filter = 'all'): Collection
+    public function execute(int $viewerId, string $search = '', string $filter = 'all', ?int $limit = null): Collection
     {
         $sent = DB::table('messages')
             ->selectRaw('recipient_id as contact_id, MAX(id) as max_id')
@@ -46,8 +46,10 @@ class FetchContactsAction
                 )
             )
             ->when($filter === 'unread', fn($q) => $q->where('uc.unread_count', '>', 0))
+            ->when($filter === 'online', fn($q) => $q->where('users.last_seen', '>=', now()->subMinutes(5)))
             ->orderByDesc('lm.last_message_id')
             ->orderBy('users.name')
+            ->when($limit !== null, fn($q) => $q->limit($limit))
             ->get();
     }
 }

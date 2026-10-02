@@ -4,12 +4,17 @@
     'loadingText' => null,
     'icon' => null,
     'iconSize' => 'text-lg',
-    'iconHoverClass' => 'group-hover:translate-y-0.5'
+    'iconHoverClass' => 'group-hover:translate-y-0.5',
+    'island' => null,
 ])
+
+@php
+    $clickExpr = $island ? "\$wire.\$island('{$island}').{$action}()" : "\$wire.{$action}()";
+@endphp
 
 <x-ui.buttons.form
     variant="none"
-    x-on:click="$wire.{{ $action }}()"
+    x-on:click="{{ $clickExpr }}"
     wire:loading.attr="disabled"
     wire:target="{{ $action }}"
     {{ $attributes->merge(['class' => 'group flex items-center justify-center gap-2 transition-all outline-none']) }}

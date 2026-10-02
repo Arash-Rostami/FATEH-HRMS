@@ -41,6 +41,12 @@ class About extends Component
 
     public function save(SaveAboutAction $action): void
     {
+        $this->validate([
+            'extraAnswers.*' => 'nullable|string|max:2000',
+        ], [
+            'extraAnswers.*.max' => 'این فیلد نباید بیشتر از ۲۰۰۰ کاراکتر باشد.',
+        ]);
+
         $action->execute($this->form, $this->extraAnswers);
 
         $this->dispatch('toast', message: 'اطلاعات درباره من با موفقیت بروزرسانی شد', type: 'success');

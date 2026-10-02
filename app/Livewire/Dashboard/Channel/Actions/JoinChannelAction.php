@@ -8,11 +8,13 @@ use App\Models\ChannelMessage;
 
 class JoinChannelAction
 {
-    public function execute(int $channelId, int $userId): void
+    public function execute(int $channelId, int $userId): bool
     {
         $channel = Channel::withoutTrashed()->find($channelId);
 
-        abort_unless($channel && $channel->type === ChannelType::Open, 403, 'عضویت در این گروه ممکن نیست.');
+        if (!$channel || $channel->type !== ChannelType::Open) {
+            return false;
+        }
 
         $channel->memberUsers()->newPivotStatement()->insertOrIgnore([
             'channel_id'           => $channelId,
@@ -23,5 +25,7 @@ class JoinChannelAction
             'created_at'           => now(),
             'updated_at'           => now(),
         ]);
+
+        return true;
     }
 }

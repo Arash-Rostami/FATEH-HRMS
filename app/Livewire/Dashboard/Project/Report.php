@@ -124,6 +124,12 @@ class Report extends Component
         return $filters;
     }
 
+    public function updatedReportSearch(): void
+    {
+        $this->reportLimit = 25;
+        unset($this->reportData, $this->reportSchemeProgress, $this->reportAttachments);
+    }
+
     public function setReportStatusFilter(string $status): void
     {
         $this->reportStatusFilter = $status;

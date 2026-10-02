@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Contact\Actions;
 
 use App\Models\Message;
+use Illuminate\Support\Facades\DB;
 
 class FocusMessageAction
 {
@@ -12,15 +13,13 @@ class FocusMessageAction
             return null;
         }
 
-        $count = Message::withoutTrashed()
-            ->where(fn($q) => $q
-                ->where('sender_id', $authId)->where('recipient_id', $userId)
-                ->orWhere(fn($q2) => $q2->where('sender_id', $userId)->where('recipient_id', $authId))
-            )
-            ->where('id', '>=', $messageId)
-            ->orderBy('id')
-            ->take($loadedLimit + 1)
-            ->pluck('id')
+        $direction = fn(int $senderId, int $recipientId) => Message::query()
+            ->from(DB::raw('`messages` FORCE INDEX (`idx_sent_covering`)'))
+            ->where('sender_id', $senderId)
+            ->where('recipient_id', $recipientId);
+
+        $count = $direction($authId, $userId)->where('id', '>=', $messageId)->oldest('id')->take($loadedLimit + 1)->pluck('id')
+            ->merge($direction($userId, $authId)->where('id', '>=', $messageId)->oldest('id')->take($loadedLimit + 1)->pluck('id'))
             ->count();
 
         if ($count === 0) {

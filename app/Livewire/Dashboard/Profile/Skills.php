@@ -103,12 +103,12 @@ class Skills extends Component
             $this->dispatch('toast', message: 'درخواست مهارت ثبت شد و در انتظار تأیید است.', type: 'success');
         } catch (ModelNotFoundException|QueryException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 
@@ -156,12 +156,12 @@ class Skills extends Component
             throw $e;
         } catch (ModelNotFoundException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 
@@ -174,12 +174,12 @@ class Skills extends Component
             throw $e;
         } catch (ModelNotFoundException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 
@@ -192,12 +192,12 @@ class Skills extends Component
             throw $e;
         } catch (ModelNotFoundException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 
@@ -211,12 +211,12 @@ class Skills extends Component
             throw $e;
         } catch (ModelNotFoundException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 
@@ -230,12 +230,12 @@ class Skills extends Component
             throw $e;
         } catch (ModelNotFoundException $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         } catch (\RuntimeException $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         } catch (\Exception $e) {
             report($e);
-            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.', type: 'error');
         }
     }
 

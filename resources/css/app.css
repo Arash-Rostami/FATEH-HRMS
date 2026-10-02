@@ -1,5 +1,41 @@
 /*@import 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200';*/
 @import '@fancyapps/ui/dist/fancybox/fancybox.css';
+
+.f-carousel__toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: auto;
+}
+
+.f-carousel__toolbar.is-absolute {
+    top: auto;
+    bottom: 16px;
+    left: auto;
+    right: 16px;
+}
+
+.f-carousel__toolbar__column {
+    flex-direction: column;
+}
+
+.f-carousel__toolbar__column:empty {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .f-carousel__toolbar [data-panzoom-action="toggleFull"],
+    .f-carousel__toolbar [data-panzoom-action="rotateCCW"],
+    .f-carousel__toolbar [data-panzoom-action="rotateCW"],
+    .f-carousel__toolbar [data-panzoom-action="flipX"],
+    .f-carousel__toolbar [data-panzoom-action="flipY"],
+    .f-carousel__toolbar [data-panzoom-action="reset"],
+    .f-carousel__toolbar [data-autoplay-action="toggle"],
+    .f-carousel__toolbar [data-fullscreen-action="toggle"],
+    .f-carousel__toolbar [data-thumbs-action="toggle"] {
+        display: none;
+    }
+}
 /*@import 'material-symbols/rounded.css';*/
 @import 'tailwindcss';
 @import './core/theme.css';

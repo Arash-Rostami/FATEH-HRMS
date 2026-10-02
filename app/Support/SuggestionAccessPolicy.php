@@ -25,12 +25,16 @@ final class SuggestionAccessPolicy
         $stageOk = match ($suggestion->stage) {
             'team_remarks' => $deptId === ($suggestion->departments[0] ?? null),
             'dept_remarks' => in_array($deptId, $suggestion->departments ?? [], true),
+            'under_review' => $deptId === ($suggestion->departments[0] ?? null),
             default => false,
         };
         if (!$stageOk) return false;
 
         $feedback = self::departmentReview($suggestion, $deptId)?->feedback;
-        return !in_array($feedback, ['agree', 'disagree', 'neutral'], true);
+        if ($suggestion->stage !== 'under_review' && in_array($feedback, ['agree', 'disagree', 'neutral'], true)) {
+            return false;
+        }
+        return true;
     }
 
     public static function canMarkComplete(?Suggestion $suggestion): bool
@@ -79,13 +83,13 @@ final class SuggestionAccessPolicy
             'updated_at'    => $now,
         ];
 
-        $rows = [array_merge($base, [
+        $rows = $homeDept ? [array_merge($base, [
             'department_id' => $homeDept,
             'feedback'      => $homeFeedback !== '' ? $homeFeedback : ($submitterIsManager ? 'agree' : 'unknown'),
             'comments'      => $homeComment !== '' ? $homeComment : ($submitterIsManager
                 ? 'توجه به اینکه پیشنهاد دهنده هستم، نیاز به بررسی و اعلام نظر از سمت مدیریت'
                 : null),
-        ])];
+        ])] : [];
 
         if ($selfFill) {
             foreach ($departments as $dept) {

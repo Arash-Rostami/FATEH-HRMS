@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\UserResource\Schemas;
 
 use App\Enums\PresenceStatus;
+use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Enums\UserRole;
 use App\Filament\Resources\UserResource\Enums\UserStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\User;
 use App\Services\ProjectTask\TasksheetShareService;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -19,6 +21,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Grouping\Group;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class UserTablePresenter
 {
@@ -33,6 +36,32 @@ class UserTablePresenter
             ->toggleable(isToggledHiddenByDefault: false);
     }
 
+    public static function bulkDeactivateAction(): BulkAction
+    {
+        return BulkAction::make('bulk_deactivate')
+            ->label('غیرفعال‌سازی گروهی')
+            ->icon('heroicon-m-user-minus')
+            ->color('danger')
+            ->visible(fn() => UserResource::canEditAny())
+            ->requiresConfirmation()
+            ->modalHeading('غیرفعال‌سازی گروهی کاربران')
+            ->modalDescription('کاربران انتخاب‌شده از داشبورد و لیست‌ها حذف می‌شوند و دیگر نمی‌توانند وارد شوند؛ سوابقشان (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند. حساب خودتان نادیده گرفته می‌شود.')
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records) {
+                $targets = $records->reject(fn($record) => $record->id === auth()->id());
+
+                if ($targets->isEmpty()) {
+                    return;
+                }
+
+                $targets->each(fn($record) => $record->forceFill(['status' => UserStatus::Inactive->value])->save());
+
+                Notification::make()
+                    ->title('کاربران انتخاب‌شده غیرفعال شدند')
+                    ->success()
+                    ->send();
+            });
+    }
 
     public static function createdAt(): TextColumn
     {
@@ -277,6 +306,35 @@ class UserTablePresenter
                 Notification::make()
                     ->title($result['message'])
                     ->{$result['success'] ? 'success' : 'warning'}()
+                    ->send();
+            });
+    }
+
+    public static function toggleStatusAction(): Action
+    {
+        return Action::make('toggleStatus')
+            ->tooltip(fn(User $record) => $record->status === UserStatus::Active->value ? 'غیرفعال‌سازی' : 'فعال‌سازی')
+            ->icon(fn(User $record) => $record->status === UserStatus::Active->value ? 'heroicon-o-user-minus' : 'heroicon-o-user-plus')
+            ->color(fn(User $record) => $record->status === UserStatus::Active->value ? 'danger' : 'success')
+            ->iconButton()
+            ->visible(fn(User $record) => $record->id !== auth()->id()
+                && in_array($record->status, [UserStatus::Active->value, UserStatus::Inactive->value])
+                && UserResource::canEdit($record))
+            ->requiresConfirmation()
+            ->modalHeading(fn(User $record) => $record->status === UserStatus::Active->value ? 'غیرفعال‌سازی کاربر' : 'فعال‌سازی کاربر')
+            ->modalDescription(fn(User $record) => $record->status === UserStatus::Active->value
+                ? 'کاربر از داشبورد و لیست‌ها حذف می‌شود و دیگر نمی‌تواند وارد شود؛ سوابقش (پیام‌ها، گزارش‌ها، رزروها) دست‌نخورده می‌ماند.'
+                : 'کاربر دوباره می‌تواند وارد شود و در داشبورد و لیست‌ها ظاهر می‌شود.')
+            ->action(function (User $record) {
+                $record->forceFill([
+                    'status' => $record->status === UserStatus::Active->value
+                        ? UserStatus::Inactive->value
+                        : UserStatus::Active->value,
+                ])->save();
+
+                Notification::make()
+                    ->title($record->status === UserStatus::Active->value ? 'کاربر فعال شد' : 'کاربر غیرفعال شد')
+                    ->success()
                     ->send();
             });
     }

@@ -229,7 +229,7 @@ class ProjectPresenter
         return match (true) {
             $days < 0 => [
                 'icon' => 'event_busy',
-                'text' => abs($days) . ' روز از مهلت پروژه گذشت',
+                'text' => convertToPersian(abs($days)) . ' روز از مهلت پروژه گذشت',
                 'classes' => $this->riskToneClasses('error'),
             ],
             $days === 0 => [
@@ -239,12 +239,12 @@ class ProjectPresenter
             ],
             $days <= 7 => [
                 'icon' => 'event_busy',
-                'text' => $days . ' روز تا مهلت پروژه',
+                'text' => convertToPersian($days) . ' روز تا مهلت پروژه',
                 'classes' => $this->riskToneClasses('warning'),
             ],
             default => [
                 'icon' => 'event_busy',
-                'text' => $days . ' روز تا مهلت پروژه',
+                'text' => convertToPersian($days) . ' روز تا مهلت پروژه',
                 'classes' => $this->riskToneClasses('success'),
             ],
         };

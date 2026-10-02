@@ -62,7 +62,7 @@ class UserResource extends Resource
                     UserFormPresenter::divider(),
                     UserFormPresenter::password(),
                     UserFormPresenter::passwordConfirmation(),
-                ])->columns(2)
+                ])->columns(1)
                 ->columnSpan(2),
 
             Section::make(__('resources/user/strings.form.section_access'))
@@ -72,8 +72,9 @@ class UserResource extends Resource
                     UserFormPresenter::presence(),
                     UserFormPresenter::divider(),
                     UserFormPresenter::status(),
-                    UserFormPresenter::maximum(),
-                ])->columns(1),
+                    UserFormPresenter::maximum()->columnSpan(2),
+                ])->columns(3)
+                ->columnSpan(3),
 
             Section::make(__('resources/user/strings.form.section_booking'))
                 ->schema([
@@ -84,7 +85,7 @@ class UserResource extends Resource
                 ->schema([
                     UserFormPresenter::extra(),
                 ])->columnSpanFull(),
-        ])->columns(3);
+        ])->columns(5);
     }
 
     public static function getEloquentQuery(): Builder
@@ -254,10 +255,13 @@ class UserResource extends Resource
                 UserTablePresenter::shareTasksheet(),
                 self::viewAction(),
                 self::editAction(),
-                self::deleteAction(),
+                UserTablePresenter::toggleStatusAction(),
             ], RecordActionsPosition::AfterCells)
             ->striped()
-            ->groupedBulkActions(self::bulkActions(UserExporter::class))
+            ->groupedBulkActions([
+                UserTablePresenter::bulkDeactivateAction(),
+                self::bulkExportAction(UserExporter::class),
+            ])
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('id', 'desc');
     }

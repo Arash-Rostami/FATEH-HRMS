@@ -60,7 +60,12 @@ class Main extends Component
 
     public function confirmRead(int $docId, ConfirmReadAction $action): void
     {
-        $action->execute($docId);
+        if (!$action->execute($docId)) {
+            $this->dispatch('toast', message: 'سند دیگر در دسترس نیست', type: 'warning');
+            $this->resetAndReload();
+            return;
+        }
+
         $this->refreshReadState();
     }
 
@@ -326,7 +331,12 @@ class Main extends Component
     #[On('confirmation-confirmed')]
     public function onConfirmationConfirmed(string $method, int $params, ConfirmReadAction $action): void
     {
-        $action->execute($params);
+        if ($method !== 'confirmRead' || !$action->execute($params)) {
+            $this->dispatch('toast', message: 'سند دیگر در دسترس نیست', type: 'warning');
+            $this->resetAndReload();
+            return;
+        }
+
         $this->refreshReadState();
     }
 

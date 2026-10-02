@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasExtraCatalog;
 use App\Traits\CleansAttachedFiles;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,11 @@ class Onboarding extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function scopeVisibleTo(Builder $query, ?int $userId): Builder
+    {
+        return $query->where(fn(Builder $q) => $q->where('user_id', $userId)->orWhereNull('user_id'));
     }
 
     protected static function booted(): void

@@ -40,6 +40,11 @@ trait HasSuggestionAlert
                     ->where('departments->[0]', $deptId)
                 );
 
+                $q->orWhere(fn($q) => $q
+                    ->where('stage', 'under_review')
+                    ->where('departments->[0]', $deptId)
+                );
+
                 //  Initial feedback
                 $q->orWhere(fn($q) => $q
                     ->where('stage', 'dept_remarks')

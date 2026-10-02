@@ -72,7 +72,7 @@ class DMS extends Model
         $status = DocumentStatus::tryFrom($this->status);
 
         if (!$status) {
-            return $this->status;
+            return e($this->status);
         }
 
         $color = self::$statusColorMapping[$this->status] ?? 'text-gray-500';

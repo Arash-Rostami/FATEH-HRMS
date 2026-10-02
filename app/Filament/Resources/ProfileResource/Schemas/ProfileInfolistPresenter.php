@@ -155,32 +155,53 @@ class ProfileInfolistPresenter
             ->placeholder('-');
     }
 
-    public static function attachments(): RepeatableEntry
+    public static function attachments(): array
     {
-        return RepeatableEntry::make('attachments')
-            ->label(__('resources/profile/strings.infolist.attachments'))
-            ->schema([
-                TextEntry::make('key')
-                    ->label(__('resources/profile/strings.infolist.attachment_name'))
-                    ->weight('medium')
-                    ->placeholder('-'),
+        return [
+            RepeatableEntry::make('standardAttachments')
+                ->label(__('resources/profile/strings.infolist.standard_attachments'))
+                ->state(fn($record): array => self::standardAttachmentsState($record))
+                ->visible(fn($record): bool => self::standardAttachmentsState($record) !== [])
+                ->schema(self::attachmentRows())
+                ->columns(2)
+                ->columnSpanFull(),
 
-                TextEntry::make('category')
-                    ->label(__('resources/profile/strings.infolist.attachment_type'))
-                    ->badge()
-                    ->color('gray')
-                    ->placeholder('-'),
+            RepeatableEntry::make('customAttachments')
+                ->label(__('resources/profile/strings.infolist.custom_attachments'))
+                ->state(fn($record): array => self::customAttachmentsState($record))
+                ->visible(fn($record): bool => self::customAttachmentsState($record) !== [])
+                ->schema(self::attachmentRows())
+                ->columns(2)
+                ->columnSpanFull(),
+        ];
+    }
 
-                TextEntry::make('path')
-                    ->hiddenLabel()
-                    ->formatStateUsing(fn($state) => 'مشاهده فایل')
-                    ->url(fn($state) => $state ? asset('storage/' . $state) : null)
-                    ->openUrlInNewTab()
-                    ->color('primary')
-                    ->placeholder('-'),
-            ])
-            ->columns(2)
-            ->columnSpanFull();
+    public static function standardAttachmentsState($record): array
+    {
+        return collect($record->attachments ?? [])->where('category', 'standard')->values()->all();
+    }
+
+    public static function customAttachmentsState($record): array
+    {
+        return collect($record->attachments ?? [])->reject(fn($item) => ($item['category'] ?? '') === 'standard')->values()->all();
+    }
+
+    private static function attachmentRows(): array
+    {
+        return [
+            TextEntry::make('key')
+                ->label(__('resources/profile/strings.infolist.attachment_name'))
+                ->weight('medium')
+                ->placeholder('-'),
+
+            TextEntry::make('path')
+                ->hiddenLabel()
+                ->formatStateUsing(fn($state) => 'مشاهده فایل')
+                ->url(fn($state) => $state ? asset('storage/' . $state) : null)
+                ->openUrlInNewTab()
+                ->color('primary')
+                ->placeholder('-'),
+        ];
     }
 
     public static function birthdate(): TextEntry

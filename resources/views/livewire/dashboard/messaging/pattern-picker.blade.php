@@ -2,8 +2,8 @@
     $patterns = ['mesh' => 'پیش‌فرض', 'doodle' => 'آیکون‌دار', 'twill' => 'دیاموند', 'lattice' => 'شبکه', 'motif' => 'نگاره'];
 @endphp
 <div x-data="{ open: false, pos: {} }" class="hidden md:block" x-on:open-pattern.window="pos = $event.detail; open = true">
-    <button type="button" x-ref="patternTrigger"
-            x-on:click="pos = $refs.patternTrigger.getBoundingClientRect().toJSON(); open = !open"
+    <button type="button" id="chat-pattern-trigger"
+            x-on:click="pos = $el.getBoundingClientRect().toJSON(); open = !open"
             aria-label="پیش زمینه چت" title="پیش زمینه چت"
             class="flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-95"
             :class="isHighlighted ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] hover:text-[var(--md-sys-color-primary)]'">
@@ -12,7 +12,7 @@
 
     <template x-teleport="body">
         <div x-show="open" x-cloak dir="rtl"
-             x-on:click.away="if (!$refs.patternTrigger?.contains($event.target)) open = false"
+             x-on:click.away="if (!document.getElementById('chat-pattern-trigger')?.contains($event.target)) open = false"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"

@@ -285,7 +285,7 @@ class Calendar extends Component
         try {
             $action->execute($this->form, Auth::id());
         } catch (InvalidArgumentException $e) {
-            $this->addError('form.date', 'تاریخ نامعتبر است');
+            $this->addError('form.dateDay', 'تاریخ نامعتبر است');
             return;
         }
 

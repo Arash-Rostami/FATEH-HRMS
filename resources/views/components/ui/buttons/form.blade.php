@@ -28,6 +28,7 @@
 
 <button
     type="{{ $type }}"
+    @if($loading) wire:loading.attr="disabled" wire:target="{{ $loading }}" @endif
     {{ $attributes->merge([
         'class' => "$structuralClasses $baseClasses" . ($isIcon ? ' w-10 h-10 p-0 rounded-xl gap-0' : ' gap-2')
     ]) }}

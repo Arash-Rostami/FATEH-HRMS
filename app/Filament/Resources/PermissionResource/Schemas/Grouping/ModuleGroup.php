@@ -19,19 +19,19 @@ final class ModuleGroup
         return Group::make('module_key')
             ->label(__('resources/permission/strings.fields.module'))
             ->groupQueryUsing(
-                static fn(Builder $q): Builder => $q
+                static fn(Builder $query): Builder => $query
                     ->addSelect('permissions.*')
                     ->selectRaw(self::EXPR . ' as module_key')
                     ->groupByRaw(self::EXPR)
             )
             ->orderQueryUsing(
-                static fn(Builder $q, string $direction): Builder => $q
+                static fn(Builder $query, string $direction): Builder => $query
                     ->orderByRaw(self::EXPR . ' ' . (strtolower($direction) === 'desc' ? 'desc' : 'asc'))
             )
             ->scopeQueryByKeyUsing(
-                static fn(Builder $q, string $key): Builder => $key === self::NONE_KEY
-                    ? $q->whereRaw(self::EXPR . ' IS NULL')
-                    : $q->whereRaw(self::EXPR . ' = ?', [$key])
+                static fn(Builder $query, string $key): Builder => $key === self::NONE_KEY
+                    ? $query->whereRaw(self::EXPR . ' IS NULL')
+                    : $query->whereRaw(self::EXPR . ' = ?', [$key])
             )
             ->getKeyFromRecordUsing(
                 static fn($record): string => $record->is_super_admin

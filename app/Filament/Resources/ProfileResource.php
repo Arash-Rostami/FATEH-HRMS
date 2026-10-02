@@ -287,7 +287,7 @@ class ProfileResource extends Resource
                                 ->extraAttributes(['class' => 'fi-infolist-panel'])
                                 ->schema([
                                     ProfileInfolistPresenter::image(),
-                                    ProfileInfolistPresenter::attachments(),
+                                    ...ProfileInfolistPresenter::attachments(),
                                 ])
                                 ->columns(2),
                         ]),

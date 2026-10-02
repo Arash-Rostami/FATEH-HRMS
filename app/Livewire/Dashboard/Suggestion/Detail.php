@@ -74,6 +74,10 @@ class Detail extends Component
 
     public function render()
     {
+        if (!$this->suggestion) {
+            return view('livewire.dashboard.suggestion.detail.gone');
+        }
+
         return view('livewire.dashboard.suggestion.detail', [
             'p' => new SuggestionPresenter($this->suggestion),
         ]);
@@ -91,7 +95,7 @@ class Detail extends Component
         $action->execute($this->decisionForm, $s);
 
         $this->decisionForm->reset();
-        unset($this->suggestion, $this->myReview);
+        unset($this->suggestion, $this->myReview, $this->canDecide);
         $this->dispatch('decision-made');
         $this->dispatch('toast', message: 'تصمیم ثبت شد.', type: 'success');
     }
@@ -112,11 +116,7 @@ class Detail extends Component
     public function suggestion(): ?Suggestion
     {
         return Suggestion::with(['user.profile.department', 'reviews.department', 'reviews.user'])
-            ->withCount([
-                'reviews as agree_count' => fn($q) => $q->where('feedback', 'agree'),
-                'reviews as disagree_count' => fn($q) => $q->where('feedback', 'disagree'),
-                'reviews as neutral_count' => fn($q) => $q->whereIn('feedback', ['neutral', 'unknown']),
-            ])
+            ->withReviewCounts()
             ->find($this->suggestionId);
     }
 }

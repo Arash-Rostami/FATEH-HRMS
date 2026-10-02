@@ -99,13 +99,15 @@
                 </div>
             </div>
         @empty
-            <div class="px-4 py-6">
-                @if($search !== '')
+            @if($search !== '')
+                <div wire:key="project-sidebar-empty-search" class="px-4 py-6">
                     <x-ui.empty icon="search_off" title="چیزی یافت نشد" description="پروژه‌ای با این نام پیدا نشد." variant="search"/>
-                @else
+                </div>
+            @else
+                <div wire:key="project-sidebar-empty-none" class="px-4 py-6">
                     <x-ui.empty icon="workspaces" title="پروژه‌ای ندارید" description="با دکمهٔ بالا اولین پروژهٔ خود را بسازید." variant="list"/>
-                @endif
-            </div>
+                </div>
+            @endif
         @endforelse
 
         @if($this->myProjects['hasMore'])

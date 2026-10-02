@@ -22,7 +22,6 @@ class Documents extends Component
 
     #[Locked] public string $pendingUploadKey = '';
     #[Locked] public string $pendingFileName = '';
-    #[Locked] public ?string $errorMessage = null;
 
     public function placeholder(): View
     {
@@ -73,7 +72,6 @@ class Documents extends Component
 
     public function showCustomUploadConfirmation(): void
     {
-        $this->errorMessage = null;
         $this->form->validateCustomUpload();
 
         $this->pendingUploadKey = 'custom_upload_pending';
@@ -85,7 +83,6 @@ class Documents extends Component
 
     public function showUploadConfirmation(string $key): void
     {
-        $this->errorMessage = null;
         $this->form->validateStandardUpload($key);
 
         $file = $this->form->files[$key] ?? app(ResetDocumentStateAction::class)->getFile($this->form, $key);
@@ -116,7 +113,6 @@ class Documents extends Component
     private function handleUploadResult(array $result, string $type): void
     {
         if (!$result['success']) {
-            $this->errorMessage = $result['error'];
             $this->dispatch('toast', message: $result['error'], type: 'error');
             $this->resetUploadState();
             return;

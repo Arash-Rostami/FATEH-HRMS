@@ -13,7 +13,7 @@
         [
             'icon' => 'delete',
             'label' => 'حذف',
-            'hint' => 'ردیفِ آنبوردینگ کاملاً حذف می‌شود. فایل‌های آپلودشده در onboarding/video، onboarding/thumbnail و onboarding/guides روی دیسک public باقی می‌مانند — حذفِ رکورد، فایل‌ها را پاک نمی‌کند.',
+            'hint' => 'ردیفِ آنبوردینگ کاملاً حذف می‌شود و فایل‌های آپلودشدهٔ ویدیو، بندانگشتی و راهنما (onboarding/video، onboarding/thumbnail و onboarding/guides) نیز همزمان از دیسک public پاک می‌شوند.',
         ],
         [
             'icon' => 'download',

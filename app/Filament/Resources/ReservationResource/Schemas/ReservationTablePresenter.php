@@ -7,6 +7,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\ResourceType;
 use App\Livewire\Dashboard\Reservation\Actions\CancelAction;
 use App\Models\Reservation;
+use App\Models\Resource;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -163,7 +164,10 @@ class ReservationTablePresenter
         return TextColumn::make('resource.labeled_name')
             ->label(__('resources/reservation/strings.fields.resource'))
             ->default('—')
-            ->sortable()
+            ->sortable(query: fn(Builder $query, string $direction) => $query->orderBy(
+                Resource::select('name')->whereColumn('resources.id', 'reservations.resource_id'),
+                $direction
+            ))
             ->searchable(['name'])
             ->toggleable();
     }

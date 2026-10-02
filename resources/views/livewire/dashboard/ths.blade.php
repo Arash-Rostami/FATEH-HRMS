@@ -86,7 +86,9 @@
                 </div>
 
                 @if($activeTab === 'log')
-                    @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
+                    <div wire:key="ths-log-panel" class="contents">
+                        @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
+                    </div>
                 @endif
             </div>
         </div>

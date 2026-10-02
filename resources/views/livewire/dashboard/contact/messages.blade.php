@@ -30,6 +30,7 @@
     <div wire:key="load-older" class="flex justify-center py-2" x-show="$wire.hasOlder" x-transition style="{{ $hasOlder ? '' : 'display:none;' }}">
         <x-ui.buttons.load-more
             action="loadMoreMessages"
+            island="messages"
             text="پیام‌های قدیمی‌تر"
             loadingText="..."
             icon="expand_less"
@@ -39,7 +40,9 @@
     </div>
 
     @forelse($this->groupedMessages as $date => $rawMessages)
-        @php( $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $firstUnreadId))
+        @php
+            $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $firstUnreadId);
+        @endphp
 
         <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4" role="separator" aria-label="{{ $group['label'] }}">
             <div
@@ -84,64 +87,59 @@
 
                 <div class="max-w-[70%] md:max-w-[60%] lg:max-w-[55%] relative">
 
-                    <template x-if="editingMsg?.id === {{ $msg['id'] }}">
+                    <div x-show="editingMsg?.id === {{ $msg['id'] }}" style="display: none;"
+                        class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
+                        <textarea wire:model="edit.editingBody"
+                                  x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();saveEdit({{ $msg['id'] }})}"
+                                  x-on:keydown.escape="cancelEdit"
+                                  x-effect="if (editingMsg?.id === {{ $msg['id'] }}) $nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
+                                  x-on:input="$el.style.height='auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'"
+                                  rows="1"
+                                  class="w-full bg-transparent px-4 py-3 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[120px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
+                        @error('edit.editingBody')
+                        <p class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
+                            <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
+                        </p>
+                        @enderror
                         <div
-                            class="rounded-xl overflow-hidden !bg-[var(--md-sys-color-surface)] ring-2 ring-[var(--md-sys-color-primary)] ring-offset-0 shadow-[0_4px_24px_color-mix(in_srgb,var(--md-sys-color-primary)_18%,transparent)]">
-                            <textarea wire:model.live="edit.editingBody"
-                                      x-on:keydown.enter="if(!event.shiftKey){event.preventDefault();saveEdit({{ $msg['id'] }})}"
-                                      x-on:keydown.escape="cancelEdit"
-                                      x-data
-                                      x-init="$nextTick(() => { $el.focus(); $el.selectionStart = $el.selectionEnd = $el.value.length })"
-                                      x-on:input="$el.style.height='auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'"
-                                      rows="1"
-                                      class="w-full bg-transparent px-4 py-3 text-sm resize-none focus:outline-none leading-relaxed min-h-[40px] max-h-[120px] text-[var(--md-sys-color-on-surface)] placeholder:text-[var(--md-sys-color-on-surface-variant)]"></textarea>
-                            @error('edit.editingBody')
-                            <p class="px-4 pb-1 text-[10px] text-[var(--md-sys-color-error)] flex items-center gap-1">
-                                <span class="material-symbols-rounded text-[10px]">error</span>{{ $message }}
-                            </p>
-                            @enderror
-                            <div
-                                class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
-                                <span
-                                    class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
-                                <div class="flex items-center gap-1.5">
-                                    <button x-on:click.prevent="cancelEdit"
-                                            class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
-                                        انصراف
-                                    </button>
-                                    <x-ui.buttons.form x-on:click.prevent="saveEdit({{ $msg['id'] }})"
-                                            wire:loading.attr="disabled"
-                                            loading="saveEdit"
-                                            class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-                                        ذخیره
-                                    </x-ui.buttons.form>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template x-if="deletingId === {{ $msg['id'] }}">
-                        <div
-                            class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-rounded text-[15px] opacity-80">delete_forever</span>
-                                <span class="text-xs font-semibold">حذف این پیام؟</span>
-                            </div>
-                            <div class="flex items-center gap-2 justify-end">
-                                <button x-on:click.prevent="cancelDelete"
-                                        class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_10%,transparent)]">
+                            class="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)]">
+                            <span
+                                class="hidden md:inline text-[9px] tracking-wide text-[var(--md-sys-color-on-surface-variant)] opacity-40">Enter ذخیره · Esc انصراف</span>
+                            <div class="flex items-center gap-1.5">
+                                <button x-on:click.prevent="cancelEdit"
+                                        class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)]">
                                     انصراف
                                 </button>
-                                <x-ui.buttons.form x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
-                                        loading="deleteMessage"
-                                        class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
-                                    حذف
+                                <x-ui.buttons.form x-on:click.prevent="saveEdit({{ $msg['id'] }})"
+                                        wire:loading.attr="disabled"
+                                        loading="saveEdit"
+                                        class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)] hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
+                                    ذخیره
                                 </x-ui.buttons.form>
                             </div>
                         </div>
-                    </template>
+                    </div>
 
-                    <template x-if="editingMsg?.id !== {{ $msg['id'] }} && deletingId !== {{ $msg['id'] }}">
+                    <div x-show="deletingId === {{ $msg['id'] }}" style="display: none;"
+                        class="flex flex-col gap-2.5 px-4 py-3.5 rounded-lg bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-error)_15%,transparent)]">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-rounded text-[15px] opacity-80">delete_forever</span>
+                            <span class="text-xs font-semibold">حذف این پیام؟</span>
+                        </div>
+                        <div class="flex items-center gap-2 justify-end">
+                            <button x-on:click.prevent="cancelDelete"
+                                    class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_10%,transparent)]">
+                                انصراف
+                            </button>
+                            <x-ui.buttons.form x-on:click.prevent="deleteMessage" wire:loading.attr="disabled"
+                                    loading="deleteMessage"
+                                    class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 hover:shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-error)_35%,transparent)] bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
+                                حذف
+                            </x-ui.buttons.form>
+                        </div>
+                    </div>
+
+                    <div x-show="editingMsg?.id !== {{ $msg['id'] }} && deletingId !== {{ $msg['id'] }}">
                         <div class="relative">
                             <div
                                 :style="isEmojiOnly(@js($msg['body_html'])) && 'font-size:2rem;background:none;box-shadow:none;padding:0'"                                @class([
@@ -186,13 +184,13 @@
                                 </div>
                             @endif
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         @endforeach
 
     @empty
-        <div class="flex flex-col items-center justify-center flex-1 gap-5 text-center">
+        <div wire:key="empty-state" class="flex flex-col items-center justify-center flex-1 gap-5 text-center">
             <div
                 class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]"
                 aria-hidden="true">
@@ -219,5 +217,5 @@
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 translate-y-4"
      class="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-5 py-3 rounded-lg shadow-2xl text-sm bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
-    <button x-on:click="$wire.$island('messages').undoDelete().then(() => $wire.$island('sidebar').refreshUnread()).catch(() => {})" class="font-bold transition-colors text-[#facc15]">↻ بازگشت</button>
+    <button x-on:click="undoDelete()" class="font-bold transition-colors text-[#facc15]">↻ بازگشت</button>
 </div>

@@ -34,7 +34,8 @@ class Reports extends Component
         $report = $this->visibleReportsQuery()->whereKey($id)->first();
 
         if (!$report) {
-            abort(403);
+            $this->dispatch('toast', message: 'گزارش در دسترس نیست!', type: 'error');
+            return;
         }
 
         $disk = Storage::disk('public');

@@ -12,7 +12,7 @@
     <div wire:key="links-launch" class="contents">
     <div class="flex items-center justify-center gap-1.5 py-1 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-[14px]">keyboard</span>
-        <span>کلیدهای ۱ تا ۹ = دسترسی سریع به لینک‌های ابتدایی</span>
+        <span>Alt + کلیدهای ۱ تا ۹ = دسترسی سریع به لینک‌های ابتدایی</span>
     </div>
 
     <div class="space-y-6">

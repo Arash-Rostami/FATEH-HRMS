@@ -42,7 +42,7 @@
                             {{ $activeTab === $key
                                 ? 'bg-[var(--md-sys-color-on-primary)]/20 text-[var(--md-sys-color-on-primary)]'
                                 : 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]' }}">
-                    {{ $completion }}%
+                    {{ convertToPersian($completion) }}%
                 </span>
             @elseif($activeTab === $key)
                 <span class="material-symbols-rounded text-lg opacity-80">chevron_left</span>

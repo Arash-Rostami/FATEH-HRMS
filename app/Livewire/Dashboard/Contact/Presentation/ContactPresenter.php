@@ -44,16 +44,6 @@ class ContactPresenter
         ];
     }
 
-    public function totalUnread(array $contacts): int
-    {
-        return array_sum(array_column($contacts, 'unread_count'));
-    }
-
-    public function totalOccasions(array $contacts): int
-    {
-        return collect($contacts)->filter(fn(array $c) => !empty($c['occasion']))->count();
-    }
-
     public function firstUnreadId(array $messages, int $authId): ?int
     {
         foreach ($messages as $m) {

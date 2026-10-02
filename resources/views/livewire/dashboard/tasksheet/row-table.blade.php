@@ -4,9 +4,9 @@
 <div class="flex flex-col gap-2" wire:key="tasksheet-row-{{ $type }}-{{ $id }}">
     <div class="flex flex-wrap items-center gap-3 rounded-xl bg-[var(--md-sys-color-surface-container-low)] px-4 py-3 transition-colors hover:bg-[var(--md-sys-color-primary)]/[0.03]">
         @unless($readOnly)
-            <button type="button" @click="toggleExpanded(@js($group), @js($id))"
+            <button type="button" data-group="{{ $group }}" data-id="{{ $id }}" @click="toggleExpanded($el.dataset.group, $el.dataset.id)"
                     class="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-[var(--md-sys-color-primary-container)]/40 transition-colors print:hidden shrink-0">
-                <span class="material-symbols-rounded text-[18px] transition-transform duration-200" :class="isExpanded(@js($group), @js($id)) ? 'rotate-90' : ''">chevron_left</span>
+                <span data-group="{{ $group }}" data-id="{{ $id }}" class="material-symbols-rounded text-[18px] transition-transform duration-200" :class="isExpanded($el.dataset.group, $el.dataset.id) ? 'rotate-90' : ''">chevron_left</span>
             </button>
         @endunless
 
@@ -52,7 +52,7 @@
         @endif
     </div>
 
-    <div x-show="isExpanded(@js($group), @js($id))" x-cloak x-collapse>
+    <div data-group="{{ $group }}" data-id="{{ $id }}" x-show="isExpanded($el.dataset.group, $el.dataset.id)" x-cloak x-collapse>
         @include('livewire.dashboard.tasksheet.task-table', ['tasks' => $row['tasks']])
     </div>
 </div>

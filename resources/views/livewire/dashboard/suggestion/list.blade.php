@@ -5,7 +5,7 @@
         <x-ui.title
             icon="format_list_bulleted"
             title="لیست"
-            count="{{ $this->perPage }}"
+            count="{{ $this->suggestions->total() }}"
         />
 
         @if(!in_array($this->authDeptCode, ['MA', 'MG'], true))
@@ -117,7 +117,7 @@
                         </span>
 
                         @if($p->showDeptDetails($item,'deps_count') > 2)
-                            <span title=" {{ $p->showDeptDetails($item,'all_deps') }}"
+                            <span wire:key="suggestion-dept-overflow" title=" {{ $p->showDeptDetails($item,'all_deps') }}"
                                   class="cursor-help shrink-0 px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)]
                                        text-[var(--md-sys-color-on-surface-variant)] text-[10px]">
                                 {{ $p->showDeptDetails($item,'deps_count') - 2 }}+

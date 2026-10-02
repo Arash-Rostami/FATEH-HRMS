@@ -74,4 +74,16 @@ class GalleryPresenter
     {
         return strip_tags($photo->description);
     }
+
+    public function mediaTypeLabel(Photo $photo): string
+    {
+        $urls = $photo->image_urls ?? [];
+        $videoCount = count(array_filter($urls, 'isVideo'));
+
+        return match (true) {
+            $videoCount === 0 => __('resources/gallery/strings.fields.type_image'),
+            $videoCount === count($urls) => __('resources/gallery/strings.fields.type_video'),
+            default => __('resources/gallery/strings.fields.type_mixed'),
+        };
+    }
 }

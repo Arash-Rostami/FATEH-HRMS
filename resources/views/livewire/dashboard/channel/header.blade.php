@@ -110,7 +110,7 @@
                     <span x-text="$store.sound.isMuted({{ $header['id'] }}) ? 'باصدا کردن گروه' : 'بی‌صدا کردن گروه'"></span>
                 </button>
                 @if(!$isOwner)
-                    <button type="button" x-on:click="open = false; leaveChannel({{ $header['id'] }})"
+                    <button type="button" x-on:click="open = false; {{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id']) }}"
                             class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
                         <span class="material-symbols-rounded text-[16px]">logout</span>
                         <span>خروج از گروه</span>
@@ -120,7 +120,7 @@
         @endcomponent
 
         @if(!$isOwner)
-            <button x-on:click="leaveChannel({{ $header['id'] }})"
+            <button x-on:click="{{ confirmDialog('leaveChannel', 'خروج از گروه', 'از این گروه خارج می‌شوید؟', $header['id']) }}"
                     aria-label="خروج از گروه" title="خروج از گروه"
                     class="hidden md:flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out hover:bg-[var(--md-sys-color-error)] hover:text-[var(--md-sys-color-on-error)] hover:shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] active:scale-95">
                 <span class="material-symbols-rounded text-base">logout</span>

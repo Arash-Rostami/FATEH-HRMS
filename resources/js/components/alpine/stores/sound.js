@@ -40,7 +40,9 @@ export default function soundStore(Alpine) {
                 const result = [];
 
                 for (let i = 0; i < len; i++) {
-                    const num = Number(parsed[i]);
+                    const val = parsed[i];
+                    if (val === null || val === undefined) continue;
+                    const num = Number(val);
                     if (Number.isFinite(num)) {
                         result.push(num);
                     }
@@ -58,9 +60,16 @@ export default function soundStore(Alpine) {
         },
 
         _set(scope) {
-            return scope === 'contact' ? this.mutedContacts
+            const raw = scope === 'contact' ? this.mutedContacts
                 : (scope === 'project' ? this.mutedProjects
                     : this.mutedChannels);
+            return Alpine.raw(raw);
+        },
+
+        _setList(scope, list) {
+            if (scope === 'contact') this.mutedContacts = list;
+            else if (scope === 'project') this.mutedProjects = list;
+            else this.mutedChannels = list;
         },
 
         _key(scope) {
@@ -83,13 +92,12 @@ export default function soundStore(Alpine) {
             const num = Number(id);
             const i = list.indexOf(num);
 
-            if (i !== -1) {
-                list.splice(i, 1);
-            } else {
-                list.push(num);
-            }
+            const next = i !== -1
+                ? list.slice(0, i).concat(list.slice(i + 1))
+                : list.concat(num);
 
-            this._persist(this._key(scope), list);
+            this._setList(scope, next);
+            this._persist(this._key(scope), next);
         },
 
         isAllMuted(ids, scope = 'channel') {
@@ -125,23 +133,22 @@ export default function soundStore(Alpine) {
                 }
             }
 
+            let next;
             if (allMuted) {
                 const idSet = new Set(numIds);
-                for (let i = list.length - 1; i >= 0; i--) {
-                    if (idSet.has(list[i])) {
-                        list.splice(i, 1);
-                    }
-                }
+                next = list.filter((v) => !idSet.has(v));
             } else {
+                next = list.slice();
                 for (let i = 0; i < len; i++) {
                     const num = numIds[i];
                     if (!listSet.has(num)) {
-                        list.push(num);
+                        next.push(num);
                     }
                 }
             }
 
-            this._persist(this._key(scope), list);
+            this._setList(scope, next);
+            this._persist(this._key(scope), next);
         },
 
         playOutgoing(id = null, scope = 'channel') {
@@ -167,8 +174,7 @@ export default function soundStore(Alpine) {
 
         clearAll(scope = 'channel') {
             this._persist(this._key(scope), []);
-            const list = this._set(scope);
-            list.length = 0;
+            this._setList(scope, []);
         }
     });
 }

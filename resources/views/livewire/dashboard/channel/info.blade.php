@@ -105,6 +105,33 @@
                 <span class="material-symbols-rounded text-[18px]">group_add</span>
                 مدیریت اعضا
             </button>
+
+            @if((int) $header['members_count'] === 1)
+                <div>
+                    <div x-show="!confirmingDeleteChannel" style="display: none;">
+                        <button type="button" x-on:click="confirmDeleteChannel()"
+                                class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:brightness-110 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_60%,transparent)] text-[var(--md-sys-color-on-error-container)]">
+                            <span class="material-symbols-rounded text-[18px]">delete_forever</span>
+                            حذف گروه
+                        </button>
+                    </div>
+                    <div x-show="confirmingDeleteChannel" style="display: none;"
+                         class="flex flex-col gap-2.5 px-3 py-2.5 rounded-xl bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]">
+                        <p class="text-[11px] font-semibold">این گروه حذف خواهد شد. مطمئن هستید؟</p>
+                        <div class="flex items-center gap-2 justify-end">
+                            <button type="button" x-on:click="cancelDeleteChannel()"
+                                    class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-90 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-on-error-container)_10%,transparent)]">
+                                انصراف
+                            </button>
+                            <x-ui.buttons.form x-on:click.prevent="doDeleteChannel({{ $header['id'] }})" wire:loading.attr="disabled" wire:target="deleteChannel"
+                                    loading="deleteChannel"
+                                    class="px-3.5 py-1.5 h-auto rounded-lg text-[11px] font-semibold transition-all duration-150 hover:brightness-110 bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)]">
+                                حذف گروه
+                            </x-ui.buttons.form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endif
     </div>
 </div>

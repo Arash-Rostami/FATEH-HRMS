@@ -1,7 +1,9 @@
 <div x-data="calculator()" x-init="init()" x-ref="calculatorModal" dir="rtl" x-cloak>
     <x-ui.modals.backdrop x-show="open" :minimizable="true">
         <x-slot:icon>
-            <span class="material-symbols-rounded" style="color:var(--md-sys-color-on-primary);font-size:24px;">calculate</span>
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary-container)]">
+                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-primary-container)]">calculate</span>
+            </div>
         </x-slot:icon>
 
         <x-slot:heading>
@@ -23,7 +25,7 @@
                                 <span class="material-symbols-rounded" style="font-size:12px;">content_copy</span>
                                 کپی رسید
                             </button>
-                            <button @click="history = []"
+                            <button @click="history = []; saveState()"
                                     class="text-[10px] transition-opacity hover:opacity-60"
                                     style="color:var(--md-sys-color-error);">پاک کردن
                             </button>
@@ -45,12 +47,17 @@
                     </div>
                 </div>
 
-                <div class="px-4 pb-3 pt-1"
+                <div class="px-4 pb-3 pt-1 flex items-center gap-2"
                      :class="history.length > 0 ? 'border-t border-dashed' : ''"
                      style="border-color:var(--md-sys-color-outline-variant);">
                     <input type="text" x-model="formattedDisplay" x-ref="display" @click="copyToClipboard()" readonly
                            class="bg-transparent text-2xl font-mono text-right outline-none w-full cursor-pointer"
                            style="color:var(--md-sys-color-on-surface);font-feature-settings:'tnum';" dir="ltr">
+                    <button @click="backspace()" x-show="display" title="حذف آخرین رقم"
+                            class="flex items-center justify-center shrink-0 w-8 h-8 rounded-lg transition-colors hover:opacity-70"
+                            style="color:var(--md-sys-color-outline);">
+                        <span class="material-symbols-rounded text-[20px]">backspace</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -101,7 +108,9 @@
             close-fn="closeModal()">
 
             <x-slot:icon>
-                <span class="material-symbols-rounded text-[18px]">calculate</span>
+                <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)]">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">calculate</span>
+                </div>
             </x-slot:icon>
 
         </x-dashboard.navbars.dock>

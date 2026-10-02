@@ -3,7 +3,7 @@
          x-init="init()"
          @keydown.escape.window="if(maximizedWidget) toggleMaximize(null)">
     @if(empty($latestTest))
-        <div
+        <div wire:key="energy-chart-empty"
             class="flex flex-col items-center justify-center min-h-[400px] rounded-2xl border border-[var(--md-sys-color-outline-variant)]/50 bg-[var(--md-sys-color-surface)] p-8 text-center shadow-sm"
             role="status" aria-label="داده‌ای موجود نیست">
             <span class="material-symbols-rounded text-6xl text-[var(--md-sys-color-on-surface-variant)] mb-4"
@@ -14,6 +14,8 @@
         </div>
     @else
         @php $overall = $latestTest['overall_score'] ?? 0; @endphp
+
+        <div wire:key="energy-chart-data" class="contents">
 
         <x-ui.modals.max-backdrop state="maximizedWidget" close="toggleMaximize(null)"/>
 
@@ -72,7 +74,7 @@
                         <div class="flex flex-col items-center justify-center mt-2">
                             <div
                                 class="flex size-24 lg:size-28 items-center justify-center rounded-full bg-gradient-to-br from-[var(--md-sys-color-primary)] to-[var(--md-sys-color-primary)]/80 text-[var(--md-sys-color-on-primary)] shadow-lg shadow-[var(--md-sys-color-primary)]/20 ring-4 ring-[var(--md-sys-color-primary)]/10 mb-4 relative">
-                                <span class="text-5xl lg:text-6xl font-black tracking-tighter">{{ $overall }}</span>
+                                <span class="text-5xl lg:text-6xl font-black tracking-tighter">{{ convertToPersian($overall) }}</span>
                                 <div class="absolute inset-0 rounded-full border-2 border-white/20"></div>
                             </div>
                             <h3 class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">شاخص کل عملکرد</h3>
@@ -107,7 +109,7 @@
                 </div>
 
                 @if($isManager && count($teamMembersData))
-                    <div class="w-full flex flex-col flex-1">
+                    <div wire:key="energy-team-panel" class="w-full flex flex-col flex-1">
                         <div :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
                             <header
                                 class="px-5 py-3 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between bg-[var(--md-sys-color-primary)]/60 top-0 z-10 rounded-t-2xl">
@@ -123,7 +125,7 @@
                                 <div class="flex items-center gap-2">
                                     <span
                                         class="inline-flex items-center rounded-md bg-[var(--md-sys-color-primary-container)] px-2 py-0.5 text-[11px] font-bold text-[var(--md-sys-color-on-primary-container)]">
-                                        {{ count($teamMembersData) }} نفر
+                                        {{ convertToPersian((string) count($teamMembersData)) }} نفر
                                     </span>
                                     <button @click="toggleMaximize('team')"
                                             :title="maximizedWidget === 'team' ? 'کوچک کردن' : 'بزرگ کردن'"
@@ -145,7 +147,7 @@
                                                 <span
                                                     class="inline-flex min-w-[28px] h-6 items-center justify-center rounded-full px-2 text-xs font-bold text-white shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
                                                     style="background-color: var({{ $presenter->getScoreColorVar($member['scores']['overall'] ?? 0) }}, var(--md-sys-color-primary));">
-                                                    {{ $member['scores']['overall'] ?? '-' }}
+                                                    {{ isset($member['scores']['overall']) ? convertToPersian($member['scores']['overall']) : '-' }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -183,7 +185,7 @@
         </div>
 
         @if(count($personalHistory))
-            <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
+            <div wire:key="energy-history-panel" class="rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden"
                  x-data="{ open: false }">
                 <button type="button" @click="open = !open"
                         class="w-full px-5 py-4 flex flex-wrap items-center gap-3 text-right">
@@ -204,7 +206,7 @@
                         بهترین کل: {{ convertToPersian((string) $bestEntry['overall']) }} ({{ toJalali($bestEntry['completed_at'], 'j F Y') }})
                     </span>
                     @if(count($personalHistory) > 1)
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-error-container)]/60 text-[var(--md-sys-color-on-error-container)] opacity-90"
+                        <span wire:key="energy-history-worst" class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--md-sys-color-error-container)]/60 text-[var(--md-sys-color-on-error-container)] opacity-90"
                               title="کم‌امتیازترین امتیاز کل پاسخ‌نامه‌های شما">
                             <span class="material-symbols-rounded text-[13px]" aria-hidden="true">arrow_downward</span>
                             کم‌امتیازترین: {{ convertToPersian((string) $worstEntry['overall']) }} ({{ toJalali($worstEntry['completed_at'], 'j F Y') }})
@@ -239,5 +241,7 @@
                 </div>
             </div>
         @endif
+
+        </div>
     @endif
 </section>

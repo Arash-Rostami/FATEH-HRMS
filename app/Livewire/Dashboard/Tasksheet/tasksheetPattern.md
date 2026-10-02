@@ -218,6 +218,33 @@ match every other native-`title` hover spot in the app. Same fix applied so far 
 documents the rule for the other `toJalaliRelative()` call sites (Project activity, TaskBoard history,
 Feeds timeline, Posts grid) still pending the same three-part treatment.
 
+## Share window params, print timing, row attrs (2026-10-02)
+
+**Share link carries the sender's own window.** `Main::shareWithManager()` builds the signed link's
+window params via a private `windowParams()`: `preset` always, `fy/fm/fd/ty/tm/td` only when
+`preset === 'custom'` (nulls filtered), `project` only when `scopeProjectId !== null`.
+`viewingBaseline` is deliberately excluded (a shared link stays truthful to its preset, same rule as
+its `#[Url]` design). It must read the Livewire component state, never `request()->query()` —
+Livewire actions POST to `/livewire/update`, where the query string is empty, so a `query()`-built
+link silently fell back to the default month. The `?user=` admin URL param is unaffected (route, not
+component, state).
+
+**Print waits for the collapse.** `tasksheet.js`'s `printExpandAll()` delays `window.print()` by
+300ms after setting `printMode = true`: the user panel loads Alpine's bundled `@alpinejs/collapse`,
+whose default duration is 250ms (`modifierValue(modifiers, "duration", 250)` inside `livewire.js` —
+the 600ms `[x-collapse]` override in `filament.css` is admin-panel-only), so printing on
+`$nextTick` cut off rows still mid-expand. The `afterprint` collapse-restore is unchanged.
+
+**URL-loaded custom ranges cap identically to interactive ones.** `customWindow()` caps a
+`>365`-day range at `$start->copy()->addYear()->endOfDay()` on both paths — previously the URL path
+stopped at `addYear()` (midnight), a one-day mismatch versus `setCustomRange()`.
+
+**Per-row Alpine attrs use `data-*`, not `@js()`.** `row-table.blade.php`'s expand/collapse sites
+carry `data-group`/`data-id` on the element each binding lives on and read them via `$el.dataset` —
+`@js()` duplicated every value into the HTML twice and put JS strings inside `:class`/`x-show`
+expressions. Note the span's `:class` reads its **own** `$el.dataset` (attrs on the span itself), not
+the button's.
+
 ## Entry points (5)
 
 TaskBoard toolbar, Project Report tab toolbar, Project sidebar header (icon-only button beside "ایجاد

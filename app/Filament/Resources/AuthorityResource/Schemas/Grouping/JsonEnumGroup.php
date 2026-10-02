@@ -14,15 +14,15 @@ class JsonEnumGroup
         return Group::make($field)
             ->label($label)
             ->groupQueryUsing(
-                fn(Builder $q) => $q->groupByRaw($expr)
+                fn(Builder $query) => $query->groupByRaw($expr)
             )
             ->orderQueryUsing(
-                fn(Builder $q, string $direction) => $q->orderByRaw("{$expr} {$direction}")
+                fn(Builder $query, string $direction) => $query->orderByRaw("{$expr} {$direction}")
             )
             ->scopeQueryByKeyUsing(
-                fn(Builder $q, string $key) => $key === '__null__'
-                    ? $q->whereRaw("{$expr} IS NULL OR {$expr} = ''")
-                    : $q->whereRaw("{$expr} = ?", [$key])
+                fn(Builder $query, string $key) => $key === '__null__'
+                    ? $query->whereRaw("{$expr} IS NULL OR {$expr} = ''")
+                    : $query->whereRaw("{$expr} = ?", [$key])
             )
             ->getKeyFromRecordUsing(
                 fn($record) => $record->details[$field] ?? '__null__'

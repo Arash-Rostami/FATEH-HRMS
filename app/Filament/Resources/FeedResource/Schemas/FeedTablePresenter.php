@@ -34,7 +34,7 @@ class FeedTablePresenter
     {
         return Group::make('category')
             ->label(__('resources/feed/strings.fields.category'))
-            ->getTitleFromRecordUsing(fn($r) => FeedCategory::tryFrom($r->category)?->getLabel() ?? $r->category)
+            ->getTitleFromRecordUsing(fn($record) => FeedCategory::tryFrom($record?->category)?->getLabel() ?? $record?->category)
             ->collapsible();
     }
 

@@ -52,12 +52,12 @@ class ReminderPresenter
         ];
     }
 
-    public static function channelToggles(): array
+    public static function channelToggles(bool $scoped = true): array
     {
         return [
             ['name' => 'form.emailEnabled', 'label' => 'ایمیل'],
             ['name' => null, 'label' => 'پیامک (به‌زودی)', 'disabled' => true],
-            ['name' => 'form.inAppBadge', 'label' => 'نشانگر منو'],
+            ['name' => 'form.inAppBadge', 'label' => $scoped ? 'نشانگر منو' : 'نشانگر منو (فقط رکورد متصل)', 'disabled' => ! $scoped],
             ['name' => 'form.inAppNudge', 'label' => 'پیام اعلانات'],
             ['name' => 'form.inAppEdge', 'label' => 'پیام ثابت صفحه'],
         ];

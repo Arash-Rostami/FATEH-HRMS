@@ -11,6 +11,7 @@ import registerAccessibilityStore from './stores/accessibility.js'
 import registerPinStore from './stores/pinned.js'
 import registerTaggedStore from './stores/tagged.js'
 import registerActivityReactionPickerStore from './stores/activityReactionPicker.js'
+import registerToolStackStore from './stores/toolStack.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
@@ -64,6 +65,7 @@ export default function initAlpine() {
         registerPinStore(Alpine)
         registerTaggedStore(Alpine)
         registerActivityReactionPickerStore(Alpine)
+        registerToolStackStore(Alpine)
 
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)

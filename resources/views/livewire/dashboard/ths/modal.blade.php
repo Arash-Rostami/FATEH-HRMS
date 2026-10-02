@@ -172,7 +172,7 @@
                                 </div>
 
                                 @if(!empty($selectedTicket['requester_files']))
-                                    <div class="mt-6">
+                                    <div wire:key="ths-modal-requester-files" class="mt-6">
                                         <h5 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-4 flex items-center gap-2">
                                             <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">attachment</span>
                                             فایل‌های ضمیمه شما
@@ -180,7 +180,7 @@
                                         <div class="flex flex-wrap gap-4">
                                             @foreach($selectedTicket['requester_files'] as $file)
                                                 @if(Str::contains($file['file'], ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                                    <a href="{{ $file['file_url'] }}"
+                                                    <a wire:key="ths-requester-file-img-{{ $loop->index }}" href="{{ $file['file_url'] }}"
                                                        data-fancybox="ticket-{{ $selectedTicket['id'] }}-requester-files"
                                                        class="group flex flex-col items-center justify-center w-24 h-24 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 hover:border-[var(--md-sys-color-primary)] transition-all overflow-hidden relative shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
                                                         <img src="{{ $file['file_url'] }}"
@@ -191,7 +191,7 @@
                                                         </div>
                                                     </a>
                                                 @else
-                                                    <a href="{{ $file['file_url'] }}"
+                                                    <a wire:key="ths-requester-file-doc-{{ $loop->index }}" href="{{ $file['file_url'] }}"
                                                        target="_blank"
                                                        class="group flex flex-col items-center justify-center w-24 h-24 rounded-2xl bg-[var(--md-sys-color-surface-container)] border border-[var(--md-sys-color-outline-variant)]/50 hover:border-[var(--md-sys-color-primary)] transition-all overflow-hidden relative shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]">
                                                         <span class="material-symbols-rounded text-4xl text-[var(--md-sys-color-on-surface-variant)] group-hover:text-[var(--md-sys-color-primary)] transition-colors duration-300">description</span>

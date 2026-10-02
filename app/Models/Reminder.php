@@ -100,6 +100,27 @@ class Reminder extends Model
         return false;
     }
 
+    public static function withoutChannel(array $channels, string $signal): array
+    {
+        $result = [];
+
+        foreach ($channels as $channel) {
+            if (! str_starts_with($channel, 'inapp:')) {
+                $result[] = $channel;
+
+                continue;
+            }
+
+            $kept = array_values(array_filter(explode(',', substr($channel, 6)), fn (string $s) => $s !== $signal));
+
+            if ($kept !== []) {
+                $result[] = 'inapp:' . implode(',', $kept);
+            }
+        }
+
+        return $result;
+    }
+
     public static function dueBadgeCount(int $userId, ?string $remindableType = null, mixed $remindableId = null): int
     {
         return static::forUser($userId)
@@ -178,7 +199,9 @@ class Reminder extends Model
                     'title' => $this->title,
                     'notes' => $this->notes,
                     'recurs' => $this->recurs,
-                    'channels' => $this->channels,
+                    'channels' => $this->remindable_type === null
+                        ? static::withoutChannel($this->channels, 'badge')
+                        : $this->channels,
                     'due_at' => $this->recurs->advance($this->due_at),
                     'completed_at' => null,
                     'snoozed_until' => null,

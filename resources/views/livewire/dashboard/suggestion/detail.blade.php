@@ -1,4 +1,5 @@
-<div class="space-y-4 suggestion-form-enter animate-fade">
+<div class="space-y-4 suggestion-form-enter animate-fade"
+     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['submitDecision' => false, 'markComplete' => false, 'submitFeedback' => false]) }}">
     @php($stage = $p->stageConfig())
 
     {{-- ══ HEADER ══ --}}
@@ -54,7 +55,7 @@
                         </span>
 
                         @if($p->isSelfFill())
-                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1
+                            <span wire:key="suggestion-selffill-chip" class="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1
                                          bg-[var(--md-sys-color-secondary-container)]
                                          text-[var(--md-sys-color-on-secondary-container)]">
                                 <span class="material-symbols-rounded !text-xs">edit_note</span>
@@ -66,12 +67,13 @@
 
                 @if($p->attachmentUrl())
                     @if($p->attachmentIsImage())
-                        <a href="{{ $p->attachmentUrl() }}" data-fancybox="suggestion-attachment" data-caption="پیوست"
+                        <a wire:key="suggestion-attachment-image-link" href="{{ $p->attachmentUrl() }}" data-fancybox="suggestion-attachment" data-caption="پیوست"
                            class="shrink-0 block w-16 h-16 rounded-lg overflow-hidden border border-[var(--md-sys-color-outline-variant)] shadow-sm hover:brightness-90 transition-all">
                             <img src="{{ $p->attachmentUrl() }}" alt="پیوست" loading="lazy" class="w-full h-full object-cover">
                         </a>
                     @else
                         <a
+                            wire:key="suggestion-attachment-file-link"
                             href="{{ $p->attachmentUrl() }}"
                             target="_blank"
                             class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition hover:brightness-95
@@ -315,16 +317,16 @@
                         {{ $dept['name'] }}
                     </span>
                         @if($dept['is_action'])
-                            <span class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
+                            <span wire:key="suggestion-dept-action-{{ $dept['dept'] }}" class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
                                      bg-[var(--md-sys-color-primary-container)]
                                      text-[var(--md-sys-color-on-primary-container)]">
                             <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
                             ارجاع
                         </span>
                             @if($dept['is_complete'])
-                                <span wire:key="suggestion-dept-complete" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
+                                <span wire:key="suggestion-dept-complete-{{ $dept['dept'] }}" class="material-symbols-rounded text-base text-[var(--md-sys-color-tertiary)]" title="تکمیل شده">task_alt</span>
                             @elseif($dept['has_review'])
-                                <span wire:key="suggestion-dept-pending" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
+                                <span wire:key="suggestion-dept-pending-{{ $dept['dept'] }}" class="material-symbols-rounded text-base text-[var(--md-sys-color-on-surface-variant)]" title="در انتظار">hourglass_empty</span>
                             @endif
                         @endif
                     </div>
@@ -348,7 +350,7 @@
                     'border-[var(--md-sys-color-outline-variant)]' => !$item['is_ma'] && !$item['is_action'],
                 ])>
                         @if($item['is_system_generated'])
-                            <span class="pointer-events-none absolute -top-1 left-3 rotate-[-8deg] text-[30px] font-black tracking-wider opacity-[0.06] select-none text-[var(--md-sys-color-on-surface)]">خودکار</span>
+                            <span wire:key="suggestion-review-watermark" class="pointer-events-none absolute -top-1 left-3 rotate-[-8deg] text-[30px] font-black tracking-wider opacity-[0.06] select-none text-[var(--md-sys-color-on-surface)]">خودکار</span>
                         @endif
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 min-w-0">
@@ -362,12 +364,12 @@
                                 {{ $item['label'] }}
                             </span>
                                 @if($item['is_action'])
-                                    <span class="material-symbols-rounded text-xs shrink-0 text-[var(--md-sys-color-secondary)]" title="ارجاع برای اقدام">
+                                    <span wire:key="suggestion-review-action-icon" class="material-symbols-rounded text-xs shrink-0 text-[var(--md-sys-color-secondary)]" title="ارجاع برای اقدام">
                                     forward_to_inbox
                                 </span>
                                 @endif
                                 @if($item['is_system_generated'])
-                                    <span class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                                    <span wire:key="suggestion-review-auto-chip" class="text-[9px] px-1.5 py-0.5 rounded-lg font-bold shrink-0 inline-flex items-center gap-0.5 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
                                         <span class="material-symbols-rounded text-[10px]">smart_toy</span>
                                         تولید خودکار
                                     </span>
@@ -379,18 +381,18 @@
                         </div>
 
                         @if($item['review']->comments)
-                            <p class="text-xs leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)] px-1">
+                            <p wire:key="suggestion-review-comments" class="text-xs leading-relaxed whitespace-pre-wrap text-[var(--md-sys-color-on-surface-variant)] px-1">
                                 {{ $item['review']->comments }}
                             </p>
                         @endif
 
                         @if($item['review']->actions)
-                            <div class="mt-3 rounded-lg overflow-hidden border border-[var(--md-sys-color-primary)]/15 bg-[var(--md-sys-color-primary-container)]">
+                            <div wire:key="suggestion-review-actions" class="mt-3 rounded-lg overflow-hidden border border-[var(--md-sys-color-primary)]/15 bg-[var(--md-sys-color-primary-container)]">
                                 <div class="flex items-center gap-2 px-2 py-2 bg-[var(--md-sys-color-primary)]/10 border-b border-[var(--md-sys-color-primary)]/10">
                                     <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">assignment</span>
                                     <span class="text-[11px] font-semibold tracking-wider text-[var(--md-sys-color-on-primary-container)]">دستورالعمل اجرا:</span>
                                     @if($item['review']->referral)
-                                        <div class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای موظف">
+                                        <div wire:key="suggestion-review-referral" class="flex flex-wrap gap-1 mr-auto cursor-help" title="واحدهای موظف">
                                             @foreach($item['referral_labels'] as $rl)
                                                 <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-sm leading-none
                                                          bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]
@@ -415,7 +417,7 @@
                             {{ toJalali($item['review']->created_at, 'j F Y') }}
                         </span>
                             @if($item['is_action'])
-                                <span class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
+                                <span wire:key="suggestion-review-action-badge" class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1
                                          bg-[var(--md-sys-color-primary-container)]
                                          text-[var(--md-sys-color-on-primary-container)]">
                                 <span class="material-symbols-rounded text-xs">forward_to_inbox</span>
@@ -444,8 +446,8 @@
             </p>
             <div class="mt-4 flex justify-end">
                 <x-ui.buttons.form type="button"
-                        wire:click="markComplete"
                         loading="markComplete"
+                        x-on:click="{{ confirmDialog('markComplete', 'تکمیل اقدام', 'اقدام واحد شما به عنوان تکمیل‌شده ثبت شود؟') }}"
                         icon="check_circle"
                         class="px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:opacity-90">
                     ثبت تکمیل اقدام
@@ -498,7 +500,8 @@
 
                 <x-ui.forms.textarea label="توضیحات" name="comment" :rows="4" wire:model="feedbackForm.comment" :maximizable="true"/>
 
-                <x-ui.buttons.form icon="send" wire:click="submitFeedback" loading="submitFeedback">
+                <x-ui.buttons.form icon="send" loading="submitFeedback"
+                        x-on:click="{{ confirmDialog('submitFeedback', 'ثبت بازخورد', 'بازخورد شما برای این پیشنهاد ثبت شود؟') }}">
                     ثبت بازخورد
                 </x-ui.buttons.form>
 
@@ -599,7 +602,8 @@
                     </div>
                 @endif
 
-                <x-ui.buttons.form icon="gavel" wire:click="submitDecision" loading="submitDecision">
+                <x-ui.buttons.form icon="gavel" loading="submitDecision"
+                        x-on:click="{{ confirmDialog('submitDecision', 'ثبت تصمیم نهایی', 'تصمیم نهایی برای این پیشنهاد ثبت شود؟') }}">
                     ثبت تصمیم
                 </x-ui.buttons.form>
 

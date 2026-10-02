@@ -25,7 +25,7 @@ class SuggestionForm extends Form
     #[Validate('required|in:low,medium,high')]
     public string $priority = 'medium';
 
-    #[Validate('nullable|file|mimes:pdf,png,jpg|max:10240')]
+    #[Validate('nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:10240')]
     public $attachment = null;
 
     public bool $selfFill = false;
@@ -80,7 +80,7 @@ class SuggestionForm extends Form
             'priority.required' => 'انتخاب اولویت الزامی است.',
             'priority.in' => 'اولویت انتخابی معتبر نیست.',
             'attachment.file' => 'فایل انتخاب شده معتبر نیست.',
-            'attachment.mimes' => 'فرمت فایل باید pdf، png یا jpg باشد.',
+            'attachment.mimes' => 'فرمت فایل باید pdf، png، jpg یا webp باشد.',
             'attachment.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
             'feedbackTeam.in' => 'بازخورد معتبر انتخاب کنید.',
             'feedback.*.in' => 'بازخورد معتبر انتخاب کنید.',

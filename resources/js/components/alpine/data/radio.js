@@ -26,6 +26,8 @@ const STATUS_CLASSES = {
     'آفلاین':           'bg-red-100 text-red-800',
 };
 
+const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+
 const GENRES = [
     { value: 'jazz',        label: 'جاز' },
     { value: 'classical',   label: 'کلاسیک' },
@@ -43,18 +45,26 @@ export default function radio(id) {
         open: false,
         minimized: false,
         playing: false,
+        tab: 'stations',
         isLoading: false,
         status: 'آماده',
         audio: null,
         stations: [],
         currentStationUrl: '',
+        stationName: '',
         currentGenre: 'jazz',
         currentServerIndex: 0,
         formattedDisplay: '',
         genres: GENRES,
+        volume: 1,
+        volDragging: false,
 
         _windowRadioListener: null,
         _windowKeydownListener: null,
+        _fetchToken: 0,
+        _playIntent: false,
+        _autoSkipAttempts: 0,
+        _lastVolume: 1,
 
         get statusClass() {
             return STATUS_CLASSES[this.status] || STATUS_CLASSES['آماده'];
@@ -62,11 +72,19 @@ export default function radio(id) {
 
         get currentStationName() {
             if (!this.currentStationUrl) return 'یک ایستگاه انتخاب کنید';
-            return this.stations.find(s => s.url_resolved === this.currentStationUrl)?.name || 'ایستگاه ناشناس';
+            return this.stations.find(s => s.url_resolved === this.currentStationUrl)?.name || this.stationName || 'ایستگاه ناشناس';
         },
 
         get currentGenreLabel() {
             return this.genres.find(g => g.value === this.currentGenre)?.label || 'جاز';
+        },
+
+        get faPercent() {
+            return this.faDigits(Math.round(this.volume * 100));
+        },
+
+        faDigits(n) {
+            return String(n).replace(/\d/g, d => FA_DIGITS[d]);
         },
 
         updateDisplay() {
@@ -76,7 +94,11 @@ export default function radio(id) {
         init() {
             const state = this._loadState(storageKey, {});
             this.currentGenre = state.genre || 'jazz';
-            if (state.stationUrl) this.currentStationUrl = state.stationUrl;
+            this.volume = typeof state.volume === 'number' ? state.volume : 1;
+            if (state.stationUrl) {
+                this.currentStationUrl = state.stationUrl;
+                this.stationName = state.stationName || '';
+            }
             if (state.minimized) this.minimized = true;
 
             this._windowRadioListener = () => {
@@ -115,10 +137,11 @@ export default function radio(id) {
                 return;
             }
 
+            const token = ++this._fetchToken;
+
             if (forceRefetch) {
                 this.stations = [];
                 this.currentStationUrl = '';
-                if (this.playing && this.audio) this.audio.pause();
             }
 
             this.isLoading = true;
@@ -151,6 +174,7 @@ export default function radio(id) {
                     } catch { } finally { clearTimeout(t); }
                 }
 
+                if (token !== this._fetchToken) return;
                 if (fetched.length) break;
                 this.currentServerIndex = (this.currentServerIndex + 1) % API_SERVERS.length;
             }
@@ -166,6 +190,7 @@ export default function radio(id) {
                 if (!this.currentStationUrl || forceRefetch) {
                     this.$nextTick(() => {
                         this.currentStationUrl = this.stations[0].url_resolved;
+                        this.handleStationChange(this.currentStationUrl);
                         this.setupAudio();
                         this.updateDisplay();
                     });
@@ -187,11 +212,12 @@ export default function radio(id) {
             if (this.audio) return;
             this.audio = new Audio();
             this.audio.preload = 'none';
+            this.audio.volume = this.volume;
 
-            const onPlay = () => { this.playing = true;  this.status = 'در حال پخش';     this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
+            const onPlay = () => { this.playing = true; this.status = 'در حال پخش'; this._autoSkipAttempts = 0; this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
             const onStop = () => { this.playing = false; this.status = 'متوقف';           this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
             const onBuffer = () => {                      this.status = 'در حال بافر...'; this.updateDisplay(); };
-            const onError = () => { this.playing = false; this.status = 'خطا';             this.updateDisplay(); if (this.currentStationUrl) this.saveState(); };
+            const onError = () => { this.playing = false; this.status = 'خطا'; this.updateDisplay(); if (this.currentStationUrl) this.saveState(); if (this._playIntent) this.autoSkipOnFailure(); };
 
             this.audio.addEventListener('playing', onPlay);
             this.audio.addEventListener('pause', onStop);
@@ -199,9 +225,55 @@ export default function radio(id) {
             this.audio.addEventListener('waiting', onBuffer);
             this.audio.addEventListener('error', onError);
         },
+        setVolume(v) {
+            this.volume = Math.min(1, Math.max(0, Number(v)));
+            if (this.audio) this.audio.volume = this.volume;
+            this.saveState();
+        },
+        toggleMute() {
+            if (this.volume > 0) {
+                this._lastVolume = this.volume;
+                this.setVolume(0);
+            } else {
+                this.setVolume(this._lastVolume || 1);
+            }
+        },
+        setVolumeFromY(event) {
+            const track = this.$refs.volTrack;
+            if (!track) return;
+            const rect = track.getBoundingClientRect();
+            this.setVolume((rect.bottom - event.clientY) / rect.height);
+        },
+        autoSkipOnFailure() {
+            if (!this.stations.length) return;
+            this._autoSkipAttempts++;
+            if (this._autoSkipAttempts > this.stations.length) {
+                this._autoSkipAttempts = 0;
+                this.status = 'آفلاین';
+                this.updateDisplay();
+                return;
+            }
+
+            const i = this.stations.findIndex(s => s.url_resolved === this.currentStationUrl);
+            const next = this.stations[(i === -1 ? 0 : i + 1) % this.stations.length];
+            this.stationName = next.name;
+            this.currentStationUrl = next.url_resolved;
+            this.setupAudio();
+            this.audio.src = next.url_resolved;
+            this.audio.load();
+            this._playIntent = true;
+            this.audio.play().catch((e) => {
+                if (e?.name === 'AbortError') return;
+                this.playing = false;
+                this.status = 'خطا';
+                this.updateDisplay();
+            });
+        },
 
         handleStationChange(newUrl) {
             if (!newUrl) return;
+            const match = this.stations.find(s => s.url_resolved === newUrl);
+            if (match) this.stationName = match.name;
             this.setupAudio();
             if (!this.audio || this.audio.src === newUrl) {
                 this.updateDisplay();
@@ -218,7 +290,9 @@ export default function radio(id) {
             this.audio.load();
 
             if (wasPlaying) {
-                this.audio.play().catch(() => {
+                this._playIntent = true;
+                this.audio.play().catch((e) => {
+                    if (e?.name === 'AbortError') return;
                     this.status = 'خطا';
                     this.playing = false;
                     this.updateDisplay();
@@ -232,10 +306,16 @@ export default function radio(id) {
             const i = this.stations.findIndex(s => s.url_resolved === this.currentStationUrl);
             this.currentStationUrl = this.stations[(i === -1 ? 0 : i + 1) % this.stations.length].url_resolved;
         },
+        prevStation() {
+            if (!this.stations.length) return;
+            const i = this.stations.findIndex(s => s.url_resolved === this.currentStationUrl);
+            this.currentStationUrl = this.stations[(i === -1 ? 0 : i - 1 + this.stations.length) % this.stations.length].url_resolved;
+        },
 
         togglePlay() {
             if (!this.audio || !this.currentStationUrl) return;
             if (this.playing) {
+                this._playIntent = false;
                 this.audio.pause();
                 return;
             }
@@ -243,7 +323,9 @@ export default function radio(id) {
                 this.audio.src = this.currentStationUrl;
                 this.audio.load();
             }
-            this.audio.play().catch(() => {
+            this._playIntent = true;
+            this.audio.play().catch((e) => {
+                if (e?.name === 'AbortError') return;
                 this.status = 'خطا';
                 this.playing = false;
                 this.updateDisplay();
@@ -273,14 +355,17 @@ export default function radio(id) {
             this.open = false;
             this.minimized = false;
             this.currentStationUrl = '';
+            this.stationName = '';
             this._clearState(storageKey);
         },
 
         saveState() {
             this._saveState(storageKey, {
                 stationUrl: this.currentStationUrl,
+                stationName: this.stationName,
                 genre: this.currentGenre,
-                minimized: this.minimized
+                minimized: this.minimized,
+                volume: this.volume
             });
         },
     };

@@ -10,10 +10,12 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Support\TicketAccessPolicy;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Workspace extends Component
 {
@@ -78,12 +80,15 @@ class Workspace extends Component
 
     public function postReply(SubmitTicketReplyAction $action): void
     {
-        $action->execute($this->replyForm, $this->ticket, auth()->user());
+        if (! $this->runGuarded(fn () => $action->execute($this->replyForm, $this->ticket, auth()->user()))) {
+            return;
+        }
 
         $this->replyForm->reset();
         unset($this->ticket);
         $this->dispatch('toast', message: 'پاسخ شما ثبت شد.', type: 'success');
         $this->dispatch('ths-reply-posted');
+        $this->dispatch('ths-ticket-updated');
     }
 
     public function removeReplyAttachment(int $index): void
@@ -98,35 +103,59 @@ class Workspace extends Component
             return;
         }
 
-        $action->execute($this->ticket, (int)$this->assigneeId, auth()->user());
+        if (! $this->runGuarded(fn () => $action->execute($this->ticket, (int)$this->assigneeId, auth()->user()))) {
+            return;
+        }
 
         $this->assigneeId = '';
         unset($this->ticket);
         $this->dispatch('toast', message: 'تیکت با موفقیت تخصیص داده شد.', type: 'success');
+        $this->dispatch('ths-ticket-updated');
     }
 
     public function setEffectiveness(SetTicketEffectivenessAction $action, string $score): void
     {
-        $action->execute($this->ticket, $score, auth()->user());
+        if (! $this->runGuarded(fn () => $action->execute($this->ticket, $score, auth()->user()))) {
+            return;
+        }
 
         unset($this->ticket);
         $this->dispatch('toast', message: 'اثربخشی ثبت شد.', type: 'success');
+        $this->dispatch('ths-ticket-updated');
     }
 
     public function closeTicket(AssignTicketAction $action): void
     {
-        abort_unless(TicketAccessPolicy::canClose($this->ticket, auth()->user()), 403);
-
         if (blank($this->ticket->effectiveness)) {
             $this->dispatch('toast', message: 'برای بستن تیکت ابتدا اثربخشی را ثبت کنید.', type: 'error');
             return;
         }
 
-        $this->ticket->update(['status' => 'closed']);
-        $action->markLinkedTaskDone($this->ticket);
+        if (! $this->runGuarded(function () use ($action) {
+            abort_unless(TicketAccessPolicy::canClose($this->ticket, auth()->user()), 403);
+            $this->ticket->update(['status' => 'closed']);
+            $action->markLinkedTaskDone($this->ticket);
+        })) {
+            return;
+        }
 
         unset($this->ticket);
         $this->dispatch('toast', message: 'تیکت با موفقیت بسته شد.', type: 'success');
+        $this->dispatch('ths-ticket-updated');
+    }
+
+    private function runGuarded(callable $fn): bool
+    {
+        try {
+            $fn();
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (HttpException $e) {
+            $this->dispatch('toast', message: $e->getMessage() ?: 'دسترسی لازم برای این عملیات وجود ندارد.', type: 'error');
+            return false;
+        }
+
+        return true;
     }
 
     public function render()

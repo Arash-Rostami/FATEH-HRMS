@@ -151,7 +151,7 @@ class TicketTablePresenter
     {
         return Filter::make('overdue')
             ->label(__('resources/ths/strings.filters.overdue'))
-            ->query(fn(Builder $q) => $q
+            ->query(fn(Builder $query) => $query
                 ->whereNotNull('completion_deadline')
                 ->where('completion_deadline', '<', now())
                 ->where('status', '!=', 'closed')

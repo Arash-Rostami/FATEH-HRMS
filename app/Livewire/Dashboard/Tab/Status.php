@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\SmsService;
 use App\Services\User\UserKeyGrouper;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Isolate;
@@ -160,17 +161,22 @@ class Status extends Component
     {
         try {
             $action(SkillUser::findOrFail($skillUserId), Auth::user());
-
-            unset($this->aboutMeSkills);
-
-            $this->dispatch('toast', message: $successMessage, type: 'success');
         } catch (HttpException $e) {
-            throw $e;
+            $this->dispatch('toast', message: $e->getMessage() ?: 'این عملیات مجاز نیست.', type: 'error');
+            return;
+        } catch (ModelNotFoundException $e) {
+            $this->dispatch('toast', message: 'این مهارت دیگر موجود نیست.', type: 'error');
+            return;
         } catch (\Exception $e) {
             report($e);
 
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+            return;
         }
+
+        unset($this->aboutMeSkills);
+
+        $this->dispatch('toast', message: $successMessage, type: 'success');
     }
 
     private function resetSkillComputeds(): void

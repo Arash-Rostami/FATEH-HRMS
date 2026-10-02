@@ -35,6 +35,8 @@ trait ManagesTaskModal
 
     #[Locked]
     public ?int $editingTaskId = null;
+    #[Locked]
+    public bool $editingTaskHasProject = false;
     public array $staffMembers = [];
     public array $departmentOptions = [];
 
@@ -76,10 +78,13 @@ trait ManagesTaskModal
 
         return Task::query()
             ->where(fn(Builder $q) => $q->where('assigned_to', $userId)->orWhere('user_id', $userId))
+            ->whereNull('archived_at')
             ->whereNotNull('labels')
             ->pluck('labels')
             ->flatten()
             ->unique()
+            ->groupBy(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l))
+            ->map(fn($g) => $g->first())
             ->sort()
             ->values()
             ->all();
@@ -217,8 +222,10 @@ trait ManagesTaskModal
         if (!$task || !$task->can_change_status) return;
 
         $this->editingTaskId = $taskId;
+        $this->editingTaskHasProject = $task->project_id !== null;
         $this->populateFormFromTask($task);
         $this->taskReplyForm->reset();
+        $this->resetValidation();
 
         $this->isEditMode = true;
         $this->isReadOnly = (bool)$task->ticket_id;
@@ -242,6 +249,10 @@ trait ManagesTaskModal
     public function openCreateModal(): void
     {
         $this->form->reset();
+        $this->editingTaskId = null;
+        $this->editingTaskHasProject = false;
+        $this->taskReplyForm->reset();
+        $this->resetValidation();
         $this->isEditMode = false;
         $this->isReadOnly = false;
         $this->isModalOpen = true;
@@ -306,6 +317,7 @@ trait ManagesTaskModal
 
         $this->taskReplyForm->reset();
         unset($this->editingTask);
+        $this->refreshAfterTaskSave();
         $this->dispatch('toast', message: 'پاسخ شما ثبت شد.', type: 'success');
     }
 
@@ -379,8 +391,10 @@ trait ManagesTaskModal
         if (!$task || !TaskAccessPolicy::canView($task, auth()->user())) return;
 
         $this->editingTaskId = $taskId;
+        $this->editingTaskHasProject = $task->project_id !== null;
         $this->populateFormFromTask($task);
         $this->taskReplyForm->reset();
+        $this->resetValidation();
 
         $this->isEditMode = false;
         $this->isReadOnly = true;

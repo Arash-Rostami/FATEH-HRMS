@@ -1,6 +1,7 @@
 <div dir="rtl"
      x-data="taskboard()"
      @keydown.escape.window="if(maximizedColumn) toggleMaximize(null); else if(spotlightColumn) clearSpotlight()"
+     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['deleteTask' => true]) }}"
      class="w-full h-full relative px-4 py-4 md:px-6 md:py-8 overflow-y-auto animate-fade container-scrollbar custom-scrollbar">
 
     <x-ui.modals.max-backdrop state="maximizedColumn" close="toggleMaximize(null)"/>
@@ -70,7 +71,5 @@
     @include('livewire.dashboard.taskboard.form')
 
     @include('livewire.dashboard.taskboard.bulk-bar')
-
-    <x-ui.modals.confirmation/>
 </div>
 

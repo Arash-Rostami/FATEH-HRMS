@@ -30,6 +30,13 @@ class SubmitFeedbackAction
             ]
         );
 
+        if ($suggestion->stage === 'under_review') {
+            Review::where('suggestion_id', $suggestion->id)
+                ->where('department_id', 'MA')
+                ->where('feedback', 'incomplete')
+                ->update(['feedback' => 'unknown']);
+        }
+
         $suggestion->load('reviews')->syncStage();
 
         StateService::flush();

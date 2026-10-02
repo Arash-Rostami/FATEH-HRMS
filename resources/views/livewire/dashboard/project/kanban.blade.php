@@ -30,12 +30,13 @@
                 <span class="material-symbols-rounded text-[14px] transition-transform duration-300" x-bind:class="moreOpen ? 'rotate-180' : ''">expand_more</span>
             </button>
             @if($this->kanbanActiveFilterCount > 0)
-                <span class="absolute -top-1 -left-1 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-sm bg-[var(--md-sys-color-tertiary)] px-1 text-[9px] font-bold leading-none text-[var(--md-sys-color-on-tertiary)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ $this->kanbanActiveFilterCount > 9 ? '9+' : $this->kanbanActiveFilterCount }}</span>
+                <span wire:key="kanban-filter-badge" class="absolute -top-1 -left-1 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-sm bg-[var(--md-sys-color-tertiary)] px-1 text-[9px] font-bold leading-none text-[var(--md-sys-color-on-tertiary)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ $this->kanbanActiveFilterCount > 9 ? '9+' : $this->kanbanActiveFilterCount }}</span>
             @endif
         </span>
 
         @if($this->kanbanActiveFilterCount > 0)
             <button
+                wire:key="kanban-clear-filters"
                 type="button"
                 wire:click="clearKanbanFilters"
                 class="flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] whitespace-nowrap shrink-0"
@@ -79,6 +80,7 @@
 
         @if(count($this->kanbanLabelOptions))
             <div
+                wire:key="kanban-filter-labels"
                 class="relative w-full sm:w-36 shrink-0 md3-input-group"
                 x-data="{ open: false }"
                 @click.away="open = false"
@@ -144,7 +146,7 @@
         @endif
 
         @if(count($this->kanbanSchemeOptions))
-            <div class="w-full sm:w-36 shrink-0">
+            <div wire:key="kanban-filter-scheme" class="w-full sm:w-36 shrink-0">
                 <x-ui.forms.select label="طرح" name="kanbanSchemeFilter" wire:model.live="kanbanSchemeFilter" icon="schema">
                     <option value="">همه طرح‌ها</option>
                     @foreach($this->kanbanSchemeOptions as $scheme)
@@ -155,7 +157,7 @@
         @endif
 
         @if(count($this->kanbanUnitOptions))
-            <div class="w-full sm:w-36 shrink-0">
+            <div wire:key="kanban-filter-unit" class="w-full sm:w-36 shrink-0">
                 <x-ui.forms.select label="واحد" name="kanbanUnitFilter" wire:model.live="kanbanUnitFilter" icon="account_tree">
                     <option value="">همه واحدها</option>
                     @foreach($this->kanbanUnitOptions as $unit)
@@ -166,7 +168,7 @@
         @endif
 
         @if(count($this->kanbanSectionOptions))
-            <div class="w-full sm:w-36 shrink-0">
+            <div wire:key="kanban-filter-section" class="w-full sm:w-36 shrink-0">
                 <x-ui.forms.select label="بخش" name="kanbanSectionFilter" wire:model.live="kanbanSectionFilter" icon="segment">
                     <option value="">همه بخش‌ها</option>
                     @foreach($this->kanbanSectionOptions as $section)
@@ -195,7 +197,7 @@
         </div>
 
         @if(count($this->kanbanAssigneeOptions))
-            <div class="w-full sm:w-36 shrink-0">
+            <div wire:key="kanban-filter-assignee" class="w-full sm:w-36 shrink-0">
                 <x-ui.forms.select label="مسئول انجام" name="kanbanAssigneeFilter" wire:model.live="kanbanAssigneeFilter" icon="assignment_ind">
                     <option value="">همه مسئول‌ها</option>
                     @foreach($this->kanbanAssigneeOptions as $id => $name)

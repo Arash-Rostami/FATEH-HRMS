@@ -116,26 +116,14 @@
                         @endif
 
                         @if($hasCall)
-                            @if($sms)
-                                <a href="tel:{{ $sms }}"
-                                   wire:key="call-active-{{ $user->id }}"
-                                   x-on:click.stop
-                                   title="تماس"
-                                   class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
-                                          hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
-                                    <span class="material-symbols-rounded text-[15px] block">call</span>
-                                </a>
-                            @else
-                                <button
-                                    type="button"
-                                    wire:key="call-disabled-{{ $user->id }}"
-                                    x-on:click.stop="$dispatch('toast', {message: 'تماس با شمارهٔ داخلی به‌زودی فعال می‌شود', type: 'info'})"
-                                    title="تماس"
-                                    class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
-                                           hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
-                                    <span class="material-symbols-rounded text-[15px] block">call</span>
-                                </button>
-                            @endif
+                            <a href="tel:{{ $sms ?: $ext }}"
+                               wire:key="call-active-{{ $user->id }}"
+                               x-on:click.stop
+                               title="تماس"
+                               class="p-1 rounded-lg text-[var(--md-sys-color-on-surface-variant)]
+                                      hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors">
+                                <span class="material-symbols-rounded text-[15px] block">call</span>
+                            </a>
                         @endif
                     </div>
                 @else

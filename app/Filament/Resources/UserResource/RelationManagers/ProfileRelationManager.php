@@ -171,7 +171,7 @@ class ProfileRelationManager extends RelationManager
                         ->icon('heroicon-o-paper-clip')
                         ->schema([
                             ProfileInfolistPresenter::image(),
-                            ProfileInfolistPresenter::attachments(),
+                            ...ProfileInfolistPresenter::attachments(),
                         ])
                         ->columns(2),
 

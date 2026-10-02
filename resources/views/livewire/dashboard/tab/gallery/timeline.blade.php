@@ -40,28 +40,12 @@
                         'z-10 scale-95 max-md:scale-100 opacity-100': activeId != {{ $photo->id }}
                     }"
                 >
-                    <div
-                        x-show="showTimeline"
-                        x-transition:enter="transition ease-out duration-300 delay-100"
-                        x-transition:enter-start="opacity-0 scale-90 translate-x-4"
-                        x-transition:enter-end="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave-end="opacity-0 scale-90 translate-x-4"
-                        class="absolute top-1/2 -right-10 z-0 hidden md:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2 pointer-events-none">
-                        <x-dashboard.timeline-date-bubble :id="$photo->id" :date="toJalali($photo->event_date, 'j F Y')"/>
-
-                        <div
-                            class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
-                            :class="activeId == {{ $photo->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
-                        >
-                            <div class="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]"></div>
-                        </div>
-
-                        @if($photo->description)
-                            <x-dashboard.timeline-caption :id="$photo->id" :text="Str::limit(strip_tags($photo->description), 28)"/>
-                        @endif
-                    </div>
+                    <x-dashboard.timeline-marker
+                        :id="$photo->id"
+                        :date="$presenter->mediaTypeLabel($photo)"
+                        :caption="toJalali($photo->event_date, 'j F Y')"
+                        z="z-0"
+                    />
 
                     <div class="relative z-20 h-full w-full md:scale-[0.9] max-md:flex max-md:flex-col max-md:justify-center max-md:translate-y-12">
                         @include('livewire.dashboard.tab.gallery.item', ['photo' => $photo])

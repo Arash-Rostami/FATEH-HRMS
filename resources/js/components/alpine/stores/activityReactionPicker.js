@@ -21,7 +21,7 @@ export default (Alpine) => {
         },
 
         is(id) {
-            return this.entryId === id;
+            return id != null && this.entryId === id;
         }
     });
 };

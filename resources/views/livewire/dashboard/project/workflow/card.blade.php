@@ -28,7 +28,7 @@
                     @endif
 
                     @if(!$isDraft && $workflowPresenter->isStuck($wf))
-                        <span class="inline-flex items-center gap-1 h-[22px] px-2 rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] text-[11px] font-bold text-[var(--md-sys-color-error)] shadow-sm animate-pulse-ring">
+                        <span wire:key="workflow-card-stuck-{{ $wf->id }}" class="inline-flex items-center gap-1 h-[22px] px-2 rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-error)_12%,transparent)] text-[11px] font-bold text-[var(--md-sys-color-error)] shadow-sm animate-pulse-ring">
                             <span class="material-symbols-rounded text-[13px]">warning</span> معطل مانده
                         </span>
                     @endif

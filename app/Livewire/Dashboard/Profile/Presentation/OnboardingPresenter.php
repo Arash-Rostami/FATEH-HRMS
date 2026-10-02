@@ -94,12 +94,16 @@ class OnboardingPresenter
         $videos = collect($videos);
         if ($videos->isEmpty()) return [];
 
-        return $videos->map(fn($video, $index) => [
-            'url' => $video['url'] ? self::resolvePublicAssetUrl($video['url']) : '#',
-            'title' => $video['title'] ?? 'ویدیوی آموزشی ' . ($index + 1),
-            'duration' => $video['duration'] ?? null,
-            'thumbnail' => $video['thumbnail'] ? self::resolvePublicAssetUrl($video['thumbnail']) : null,
-        ])->toArray();
+        return $videos
+            ->filter(fn($video) => !empty($video['url']))
+            ->values()
+            ->map(fn($video, $index) => [
+                'url' => self::resolvePublicAssetUrl($video['url']),
+                'title' => $video['title'] ?? 'ویدیوی آموزشی ' . ($index + 1),
+                'duration' => $video['duration'] ?? null,
+                'thumbnail' => $video['thumbnail'] ? self::resolvePublicAssetUrl($video['thumbnail']) : null,
+            ])
+            ->toArray();
     }
 
     private function fileBadgeClass(string $ext): string

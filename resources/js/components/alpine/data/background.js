@@ -4,9 +4,10 @@ const HIDDEN_CLASSES = 'opacity-0 z-0';
 
 const timeOfDayKey = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour <= 11) return 'morning';
-    if (hour >= 12 && hour <= 16) return 'noon';
-    if (hour >= 17 && hour <= 19) return 'evening';
+    if (hour >= 5 && hour <= 7) return 'early';
+    if (hour >= 8 && hour <= 9) return 'morning';
+    if (hour >= 10 && hour <= 15) return 'noon';
+    if (hour >= 16 && hour <= 19) return 'evening';
     return 'night';
 };
 

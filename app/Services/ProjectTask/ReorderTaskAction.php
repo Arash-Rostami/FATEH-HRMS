@@ -33,10 +33,6 @@ class ReorderTaskAction
 
             $targetIndex = $beforeTaskId ? $siblings->search(fn(Task $sibling) => $sibling->id === $beforeTaskId) : false;
 
-            if ($beforeTaskId && $targetIndex === false) {
-                return;
-            }
-
             $before = $targetIndex !== false
                 ? ($targetIndex > 0 ? $siblings[$targetIndex - 1]->rank : null)
                 : $siblings->last()?->rank;

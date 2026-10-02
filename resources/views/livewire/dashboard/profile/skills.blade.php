@@ -50,7 +50,7 @@
 
         @forelse($this->ownSkills as $skillUser)
             @if($skillUser->status->value === 'approved')
-                <div class="flex items-center justify-between gap-3">
+                <div wire:key="profile-skill-{{ $skillUser->id }}-approved" class="flex items-center justify-between gap-3">
                     <div class="min-w-0 grow">
                         @include('livewire.dashboard.profile.skill-row', [
                             'skillUser' => $skillUser,
@@ -81,7 +81,7 @@
                     </div>
                 </div>
             @else
-                <div class="py-3 border-b border-[var(--md-sys-color-outline-variant)] last:border-0">
+                <div wire:key="profile-skill-{{ $skillUser->id }}-other" class="py-3 border-b border-[var(--md-sys-color-outline-variant)] last:border-0">
                     <p class="font-bold text-[var(--md-sys-color-on-surface)] truncate">
                         {{ $skillPresenter->displayLabel($skillUser->skill) }}
                     </p>

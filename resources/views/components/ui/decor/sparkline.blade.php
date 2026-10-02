@@ -20,7 +20,7 @@
             $y = $height - $barHeight;
         @endphp
         <rect x="{{ $x }}" y="{{ $y }}" width="{{ $barWidth }}" height="{{ $barHeight }}" rx="1" fill="{{ $color }}">
-            <title>{{ $value }}</title>
+            <title>{{ convertToPersian($value) }}</title>
         </rect>
     @endforeach
 </svg>

@@ -7,7 +7,6 @@ use App\Models\Profile;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class UploadCustomDocumentAction
 {
@@ -26,11 +25,8 @@ class UploadCustomDocumentAction
         try {
             $timestamp = time();
             $extension = $form->customFile->getClientOriginalExtension();
-            $slug = Str::slug($form->customType, '-');
-
-            if (empty($slug)) {
-                $slug = 'doc';
-            }
+            $segment = trim(mb_substr(preg_replace('/[\/\\\\:*?"<>|\x00-\x1F]/u', '', $form->customType), 0, 60), " \t\n\r.");
+            $segment = $segment !== '' ? $segment : 'doc';
 
             $userProfile = Auth::user()->profile ?? new Profile(['user_id' => Auth::id()]);
 
@@ -38,16 +34,16 @@ class UploadCustomDocumentAction
                 $userProfile->save();
             }
 
-            $fileName = "doc_custom_{$slug}_{$timestamp}.{$extension}";
+            $fileName = "doc_custom_{$segment}_{$timestamp}.{$extension}";
             $newPath = static::storeAttachment($form->customFile, "profiles/docs/{$userProfile->getDocsPathToken()}", $fileName)['path'];
 
             $currentAttachments = collect($userProfile->attachments ?? []);
             $oldPaths = $currentAttachments
-                ->filter(fn ($item) => str_contains($item['path'] ?? '', "doc_custom_{$slug}_"))
+                ->filter(fn ($item) => ($item['category'] ?? '') === 'custom' && ($item['key'] ?? '') === $form->customType)
                 ->pluck('path');
 
             $userProfile->attachments = $currentAttachments
-                ->reject(fn ($item) => str_contains($item['path'] ?? '', "doc_custom_{$slug}_"))
+                ->reject(fn ($item) => ($item['category'] ?? '') === 'custom' && ($item['key'] ?? '') === $form->customType)
                 ->push([
                     'key'      => $form->customType,
                     'path'     => $newPath,

@@ -4,6 +4,8 @@
     'confirmText' => 'ذخیره',
     'cancelText' => 'انصراف',
     'readonly' => false,
+    'confirmWhen' => null,
+    'confirmPrompt' => null,
 ])
 
 <x-ui.modals.base
@@ -26,10 +28,15 @@
         </button>
 
         @unless($readonly)
+            @php
+                $clickExpr = $confirmWhen
+                    ? "(!({$confirmWhen}) || confirm(" . \Illuminate\Support\Js::from($confirmPrompt) . ")) && \$wire.{$action}()"
+                    : "\$wire.{$action}()";
+            @endphp
             <x-ui.buttons.form
                 variant="none"
                 class="modal-btn modal-btn-confirm"
-                x-on:click="$wire.{{ $action }}()"
+                x-on:click="{{ $clickExpr }}"
                 wire:loading.attr="disabled"
                 wire:target="{{ $action }}"
                 :loading="$action"

@@ -1,6 +1,6 @@
 @php($presenter = $taskBoardPresenter)
 
-<div class="relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]">
+<div class="relative overflow-hidden rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm">
     <div class="w-full overflow-x-auto"
          x-data="{
             sortKey: null, sortDir: 'asc',

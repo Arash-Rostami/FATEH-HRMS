@@ -10,7 +10,7 @@
 <tr wire:key="ticket-{{ $ticket->id }}" data-rf="ticket-{{ $ticket->id }}" class="relative isolate hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer {{ $isUrgent ? 'taskboard-card--urgent' : '' }}"
     style="{{ $isUrgent ? '--urgency:' . $urgency['score'] . ';' : '' }}"
     @if($isUrgent) title="{{ $urgency['label'] }}" @endif
-    wire:click="viewTicket({{ $ticket->id }}); $dispatch('ths-modal')">
+    wire:click="viewTicket({{ $ticket->id }})">
     <td class="px-6 py-4 flex items-center gap-3">
         <div class="absolute inset-0 -z-10 pointer-events-none transition-colors duration-200"
              :style="{ 'background-color': $store.tagged.tagBg(@js($ticket->id), @js('ths')) }"></div>

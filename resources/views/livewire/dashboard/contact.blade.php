@@ -14,7 +14,7 @@
 
         <x-ui.title
             icon="perm_contact_calendar"
-            :count="count($this->contacts)"
+            :count="$this->totalStaff"
             title="مخاطبین (پیام‌رسان)"
             countLabel="نفر">
             <x-slot:actions>

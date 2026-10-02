@@ -1,6 +1,7 @@
 <div class="flex-1 min-h-0 flex flex-col gap-3 relative" wire:key="chat-{{ $activeProjectId }}" x-on:project-teamchat-refresh.window="$wire.refreshTeamChat()" x-on:project-teamchat-activate.window="$wire.activate()">
     <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
     @if($activated)
+        <div wire:key="project-teamchat-activated" class="contents">
         @if($this->teamChatMessages['hasMore'])
             <x-ui.buttons.load-more action="loadOlderTeamChat" text="پیام‌های قدیمی‌تر" loadingText="در حال بارگذاری…"
                 icon="expand_less" wire:loading.attr="disabled" wire:target="loadOlderTeamChat"
@@ -50,11 +51,14 @@
                     </div>
                 @endforeach
             @empty
-                <x-ui.empty icon="forum" title="هنوز پیامی ارسال نشده" :description="'شروع گفتگو در ' . ($this->activeProject?->name ?? '')" variant="list"/>
+                <div wire:key="project-teamchat-empty" class="contents">
+                    <x-ui.empty icon="forum" title="هنوز پیامی ارسال نشده" :description="'شروع گفتگو در ' . ($this->activeProject?->name ?? '')" variant="list"/>
+                </div>
             @endforelse
         </div>
+        </div>
     @else
-        <div class="flex-1 min-h-0 flex flex-col gap-1 px-1 animate-fade" role="status" aria-label="در حال بارگذاری پیام‌ها">
+        <div wire:key="project-teamchat-skeleton" class="flex-1 min-h-0 flex flex-col gap-1 px-1 animate-fade" role="status" aria-label="در حال بارگذاری پیام‌ها">
             @for($i = 0; $i < 4; $i++)
                 <div @class(['flex items-end gap-2', 'justify-start' => $i % 2 === 0, 'justify-end' => $i % 2 !== 0])>
                     <x-ui.loaders.skeleton.bar width="{{ $i % 2 === 0 ? 'w-2/5' : 'w-1/3' }}" height="h-9" class="rounded-2xl"/>

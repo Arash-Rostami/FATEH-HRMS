@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
+use App\Services\Messaging\PollDigestService;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -109,5 +110,10 @@ class ChannelMessage extends Model
     protected static function booted(): void
     {
         static::forceDeleted(fn(self $message) => static::deleteStoredDirectory("channel_messages/{$message->channel_id}/{$message->id}"));
+
+        $bumpThread = fn(self $message) => DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$message->channel_id}"));
+        static::created($bumpThread);
+        static::updated($bumpThread);
+        static::deleted($bumpThread);
     }
 }

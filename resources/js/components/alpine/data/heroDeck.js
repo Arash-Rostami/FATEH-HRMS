@@ -3,6 +3,7 @@ import maximizeMixin from "../mixins/maximize.js";
 const STORAGE_KEY = 'hero_gadgets';
 const MAX_PANES = 6;
 const NEW_PANE = '__new__';
+const MAX_WIDGET_CLOSE_MS = 350;
 
 export default function heroDeck() {
     return {
@@ -99,9 +100,18 @@ export default function heroDeck() {
         },
 
         toggleMaximize(pane) {
-            const isMax = this.maximizedPane === pane;
-            this.maximizedPane = isMax ? null : pane;
-            this.applyMaximize(!isMax);
+            if (this.maximizedPane === pane) {
+                this.maxLeaving = true;
+                this.applyMaximize(false);
+                setTimeout(() => {
+                    this.maximizedPane = null;
+                    this.maxLeaving = false;
+                }, MAX_WIDGET_CLOSE_MS);
+                return;
+            }
+
+            this.maximizedPane = pane;
+            this.applyMaximize(true);
         },
 
         persist() {

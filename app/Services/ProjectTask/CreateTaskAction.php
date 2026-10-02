@@ -40,7 +40,7 @@ class CreateTaskAction
                 'assigned_to' => $form->selectedAssignee ?: null,
                 'project_id'  => $projectId,
                 'rank'        => Task::rankForPriority($projectId, $ownerId, 'todo', $form->priority),
-                'labels'      => $form->labels,
+                'labels'      => array_map(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l), $form->labels),
                 'priority'    => $form->priority,
             ]);
 

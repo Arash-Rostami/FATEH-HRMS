@@ -30,21 +30,19 @@
             <div>
                 <label class="block text-[11px] font-semibold mb-1.5 text-[var(--md-sys-color-on-surface-variant)]">نوع گروه</label>
                 <div class="grid grid-cols-2 gap-2">
-                    <button type="button" x-on:click="$wire.set('create.type', 'open')"
-                            @class([
-                                'flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border',
-                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]' => $create->type === 'open',
-                                'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50' => $create->type !== 'open',
-                            ])>
+                    <button type="button" x-on:click="$wire.set('create.type', 'open', false)"
+                            class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border"
+                            :class="$wire.create.type === 'open'
+                                ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]'
+                                : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50'">
                         <span class="material-symbols-rounded text-[18px]">campaign</span>
                         عمومی
                     </button>
-                    <button type="button" x-on:click="$wire.set('create.type', 'private')"
-                            @class([
-                                'flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border',
-                                'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]' => $create->type === 'private',
-                                'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50' => $create->type !== 'private',
-                            ])>
+                    <button type="button" x-on:click="$wire.set('create.type', 'private', false)"
+                            class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all border"
+                            :class="$wire.create.type === 'private'
+                                ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] border-[var(--md-sys-color-primary)]'
+                                : 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border-[var(--md-sys-color-outline-variant)]/50'">
                         <span class="material-symbols-rounded text-[18px]">lock</span>
                         خصوصی
                     </button>

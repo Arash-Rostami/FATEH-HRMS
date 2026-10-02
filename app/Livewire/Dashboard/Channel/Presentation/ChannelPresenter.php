@@ -40,11 +40,6 @@ class ChannelPresenter
         ];
     }
 
-    public function totalUnread(array $channels): int
-    {
-        return array_sum(array_column($channels, 'unread_count'));
-    }
-
     public function channelHeader(Channel $channel): array
     {
         return [

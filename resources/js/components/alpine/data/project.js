@@ -90,6 +90,8 @@ export default function project() {
             const wire = this.$wire;
             this._electLeaderFor(wire.activeProjectId);
 
+            wire.on('activity-delete-failed', () => { this.activityDeletingId = null; });
+
             const wireId = wire.__instance.id;
             this._commitHook = Livewire.hook('commit', ({ component, succeed }) => {
                 if (this._isDestroyed || component.id !== wireId) return;
@@ -544,7 +546,6 @@ export default function project() {
 
         async _applyPulse(data) {
             if (data.gone) {
-                this.stopPolling();
                 this.toast?.('شما دیگر عضو این گفتگو نیستید.', 'warning');
                 await this.$wire.switchTab('activity');
                 return;

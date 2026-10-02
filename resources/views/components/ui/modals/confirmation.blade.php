@@ -3,6 +3,7 @@
         x-data="{
             show: false,
             active: false,
+            firing: false,
             title: '',
             message: '',
             confirmMethod: '',
@@ -15,6 +16,7 @@
                 payload = payload[0];
             }
             show = true;
+            firing = false;
             title = payload.title || '';
             message = payload.message || '';
             confirmMethod = payload.method || '';
@@ -64,7 +66,7 @@
                     <button
                         type="button"
                         class="modal-btn modal-btn-confirm"
-                        @click="$dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
+                        @click="if (firing) return; firing = true; $dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
                     >
                         تایید
                     </button>
@@ -84,7 +86,7 @@
                     <button
                         type="button"
                         class="modal-btn modal-btn-confirm"
-                        @click="Livewire.dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
+                        @click="if (firing) return; firing = true; Livewire.dispatch('confirmation-confirmed', { method: confirmMethod, params: confirmParams }); show = false"
                     >
                         تایید
                     </button>

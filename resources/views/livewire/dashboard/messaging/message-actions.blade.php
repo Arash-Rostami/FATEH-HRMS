@@ -21,6 +21,13 @@
             title="کپی" aria-label="کپی">
         <span class="material-symbols-rounded text-[15px]">content_copy</span>
     </button>
+    @if(count($msg['attachments'] ?? []) === 1)
+        <button type="button" wire:click="downloadAttachment({{ $msg['id'] }}, 0)"
+                class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-tertiary)_10%,transparent)] hover:text-[var(--md-sys-color-tertiary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
+                title="دانلود پیوست" aria-label="دانلود پیوست">
+            <span class="material-symbols-rounded text-[15px]">download</span>
+        </button>
+    @endif
     <button x-on:click.prevent="startReply({{ $msg['id'] }}, $el.dataset.sender, $el.dataset.body)"
             data-sender="{{ $msg['sender_name'] }}"
             data-body="{{ strip_tags($msg['body']) }}"

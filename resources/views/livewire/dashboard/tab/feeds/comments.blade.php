@@ -4,7 +4,7 @@
 
 <div
     class="{{ $isNestedView ? 'mt-3 mr-5 space-y-3 border-r-2 border-[var(--md-sys-color-primary)]/20 pr-3' : 'mt-2 flex flex-col h-full' }}"
-    x-data="{ replyingTo: null }"
+    x-data="{ replyingTo: null, sendingReply: null, async sendReply(feedId, commentId) { if (this.sendingReply) return; this.sendingReply = commentId; try { await $wire.addComment(feedId, commentId); if ($wire.get('replyComments.' + commentId) == null) this.replyingTo = null; } catch {} finally { this.sendingReply = null; } } }"
 >
     {{--  Comment Input (top) --}}
     @if(!$isNestedView)
@@ -109,12 +109,18 @@
                     <button
                         type="button"
                         wire:click="addComment({{ $feed?->id ?? 'null' }})"
+                        wire:loading.attr="disabled"
+                        wire:target="addComment"
                         title="ارسال نظر"
                         class="shrink-0 mx-2 mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:brightness-110 active:scale-90 transition-all duration-150 rotate-180"
                     >
                         <span class="material-symbols-rounded text-[18px]">send</span>
                     </button>
                 </div>
+
+                @error('commentForm.content')
+                    <p x-show="!replyingTo" class="px-3 pt-1 text-[11px] text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>
+                @enderror
 
                 <div class="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-[var(--md-sys-color-surface-variant)]/30 border-t border-[var(--md-sys-color-outline-variant)]/20 text-[10px] text-[var(--md-sys-color-on-surface-variant)]/70 select-none">
                     <span class="inline-flex items-center gap-1">
@@ -238,13 +244,7 @@
                                     </button>
 
                                     <button
-                                        @click="$dispatch('open-confirmation', {
-                                            title: 'حذف نظر',
-                                            message: 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.',
-                                            method: 'delete-comment-confirmed',
-                                            params: {{ $comment->id }},
-                                            type: 'js'
-                                        })"
+                                        @click="{{ confirmDialog('delete-comment-confirmed', 'حذف نظر', 'آیا از حذف این نظر مطمئن هستید؟ این عملیات غیرقابل بازگشت است.', $comment->id, 'js') }}"
                                         class="p-1.5 text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] rounded-full transition-colors"
                                     >
                                         <span class="material-symbols-rounded !text-[13px]">delete</span>
@@ -261,18 +261,22 @@
                                 <input
                                     type="text"
                                     wire:model="replyComments.{{ $comment?->id ?? 'null' }}"
-                                    @keydown.enter="$wire.addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
+                                    @keydown.enter="sendReply({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }})"
                                     placeholder="پاسخ به {{ superClean($meta['user']?->name ?? 'کاربر') }}..."
                                     class="flex-1 bg-transparent border-none text-[13px] focus:ring-0 outline-none placeholder:text-[var(--md-sys-color-primary)]/50 text-[var(--md-sys-color-on-surface)]"
                                 >
 
                                 <button
-                                    @click="$wire.addComment({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }}); replyingTo = null"
+                                    @click="sendReply({{ $feed?->id ?? 'null' }}, {{ $comment?->id ?? 'null' }})"
                                     class="w-7 h-7 rounded-full bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] flex items-center justify-center shrink-0 hover:brightness-110 active:scale-90 transition-all shadow-sm"
                                 >
                                     <span class="material-symbols-rounded text-sm rotate-180">send</span>
                                 </button>
                             </div>
+
+                            @error('commentForm.content')
+                                <p class="mt-1 text-[11px] text-[var(--md-sys-color-error)] animate-pulse">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         {{-- Nested Replies --}}

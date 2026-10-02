@@ -25,38 +25,26 @@
         >
             @foreach ($this->reports as $report)
                 <div
-                    x-data="{ imageViewer: false }"
                     wire:key="report-{{ $report->id }}"
                     data-rf="reports-{{ $report->id }}"
                     data-report-id="{{ $report->id }}"
-                    class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group rounded-2xl overflow-hidden cursor-pointer snap-center shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
+                    class="shrink-0 w-[80vw] sm:w-[340px] md:w-[380px] h-[90%] relative group snap-center"
                     :class="{
                         'md:scale-[1.15] z-30': activeId == {{ $report->id }},
                         'md:scale-95 z-10': activeId != {{ $report->id }}
                     }"
-                    @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; activeReport.thumbnail = '{{ $report->thumbnail }}'; showModal = true; recordOpen(activeReport)"
                 >
-                    {{-- Timeline dot --}}
-                    <div
-                        x-show="showTimeline"
-                        x-transition:enter="transition ease-out duration-300 delay-100"
-                        x-transition:enter-start="opacity-0 scale-90 translate-x-4"
-                        x-transition:enter-end="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100 scale-100 translate-x-1/2"
-                        x-transition:leave-end="opacity-0 scale-90 translate-x-4"
-                        class="absolute top-1/2 -right-10 z-40 hidden md:flex flex-col items-center justify-center -translate-y-1/2 translate-x-1/2 pointer-events-none"
-                    >
-                        <x-dashboard.timeline-date-bubble :id="$report->id" :date="toJalali($report->created_at, 'j F Y')"/>
-                        <div
-                            class="w-8 h-8 rounded-full bg-[var(--md-sys-color-surface-variant)] border-4 border-[var(--md-sys-color-background)] shadow-sm flex items-center justify-center transition-all duration-500"
-                            :class="activeId == {{ $report->id }} ? 'scale-125 border-[var(--md-sys-color-primary)]' : ''"
-                        >
-                            <div class="w-2.5 h-2.5 rounded-full bg-[var(--md-sys-color-primary)]"></div>
-                        </div>
-                        <x-dashboard.timeline-caption :id="$report->id" :text="strtoupper($report->file_type)"/>
-                    </div>
+                    <x-dashboard.timeline-marker
+                        :id="$report->id"
+                        :date="strtoupper($report->file_type)"
+                        :caption="toJalali($report->created_at, 'j F Y')"
+                    />
 
+                    <div
+                        x-data="{ imageViewer: false }"
+                        class="group relative z-20 h-full w-full rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-[var(--md-sys-color-outline-variant)]/20 bg-[var(--md-sys-color-surface)] transition-all duration-500 flex flex-col hover:shadow-[0_20px_40px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]"
+                        @click="activeReport = {{ json_encode($report->only(['id', 'title', 'description', 'file_type', 'thumbnail']) + ['created_at_formatted' => toJalali($report->created_at, 'j F Y'), 'report_date_formatted' => $report->report_date ? toJalali($report->report_date, 'j F Y') : null]) }}; showModal = true; recordOpen(activeReport)"
+                    >
                     {{-- Top accent bar --}}
                     <div class="absolute top-0 left-0 right-0 h-[3px] bg-[var(--md-sys-color-primary)] z-20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center shadow-[0_2px_8px_color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)]"></div>
 
@@ -134,6 +122,7 @@
                             class="max-h-[92vh] w-full select-none object-contain rounded-xl"
                         >
                     </x-ui.modals.lightbox>
+                    </div>
                 </div>
             @endforeach
 

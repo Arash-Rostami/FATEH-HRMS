@@ -8,12 +8,22 @@ use App\Traits\FilamentEditHeading;
 use App\Traits\FilamentHeaderActions;
 use App\Traits\FilamentPageBehavior;
 use App\Filament\Pages\EditRecord;
+use Filament\Actions\CreateAction;
 
 class EditUser extends EditRecord
 {
     use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions;
 
     protected static string $resource = UserResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            CreateAction::make()
+                ->icon('heroicon-o-sparkles')
+                ->label(__('resources/general/strings.table.action_create')),
+        ];
+    }
 
     protected function mutateFormDataBeforeFill(array $data): array
     {

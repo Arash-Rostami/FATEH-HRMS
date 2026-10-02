@@ -32,7 +32,8 @@ class GalleryFormPresenter
             ->disabled(fn (Get $get) => filled($get('departments')))
             ->dehydrated(true)
             ->afterStateUpdated(fn (Set $set) => $set('departments', null))
-            ->nullable();
+            ->nullable()
+            ->columnSpan(2);
     }
 
 
@@ -47,7 +48,8 @@ class GalleryFormPresenter
             ->preload()
             ->live()
             ->afterStateUpdated(fn (Set $set) => $set('department_id', null))
-            ->nullable();
+            ->nullable()
+            ->columnSpan(3);
     }
     public static function description(): Textarea
     {
@@ -67,7 +69,7 @@ class GalleryFormPresenter
             required: false,
             yearFrom: 1380,
             fullWidth: false,
-        );
+        )->columnSpan(3);
     }
 
     public static function path(): FileUpload
@@ -108,6 +110,7 @@ class GalleryFormPresenter
             ->label(__('resources/gallery/strings.fields.title'))
             ->required()
             ->maxLength(255)
-            ->helperText(__('resources/gallery/strings.hints.title'));
+            ->helperText(__('resources/gallery/strings.hints.title'))
+            ->columnSpan(2);
     }
 }

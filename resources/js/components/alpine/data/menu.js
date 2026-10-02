@@ -23,7 +23,7 @@ const BASE_ITEMS = [
     {id: 'authority-controller', href: '/authority', icon: 'verified_user', title: 'اختیارات', sub: 'واحدهای سازمانی', group: 'سازمان'},
     {id: 'energy-controller', href: '/energy', icon: 'energy', title: 'پرسشنامه انرژی', sub: 'ارزیابی فردی', module: 'energy', group: 'سازمان'},
     {id: 'calculator-controller', href: '-', icon: 'computer', title: 'ماشین حساب', sub: 'محاسبات شخصی', action: 'calculate', group: 'ابزارها'},
-    {id: 'stopwatch-controller', href: '-', icon: 'radio', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch', group: 'ابزارها'},
+    {id: 'stopwatch-controller', href: '-', icon: 'timer', title: 'آلارم', sub: 'تایمر دستی', action: 'stopwatch', group: 'ابزارها'},
     {id: 'radio-controller', href: '-', icon: 'radio', title: 'رادیو', sub: 'موسیقی آنلاین', action: 'radio', group: 'ابزارها'},
     {id: 'documents-controller', href: '/profile?tab=documents', icon: 'folder_open', title: 'مدارک و اسناد', sub: 'آپلود و دانلود', module: 'profile', group: 'پروفایل'},
     {id: 'credentials-controller', href: '/profile?tab=credentials', icon: 'verified_user', title: 'دسترس', sub: 'مجوزها و رمزها', module: 'profile', group: 'پروفایل'},

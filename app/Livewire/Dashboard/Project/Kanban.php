@@ -169,7 +169,11 @@ class Kanban extends Component
             ->when($this->kanbanPriorityFilter !== '', fn(Builder $q) => $q->where('priority', $this->kanbanPriorityFilter))
             ->when(!empty($this->kanbanLabelFilter), function (Builder $q) {
                 foreach ($this->kanbanLabelFilter as $label) {
-                    $q->whereJsonContains('labels', $label);
+                    $canonical = str_replace(['ي', 'ك'], ['ی', 'ک'], $label);
+                    $variant = str_replace(['ی', 'ک'], ['ي', 'ك'], $canonical);
+                    $q->where(fn(Builder $sub) => $sub
+                        ->whereJsonContains('labels', $canonical)
+                        ->orWhereJsonContains('labels', $variant));
                 }
             })
             ->when(
@@ -258,10 +262,13 @@ class Kanban extends Component
         $key = sprintf('kanban:label_options:%d:t%s', $projectId, ModelCacheVersion::version(Task::class));
 
         return Cache::flexible($key, [self::LABEL_OPTIONS_FRESH_SECONDS, self::LABEL_OPTIONS_STALE_SECONDS], fn() => Task::where('project_id', $projectId)
+            ->whereNull('archived_at')
             ->whereNotNull('labels')
             ->pluck('labels')
             ->flatten()
             ->unique()
+            ->groupBy(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l))
+            ->map(fn($g) => $g->first())
             ->sort()
             ->values()
             ->all());

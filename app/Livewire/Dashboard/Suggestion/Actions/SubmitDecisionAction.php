@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Suggestion\Actions;
 
 use App\Livewire\Dashboard\Suggestion\Forms\DecisionForm;
+use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Models\User;
@@ -18,6 +19,13 @@ class SubmitDecisionAction
         abort_unless(SuggestionAccessPolicy::canDecide($suggestion), 403);
 
         $form->validate();
+
+        $validDepts = Department::getCachedModels()->keys()->all();
+        if (array_diff($form->referralDepts, $validDepts)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'decisionForm.referralDepts' => 'یک یا چند واحد انتخابی معتبر نیست.',
+            ]);
+        }
 
         DB::transaction(function () use ($form, $suggestion): void {
             $suggestion->comments = $form->decisionComment;

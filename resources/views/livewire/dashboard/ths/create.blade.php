@@ -118,7 +118,7 @@
 
                                     <label for="dropzone-file-{{ $key }}"
                                            class="flex-1 flex items-center gap-3 h-[52px] px-3 border border-dashed rounded-xl cursor-pointer transition-all"
-                                           :class="$wire.errors?.has?.('files.{{ $key }}')
+                                           :class="$wire.errors?.has?.('ticket.files.{{ $key }}')
                                            ? 'border-[var(--md-sys-color-error)] bg-[color-mix(in_srgb,var(--md-sys-color-error)_8%,transparent)]'
                                            : 'border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] hover:bg-[var(--md-sys-color-surface-container)] hover:border-[var(--md-sys-color-primary)]'">
 

@@ -6,7 +6,9 @@
     <x-ui.modals.backdrop x-show="open" :minimizable="true">
 
         <x-slot:icon>
-            <span class="material-symbols-rounded text-[var(--md-sys-color-on-primary)] text-[24px]">alarm</span>
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary-container)]">
+                <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-on-primary-container)]">timer</span>
+            </div>
         </x-slot:icon>
 
         <x-slot:heading>
@@ -15,6 +17,9 @@
             <p class="mt-1 text-xs leading-none" style="color:rgba(255,255,255,.70);"
                x-text="timer.running ? 'فعال ...' : 'متوقف'"></p>
         </x-slot:heading>
+
+        <div x-show="missedNotice" x-cloak
+             class="mx-5 mt-5 rounded-lg px-4 py-2 text-center text-xs bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] border border-[var(--md-sys-color-outline-variant)]">یک آلارم از دست رفته</div>
 
         {{-- Ring --}}
         <div class="flex flex-col items-center px-5 pt-6 pb-2">
@@ -25,7 +30,7 @@
                     <circle cx="72" cy="72" r="62" fill="none"
                             stroke="var(--md-sys-color-primary-container)"
                             stroke-width="8" stroke-linecap="round"
-                            :stroke-dasharray="`${(timer.seconds / 300) * 389.56} 389.56`"
+                            :stroke-dasharray="`${Math.min(1, timer.seconds / 300) * 389.56} 389.56`"
                             style="transition:stroke-dasharray 1s linear;"/>
                 </svg>
                 <div class="text-center z-10">
@@ -51,7 +56,11 @@
 
             <button @click="stopAlarm()" x-show="alarmInterval" title="توقف آلارم"
                     class="flex items-center justify-center rounded-xl animate-pulse transition-all duration-150 hover:-translate-y-px bg-[var(--md-sys-color-error)] active:scale-95 w-[52px] h-[52px] shadow-md">
-                <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-on-primary]">alarm_off</span>
+                <span class="material-symbols-rounded text-[32px] text-[var(--md-sys-color-on-primary)]">alarm_off</span>
+            </button>
+            <button @click="snooze(5)" x-show="alarmInterval" title="تعویق ۵ دقیقه"
+                    class="flex items-center justify-center rounded-xl transition-all duration-150 hover:-translate-y-px active:scale-95 bg-[var(--md-sys-color-secondary-container)] w-[52px] h-[52px]">
+                <span class="material-symbols-rounded text-[26px] text-[var(--md-sys-color-on-secondary-container)]">snooze</span>
             </button>
             <div x-show="!alarmInterval" class="w-[52px] h-[52px]"></div>
         </div>
@@ -71,11 +80,11 @@
 
         {{-- Custom input --}}
         <div class="px-5 pb-6 pt-3">
-            <input type="number" min="1" step="1"
+            <input type="number" min="1" max="1440" step="1"
                    x-model.number="customMins"
-                   @dblclick="setTimerPreset(customMins*60)"
-                   @blur="setTimerPreset(customMins*60)"
-                   @keydown.enter.prevent="setTimerPreset(customMins*60)"
+                   @dblclick="setCustomMinutes()"
+                   @blur="setCustomMinutes()"
+                   @keydown.enter.prevent="setCustomMinutes()"
                    placeholder="تنظیم دستی (دقیقه)"
                    class="w-full rounded-lg px-4 py-3 text-sm text-center outline-none transition-all duration-150 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]">
         </div>
@@ -94,15 +103,16 @@
             close-fn="closeModal()">
 
             <x-slot:icon>
-                <span class="material-symbols-rounded text-[18px]"
-                      x-text="alarmInterval ? 'notifications_active' : 'timer'"></span>
+                <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--md-sys-color-surface-container-high)] ring-1 ring-inset ring-[var(--md-sys-color-outline-variant)]">
+                    <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]"
+                          x-text="alarmInterval ? 'notifications_active' : 'timer'"></span>
+                </div>
             </x-slot:icon>
 
             <x-slot:controls>
                 <button @click.stop="toggleTimer()" title="پخش/توقف"
-                        class="flex items-center justify-center rounded-md w-[28px] h-[28px]
-                               hover:bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] transition-colors">
-                    <span class="material-symbols-rounded text-[18px]"
+                        class="flex h-8 w-8 items-center justify-center rounded-md text-[var(--md-sys-color-primary)] transition-all hover:bg-[var(--md-sys-color-primary)]/10 active:scale-90">
+                    <span class="material-symbols-rounded text-[20px]"
                           x-text="timer.running ? 'pause' : 'play_arrow'"></span>
                 </button>
             </x-slot:controls>
@@ -112,6 +122,10 @@
             </x-slot:alarmText>
 
             <x-slot:alarmControls>
+                <button @click.stop="snooze(5)"
+                        class="flex items-center justify-center rounded-lg px-2 py-1 bg-white/20 text-white hover:bg-white/30 transition-colors text-[11px] font-bold">
+                    تعویق
+                </button>
                 <button @click.stop="stopAlarm(); restore()"
                         class="flex items-center justify-center rounded-lg px-3 py-1 bg-red-500 text-white hover:bg-red-600 transition-colors text-[11px] font-bold">
                     توقف

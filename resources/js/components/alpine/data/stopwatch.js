@@ -2,6 +2,8 @@ import persistentStateMixin from "../mixins/persistentState.js";
 
 const STORAGE_KEY = 'stopwatch_state';
 const DISMISSED_KEY = 'stopwatch_dismissed_reminder_id';
+const MISSED_GRACE_MS = 60000;
+const MAX_CUSTOM_MINS = 1440;
 
 export default function stopwatch(mp3) {
     return {
@@ -10,6 +12,7 @@ export default function stopwatch(mp3) {
         armedUntil: null,
         armedReminderId: null,
         reminderTitle: null,
+        missedNotice: false,
         customMins: null,
         alarm: mp3,
         alarmInterval: null,
@@ -20,28 +23,30 @@ export default function stopwatch(mp3) {
         init() {
             this.modal = this.$refs.stopwatchModal;
             if (this.modal) {
-                window.addEventListener('stopwatch', () => this.mounted());
-                window.addEventListener('keydown', (event) => {
+                this._windowStopwatchListener = () => this.mounted();
+                this._windowKeydownListener = (event) => {
                     if (event.key === "Escape" && this.modal.classList.contains('flex')) this.minimize();
-                });
+                };
+                window.addEventListener('stopwatch', this._windowStopwatchListener);
+                window.addEventListener('keydown', this._windowKeydownListener);
             }
             this.restoreState();
-            if (window.__eventReminder && window.__eventReminder.id !== this._loadState(DISMISSED_KEY)) {
-                this.armReminder(window.__eventReminder);
+            this.syncEventReminder();
+            this._tickInterval = setInterval(() => this.tick(), 1000);
+        },
+
+        tick() {
+            if (!this.timer.running) return;
+            const remaining = Math.max(0, Math.round((this.armedUntil - Date.now()) / 1000));
+            this.timer.seconds = remaining;
+            if (remaining === 0) {
+                this.timer.running = false;
+                this.armedUntil = null;
+                if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
+                this.restore();
+                this.startAlarmLoop();
+                this.saveState();
             }
-            setInterval(() => {
-                if (this.timer.running && this.timer.seconds > 0) {
-                    this.timer.seconds--;
-                    if (this.timer.seconds === 0) {
-                        this.timer.running = false;
-                        this.armedUntil = null;
-                        this.open = true;
-                        this.minimized = false;
-                        this.startAlarmLoop();
-                        this.saveState();
-                    }
-                }
-            }, 1000);
         },
 
         restoreState() {
@@ -49,7 +54,9 @@ export default function stopwatch(mp3) {
             if (!raw) return;
 
             this.minimized = !!raw.minimized;
+            this.armedReminderId = raw.armedReminderId ?? null;
             this.reminderTitle = raw.reminderTitle || null;
+            this.missedNotice = !!raw.missedNotice;
 
             if (raw.running && Number.isFinite(raw.armedUntil)) {
                 const remaining = Math.round((raw.armedUntil - Date.now()) / 1000);
@@ -57,9 +64,14 @@ export default function stopwatch(mp3) {
                     this.timer.seconds = 0;
                     this.timer.running = false;
                     this.armedUntil = null;
-                    this.open = true;
-                    this.minimized = false;
-                    this.startAlarmLoop();
+                    this.armedReminderId = raw.armedReminderId ?? null;
+                    if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
+                    this.restore();
+                    if (Date.now() - raw.armedUntil <= MISSED_GRACE_MS) {
+                        this.startAlarmLoop();
+                    } else {
+                        this.missedNotice = true;
+                    }
                     this.saveState();
                 } else {
                     this.timer.seconds = remaining;
@@ -76,13 +88,20 @@ export default function stopwatch(mp3) {
                 running: this.timer.running,
                 seconds: this.timer.seconds,
                 armedUntil: this.armedUntil,
+                armedReminderId: this.armedReminderId,
                 minimized: this.minimized,
                 reminderTitle: this.reminderTitle,
+                missedNotice: this.missedNotice,
             });
         },
 
         clearState() {
             this._clearState(STORAGE_KEY);
+        },
+        syncEventReminder() {
+            if (window.__eventReminder && window.__eventReminder.id !== this._loadState(DISMISSED_KEY)) {
+                this.armReminder(window.__eventReminder);
+            }
         },
         armReminder({id, eventAtIso, title}) {
             if (this.timer.running) return;
@@ -94,17 +113,19 @@ export default function stopwatch(mp3) {
             this.timer.seconds = seconds;
             this.armedReminderId = id ?? null;
             this.reminderTitle = title;
-            this.minimized = true;
+            this.missedNotice = false;
 
             if (seconds === 0) {
                 this.timer.running = false;
                 this.armedUntil = null;
-                this.open = true;
-                this.minimized = false;
+                if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
+                this.restore();
                 this.startAlarmLoop();
             } else {
                 this.timer.running = true;
                 this.armedUntil = Date.now() + seconds * 1000;
+                this.minimized = true;
+                this.open = false;
             }
             this.saveState();
         },
@@ -116,6 +137,21 @@ export default function stopwatch(mp3) {
             a.play().catch(() => {
             });
             this.alarmInterval = setInterval(() => this.stopAlarm(), 60000);
+            this.notifyAlarm();
+        },
+        notifyAlarm() {
+            if (typeof Notification === 'undefined') return;
+            if (Notification.permission !== 'granted') return;
+            const body = this.reminderTitle ? `یادآوری: ${this.reminderTitle}` : 'زمان‌سنج شما به پایان رسید';
+            new Notification('⏰ زمان تمام شد', {body});
+        },
+        snooze(minutes = 5) {
+            this.stopAlarm();
+            this.missedNotice = false;
+            this.timer.seconds = minutes * 60;
+            this.timer.running = true;
+            this.armedUntil = Date.now() + minutes * 60 * 1000;
+            this.saveState();
         },
         stopAlarm() {
             if (this.alarmInterval) {
@@ -131,7 +167,10 @@ export default function stopwatch(mp3) {
         toggleTimer() {
             this.timer.running = !this.timer.running;
             this.armedUntil = this.timer.running ? (Date.now() + this.timer.seconds * 1000) : null;
-            if (this.timer.running) this.stopAlarm();
+            if (this.timer.running) {
+                this.stopAlarm();
+                this.missedNotice = false;
+            }
             this.saveState();
         },
         resetTimer() {
@@ -139,6 +178,7 @@ export default function stopwatch(mp3) {
             this.timer.seconds = 300;
             this.armedUntil = null;
             this.reminderTitle = null;
+            this.missedNotice = false;
             this.stopAlarm();
             this.saveState();
         },
@@ -147,8 +187,15 @@ export default function stopwatch(mp3) {
             this.timer.running = false;
             this.armedUntil = null;
             this.reminderTitle = null;
+            this.missedNotice = false;
             this.stopAlarm();
             this.saveState();
+        },
+        setCustomMinutes() {
+            if (this.timer.running || this.alarmInterval || this.customMins == null || this.customMins === '') return;
+            const mins = Math.round(Number(this.customMins));
+            if (!Number.isFinite(mins)) return;
+            this.setTimerPreset(Math.min(MAX_CUSTOM_MINS, Math.max(1, mins)) * 60);
         },
         formatSeconds(s) {
             s = Number(s || 0);
@@ -159,9 +206,7 @@ export default function stopwatch(mp3) {
         },
         minimize() {
             this.minimized = true;
-            this.open = false;
-            this.modal.classList.remove('flex');
-            this.modal.classList.add('hidden');
+            this._hideModal();
             this.saveState();
         },
         restore() {
@@ -171,6 +216,13 @@ export default function stopwatch(mp3) {
             this.modal.classList.add('flex');
             this.saveState();
         },
+        _hideModal() {
+            this.open = false;
+            if (this.modal) {
+                this.modal.classList.remove('flex');
+                this.modal.classList.add('hidden');
+            }
+        },
         closeModal() {
             this.stopAlarm();
             if (this.armedReminderId !== null) this._saveState(DISMISSED_KEY, this.armedReminderId);
@@ -179,20 +231,30 @@ export default function stopwatch(mp3) {
             this.armedUntil = null;
             this.armedReminderId = null;
             this.reminderTitle = null;
+            this.missedNotice = false;
+            this.minimized = false;
             this.clearState();
-            this.destroyed();
+            this._hideModal();
         },
         mounted() {
             this.open = true;
             this.modal.classList.remove('hidden');
             this.modal.classList.add('flex');
+            if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                Notification.requestPermission()?.catch?.(() => {});
+            }
+            this.syncEventReminder();
         },
-        destroyed() {
-            this.open = false;
+        destroy() {
+            if (this._tickInterval) {
+                clearInterval(this._tickInterval);
+                this._tickInterval = null;
+            }
+            this.stopAlarm();
+            if (this._windowStopwatchListener) window.removeEventListener('stopwatch', this._windowStopwatchListener);
+            if (this._windowKeydownListener) window.removeEventListener('keydown', this._windowKeydownListener);
             this.minimized = false;
-            this.modal.classList.remove('flex');
-            this.modal.classList.add('hidden');
+            this._hideModal();
         }
     };
 }
-

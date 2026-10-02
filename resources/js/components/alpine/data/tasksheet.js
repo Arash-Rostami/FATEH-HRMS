@@ -10,7 +10,7 @@ export default function tasksheet(readOnly = false) {
 
         init() {
             const remembered = this._loadState(RECIPIENT_KEY);
-            if (!readOnly && remembered) {
+            if (!readOnly && remembered && Number(this.$wire.shareRecipientId) !== remembered) {
                 this.$wire.set('shareRecipientId', remembered);
             }
             window.addEventListener('afterprint', () => { this.printMode = false; });
@@ -33,7 +33,7 @@ export default function tasksheet(readOnly = false) {
 
         printExpandAll() {
             this.printMode = true;
-            this.$nextTick(() => window.print());
+            this.$nextTick(() => setTimeout(() => window.print(), 300));
         },
     };
 }

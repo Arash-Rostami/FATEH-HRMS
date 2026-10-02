@@ -28,15 +28,15 @@
 </button>
 
 <div x-data="{ open: false, pos: {} }">
-    <button type="button" x-ref="kebabTrigger"
-            x-on:click="pos = $refs.kebabTrigger.getBoundingClientRect().toJSON(); open = !open"
+    <button type="button" id="chat-header-tools-trigger"
+            x-on:click="pos = $el.getBoundingClientRect().toJSON(); open = !open"
             aria-label="ابزارهای بیشتر" title="ابزارهای بیشتر"
             class="md:hidden flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-200 ease-out active:scale-95">
         <span class="material-symbols-rounded text-base">more_horiz</span>
     </button>
     <template x-teleport="body">
         <div x-show="open" x-cloak dir="rtl"
-             x-on:click.away="if (!$refs.kebabTrigger?.contains($event.target)) open = false"
+             x-on:click.away="if (!document.getElementById('chat-header-tools-trigger')?.contains($event.target)) open = false"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -56,7 +56,7 @@
                 <span class="material-symbols-rounded text-[16px]">filter_alt</span>
                 <span>فیلتر نوع محتوا</span>
             </button>
-            <button type="button" x-on:click="open = false; $dispatch('open-pattern', { bottom: $refs.kebabTrigger.getBoundingClientRect().bottom, left: $refs.kebabTrigger.getBoundingClientRect().left })"
+            <button type="button" x-on:click="open = false; $dispatch('open-pattern', { bottom: document.getElementById('chat-header-tools-trigger').getBoundingClientRect().bottom, left: document.getElementById('chat-header-tools-trigger').getBoundingClientRect().left })"
                     class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-[var(--md-sys-color-surface-container-high)]/50">
                 <span class="material-symbols-rounded text-[16px]">texture</span>
                 <span>پیش زمینه چت</span>

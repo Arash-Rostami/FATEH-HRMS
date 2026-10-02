@@ -109,12 +109,7 @@
 
                         @if($existingImage && !$form->image)
                             <button type="button"
-                                    wire:click="$dispatch('open-confirmation', {
-                                        title: 'حذف تصویر پروفایل',
-                                        message: 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.',
-                                        method: 'confirmAction',
-                                        params: 'confirm-delete-profile-image'
-                                    })"
+                                    wire:click="{{ confirmDialog('confirmAction', 'حذف تصویر پروفایل', 'آیا از حذف تصویر پروفایل خود اطمینان دارید؟ این عملیات غیرقابل بازگشت است.', 'confirm-delete-profile-image', null) }}"
                                     class="absolute -top-2 -left-2 flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error)] shadow-md hover:scale-110 active:scale-95 transition-transform z-20 border-2 border-[var(--md-sys-color-surface)]">
                                 <span class="material-symbols-rounded text-[16px]">delete</span>
                             </button>

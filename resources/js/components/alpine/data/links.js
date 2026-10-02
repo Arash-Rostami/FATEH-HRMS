@@ -1,5 +1,6 @@
 const RECENT_KEY = 'fateh_links_recent';
 const RECENT_MAX = 6;
+const FA_DIGITS = {'۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'};
 
 export default function links() {
     return {
@@ -17,9 +18,10 @@ export default function links() {
         },
 
         handleHotkey(event) {
+            if (!event.altKey) return;
             const tag = event.target?.tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target?.isContentEditable) return;
-            const n = parseInt(event.key, 10);
+            const n = parseInt(FA_DIGITS[event.key] ?? event.key, 10);
             if (isNaN(n) || n < 1 || n > 9) return;
             this.$root.querySelector('[data-hotkey="' + n + '"]')?.click();
         },

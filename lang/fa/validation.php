@@ -189,6 +189,8 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'files.*' => 'فایل',
+    ],
 
 ];

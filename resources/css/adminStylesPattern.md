@@ -10,7 +10,7 @@
 ---
 
 ## 2. Directory & Theming Pipeline
-
+gi
 ```
 resources/css/core/
 ├── filament.css
@@ -132,10 +132,10 @@ Tabs::make()
 The descendant selector on the first rule (`.fi-infolist-panel .fi-section`, not `.fi-infolist-panel` alone) is required because the class sits on the OUTER wrapper while the real visual element is the inner `.fi-section`. The second rule targets the Tabs wrapper directly (same element the class lands on for `Tabs::make()`, no nesting quirk there) and only strips its background/shadow/ring — `.fi-contained`'s OTHER effects (border-b removed, tab-list layout) are untouched, so alignment stays exactly as vendor-default. Background is a primary-container tint over `surface` — a mild, unmistakably theme-colored (not neutral-gray) wash, distinct from `.fi-modal-window`'s own plain `--md-sys-color-surface` background so the panel doesn't visually vanish into its own modal. One themed card either way, whether or not `Tabs` wraps it — matching the "one bare Section, no card-stacking" infolist rule in `filamentPattern.md`. Reference implementation: `DepartmentResource::infolist()` (Section-only), `UserResource::infolist()` (Tabs).
 
 ### 4.5 Modal Height Discipline
-Centered modals have one fixed standard height in `filament.css` — never taller, never collapsed:
+Centered content modals (infolist/view/form) have one fixed standard height in `filament.css` — never taller, never collapsed; small confirmation modals stay content-sized:
 
 ```css
-.fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window {
+.fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window:has(fieldset, .fi-in-entry) {
     @apply !h-[85dvh] !overflow-y-auto;
 }
 
@@ -144,7 +144,7 @@ Centered modals have one fixed standard height in `filament.css` — never talle
 }
 ```
 
-*Every centered modal (infolist/view/form/confirm) is exactly 85dvh; longer content scrolls inside the window, sparser content leaves breathing room with the footer pinned via `flex-1`.* Slide-overs (`fi-modal-slide-over`), full-screen (`fi-width-screen`), and the `#database-notifications` drawer (a slide-over) are excluded by the `:not()` guards — their geometry stays vendor/`notification.css`-owned. Vendor default is auto-height (window sizes to content), which is why sparse infolists used to collapse.
+*Content modals — infolist/view (`.fi-in-entry` is the root class of every infolist entry, from vendor `entry-wrapper.blade.php`) and form (`<fieldset>` wraps every Filament form schema) — are exactly 85dvh; longer content scrolls inside the window, sparser content leaves breathing room with the footer pinned via `flex-1`.* Confirmation and other small action modals contain neither marker, so the `:has()` guard excludes them and they keep vendor auto-height (content-sized, never super-tall). Slide-overs (`fi-modal-slide-over`), full-screen (`fi-width-screen`), and the `#database-notifications` drawer (a slide-over) are excluded by the `:not()` guards — their geometry stays vendor/`notification.css`-owned. `:has()` is the only scoping lever here: Filament gives all modals the same `.fi-modal-window` classes and hardcodes `role="dialog"`, so no class/width/role discriminator exists (community pattern, GitHub Discussion #14413). The `!flex-1` content rule is a no-op on auto-height windows.
 
 ---
 

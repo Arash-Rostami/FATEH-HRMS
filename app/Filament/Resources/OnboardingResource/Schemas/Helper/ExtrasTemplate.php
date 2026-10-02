@@ -45,17 +45,29 @@ class ExtrasTemplate
         };
     }
 
-    public static function options(): array
+    public static function options(array $extras = []): array
     {
-        return once(function () {
-            $grouped = [];
-            foreach (Onboarding::adminOptions() as $category => $data) {
+        $grouped = once(function () {
+            $catalog = [];
+            foreach (Onboarding::adminOptions() as $data) {
                 foreach ($data['items'] as $item) {
-                    $grouped[$data['title']][$item['key']] = $item['label'];
+                    $catalog[$data['title']][$item['key']] = $item['label'];
                 }
             }
-            return $grouped;
+            return $catalog;
         });
+
+        $known = collect($grouped)->flatMap(fn($items) => array_keys($items));
+        $custom = collect($extras)
+            ->filter(fn($row) => filled($row['key'] ?? null) && ! $known->contains($row['key']));
+
+        if ($custom->isNotEmpty()) {
+            $grouped['سفارشی'] = $custom
+                ->mapWithKeys(fn($row) => [$row['key'] => $row['display_title'] ?? Onboarding::autoTitle($row['key'])])
+                ->all();
+        }
+
+        return $grouped;
     }
 
     public static function sync($state, Get $get, Set $set): void

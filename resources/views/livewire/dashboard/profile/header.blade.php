@@ -118,7 +118,7 @@
                     @endif
                 </span>
                 <span class="text-lg font-bold text-[var(--md-sys-color-primary)]">
-                    {{ (int) ($completion ?? 0) }}%
+                    {{ convertToPersian((int) ($completion ?? 0)) }}%
                 </span>
             </div>
 

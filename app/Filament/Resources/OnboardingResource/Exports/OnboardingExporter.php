@@ -72,7 +72,8 @@ class OnboardingExporter extends Exporter
             ExportColumn::make('extras_keys')
                 ->label(__('resources/onboarding/strings.fields.extras'))
                 ->state(fn($record) => collect((array)($record->extras ?? []))
-                    ->keys()
+                    ->map(fn($row, $fallbackKey) => is_array($row) ? ($row['key'] ?? $fallbackKey) : $fallbackKey)
+                    ->filter()
                     ->implode(', ')
                 ),
 

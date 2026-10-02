@@ -138,6 +138,8 @@ return [
         'attachments' => 'پیوست‌ها',
         'attachment_name' => 'نام',
         'attachment_type' => 'نوع',
+        'standard_attachments' => 'مدارک استاندارد',
+        'custom_attachments' => 'مدارک سفارشی',
         'favorite_colors' => 'رنگ‌های مورد علاقه',
         'about_me' => 'درباره من',
         'about_me_key' => 'موضوع',

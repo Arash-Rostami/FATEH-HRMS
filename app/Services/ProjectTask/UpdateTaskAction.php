@@ -54,7 +54,7 @@ class UpdateTaskAction
                 'deadline'    => $deadline,
                 'assigned_to' => $newAssignedTo,
                 'project_id'  => $newProjectId,
-                'labels'      => $form->labels,
+                'labels'      => array_map(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l), $form->labels),
                 'priority'    => $form->priority,
                 'rank'        => $rank,
             ]);

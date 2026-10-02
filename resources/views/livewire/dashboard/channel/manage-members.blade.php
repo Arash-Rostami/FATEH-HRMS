@@ -4,6 +4,8 @@
     action="saveManageMembers"
     confirm-text="ذخیره"
     cancel-text="انصراف"
+    confirm-when="$wire.memberRecipientIds.length === 0"
+    confirm-prompt="با ذخیره، فقط شما در گروه باقی می‌مانید؛ گروه و پیام‌هایش حذف نمی‌شوند. ادامه می‌دهید؟"
 >
     <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl">
 

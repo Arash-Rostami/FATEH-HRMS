@@ -4,17 +4,21 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.1.18",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
+        "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^2.0.0",
         "tailwindcss": "^4.1.18",
         "vite": "^7.0.7",
         "vite-plugin-pwa": "^1.2.0",
         "vite-plugin-static-copy": "^3.2.0",
+        "vitest": "^4.1.11",
         "workbox-core": "^7.4.0",
         "workbox-precaching": "^7.4.0",
         "workbox-routing": "^7.4.0",

@@ -22,7 +22,7 @@ class UserFactory extends Factory
             'maximum' => fake()->numberBetween(1, 12),
             'type' => fake()->randomElement(['employee', 'manager', 'customer']),
             'role' => fake()->randomElement(['user', 'admin']),
-            'status' => fake()->randomElement(['active', 'inactive']),
+            'status' => 'active',
             'presence' => fake()->randomElement(array_column(PresenceStatus::cases(), 'value')),
             'booking' => '[{"key":"all","value":false},{"key":"car","value":false},{"key":"seat","value":true},{"key":"spot","value":true},{"key":"meeting","value":true}]',
             'last_seen' => now(),

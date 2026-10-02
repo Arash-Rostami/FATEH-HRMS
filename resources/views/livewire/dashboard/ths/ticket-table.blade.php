@@ -57,7 +57,7 @@
                         </button>
                     </div>
                 @else
-                    اقدام
+                    <span wire:key="ths-actions-plain">اقدام</span>
                 @endif
             </th>
         </tr>

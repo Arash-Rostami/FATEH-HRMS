@@ -49,4 +49,16 @@ trait FocusOnRecord
     {
         return strtolower(class_basename(static::class));
     }
+
+    protected function focusQueryParam(string $key): ?string
+    {
+        $value = request()->query($key);
+        if ($value !== null) {
+            return is_scalar($value) ? (string) $value : null;
+        }
+
+        parse_str((string) (parse_url((string) request()->header('Referer', ''), PHP_URL_QUERY) ?: ''), $query);
+
+        return isset($query[$key]) && is_scalar($query[$key]) ? (string) $query[$key] : null;
+    }
 }

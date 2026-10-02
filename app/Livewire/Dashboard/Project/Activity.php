@@ -43,10 +43,22 @@ class Activity extends Component
     {
         $this->activeProjectId = $activeProjectId;
 
-        $focusEntry = (int) request()->query('focus_entry', 0);
+        $focusEntry = (int) ($this->focusQueryParam('focus_entry') ?? 0);
         if ($focusEntry > 0) {
             $this->focusActivityEntry($focusEntry);
         }
+    }
+
+    private function focusQueryParam(string $key): ?string
+    {
+        $value = request()->query($key);
+        if ($value !== null) {
+            return is_scalar($value) ? (string) $value : null;
+        }
+
+        parse_str((string) (parse_url((string) request()->header('Referer', ''), PHP_URL_QUERY) ?: ''), $query);
+
+        return isset($query[$key]) && is_scalar($query[$key]) ? (string) $query[$key] : null;
     }
 
     #[Computed]
@@ -202,7 +214,14 @@ class Activity extends Component
 
     public function deleteComment(DeleteReplyAction $action, int $replyId): void
     {
-        $action->execute($replyId, (int) auth()->id());
+        $ok = $action->execute($replyId, (int) auth()->id());
+
+        if (!$ok) {
+            $this->dispatch('toast', message: 'امکان حذف این نظر وجود ندارد.', type: 'error');
+            $this->dispatch('activity-delete-failed');
+            return;
+        }
+
         unset($this->activityFeed, $this->groupedActivityFeed);
     }
 
@@ -260,7 +279,7 @@ class Activity extends Component
 
     public function refreshActivity(): void
     {
-        unset($this->activityFeed);
+        unset($this->activityFeed, $this->groupedActivityFeed);
     }
 
     public function render(): View

@@ -41,6 +41,13 @@ class Login extends Component
             return;
         }
 
+        if (! Auth::user()->isActive()) {
+            Auth::logout();
+            $this->reset('password');
+            $this->addError('email', 'حساب کاربری شما غیرفعال است.');
+            return;
+        }
+
         RateLimiter::clear($key);
         session()->regenerate();
 

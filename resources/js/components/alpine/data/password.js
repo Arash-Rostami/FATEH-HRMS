@@ -1,6 +1,7 @@
 export default function password() {
     return {
         showPassword: false,
+        value: '',
         strength: 0,
         hasNumber: false,
         hasLetter: false,

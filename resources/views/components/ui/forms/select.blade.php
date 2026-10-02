@@ -23,10 +23,12 @@
             this.$refs.hiddenInput.dispatchEvent(new Event('input'));
         },
         init() {
-            if (!this.selected) return;
-            this.search = this.objectMode
-                ? (this.options.find(o => o.value == this.selected)?.label ?? this.selected)
-                : this.selected;
+            if (this.selected) {
+                this.search = this.objectMode
+                    ? (this.options.find(o => o.value == this.selected)?.label ?? this.selected)
+                    : this.selected;
+            }
+            this.$watch('selected', (value) => { if (!value) this.search = ''; });
         }
     }"
     @endif

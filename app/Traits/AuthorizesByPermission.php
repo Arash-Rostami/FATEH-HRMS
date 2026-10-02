@@ -29,6 +29,11 @@ trait AuthorizesByPermission
         return static::permits('update');
     }
 
+    public static function canEditAny(): bool
+    {
+        return static::permits('update');
+    }
+
     public static function canForceDelete(Model $record): bool
     {
         return static::permits('delete');

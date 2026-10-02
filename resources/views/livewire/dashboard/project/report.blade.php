@@ -32,7 +32,7 @@
                 </thead>
                 <tbody x-data="{ expanded: null }" @keydown.escape.window="expanded = null" wire:loading.class="opacity-60 pointer-events-none" class="divide-y divide-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)]">
                     @forelse($groupedReportRows as $deptKey => $rowsInGroup)
-                    <tr class="bg-[var(--md-sys-color-surface-container-low)]">
+                    <tr wire:key="report-group-{{ $deptKey }}" class="bg-[var(--md-sys-color-surface-container-low)]">
                         <td colspan="10" class="px-3 md:px-6 py-2 text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
                             {{ $deptKey === '' ? 'بدون دپارتمان' : ($rowsInGroup->first()['department_label'] ?? $deptKey) }}
                             <span class="opacity-60 font-normal">({{ convertToPersian($rowsInGroup->count()) }})</span>
@@ -123,16 +123,18 @@
                         </tr>
                     @endforeach
                     @empty
-                        <tr><td colspan="10" class="px-3 md:px-6 py-12">
-                            @if($anyFilter)
+                        @if($anyFilter)
+                            <tr wire:key="report-empty-filtered"><td colspan="10" class="px-3 md:px-6 py-12">
                                 <x-ui.empty icon="filter_alt_off" title="نتیجه‌ای یافت نشد" variant="list" description="با فیلتر فعلی نتیجه‌ای پیدا نشد. فیلترها را پاک کنید."/>
                                 <div class="flex justify-center mt-3">
                                     <x-ui.buttons.form wire:click="clearReportFilters" variant="ghost" icon="filter_alt_off">پاک کردن فیلترها</x-ui.buttons.form>
                                 </div>
-                            @else
+                            </td></tr>
+                        @else
+                            <tr wire:key="report-empty-none"><td colspan="10" class="px-3 md:px-6 py-12">
                                 <x-ui.empty icon="inbox" title="رکوردی یافت نشد" variant="list" description="هنوز هیچ وظیفه‌ای برای این پروژه ثبت نشده است."/>
-                            @endif
-                        </td></tr>
+                            </td></tr>
+                        @endif
                     @endforelse
                 </tbody>
             </table>

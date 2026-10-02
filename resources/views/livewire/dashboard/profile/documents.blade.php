@@ -13,7 +13,7 @@
             <div class="flex-1">
                 <h3 class="text-sm font-bold tracking-tight mb-2">راهنمای بارگذاری مدارک و الزامات پرونده</h3>
                 <p class="text-xs opacity-90 leading-relaxed mb-4">
-                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۲ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
+                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۵ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
                 </p>
 
                 <ul class="text-xs opacity-90 leading-relaxed space-y-3">
@@ -89,6 +89,7 @@
 
                             <div class="mt-auto">
                                 @if($status === 'empty')
+                                    <div wire:key="profile-doc-{{ $key }}-empty" class="contents">
                                     <label for="file-{{ $key }}"
                                            class="flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-[var(--md-sys-color-outline-variant)] rounded-xl cursor-pointer text-xs font-bold text-[var(--md-sys-color-on-surface-variant)] hover:border-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/5 transition-all">
                                         <span class="material-symbols-rounded text-base">cloud_upload</span>
@@ -100,8 +101,12 @@
                                          class="text-center mt-2 text-[10px] text-[var(--md-sys-color-primary)] font-bold animate-pulse">
                                         در حال آماده‌سازی...
                                     </div>
+                                    @error("form.files.{$key}")
+                                    <p class="text-[11px] text-[var(--md-sys-color-error)] mt-2 font-medium">{{ $message }}</p>
+                                    @enderror
+                                    </div>
                                 @elseif($status === 'pending')
-                                    <div
+                                    <div wire:key="profile-doc-{{ $key }}-pending"
                                         class="flex items-center justify-between bg-[var(--md-sys-color-tertiary-container)]/30 border border-[var(--md-sys-color-tertiary)]/20 px-3 py-2 rounded-xl">
                                         <span class="text-[11px] font-bold text-[var(--md-sys-color-tertiary)]">در انتظار تایید</span>
                                         @if($resetAction->hasFile($form, $key))
@@ -112,7 +117,7 @@
                                         @endif
                                     </div>
                                 @elseif($status === 'approved')
-                                    <a href="{{ $uploadedDoc['url'] }}" target="_blank"
+                                    <a wire:key="profile-doc-{{ $key }}-approved" href="{{ $uploadedDoc['url'] }}" target="_blank"
                                        class="flex items-center justify-center gap-2 w-full py-2.5 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] rounded-xl font-bold text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-sm">
                                         <span class="material-symbols-rounded text-[16px]">visibility</span>
                                         مشاهده مدرک
@@ -178,11 +183,12 @@
 
     <x-ui.modals.dialog name="upload-custom-modal" title="افزودن مدرک سفارشی">
         <div x-data="{
-            fileName: '', previewUrl: '',
+            fileName: '', previewUrl: '', sizeError: false,
             handleCustomFileSelect(e) {
                 if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
                 const f = e.target.files[0];
-                if (!f || f.size > 5242880) { this.fileName=''; this.previewUrl=''; e.target.value=null; return; }
+                if (!f || f.size > 5242880) { this.fileName=''; this.previewUrl=''; this.sizeError = !!f; e.target.value=null; return; }
+                this.sizeError = false;
                 this.fileName = f.name;
                 this.previewUrl = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'].includes(f.type) ? URL.createObjectURL(f) : '';
             }
@@ -206,6 +212,7 @@
                          class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در
                         حال آماده‌سازی فایل...
                     </div>
+                    <p x-show="sizeError" x-cloak class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">حجم فایل نباید بیشتر از 5 مگابایت باشد.</p>
                 </div>
                 <div x-show="fileName" x-cloak class="space-y-3">
                     <div
@@ -240,7 +247,7 @@
                                    x-on:click="window.dispatchEvent(new CustomEvent('close-modal'))">انصراف
                 </x-ui.buttons.form>
                 <x-ui.buttons.form type="button" wire:click="showCustomUploadConfirmation" wire:loading.attr="disabled"
-                                   wire:target="form.customFile" icon="upload" variant="primary">مرحله بعد
+                                   wire:target="showCustomUploadConfirmation" icon="upload" variant="primary">مرحله بعد
                 </x-ui.buttons.form>
             </div>
         </div>

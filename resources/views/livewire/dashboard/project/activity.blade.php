@@ -70,7 +70,7 @@
         </div>
 
         @if(count($activityComposer->files))
-            <div class="flex flex-wrap items-center gap-1.5 -mt-1">
+            <div wire:key="project-activity-staged-files" class="flex flex-wrap items-center gap-1.5 -mt-1">
                 @foreach($activityComposer->files as $i => $file)
                     <div wire:key="staged-activity-file-{{ $i }}"
                          class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg max-w-[180px] bg-[var(--tool-gold-bg)] text-[var(--tool-gold-text)] border border-[color-mix(in_srgb,var(--tool-gold-color)_25%,transparent)]">
@@ -95,7 +95,7 @@
     @php($allEntryPairs = $presenter->activityPairs($this->activityFeed['rows']))
 
     @if(count($this->activityFeed['rows']))
-        <div class="flex flex-wrap items-center gap-2">
+        <div wire:key="project-activity-toolbar" class="flex flex-wrap items-center gap-2">
             <div class="relative group flex-1 min-w-[200px]" x-data="{ fullscreen: false, get value() { return activitySearch }, set value(v) { activitySearch = v } }">
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[var(--md-sys-color-on-surface-variant)] group-focus-within:text-[var(--md-sys-color-primary)] transition-colors">
                     <span class="material-symbols-rounded text-[20px]">search</span>
@@ -375,7 +375,7 @@
             @endforelse
 
             @if(count($this->activityFeed['rows']))
-                <div x-show="!anyActivityVisible(@js($allEntryPairs))" x-cloak>
+                <div wire:key="project-activity-no-visible-results" x-show="!anyActivityVisible(@js($allEntryPairs))" x-cloak>
                     <x-ui.empty icon="search_off" title="نتیجه‌ای یافت نشد" variant="list"/>
                 </div>
             @endif
@@ -383,7 +383,7 @@
     </div>
 
     @if($this->activityFeed['hasMore'])
-        <div class="flex justify-center pb-2 w-full">
+        <div wire:key="project-activity-load-older" class="flex justify-center pb-2 w-full">
             <button type="button" x-on:click="loadOlderActivity()" :disabled="_loadingOlderActivity"
                     class="group flex items-center justify-center gap-2 transition-all outline-none font-medium text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-surface)] px-5 py-2.5 rounded-xl border border-[var(--md-sys-color-outline-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] hover:border-[var(--md-sys-color-primary)] shadow-sm hover:shadow-md disabled:opacity-50">
                 <span x-show="!_loadingOlderActivity">نمایش فعالیت‌های قدیمی‌تر</span>

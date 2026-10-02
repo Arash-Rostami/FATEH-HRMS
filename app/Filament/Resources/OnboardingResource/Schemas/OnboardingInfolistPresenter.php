@@ -31,7 +31,10 @@ class OnboardingInfolistPresenter
         return RepeatableEntry::make('extras_list')
             ->label(__('resources/onboarding/strings.fields.extras'))
             ->getStateUsing(fn($record) => collect((array)($record->extras ?? []))
-                ->map(fn($v, $k) => ['key' => $k, 'value' => $v])
+                ->map(fn($row, $fallbackKey) => [
+                    'key' => $row['key'] ?? $fallbackKey,
+                    'value' => is_array($row) ? ($row['value'] ?? '') : $row,
+                ])
                 ->values()
                 ->all()
             )

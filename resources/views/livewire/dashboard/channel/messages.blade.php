@@ -60,6 +60,7 @@
     <div wire:key="load-older" class="flex justify-center py-2" x-show="$wire.hasOlder" x-transition style="{{ $hasOlder ? '' : 'display:none;' }}">
         <x-ui.buttons.load-more
             action="loadOlder"
+            island="messages"
             text="پیام‌های قدیمی‌تر"
             loadingText="..."
             icon="expand_less"

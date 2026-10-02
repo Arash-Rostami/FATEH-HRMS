@@ -6,10 +6,9 @@
     'mobileText' => 'یک مکالمه انتخاب کنید',
 ])
     @php
-        $contactsList = is_iterable($this->contacts) ? $this->contacts : [];
-        $totalUnread = array_sum(array_column($contactsList, 'unread_count'));
-        $onlineCount = count(array_filter($contactsList, static fn(array $contact): bool => !empty($contact['is_online'])));
-        $totalOccasions = $this->presenter?->totalOccasions($contactsList) ?? 0;
+        $totalUnread = $this->totalUnread;
+        $onlineCount = $this->onlineContactsCount;
+        $totalOccasions = $this->totalOccasions;
     @endphp
 
     <div class="relative z-10 w-full max-w-2xl mx-auto mt-6" aria-label="آمار و وضعیت">

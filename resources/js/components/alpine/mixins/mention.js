@@ -9,7 +9,7 @@ const WHITESPACE_RE = /\s/;
 function mentionRegexFor(name) {
     let re = mentionRegexCache.get(name);
     if (!re) {
-        re = new RegExp('(?<![\\p{L}\\p{N}_])@' + mentionEscape(name) + '(?![\\p{L}\\p{N}_])', 'u');
+        re = new RegExp('(?<![\\p{L}\\p{N}_\\u200C])@' + mentionEscape(name) + '(?![\\p{L}\\p{N}_\\u200C])', 'u');
         mentionRegexCache.set(name, re);
     }
     return re;

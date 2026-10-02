@@ -34,6 +34,7 @@ class Workflow extends Component
     public ?int $editingWorkflowId = null;
     public string $workflowName = '';
     public array $steps = [];
+    public array $stepKeys = [];
 
     public ?int $reassigningWorkflowId = null;
     public array $reassignSelection = [];
@@ -45,6 +46,12 @@ class Workflow extends Component
     {
         $this->activeProjectId = $activeProjectId;
         $this->steps = [$this->blankStep()];
+        $this->rekeySteps();
+    }
+
+    private function rekeySteps(): void
+    {
+        $this->stepKeys = array_map(fn() => uniqid('step-', true), $this->steps);
     }
 
     public function placeholder(): View
@@ -94,7 +101,7 @@ class Workflow extends Component
     #[Computed]
     public function templates(): Collection
     {
-        return WorkflowModel::templates()->get(['id', 'name']);
+        return WorkflowModel::templates()->where('owner_id', auth()->id())->get(['id', 'name']);
     }
 
     #[Computed]
@@ -163,6 +170,7 @@ class Workflow extends Component
         $this->editingWorkflowId = null;
         $this->workflowName = '';
         $this->steps = [$this->blankStep()];
+        $this->rekeySteps();
     }
 
     private function findWorkflow(int $id): ?WorkflowModel
@@ -205,6 +213,7 @@ class Workflow extends Component
         $this->editingWorkflowId = $workflow->id;
         $this->workflowName = $workflow->name;
         $this->steps = $workflow->steps;
+        $this->rekeySteps();
         $this->isEditorOpen = true;
     }
 
@@ -232,6 +241,7 @@ class Workflow extends Component
     public function addStep(): void
     {
         $this->steps[] = $this->blankStep();
+        $this->stepKeys[] = uniqid('step-', true);
     }
 
     public function removeStep(int $index): void
@@ -242,6 +252,9 @@ class Workflow extends Component
 
         unset($this->steps[$index]);
         $this->steps = array_values($this->steps);
+
+        unset($this->stepKeys[$index]);
+        $this->stepKeys = array_values($this->stepKeys);
     }
 
     public function saveWorkflow(SaveWorkflowAction $action): void

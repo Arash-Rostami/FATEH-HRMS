@@ -22,7 +22,7 @@ class SendMessageAction
 
         $senderId = auth()->id();
 
-        return DB::transaction(function () use ($form, $recipientId, $senderId) {
+        $message = DB::transaction(function () use ($form, $recipientId, $senderId) {
             $stored = $this->storeAttachments($form->attachments, $senderId);
 
             try {
@@ -39,6 +39,8 @@ class SendMessageAction
                 throw $e;
             }
         });
+
+        return $message;
     }
 
     private function resolveReplyToId(?int $replyToId, int $senderId, int $recipientId): ?int
