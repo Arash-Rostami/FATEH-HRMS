@@ -310,7 +310,7 @@ class Main extends Component
                 'body' => $m->replyTo->body,
                 'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
             ] : null,
-            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl()],
+            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false],
         ])->values()->all();
     }
 
@@ -336,9 +336,10 @@ class Main extends Component
         $map = [];
         foreach ($this->activeChannelMemberUsers as $user) {
             $map[(int) $user->id] = [
-                'cursor' => (int) ($user->pivot->last_read_message_id ?? 0),
-                'name'   => $user->name ?? '—',
-                'avatar' => $user->getProfileImageUrl(),
+                'cursor'  => (int) ($user->pivot->last_read_message_id ?? 0),
+                'name'    => $user->name ?? '—',
+                'avatar'  => $user->getProfileImageUrl(),
+                'read_at' => $user->pivot->updated_at?->toISOString(),
             ];
         }
 
@@ -375,6 +376,7 @@ class Main extends Component
                 'is_owner' => $ownerId !== null && $user->id === $ownerId,
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
+                'is_online' => $user->isOnline(),
             ])
             ->sortByDesc('is_owner')
             ->values()

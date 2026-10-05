@@ -19,7 +19,7 @@
     class="!max-w-3xl !w-full md:!w-7xl"
 >
     <div class="modal-inner-card !w-full !max-w-none !p-5 md:!p-6" dir="rtl"
-         x-effect="if (show && !formReady) { formTab = '{{ $defaultTab }}'; syncFormArrays(); setTimeout(() => { if (show) formReady = true }, 1000) } else if (!show) { formReady = false }"
+         x-effect="if (show && !formReady) { formTab = '{{ $defaultTab }}'; syncFormArrays(); setTimeout(() => { if (show) formReady = true }, 200) } else if (!show) { formReady = false }"
          x-show="formReady">
 
         <div class="flex items-center justify-between gap-3 mb-6">
@@ -94,15 +94,24 @@
             <x-ui.forms.textarea label="توضیحات" name="form.newDescription" wire:model="form.newDescription"
                                  icon="notes" rows="3" :disabled="$isReadOnly" :maximizable="!$isReadOnly" dir="auto"/>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-ui.forms.select label="مسئول انجام" name="form.selectedAssignee" wire:model="form.selectedAssignee"
-                                   icon="person" :disabled="$isReadOnly">
-                    <option value="">خودم (شخصی)</option>
-                    @foreach($staffMembers as $staff)
-                        <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
-                    @endforeach
-                </x-ui.forms.select>
+            <div class="space-y-1.5">
+                <label class="{{ $labelClass }}">مسئول انجام</label>
+                <x-dashboard.member-picker
+                    wire:key="taskboard-assignee-picker"
+                    model="form.selectedAssignee"
+                    mode="single"
+                    server
+                    noneLabel="خودم (شخصی)"
+                    :candidates="$this->userPickerResults['candidates']"
+                    :hasMore="$this->userPickerResults['hasMore']"
+                    :deptOptions="$departmentOptions"
+                    nameKey="full_name"
+                    height="max-h-40"
+                    :disabled="$isReadOnly"
+                />
+            </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-ui.forms.select label="پروژه (اختیاری)" name="form.projectId" wire:model="form.projectId"
                                    icon="folder" :disabled="$isReadOnly">
                     <option value="">بدون پروژه</option>

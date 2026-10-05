@@ -375,7 +375,7 @@ class Main extends Component
                     'body' => $m->replyTo->body,
                     'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
                 ] : null,
-                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl()],
+                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false],
             ])->values()->all();
     }
 

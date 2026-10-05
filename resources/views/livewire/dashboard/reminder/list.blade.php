@@ -90,7 +90,7 @@
                                                         </button>
                                                         <template x-teleport="body">
                                                             <div x-show="open" x-cloak @click.outside="open = false" x-data="{ hours: '' }"
-                                                                 :style="`position:fixed; top:${top}px; left:${left}px;`"
+                                                                 :style="{ position: 'fixed', top: top + 'px', left: left + 'px' }"
                                                                  class="w-40 bg-[var(--md-sys-color-surface)] rounded-xl shadow-lg border border-[var(--md-sys-color-outline-variant)]/20 overflow-hidden z-[200] text-[var(--md-sys-color-on-surface)]">
                                                                 @foreach($snoozePresets as $preset => $label)
                                                                     <button x-on:click="open = false; $wire.snooze({{ $reminder->id }}, '{{ $preset }}')" class="w-full text-right px-3 py-1.5 text-[11px] hover:bg-[var(--md-sys-color-surface-container-high)] transition-colors">

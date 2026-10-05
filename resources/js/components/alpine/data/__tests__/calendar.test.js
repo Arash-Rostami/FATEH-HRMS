@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
-import { calendarNow, calendarView } from '../calendar.js'
+import { calendarNow, calendarView, calendarDrag, calendarResize } from '../calendar.js'
 
 beforeEach(() => {
     vi.useFakeTimers()
@@ -148,5 +148,163 @@ describe('calendarView — scroll-memory persistence', () => {
         c.restoreScroll('month')
 
         expect(c.$root.scrollTop).toBe(10)
+    })
+})
+
+function fire(target, type, props = {}) {
+    const e = new Event(type, { bubbles: true, cancelable: true })
+    Object.assign(e, { button: 0, clientY: 0, ...props })
+    target.dispatchEvent(e)
+}
+
+function drag(root, fromY, toY) {
+    fire(root, 'pointerdown', { clientY: fromY })
+    fire(window, 'pointermove', { clientY: toY })
+    fire(window, 'pointerup', { clientY: toY })
+}
+
+function makeEventRoot({ offsetTop = 300, hourHeight = 60 } = {}) {
+    const day = document.createElement('div')
+    day.setAttribute('data-date', '1403-01-01')
+    document.body.appendChild(day)
+
+    const root = document.createElement('div')
+    root.dataset.hourHeight = String(hourHeight)
+    Object.defineProperty(root, 'offsetTop', { value: offsetTop, configurable: true })
+    Object.defineProperty(root, 'offsetLeft', { value: 0, configurable: true })
+    Object.defineProperty(root, 'offsetWidth', { value: 120, configurable: true })
+    day.appendChild(root)
+    return root
+}
+
+const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve() }
+
+describe('calendarDrag — commitMove race-condition guard (fixed 2026-10-05)', () => {
+    test('a stale drag response landing after a newer drag on the same event does not snap the position back or re-toast', async () => {
+        const root = makeEventRoot()
+        const c = calendarDrag({ eventId: 1, locked: false, isOwner: true })
+        c.$root = root
+        c.$dispatch = vi.fn()
+
+        let resolveStale
+        const calls = []
+        c.$wire = {
+            moveEvent: vi.fn((...args) => {
+                calls.push(args)
+                if (calls.length === 1) return new Promise((r) => { resolveStale = r })
+                return Promise.resolve({ ok: true })
+            }),
+        }
+
+        c.init()
+
+        drag(root, 0, 60) // gesture 1: fires moveEvent, stays pending
+        const topAfterFirst = root.style.top
+        expect(topAfterFirst).not.toBe('')
+
+        drag(root, 60, 140) // gesture 2: supersedes it, resolves immediately
+        await flush()
+        const topAfterSecond = root.style.top
+        expect(topAfterSecond).not.toBe(topAfterFirst)
+        expect(c.$wire.moveEvent).toHaveBeenCalledTimes(2)
+
+        resolveStale({ ok: false, reason: 'conflict' }) // the stale (gesture 1) response finally lands, as a FAILURE
+        await flush()
+
+        expect(root.style.top).toBe(topAfterSecond) // must NOT have snapped back to gesture 1's revert position
+        expect(c.$dispatch).toHaveBeenCalledTimes(1) // only gesture 2's success toast — no stale error toast
+        expect(c.$dispatch).toHaveBeenCalledWith('toast', expect.objectContaining({ type: 'success' }))
+
+        c.destroy()
+    })
+
+    test('without a superseding drag, a failed response still reverts the position and toasts the error (regression guard — the fix must not suppress a genuine single-gesture failure)', async () => {
+        const root = makeEventRoot()
+        const c = calendarDrag({ eventId: 2, locked: false, isOwner: true })
+        c.$root = root
+        c.$dispatch = vi.fn()
+        c.$wire = { moveEvent: vi.fn(() => Promise.resolve({ ok: false, reason: 'conflict' })) }
+
+        c.init()
+        const originalTop = root.offsetTop
+
+        drag(root, 0, 60)
+        await flush()
+
+        expect(root.style.top).toBe(`${originalTop}px`)
+        expect(c.$dispatch).toHaveBeenCalledWith('toast', expect.objectContaining({ type: 'error' }))
+
+        c.destroy()
+    })
+})
+
+describe('calendarResize — commitResize race-condition guard (fixed 2026-10-05)', () => {
+    function makeHandle(block) {
+        const handle = document.createElement('div')
+        block.appendChild(handle)
+        return handle
+    }
+
+    function makeBlock({ offsetHeight = 60, hourHeight = 60 } = {}) {
+        const block = document.createElement('div')
+        block.setAttribute('data-event-id', '1')
+        Object.defineProperty(block, 'offsetHeight', { value: offsetHeight, configurable: true })
+        document.body.appendChild(block)
+        const handle = makeHandle(block)
+        return { block, handle, hourHeight }
+    }
+
+    test('a stale resize response landing after a newer resize on the same event does not snap the height back or re-toast', async () => {
+        const { block, handle, hourHeight } = makeBlock()
+        const c = calendarResize({ eventId: 1, startMinutes: 480, durationMinutes: 60, isOwner: true, locked: false })
+        c.$root = handle
+        c.$dispatch = vi.fn()
+
+        let resolveStale
+        const calls = []
+        c.$wire = {
+            resizeEvent: vi.fn((...args) => {
+                calls.push(args)
+                if (calls.length === 1) return new Promise((r) => { resolveStale = r })
+                return Promise.resolve({ ok: true })
+            }),
+        }
+
+        c.init()
+
+        drag(handle, 0, hourHeight) // gesture 1: extend by 1h worth of px, resizeEvent pending
+        drag(handle, hourHeight, hourHeight * 3) // gesture 2: supersedes it, resolves immediately
+        await flush()
+
+        expect(c.$wire.resizeEvent).toHaveBeenCalledTimes(2)
+        const heightBeforeStaleResolves = block.style.height
+
+        resolveStale({ ok: false, reason: 'conflict' }) // the stale (gesture 1) response finally lands, as a FAILURE
+        await flush()
+
+        // the stale failure must not touch the DOM at all once superseded — height is unchanged, no toast fired
+        expect(block.style.height).toBe(heightBeforeStaleResolves)
+        expect(c.$dispatch).not.toHaveBeenCalled()
+
+        c.destroy()
+    })
+
+    test('without a superseding resize, a failed response still reverts the height and toasts the error (regression guard)', async () => {
+        const { block, handle } = makeBlock()
+        const c = calendarResize({ eventId: 2, startMinutes: 480, durationMinutes: 60, isOwner: true, locked: false })
+        c.$root = handle
+        c.$dispatch = vi.fn()
+        c.$wire = { resizeEvent: vi.fn(() => Promise.resolve({ ok: false, reason: 'conflict' })) }
+
+        c.init()
+        const originalHeight = block.offsetHeight
+
+        drag(handle, 0, 60)
+        await flush()
+
+        expect(block.style.height).toBe(`${originalHeight}px`)
+        expect(c.$dispatch).toHaveBeenCalledWith('toast', expect.objectContaining({ type: 'error' }))
+
+        c.destroy()
     })
 })

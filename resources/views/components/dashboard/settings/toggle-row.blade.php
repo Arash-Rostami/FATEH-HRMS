@@ -8,11 +8,11 @@
 
 @php
     $toneClass = match ($color) {
-        'emerald' => 'bg-emerald-500',
-        'indigo' => 'bg-indigo-500',
-        'teal' => 'bg-teal-500',
-        'amber' => 'bg-amber-500',
-        default => 'bg-violet-500',
+        'emerald' => 'bg-emerald-500 dark:bg-emerald-400',
+        'indigo' => 'bg-indigo-500 dark:bg-indigo-400',
+        'teal' => 'bg-teal-500 dark:bg-teal-400',
+        'amber' => 'bg-amber-500 dark:bg-amber-400',
+        default => 'bg-violet-500 dark:bg-violet-400',
     };
 
     $textToneClass = match ($color) {
@@ -22,13 +22,21 @@
         'amber' => 'group-hover:text-amber-500',
         default => 'group-hover:text-violet-500',
     };
+
+    $toneText = match ($color) {
+        'emerald' => 'text-white dark:text-emerald-950',
+        'indigo' => 'text-white dark:text-indigo-950',
+        'teal' => 'text-white dark:text-teal-950',
+        'amber' => 'text-white dark:text-amber-950',
+        default => 'text-white dark:text-violet-950',
+    };
 @endphp
 
 <button type="button" @click="{{ $action }}"
         class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--md-sys-color-surface-container-high)]/50 group">
     <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
-             :class="({{ $active }}) ? '{{ $toneClass }} text-white' : 'bg-[var(--md-sys-color-surface-container)] opacity-50'">
+             :class="({{ $active }}) ? '{{ $toneClass }} {{ $toneText }}' : 'bg-[var(--md-sys-color-surface-container)] opacity-50'">
             <span class="material-symbols-rounded text-[20px]">{{ $icon }}</span>
         </div>
         <span class="text-sm font-medium {{ $textToneClass }}">{{ $label }}</span>

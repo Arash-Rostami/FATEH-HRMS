@@ -26,7 +26,9 @@
 
     <div class="relative min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2">
-            <h2 class="truncate text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ $header['name'] }}</h2>
+            <h2 class="truncate text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)] cursor-pointer"
+                title="{{ $header['slug'] }}"
+                x-on:click="copyText(@js($header['slug']), 'اسلاگ گروه کپی شد', 'info')">{{ $header['name'] }}</h2>
             <span @class([
                     'rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-success)_15%,transparent)] text-[var(--md-sys-color-success)]' => $header['type'] === 'open',
@@ -36,10 +38,6 @@
             </span>
         </div>
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
-            @if(!empty($header['slug_handle']))
-                <span class="hidden md:inline truncate font-semibold text-[var(--md-sys-color-primary)]" dir="auto">{{ $header['slug_handle'] }}</span>
-                <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
-            @endif
             <div class="relative hidden md:block" x-data="{ open: false }">
                 <button type="button" x-on:click="open = !open" x-on:click.outside="open = false"
                         class="truncate font-medium text-[var(--md-sys-color-on-surface-variant)] hover:text-[var(--md-sys-color-primary)] inline-flex items-center gap-0.5 transition-colors" title="تعداد اعضا">
@@ -50,8 +48,11 @@
                      class="absolute top-full mt-1.5 right-0 z-40 w-64 max-h-72 overflow-y-auto custom-scrollbar p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]">
                     @foreach($this->channelMembers as $member)
                         <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
-                            <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
-                                <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                            <div class="relative flex-shrink-0">
+                                <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
+                                    <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                                </div>
+                                <x-ui.presence-dot :online="$member['is_online']" size="w-2.5 h-2.5"/>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1 flex-wrap">

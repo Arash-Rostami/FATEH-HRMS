@@ -448,8 +448,10 @@ export default function menu(options = {}) {
 
             if (inSearch) return;
 
-            if (key === 'ArrowLeft') this.moveFocus(1);
-            if (key === 'ArrowRight') this.moveFocus(-1);
+            if (key === 'ArrowLeft' || key === 'ArrowRight') {
+                e.stopImmediatePropagation();
+                this.moveFocus(key === 'ArrowLeft' ? 1 : -1);
+            }
         },
 
         toggleMenu() {

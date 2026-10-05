@@ -50,6 +50,7 @@ export function calendarDrag({eventId, locked, isOwner}) {
     let pendingOffsetY = 0;
     let lastOffsetY = 0;
     let activeInstance = null;
+    let moveSeq = 0;
 
     const cancelGhostFrame = () => {
         if (frame) {
@@ -97,12 +98,15 @@ export function calendarDrag({eventId, locked, isOwner}) {
     const commitMove = (instance, offsetY) => {
         if (!instance || destroyed) return;
 
+        const revertTop = startTop;
+        const seq = ++moveSeq;
+
         const finalTop = startTop + offsetY;
         const absoluteMinutes = (finalTop / hourHeight) * 60 + START_HOUR * 60;
         const snappedMinutes = Math.round(absoluteMinutes / 15) * 15;
 
         if (snappedMinutes < MIN_SLOT_MINUTES || snappedMinutes > MAX_SLOT_MINUTES) {
-            instance.$root.style.top = `${startTop}px`;
+            instance.$root.style.top = `${revertTop}px`;
             return;
         }
 
@@ -110,7 +114,7 @@ export function calendarDrag({eventId, locked, isOwner}) {
         const dateJalali = day ? day.dataset.date : null;
 
         if (!dateJalali) {
-            instance.$root.style.top = `${startTop}px`;
+            instance.$root.style.top = `${revertTop}px`;
             return;
         }
 
@@ -122,13 +126,13 @@ export function calendarDrag({eventId, locked, isOwner}) {
 
         instance.$wire.moveEvent(instance.eventId, dateJalali, timePart, clientMtime)
             .then((res) => {
-                if (destroyed) return;
+                if (destroyed || seq !== moveSeq) return;
 
                 if (!res || !res.ok) {
                     window.dispatchEvent(new CustomEvent(`revert-event-${instance.eventId}`, {
                         detail: (res && res.revertTo) || {},
                     }));
-                    instance.$root.style.top = `${startTop}px`;
+                    instance.$root.style.top = `${revertTop}px`;
                     instance.$dispatch('toast', {
                         message: res && res.reason === 'locked'
                             ? 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.'
@@ -143,9 +147,9 @@ export function calendarDrag({eventId, locked, isOwner}) {
                 }
             })
             .catch(() => {
-                if (destroyed) return;
+                if (destroyed || seq !== moveSeq) return;
                 window.dispatchEvent(new CustomEvent(`revert-event-${instance.eventId}`, {detail: {}}));
-                instance.$root.style.top = `${startTop}px`;
+                instance.$root.style.top = `${revertTop}px`;
                 instance.$dispatch('toast', {
                     message: 'جابجایی ناموفق بود.',
                     type: 'error',
@@ -265,6 +269,7 @@ export function calendarResize({eventId, startMinutes, durationMinutes, isOwner,
     let dragStarted = false;
     let pendingDuration = 0;
     let frame = 0;
+    let resizeSeq = 0;
 
     const SNAP = 15;
     const MIN_DURATION = 15;
@@ -284,11 +289,14 @@ export function calendarResize({eventId, startMinutes, durationMinutes, isOwner,
     };
 
     const commitResize = (instance, deltaY) => {
+        const revertHeightPx = startHeightPx;
+        const seq = ++resizeSeq;
+
         const deltaMinutes = Math.round((deltaY / hourHeight) * 60 / SNAP) * SNAP;
         const newDuration = clampDuration(startDuration + deltaMinutes);
 
         if (newDuration === startDuration) {
-            if (block) block.style.height = `${startHeightPx}px`;
+            if (block) block.style.height = `${revertHeightPx}px`;
             return;
         }
 
@@ -296,8 +304,8 @@ export function calendarResize({eventId, startMinutes, durationMinutes, isOwner,
 
         instance.$wire.resizeEvent(instance.eventId, newDuration, clientMtime)
             .then((res) => {
-                if (destroyed || !res || res.ok) return;
-                if (block) block.style.height = `${startHeightPx}px`;
+                if (destroyed || seq !== resizeSeq || !res || res.ok) return;
+                if (block) block.style.height = `${revertHeightPx}px`;
                 instance.$dispatch('toast', {
                     message: res.reason === 'locked'
                         ? 'این رویداد از طریق سیستم رزرو مدیریت می‌شود؛ برای تغییر آن به تب رزرو مراجعه کنید.'
@@ -306,8 +314,8 @@ export function calendarResize({eventId, startMinutes, durationMinutes, isOwner,
                 });
             })
             .catch(() => {
-                if (destroyed) return;
-                if (block) block.style.height = `${startHeightPx}px`;
+                if (destroyed || seq !== resizeSeq) return;
+                if (block) block.style.height = `${revertHeightPx}px`;
                 instance.$dispatch('toast', {message: 'تغییر مدت ناموفق بود.', type: 'error'});
             });
     };

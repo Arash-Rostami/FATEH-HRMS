@@ -31,7 +31,7 @@ const rowId = (row) => parseInt(row.getAttribute('data-rf').substring(RF_ID_OFFS
 const lastAt = (v, pos) => pos ? v.lastIndexOf('@', pos - 1) : -1;
 
 export default function channel() {
-    let ac, vpAc, scrollRaf, selRaf, unreadObs, fadeTimer, digest, ticks = 0;
+    let ac, vpAc, scrollRaf, selRaf, unreadObs, fadeTimer, digest, ticks = 0, selectSeq = 0;
 
     return {
         ...maximizeMixin(),
@@ -247,7 +247,11 @@ export default function channel() {
 
                 if (open) {
                     await this._isl().refreshActive();
-                    changed ||= this._readLastMessageMarker() !== lastBefore || this._readTypingMarker() !== typingBefore;
+                    const lastAfter = this._readLastMessageMarker();
+                    if (lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && !this._lastMessageIsMine()) {
+                        this.$store.sound?.playIncoming(this.$wire.activeChannelId, SCOPE);
+                    }
+                    changed ||= lastAfter !== lastBefore || this._readTypingMarker() !== typingBefore;
                 }
             } catch {}
 
@@ -278,8 +282,15 @@ export default function channel() {
             const now = this._readUnread();
             if (this._lastUnread !== undefined && now > this._lastUnread) {
                 this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);
+                if (!this.$wire.activeChannelId) this.$store.sound?.playIncoming(null, SCOPE);
             }
             this._lastUnread = now;
+        },
+
+        _lastMessageIsMine() {
+            const rows = this._msgViewportEl?.querySelectorAll(ROW_SEL);
+            const last = rows?.length ? rows[rows.length - 1] : null;
+            return !!last?.classList.contains('justify-start');
         },
 
         get mentionMatches() {
@@ -436,6 +447,7 @@ export default function channel() {
 
         selectChannel(id) {
             if (!id) return;
+            const seq = ++selectSeq;
             this._repollNow(false);
 
             const el = ta();
@@ -453,9 +465,17 @@ export default function channel() {
             this.$wire.cancelReply();
             this._isl().selectChannel(id)
                 .then(() => this._sidebar())
-                .then(() => this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(true); }))
-                .then(() => { this.chipsVisible = true; this.scheduleChipsFade(); })
                 .then(() => {
+                    if (seq !== selectSeq) return;
+                    this.$nextTick(() => { this._bindViewport(); this.scrollToBottom(true); });
+                })
+                .then(() => {
+                    if (seq !== selectSeq) return;
+                    this.chipsVisible = true;
+                    this.scheduleChipsFade();
+                })
+                .then(() => {
+                    if (seq !== selectSeq) return;
                     if (innerWidth < MOBILE_BREAKPOINT && el) this.$nextTick(() => el.focus());
                 });
         },
@@ -616,6 +636,7 @@ export default function channel() {
                 await this._isl().send();
                 this.replyingTo = null;
                 this._syncSidebarAfterOwnAction(wire);
+                this.$nextTick(() => ta()?.focus());
             } catch {
                 this.toast('خطا در ارتباط با سرور.', 'error');
             } finally {

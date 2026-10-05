@@ -41,8 +41,11 @@
                      class="absolute top-full mt-1.5 right-0 z-40 w-64 max-h-72 overflow-y-auto custom-scrollbar p-1.5 rounded-2xl bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_48px_color-mix(in_srgb,var(--md-sys-color-shadow)_18%,transparent)]">
                     @foreach($this->projectMembers as $member)
                         <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
-                            <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
-                                <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                            <div class="relative flex-shrink-0">
+                                <div class="w-8 h-8 rounded-md overflow-hidden ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
+                                    <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                                </div>
+                                <x-ui.presence-dot :online="$member['is_online']" size="w-2.5 h-2.5"/>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1 flex-wrap">

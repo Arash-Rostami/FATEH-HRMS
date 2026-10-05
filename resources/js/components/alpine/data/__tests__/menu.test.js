@@ -482,18 +482,22 @@ describe('menu.handleGlobalKeydown', () => {
         expect(m.search).toBe('p')
     })
 
-    test('ArrowLeft/ArrowRight call moveFocus with RTL-reversed directions', () => {
+    test('ArrowLeft/ArrowRight call moveFocus with RTL-reversed directions, and stop the keystroke from also reaching other global window listeners (fixed 2026-10-05 — was leaking through to the bottom navbar\'s tab-switcher underneath)', () => {
         const m = menu()
         m.menuOpen = true
         m.search = ''
         Object.defineProperty(m, 'searchEl', { get: () => null })
         m.moveFocus = vi.fn()
 
-        m.handleGlobalKeydown({ key: 'ArrowLeft' })
+        const left = { key: 'ArrowLeft', stopImmediatePropagation: vi.fn() }
+        m.handleGlobalKeydown(left)
         expect(m.moveFocus).toHaveBeenCalledWith(1)
+        expect(left.stopImmediatePropagation).toHaveBeenCalledOnce()
 
-        m.handleGlobalKeydown({ key: 'ArrowRight' })
+        const right = { key: 'ArrowRight', stopImmediatePropagation: vi.fn() }
+        m.handleGlobalKeydown(right)
         expect(m.moveFocus).toHaveBeenCalledWith(-1)
+        expect(right.stopImmediatePropagation).toHaveBeenCalledOnce()
     })
 })
 

@@ -7,6 +7,9 @@ const KEYS = {
 const OUTGOING_SOUND_SELECTOR = '[data-outgoing-sound]';
 const ATTR_OUTGOING_SOUND = 'data-outgoing-sound';
 const OUTGOING_VOLUME = 0.35;
+const INCOMING_SOUND_SELECTOR = '[data-incoming-sound]';
+const ATTR_INCOMING_SOUND = 'data-incoming-sound';
+const INCOMING_VOLUME = 0.35;
 
 export default function soundStore(Alpine) {
     Alpine.store('sound', {
@@ -15,6 +18,7 @@ export default function soundStore(Alpine) {
         mutedProjects: [],
         globalHush: false,
         _audio: null,
+        _incomingAudio: null,
 
         init() {
             this.mutedChannels = this._load(KEYS.channel);
@@ -170,6 +174,26 @@ export default function soundStore(Alpine) {
 
             this._audio.currentTime = 0;
             this._audio.play().catch(() => {});
+        },
+
+        playIncoming(id = null, scope = 'channel') {
+            if (this.globalHush) return;
+            if (id !== null && this.isMuted(id, scope)) return;
+
+            if (this._incomingAudio === null) {
+                const el = document.querySelector(INCOMING_SOUND_SELECTOR);
+                if (el === null) return;
+
+                const src = el.getAttribute(ATTR_INCOMING_SOUND);
+                if (src === null) return;
+
+                const a = new Audio(src);
+                a.volume = INCOMING_VOLUME;
+                this._incomingAudio = a;
+            }
+
+            this._incomingAudio.currentTime = 0;
+            this._incomingAudio.play().catch(() => {});
         },
 
         clearAll(scope = 'channel') {

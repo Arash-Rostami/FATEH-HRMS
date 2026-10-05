@@ -19,6 +19,7 @@ return new class extends Migration {
                 $table->timestamp('updated_at')->nullable();
                 $table->charset('utf8mb4');
                 $table->collation('utf8mb4_unicode_ci');
+                $table->unique(['document_id', 'user_id'], 'uniq_reads_document_user');
                 $table->index(['user_id', 'read', 'document_id', 'read_count'], 'idx_reads_user_read_doc');
                 $table->index(['document_id', 'updated_at'], 'idx_reads_document_updated');
             });

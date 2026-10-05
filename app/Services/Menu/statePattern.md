@@ -1302,13 +1302,13 @@ stays flat with no `subgroups()` entry since it already satisfies max-2 as a pla
 
 | Group | Subgroups (≤2 items each) |
 |---|---|
-| `tasks` (12 rows → 7 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `tickets` (`ths-controller`) · `reminders` (`reminders-controller:due-nudge`, `reminders-controller:due-today-edge`) · `reminders-badge` (`reminders-controller`) |
+| `tasks` (13 rows → 8 subgroups) | `list` (`tasks-controller`, `tasks-deadline`) · `deadline` (`tasks-controller:due-soon-edge`, `tasks-overdue-nudge`) · `approval` (`tasks-approval-nudge`, `tasks-pending-approval`) · `projects` (`projects-controller`, `projects-controller:edge`) · `workflow` (`workflow:nudge`) · `tickets` (`ths-controller`) · `reminders` (`reminders-controller:due-nudge`, `reminders-controller:due-today-edge`) · `reminders-badge` (`reminders-controller`) |
 | `notifications` (4 rows → 2 subgroups) | `direct` (`posts-controller`, `contacts-controller`) · `channels` (`channels-controller`, `channels-controller:edge`) |
 | `content` (4 rows → 2 subgroups) | `calendar` (`shared-events`, `special-days`) · `media` (`feeds`, `gallery-controller`) |
 | `compliance` (3 rows → 2 subgroups) | `tracking` (`dms-controller`, `energy-controller`) · `reports` (`reports-controller`) |
 
 Every catalog row that belongs to a configured group carries a `'subgroup'` key naming which bucket it
-lands in (20 of the 22 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
+lands in (25 of the 27 rows — every row except `opportunities`'s 2). `grouped()` returns each group with an additional `'subgroups'` key — `[]`
 for `opportunities` (backward-compatible: `items` is unchanged, so no pre-existing consumer of
 `grouped()` needed updating), or `[{id,label,icon,items}]` for the four configured groups.
 `badge-legend.blade.php` renders the sub-pill row only `@if(!empty($group['subgroups']))`, falling back

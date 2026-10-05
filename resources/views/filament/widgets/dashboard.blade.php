@@ -128,11 +128,11 @@
                     x-transition:enter="transition ease-[cubic-bezier(0.22,1,0.36,1)] duration-[180ms]"
                     x-transition:enter-start="opacity-0 translate-y-1 scale-[0.93]"
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                    class="font-mono text-[13px] font-bold tracking-[0.05em] tabular-nums leading-none text-white absolute"
+                    class="font-mono text-[13px] font-bold tracking-[0.05em] tabular-nums leading-none text-white dark:text-[var(--md-sys-color-on-primary)] absolute"
                 ></span>
                     </template>
                 </div>
-                <span class="text-[8px] font-semibold tracking-[0.14em] uppercase text-white/50">ثانیه</span>
+                <span class="text-[8px] font-semibold tracking-[0.14em] uppercase text-white/50 dark:text-[var(--md-sys-color-on-primary)]/50">ثانیه</span>
             </div>
         </div>
     @endif

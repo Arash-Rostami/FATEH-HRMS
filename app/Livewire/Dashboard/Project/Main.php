@@ -194,6 +194,7 @@ class Main extends Component
                     'is_owner' => $user->id === $project->owner_id,
                     'presence_label' => $user->presence?->label(),
                     'presence_class' => $user->presence?->activeClass(),
+                    'is_online' => $user->isOnline(),
                     'occasion' => $occasionType ? \App\Models\Profile::occasionTone($occasionType) : null,
                     'org_title' => trim(collect([$profile?->unit, $profile?->section])->filter()->implode(' › ')),
                 ];

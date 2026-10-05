@@ -2,8 +2,8 @@
      data-current-presence="{{ $presence->value }}"
      data-focus-until="{{ $focusUntil ? $focusUntil->getTimestamp() * 1000 : '' }}">
     <button @click="open = !open"
-            class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)]/50 active:bg-[var(--md-sys-color-surface-container-high)] active:scale-95 transition-all duration-200 flex items-center justify-center relative"
-            :class="open ? 'bg-[var(--md-sys-color-surface-container-high)]' : ''">
+            class="w-10 h-10 rounded-xl hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 active:scale-95 transition-all duration-200 flex items-center justify-center relative"
+            :class="open ? 'bg-[var(--md-sys-color-on-primary)]/20' : ''">
         <span class="material-symbols-rounded text-[22px] opacity-70 group-hover:opacity-100 transition-opacity">tune</span>
     </button>
 

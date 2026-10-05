@@ -111,11 +111,7 @@
                         <x-ui.avatar :image="null" :existingImage="$contact['avatar']"
                                      :alt="$contact['name']" icon-size="text-xl" class="rounded-xl"/>
                     </div>
-                    @if($contact['presence'])
-                        <span aria-hidden="true"
-                              title="{{ $contact['presence']->label() }}"
-                              class="absolute -bottom-0.5 -end-0.5 w-3 h-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $contact['presence']->activeClass() }} {{ $contact['is_online'] ? 'animate-pulse' : '' }}"></span>
-                    @endif
+                    <x-ui.presence-dot :online="$contact['is_online']"/>
                 </div>
 
                 <div class="flex-1 min-w-0">

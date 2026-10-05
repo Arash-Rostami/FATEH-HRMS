@@ -23,7 +23,9 @@
                                 <img :src="user.image" :alt="user?.name" class="w-full h-full object-cover" />
                             </template>
                         </div>
-                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-4 border-[var(--md-sys-color-surface)] shadow-sm"></div>
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-[var(--md-sys-color-surface)] shadow-sm transition-colors duration-300"
+                             :class="user?.is_online ? 'bg-emerald-500 dark:bg-emerald-400 animate-pulse' : 'bg-[var(--md-sys-color-outline)]'"
+                             :title="user?.is_online ? 'آنلاین' : 'آفلاین'"></div>
                     </div>
 
                     <div class="space-y-1">

@@ -30,7 +30,7 @@
         {{-- Icon chip --}}
         <div class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-md shadow-inner
                     {{ $iconClass }}"
-             :class="{{ $alarm }} ? 'bg-red-500 text-white'
+             :class="{{ $alarm }} ? 'bg-red-500 text-white dark:bg-red-400 dark:text-red-950'
                                   : 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]'">
             {{ $icon }}
         </div>

@@ -1047,6 +1047,14 @@
     color: #15803d !important
 }
 
+.dark .onb-prose [class*="text-yellow"] {
+    color: #fbbf24 !important
+}
+
+.dark .onb-prose [class*="text-green"] {
+    color: #4ade80 !important
+}
+
 .onb-prose [class*="bg-green"] {
     background: color-mix(in srgb, #22c55e 10%, var(--md-sys-color-surface)) !important
 }

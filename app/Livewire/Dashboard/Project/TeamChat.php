@@ -70,7 +70,7 @@ class TeamChat extends Component
 
         $messages = ChannelMessage::withoutTrashed()
             ->where('channel_id', $channel->id)
-            ->with(['sender:id,name', 'sender.profile:id,user_id,image'])
+            ->with(['sender:id,name,last_seen', 'sender.profile:id,user_id,image'])
             ->latest('id')
             ->take($this->teamChatLimit + 1)
             ->get();
@@ -90,6 +90,7 @@ class TeamChat extends Component
                     'sender' => [
                         'name' => $m->sender?->name ?? 'ناشناس',
                         'avatar' => $m->sender?->getProfileImageUrl(),
+                        'online' => $m->sender?->isOnline() ?? false,
                     ],
                     'reply_to_id' => null,
                     'is_edited' => false,

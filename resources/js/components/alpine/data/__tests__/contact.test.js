@@ -135,6 +135,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         // 3 known reads: the composer.attachments emptiness check, the capture, and the internal _isl() helper.
         const wire = installWireProbe(c, { composer: { attachments: [{ name: 'a.png' }] } }, 3);
         c._syncSidebarAfterOwnAction = vi.fn();
+        c.$nextTick = (cb) => cb();
         withTextarea('');
 
         await c.sendMessage();
@@ -142,13 +143,14 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         expect(wire._islands.messages.send).toHaveBeenCalledOnce();
     });
 
-    test('sendMessage makes exactly 2 known $wire reads for a non-empty body (the emptiness check short-circuits past $wire entirely; the capture + internal _isl() helper read it instead) then syncs the sidebar with the captured reference, and clears sending after the lock delay', async () => {
+    test('sendMessage makes exactly 2 known $wire reads for a non-empty body (the emptiness check short-circuits past $wire entirely; the capture + internal _isl() helper read it instead) then syncs the sidebar with the captured reference, refocuses the composer, and clears sending after the lock delay', async () => {
         vi.useFakeTimers();
         try {
             const c = contact();
             const wire = installWireProbe(c, {}, 2);
             c._syncSidebarAfterOwnAction = vi.fn();
-            withTextarea('hello');
+            c.$nextTick = (cb) => cb();
+            const ta = withTextarea('hello');
 
             const pending = c.sendMessage();
             expect(c.sending).toBe(true);
@@ -157,6 +159,7 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
             expect(wire._islands.messages.send).toHaveBeenCalledOnce();
             expect(c._syncSidebarAfterOwnAction).toHaveBeenCalledWith(wire);
             expect(c.replyingTo).toBeNull();
+            expect(ta.focus).toHaveBeenCalledOnce();
 
             vi.advanceTimersByTime(500);
             expect(c.sending).toBe(false);
@@ -220,6 +223,35 @@ describe('contact() island-scoped action wiring — wire-capture correctness', (
         c._repollNow = vi.fn();
         await c.selectContact(0);
         expect(wire.$island).not.toHaveBeenCalled();
+    });
+
+    test('selectContact ignores a stale response once a newer selection has superseded it (race-condition guard, fixed 2026-10-05): switching contacts quickly no longer lets an earlier, slower response re-bind the viewport/scroll after a later one already has', async () => {
+        const c = contact();
+        c.$wire = createWireMock();
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c._bindViewport = vi.fn();
+        c.scrollToBottom = vi.fn();
+        c.resetAutoResize = vi.fn();
+        c._repollNow = vi.fn();
+
+        const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
+
+        let resolveStale;
+        c.$wire._islands.messages = {
+            selectContact: vi.fn((id) => id === 5 ? new Promise((r) => { resolveStale = r; }) : Promise.resolve()),
+        };
+
+        c.selectContact(5);
+        await c.selectContact(6);
+        await flush();
+
+        const callsAfterFreshSelection = c._bindViewport.mock.calls.length;
+        expect(callsAfterFreshSelection).toBeGreaterThan(0);
+
+        resolveStale();
+        await flush();
+
+        expect(c._bindViewport).toHaveBeenCalledTimes(callsAfterFreshSelection);
     });
 });
 
@@ -408,23 +440,151 @@ describe('contact() DOM read helpers + push notify', () => {
         expect(c._readLastMessageMarker()).toBe('message-2');
     });
 
-    test('syncPushNotify fires only when unread count increased since the last check', () => {
+    test('syncPushNotify fires only when unread count increased since the last check, and also plays the unscoped incoming sound while no conversation is open', () => {
         const c = contact();
-        c.$store = { push: { notify: vi.fn() } };
+        c.$wire = { activeUserId: null };
+        c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
         const el = document.createElement('div');
         el.setAttribute('data-total-unread', '1');
         document.body.appendChild(el);
 
         c.syncPushNotify();
         expect(c.$store.push.notify).not.toHaveBeenCalled();
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
 
         el.setAttribute('data-total-unread', '3');
         c.syncPushNotify();
         expect(c.$store.push.notify).toHaveBeenCalledOnce();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(null, 'contact');
 
         el.setAttribute('data-total-unread', '2');
         c.syncPushNotify();
         expect(c.$store.push.notify).toHaveBeenCalledOnce();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+    });
+
+    test('syncPushNotify does NOT play the unscoped incoming sound while a conversation IS open (fixed 2026-10-05: was double-firing alongside _pollTick\'s own scoped play for the same message) — the push notification itself still fires', () => {
+        const c = contact();
+        c.$wire = { activeUserId: 5 };
+        c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
+        const el = document.createElement('div');
+        el.setAttribute('data-total-unread', '1');
+        document.body.appendChild(el);
+
+        c.syncPushNotify();
+        el.setAttribute('data-total-unread', '2');
+        c.syncPushNotify();
+
+        expect(c.$store.push.notify).toHaveBeenCalledOnce();
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('_lastMessageIsMine reads the last row\'s justify-start class (the is_mine convention)', () => {
+        const c = contact();
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1" class="justify-end"></div><div data-rf="message-2" class="justify-start"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+        expect(c._lastMessageIsMine()).toBe(true);
+
+        vp.innerHTML = '<div data-rf="message-1" class="justify-end"></div>';
+        expect(c._lastMessageIsMine()).toBe(false);
+
+        c._msgViewportEl = null;
+        expect(c._lastMessageIsMine()).toBe(false);
+    });
+
+    test('_pollTick plays the scoped incoming sound when the open thread\'s last message changes to one that is not mine', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5 });
+        c.$store = { sound: { playIncoming: vi.fn() } };
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1" class="justify-start"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '<div data-rf="message-1" class="justify-start"></div><div data-rf="message-2" class="justify-end"></div>';
+                return Promise.resolve();
+            }),
+        };
+
+        await c._pollTick();
+
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(5, 'contact');
+    });
+
+    test('_pollTick does NOT play the incoming sound when the new last message is mine (own just-sent message, already covered by the message-sent/playOutgoing path)', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5 });
+        c.$store = { sound: { playIncoming: vi.fn() } };
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1" class="justify-end"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '<div data-rf="message-1" class="justify-end"></div><div data-rf="message-2" class="justify-start"></div>';
+                return Promise.resolve();
+            }),
+        };
+
+        await c._pollTick();
+
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('_pollTick does NOT play the incoming sound on the first tick after opening a thread (lastBefore is null — ambiguous "just loaded" vs "new message")', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5 });
+        c.$store = { sound: { playIncoming: vi.fn() } };
+        const vp = document.createElement('div');
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '<div data-rf="message-1" class="justify-start"></div>';
+                return Promise.resolve();
+            }),
+        };
+
+        await c._pollTick();
+
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('_pollTick does NOT play the incoming sound when the thread\'s last message is simply deleted, leaving it empty (fixed 2026-10-05: lastAfter being null is a removal, not an arrival)', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5 });
+        c.$store = { sound: { playIncoming: vi.fn() } };
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1" class="justify-end"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '';
+                return Promise.resolve();
+            }),
+        };
+
+        await c._pollTick();
+
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('_pollTick does nothing sound-related while no conversation is open', async () => {
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: null });
+        c.$store = { sound: { playIncoming: vi.fn() } };
+
+        await c._pollTick();
+
+        expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
     });
 
     test('focusSearch focuses and selects the #search input when present', () => {

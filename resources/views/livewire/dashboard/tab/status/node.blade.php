@@ -13,6 +13,7 @@
     $rankMeta = $d['rankMeta'];
     $tierConfig = $d['tierConfig'];
     $presenceBg = $d['presenceBg'];
+    $presenceText = $d['presenceText'];
     $aboutPayload = $d['aboutPayload'];
 @endphp
 
@@ -48,10 +49,11 @@
                 class="w-full h-full rounded-full object-cover bg-[var(--md-sys-color-surface-container)] {{ $p->imageClasses() }}"
                 loading="lazy"
             >
+            <x-ui.presence-dot :online="$user->isOnline()" position="absolute -top-0.5 -right-0.5" size="w-2.5 h-2.5"/>
         </div>
 
         <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full {{ $presenceBg }} ring-[2.5px] ring-[var(--md-sys-color-surface)] flex items-center justify-center shadow-sm">
-            <span class="material-symbols-rounded text-white text-[8px] font-bold leading-none">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
+            <span class="material-symbols-rounded {{ $presenceText }} text-[8px] font-bold leading-none">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
             @if($focusUntil)
                 <x-ui.modals.tooltip text="متمرکز تا {{ $focusUntil }}" position="top"/>
             @endif

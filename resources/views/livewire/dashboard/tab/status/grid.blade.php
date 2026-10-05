@@ -53,15 +53,17 @@
                                 title="درباره من"
                                 wire:click="openAboutMe({{ $user->id }})"
                                 x-on:click.stop="$dispatch('open-about-me', {{ \Illuminate\Support\Js::from($aboutPayload) }})">
-                                <span class="material-symbols-rounded text-white leading-none text-[12px]">auto_stories</span>
+                                <span class="material-symbols-rounded text-white dark:text-[var(--md-sys-color-on-primary)] leading-none text-[12px]">auto_stories</span>
                             </button>
                         @endif
 
                         <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full
-                                bg-{{ $p->color() }}-500 flex items-center justify-center
+                                bg-{{ $p->color() }}-500 dark:bg-{{ $p->color() }}-400 flex items-center justify-center
                                 border-2 border-[var(--md-sys-color-surface)] shadow-sm {{ $p->badgeClasses() }}">
-                            <span class="material-symbols-rounded text-white leading-none text-[10px]">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
+                            <span class="material-symbols-rounded text-white dark:text-{{ $p->color() }}-950 leading-none text-[10px]">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
                         </div>
+
+                        <x-ui.presence-dot :online="$user->isOnline()" position="absolute -top-0.5 -right-0.5" size="w-2.5 h-2.5"/>
                     </div>
 
                     <div class="w-full text-center space-y-0.5 {{ $obscured ? 'blur-[2px] opacity-60' : '' }} transition-all duration-300 group-hover:blur-none group-hover:opacity-100">

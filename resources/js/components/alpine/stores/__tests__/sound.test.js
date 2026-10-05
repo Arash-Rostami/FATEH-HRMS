@@ -246,3 +246,81 @@ describe('sound.playOutgoing', () => {
         await new Promise((r) => setTimeout(r, 0))
     })
 })
+
+describe('sound.playIncoming', () => {
+    function withSoundEl(src) {
+        document.body.innerHTML = `<div data-incoming-sound="${src}"></div>`
+    }
+
+    test('does nothing when globalHush is set', () => {
+        withSoundEl('/in.mp3')
+        const s = freshStore()
+        s.globalHush = true
+        s.playIncoming()
+        expect(FakeAudio.instances).toHaveLength(0)
+    })
+
+    test('does nothing when the given id is muted for the scope', () => {
+        withSoundEl('/in.mp3')
+        const s = freshStore()
+        s.init()
+        s.toggleMute(5, 'contact')
+        s.playIncoming(5, 'contact')
+        expect(FakeAudio.instances).toHaveLength(0)
+    })
+
+    test('a null id bypasses the per-conversation mute check (sidebar-wide "new message" signal)', () => {
+        withSoundEl('/in.mp3')
+        const s = freshStore()
+        s.init()
+        s.toggleMute(5, 'contact')
+        s.playIncoming(null, 'contact')
+        expect(FakeAudio.instances).toHaveLength(1)
+    })
+
+    test('unlike playOutgoing, it still plays while the document is hidden — a backgrounded tab is exactly when an incoming cue matters most', () => {
+        withSoundEl('/in.mp3')
+        withHidden(true)
+        const s = freshStore()
+        s.playIncoming()
+        expect(FakeAudio.instances).toHaveLength(1)
+    })
+
+    test('does nothing when no [data-incoming-sound] element exists in the DOM', () => {
+        document.body.innerHTML = ''
+        const s = freshStore()
+        s.playIncoming()
+        expect(FakeAudio.instances).toHaveLength(0)
+    })
+
+    test('lazily creates one Audio instance from the DOM element\'s src/volume, reused across calls, rewinding currentTime each play, independent of the outgoing cache', () => {
+        document.body.innerHTML = '<div data-outgoing-sound="/out.mp3"></div><div data-incoming-sound="/in.mp3"></div>'
+        const s = freshStore()
+
+        s.playIncoming()
+        expect(FakeAudio.instances).toHaveLength(1)
+        expect(FakeAudio.instances[0].src).toBe('/in.mp3')
+        expect(FakeAudio.instances[0].volume).toBe(0.35)
+        expect(FakeAudio.instances[0]._playCalls).toBe(1)
+
+        FakeAudio.instances[0].currentTime = 42
+        s.playIncoming()
+        expect(FakeAudio.instances).toHaveLength(1)
+        expect(FakeAudio.instances[0]._playCalls).toBe(2)
+
+        s.playOutgoing()
+        expect(FakeAudio.instances).toHaveLength(2)
+        expect(FakeAudio.instances[1].src).toBe('/out.mp3')
+    })
+
+    test('a rejected play() promise is swallowed, not propagated', async () => {
+        withSoundEl('/in.mp3')
+        class RejectingAudio extends FakeAudio {
+            play() { return Promise.reject(new Error('blocked')) }
+        }
+        global.Audio = RejectingAudio
+        const s = freshStore()
+        expect(() => s.playIncoming()).not.toThrow()
+        await new Promise((r) => setTimeout(r, 0))
+    })
+})

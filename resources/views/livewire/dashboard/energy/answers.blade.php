@@ -21,7 +21,7 @@
                             'border-[var(--md-sys-color-outline-variant)]' => !$isChecked,
                         ])>
                     @if($isChecked)
-                        <span class="material-symbols-rounded font-fill text-white"
+                        <span class="material-symbols-rounded font-fill text-white {{ $isNone ? 'dark:text-[var(--md-sys-color-on-secondary)]' : 'dark:text-[var(--md-sys-color-on-primary)]' }}"
                               style="font-size:13px">check</span>
                     @endif
                 </div>

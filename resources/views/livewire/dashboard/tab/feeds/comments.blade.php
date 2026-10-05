@@ -175,8 +175,8 @@
                             </div>
                         @endif
 
-                        @if($meta['isOnline'])
-                            <div class="absolute top-0 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[var(--md-sys-color-surface)] rounded-full animate-pulse"></div>
+                        @if($meta['user'])
+                            <x-ui.presence-dot :online="$meta['isOnline']" position="absolute top-0 -right-0.5" size="w-2.5 h-2.5"/>
                         @endif
                     </div>
 

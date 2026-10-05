@@ -26,7 +26,7 @@
             class="flex items-center gap-2 w-full h-full justify-center outline-none transition-all duration-300">
 
         <!-- Icon -->
-        <span class="material-symbols-rounded text-[20px] transition-colors duration-300"
+        <span class="material-symbols-rounded text-[20px] transition-colors duration-300 dark:text-[var(--md-sys-color-on-primary)]"
               :class="'text-' + active.color + '-400'"
               x-text="active.icon">
         </span>
@@ -65,7 +65,7 @@
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
                          :class="currentStatus === '{{ $status->value }}'
-                            ? 'bg-{{ $status->color() }}-500 text-white shadow-lg shadow-{{ $status->color() }}-500/25'
+                            ? 'bg-{{ $status->color() }}-500 text-white dark:bg-{{ $status->color() }}-400 dark:text-{{ $status->color() }}-950 shadow-lg shadow-{{ $status->color() }}-500/25'
                             : 'bg-{{ $status->color() }}-500/10 text-{{ $status->color() }}-400 group-hover/item:bg-{{ $status->color() }}-500 group-hover/item:text-white'">
                         <span class="material-symbols-rounded text-[20px]">{{ $status->icon() }}</span>
                     </div>

@@ -29,7 +29,7 @@
                 <span class="text-sm font-semibold flex items-center gap-1.5">
                     {{ $tab['label'] }}
                     @if($tab['isNew'] ?? false)
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">جدید</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white dark:bg-amber-400 dark:text-amber-950">جدید</span>
                     @endif
                 </span>
                 <span class="text-[10px] font-normal mt-1 {{ $activeTab === $key ? 'text-[var(--md-sys-color-on-primary)]/80' : 'opacity-60' }}">

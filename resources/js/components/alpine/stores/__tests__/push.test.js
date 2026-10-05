@@ -12,6 +12,7 @@ FakeNotification.requestPermission = vi.fn(() => Promise.resolve('granted'))
 function freshStore() {
     let def = null
     push({ store: (name, d) => { def = d } })
+    def.init()
     return def
 }
 
@@ -56,24 +57,30 @@ describe('push.isEnabled', () => {
         expect(s.isEnabled('channel')).toBe(false)
     })
 
-    test('reflects the per-scope localStorage flag once permission is granted', () => {
+    test('reflects the per-scope localStorage flag loaded at init(), and stays in sync via a cross-tab storage event — a same-window write alone does not reach it, matching real browser "storage" event semantics', () => {
         global.Notification = FakeNotification
         FakeNotification.permission = 'granted'
         const s = freshStore()
 
         expect(s.isEnabled('contact')).toBe(false)
+
         localStorage.setItem('chat-push-contact', '1')
+        expect(s.isEnabled('contact')).toBe(false)
+
+        window.dispatchEvent(new StorageEvent('storage', { key: 'chat-push-contact' }))
         expect(s.isEnabled('contact')).toBe(true)
     })
 
-    test('a localStorage access error is swallowed, returning false', () => {
+    test('a localStorage read error during init() is swallowed, leaving enabled false — isEnabled() itself never touches localStorage anymore (fixed 2026-10-05, reactivity bug)', () => {
         global.Notification = FakeNotification
         FakeNotification.permission = 'granted'
-        const s = freshStore()
-
         const original = global.localStorage
         global.localStorage = { getItem: () => { throw new Error('blocked') } }
+
+        let s
+        expect(() => { s = freshStore() }).not.toThrow()
         expect(s.isEnabled('channel')).toBe(false)
+
         global.localStorage = original
     })
 })

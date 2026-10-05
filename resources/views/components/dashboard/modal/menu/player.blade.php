@@ -59,7 +59,7 @@
 
             <div x-show="hoverProgress !== null" x-cloak
                  class="pointer-events-none absolute bottom-4.5 -translate-x-1/2 rounded border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-highest)_95%,transparent)] px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-tight text-[var(--md-sys-color-on-surface)] shadow-md backdrop-blur-md"
-                 :style="`left: clamp(24px, ${hoverProgress * 100}%, calc(100% - 24px))`"
+                 :style="{ left: `clamp(24px, ${hoverProgress * 100}%, calc(100% - 24px))` }"
                  x-text="hoverTimeLabel">
             </div>
 

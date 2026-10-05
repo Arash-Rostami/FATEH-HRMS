@@ -16,7 +16,6 @@
             @if($this->dueCount > 0)
                 <span wire:key="reminder-due-badge" class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[var(--md-sys-color-error)] animate-pulse"></span>
             @endif
-            <x-ui.modals.tooltip text="یادآوری‌ها" :position="$tooltipPosition"/>
         </button>
     @elseif($variant === 'inline')
         <button type="button" wire:click="open"
@@ -30,7 +29,6 @@
             @if($this->dueCount > 0)
                 <span wire:key="reminder-due-badge" class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[var(--md-sys-color-error)] animate-pulse"></span>
             @endif
-            <x-ui.modals.tooltip text="یادآوری‌ها" :position="$tooltipPosition"/>
         </button>
     @else
         <button type="button" wire:click="open"

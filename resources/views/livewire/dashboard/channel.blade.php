@@ -3,6 +3,7 @@
     x-data="channel()"
     x-init="init()"
     data-outgoing-sound="{{ asset('build/assets/audio/outgoing.mp3') }}"
+    data-incoming-sound="{{ asset('build/assets/audio/incoming.mp3') }}"
     x-on:keydown.escape.window="closeOverlays(); if(max) toggleMaximize(null)"
     x-on:confirmation-confirmed.window="if ($event.detail.method === 'leaveChannel') leaveChannel($event.detail.params)"
     role="region"

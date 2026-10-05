@@ -61,9 +61,16 @@
                     <div class="relative z-10 flex items-center justify-between w-full gap-2">
                         <input type="text"
                                x-model="newChecklistItem"
+                               maxlength="255"
                                @keydown.enter.prevent="addChecklist()"
                                placeholder="شرح اقدام یا بخشی از آن… و فشردن Enter"
                                class="w-full bg-transparent px-3 py-2 text-[13px] sm:text-sm text-[var(--md-sys-color-on-surface)] placeholder-[color-mix(in_srgb,var(--md-sys-color-outline)_70%,transparent)] outline-none border-none focus:ring-0 font-medium"/>
+
+                        <span x-show="newChecklistItem.length > 230" x-cloak
+                              x-text="newChecklistItem.length + ' / 255'"
+                              class="shrink-0 text-[10px] font-medium pointer-events-none"
+                              :class="newChecklistItem.length >= 255 ? 'text-[var(--md-sys-color-error)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]'"
+                              aria-live="polite"></span>
 
                         <div class="flex items-center gap-2 shrink-0">
                             <span x-show="checklist.length > 0"
@@ -180,15 +187,22 @@
                                     x-text="item.text"></span>
                             </template>
                             <template x-if="editingChecklistIndex === index && !$wire.isReadOnly">
-                                <input type="text"
-                                       contenteditable="true"
-                                       x-model="item.text"
-                                       x-init="$nextTick(() => { $el.focus(); $el.select(); })"
-                                       @keydown.enter="saveChecklistItemText(index)"
-                                       @keydown.escape="editingChecklistIndex = null"
-                                       @blur="saveChecklistItemText(index)"
-                                       @click.stop
-                                       class="relative z-10 pointer-events-auto text-right text-[13px] sm:text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-surface)] font-medium"/>
+                                <div class="flex items-center gap-2 flex-1 min-w-0 pointer-events-auto">
+                                    <input type="text"
+                                           maxlength="255"
+                                           x-model="item.text"
+                                           x-init="$nextTick(() => { $el.focus(); $el.select(); })"
+                                           @keydown.enter="saveChecklistItemText(index)"
+                                           @keydown.escape="editingChecklistIndex = null"
+                                           @blur="saveChecklistItemText(index)"
+                                           @click.stop
+                                           class="relative z-10 text-right text-[13px] sm:text-sm flex-1 min-w-0 bg-transparent border-b border-[var(--md-sys-color-primary)] outline-none text-[var(--md-sys-color-on-surface)] font-medium"/>
+                                    <span x-show="(item.text || '').length > 230" x-cloak
+                                          x-text="(item.text || '').length + ' / 255'"
+                                          class="shrink-0 text-[10px] font-medium pointer-events-none"
+                                          :class="(item.text || '').length >= 255 ? 'text-[var(--md-sys-color-error)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_60%,transparent)]'"
+                                          aria-live="polite"></span>
+                                </div>
                             </template>
                         </div>
 
@@ -252,7 +266,18 @@
 
         <div class="md:col-span-2">
             <label class="{{ $labelClass }}">همکاران</label>
-            <x-dashboard.member-picker model="form.collaborators" :candidates="$staffMembers" nameKey="full_name" height="max-h-40" :disabled="$isReadOnly"/>
+            <x-dashboard.member-picker
+                wire:key="taskboard-collaborators-picker"
+                model="form.collaborators"
+                server
+                :candidates="$this->userPickerResults['candidates']"
+                :hasMore="$this->userPickerResults['hasMore']"
+                :deptOptions="$departmentOptions"
+                nameKey="full_name"
+                height="max-h-40"
+                :disabled="$isReadOnly"
+                :emptyTitle="$userSearch !== '' || $userDept !== '' ? 'کاربری با این جست‌وجو یافت نشد.' : 'کاربر فعال دیگری برای افزودن وجود ندارد.'"
+            />
         </div>
 
         <div class="md:col-span-2">

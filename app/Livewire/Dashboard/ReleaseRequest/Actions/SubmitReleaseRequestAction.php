@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\ReleaseRequest\Forms\ReleaseRequestForm;
 use App\Models\ReleaseRequest;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -32,16 +33,41 @@ class SubmitReleaseRequestAction
         $validated = $form->validate();
         $this->validateAttachments($form);
 
-        ReleaseRequest::create([
-            'user_id'     => (int) $user->id,
-            'type'        => $validated['type'],
-            'title'       => $validated['title'],
-            'body'        => $validated['body'],
-            'status'      => ReleaseRequestStatus::Open->value,
-            'attachments' => $this->storeAttachments($form),
-        ]);
+        $lock = Cache::lock("release-request-submit:{$user->id}", 10);
 
-        RateLimiter::hit($key, 3600);
+        if (!$lock->get()) {
+            throw ValidationException::withMessages([
+                'form.body' => 'درخواست دیگری در حال پردازش است؛ چند لحظه صبر کنید.',
+            ]);
+        }
+
+        try {
+            $normalized = new ReleaseRequest(['title' => $validated['title'], 'body' => $validated['body']]);
+
+            $isDuplicate = ReleaseRequest::where('user_id', $user->id)
+                ->where('title', $normalized->title)
+                ->where('body', $normalized->body)
+                ->exists();
+
+            if ($isDuplicate) {
+                throw ValidationException::withMessages([
+                    'form.body' => 'شما قبلاً همین درخواست را ثبت کرده‌اید.',
+                ]);
+            }
+
+            ReleaseRequest::create([
+                'user_id'     => (int) $user->id,
+                'type'        => $validated['type'],
+                'title'       => $validated['title'],
+                'body'        => $validated['body'],
+                'status'      => ReleaseRequestStatus::Open->value,
+                'attachments' => $this->storeAttachments($form),
+            ]);
+
+            RateLimiter::hit($key, 3600);
+        } finally {
+            $lock->release();
+        }
     }
 
     private function storeAttachments(ReleaseRequestForm $form): array

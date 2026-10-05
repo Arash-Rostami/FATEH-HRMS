@@ -20,7 +20,7 @@
                 class="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-md transition-colors"
                 :class="$wire.activeFilter === 'active'
                     ? 'bg-white text-[var(--md-sys-color-primary)] shadow-sm'
-                    : 'bg-[var(--md-sys-color-primary)] text-white'"
+                    : 'bg-[var(--md-sys-color-primary)] text-white dark:text-[var(--md-sys-color-on-primary)]'"
             >
                 {{ $this->stats['active'] }}
             </span>
@@ -44,7 +44,7 @@
                 class="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-md transition-colors"
                 :class="$wire.activeFilter === 'archived'
                     ? 'bg-white text-[var(--md-sys-color-secondary)] shadow-sm'
-                    : 'bg-[var(--md-sys-color-secondary)] text-white'"
+                    : 'bg-[var(--md-sys-color-secondary)] text-white dark:text-[var(--md-sys-color-on-secondary)]'"
             >
                 {{ $this->stats['archived'] }}
             </span>

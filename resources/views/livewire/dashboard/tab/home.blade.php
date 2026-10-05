@@ -45,7 +45,7 @@
                     @php($mobileRemainder = max(0, $teamPulse->count() - 5))
                     @php($desktopRemainder = max(0, $teamPulse->count() - $visiblePulse->count()))
                     <div wire:key="home-team-pulse" class="shrink-0 flex items-center gap-2 h-7 -my-1 rounded-lg pl-2 pr-1">
-                            <span class="flex items-center -space-x-2 rtl:space-x-reverse">
+                            <span class="flex items-center -space-x-1 rtl:space-x-reverse">
                                 @foreach($visiblePulse as $member)
                                     @php($mp = presence($member->presence))
                                     <span class="shrink-0 {{ $loop->iteration > 5 ? 'hidden sm:inline-flex' : 'inline-flex' }}">

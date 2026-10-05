@@ -345,6 +345,7 @@ class Main extends Component
         $this->selectedTicket = $ticket->toArray();
         $this->selectedTicket['requester_files'] = $this->resolveTicketFileUrls($this->selectedTicket['requester_files'] ?? []);
         $this->selectedTicket['assignee_files'] = $this->resolveTicketFileUrls($this->selectedTicket['assignee_files'] ?? []);
+        $this->selectedTicket['target_department_code'] = $ticket->targetDepartment?->code;
         $this->modalTab = 'request';
     }
 

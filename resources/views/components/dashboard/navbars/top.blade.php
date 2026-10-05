@@ -112,7 +112,9 @@
         <div class="flex items-center gap-1 sm:gap-1.5 mr-1 xl:mr-0">
             <div class="w-px h-6 bg-[var(--md-sys-color-on-primary)]/15 mx-1 hidden sm:block"></div>
             @auth
-                <livewire:dashboard.reminder.main wire:key="reminder-navbar"/>
+                <div class="hidden sm:block">
+                    <livewire:dashboard.reminder.main wire:key="reminder-navbar"/>
+                </div>
             @endauth
             <x-dashboard.navbars.top.notification/>
             <x-dashboard.navbars.top.account/>

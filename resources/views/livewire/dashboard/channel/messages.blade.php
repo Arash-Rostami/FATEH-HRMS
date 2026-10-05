@@ -103,8 +103,11 @@
                  ]) style="animation-delay: {{ $msg['animation_delay'] }}s">
 
                 @if($msg['is_last'])
-                    <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm">
-                        <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                    <div class="relative flex-shrink-0 self-end mb-0.5">
+                        <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
+                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                        </div>
+                        <x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>
                     </div>
                 @else
                     <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -191,38 +194,101 @@
 
                         @include('livewire.dashboard.messaging.message-actions', ['msg' => $msg])
 
-                        @if($msg['is_last'])
+                        @php
+                            $viewedAttachments = collect($msg['attachments'] ?? [])->filter(fn($a) => !empty($a['viewers']))->values();
+                        @endphp
+                        @if($msg['is_last'] || ($msg['is_mine'] && $viewedAttachments->isNotEmpty()))
                             <div class="flex items-center gap-1.5 mt-1.5 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
-                                @if($msg['is_edited'])
-                                    <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
-                                    <span class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
+                                @if($msg['is_last'])
+                                    @if($msg['is_edited'])
+                                        <span class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش شده</span>
+                                        <span class="w-[2px] h-[2px] rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-30"></span>
+                                    @endif
+                                    <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ toJalali($msg['datetime'], 'Y/m/d H:i') }}</time>
                                 @endif
-                                <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 @if($msg['is_mine'])
                                     @php
                                         $rs = $this->presenter->readerSummary($msg);
+                                        $hasReceipt = $msg['read_count'] > 0 || $viewedAttachments->isNotEmpty();
                                     @endphp
-                                    <span class="flex items-center gap-1" title="{{ $msg['read_count'] > 0 ? 'خوانده توسط: ' . implode('، ', $rs['names']) : 'ارسال شد' }}">
-                                        @if($msg['is_read_by_all'])
-                                            <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">done_all</span>
-                                        @elseif($msg['is_read'])
-                                            <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done_all</span>
-                                        @else
-                                            <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done</span>
-                                        @endif
-                                        @if(count($rs['shown']) > 0)
-                                            <span class="flex -space-x-1">
-                                                @foreach($rs['shown'] as $r)
-                                                    <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)]">
-                                                        <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
+                                    @if(!$hasReceipt)
+                                        <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done</span>
+                                    @else
+                                    <x-ui.hover-popover wire:key="channel-receipt-{{ $msg['id'] }}" alignment="top-full left-0 mt-2 origin-top-left" width="w-64" surface="default">
+                                        <x-slot:trigger>
+                                            <span class="flex items-center gap-1">
+                                                @if($msg['is_read_by_all'])
+                                                    <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-primary)]">done_all</span>
+                                                @elseif($msg['is_read'])
+                                                    <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done_all</span>
+                                                @else
+                                                    <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-surface-variant)] opacity-50">done</span>
+                                                @endif
+                                                @if(count($rs['shown']) > 0)
+                                                    <span class="flex -space-x-1">
+                                                        @foreach($rs['shown'] as $r)
+                                                            <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)]">
+                                                                <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
+                                                            </span>
+                                                        @endforeach
                                                     </span>
-                                                @endforeach
+                                                    @if($rs['extra'] > 0)
+                                                        <span class="w-4 h-4 rounded-md bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[8px] font-bold flex items-center justify-center ring-2 ring-[var(--md-sys-color-surface)]" dir="ltr">+{{ convertToPersian($rs['extra']) }}</span>
+                                                    @endif
+                                                @endif
+                                                @if($viewedAttachments->isNotEmpty())
+                                                    <span class="w-4 h-4 rounded-md bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] text-[8px] font-bold flex items-center justify-center ring-2 ring-[var(--md-sys-color-surface)]" dir="ltr">{{ convertToPersian($viewedAttachments->sum('viewer_count')) }}</span>
+                                                @endif
                                             </span>
-                                            @if($rs['extra'] > 0)
-                                                <span class="text-[9px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-70" dir="ltr">+{{ convertToPersian($rs['extra']) }}</span>
-                                            @endif
-                                        @endif
-                                    </span>
+                                        </x-slot:trigger>
+                                        <x-slot:body>
+                                            <div class="p-2.5 flex flex-col gap-2 max-h-[280px] overflow-y-auto">
+                                                <div>
+                                                    <p class="px-1 pb-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                                        {{ $msg['read_count'] > 0 ? 'خوانده شده توسط' : 'ارسال شد' }}
+                                                    </p>
+                                                    @if($msg['read_count'] > 0)
+                                                        <div class="flex flex-col gap-1.5">
+                                                            @foreach($msg['readers'] as $r)
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
+                                                                        <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
+                                                                    </span>
+                                                                    <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $r['name'] }}</span>
+                                                                    @if($r['read_at'])
+                                                                        <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60 flex-shrink-0" dir="ltr">{{ toJalali($r['read_at'], 'Y/m/d H:i') }}</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                @if($viewedAttachments->isNotEmpty())
+                                                    <div class="h-px bg-[var(--md-sys-color-outline-variant)]/40"></div>
+                                                    @foreach($viewedAttachments as $att)
+                                                        <div>
+                                                            <p class="px-1 pb-1 text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]">
+                                                                دیده شده توسط{{ $viewedAttachments->count() > 1 ? ' · ' . $att['name'] : '' }}
+                                                            </p>
+                                                            <div class="flex flex-col gap-1.5">
+                                                                @foreach($att['viewers'] as $viewer)
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
+                                                                            <x-ui.avatar :existingImage="$viewer['avatar']" :alt="$viewer['name']" icon="person" icon-size="text-[8px]" />
+                                                                        </span>
+                                                                        <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $viewer['name'] }}</span>
+                                                                        <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60 flex-shrink-0" dir="ltr">{{ toJalali($viewer['viewed_at'], 'Y/m/d H:i') }}</span>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                        </x-slot:body>
+                                    </x-ui.hover-popover>
+                                    @endif
                                 @endif
                             </div>
                         @endif

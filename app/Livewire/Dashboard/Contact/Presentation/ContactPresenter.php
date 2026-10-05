@@ -98,6 +98,7 @@ class ContactPresenter
                 'read_at_label' => !empty($msg['read_at']) ? toJalali($msg['read_at'], 'Y/m/d H:i') : null,
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
+                'sender_online' => (bool) ($msg['sender']['online'] ?? false),
                 'can_edit'   => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'attachments' => $this->attachments($msg['attachments'] ?? []),

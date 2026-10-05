@@ -18,8 +18,11 @@
                 @foreach($group['messages'] as $msg)
                     <div @class(['flex items-end gap-2 animate-bubble-in', 'justify-start' => $msg['is_mine'], 'justify-end' => !$msg['is_mine'], $msg['gap_class']]) wire:key="chat-msg-{{ $msg['id'] }}" style="animation-delay: {{ $msg['animation_delay'] }}s">
                         @if($msg['is_last'])
-                            <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden self-end mb-0.5 shadow-sm">
-                                <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                            <div class="relative flex-shrink-0 self-end mb-0.5">
+                                <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
+                                    <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                                </div>
+                                <x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>
                             </div>
                         @else
                             <div class="flex-shrink-0 w-7" aria-hidden="true"></div>

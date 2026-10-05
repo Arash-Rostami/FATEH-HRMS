@@ -1,6 +1,6 @@
 @php($lastIndex = count($workFlow) - 1)
 
-<div class="rounded-2xl bg-main-mode p-4 mb-2 shadow-sm">
+<div class="rounded-2xl p-4 mb-2 shadow-sm">
     <div class="flex items-center gap-2 mb-4 px-1">
         <span class="material-symbols-rounded text-[20px] text-[var(--md-sys-color-primary)]">account_tree</span>
         <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">گردش کار پیشنهاد</h3>
@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 p-4 bg-main-mode relative mb-2 text-justify text-sm text-neutral-900 rounded">
+<div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 p-4 relative mb-2 text-justify text-sm text-neutral-900 dark:text-[var(--md-sys-color-on-surface)] rounded">
     <ul class="list-disc pr-5 space-y-1">
         <li>
             برای حصول اطمینان از دریافت نظرات و متعاقباً رسیدن پیشنهاد به مدیریت، لطفاً از طریق مدیر یا سرپرست واحد

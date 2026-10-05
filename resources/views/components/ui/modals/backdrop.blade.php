@@ -7,7 +7,7 @@
 
 <div
     x-init="$watch(() => open, (v) => { if (v) $store.toolStack.top = $el })"
-    :style="'z-index:' + ($store.toolStack.top === $el ? 50 : 49)"
+    :style="{ zIndex: $store.toolStack.top === $el ? 50 : 49 }"
     {{ $attributes->merge(['class' => 'fixed inset-0 flex items-center justify-center bg-[var(--md-sys-color-primary)]/60']) }}
     @click.self="{{ $minimizable ? $onMinimize : null }}"
     x-transition x-cloak

@@ -95,11 +95,11 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                     <div class="rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
                                         <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">
-                                            <span class="material-symbols-rounded text-[18px]">{{ $presenter->requestAreaIcon($selectedTicket['request_area']) }}</span>
+                                            <span class="material-symbols-rounded text-[18px]">{{ $presenter->requestAreaIcon($selectedTicket['request_area'], $selectedTicket['target_department_code'] ?? null) }}</span>
                                         </div>
                                         <div class="min-w-0 flex flex-col gap-1">
                                             <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-bold">حوزه</span>
-                                            <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] truncate">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area']) }}</span>
+                                            <span class="text-[13px] font-bold text-[var(--md-sys-color-on-surface)] truncate">{{ $presenter->requestAreaLabel($selectedTicket['request_type'], $selectedTicket['request_area'], $selectedTicket['target_department_code'] ?? null) }}</span>
                                         </div>
                                     </div>
 

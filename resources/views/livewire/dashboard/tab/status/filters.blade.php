@@ -29,7 +29,7 @@
             >
                <span
                    class="material-symbols-rounded text-[18px] transition-colors"
-                   :style="$wire.activeFilter === '{{ $status->value }}' ? '' : 'color: {{ $status->hex() }}'"
+                   :style="$wire.activeFilter === '{{ $status->value }}' ? '' : 'color: {{ $status->cssVar() }}'"
                >
                     {{ $status->icon() }}
                 </span>
@@ -38,7 +38,7 @@
                     class="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-md transition-colors"
                     :class="$wire.activeFilter === '{{ $status->value }}'
                         ? 'bg-white text-{{ $status->color() }}-700 shadow-sm'
-                        : 'bg-{{ $status->color() }}-500 text-white'"
+                        : 'bg-{{ $status->color() }}-500 text-white dark:bg-{{ $status->color() }}-400 dark:text-{{ $status->color() }}-950'"
                 >
                     {{ $this->stats[$status->value] ?? 0 }}
                 </span>

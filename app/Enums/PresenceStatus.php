@@ -15,13 +15,13 @@ enum PresenceStatus: string
     public function activeClass(): string
     {
         return match ($this) {
-            self::Onsite => 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 ring-1 ring-emerald-400/50',
-            self::Remote => 'bg-blue-500 text-white shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/50',
-            self::Mission => 'bg-amber-500 text-white shadow-lg shadow-amber-500/20 ring-1 ring-amber-400/50',
-            self::Busy => 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 ring-1 ring-rose-400/50',
-            self::Grumpy => 'bg-violet-600 text-white shadow-xl shadow-violet-600/40 ring-1 ring-violet-400/50',
-            self::Angry => 'bg-red-600 text-white shadow-xl shadow-red-600/50 ring-1 ring-red-500/60',
-            self::Leave  => 'bg-gray-500 text-white shadow-lg shadow-gray-500/20 ring-1 ring-gray-400/50',
+            self::Onsite => 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 ring-1 ring-emerald-400/50 dark:bg-emerald-400 dark:text-emerald-950',
+            self::Remote => 'bg-blue-500 text-white shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/50 dark:bg-blue-400 dark:text-blue-950',
+            self::Mission => 'bg-amber-500 text-white shadow-lg shadow-amber-500/20 ring-1 ring-amber-400/50 dark:bg-amber-400 dark:text-amber-950',
+            self::Busy => 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 ring-1 ring-rose-400/50 dark:bg-rose-400 dark:text-rose-950',
+            self::Grumpy => 'bg-violet-600 text-white shadow-xl shadow-violet-600/40 ring-1 ring-violet-400/50 dark:bg-violet-400 dark:text-violet-950',
+            self::Angry => 'bg-red-600 text-white shadow-xl shadow-red-600/50 ring-1 ring-red-500/60 dark:bg-red-400 dark:text-red-950',
+            self::Leave  => 'bg-gray-500 text-white shadow-lg shadow-gray-500/20 ring-1 ring-gray-400/50 dark:bg-gray-400 dark:text-gray-950',
         };
     }
 
@@ -65,6 +65,11 @@ enum PresenceStatus: string
             self::Angry => 'red',
             self::Leave => 'gray',
         };
+    }
+
+    public function cssVar(): string
+    {
+        return 'var(--presence-' . $this->value . ')';
     }
 
     public function heroicon(): string

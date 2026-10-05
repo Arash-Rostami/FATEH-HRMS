@@ -29,8 +29,8 @@ enum SkillTier: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::Endorsed => 'bg-amber-500/10 text-amber-600',
-            self::Active => 'bg-emerald-500/10 text-emerald-600',
+            self::Endorsed => 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+            self::Active => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
             self::Unused => 'bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface-variant)]',
         };
     }

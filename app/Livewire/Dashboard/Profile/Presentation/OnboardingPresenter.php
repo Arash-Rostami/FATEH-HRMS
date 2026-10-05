@@ -109,9 +109,9 @@ class OnboardingPresenter
     private function fileBadgeClass(string $ext): string
     {
         return match (strtolower($ext)) {
-            'pdf' => 'bg-red-500 text-white',
-            'doc', 'docx' => 'bg-blue-600 text-white',
-            'xls', 'xlsx' => 'bg-green-600 text-white',
+            'pdf' => 'bg-red-500 text-white dark:bg-red-400 dark:text-red-950',
+            'doc', 'docx' => 'bg-blue-600 text-white dark:bg-blue-400 dark:text-blue-950',
+            'xls', 'xlsx' => 'bg-green-600 text-white dark:bg-green-400 dark:text-green-950',
             default => 'bg-[var(--md-sys-color-outline)] text-[var(--md-sys-color-surface)]',
         };
     }

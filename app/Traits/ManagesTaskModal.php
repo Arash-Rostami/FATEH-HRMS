@@ -40,6 +40,11 @@ trait ManagesTaskModal
     public array $staffMembers = [];
     public array $departmentOptions = [];
 
+    public string $userSearch = '';
+    public string $userDept = '';
+    #[Locked]
+    public int $userPickerLimit = 12;
+
     public bool $isModalOpen = false;
     public bool $isEditMode = false;
     public bool $isReadOnly = false;
@@ -57,6 +62,57 @@ trait ManagesTaskModal
             ->toArray();
 
         $this->departmentOptions = Department::getCachedOptions()->toArray();
+    }
+
+    public function loadMoreUsers(): void
+    {
+        $this->userPickerLimit += 12;
+    }
+
+    public function resetUserPicker(): void
+    {
+        $this->userSearch = '';
+        $this->userDept = '';
+        $this->userPickerLimit = 12;
+    }
+
+    #[Computed]
+    public function userPickerResults(): array
+    {
+        $selected = array_map('intval', array_values(array_unique(array_filter([
+            $this->form->selectedAssignee,
+            $this->form->responsibleUserId,
+            ...$this->form->collaborators,
+        ], fn($id) => $id !== null))));
+
+        $limit = $this->userPickerLimit;
+
+        $users = User::query()
+            ->visibleOnBoard()
+            ->whereKeyNot(auth()->id())
+            ->where(function (Builder $q) use ($selected) {
+                $q->where(function (Builder $inner) {
+                    $inner->when($this->userDept !== '',
+                        fn(Builder $w) => $w->whereHas('profile', fn(Builder $p) => $p->where('department_id', $this->userDept)));
+                    $inner->when($this->userSearch !== '',
+                        fn(Builder $w) => $w->search($this->userSearch));
+                });
+                if ($selected !== []) {
+                    $q->orWhereIn('users.id', $selected);
+                }
+            })
+            ->when($selected !== [], fn(Builder $q) => $q->orderByRaw('CASE WHEN users.id IN (' . implode(',', $selected) . ') THEN 0 ELSE 1 END'))
+            ->orderBy('name')
+            ->limit($limit + 1)
+            ->get(['id', 'name']);
+
+        return [
+            'candidates' => $users->take($limit)
+                ->map(fn(User $user) => ['id' => $user->id, 'full_name' => $user->name])
+                ->values()
+                ->all(),
+            'hasMore' => $users->count() > $limit,
+        ];
     }
 
     #[Computed]
@@ -229,6 +285,7 @@ trait ManagesTaskModal
 
         $this->isEditMode = true;
         $this->isReadOnly = (bool)$task->ticket_id;
+        $this->resetUserPicker();
         $this->isModalOpen = true;
     }
 
@@ -255,6 +312,7 @@ trait ManagesTaskModal
         $this->resetValidation();
         $this->isEditMode = false;
         $this->isReadOnly = false;
+        $this->resetUserPicker();
         $this->isModalOpen = true;
         $this->afterOpenCreateModal();
     }
@@ -398,6 +456,7 @@ trait ManagesTaskModal
 
         $this->isEditMode = false;
         $this->isReadOnly = true;
+        $this->resetUserPicker();
         $this->isModalOpen = true;
     }
 

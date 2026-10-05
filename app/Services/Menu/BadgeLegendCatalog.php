@@ -41,6 +41,7 @@ class BadgeLegendCatalog
                 'deadline' => ['label' => 'سررسید', 'icon' => 'schedule'],
                 'approval' => ['label' => 'تأیید', 'icon' => 'verified_user'],
                 'projects' => ['label' => 'پروژه', 'icon' => 'workspaces'],
+                'workflow' => ['label' => 'چرخهٔ کاری', 'icon' => 'conversion_path'],
                 'tickets' => ['label' => 'تیکت', 'icon' => 'confirmation_number'],
                 'reminders' => ['label' => 'یادآوری', 'icon' => 'alarm'],
                 'reminders-badge' => ['label' => 'زنگ یادآوری', 'icon' => 'notifications_active'],
@@ -175,7 +176,7 @@ class BadgeLegendCatalog
                 'clears' => 'با بستن زنگوله؛ دکمهٔ «مشاهده» مستقیماً شما را به همان پروژه می‌برد.',
             ],
             'workflow:nudge' => [
-                'group' => 'tasks', 'subgroup' => 'projects', 'tone' => 'gold', 'icon' => 'conversion_path',
+                'group' => 'tasks', 'subgroup' => 'workflow', 'tone' => 'gold', 'icon' => 'conversion_path',
                 'label' => 'نوبت مرحلهٔ چرخهٔ کاری',
                 'lights' => 'وقتی نوبت مرحله‌ای از چرخهٔ کاری پروژه به شما برسد، یا چرخه‌ای که مالک آن هستید به پایان برسد. این مورد دات ندارد، فقط زنگوله.',
                 'clears' => 'با تکمیل همان مرحله؛ صرفاً مشاهدهٔ تب «چرخهٔ کاری» خاموشش نمی‌کند.',

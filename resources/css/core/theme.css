@@ -113,6 +113,14 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --tool-gold-text: #3d260c;
         --tool-gold-color: #8a5a23;
 
+        --presence-onsite: #00A44A;
+        --presence-remote: #002060;
+        --presence-mission: #FE9900;
+        --presence-busy: #B00000;
+        --presence-grumpy: #7C3AED;
+        --presence-angry: #B00000;
+        --presence-leave: #6B7280;
+
         accent-color: var(--md-sys-color-primary) !important;
     }
 
@@ -134,6 +142,8 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
 
         --md-sys-color-error: #ffb4ab;
         --md-sys-color-on-error: #690005;
+        --md-sys-color-error-container: #93000a;
+        --md-sys-color-on-error-container: #ffdad6;
 
         --md-sys-color-success: #6ee7b7;
         --md-sys-color-on-success: #003826;
@@ -177,6 +187,17 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
         --tool-gold-bg: #4d3211;
         --tool-gold-text: #f7e1c6;
         --tool-gold-color: #d1a673;
+
+        --md-sys-color-scrim: #000000;
+        --md-sys-color-shadow: #000000;
+
+        --presence-onsite: #4ade80;
+        --presence-remote: #93c5fd;
+        --presence-mission: #fcd34d;
+        --presence-busy: #f87171;
+        --presence-grumpy: #c4b5fd;
+        --presence-angry: #f87171;
+        --presence-leave: #9ca3af;
     }
 
     [data-theme='grey'] {
@@ -235,12 +256,12 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
 
         --md-sys-color-secondary: #D6B6A8;
         --md-sys-color-on-secondary: #422C22;
-        --md-sys-color-secondary-container: #8C6659;
+        --md-sys-color-secondary-container: #453329;
         --md-sys-color-on-secondary-container: #F5E1DA;
 
         --md-sys-color-tertiary: #D4C077;
         --md-sys-color-on-tertiary: #453900;
-        --md-sys-color-tertiary-container: #8A7124;
+        --md-sys-color-tertiary-container: #493B0E;
         --md-sys-color-on-tertiary-container: #F0E6B8;
 
         --md-sys-color-background: #17110F;
@@ -500,17 +521,17 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
     [data-theme='nebula'].dark {
         --md-sys-color-primary: #A9C7E0;
         --md-sys-color-on-primary: #16324A;
-        --md-sys-color-primary-container: #496580;
+        --md-sys-color-primary-container: #1F3346;
         --md-sys-color-on-primary-container: #BADDFF;
 
         --md-sys-color-secondary: #8ED4DA;
         --md-sys-color-on-secondary: #063338;
-        --md-sys-color-secondary-container: #3F7A82;
+        --md-sys-color-secondary-container: #1B4750;
         --md-sys-color-on-secondary-container: #C8ECEF;
 
         --md-sys-color-tertiary: #F2B287;
         --md-sys-color-on-tertiary: #4A2308;
-        --md-sys-color-tertiary-container: #C97B4A;
+        --md-sys-color-tertiary-container: #5C2E15;
         --md-sys-color-on-tertiary-container: #FFDBBB;
 
         --md-sys-color-error: #ffb4ab;
@@ -627,17 +648,17 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
     [data-theme='ocean'].dark {
         --md-sys-color-primary: #C7C79B;
         --md-sys-color-on-primary: #33341A;
-        --md-sys-color-primary-container: #6B6B47;
+        --md-sys-color-primary-container: #313218;
         --md-sys-color-on-primary-container: #E4E4CC;
 
         --md-sys-color-secondary: #D6B693;
         --md-sys-color-on-secondary: #402C16;
-        --md-sys-color-secondary-container: #8A6A4A;
+        --md-sys-color-secondary-container: #402F1B;
         --md-sys-color-on-secondary-container: #F0E2D0;
 
         --md-sys-color-tertiary: #E0C066;
         --md-sys-color-on-tertiary: #453400;
-        --md-sys-color-tertiary-container: #A88320;
+        --md-sys-color-tertiary-container: #52400B;
         --md-sys-color-on-tertiary-container: #F5E6BC;
 
         --md-sys-color-error: #ffb4ab;
@@ -861,7 +882,7 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
 
         --md-sys-color-tertiary: #E3B876;
         --md-sys-color-on-tertiary: #452D07;
-        --md-sys-color-tertiary-container: #9C6B2C;
+        --md-sys-color-tertiary-container: #4E350F;
         --md-sys-color-on-tertiary-container: #F5E2C4;
 
         --md-sys-color-error: #ffb4ab;
@@ -1247,17 +1268,17 @@ a, button, input, select, textarea, label, [role="button"], .transition-colors {
     [data-theme='magneta'].dark {
         --md-sys-color-primary: #E3C878;
         --md-sys-color-on-primary: #3A2E0A;
-        --md-sys-color-primary-container: #E8D59E;
-        --md-sys-color-on-primary-container: #FBF3DE;
+        --md-sys-color-primary-container: #4A3D10;
+        --md-sys-color-on-primary-container: #E8D59E;
 
         --md-sys-color-secondary: #C2AD82;
         --md-sys-color-on-secondary: #362B10;
-        --md-sys-color-secondary-container: #8A7248;
+        --md-sys-color-secondary-container: #3B3015;
         --md-sys-color-on-secondary-container: #F0E4CE;
 
         --md-sys-color-tertiary: #D89275;
         --md-sys-color-on-tertiary: #451F0F;
-        --md-sys-color-tertiary-container: #A85D3B;
+        --md-sys-color-tertiary-container: #502B17;
         --md-sys-color-on-tertiary-container: #FBE0D2;
 
         --md-sys-color-error: #ffb4ab;

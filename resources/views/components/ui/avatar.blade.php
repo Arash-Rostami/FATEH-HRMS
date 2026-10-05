@@ -23,7 +23,7 @@
         {{ $attributes->merge(['class' => 'w-full h-full object-cover fade-in rounded-md']) }}
     >
 @else
-    <div {{ $attributes->merge(['class' => 'w-full h-full bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]']) }}>
+    <div {{ $attributes->merge(['class' => 'w-full h-full rounded-md bg-[var(--md-sys-color-surface-variant)] flex items-center justify-center text-[var(--md-sys-color-on-surface-variant)]']) }}>
         <span class="material-symbols-rounded {{ $iconSize }} fade-in">{{ $icon }}</span>
     </div>
 @endif

@@ -176,11 +176,19 @@ class StatusPresenter
         };
 
         $presenceBg = match ($p->color()) {
-            'green', 'emerald', 'success' => 'bg-emerald-500',
-            'amber', 'yellow', 'warning' => 'bg-amber-500',
-            'red', 'rose', 'danger' => 'bg-rose-500',
-            'blue', 'sky', 'info' => 'bg-sky-500',
+            'green', 'emerald', 'success' => 'bg-emerald-500 dark:bg-emerald-400',
+            'amber', 'yellow', 'warning' => 'bg-amber-500 dark:bg-amber-400',
+            'red', 'rose', 'danger' => 'bg-rose-500 dark:bg-rose-400',
+            'blue', 'sky', 'info' => 'bg-sky-500 dark:bg-sky-400',
             default => 'bg-slate-400',
+        };
+
+        $presenceText = match ($p->color()) {
+            'green', 'emerald', 'success' => 'text-white dark:text-emerald-950',
+            'amber', 'yellow', 'warning' => 'text-white dark:text-amber-950',
+            'red', 'rose', 'danger' => 'text-white dark:text-rose-950',
+            'blue', 'sky', 'info' => 'text-white dark:text-sky-950',
+            default => 'text-white dark:text-slate-950',
         };
 
         return [
@@ -193,6 +201,7 @@ class StatusPresenter
             'rankMeta' => $rankMeta,
             'tierConfig' => $tierConfig,
             'presenceBg' => $presenceBg,
+            'presenceText' => $presenceText,
             'aboutPayload' => $this->aboutPayload($user),
         ];
     }
@@ -333,6 +342,7 @@ class StatusPresenter
                 'division' => $user->profile?->detailsMap()->get('unit'),
                 'section' => $user->profile?->detailsMap()->get('section'),
                 'favoriteColors' => $user->profile?->favorite_colors ?? [],
+                'is_online' => $user->isOnline(),
             ],
             'aboutMe' => $this->flattenAboutMe($user->profile?->about_me ?? []),
         ];

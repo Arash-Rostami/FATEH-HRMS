@@ -7,7 +7,7 @@
 >
     <div
         class="absolute inset-0 pointer-events-none rounded-2xl z-0 ambient-effect-layer"
-        style="--effect-color: {{ $status->hex() }};"
+        style="--effect-color: {{ $status->cssVar() }};"
     >
         <template x-if="type === 'angry'">
             <div class="absolute inset-0 eb-container rounded-2xl" x-ref="container">

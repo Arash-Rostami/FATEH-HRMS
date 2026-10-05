@@ -25,12 +25,22 @@
         @endforeach
     </x-ui.forms.select>
 
-    <x-ui.forms.select label="جوابگو" name="form.responsibleUserId" wire:model="form.responsibleUserId" :disabled="$isReadOnly">
-        <option value="">انتخاب کنید</option>
-        @foreach($staffMembers as $staff)
-            <option value="{{ $staff['id'] }}">{{ $staff['full_name'] }}</option>
-        @endforeach
-    </x-ui.forms.select>
+    <div class="space-y-1.5">
+        <label class="{{ $labelClass }}">جوابگو</label>
+        <x-dashboard.member-picker
+            wire:key="taskboard-responsible-picker"
+            model="form.responsibleUserId"
+            mode="single"
+            server
+            noneLabel="بدون جوابگو"
+            :candidates="$this->userPickerResults['candidates']"
+            :hasMore="$this->userPickerResults['hasMore']"
+            :deptOptions="$departmentOptions"
+            nameKey="full_name"
+            height="max-h-32"
+            :disabled="$isReadOnly"
+        />
+    </div>
 
     <div class="w-full space-y-1.5">
         <x-ui.forms.input

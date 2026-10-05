@@ -54,8 +54,37 @@ trait BuildsMessageGroups
                     $cursor = (int)($meta['cursor'] ?? 0);
                     if ($cursor >= (int)($msg['id'] ?? 0)) {
                         $readCount++;
-                        $readers[] = ['avatar' => $meta['avatar'] ?? null, 'name' => $meta['name'] ?? '—'];
+                        $readers[] = ['avatar' => $meta['avatar'] ?? null, 'name' => $meta['name'] ?? '—', 'read_at' => $meta['read_at'] ?? null];
                     }
+                }
+            }
+
+            $attachments = $this->attachments($msg['attachments'] ?? []);
+            foreach ($msg['attachments'] ?? [] as $ai => $rawAtt) {
+                unset($attachments[$ai]['views']);
+
+                if (!$isMine) {
+                    continue;
+                }
+
+                $views = $rawAtt['views'] ?? [];
+                if (empty($views)) {
+                    continue;
+                }
+                $viewers = [];
+                foreach ($views as $uid => $timestamp) {
+                    if ((int) $uid === $senderId) {
+                        continue;
+                    }
+                    $meta = $readersMap[(int) $uid] ?? null;
+                    if ($meta === null) {
+                        continue;
+                    }
+                    $viewers[] = ['name' => $meta['name'] ?? '—', 'avatar' => $meta['avatar'] ?? null, 'viewed_at' => $timestamp];
+                }
+                if ($viewers) {
+                    $attachments[$ai]['viewers'] = $viewers;
+                    $attachments[$ai]['viewer_count'] = count($viewers);
                 }
             }
 
@@ -87,9 +116,10 @@ trait BuildsMessageGroups
                 'is_deleted' => !empty($msg['deleted_at']),
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
+                'sender_online' => (bool) ($msg['sender']['online'] ?? false),
                 'can_edit' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
-                'attachments' => $this->attachments($msg['attachments'] ?? []),
+                'attachments' => $attachments,
                 'type_flags' => $this->typeFlags($msg),
                 'gap_class' => $isFirst ? 'mt-4' : 'mt-1',
                 'bubble_radius' => $this->bubbleRadius($isMine, $isFirst, $isLast),

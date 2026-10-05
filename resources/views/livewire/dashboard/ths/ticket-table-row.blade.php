@@ -7,28 +7,25 @@
     $urgency = $ticket->urgencyState;
     $isUrgent = $urgency['score'] > 0;
 @endphp
-<tr wire:key="ticket-{{ $ticket->id }}" data-rf="ticket-{{ $ticket->id }}" class="relative isolate hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer {{ $isUrgent ? 'taskboard-card--urgent' : '' }}"
-    style="{{ $isUrgent ? '--urgency:' . $urgency['score'] . ';' : '' }}"
+<tr wire:key="ticket-{{ $ticket->id }}" data-rf="ticket-{{ $ticket->id }}" class="relative isolate hover:bg-[var(--md-sys-color-primary)]/[0.03] active:bg-[var(--md-sys-color-primary)]/[0.06] transition-colors group cursor-pointer"
     @if($isUrgent) title="{{ $urgency['label'] }}" @endif
     wire:click="viewTicket({{ $ticket->id }})">
-    <td class="px-6 py-4 flex items-center gap-3">
+    <td class="relative px-6 py-4 {{ $isUrgent ? 'taskboard-card--urgent' : '' }}"
+        style="{{ $isUrgent ? '--urgency:' . $urgency['score'] . ';' : '' }}">
         <div class="absolute inset-0 -z-10 pointer-events-none transition-colors duration-200"
              :style="{ 'background-color': $store.tagged.tagBg(@js($ticket->id), @js('ths')) }"></div>
-        <div
-            class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] shrink-0 ring-1 ring-[var(--md-sys-color-outline-variant)]/20 group-hover:ring-[var(--md-sys-color-primary)]/30 transition-colors"
-            title="{{ $prio['title'] ?? '' }}">
-            @if($prio)
-                <span class="material-symbols-rounded text-xl {{ $prio['color'] }}">
-                    {{ $prio['icon'] == 'commit' ? '󠁯•󠁏' : $prio['icon']  }}
-                </span>
-            @endif
-        </div>
-        <div class="flex flex-col cursor-help" title="{{ jdate($ticket->created_at) }}" dir="ltr">
-            <span class="font-bold text-[var(--md-sys-color-on-surface)] text-[13px] tracking-wider font-mono flex-row-reverse flex">{{ $fId }}</span>
-            <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] flex items-center gap-1 mt-0.5">
-                <span class="material-symbols-rounded text-[12px]">schedule</span>
-                {{ toJalali($ticket->created_at, 'j F Y') }}
-            </span>
+        <div class="flex flex-col" dir="ltr">
+            <span class="font-bold text-[var(--md-sys-color-on-surface)] text-[11px] tracking-wider font-mono flex-row-reverse flex whitespace-nowrap">{{ $fId }}</span>
+            <hr class="opacity-30"/>
+            <div class="flex items-center gap-1.5 mt-1 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
+                <span class="cursor-help" title="{{ jdate($ticket->created_at) }}">{{ toJalali($ticket->created_at, 'j F Y') }}</span>
+                @if($prio)
+                    <span class="material-symbols-rounded text-[13px] {{ $prio['color'] }}" title="{{ $prio['title'] ?? '' }}">
+                        {{ $prio['icon'] == 'commit' ? '󠁯•󠁏' : $prio['icon']  }}
+                    </span>
+                    <span class="w-px h-3 bg-[var(--md-sys-color-outline-variant)]/50"></span>
+                @endif
+            </div>
         </div>
     </td>
 
@@ -50,12 +47,15 @@
             </div>
         @endif
         @if($ticket->replies_count || !empty($ticket->requester_files) || !empty($ticket->assignee_files))
-            <div wire:key="ths-row-meta" class="mt-1.5 flex items-center gap-2 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
+            <div wire:key="ths-row-meta" class="mt-1.5 flex items-center gap-1.5 text-[10px] text-[var(--md-sys-color-on-surface-variant)]">
                 @if($ticket->replies_count)
                     <span wire:key="ths-row-replies" class="inline-flex items-center gap-0.5" title="تعداد پاسخ‌ها">
                         <span class="material-symbols-rounded text-[12px]">forum</span>
                         {{ convertToPersian($ticket->replies_count) }}
                     </span>
+                @endif
+                @if($ticket->replies_count && (!empty($ticket->requester_files) || !empty($ticket->assignee_files)))
+                    <span wire:key="ths-row-meta-divider" class="w-px h-3 bg-[var(--md-sys-color-outline-variant)]/50"></span>
                 @endif
                 @if(!empty($ticket->requester_files) || !empty($ticket->assignee_files))
                     <span wire:key="ths-row-files" class="inline-flex items-center gap-0.5" title="فایل پیوست دارد">
@@ -69,8 +69,8 @@
 
     <td data-col="domain" class="px-6 py-4 hidden md:table-cell text-[13px] text-[var(--md-sys-color-on-surface-variant)]">
         <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded">{{ $presenter->requestAreaIcon($ticket->request_area) }}</span>
-            {{ $ticket->getRequestAreaOptions($ticket->request_type, $ticket->request_area) }}
+            <span class="material-symbols-rounded">{{ $presenter->requestAreaIcon($ticket->request_area, $ticket->targetDepartment?->code) }}</span>
+            {{ $presenter->requestAreaLabel($ticket->request_type, $ticket->request_area, $ticket->targetDepartment?->code) }}
         </div>
     </td>
 
@@ -91,7 +91,13 @@
     </td>
 
     <td data-col="requester" class="px-6 py-4 hidden lg:table-cell text-[13px]">
-        {{ $isMine ? 'شما' : ($ticket->requester?->name ?? '—') }}
+        @php($requesterName = $isMine ? 'شما' : ($ticket->requester?->name ?? '—'))
+        <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)] flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
+                {{ mb_substr($requesterName, 0, 1) }}
+            </div>
+            <span class="text-[var(--md-sys-color-on-surface)]">{{ $requesterName }}</span>
+        </div>
     </td>
 
     <td data-col="assignee" class="px-6 py-4 hidden lg:table-cell text-[13px]">

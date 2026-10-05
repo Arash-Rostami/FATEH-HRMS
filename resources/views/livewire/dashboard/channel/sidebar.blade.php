@@ -136,10 +136,10 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-1">
                         <p @class([
-                            'text-[13px] truncate flex items-center gap-1.5',
+                            'text-[13px] truncate flex items-center gap-1.5 cursor-pointer',
                             'font-semibold text-[var(--md-sys-color-on-surface)]' => $ch['unread'],
                             'font-medium text-[var(--md-sys-color-on-surface-variant)]' => !$ch['unread'],
-                        ])>
+                        ]) title="{{ $ch['slug'] }}" x-on:click.stop="copyText(@js($ch['slug']), 'اسلاگ گروه کپی شد', 'info')">
                             {{ $ch['name'] }}
                             @if(empty($ch['is_entered']))
                                 <span class="w-2 h-2 rounded-full bg-[var(--md-sys-color-primary)] flex-shrink-0" title="جدید" aria-hidden="true"></span>
@@ -155,10 +155,6 @@
                             </time>
                         @endif
                     </div>
-                    @if(!empty($ch['slug_handle']))
-                        <div class="text-[10px] truncate -mt-0.5" dir="auto" style="color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 70%, transparent);">{{ $ch['slug_handle'] }}</div>
-                    @endif
-
                     <div class="flex items-center justify-between gap-1 mt-px">
                         @if($ch['last_message'])
                             <p @class([

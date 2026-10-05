@@ -55,7 +55,7 @@
                                 @click.stop="openTools"
                                 class="orgc-cursor-hint"
                                 title="ابزار جابه‌جایی نمودار"
-                                :style="`left:${mouseX}px; top:${mouseY}px`">
+                                :style="{ left: mouseX + 'px', top: mouseY + 'px' }">
                             <span class="material-symbols-rounded">swipe</span>
                         </button>
 
@@ -63,7 +63,7 @@
                              x-cloak
                              @click.outside="toolsOpen = false"
                              class="orgc-compass"
-                             :style="`left:${toolsX}px; top:${toolsY}px`">
+                             :style="{ left: toolsX + 'px', top: toolsY + 'px' }">
                             <button type="button" @click.stop="pan(0, -220)" class="orgc-compass-btn orgc-compass-btn--up" title="بالا">
                                 <span class="material-symbols-rounded">keyboard_arrow_up</span>
                             </button>

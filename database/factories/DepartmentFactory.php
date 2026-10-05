@@ -13,7 +13,7 @@ class DepartmentFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => fake()->word(),
+            'code' => strtoupper(fake()->unique()->lexify('???')),
             'name' => fake()->name(),
             'description' => fake()->word(),
         ];

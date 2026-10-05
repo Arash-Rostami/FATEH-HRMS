@@ -4,18 +4,30 @@ const NOTIFICATION_ICON = '/favicon.ico';
 export default (Alpine) => {
     Alpine.store('push', {
         supported: typeof Notification !== 'undefined',
+        enabled: { channel: false, contact: false, project: false },
+
+        init() {
+            Object.keys(this.enabled).forEach((scope) => this._load(scope));
+
+            window.addEventListener('storage', (e) => {
+                const scope = Object.keys(this.enabled).find((s) => this._key(s) === e.key);
+                if (scope) this._load(scope);
+            });
+        },
 
         _key(scope) {
             return PUSH_STORAGE_PREFIX + scope;
         },
 
+        _load(scope) {
+            try {
+                this.enabled[scope] = localStorage.getItem(this._key(scope)) === '1';
+            } catch (e) {}
+        },
+
         isEnabled(scope = 'channel') {
             if (!this.supported || Notification.permission !== 'granted') return false;
-            try {
-                return localStorage.getItem(this._key(scope)) === '1';
-            } catch (e) {
-                return false;
-            }
+            return !!this.enabled[scope];
         },
 
         async toggle(scope = 'channel') {
@@ -25,6 +37,7 @@ export default (Alpine) => {
                 try {
                     localStorage.setItem(this._key(scope), '0');
                 } catch (e) {}
+                this.enabled[scope] = false;
                 return;
             }
 
@@ -37,6 +50,7 @@ export default (Alpine) => {
             try {
                 localStorage.setItem(this._key(scope), '1');
             } catch (e) {}
+            this.enabled[scope] = true;
         },
 
         notify(title, body, scope = 'channel') {

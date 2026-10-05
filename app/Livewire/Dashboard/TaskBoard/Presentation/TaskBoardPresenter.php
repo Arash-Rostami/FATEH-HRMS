@@ -290,4 +290,98 @@ class TaskBoardPresenter
             'showTaskExpression' => $isPersonalBoard ? "!showFavoritesOnly || isFavorite({$taskId})" : 'true',
         ];
     }
+
+    public function cardChrome(array $task, array $card, bool $isPersonalBoard, ?string $activeTab, string $column): array
+    {
+        static $classes = null;
+        $classes ??= [
+            'url' => fn (string $path) => rtrim(asset('storage'), '/') . '/' . $path,
+            'pop' => 'top-full right-0 mt-2 origin-top-right',
+            'popBody' => 'px-3 py-2 text-xs leading-relaxed text-[var(--md-sys-color-on-surface)]',
+            'bd' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)]',
+            'cb' => 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border',
+            'tone' => [
+                'neu' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]',
+                'pri' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]',
+                'sec' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]',
+                'ter' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]',
+                'err' => 'border-[color-mix(in_srgb,var(--md-sys-color-error)_40%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]',
+                'over' => 'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]',
+            ],
+            'btn' => 'w-6 h-6 p-0 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95',
+            'hov' => 'max-sm:opacity-100 opacity-0 group-hover:opacity-100',
+            'btnTone' => [
+                'pri' => 'text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]',
+                'neu' => 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-on-surface)]',
+                'ter' => 'text-[var(--md-sys-color-tertiary)] hover:bg-[var(--md-sys-color-tertiary-container)] hover:text-[var(--md-sys-color-on-tertiary-container)]',
+                'ut' => 'text-[var(--md-sys-color-on-tertiary-container)] hover:bg-[var(--md-sys-color-tertiary-container)]',
+                'err' => 'text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-on-error-container)]',
+            ],
+        ];
+
+        $taskId = $task['id'];
+        $isArchived = (bool) ($task['is_archived'] ?? false);
+        $canChangeStatus = (bool) ($task['can_change_status'] ?? false);
+        $ticketId = $task['ticket_id'] ?? null;
+        $canEdit = $canChangeStatus && !$isArchived;
+        $kind = $card['urgency']['kind'] ?? null;
+
+        $assignee = match (true) {
+            $activeTab === 'my-tasks' => ($task['assignee_name'] && $task['user_id'] !== auth()->id())
+                ? ['from', 'arrow_downward', 'sec', 'از: ' . $task['delegator_name']] : null,
+            $activeTab === 'assigned-tasks' => $task['assignee_name']
+                ? ['to', 'arrow_upward', 'ter', 'به: ' . $task['assignee_name']] : null,
+            default => $task['assignee_name'] ? ['plain', 'person', 'sec', $task['assignee_name']] : null,
+        };
+
+        $urgencyChip = [
+            'idle' => ['hourglass_top', 'neu'],
+            'sla' => ['gpp_bad', 'err'],
+            'project-deadline-exceeded' => ['flag', 'ter'],
+        ][$kind] ?? null;
+
+        $showChips = $task['deadline'] || $ticketId
+            || ($activeTab === 'my-tasks' && $task['assignee_name'] && $task['user_id'] !== auth()->id())
+            || ($activeTab === 'assigned-tasks' && $task['assignee_name'])
+            || (!$isPersonalBoard && $task['assignee_name'])
+            || in_array($kind, ['idle', 'sla', 'project-deadline-exceeded'], true)
+            || $task['priority'] || !empty($task['labels']) || $card['checklistTotal'] > 0 || $card['stateChip']
+            || $card['responsibleUser'] || $card['departmentLabel'] || $card['isPendingApproval']
+            || $card['metaChips'] !== [] || $card['actionSourceChip'];
+
+        $mainBtn = $isPersonalBoard
+            ? ($canEdit
+                ? ['edit', 'wire:click', "editTask($taskId)", $ticketId ? 'مشاهده' : 'ویرایش', $ticketId ? 'visibility' : 'edit', 'pri']
+                : ($task['is_delegator'] && !$isArchived ? ['view', 'wire:click', "viewTask($taskId)", 'مشاهده', 'visibility', 'neu'] : null))
+            : ['open', 'x-on:click', "Livewire.dispatch('project-open-task', { taskId: $taskId })", $canChangeStatus ? 'ویرایش' : 'مشاهده', $canChangeStatus ? 'edit' : 'visibility', $canChangeStatus ? 'pri' : 'neu'];
+
+        $canDelete = $isPersonalBoard && $task['can_delete'];
+
+        $rail = array_values(array_filter([
+            $card['canApprove'] ? ['approve', 'wire:click', "approveTask($taskId)", 'تأیید وظیفه', 'task_alt', 'ter', true] : null,
+            $mainBtn,
+            ['k' => 'assign', 'show' => $isPersonalBoard && $canEdit && !$ticketId],
+            ['k' => 'palette', 'show' => !($card['isUrgent'] || $card['isPending'] || $isArchived)],
+            ['k' => 'fav', 'show' => $isPersonalBoard],
+            $canEdit && !$ticketId
+                ? ['duplicate', $isPersonalBoard ? 'wire:click' : 'x-on:click', $isPersonalBoard ? "duplicateTask($taskId)" : "Livewire.dispatch('project-duplicate-task', { taskId: $taskId })", 'تکثیر', 'copy_all', 'neu']
+                : null,
+            ['k' => 'copy', 'show' => true],
+            $canDelete && $task['status'] === 'done' && !$isArchived && !$ticketId ? ['archive', 'wire:click', "archiveTask($taskId)", 'آرشیو', 'archive', 'neu'] : null,
+            $canDelete && $isArchived ? ['unarchive', 'wire:click', "unarchiveTask($taskId)", 'خروج از آرشیو', 'unarchive', 'ut'] : null,
+            $isPersonalBoard && $task['is_delegator'] && $column !== 'done' && !$ticketId ? ['undo', 'wire:click', "undoAssignment($taskId)", 'لغو واگذاری', 'undo', 'neu'] : null,
+            $canDelete && !$ticketId && !$isArchived ? ['delete', 'x-on:click', confirmDialog('deleteTask', 'حذف وظیفه', 'این وظیفه حذف خواهد شد. مطمئن هستید؟', $taskId), 'حذف', 'delete', 'err'] : null,
+            ['k' => 'reminder', 'show' => $isPersonalBoard],
+        ]));
+
+        return $classes + [
+            'kind' => $kind,
+            'urgencyChip' => $urgencyChip,
+            'assignee' => $assignee,
+            'showChips' => $showChips,
+            'mainBtn' => $mainBtn,
+            'canDelete' => $canDelete,
+            'rail' => $rail,
+        ];
+    }
 }

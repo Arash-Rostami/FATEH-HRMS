@@ -4,6 +4,8 @@ namespace App\Livewire\Dashboard\Channel\Actions;
 
 use App\Models\Channel;
 use App\Models\ChannelMessage;
+use App\Services\Messaging\PollDigestService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,6 +36,28 @@ class DownloadChannelAttachmentAction
 
         if ($root === false || $real === false || !is_file($real) || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) {
             return null;
+        }
+
+        if (!isset($attachment['views'][(string) $userId])) {
+            $recorded = DB::transaction(function () use ($messageId, $index, $userId): bool {
+                $locked = ChannelMessage::withoutTrashed()->whereKey($messageId)->lockForUpdate()->first();
+                if (!$locked || !isset($locked->attachments[$index]) || isset($locked->attachments[$index]['views'][(string) $userId])) {
+                    return false;
+                }
+
+                $attachments = $locked->attachments;
+                $attachments[$index]['views'][(string) $userId] = now()->toISOString();
+
+                DB::table('channel_messages')->where('id', $messageId)->update([
+                    'attachments' => json_encode($attachments, JSON_UNESCAPED_UNICODE),
+                ]);
+
+                return true;
+            });
+
+            if ($recorded) {
+                PollDigestService::bump("ch:rv:{$message->channel_id}");
+            }
         }
 
         return tap(response()->download($real), fn($r) => $r->setContentDisposition(

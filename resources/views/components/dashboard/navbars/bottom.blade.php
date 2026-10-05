@@ -13,8 +13,8 @@
     x-data="{ activeTab: @entangle('activeTab'), ...mobile({{ $initialPage }}, @js($pageTwoKeys)) }"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
-    @keydown.window.arrow-right.prevent="!$event.repeat && $wire.navigateTab(1)"
-    @keydown.window.arrow-left.prevent="!$event.repeat && $wire.navigateTab(-1)"
+    @keydown.window.arrow-right="if (!$event.repeat && !/INPUT|TEXTAREA|SELECT/.test($event.target.tagName) && !$event.target.isContentEditable) { $event.preventDefault(); $wire.navigateTab(1) }"
+    @keydown.window.arrow-left="if (!$event.repeat && !/INPUT|TEXTAREA|SELECT/.test($event.target.tagName) && !$event.target.isContentEditable) { $event.preventDefault(); $wire.navigateTab(-1) }"
     :class="[isAtBottom ? 'bottom-14' : 'bottom-0', labelPreset === 'smart' && barHidden ? 'pointer-events-none' : '']"
     class="lg:hidden fixed inset-x-3 z-50 h-20 pb-[env(safe-area-inset-bottom)] rounded-2xl transition-[bottom] duration-300 ease-in-out"
 >
