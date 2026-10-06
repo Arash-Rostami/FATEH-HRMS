@@ -32,9 +32,7 @@
                                         <x-ui.avatar :existingImage="$selectedAssignee->getProfileImageUrl() ?? $selectedAssignee->getInitialsAvatarUrl()"
                                                      :alt="$selectedAssignee->name" icon-size="text-xs" class="rounded-lg"/>
                                     </div>
-                                    @if($selectedAssignee->presence)
-                                        <span wire:key="ths-assignee-presence" class="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $selectedAssignee->presence->activeClass() }}"></span>
-                                    @endif
+                                    <x-ui.presence-dot :online="$selectedAssignee->isOnline()" size="w-2.5 h-2.5"/>
                                 </div>
                             @endif
                             <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب کارشناس...' }}</span>
@@ -55,9 +53,7 @@
                                                     <x-ui.avatar :existingImage="$candidate->getProfileImageUrl() ?? $candidate->getInitialsAvatarUrl()"
                                                                  :alt="$candidate->name" icon-size="text-xs" class="rounded-lg"/>
                                                 </div>
-                                                @if($candidate->presence)
-                                                    <span wire:key="ths-candidate-presence" class="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $candidate->presence->activeClass() }}"></span>
-                                                @endif
+                                                <x-ui.presence-dot :online="$candidate->isOnline()" size="w-2.5 h-2.5"/>
                                             </div>
                                             <span class="truncate">{{ $candidate->name }}</span>
                                         </button>

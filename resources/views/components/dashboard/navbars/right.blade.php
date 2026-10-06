@@ -4,7 +4,7 @@
     wire:keydown.window.arrow-down.prevent="navigateTab(1)"
     wire:keydown.window.arrow-up.prevent="navigateTab(-1)"
     :class="$store.focus.active ? 'focus-dim' : ''"
-    class="hidden lg:flex w-[70px] flex-col items-center gap-2 pt-10 my-auto shrink-0 fixed top-1/5 right-1 z-[9998]"
+    class="right-rail hidden lg:flex w-[70px] flex-col items-center gap-2 pt-10 my-auto shrink-0 fixed top-1/5 right-1 z-[9998]"
 >
     @foreach($tabs as $key => $tab)
         <button
@@ -20,7 +20,7 @@
                    {{ $activeTab === $key
                        ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-lg shadow-[var(--md-sys-color-primary)]/40 scale-105 ring-[var(--md-sys-color-on-primary-container)]'
                        : 'hover:bg-[var(--md-sys-color-surface-container-high)] hover:text-[var(--md-sys-color-primary)] hover:shadow-md hover:scale-105'
-                   }}"
+                   }} {{ $key === 'home' ? 'rail-home' : '' }}"
             aria-label="{{ $tab['label'] }}"
         >
             <span class="material-symbols-rounded text-[22px] transition-all duration-300 group-hover:scale-110

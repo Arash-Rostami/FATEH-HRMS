@@ -572,3 +572,40 @@ describe('menu.isPinned', () => {
         expect(m.isPinned({})).toBe(false)
     })
 })
+
+describe('menu.toggleDeclutter', () => {
+    test('flips the declutter state and persists it via _saveState', () => {
+        const m = menu()
+        m._saveState = vi.fn()
+        m.toggleDeclutter()
+        expect(m.declutter).toBe(true)
+        expect(m._saveState).toHaveBeenCalledWith('menu_declutter', true)
+        m.toggleDeclutter()
+        expect(m.declutter).toBe(false)
+        expect(m._saveState).toHaveBeenCalledWith('menu_declutter', false)
+    })
+
+    test('toggles the declutter class on the document root', () => {
+        const m = menu()
+        m._saveState = vi.fn()
+        document.documentElement.classList.remove('declutter')
+        m.toggleDeclutter()
+        expect(document.documentElement.classList.contains('declutter')).toBe(true)
+        m.toggleDeclutter()
+        expect(document.documentElement.classList.contains('declutter')).toBe(false)
+    })
+
+    test('dispatches a declutter window event with detail.on matching the new state', () => {
+        const m = menu()
+        m._saveState = vi.fn()
+        const events = []
+        const listener = (e) => events.push(e)
+        window.addEventListener('declutter', listener)
+        m.toggleDeclutter()
+        m.toggleDeclutter()
+        window.removeEventListener('declutter', listener)
+        expect(events).toHaveLength(2)
+        expect(events[0].detail.on).toBe(true)
+        expect(events[1].detail.on).toBe(false)
+    })
+})

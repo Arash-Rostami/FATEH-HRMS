@@ -56,7 +56,7 @@
     ];
 
     $attachments = [
-        'Repeater با حداکثر ' . convertToPersian('5') . ' فایل؛ هر فایل تا ' . convertToPersian('4') . ' مگابایت (تصویر/PDF/Word/Excel).',
+        'Repeater با حداکثر ' . convertToPersian('5') . ' فایل؛ هر فایل تا ' . convertToPersian('10') . ' مگابایت (تصویر/PDF/Word/Excel).',
         'ذخیره روی دیسک public در مسیر <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">task/attachments</code>؛ نام فایل به‌صورت TASK-تاریخ-رشته‌تصادفی.',
         'برای هر پیوست، نام/mime/اندازه در فیلدهای مخفی کنار path ذخیره می‌شود (شکل یکسان {path,name,mime,size}).',
         'هنگام حذفِ دائمی (forceDelete)، فایل‌های پیوست از دیسک public هم پاک می‌شوند.',

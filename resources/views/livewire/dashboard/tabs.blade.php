@@ -19,7 +19,11 @@
 
         <x-dashboard.navbars.bottom
             :activeTab="$activeTab"
-            :tabs="$this->tabs"
+            :perPage="$bottomNavPaging['perPage']"
+            :pageOne="$bottomNavPaging['pageOne']"
+            :pageTwo="$bottomNavPaging['pageTwo']"
+            :pageTwoKeys="$bottomNavPaging['pageTwoKeys']"
+            :initialPage="$bottomNavPaging['initialPage']"
         />
     @endunless
 

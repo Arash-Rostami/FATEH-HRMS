@@ -11,6 +11,13 @@ trait HandlesSaveExceptions
 {
     protected function reportSaveException(Throwable $e): never
     {
+        $this->notifySaveException($e);
+
+        throw (new Halt)->rollBackDatabaseTransaction();
+    }
+
+    protected function notifySaveException(Throwable $e): void
+    {
         $presented = ExceptionPresenter::present($e);
 
         Notification::make()
@@ -19,7 +26,5 @@ trait HandlesSaveExceptions
             ->body($presented['body'])
             ->persistent()
             ->send();
-
-        throw (new Halt)->rollBackDatabaseTransaction();
     }
 }

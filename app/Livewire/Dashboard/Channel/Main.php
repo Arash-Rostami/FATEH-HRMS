@@ -653,6 +653,7 @@ class Main extends Component
             $this->selectChannel($channel->id);
             $this->dispatch('show-toast', message: 'گروه ایجاد شد', type: 'success');
         } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ایجاد گروه', type: 'error');
         } catch (\Exception $e) {
             report($e);
@@ -767,6 +768,7 @@ class Main extends Component
             unset($this->messages, $this->channels);
             $this->dispatch('message-sent');
         } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
         } catch (HttpException $e) {
             throw $e;

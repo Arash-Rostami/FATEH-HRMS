@@ -17,7 +17,7 @@ class DocumentForm extends Form
     public function rulesForStandardUpload(string $key): array
     {
         return [
-            "files.{$key}" => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            "files.{$key}" => 'required|file|mimes:pdf,jpg,jpeg,png|max:' . config('file_upload_limits.document'),
         ];
     }
 
@@ -25,7 +25,7 @@ class DocumentForm extends Form
     {
         return [
             'customType' => 'required|string|max:100',
-            'customFile' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'customFile' => 'required|file|mimes:pdf,jpg,jpeg,png|max:' . config('file_upload_limits.document'),
         ];
     }
 
@@ -35,7 +35,7 @@ class DocumentForm extends Form
             "files.{$key}.required" => 'لطفاً یک فایل انتخاب کنید.',
             "files.{$key}.file"     => 'یک فایل معتبر بارگذاری کنید.',
             "files.{$key}.mimes"    => 'فرمت فایل باید PDF، JPG، JPEG یا PNG باشد.',
-            "files.{$key}.max"      => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
+            "files.{$key}.max"      => 'حجم فایل نباید بیشتر از 10 مگابایت باشد.',
         ];
     }
 
@@ -46,7 +46,7 @@ class DocumentForm extends Form
             'customType.max'      => 'عنوان مدرک نباید بیشتر از 100 کاراکتر باشد.',
             'customFile.required' => 'لطفاً فایل مدرک سفارشی را انتخاب کنید.',
             'customFile.mimes'    => 'فرمت فایل باید PDF، JPG، JPEG یا PNG باشد.',
-            'customFile.max'      => 'حجم فایل نباید بیشتر از 5 مگابایت باشد.',
+            'customFile.max'      => 'حجم فایل نباید بیشتر از 10 مگابایت باشد.',
         ];
     }
 

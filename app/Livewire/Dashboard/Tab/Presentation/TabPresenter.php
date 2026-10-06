@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
-use App\Enums\PresenceStatus;
 use App\Models\ChannelMessage;
 use App\Models\DMS;
 use App\Models\Event;
@@ -26,7 +25,7 @@ class TabPresenter
     {
         return ModelCacheVersion::rememberGlobal('home_team_pulse', fn(): Collection =>
             User::active()
-                ->whereIn('presence', [PresenceStatus::Onsite->value, PresenceStatus::Busy->value])
+                ->where('last_seen', '>=', now()->subMinutes(5))
                 ->with(['profile', 'profile.details' => fn($q) => $q->where('key', 'display_name')])
                 ->get()
                 ->sortBy(fn(User $u) => $u->rank())
@@ -160,6 +159,18 @@ class TabPresenter
             ])
             ->values()
             ->all();
+    }
+
+    public function bottomNavPaging(array $tabs, string $activeTab): array
+    {
+        $perPage = max((int) ceil(count($tabs) / 2), 4);
+        $chunks = array_chunk($tabs, $perPage, true);
+        $pageOne = $chunks[0] ?? [];
+        $pageTwo = $chunks[1] ?? [];
+        $pageTwoKeys = array_keys($pageTwo);
+        $initialPage = in_array($activeTab, $pageTwoKeys) ? 1 : 0;
+
+        return compact('perPage', 'pageOne', 'pageTwo', 'pageTwoKeys', 'initialPage');
     }
 
     private function embedSrc(array $s): string

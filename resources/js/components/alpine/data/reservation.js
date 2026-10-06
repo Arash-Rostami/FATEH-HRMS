@@ -14,7 +14,7 @@ const STATE_RANK = { ok: 0, soon: 1, past: 2 };
 export default function reservation() {
     return {
         ...deckMixin(),
-        ...maximizeMixin(),
+        ...maximizeMixin('reservation'),
         view: 'classic',
         start: null,
         end: null,
@@ -25,6 +25,7 @@ export default function reservation() {
 
         init() {
             this.view = this.$wire.get('view') || 'classic';
+            this.initMaximize();
             this.deckSyncFromDom();
             this.deckReconcileOpen();
             this.syncTimePreview();

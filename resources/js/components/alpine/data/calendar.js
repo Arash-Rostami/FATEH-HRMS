@@ -524,7 +524,7 @@ export function calendarView() {
 
     return {
         ...persistentStateMixin(),
-        ...maximizeMixin(),
+        ...maximizeMixin('calendar'),
 
         view: 'month',
         scrollMemory: {},
@@ -534,6 +534,7 @@ export function calendarView() {
 
         init() {
             destroyed = false;
+            this.initMaximize();
             this.view = this.$wire.get('view') || 'month';
             this.scrollMemory = this._loadState(SCROLL_STORAGE_KEY, {}) || {};
 

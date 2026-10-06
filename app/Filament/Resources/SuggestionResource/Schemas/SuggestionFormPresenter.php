@@ -29,7 +29,7 @@ class SuggestionFormPresenter
             ->downloadable()
             ->previewable()
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
-            ->maxSize(10240)
+            ->maxSize(config('file_upload_limits.document'))
             ->helperText(__('resources/suggestion/strings.hints.attachment'))
             ->columnSpanFull();
     }

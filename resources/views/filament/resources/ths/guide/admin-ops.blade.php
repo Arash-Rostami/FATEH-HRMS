@@ -3,7 +3,7 @@
         [
             'icon' => 'person_add',
             'label' => 'ثبت تیکت — واحد درخواست‌دهنده خودکار پر می‌شود',
-            'hint' => 'با انتخاب «درخواست‌دهنده»، فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.department</code> از روی پروفایلِ او خودکار پر می‌شود. انتخاب «واحد هدف» فهرست «نوع درخواست» و «حوزه درخواست» را فیلتر و مسئولِ قبلی را پاک می‌کند. فایل‌های ضمیمه تا سقف ' . convertToPersian('3') . ' فایل و ' . convertToPersian('4') . ' مگابایت با پیشوند <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">THS-</code> ذخیره می‌شوند و فقط در ثبت اولیه قابل ارسال‌اند.',
+            'hint' => 'با انتخاب «درخواست‌دهنده»، فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.department</code> از روی پروفایلِ او خودکار پر می‌شود. انتخاب «واحد هدف» فهرست «نوع درخواست» و «حوزه درخواست» را فیلتر و مسئولِ قبلی را پاک می‌کند. فایل‌های ضمیمه تا سقف ' . convertToPersian('3') . ' فایل و ' . convertToPersian('10') . ' مگابایت با پیشوند <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">THS-</code> ذخیره می‌شوند و فقط در ثبت اولیه قابل ارسال‌اند.',
         ],
         [
             'icon' => 'sync',

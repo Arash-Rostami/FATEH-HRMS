@@ -35,6 +35,7 @@ const RECENT_MAX = 8;
 const LAST_ITEM_KEY = 'menu_last_item_id';
 const VIEW_MODE_KEY = 'menu_view_mode';
 const SORT_ALPHA_KEY = 'menu_sort_alpha';
+const DECLUTTER_KEY = 'menu_declutter';
 const MQ_LARGE = '(min-width: 640px)';
 const SWIPE_THRESHOLD = 50;
 
@@ -54,6 +55,7 @@ export default function menu(options = {}) {
         pinEditMode: false,
         viewMode: 'grid',
         sortAlpha: false,
+        declutter: false,
         isDark: false,
         touchStartX: 0,
         touchEndX: 0,
@@ -254,6 +256,13 @@ export default function menu(options = {}) {
             this.sortAlpha = !this.sortAlpha;
             this._saveState(SORT_ALPHA_KEY, this.sortAlpha);
             this.focusIndex = null;
+        },
+
+        toggleDeclutter() {
+            this.declutter = !this.declutter;
+            document.documentElement.classList.toggle('declutter', this.declutter);
+            this._saveState(DECLUTTER_KEY, this.declutter);
+            window.dispatchEvent(new CustomEvent('declutter', { detail: { on: this.declutter } }));
         },
 
         togglePinEdit() {
@@ -535,6 +544,7 @@ export default function menu(options = {}) {
             }
 
             this.sortAlpha = !!this._loadState(SORT_ALPHA_KEY, false);
+            this.declutter = !!this._loadState(DECLUTTER_KEY, false);
 
             if (window.ThemeManager && window.ThemeManager.getUserMode) {
                 this.isDark = window.ThemeManager.getUserMode() === 'dark';

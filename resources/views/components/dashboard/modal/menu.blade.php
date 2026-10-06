@@ -7,12 +7,12 @@
              aria-modal="true"
              aria-labelledby="main-menu-title">
 
-            <div class="w-full max-h-full sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-3xl shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            <div class="w-full h-[85dvh] sm:h-[680px] sm:max-h-[88vh] sm:w-[920px] sm:max-w-[95%] bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] rounded-3xl shadow-[0_16px_48px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
                  @click.stop
                  @touchstart="touchStartX = $event.changedTouches[0].screenX"
                  @touchend="touchEndX = $event.changedTouches[0].screenX; handleSwipe()">
 
-                <div dir="rtl" class="flex flex-col h-full">
+                <div dir="rtl" class="flex flex-col h-full min-h-0">
 
                     <div class="px-4 sm:px-6 py-2 sm:py-5 bg-gradient-to-l from-[var(--md-sys-color-primary)] to-[color-mix(in_srgb,var(--md-sys-color-primary)_85%,transparent)] text-[var(--md-sys-color-on-primary)] border-b border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_15%,transparent)] shrink-0 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -334,11 +334,12 @@
 
                     <div class="shrink-0 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_75%,transparent)] p-3 backdrop-blur-md sm:p-4">
                         <div x-data="{ playerOn: localStorage.getItem('audio_player_visible') === '1' }"
+                             :class="playerOn ? 'player-on' : ''"
                              class="flex w-full items-center justify-between gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface)_80%,transparent)] px-4 py-3 shadow-sm backdrop-blur-sm transition-all hover:shadow-md">
 
                             <!-- Left Side: Version, Notifications, Shortcut Hint -->
                             <div class="flex items-center gap-3">
-                                <div class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)]"
+                                <div data-player-hide class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)]"
                                      title="v:{{ config('app.version') }}">
                                     <x-dashboard.modal.release>
                                         <x-slot:trigger>
@@ -389,6 +390,18 @@
                                 </div>
 
                                 <button type="button"
+                                        data-player-hide
+                                        @click="toggleDeclutter()"
+                                        :title="declutter ? 'بازگردانی عناصر صفحه' : 'خلوت‌سازی عناصر صفحه'"
+                                        :aria-pressed="declutter"
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-300 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] active:scale-95"
+                                        :class="declutter ? 'shadow-md' : ''"
+                                        :style="declutter ? 'background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: transparent;' : ''">
+                                    <span class="material-symbols-rounded text-[16px] leading-none transition-colors" :class="declutter ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-primary)]'" x-text="declutter ? 'top_panel_open' : 'top_panel_close'"></span>
+                                </button>
+
+                                <button type="button"
+                                        data-player-hide
                                         @click="$dispatch('open-reminders'); closeMenu()"
                                         title="یادآوری‌ها"
                                         class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] active:scale-95">
@@ -396,6 +409,7 @@
                                 </button>
 
                                 <a href="{{ route('dashboard') }}"
+                                        data-player-hide
                                         @click="closeMenu()"
                                         title="خانه"
                                         class="flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-colors hover:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_60%,transparent)] active:scale-95">
@@ -403,7 +417,7 @@
                                 </a>
 
                                 <!-- Sleek Modern Divider -->
-                                <div class="h-6 w-[1px] rounded-full bg-[var(--md-sys-color-primary-container)]"></div>
+                                <div data-player-hide class="h-6 w-[1px] rounded-full bg-[var(--md-sys-color-primary-container)]"></div>
 
                                 <div class="flex items-center">
                                     <livewire:auth.logout-button/>

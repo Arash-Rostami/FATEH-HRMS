@@ -10,11 +10,15 @@ class ReplyForm extends Form
     #[Validate('required_without:files|string|max:4000')]
     public string $body = '';
 
-    #[Validate([
-        'files' => 'nullable|array|max:3',
-        'files.*' => 'file|max:4096|mimes:jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx,odt,ods',
-    ])]
     public array $files = [];
+
+    protected function rules(): array
+    {
+        return [
+            'files' => 'nullable|array|max:3',
+            'files.*' => 'file|max:' . config('file_upload_limits.document') . '|mimes:jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx,odt,ods',
+        ];
+    }
 
     protected function messages(): array
     {
@@ -23,7 +27,7 @@ class ReplyForm extends Form
             'body.max' => 'متن پاسخ نباید بیشتر از ۴۰۰۰ کاراکتر باشد.',
             'files.max' => 'حداکثر ۳ فایل می‌توانید ضمیمه کنید.',
             'files.*.file' => 'فایل ضمیمه باید معتبر باشد.',
-            'files.*.max' => 'حجم فایل نباید بیشتر از ۴ مگابایت باشد.',
+            'files.*.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
             'files.*.mimes' => 'فرمت فایل مجاز نیست.',
         ];
     }

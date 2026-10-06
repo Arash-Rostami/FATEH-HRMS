@@ -101,7 +101,7 @@ class UserTablePresenter
             ->sortable()
             ->placeholder('-')
             ->toggleable(isToggledHiddenByDefault: true)
-            ->color('sky');
+            ->color(fn(User $record): string => $record->isOnline() ? 'success' : 'gray');
     }
 
     public static function maximum(): TextColumn

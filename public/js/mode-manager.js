@@ -1,6 +1,7 @@
 (function () {
     var MODE_KEY = 'user-mode';
     var THEME_KEY = 'user-theme';
+    var DECLUTTER_KEY = 'menu_declutter';
     var d = document.documentElement;
 
     var mode = localStorage.getItem(MODE_KEY)
@@ -9,4 +10,5 @@
 
     d.classList.toggle('dark', mode === 'dark');
     theme === 'default' ? d.removeAttribute('data-theme') : d.setAttribute('data-theme', theme);
+    d.classList.toggle('declutter', localStorage.getItem(DECLUTTER_KEY) === 'true');
 })();

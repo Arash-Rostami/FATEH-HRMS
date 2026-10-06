@@ -3,6 +3,8 @@ const TOUCH_THRESHOLD = 50;
 const HIDE_DELAY_MS = 500;
 const PRESET_SMART = 'smart';
 const PRESET_ICONS = 'icons';
+const PRESET_ALL = 'all';
+const EVENT_DECLUTTER = 'declutter';
 
 export default function mobile(initialPage = 0, pageTwoKeys = []) {
     let initialPreset = 'all';
@@ -23,6 +25,8 @@ export default function mobile(initialPage = 0, pageTwoKeys = []) {
         labelsOpen: false,
         barHidden: initialPreset === PRESET_SMART,
         smartHideTimer: null,
+        _declutterAc: null,
+        _preDeclutterPreset: undefined,
 
         toggle() {
             this.page = this.page === 0 ? 1 : 0;
@@ -103,6 +107,21 @@ export default function mobile(initialPage = 0, pageTwoKeys = []) {
                 this.observer.observe(el);
             }
 
+            this._declutterAc = new AbortController();
+            window.addEventListener(EVENT_DECLUTTER, (e) => {
+                const detail = e.detail;
+                if (!detail || detail.on === undefined) return;
+                if (detail.on) {
+                    const preset = this.labelPreset;
+                    if (preset !== PRESET_SMART) this._preDeclutterPreset = preset;
+                    this.setLabelPreset(PRESET_SMART);
+                } else {
+                    const pre = this._preDeclutterPreset;
+                    this.setLabelPreset(pre !== undefined ? pre : PRESET_ALL);
+                    this._preDeclutterPreset = undefined;
+                }
+            }, { signal: this._declutterAc.signal });
+
             this.$watch('activeTab', () => this.syncPage());
         },
 
@@ -111,6 +130,7 @@ export default function mobile(initialPage = 0, pageTwoKeys = []) {
                 this.observer.disconnect();
                 this.observer = null;
             }
+            this._declutterAc?.abort();
         }
     };
 }

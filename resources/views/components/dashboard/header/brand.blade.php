@@ -15,7 +15,15 @@
             class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
         <div class="relative h-full flex items-center justify-between gap-4">
 
-            <div class="flex items-center gap-3 min-w-0">
+            <div aria-hidden="true" class="declutter-badge absolute left-4 top-2 z-10 hidden items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm">
+                <span class="relative flex h-1.5 w-1.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-white"></span>
+                </span>
+                <span class="text-[10px] font-bold text-[var(--header-border-color)] leading-none tracking-wide">حالت خلوت</span>
+            </div>
+
+            <div data-declutter-hide class="flex items-center gap-3 min-w-0">
                 <h1 class="hidden sm:block
                             font-extrabold tracking-[0.18em] uppercase
                             text-base lg:text-xl
@@ -45,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="group relative flex items-center shrink-0">
+            <div data-declutter-hide class="group relative flex items-center shrink-0">
                 <div class="flex items-center gap-3 shrink-0 group">
                     @if(config('app.user_use_company_logo'))
                         <button type="button"

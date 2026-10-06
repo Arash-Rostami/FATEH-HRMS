@@ -88,7 +88,7 @@ class OnboardingFormPresenter
                     ])
                     ->columnSpanFull()
                     ->helperText(__('resources/onboarding/strings.hints.guides_file'))
-                    ->maxSize(50480)
+                    ->maxSize(config('file_upload_limits.document'))
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
                     ),
@@ -171,7 +171,7 @@ class OnboardingFormPresenter
                     ->directory('onboarding/video')
                     ->acceptedFileTypes(['video/*'])
                     ->helperText(__('resources/onboarding/strings.hints.videos_file'))
-                    ->maxSize(97280)
+                    ->maxSize(config('file_upload_limits.video'))
                     ->getUploadedFileNameForStorageUsing(
                         fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
                     ),
@@ -183,7 +183,7 @@ class OnboardingFormPresenter
                     ->downloadable()
                     ->openable()
                     ->acceptedFileTypes(['image/*'])
-                    ->maxSize(1024)
+                    ->maxSize(config('file_upload_limits.image'))
                     ->image()
                     ->imagePreviewHeight('60')
                     ->getUploadedFileNameForStorageUsing(

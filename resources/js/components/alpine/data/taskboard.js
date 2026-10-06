@@ -12,7 +12,7 @@ const SWIPE_HINT_STORAGE_KEY = "taskboard-swipe-hint-dismissed";
 
 export default function taskboard() {
     const board = {
-        ...maximizeMixin(),
+        ...maximizeMixin('taskboard'),
         ...kanbanDragMixin(),
         ...spotlightMixin({ storageKey: "taskboard-spotlight" }),
 
@@ -41,6 +41,8 @@ export default function taskboard() {
                     this.collapsed[name] = localStorage.getItem(COLLAPSED_STORAGE_PREFIX + name) === "1";
                 }
             }
+
+            this.initMaximize();
         },
 
         initPattern() {
@@ -106,17 +108,37 @@ export default function taskboard() {
         toggleMaximize(name) {
             if (this.maximizedColumn === name) {
                 this.maximizedColumn = null;
+                this._persistMaximize(null);
                 this.applyMaximize(false);
                 return;
             }
             this.maximizedColumn = name;
+            this._persistMaximize(name);
             this.clearSpotlight();
             this.applyMaximize(!!name);
+        },
+
+        restoreMaximize(value) {
+            const columns = document.querySelectorAll(COLUMN_SELECTOR);
+            let found = false;
+            for (let i = 0, len = columns.length; i < len; i++) {
+                if (columns[i].dataset.column === value) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                this._persistMaximize(null);
+                return;
+            }
+            this.maximizedColumn = value;
+            this.applyMaximize(true);
         },
 
         afterSpotlightChange() {
             if (this.spotlightColumn && this.maximizedColumn) {
                 this.maximizedColumn = null;
+                this._persistMaximize(null);
                 this.applyMaximize(false);
             }
         },

@@ -73,7 +73,7 @@ class FeedFormPresenter
             ->multiple()
             ->disk('public')
             ->directory('feed/image')
-            ->maxSize(10240)
+            ->maxSize(config('file_upload_limits.image'))
             ->maxFiles(8)
             ->previewable()
             ->downloadable()
@@ -99,7 +99,7 @@ class FeedFormPresenter
             ->previewable()
             ->downloadable()
             ->openable()
-            ->maxSize(102400)
+            ->maxSize(config('file_upload_limits.video'))
             ->maxFiles(1)
             ->acceptedFileTypes([
                 'video/mp4',

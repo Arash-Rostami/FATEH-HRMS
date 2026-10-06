@@ -4,10 +4,11 @@ import settings from "./settings.js";
 
 export default function ths() {
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('ths'),
         ...clipboardMixin(),
         openSearch: false,
         init() {
+            this.initMaximize();
             this.$wire.on('ths-reply-posted', () => {
                 this.$nextTick(() => {
                     const el = document.getElementById('ths-reply-thread');

@@ -52,7 +52,7 @@ class DmsFormPresenter
             ->directory('dms')
             ->openable()
             ->downloadable()
-            ->maxSize(4096)
+            ->maxSize(config('file_upload_limits.document'))
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => self::forgeFileName($file)
             )
@@ -70,7 +70,7 @@ class DmsFormPresenter
             ->multiple()
             ->openable()
             ->downloadable()
-            ->maxSize(4096)
+            ->maxSize(config('file_upload_limits.document'))
             ->acceptedFileTypes([
                 'application/pdf',
                 'application/msword',

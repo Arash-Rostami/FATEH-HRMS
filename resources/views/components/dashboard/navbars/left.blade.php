@@ -36,6 +36,7 @@
 @endphp
 
 <div x-data="sidebar"
+     data-declutter-hide
      @touchstart="handleTouchStart"
      @touchmove="handleTouchMove"
      @touchend="handleTouchEnd"

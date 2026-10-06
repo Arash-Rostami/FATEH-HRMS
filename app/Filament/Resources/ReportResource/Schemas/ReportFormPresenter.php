@@ -38,7 +38,7 @@ class ReportFormPresenter
             ->disk('public')
             ->directory('reports/covers')
             ->imageEditor()
-            ->maxSize(2048)
+            ->maxSize(config('file_upload_limits.image'))
             ->nullable()
             ->helperText(__('resources/report/strings.hints.cover_image'));
     }
@@ -151,7 +151,7 @@ class ReportFormPresenter
                 'application/msword',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ])
-            ->maxSize(5048)
+            ->maxSize(config('file_upload_limits.document'))
             ->required()
             ->helperText(__('resources/report/strings.hints.file_path'));
     }

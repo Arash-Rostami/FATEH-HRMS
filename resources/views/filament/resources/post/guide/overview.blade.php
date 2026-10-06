@@ -16,7 +16,7 @@
             'icon' => 'image',
             'label' => 'تصویر (image)',
             'tag' => 'عمومی',
-            'hint' => 'تصویر اصلی اعلان؛ روی دیسک public و پوشهٔ post/image ذخیره می‌شود (حداکثر ' . convertToPersian('2') . ' مگابایت، فقط jpg/png/gif/webp). نام فایل هنگام ذخیره تصادفی می‌شود تا هم‌نشانی جلوگیری شود. نمایش کاربری از طریق imageUrl که از HasPublicAssetUrl می‌آید.',
+            'hint' => 'تصویر اصلی اعلان؛ روی دیسک public و پوشهٔ post/image ذخیره می‌شود (حداکثر ' . convertToPersian('5') . ' مگابایت، فقط jpg/png/gif/webp). نام فایل هنگام ذخیره تصادفی می‌شود تا هم‌نشانی جلوگیری شود. نمایش کاربری از طریق imageUrl که از HasPublicAssetUrl می‌آید.',
         ],
         [
             'icon' => 'push_pin',

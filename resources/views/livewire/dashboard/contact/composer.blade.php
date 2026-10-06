@@ -120,7 +120,7 @@
                 <span class="material-symbols-rounded text-[18px]">attach_file</span>
             </label>
             <input id="composer-attachments" type="file" multiple wire:model="composer.attachments" class="hidden"
-                   accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
+                   accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4,.webm,.mov"/>
 
             <div x-data="{ open: false, pos: {} }">
                 <button type="button" id="msg-kebab-trigger"

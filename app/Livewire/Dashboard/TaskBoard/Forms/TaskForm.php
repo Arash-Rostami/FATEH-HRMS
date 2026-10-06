@@ -119,7 +119,7 @@ class TaskForm extends Form
                     }
                 },
             ],
-            'attachments.*' => 'file|max:4096|mimes:jpg,jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx',
+            'attachments.*' => 'file|max:' . config('file_upload_limits.document') . '|mimes:jpg,jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx',
         ], [
             'attachments.*.max' => __('resources/task/strings.validation.attachments.max_size'),
             'attachments.*.mimes' => __('resources/task/strings.validation.attachments.mime_types'),

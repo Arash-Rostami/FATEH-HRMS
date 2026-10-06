@@ -128,7 +128,7 @@ class ProfileFormPresenter
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ])
                     ->directory('profiles/docs')
-                    ->maxSize(5120)
+                    ->maxSize(config('file_upload_limits.document'))
                     ->fetchFileInformation(false)
                     ->columnSpanFull(),
             ])
@@ -403,7 +403,7 @@ class ProfileFormPresenter
             ->disk('public')
             ->directory('profiles/images')
             ->imagePreviewHeight('120')
-            ->maxSize(2048)
+            ->maxSize(config('file_upload_limits.image'))
             ->columnSpanFull()
             ->helperText(__('resources/profile/strings.hints.image'));
     }

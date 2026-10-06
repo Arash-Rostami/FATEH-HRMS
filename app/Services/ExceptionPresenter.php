@@ -9,6 +9,7 @@ use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use League\Flysystem\FilesystemException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -68,6 +69,13 @@ class ExceptionPresenter
             return [
                 __('errors/strings.notifications.payload_too_large_title'),
                 __('errors/strings.notifications.payload_too_large_body'),
+            ];
+        }
+
+        if ($e instanceof FilesystemException) {
+            return [
+                __('errors/strings.notifications.file_upload_incomplete_title'),
+                __('errors/strings.notifications.file_upload_incomplete_body'),
             ];
         }
 

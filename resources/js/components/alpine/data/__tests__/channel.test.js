@@ -763,3 +763,82 @@ describe('channel() DOM read helpers', () => {
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
     });
 });
+
+describe('channel() last-open-channel persistence + maximize sequencing (added 2026-10-05)', () => {
+    const KEY = 'last:channel:9';
+    const MAX_KEY = 'max:channel:9';
+
+    beforeEach(() => { document.documentElement.dataset.uid = '9'; });
+
+    afterEach(() => {
+        delete document.documentElement.dataset.uid;
+        try { localStorage.removeItem(KEY); } catch {}
+        try { localStorage.removeItem(MAX_KEY); } catch {}
+    });
+
+    test('selectChannel persists the selected id under last:channel:<uid>', () => {
+        const c = channel();
+        c.$wire = createWireMock();
+        c.$nextTick = (cb) => { cb(); return Promise.resolve(); };
+        c._repollNow = vi.fn();
+
+        c.selectChannel(5);
+
+        expect(localStorage.getItem(KEY)).toBe('5');
+    });
+
+    test('init restores a stored id via selectChannel when no channel is active server-side', () => {
+        localStorage.setItem(KEY, '5');
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.initMaximize = vi.fn();
+        c.selectChannel = vi.fn(() => Promise.resolve());
+
+        c.init();
+
+        expect(c.selectChannel).toHaveBeenCalledWith(5);
+        c.destroy();
+    });
+
+    test('init skips the stored id once a channel is already active server-side', () => {
+        localStorage.setItem(KEY, '5');
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: 3 });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+        c.initMaximize = vi.fn();
+        c.selectChannel = vi.fn(() => Promise.resolve());
+
+        c.init();
+
+        expect(c.selectChannel).not.toHaveBeenCalled();
+        expect(c.initMaximize).toHaveBeenCalledOnce();
+        c.destroy();
+    });
+
+    test('when both a stored maximize key and a stored last-channel id exist, the conversation restore resolves before initMaximize runs — avoids hiding chrome around an empty pane', async () => {
+        localStorage.setItem(MAX_KEY, '1');
+        localStorage.setItem(KEY, '5');
+
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: null });
+        c.$watch = vi.fn();
+        c.initFancybox = vi.fn();
+
+        const order = [];
+        let resolveSelect;
+        c.selectChannel = vi.fn(() => new Promise((r) => { resolveSelect = r; }).then(() => order.push('select')));
+        c.initMaximize = vi.fn(() => order.push('maximize'));
+
+        c.init();
+        expect(c.initMaximize).not.toHaveBeenCalled();
+
+        resolveSelect();
+        await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+
+        expect(order).toEqual(['select', 'maximize']);
+        c.destroy();
+    });
+});

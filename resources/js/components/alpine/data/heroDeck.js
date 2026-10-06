@@ -7,7 +7,7 @@ const MAX_WIDGET_CLOSE_MS = 350;
 
 export default function heroDeck() {
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('hero'),
 
         slide: 0,
         panes: [],
@@ -36,6 +36,8 @@ export default function heroDeck() {
                     this.loaded[id] = true;
                 }
             });
+
+            this.initMaximize();
         },
 
         goto(target) {
@@ -87,6 +89,7 @@ export default function heroDeck() {
 
             if (this.maximizedPane === pane) {
                 this.maximizedPane = null;
+                this._persistMaximize(null);
                 this.applyMaximize(false);
             }
 
@@ -102,6 +105,7 @@ export default function heroDeck() {
         toggleMaximize(pane) {
             if (this.maximizedPane === pane) {
                 this.maxLeaving = true;
+                this._persistMaximize(null);
                 this.applyMaximize(false);
                 setTimeout(() => {
                     this.maximizedPane = null;
@@ -111,6 +115,17 @@ export default function heroDeck() {
             }
 
             this.maximizedPane = pane;
+            this._persistMaximize(pane);
+            this.applyMaximize(true);
+        },
+
+        restoreMaximize(value) {
+            if (!this.panes.includes(value)) {
+                this._persistMaximize(null);
+                return;
+            }
+            this.slide = value;
+            this.maximizedPane = value;
             this.applyMaximize(true);
         },
 

@@ -39,6 +39,43 @@ describe('feed.toggleMaximize', () => {
         expect(c.maximizedFeed).toBeNull()
         expect(spy).toHaveBeenCalledWith(false)
     })
+
+    test('opening persists the feed id via _persistMaximize', () => {
+        const c = feed()
+        const spy = vi.spyOn(c, '_persistMaximize')
+        c.toggleMaximize('timeline')
+        expect(spy).toHaveBeenCalledWith('timeline')
+    })
+
+    test('closing persists null via _persistMaximize', () => {
+        const c = feed()
+        c.maximizedFeed = 'timeline'
+        const spy = vi.spyOn(c, '_persistMaximize')
+        c.toggleMaximize('timeline')
+        expect(spy).toHaveBeenCalledWith(null)
+    })
+})
+
+describe('feed.restoreMaximize', () => {
+    test('a value matching an existing [data-feed] element re-applies maximize', () => {
+        document.body.innerHTML = '<div data-feed="timeline"></div>'
+        const c = feed()
+        const spy = vi.spyOn(c, 'applyMaximize')
+        c.restoreMaximize('timeline')
+        expect(c.maximizedFeed).toBe('timeline')
+        expect(spy).toHaveBeenCalledWith(true)
+    })
+
+    test('a stale value with no matching [data-feed] element cleans up and does nothing else', () => {
+        document.body.innerHTML = '<div data-feed="timeline"></div>'
+        const c = feed()
+        const persistSpy = vi.spyOn(c, '_persistMaximize')
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+        c.restoreMaximize('gone')
+        expect(persistSpy).toHaveBeenCalledWith(null)
+        expect(applySpy).not.toHaveBeenCalled()
+        expect(c.maximizedFeed).toBeNull()
+    })
 })
 
 describe('feed.loadMore', () => {

@@ -14,6 +14,7 @@
 >
     {{-- Background Container with Overflow Hidden --}}
     <div
+        data-declutter-hide
         class="absolute inset-0 overflow-hidden bg-[var(--md-sys-color-surface)] rounded-b-2xl -z-10 pointer-events-none">
         <div
             class="absolute top-0 left-1/4 w-40 h-40 rounded-full -translate-y-1/2 pointer-events-none opacity-[0.06]"
@@ -24,7 +25,7 @@
     </div>
 
     {{-- Content Container --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-1 sm:px-4 py-0">
+    <div data-declutter-hide class="relative z-10 max-w-7xl mx-auto px-1 sm:px-4 py-0">
         <div class="flex flex-row items-center justify-around  w-full">
 
             <div class="group relative flex items-stretch rounded-xl cursor-pointer scale-[0.70] sm:scale-[0.85] origin-left

@@ -1,4 +1,5 @@
 import maximizeMixin from "../mixins/maximize.js";
+import lastOpenMixin from "../mixins/lastOpen.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -34,7 +35,8 @@ export default function channel() {
     let ac, vpAc, scrollRaf, selRaf, unreadObs, fadeTimer, digest, ticks = 0, selectSeq = 0;
 
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('channel'),
+        ...lastOpenMixin('channel'),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -125,6 +127,10 @@ export default function channel() {
                 if (val || (old?.id && this.editingMsgId && old.id !== this.editingMsgId)) return;
                 this._clearEdit();
             });
+
+            const lastId = this.$wire.activeChannelId ? null : this._readLastOpenId();
+            if (lastId) this.selectChannel(lastId).finally(() => this.initMaximize());
+            else this.initMaximize();
         },
 
         destroy() {
@@ -448,6 +454,7 @@ export default function channel() {
         selectChannel(id) {
             if (!id) return;
             const seq = ++selectSeq;
+            this._persistLastOpen(id);
             this._repollNow(false);
 
             const el = ta();
@@ -463,7 +470,7 @@ export default function channel() {
             this._clearEdit();
 
             this.$wire.cancelReply();
-            this._isl().selectChannel(id)
+            return this._isl().selectChannel(id)
                 .then(() => this._sidebar())
                 .then(() => {
                     if (seq !== selectSeq) return;

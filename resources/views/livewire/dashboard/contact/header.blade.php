@@ -19,9 +19,7 @@
             <x-ui.avatar :image="null" :existingImage="$this->activeContact->getProfileImageUrl()"
                          :alt="$this->activeContact->name" icon-size="text-xl" class="rounded-2xl" />
         </div>
-        @if($presence)
-            <span class="absolute -bottom-0.5 -end-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--md-sys-color-surface)] {{ $presence->activeClass() }}"></span>
-        @endif
+        <x-ui.presence-dot :online="$this->activeContact->isOnline()"/>
     </div>
 
     <div class="relative min-w-0 flex-1">

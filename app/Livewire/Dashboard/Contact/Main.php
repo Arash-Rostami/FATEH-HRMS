@@ -477,6 +477,7 @@ class Main extends Component
             unset($this->contacts);
             $this->dispatch('message-sent');
         } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
             $this->dispatch('message-error');
             $this->dispatch('show-toast', message: collect($e->errors())->first()[0] ?? 'خطا در ارسال پیام', type: 'error');
         } catch (\Exception $e) {

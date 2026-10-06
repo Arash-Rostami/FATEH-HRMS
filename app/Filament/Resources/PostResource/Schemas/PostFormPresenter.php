@@ -61,7 +61,7 @@ class PostFormPresenter
             ->label(__('resources/post/strings.fields.image'))
             ->disk('public')
             ->directory('post/image')
-            ->maxSize(2048)
+            ->maxSize(config('file_upload_limits.image'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
             ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()

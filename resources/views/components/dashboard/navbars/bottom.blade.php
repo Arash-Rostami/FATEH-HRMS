@@ -1,15 +1,7 @@
-@props(['activeTab', 'tabs'])
-
-@php
-    $perPage = max((int) ceil(count($tabs) / 2), 4);
-    $chunks = array_chunk($tabs, $perPage, true);
-    $pageOne = $chunks[0] ?? [];
-    $pageTwo = $chunks[1] ?? [];
-    $pageTwoKeys = array_keys($pageTwo);
-    $initialPage = in_array($activeTab, $pageTwoKeys) ? 1 : 0;
-@endphp
+@props(['activeTab', 'perPage', 'pageOne', 'pageTwo', 'pageTwoKeys', 'initialPage'])
 
 <aside
+    x-cloak
     x-data="{ activeTab: @entangle('activeTab'), ...mobile({{ $initialPage }}, @js($pageTwoKeys)) }"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"

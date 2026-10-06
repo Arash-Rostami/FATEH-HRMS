@@ -13,7 +13,7 @@
         [
             'icon' => 'photo_library',
             'label' => 'رسانه: تصویر و ویدیو',
-            'hint' => 'بخش تصویر تا ۸ پرونده (۱۰MB هرکدام، فقط image/*) و بخش ویدیو یک پرونده (۱۰۰MB). تصاویر در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/image</code> و ویدیو در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/video</code> روی دیسک public ذخیره می‌شوند و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">media_paths</code> یکی می‌شوند.',
+            'hint' => 'بخش تصویر تا ۸ پرونده (۵MB هرکدام، فقط image/*) و بخش ویدیو یک پرونده (۹۵MB). تصاویر در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/image</code> و ویدیو در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">feed/video</code> روی دیسک public ذخیره می‌شوند و در <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">media_paths</code> یکی می‌شوند.',
         ],
         [
             'icon' => 'forum',

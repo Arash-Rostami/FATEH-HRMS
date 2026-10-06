@@ -104,6 +104,13 @@ describe('taskboard.toggleMaximize', () => {
         expect(spy).toHaveBeenCalledWith(true)
     })
 
+    test('opening persists the column name via _persistMaximize', () => {
+        const c = taskboard()
+        const spy = vi.spyOn(c, '_persistMaximize')
+        c.toggleMaximize('todo')
+        expect(spy).toHaveBeenCalledWith('todo')
+    })
+
     test('toggling the already-maximized column closes it', () => {
         const c = taskboard()
         const spy = vi.spyOn(c, 'applyMaximize')
@@ -111,6 +118,36 @@ describe('taskboard.toggleMaximize', () => {
         c.toggleMaximize('todo')
         expect(c.maximizedColumn).toBeNull()
         expect(spy).toHaveBeenCalledWith(false)
+    })
+
+    test('closing persists null via _persistMaximize', () => {
+        const c = taskboard()
+        c.maximizedColumn = 'todo'
+        const spy = vi.spyOn(c, '_persistMaximize')
+        c.toggleMaximize('todo')
+        expect(spy).toHaveBeenCalledWith(null)
+    })
+})
+
+describe('taskboard.restoreMaximize', () => {
+    test('a value matching an existing [data-column] element re-applies maximize', () => {
+        document.body.innerHTML = '<div data-column="todo"></div>'
+        const c = taskboard()
+        const spy = vi.spyOn(c, 'applyMaximize')
+        c.restoreMaximize('todo')
+        expect(c.maximizedColumn).toBe('todo')
+        expect(spy).toHaveBeenCalledWith(true)
+    })
+
+    test('a stale value with no matching [data-column] element cleans up and does nothing else', () => {
+        document.body.innerHTML = '<div data-column="todo"></div>'
+        const c = taskboard()
+        const persistSpy = vi.spyOn(c, '_persistMaximize')
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+        c.restoreMaximize('gone')
+        expect(persistSpy).toHaveBeenCalledWith(null)
+        expect(applySpy).not.toHaveBeenCalled()
+        expect(c.maximizedColumn).toBeNull()
     })
 })
 
@@ -125,6 +162,16 @@ describe('taskboard.afterSpotlightChange — maximize/spotlight mutual exclusion
         expect(c.spotlightColumn).toBe('done')
         expect(c.maximizedColumn).toBeNull()
         expect(spy).toHaveBeenCalledWith(false)
+    })
+
+    test('spotlighting while another column is maximized also persists the maximize clear', () => {
+        const c = taskboard()
+        c.maximizedColumn = 'todo'
+        const spy = vi.spyOn(c, '_persistMaximize')
+
+        c.toggleSpotlight('done')
+
+        expect(spy).toHaveBeenCalledWith(null)
     })
 
     test('spotlighting with nothing maximized does not touch maximize state', () => {

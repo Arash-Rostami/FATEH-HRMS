@@ -1,16 +1,5 @@
 @props(['title' => 'حساب کاربری'])
 
-@php
-    $exclusiveOnboarding = auth()->check()
-        ? \Illuminate\Support\Facades\Cache::remember(
-            \App\Services\Cache\ModelCacheVersion::key(\App\Models\Onboarding::class, 'exclusive:' . auth()->id()),
-            now()->addDay(),
-            fn() => \App\Models\Onboarding::where('user_id', auth()->id())->where('is_active', true)->first(['updated_at']),
-        )
-        : null;
-    $onboardingHighlighted = (bool) ($exclusiveOnboarding?->updated_at && $exclusiveOnboarding->updated_at->diffInDays(now()) <= 7);
-@endphp
-
 <div class="relative" x-data="{ open: false }">
     <button @click="open = !open"
             class="group relative flex items-center gap-3 h-[40px] px-3 rounded-[12px] bg-[var(--md-sys-color-on-primary)]/5 border border-[var(--md-sys-color-on-primary)]/10 hover:bg-[var(--md-sys-color-on-primary)]/10 active:bg-[var(--md-sys-color-on-primary)]/20 transition-all duration-300 shadow-sm outline-none"

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       x-data
-      class="h-full antialiased">
+      class="h-full antialiased"
+      data-uid="{{ auth()->id() }}"
+      data-max-scope="{{ $maxScope }}">
 <head>
     <script src="{{ asset('js/mode-manager.js') }}"></script>
     <script src="{{ asset('js/prefs-manager.js') }}"></script>
@@ -15,21 +17,6 @@
     <script>window.__tenantBackdrop = @json($backdrop);</script>
 
     @php
-        $moduleChunk = match(request()->route()?->getName()) {
-            'dms' => 'dms',
-            'ths' => 'ths',
-            'tasks' => 'taskboard',
-            'projects' => 'project',
-            'channels' => 'channel',
-            'contact' => 'contact',
-            'reservation' => 'reservation',
-            'profile' => 'profile',
-            'analytics' => 'analytics',
-            'energy' => 'energy',
-            'tasksheet' => 'tasksheet',
-            'tasksheet.shared' => 'tasksheet',
-            default => null,
-        };
         $viteEntries = ['resources/css/app.css', 'resources/js/app.js'];
         if ($moduleChunk) {
             $viteEntries[] = "resources/js/components/alpine/modules/{$moduleChunk}.js";

@@ -18,6 +18,8 @@ Project was rebuilt from a single stacked column into a Channel/Contact-style ma
 
 Mobile back-nav mirrors Channel/Contact too: `Main::$mobileShowChat` (set true on `selectProject()`, false via `backToList()`) toggles `<aside>`/`<main>` visibility below `md:`, and the header's mobile-only back button calls an Alpine `backToList()` that does `this.$wire.backToList()` (a plain, unscoped call — full re-render is fine here since it's an infrequent nav action, not a hot path).
 
+**`project.js`'s Alpine `selectProject(id)` had the same stale-response race as Channel/Contact's `selectChannel`/`selectContact` — found+fixed 2026-10-05, ported verbatim, same shape as `channelPattern.md` §10's entry.** Clicking quickly through several projects in the sidebar fired an overlapping `wire.$island('workspace').selectProject(id)` per click, each chaining a `.then(() => wire.$island('sidebar').refreshSidebar())`; an earlier, slower click's response landing after a later one re-ran `refreshSidebar()` and the opening-overlay bookkeeping for the WRONG (already-superseded) project, reading as "clicking a project several times makes it reload several times." Fixed with the same closure-scoped `selectSeq` counter (`let selectSeq = 0` at the top of the `project()` factory, bumped to a local `seq` at the start of `selectProject()`), guarding only the `.then()`-chained `refreshSidebar()` call — the `openingProject` 1s timeout needs NO seq guard of its own, since `clearTimeout(this._openingTimeout)` at the top of every call already deterministically cancels any prior timer before scheduling a new one, so a stale timeout callback can structurally never fire in the first place (added once, then removed again as dead code once traced — don't re-add it). Regression-guarded: `resources/js/components/alpine/data/__tests__/project.test.js` (new file, narrow — covers only this guard, not the rest of the factory).
+
 ## Project report tab — expandable inline-detail row + filter toolbar + enriched summary, additive service enrichment
 
 The Project گزارش tab was enriched with expandable inline-detail rows (Alpine single-open on `tbody`), a filter/sort toolbar, and a by-status/overdue summary bar — all additive, zero regression to the existing report.
@@ -177,6 +179,8 @@ checking every sibling `FocusOnRecord` consumer: `Channel::selectChannel()` / `C
 never touch `$open` for ordinary selection — they track "currently open" via their own dedicated
 properties (`activeChannelId`-equivalent) and leave `$open` exclusively to the deep-link path. Project's
 `selectProject()` was the only outlier.
+
+**(2026-10-05) a third caller of the Alpine-side `selectProject(id)` now exists, alongside the sidebar click and the `focusRecord()` deep-link: `project.js`'s own `init()`, restoring the last-open project from `localStorage` (`last:project:<uid>`, written synchronously at the top of this same method) on page reload when `$wire.activeProjectId` is empty server-side** — guarded exactly like the deep-link path, so it never overrides an already-active project. See `resources/js/scriptPattern.md`'s "Persisted across reload/navigation" for the shared `lastOpen.js` mixin and the maximize-sequencing fix (`initMaximize()` deferred via `.finally()` on this call so the maximize chrome-hide never flashes around an empty pane).
 
 **Fix: delete the line, nothing else.** `selectProject()` no longer writes `$this->open`. The genuine
 deep-link path needs no compensating change — `mountFocusOnRecord()` already hydrates `$open` from the

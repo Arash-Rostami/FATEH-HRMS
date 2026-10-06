@@ -965,6 +965,7 @@ class CalendarPresenter
                     'day' => $day,
                     'date' => $dateString,
                     'isToday' => $dateString === $todayStr,
+                    'isPast' => $dateString < $todayStr,
                     'isSelected' => $dateString === $selectedDate,
                     'hasEvents' => $hasEvent || $reminderCount > 0,
                     'hasReservations' => $hasReservations,

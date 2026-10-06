@@ -22,7 +22,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-start flex-1 min-h-[300px] w-full">
             <div class="order-2 lg:order-1 h-full w-full">
 
-                <div :class="{ 'max-widget': maximizedWidget === 'history' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
+                <div data-widget="history" :class="{ 'max-widget': maximizedWidget === 'history' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
                     <header
                         class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-2xl">
                         <div
@@ -50,7 +50,7 @@
 
             <div class="order-1 lg:order-2 h-full w-full">
 
-                <div :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
+                <div data-widget="score" :class="{ 'max-widget': maximizedWidget === 'score' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 p-5 lg:p-8 overflow-hidden shadow-sm flex flex-col items-center text-center relative justify-center bg-[var(--md-sys-color-surface)]">
                     <button @click="toggleMaximize('score')"
                             :title="maximizedWidget === 'score' ? 'کوچک کردن' : 'بزرگ کردن'"
                             :class="{ '!bg-[var(--md-sys-color-primary-container)] !text-[var(--md-sys-color-on-primary-container)]': maximizedWidget === 'score' }"
@@ -110,7 +110,7 @@
 
                 @if($isManager && count($teamMembersData))
                     <div wire:key="energy-team-panel" class="w-full flex flex-col flex-1">
-                        <div :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
+                        <div data-widget="team" :class="{ 'max-widget': maximizedWidget === 'team' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm overflow-hidden flex flex-col">
                             <header
                                 class="px-5 py-3 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between bg-[var(--md-sys-color-primary)]/60 top-0 z-10 rounded-t-2xl">
                                 <div class="flex items-center gap-2">
@@ -161,7 +161,7 @@
             </div>
 
             <div class="order-3 h-full w-full">
-                <div :class="{ 'max-widget': maximizedWidget === 'radar' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
+                <div data-widget="radar" :class="{ 'max-widget': maximizedWidget === 'radar' }" class="w-full h-full rounded-2xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface)] shadow-sm flex flex-col">
                     <header class="px-5 py-4 border-b border-[var(--md-sys-color-outline-variant)]/30 flex items-center gap-3 bg-[var(--md-sys-color-surface)] rounded-t-2xl">
                         <div class="flex size-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-tertiary-container)]/60 text-[var(--md-sys-color-on-tertiary-container)]">
                             <span class="material-symbols-rounded text-base" aria-hidden="true">radar</span>

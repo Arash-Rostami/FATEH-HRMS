@@ -107,6 +107,17 @@ describe('heroDeck.remove', () => {
         expect(spy).toHaveBeenCalledWith(false)
     })
 
+    test('persists null via _persistMaximize when removing the currently-maximized pane', () => {
+        const c = heroDeck()
+        c.panes = ['a']
+        c.maximizedPane = 'a'
+        const spy = vi.spyOn(c, '_persistMaximize')
+
+        c.remove('a')
+
+        expect(spy).toHaveBeenCalledWith(null)
+    })
+
     test('does not touch maximizedPane/applyMaximize when removing a different pane', () => {
         const c = heroDeck()
         c.panes = ['a', 'b']
@@ -165,6 +176,16 @@ describe('heroDeck.toggleMaximize — graceful close', () => {
         vi.useRealTimers()
     })
 
+    test('opening persists the pane id via _persistMaximize', () => {
+        const c = heroDeck()
+        const spy = vi.spyOn(c, '_persistMaximize')
+
+        c.toggleMaximize('a')
+
+        expect(spy).toHaveBeenCalledWith('a')
+        vi.useRealTimers()
+    })
+
     test('closing the active pane sets maxLeaving immediately, calls applyMaximize(false), and only clears state after MAX_WIDGET_CLOSE_MS', () => {
         const c = heroDeck()
         c.maximizedPane = 'a'
@@ -183,6 +204,53 @@ describe('heroDeck.toggleMaximize — graceful close', () => {
         expect(c.maximizedPane).toBeNull()
         expect(c.maxLeaving).toBe(false)
         vi.useRealTimers()
+    })
+
+    test('closing persists null via _persistMaximize at the start of the close sequence', () => {
+        const c = heroDeck()
+        c.maximizedPane = 'a'
+        const spy = vi.spyOn(c, '_persistMaximize')
+
+        c.toggleMaximize('a')
+
+        expect(spy).toHaveBeenCalledWith(null)
+        vi.useRealTimers()
+    })
+})
+
+describe('heroDeck.restoreMaximize', () => {
+    test('a value matching an existing pane re-applies maximize', () => {
+        const c = heroDeck()
+        c.panes = ['a', 'b']
+        const spy = vi.spyOn(c, 'applyMaximize')
+
+        c.restoreMaximize('b')
+
+        expect(c.maximizedPane).toBe('b')
+        expect(spy).toHaveBeenCalledWith(true)
+    })
+
+    test('also switches slide to the restored pane, so its x-show="slide === pane" wrapper (and the maximize chrome/close button inside it) actually renders instead of staying blank — this in turn is what the real init()-registered "slide" $watch (tested below) uses to mark the pane loaded', () => {
+        const c = heroDeck()
+        c.panes = ['a', 'b']
+        c.slide = 0
+
+        c.restoreMaximize('b')
+
+        expect(c.slide).toBe('b')
+    })
+
+    test('a stale value not present in panes cleans up and does nothing else', () => {
+        const c = heroDeck()
+        c.panes = ['a']
+        const persistSpy = vi.spyOn(c, '_persistMaximize')
+        const applySpy = vi.spyOn(c, 'applyMaximize')
+
+        c.restoreMaximize('gone')
+
+        expect(persistSpy).toHaveBeenCalledWith(null)
+        expect(applySpy).not.toHaveBeenCalled()
+        expect(c.maximizedPane).toBeNull()
     })
 })
 

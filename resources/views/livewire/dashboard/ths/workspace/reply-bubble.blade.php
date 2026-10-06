@@ -3,14 +3,19 @@
 @endphp
 
 <div wire:key="reply-{{ $reply->id }}" class="flex items-start gap-2.5 {{ $isMine ? 'flex-row-reverse' : '' }} {{ ($animateIn ?? false) ? 'animate-slide-up-fade' : '' }}">
-    <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-        @if($reply->user)
-            <x-ui.avatar :existingImage="$reply->user->getProfileImageUrl() ?? $reply->user->getInitialsAvatarUrl()"
-                         :alt="$reply->user->name" icon-size="text-[11px]" class="rounded-lg"/>
-        @else
+    @if($reply->user)
+        <div class="relative flex-shrink-0">
+            <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
+                <x-ui.avatar :existingImage="$reply->user->getProfileImageUrl() ?? $reply->user->getInitialsAvatarUrl()"
+                             :alt="$reply->user->name" icon-size="text-[11px]" class="rounded-lg"/>
+            </div>
+            <x-ui.presence-dot :online="$reply->user?->isOnline() ?? false" size="w-2 h-2"/>
+        </div>
+    @else
+        <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden shadow-sm">
             <div class="w-full h-full flex items-center justify-center text-[11px] font-bold bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">—</div>
-        @endif
-    </div>
+        </div>
+    @endif
 
     <div class="max-w-[80%] rounded-2xl px-3.5 py-2.5 shadow-sm"
          @class([

@@ -8,7 +8,7 @@ const SCROLL_THROTTLE_MS = 50;
 const COLLAPSE_MS = 300;
 
 export default () => ({
-    ...maximizeMixin(),
+    ...maximizeMixin('feed'),
     ...monthFilterMixin(FEED_SELECTOR),
     activeId: null,
     loading: false,
@@ -28,12 +28,31 @@ export default () => ({
 
     toggleMaximize(name) {
         this.maximizedFeed = this.maximizedFeed === name ? null : name;
+        this._persistMaximize(this.maximizedFeed);
         this.applyMaximize(!!this.maximizedFeed);
+    },
+
+    restoreMaximize(value) {
+        const feeds = document.querySelectorAll(FEED_SELECTOR);
+        let found = false;
+        for (let i = 0, len = feeds.length; i < len; i++) {
+            if (feeds[i].dataset.feed === value) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            this._persistMaximize(null);
+            return;
+        }
+        this.maximizedFeed = value;
+        this.applyMaximize(true);
     },
 
     init() {
         this._isDestroyed = false;
         this.view = this.$wire.get('view') || 'filmstrip';
+        this.initMaximize();
         this.watchMonth();
 
         this._enforce = () => {

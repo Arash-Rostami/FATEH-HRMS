@@ -3,6 +3,12 @@
         const ls = localStorage;
         document.documentElement.classList.toggle('app-density-compact', ls.getItem('app-density') === 'compact');
 
+        const maxScope = document.documentElement.dataset.maxScope;
+        const uid = document.documentElement.dataset.uid;
+        if (maxScope && uid && window.self === window.top) {
+            document.documentElement.classList.toggle('max-restore', ls.getItem(`max:${maxScope}:${uid}`) !== null);
+        }
+
         const keys = ['dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden'];
         const tables = ['.dms-doc-table', '.ths-ticket-table', '.reservation-command-table'];
         let css = '';

@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard\Reservation\Presentation;
 
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
+use App\Models\Resource;
 use Morilog\Jalali\Jalalian;
 use Throwable;
 
@@ -48,7 +49,7 @@ class AvantgardePresenter
         return null;
     }
 
-    public static function calendarCells(int $year, int $month, array $availableDates, string $selectedDate, ?array $allowedDays = null): array
+    public static function calendarCells(int $year, int $month, array $availableDates, string $selectedDate, ?array $allowedDays = null, array $fullyBookedDates = []): array
     {
         $availableByValue = array_column($availableDates, null, 'value');
         $cells = [];
@@ -68,6 +69,7 @@ class AvantgardePresenter
                 $value = $cursor->toDateString();
                 $row = $availableByValue[$value] ?? null;
                 $reason = null;
+                $available = $row !== null;
 
                 if ($row === null) {
                     if ($value < $today) {
@@ -77,12 +79,15 @@ class AvantgardePresenter
                     } else {
                         $reason = 'window';
                     }
+                } elseif (in_array($value, $fullyBookedDates, true)) {
+                    $available = false;
+                    $reason = 'booked';
                 }
 
                 $cells[] = [
                     'day' => $d,
                     'value' => $value,
-                    'available' => $row !== null,
+                    'available' => $available,
                     'isToday' => $row['isToday'] ?? ($value === $today),
                     'selected' => $selectedDate === $value,
                     'reason' => $reason,
@@ -95,12 +100,41 @@ class AvantgardePresenter
         return $cells;
     }
 
+    public static function fullyBookedDates(int $year, int $month, string $activeTab): array
+    {
+        $totalResources = Resource::where('type', $activeTab)->count();
+
+        if ($totalResources === 0) {
+            return [];
+        }
+
+        try {
+            $firstDay = new Jalalian($year, $month, 1);
+            $monthStart = $firstDay->toCarbon()->startOfDay();
+            $monthEnd = $monthStart->copy()->addDays($firstDay->getMonthDays() - 1)->endOfDay();
+        } catch (Throwable $e) {
+            return [];
+        }
+
+        return Reservation::query()
+            ->where('status', ReservationStatus::Active->value)
+            ->whereHas('resource', fn ($q) => $q->where('type', $activeTab))
+            ->whereBetween('start_time', [$monthStart, $monthEnd])
+            ->get(['resource_id', 'start_time'])
+            ->groupBy(fn (Reservation $row) => $row->start_time->toDateString())
+            ->filter(fn ($rows) => $rows->pluck('resource_id')->unique()->count() >= $totalResources)
+            ->keys()
+            ->values()
+            ->all();
+    }
+
     public static function blockedDayLabels(): array
     {
         return [
             'past' => 'روز گذشته',
             'day_off' => 'روز غیرمجاز طبق قوانین رزرو',
             'window' => 'خارج از بازه رزرو',
+            'booked' => 'این روز به‌طور کامل رزرو شده است',
         ];
     }
 

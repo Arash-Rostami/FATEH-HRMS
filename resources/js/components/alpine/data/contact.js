@@ -1,6 +1,7 @@
 import settings from "./settings.js";
 
 import maximizeMixin from "../mixins/maximize.js";
+import lastOpenMixin from "../mixins/lastOpen.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -35,7 +36,8 @@ export default function contact() {
     let ac, vpAc, scrollRaf, selRaf, unreadObs, digest, ticks = 0, selectSeq = 0;
 
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('contact'),
+        ...lastOpenMixin('contact'),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -113,6 +115,10 @@ export default function contact() {
                     if (innerWidth < MOBILE_BREAKPOINT) ta()?.focus();
                 });
             }
+
+            const lastId = this.$wire.activeUserId ? null : this._readLastOpenId();
+            if (lastId) this.selectContact(lastId).finally(() => this.initMaximize());
+            else this.initMaximize();
         },
 
         destroy() {
@@ -278,6 +284,7 @@ export default function contact() {
         selectContact(id) {
             if (!id) return;
             const seq = ++selectSeq;
+            this._persistLastOpen(id);
             this._repollNow(false);
 
             const el = ta();
@@ -289,7 +296,7 @@ export default function contact() {
             this.searchMessages = false;
 
             this.$wire.cancelReply();
-            this._isl().selectContact(id)
+            return this._isl().selectContact(id)
                 .then(() => this._sidebar())
                 .then(() => {
                     if (seq !== selectSeq) return;

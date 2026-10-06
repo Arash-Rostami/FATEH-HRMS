@@ -124,6 +124,16 @@ class Main extends Component
     }
 
     #[Computed]
+    public function fullyBookedDates(): array
+    {
+        if (ResourceType::tryFrom($this->activeTab)?->isFullDay() !== true) {
+            return [];
+        }
+
+        return AvantgardePresenter::fullyBookedDates($this->currentYear, $this->currentMonth, $this->activeTab);
+    }
+
+    #[Computed]
     public function canPrevMonth(): bool
     {
         return CalendarPresenter::canPrevMonth($this->currentYear, $this->currentMonth);
@@ -152,7 +162,7 @@ class Main extends Component
             $this->currentYear++;
         }
 
-        unset($this->availableDates);
+        unset($this->availableDates, $this->fullyBookedDates);
     }
 
     public function prevMonth(): void
@@ -166,7 +176,7 @@ class Main extends Component
             $this->currentYear--;
         }
 
-        unset($this->availableDates);
+        unset($this->availableDates, $this->fullyBookedDates);
     }
 
     #[Computed]
@@ -587,7 +597,7 @@ class Main extends Component
     {
         $this->setDate(now()->toDateString());
         $this->resetMonthCursor();
-        unset($this->availableDates, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName);
+        unset($this->availableDates, $this->fullyBookedDates, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName);
         $this->dispatch('scroll-to-selected');
     }
 
@@ -624,7 +634,7 @@ class Main extends Component
                 'weekDayLabels' => AvantgardePresenter::weekDayLabels(),
                 'activeTypeMeta' => AvantgardePresenter::activeTypeMeta($tabs, $this->activeTab),
                 'isFullDayTab' => $isFullDayTab,
-                'calendarCells' => AvantgardePresenter::calendarCells($this->currentYear, $this->currentMonth, $this->availableDates, $this->date, $this->allowedDays),
+                'calendarCells' => AvantgardePresenter::calendarCells($this->currentYear, $this->currentMonth, $this->availableDates, $this->date, $this->allowedDays, $this->fullyBookedDates),
                 'blockedDayLabels' => AvantgardePresenter::blockedDayLabels(),
                 'timeRail' => $isFullDayTab ? null : AvantgardePresenter::timeRail($this->availableTimeSlots, $this->startTime, $this->endTime, $this->openResourceBusySegments, $this->date),
             ];
@@ -670,7 +680,7 @@ class Main extends Component
         $this->invalidateResourceCache();
         $this->resetMonthCursor();
         $this->syncDefaultTimes();
-        unset($this->availableDates, $this->dateWindow, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName, $this->availableTimeSlots, $this->minNoticeHours, $this->allowedDays, $this->durationBounds, $this->activeLimitUsage, $this->cancelLimitUsage, $this->allowsRepeat, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta);
+        unset($this->availableDates, $this->fullyBookedDates, $this->dateWindow, $this->canNextMonth, $this->canPrevMonth, $this->currentMonthName, $this->availableTimeSlots, $this->minNoticeHours, $this->allowedDays, $this->durationBounds, $this->activeLimitUsage, $this->cancelLimitUsage, $this->allowsRepeat, $this->recurPreview, $this->selectedDuration, $this->bookingBlockReason, $this->startSlotMeta);
     }
 
     private function applyFacets($query)

@@ -10,13 +10,16 @@
             <x-ui.modals.close-button close="showInfo = false"/>
         </div>
         <div class="flex flex-col items-center gap-3 py-4">
-            <div
-                class="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
-                <x-ui.avatar
-                    :image="null"
-                    :existingImage="$this->activeContact->getProfileImageUrl()"
-                    :alt="$this->activeContact->name"
-                    class="rounded-lg" />
+            <div class="relative">
+                <div
+                    class="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden bg-[linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-secondary-container))] text-[var(--md-sys-color-on-primary-container)]">
+                    <x-ui.avatar
+                        :image="null"
+                        :existingImage="$this->activeContact->getProfileImageUrl()"
+                        :alt="$this->activeContact->name"
+                        class="rounded-lg" />
+                </div>
+                <x-ui.presence-dot :online="$this->activeContact->isOnline()" size="w-4 h-4"/>
             </div>
             <p class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">{{ $this->activeContact->name }}</p>
             @if($this->activeContact->profile?->has_display_position)

@@ -25,7 +25,6 @@ class SuggestionForm extends Form
     #[Validate('required|in:low,medium,high')]
     public string $priority = 'medium';
 
-    #[Validate('nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:10240')]
     public $attachment = null;
 
     public bool $selfFill = false;
@@ -42,6 +41,7 @@ class SuggestionForm extends Form
     protected function rules(): array
     {
         return [
+            'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:' . config('file_upload_limits.document'),
             'feedbackTeam' => ['in:,agree,neutral,disagree'],
             'feedback.*' => ['in:agree,neutral,disagree'],
         ];

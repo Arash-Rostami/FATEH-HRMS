@@ -71,7 +71,7 @@ class TaskFormPresenter
                     ->label(__('resources/task/strings.fields.file'))
                     ->disk('public')
                     ->directory('task/attachments')
-                    ->maxSize(4096)
+                    ->maxSize(config('file_upload_limits.document'))
                     ->acceptedFileTypes(self::acceptedMimeTypes())
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, callable $set) {
                         $meta = static::storeAttachment($file, 'task/attachments', fn($f) => self::fileName($f));

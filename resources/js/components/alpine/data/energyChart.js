@@ -1,15 +1,17 @@
 import maximizeMixin from "../mixins/maximize.js";
 
 const MAX_WIDGET_CLOSE_MS = 350;
+const WIDGET_SELECTOR = '[data-widget]';
 
 export default function energyChart(history, companyAverages, sections, latestTest) {
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('energy'),
         charts: {},
         maximizedWidget: null,
         Chart: null,
 
         async init() {
+            this.initMaximize();
             if (!history?.length && !latestTest) return;
             await import ('../../../core/chart.js');
             this.Chart = window.Chart;
@@ -32,6 +34,7 @@ export default function energyChart(history, companyAverages, sections, latestTe
 
             if (this.maximizedWidget === name) {
                 this.maxLeaving = true;
+                this._persistMaximize(null);
                 this.applyMaximize(false);
                 clearTimeout(this.maxTimer);
                 this.maxTimer = setTimeout(() => {
@@ -44,6 +47,24 @@ export default function energyChart(history, companyAverages, sections, latestTe
             clearTimeout(this.maxTimer);
             this.maxLeaving = false;
             this.maximizedWidget = name;
+            this._persistMaximize(name);
+            this.applyMaximize(true);
+        },
+
+        restoreMaximize(value) {
+            const widgets = document.querySelectorAll(WIDGET_SELECTOR);
+            let found = false;
+            for (let i = 0, len = widgets.length; i < len; i++) {
+                if (widgets[i].dataset.widget === value) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                this._persistMaximize(null);
+                return;
+            }
+            this.maximizedWidget = value;
             this.applyMaximize(true);
         },
 

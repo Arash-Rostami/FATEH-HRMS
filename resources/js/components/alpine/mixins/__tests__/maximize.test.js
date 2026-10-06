@@ -10,8 +10,14 @@ function withLayoutDom() {
     `;
 }
 
+function withUid(uid) {
+    document.documentElement.dataset.uid = uid;
+}
+
 beforeEach(() => {
     document.body.innerHTML = '';
+    delete document.documentElement.dataset.uid;
+    document.documentElement.classList.remove('max-restore');
 });
 
 describe('maximizeMixin.applyMaximize', () => {
@@ -95,5 +101,177 @@ describe('maximizeMixin.toggleMaximize — open/close timing (graceful-close, MA
         vi.advanceTimersByTime(1);
         expect(m.max).toBe(false);
         expect(m.maxLeaving).toBe(false);
+    });
+});
+
+describe('maximizeMixin persistence — storage key scoping', () => {
+    test('scope + uid present yields a non-null storage key', () => {
+        withUid('42');
+        const m = maximizeMixin('channel');
+        expect(m._maxStorageKey).toBe('max:channel:42');
+    });
+
+    test('no scope argument yields a null storage key and localStorage is never touched', () => {
+        withUid('42');
+        const getSpy = vi.spyOn(Storage.prototype, 'getItem');
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem');
+        const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
+
+        const m = maximizeMixin();
+        expect(m._maxStorageKey).toBeNull();
+
+        m.initMaximize();
+        m.toggleMaximize();
+
+        expect(getSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+        expect(removeSpy).not.toHaveBeenCalled();
+    });
+
+    test('missing uid yields a null storage key and localStorage is never touched', () => {
+        const getSpy = vi.spyOn(Storage.prototype, 'getItem');
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem');
+        const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
+
+        const m = maximizeMixin('channel');
+        expect(m._maxStorageKey).toBeNull();
+
+        m.initMaximize();
+        m.toggleMaximize();
+
+        expect(getSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+        expect(removeSpy).not.toHaveBeenCalled();
+    });
+
+    test('framed window (window.self !== window.top) yields a null storage key and localStorage is never touched', () => {
+        withUid('42');
+        const originalTop = window.top;
+        Object.defineProperty(window, 'top', { value: {}, configurable: true });
+
+        const getSpy = vi.spyOn(Storage.prototype, 'getItem');
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem');
+        const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
+
+        const m = maximizeMixin('channel');
+        expect(m._maxStorageKey).toBeNull();
+
+        m.initMaximize();
+        m.toggleMaximize();
+
+        expect(getSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+        expect(removeSpy).not.toHaveBeenCalled();
+
+        Object.defineProperty(window, 'top', { value: originalTop, configurable: true });
+    });
+});
+
+describe('maximizeMixin.initMaximize', () => {
+    test('with no stored value, max stays false and no layout classes are applied', () => {
+        withLayoutDom();
+        withUid('42');
+        const m = maximizeMixin('channel');
+
+        m.initMaximize();
+
+        expect(m.max).toBe(false);
+        expect(document.getElementById('header').classList.contains('layout-hidden')).toBe(false);
+    });
+
+    test('with a stored non-null value and no restoreMaximize override, sets max=true and applies layout-hidden classes', () => {
+        withLayoutDom();
+        withUid('42');
+        try {
+            localStorage.setItem('max:channel:42', '1');
+        } catch {}
+        const m = maximizeMixin('channel');
+
+        m.initMaximize();
+
+        expect(m.max).toBe(true);
+        expect(document.getElementById('header').classList.contains('layout-hidden')).toBe(true);
+
+        try {
+            localStorage.removeItem('max:channel:42');
+        } catch {}
+    });
+
+    test('always removes max-restore from the document root, with or without a stored value', () => {
+        withLayoutDom();
+        withUid('42');
+        document.documentElement.classList.add('max-restore');
+        const m = maximizeMixin('channel');
+
+        m.initMaximize();
+
+        expect(document.documentElement.classList.contains('max-restore')).toBe(false);
+    });
+});
+
+describe('maximizeMixin.toggleMaximize — persistence writes', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => {
+        vi.useRealTimers();
+        try {
+            localStorage.removeItem('max:channel:42');
+        } catch {}
+    });
+
+    test('opening writes the storage key synchronously', () => {
+        withLayoutDom();
+        withUid('42');
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem');
+        const m = maximizeMixin('channel');
+
+        m.toggleMaximize();
+
+        expect(setSpy).toHaveBeenCalledWith('max:channel:42', true);
+    });
+
+    test('closing removes the storage key synchronously, before the close timer fires', () => {
+        withLayoutDom();
+        withUid('42');
+        const m = maximizeMixin('channel');
+        m.max = true;
+        m.applyMaximize(true);
+        const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
+
+        m.toggleMaximize();
+
+        expect(removeSpy).toHaveBeenCalledWith('max:channel:42');
+
+        vi.advanceTimersByTime(349);
+        expect(m.max).toBe(true);
+    });
+});
+
+describe('maximizeMixin — localStorage throwing degrades silently', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    test('initMaximize does not throw when localStorage.getItem throws', () => {
+        withLayoutDom();
+        withUid('42');
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+        const m = maximizeMixin('channel');
+
+        expect(() => m.initMaximize()).not.toThrow();
+        expect(m.max).toBe(false);
+    });
+
+    test('toggleMaximize does not throw when localStorage.setItem/removeItem throw', () => {
+        withLayoutDom();
+        withUid('42');
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+        vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new Error('blocked'); });
+        const m = maximizeMixin('channel');
+
+        expect(() => m.toggleMaximize()).not.toThrow();
+        expect(m.max).toBe(true);
+
+        expect(() => m.toggleMaximize()).not.toThrow();
+        vi.advanceTimersByTime(350);
+        expect(m.max).toBe(false);
     });
 });

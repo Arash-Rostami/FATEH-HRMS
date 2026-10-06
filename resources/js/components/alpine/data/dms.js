@@ -6,12 +6,13 @@ const RECENT_MAX = 6;
 
 export default function dms() {
     return {
-        ...maximizeMixin(),
+        ...maximizeMixin('dms'),
         baseUrl: window.location.origin + '/',
         openSettings: false,
         recent: [],
 
         init() {
+            this.initMaximize();
             try {
                 this.recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
             } catch (e) {

@@ -82,7 +82,7 @@ class SubmitReleaseRequestAction
     {
         Validator::make(['attachments' => $form->attachments], [
             'attachments'   => 'array|max:5',
-            'attachments.*' => 'file|max:4096|mimes:jpg,jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx',
+            'attachments.*' => 'file|max:' . config('file_upload_limits.document') . '|mimes:jpg,jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx',
         ], [
             'attachments.max'     => __('resources/release_request/strings.validation.attachments.max_items'),
             'attachments.*.max'   => __('resources/release_request/strings.validation.attachments.max_size'),

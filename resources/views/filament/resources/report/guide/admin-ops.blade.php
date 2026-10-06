@@ -35,12 +35,12 @@
         [
             'icon' => 'image',
             'label' => 'تصویر جلد (cover_image)',
-            'hint' => 'FileUpload روی دیسک public در مسیر reports/covers. فقط تصویر، حداکثر ۲ مگابایت، با ویرایشگر تصویر. قابل دانلود، باز شدن و پیش‌نمایش.',
+            'hint' => 'FileUpload روی دیسک public در مسیر reports/covers. فقط تصویر، حداکثر ۵ مگابایت، با ویرایشگر تصویر. قابل دانلود، باز شدن و پیش‌نمایش.',
         ],
         [
             'icon' => 'file_present',
             'label' => 'فایل گزارش (file_path)',
-            'hint' => 'FileUpload روی دیسک public در مسیر reports/files. فقط PDF یا Word (pdf/doc/docx)، حداکثر ۵ مگابایت، الزامی. این فایل است که کاربر از زبانهٔ گزارشات دانلود می‌کند.',
+            'hint' => 'FileUpload روی دیسک public در مسیر reports/files. فقط PDF یا Word (pdf/doc/docx)، حداکثر ۱۰ مگابایت، الزامی. این فایل است که کاربر از زبانهٔ گزارشات دانلود می‌کند.',
         ],
         [
             'icon' => 'subject',

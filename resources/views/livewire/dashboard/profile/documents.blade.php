@@ -13,7 +13,7 @@
             <div class="flex-1">
                 <h3 class="text-sm font-bold tracking-tight mb-2">راهنمای بارگذاری مدارک و الزامات پرونده</h3>
                 <p class="text-xs opacity-90 leading-relaxed mb-4">
-                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۵ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
+                    کاربر گرامی، تصاویر اسکن‌شده باید با کیفیت مطلوب و حجم کمتر از ۱۰ مگابایت باشند. توجه داشته باشید که پس از تایید نهایی، امکان ویرایش مستندات وجود نخواهد داشت. رعایت موارد زیر جهت تکمیل پرونده الزامی است:
                 </p>
 
                 <ul class="text-xs opacity-90 leading-relaxed space-y-3">
@@ -187,7 +187,7 @@
             handleCustomFileSelect(e) {
                 if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
                 const f = e.target.files[0];
-                if (!f || f.size > 5242880) { this.fileName=''; this.previewUrl=''; this.sizeError = !!f; e.target.value=null; return; }
+                if (!f || f.size > 10485760) { this.fileName=''; this.previewUrl=''; this.sizeError = !!f; e.target.value=null; return; }
                 this.sizeError = false;
                 this.fileName = f.name;
                 this.previewUrl = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'].includes(f.type) ? URL.createObjectURL(f) : '';
@@ -204,7 +204,7 @@
                         <span
                             class="material-symbols-rounded text-[36px] text-[var(--md-sys-color-on-surface-variant)] mb-2">note_add</span>
                         <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)]">انتخاب فایل مدرک</span>
-                        <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1">PDF، JPG یا PNG — حداکثر ۵ مگابایت</span>
+                        <span class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] mt-1">PDF، JPG یا PNG — حداکثر ۱۰ مگابایت</span>
                     </label>
                     <input id="custom-file-upload" type="file" class="hidden" wire:model="form.customFile"
                            @change="handleCustomFileSelect($event)" accept=".pdf,.jpg,.png,.jpeg">
@@ -212,7 +212,7 @@
                          class="text-center mt-2 text-xs text-[var(--md-sys-color-primary)] font-bold animate-pulse">در
                         حال آماده‌سازی فایل...
                     </div>
-                    <p x-show="sizeError" x-cloak class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">حجم فایل نباید بیشتر از 5 مگابایت باشد.</p>
+                    <p x-show="sizeError" x-cloak class="text-xs text-[var(--md-sys-color-error)] mt-2 font-medium">حجم فایل نباید بیشتر از 10 مگابایت باشد.</p>
                 </div>
                 <div x-show="fileName" x-cloak class="space-y-3">
                     <div

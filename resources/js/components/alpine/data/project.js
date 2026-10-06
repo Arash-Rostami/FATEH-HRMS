@@ -1,4 +1,5 @@
 import maximizeMixin from '../mixins/maximize.js';
+import lastOpenMixin from '../mixins/lastOpen.js';
 import clipboardMixin from '../mixins/clipboard.js';
 import mentionMixin from '../mixins/mention.js';
 import kanbanDragMixin from '../mixins/kanbanDrag.js';
@@ -33,8 +34,10 @@ const TAB_REFRESH_EVENT = {
 const WARMABLE_TABS = new Set(['report', 'analytics', 'projectCalendar', 'kanban', 'activity']);
 
 export default function project() {
+    let selectSeq = 0;
     const workspace = {
-        ...maximizeMixin(),
+        ...maximizeMixin('project'),
+        ...lastOpenMixin('project'),
         ...clipboardMixin(),
         ...mentionMixin(),
         ...kanbanDragMixin(),
@@ -136,6 +139,10 @@ export default function project() {
                 });
             };
             this.$el.addEventListener('scroll', this._onChatScroll, { capture: true, passive: true });
+
+            const lastId = this.$wire.activeProjectId ? null : this._readLastOpenId();
+            if (lastId) this.selectProject(lastId).finally(() => this.initMaximize());
+            else this.initMaximize();
         },
 
         destroy() {
@@ -430,6 +437,8 @@ export default function project() {
         },
 
         selectProject(id) {
+            const seq = ++selectSeq;
+            this._persistLastOpen(id);
             this.resetInterval();
             this._lastVersion = null;
             this._electLeaderFor(id);
@@ -438,8 +447,11 @@ export default function project() {
             clearTimeout(this._openingTimeout);
             this._openingTimeout = setTimeout(() => { this.openingProject = false; }, 1000);
             const wire = this.$wire;
-            wire.$island('workspace').selectProject(id)
-                .then(() => wire.$island('sidebar').refreshSidebar());
+            return wire.$island('workspace').selectProject(id)
+                .then(() => {
+                    if (seq !== selectSeq) return;
+                    wire.$island('sidebar').refreshSidebar();
+                });
         },
 
         startPolling() {

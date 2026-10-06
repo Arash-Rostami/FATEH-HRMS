@@ -111,7 +111,7 @@
                         <x-ui.avatar :image="null" :existingImage="$contact['avatar']"
                                      :alt="$contact['name']" icon-size="text-xl" class="rounded-xl"/>
                     </div>
-                    <x-ui.presence-dot :online="$contact['is_online']"/>
+                    <x-ui.presence-dot :online="$contact['is_online']" size="w-2.5 h-2.5"/>
                 </div>
 
                 <div class="flex-1 min-w-0">

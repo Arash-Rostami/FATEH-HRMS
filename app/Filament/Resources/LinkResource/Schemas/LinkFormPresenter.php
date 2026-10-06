@@ -51,7 +51,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.icon'))
             ->disk('public')
             ->directory('link/icon')
-            ->maxSize(512)
+            ->maxSize(config('file_upload_limits.icon'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
                 fn (TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
@@ -100,7 +100,7 @@ class LinkFormPresenter
             ->label(__('resources/link/strings.fields.image'))
             ->disk('public')
             ->directory('link/image')
-            ->maxSize(1024)
+            ->maxSize(config('file_upload_limits.image'))
             ->downloadable()
             ->openable()
             ->previewable()

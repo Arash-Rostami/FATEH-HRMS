@@ -29,11 +29,15 @@ class TicketForm extends Form
     public string $description = '';
 
 
-    #[Validate([
-        'files' => 'nullable|array|max:3',
-        'files.*' => 'file|max:4096|mimes:jpeg,png,gif,bmp,svg,webp,pdf,doc,docx,xls,xlsx,ods,odt',
-    ])]
     public array $files = [];
+
+    protected function rules(): array
+    {
+        return [
+            'files' => 'nullable|array|max:3',
+            'files.*' => 'file|max:' . config('file_upload_limits.document') . '|mimes:jpeg,png,gif,bmp,svg,webp,pdf,doc,docx,xls,xlsx,ods,odt',
+        ];
+    }
 
     protected function messages(): array
     {
@@ -48,7 +52,7 @@ class TicketForm extends Form
             'description.max' => 'حداکثر طول مجاز توضیحات ۵۰۰۰ کاراکتر است.',
             'files.max' => 'حداکثر ۳ فایل می‌توانید ضمیمه کنید.',
             'files.*.file' => 'فایل ضمیمه باید معتبر باشد.',
-            'files.*.max' => 'حجم فایل نباید بیشتر از ۴ مگابایت باشد.',
+            'files.*.max' => 'حجم فایل نباید بیشتر از ۱۰ مگابایت باشد.',
             'files.*.mimes' => 'فرمت فایل مجاز نیست.',
         ];
     }

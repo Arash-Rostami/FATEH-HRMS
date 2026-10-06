@@ -66,7 +66,6 @@ class ProfileForm extends Form
     #[Validate('nullable|string|max:1000')]
     public ?string $interests = '';
 
-    #[Validate('nullable|image|max:2048')]
     public $image = null;
 
     public array $favoriteColors = [];
@@ -82,6 +81,7 @@ class ProfileForm extends Form
         $profileId = Auth::user()?->profile?->getKey();
 
         return [
+            'image' => 'nullable|image|max:' . config('file_upload_limits.image'),
             'id_card_number' => ['nullable', 'string', 'max:20', Rule::unique('profiles', 'id_card_number')->ignore($profileId)],
             'id_booklet_number' => ['required', 'string', 'max:20', Rule::unique('profiles', 'id_booklet_number')->ignore($profileId)],
             'birthYear' => 'nullable|integer|min:1300|max:1500|required_with:birthMonth,birthDay',
@@ -131,7 +131,7 @@ class ProfileForm extends Form
             'birthMonth.required' => 'ماه تولد الزامی است.',
             'birthDay.required' => 'روز تولد الزامی است.',
             'image.image' => 'فایل باید یک تصویر باشد.',
-            'image.max' => 'حجم تصویر نباید بیشتر از ۲ مگابایت باشد.',
+            'image.max' => 'حجم تصویر نباید بیشتر از ۵ مگابایت باشد.',
         ];
     }
 

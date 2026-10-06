@@ -106,6 +106,7 @@ class ResourceFormPresenter
             ->previewable()
             ->disk('public')
             ->directory('resources')
+            ->maxSize(config('file_upload_limits.image'))
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.image'))
             ->columnSpanFull();

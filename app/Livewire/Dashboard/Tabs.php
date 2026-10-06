@@ -9,6 +9,7 @@ use App\Livewire\Dashboard\Tab\Gallery;
 use App\Livewire\Dashboard\Tab\Home;
 use App\Livewire\Dashboard\Tab\Links;
 use App\Livewire\Dashboard\Tab\Posts;
+use App\Livewire\Dashboard\Tab\Presentation\TabPresenter;
 use App\Livewire\Dashboard\Tab\Reports;
 use App\Livewire\Dashboard\Tab\Status;
 use Livewire\Attributes\Computed;
@@ -48,6 +49,7 @@ class Tabs extends Component
     {
         return view('livewire.dashboard.tabs', [
             'currentTab' => $this->tabs[$this->activeTab] ?? null,
+            'bottomNavPaging' => (new TabPresenter())->bottomNavPaging($this->tabs, $this->activeTab),
         ])->extends('layouts.app')->section('content');
     }
 

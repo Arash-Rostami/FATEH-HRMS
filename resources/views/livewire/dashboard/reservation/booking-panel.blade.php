@@ -95,13 +95,18 @@
                         wire:click="setDate('{{ $cell['value'] }}')"
                         {{ $cell['available'] ? '' : 'disabled' }}
                         title="{{ $cell['available'] ? '' : $blockedDayLabels[$cell['reason']] }}"
+                        @if(!$cell['available'] && $cell['reason'] === 'booked')
+                            style="background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-error) 20%, transparent) 0 3px, var(--md-sys-color-surface-container-low) 3px 6px);"
+                        @endif
                         @class([
                             'relative aspect-[1/0.85] w-full rounded-[14px] transition-all duration-300 ease-out flex items-center justify-center text-[13px] font-bold outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]',
                             'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_10px_28px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)] ring-1 ring-[var(--md-sys-color-primary)] z-10' => $cell['selected'] && $cell['available'],
                             'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-primary)_60%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_80%,transparent)]' => !$cell['selected'] && $cell['available'] && $cell['isToday'],
                             'bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] shadow-[0_6px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_12%,transparent)] hover:ring-[color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)]' => !$cell['selected'] && $cell['available'] && !$cell['isToday'],
                             'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_60%,transparent)] text-[var(--md-sys-color-on-surface-variant)]/40 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_20%,transparent)] cursor-default line-through' => !$cell['available'] && $cell['reason'] === 'day_off',
-                            'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)]/30 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_15%,transparent)] cursor-default' => !$cell['available'] && $cell['reason'] !== 'day_off',
+                            'bg-[var(--md-sys-color-surface-container-low)] text-[var(--md-sys-color-on-surface-variant)]/70 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)] cursor-default grayscale opacity-75' => !$cell['available'] && $cell['reason'] === 'past',
+                            'bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-low)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)]/30 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_15%,transparent)] cursor-default' => !$cell['available'] && $cell['reason'] === 'window',
+                            'text-[var(--md-sys-color-error)] cursor-default font-bold' => !$cell['available'] && $cell['reason'] === 'booked',
                         ])
                     >
                         {{ convertToPersian((string) $cell['day']) }}

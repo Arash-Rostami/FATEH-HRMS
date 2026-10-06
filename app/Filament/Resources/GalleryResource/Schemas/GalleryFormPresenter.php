@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GalleryResource\Schemas;
 
 
 use App\Models\Department;
+use App\Rules\FileSizeByType;
 use App\Services\PersianDateFieldService;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
@@ -80,7 +81,7 @@ class GalleryFormPresenter
             ->directory('gallery')
             ->multiple()
             ->maxFiles(50)
-            ->maxSize(51200)
+            ->rules([new FileSizeByType])
             ->acceptedFileTypes([
                 'image/jpeg',
                 'image/png',

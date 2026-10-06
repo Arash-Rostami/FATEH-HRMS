@@ -121,7 +121,7 @@
                     <span class="material-symbols-rounded text-lg">attach_file</span>
                 </label>
                 <input id="team-chat-attachments" type="file" multiple wire:model="chatComposer.attachments" class="hidden"
-                       accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"/>
+                       accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4,.webm,.mov"/>
                 <x-ui.buttons.form x-on:click.prevent="sendMessage"
                         wire:loading.attr="disabled" wire:target="sendChatMessage"
                         loading="sendChatMessage"
