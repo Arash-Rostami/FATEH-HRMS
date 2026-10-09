@@ -50,9 +50,9 @@
                         <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)]/50 transition-colors">
                             <div class="relative flex-shrink-0">
                                 <div class="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
-                                    <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" class="w-full h-full object-cover"/>
+                                    <x-ui.avatar :existingImage="$member['avatar_url']" :alt="$member['name']" :inactive="$member['inactive']" class="w-full h-full object-cover"/>
                                 </div>
-                                <x-ui.presence-dot :online="$member['is_online']" size="w-2.5 h-2.5"/>
+                                @unless($member['inactive'])<x-ui.presence-dot :online="$member['is_online']" size="w-2.5 h-2.5"/>@endunless
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1 flex-wrap">
@@ -60,7 +60,9 @@
                                     @if($member['is_owner'])
                                         <span class="text-[9px] font-bold px-1 py-0.5 rounded-md bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]">مالک</span>
                                     @endif
-                                    @if($member['presence_label'])
+                                    @if($member['inactive'])
+                                        <x-ui.badge class="!px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>
+                                    @elseif($member['presence_label'])
                                         <span class="inline-flex items-center px-1 py-0.5 rounded-full text-[9px] font-bold {{ $member['presence_class'] }}">{{ $member['presence_label'] }}</span>
                                     @endif
                                 </div>

@@ -22,10 +22,8 @@ class ProjectToast implements MenuEdge
 
     public function for($subject): Collection
     {
-        $this->added = array_flip($this->resolveAddedIds($subject));
-        $unopened = $subject->channel_id ? array_flip(Channel::invitedUserIds($subject->channel_id)) : [];
-
-        $ids = array_unique([...array_keys($this->added), ...array_keys($unopened)]);
+        $this->added = [];
+        $ids = $subject->channel_id ? Channel::invitedUserIds($subject->channel_id) : [];
 
         return $ids === [] ? collect() : User::active()->whereIn('id', $ids)->get();
     }

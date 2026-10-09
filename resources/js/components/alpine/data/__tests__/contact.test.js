@@ -463,7 +463,27 @@ describe('contact() DOM read helpers + push notify', () => {
         expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
     });
 
-    test('syncPushNotify does NOT play the unscoped incoming sound while a conversation IS open (fixed 2026-10-05: was double-firing alongside _pollTick\'s own scoped play for the same message) — the push notification itself still fires', () => {
+    test('syncPushNotify mirrors the observed unread total onto the contacts menu badge, skipping the first read', () => {
+        const c = contact();
+        c.$wire = { activeUserId: null };
+        c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() }, menuBadges: { set: vi.fn() } };
+        const el = document.createElement('div');
+        el.setAttribute('data-total-unread', '2');
+        document.body.appendChild(el);
+
+        c.syncPushNotify();
+        expect(c.$store.menuBadges.set).not.toHaveBeenCalled();
+
+        el.setAttribute('data-total-unread', '0');
+        c.syncPushNotify();
+        expect(c.$store.menuBadges.set).toHaveBeenLastCalledWith('contacts-controller', false);
+
+        el.setAttribute('data-total-unread', '4');
+        c.syncPushNotify();
+        expect(c.$store.menuBadges.set).toHaveBeenLastCalledWith('contacts-controller', true);
+    });
+
+    test('syncPushNotify leaves the sound to _pollTick while a conversation IS open (the open-thread rule owns it)', () => {
         const c = contact();
         c.$wire = { activeUserId: 5 };
         c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
@@ -477,6 +497,41 @@ describe('contact() DOM read helpers + push notify', () => {
 
         expect(c.$store.push.notify).toHaveBeenCalledOnce();
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('the incoming sound cannot play twice within 1500 ms across syncPushNotify and _pollTick, and plays again afterwards', async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(10_000);
+        const c = contact();
+        c.$wire = createWireMock({ activeUserId: 5 });
+        c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
+        const el = document.createElement('div');
+        el.setAttribute('data-total-unread', '1');
+        document.body.appendChild(el);
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="message-1" class="justify-start"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '<div data-rf="message-1" class="justify-start"></div><div data-rf="message-2" class="justify-end"></div>';
+                return Promise.resolve();
+            }),
+        };
+
+        c.syncPushNotify();
+        el.setAttribute('data-total-unread', '2');
+        c.syncPushNotify();
+        await c._pollTick();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        c._ringIncoming(5);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        vi.setSystemTime(11_600);
+        c._ringIncoming(5);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledTimes(2);
+        vi.useRealTimers();
     });
 
     test('_lastMessageIsMine reads the last row\'s justify-start class (the is_mine convention)', () => {

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\Ths\Forms;
 
+use App\Models\Ticket;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -13,10 +15,8 @@ class TicketForm extends Form
     public array $fileInputs = [];
     public array $requestTypeOptions = [];
 
-    #[Validate('required|string')]
     public string $requestType = 'support';
 
-    #[Validate('required|string')]
     public string $requestArea = '';
 
     #[Validate('required|in:low,medium,high')]
@@ -33,7 +33,13 @@ class TicketForm extends Form
 
     protected function rules(): array
     {
+        $dept = in_array($this->targetDepartment, ['', 'N/A'], true) ? null : $this->targetDepartment;
+        $areas = array_keys(array_filter(Ticket::getCustomRequestAreaOptions($dept, $this->requestType), fn($label, $key) => $key !== '', ARRAY_FILTER_USE_BOTH));
+
         return [
+            'targetDepartment' => ['nullable', 'string', Rule::when($dept !== null, 'exists:departments,code')],
+            'requestType' => ['required', 'string', Rule::in(array_keys(Ticket::getCustomRequestTypeOptions($dept)))],
+            'requestArea' => ['required', 'string', Rule::in($areas)],
             'files' => 'nullable|array|max:3',
             'files.*' => 'file|max:' . config('file_upload_limits.document') . '|mimes:jpeg,png,gif,bmp,svg,webp,pdf,doc,docx,xls,xlsx,ods,odt',
         ];
@@ -44,6 +50,9 @@ class TicketForm extends Form
         return [
             'requestType.required' => 'نوع درخواست را انتخاب کنید.',
             'requestArea.required' => 'حوزه درخواست را انتخاب کنید.',
+            'requestType.in' => 'نوع درخواست نامعتبر است.',
+            'requestArea.in' => 'حوزه درخواست نامعتبر است.',
+            'targetDepartment.exists' => 'واحد سازمانی انتخاب‌شده نامعتبر است.',
             'priority.required' => 'اولویت را انتخاب کنید.',
             'priority.in' => 'اولویت انتخاب‌شده نامعتبر است.',
             'subject.required' => 'موضوع تیکت را وارد کنید.',

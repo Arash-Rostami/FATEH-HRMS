@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TaskResource\Schemas;
 use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
+use App\Services\ProjectTask\TaskMetrics;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -248,11 +249,7 @@ class TaskTablePresenter
     {
         return Filter::make('overdue')
             ->label(__('resources/task/strings.filters.overdue'))
-            ->query(fn(Builder $query) => $query
-                ->whereNotNull('deadline')
-                ->where('deadline', '<', now())
-                ->where('status', '!=', 'done')
-            )
+            ->query(fn(Builder $query) => TaskMetrics::overdue($query))
             ->toggle();
     }
 

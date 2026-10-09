@@ -24,9 +24,18 @@ class UnreadNotifications extends DatabaseNotifications
 
     protected ?array $dmsCountsCache = null;
 
+    protected ?int $unreadCountCache = null;
+
     public function clearNotificationsAction(): Action
     {
         return parent::clearNotificationsAction()->hidden();
+    }
+
+    public function getPollingInterval(): ?string
+    {
+        return Filament::getCurrentPanel()?->getId() === 'admin'
+            ? parent::getPollingInterval()
+            : random_int(60, 75) . 's';
     }
 
     public function isPaginated(): bool
@@ -117,7 +126,17 @@ class UnreadNotifications extends DatabaseNotifications
         return new DatabaseNotificationCollection($folded);
     }
 
+    public function rendered(): void
+    {
+        $this->dispatch('bell-unread', lit: $this->getUnreadNotificationsCount() > 0);
+    }
+
     public function getUnreadNotificationsCount(): int
+    {
+        return $this->unreadCountCache ??= $this->computeUnreadCount();
+    }
+
+    private function computeUnreadCount(): int
     {
         $total = parent::getUnreadNotificationsCount();
 
@@ -125,9 +144,13 @@ class UnreadNotifications extends DatabaseNotifications
             return $total;
         }
 
+        if ($total === 0) {
+            return 0;
+        }
+
         $groups = ModelCacheVersion::remember(
             DatabaseNotification::class,
-            'unread_menu_groups:' . (int) auth()->id(),
+            'unread_menu_groups:' . (int) auth()->id() . ':' . $total,
             now()->addMinutes(15),
             fn () => $this->getNotificationsQuery()
                 ->reorder()

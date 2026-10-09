@@ -1,5 +1,5 @@
 @if($msg['reply_to'])
-    <div @class([
+    <div wire:key="messaging-reply-quote" @class([
                 'flex items-start gap-2 mb-2.5 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 hover:brightness-110',
                 'bg-[color-mix(in_srgb,var(--md-sys-color-on-primary)_12%,transparent)] border-l-[2.5px] border-[color-mix(in_srgb,var(--md-sys-color-on-primary)_45%,transparent)]' => $msg['is_mine'],
                 'bg-[color-mix(in_srgb,var(--md-sys-color-primary)_6%,transparent)] border-r-[2.5px] border-[var(--md-sys-color-primary)]' => !$msg['is_mine']

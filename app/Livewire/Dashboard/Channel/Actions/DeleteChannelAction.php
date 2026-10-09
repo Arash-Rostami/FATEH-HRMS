@@ -12,7 +12,7 @@ class DeleteChannelAction
             ->where('owner_id', $userId)
             ->find($channelId);
 
-        if (!$channel || $channel->memberUsers()->count() !== 1) {
+        if (!$channel || $channel->memberUsers()->count() !== 1 || $channel->isProjectLinked()) {
             return false;
         }
 

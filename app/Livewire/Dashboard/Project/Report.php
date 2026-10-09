@@ -53,6 +53,14 @@ class Report extends Component
     }
 
     #[Computed]
+    public function reportStatusCounts(): array
+    {
+        return $this->activeProjectId
+            ? app(ReportingService::class)->statusCounts(auth()->user(), $this->reportFilters())
+            : [];
+    }
+
+    #[Computed]
     public function reportSchemeProgress(): array
     {
         if (!$this->activeProjectId) {
@@ -127,7 +135,7 @@ class Report extends Component
     public function updatedReportSearch(): void
     {
         $this->reportLimit = 25;
-        unset($this->reportData, $this->reportSchemeProgress, $this->reportAttachments);
+        unset($this->reportData, $this->reportStatusCounts, $this->reportSchemeProgress, $this->reportAttachments);
     }
 
     public function setReportStatusFilter(string $status): void
@@ -148,7 +156,7 @@ class Report extends Component
             default => null,
         };
         $this->reportLimit = 25;
-        unset($this->reportData, $this->reportSchemeProgress, $this->reportFilterOptions, $this->reportAttachments);
+        unset($this->reportData, $this->reportStatusCounts, $this->reportSchemeProgress, $this->reportFilterOptions, $this->reportAttachments);
     }
 
     public function setReportSort(string $field): void
@@ -172,12 +180,12 @@ class Report extends Component
         $this->reportSchemeFilter = null;
         $this->reportSort = ['field' => 'deadline', 'dir' => 'asc'];
         $this->reportLimit = 25;
-        unset($this->reportData, $this->reportSchemeProgress, $this->reportFilterOptions, $this->reportAttachments);
+        unset($this->reportData, $this->reportStatusCounts, $this->reportSchemeProgress, $this->reportFilterOptions, $this->reportAttachments);
     }
 
     public function refreshReport(): void
     {
-        unset($this->reportData, $this->reportSummary, $this->reportSchemeProgress, $this->reportAttachments);
+        unset($this->reportData, $this->reportSummary, $this->reportStatusCounts, $this->reportSchemeProgress, $this->reportFilterOptions, $this->reportAttachments);
     }
 
     public function loadMoreReport(): void

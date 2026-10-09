@@ -12,6 +12,7 @@ import registerPinStore from './stores/pinned.js'
 import registerTaggedStore from './stores/tagged.js'
 import registerActivityReactionPickerStore from './stores/activityReactionPicker.js'
 import registerToolStackStore from './stores/toolStack.js'
+import registerMenuBadgesStore from './stores/menuBadges.js'
 
 import password from "./data/password.js";
 import greeting from "./data/greeting.js";
@@ -66,6 +67,7 @@ export default function initAlpine() {
         registerTaggedStore(Alpine)
         registerActivityReactionPickerStore(Alpine)
         registerToolStackStore(Alpine)
+        registerMenuBadgesStore(Alpine)
 
         Alpine.data('password', password)
         Alpine.data('greeting', greeting)

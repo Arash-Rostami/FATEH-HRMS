@@ -44,6 +44,11 @@ class Analytics extends Component
         return app(ReportingService::class)->analyticsInsights($this->activeProjectId);
     }
 
+    public function refreshAnalytics(): void
+    {
+        unset($this->analyticsChartData, $this->reportSummary);
+    }
+
     public function render(): View
     {
         return view('livewire.dashboard.project.analytics', [

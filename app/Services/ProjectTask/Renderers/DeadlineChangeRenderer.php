@@ -2,7 +2,9 @@
 
 namespace App\Services\ProjectTask\Renderers;
 
+use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Models\Reply;
+use App\Models\Task;
 use App\Services\ProjectTask\Contracts\ActivityLogRenderer;
 
 class DeadlineChangeRenderer implements ActivityLogRenderer
@@ -27,9 +29,20 @@ class DeadlineChangeRenderer implements ActivityLogRenderer
             return 'مهلت انجام حذف شد.';
         }
 
-        return $from === null
+        $prefix = $this->isExtension($reply) ? 'تمدید مهلت: ' : '';
+
+        return $prefix . ($from === null
             ? "مهلت انجام «{$to}» تعیین شد."
-            : "مهلت انجام از «{$from}» به «{$to}» تغییر کرد.";
+            : "مهلت انجام از «{$from}» به «{$to}» تغییر کرد.");
+    }
+
+    private function isExtension(Reply $reply): bool
+    {
+        $task = $reply->relationLoaded('repliable') ? $reply->repliable : null;
+
+        return $task instanceof Task
+            && $task->relationLoaded('detail')
+            && $task->detail?->state === TaskState::Extension->value;
     }
 
     private function label(?string $value): ?string

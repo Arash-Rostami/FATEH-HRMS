@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TaskResource\Pages;
 use App\Filament\Resources\TaskResource;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Task;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Traits\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -61,10 +62,7 @@ class ListTasks extends ListRecords
                 ->badge(fn() => $this->getStats()->overdue_count ?: null)
                 ->badgeColor('danger')
                 ->modifyQueryUsing(
-                    fn(Builder $query) => $query
-                        ->whereNotNull('deadline')
-                        ->where('deadline', '<', now())
-                        ->where('status', '!=', TaskStatus::Done->value)
+                    fn(Builder $query) => TaskMetrics::overdue($query)
                 ),
 
             'delegated' => Tab::make(__('resources/task/strings.tabs.delegated'))
@@ -87,22 +85,24 @@ class ListTasks extends ListRecords
 
     private function getStats(): object
     {
-        return once(fn() => Task::query()
-            ->withTrashed()
-            ->selectRaw("
+        return once(function () {
+            $stats = Task::query()
+                ->withTrashed()
+                ->selectRaw("
             SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS todo_count,
             SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS in_progress_count,
             SUM(CASE WHEN status = ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS pending_count,
-            SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? AND status != ? AND deleted_at IS NULL THEN 1 ELSE 0 END) AS overdue_count,
             SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS trashed_count
         ", [
-                TaskStatus::Todo->value,
-                TaskStatus::InProgress->value,
-                TaskStatus::Pending->value,
-                now(),
-                TaskStatus::Done->value
-            ])
-            ->first()
-        );
+                    TaskStatus::Todo->value,
+                    TaskStatus::InProgress->value,
+                    TaskStatus::Pending->value,
+                ])
+                ->first();
+
+            $stats->overdue_count = TaskMetrics::overdue(Task::query())->count();
+
+            return $stats;
+        });
     }
 }

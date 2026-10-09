@@ -1,5 +1,7 @@
 @php
-    $presence = \App\Enums\PresenceStatus::tryFrom($this->activeContact->presence->value ?? '');
+    $archived = $this->activeContactArchived;
+    $inactive = !$this->activeContact->isActive();
+    $presence = $archived ? null : \App\Enums\PresenceStatus::tryFrom($this->activeContact->presence->value ?? '');
 @endphp
 
 <header class="relative z-20 flex flex-shrink-0 items-center gap-2 md:gap-4 border-b px-3 md:px-5 py-3 backdrop-blur-xl transition-all duration-300
@@ -17,14 +19,17 @@
                     bg-[linear-gradient(135deg,var(--md-sys-color-primary-container),var(--md-sys-color-secondary-container))]
                     text-[var(--md-sys-color-on-primary-container)]">
             <x-ui.avatar :image="null" :existingImage="$this->activeContact->getProfileImageUrl()"
-                         :alt="$this->activeContact->name" icon-size="text-xl" class="rounded-2xl" />
+                         :alt="$this->activeContact->name" icon-size="text-xl" :inactive="$inactive" class="rounded-2xl" />
         </div>
-        <x-ui.presence-dot :online="$this->activeContact->isOnline()"/>
+        @unless($archived)<x-ui.presence-dot wire:key="contact-header-presence-dot" :online="$this->activeContact->isOnline()"/>@endunless
     </div>
 
     <div class="relative min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2">
             <h2 class="truncate text-base font-bold tracking-tight text-[var(--md-sys-color-on-surface)]">{{ $this->activeContact->name }}</h2>
+            @if($inactive)
+                <x-ui.badge wire:key="contact-header-inactive" class="!px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>
+            @endif
             @if($presence)
                 <span class="hidden md:inline-block rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wide {{ $presence->iconBgClass() }}" title="{{ $presence->label() }}">
                     {{ $presence->label() }}
@@ -43,19 +48,21 @@
                 </span>
                 <span class="hidden md:inline h-1 w-1 rounded-full bg-[var(--md-sys-color-on-surface-variant)] opacity-40"></span>
             @endif
-            <span class="font-medium inline-flex items-center gap-1.5 min-w-0 {{ $this->peerTyping ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
+            @unless($archived)
+            <span wire:key="contact-header-typing" class="font-medium inline-flex items-center gap-1.5 min-w-0 {{ $this->peerTyping ? 'text-[var(--md-sys-color-primary)]' : 'text-[color-mix(in_srgb,var(--md-sys-color-on-surface-variant)_70%,transparent)]' }}"
                   data-typing="{{ $this->peerTyping ? '1' : '0' }}">
                 @if($this->peerTyping)
-                    <span class="truncate">در حال نوشتن</span>
-                    <span class="inline-flex items-center gap-0.5 shrink-0">
+                    <span wire:key="contact-header-typing-label" class="truncate">در حال نوشتن</span>
+                    <span wire:key="contact-header-typing-dots" class="inline-flex items-center gap-0.5 shrink-0">
                         <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-1"></span>
                         <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-2"></span>
                         <span class="h-1 w-1 rounded-full bg-current animate-typing-dot-3"></span>
                     </span>
                 @else
-                    <span class="truncate">{{ toJalaliRelative($this->activeContact->last_seen) ?: 'نامشخص' }}</span>
+                    <span wire:key="contact-header-last-seen" class="truncate">{{ toJalaliRelative($this->activeContact->last_seen) ?: 'نامشخص' }}</span>
                 @endif
             </span>
+            @endunless
         </div>
         @include('livewire.dashboard.messaging.search', ['placeholder' => 'جستجو در پیام‌های این گفتگو...', 'overlayTitle' => 'جستجو در پیام‌های گفتگو'])
     </div>

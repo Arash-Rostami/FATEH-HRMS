@@ -35,7 +35,7 @@
             title="پاسخ" aria-label="پاسخ">
         <span class="material-symbols-rounded text-[15px]">reply</span>
     </button>
-    @if($msg['can_edit'] && $msg['id'] === $this->lastMessageId)
+    @if($msg['can_edit'])
         <button x-on:click.prevent="startEdit({{ $msg['id'] }}, $el.dataset.body)"
                 data-body="{{ $msg['body'] }}"
                 class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-secondary)_10%,transparent)] hover:text-[var(--md-sys-color-secondary)] hover:scale-110 active:scale-90 text-[var(--md-sys-color-on-surface-variant)]"
@@ -43,8 +43,10 @@
             <span class="material-symbols-rounded text-[15px]">edit</span>
         </button>
     @endif
-    @if($msg['can_delete'] && $msg['id'] === $this->lastMessageId)
+    @if($msg['can_delete'])
         <button x-on:click.prevent="confirmDelete({{ $msg['id'] }})"
+                :disabled="showUndo"
+                :class="showUndo ? 'opacity-40 pointer-events-none' : ''"
                 class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--md-sys-color-error)_10%,transparent)] hover:scale-110 active:scale-90 text-[color-mix(in_srgb,var(--md-sys-color-error)_80%,var(--md-sys-color-on-surface-variant))]"
                 title="حذف" aria-label="حذف">
             <span class="material-symbols-rounded text-[15px]">delete</span>

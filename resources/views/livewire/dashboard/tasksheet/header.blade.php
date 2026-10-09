@@ -1,3 +1,20 @@
+@if($scopeProjectId)
+    <div wire:key="tasksheet-scope-chip" class="print:hidden">
+        <x-ui.badge variant="info" class="gap-1.5">
+            فقط این پروژه
+            @unless($readOnly)
+                <button type="button" wire:click="clearScope" title="نمایش همهٔ پروژه‌ها" class="inline-flex items-center">
+                    <span class="material-symbols-rounded text-[14px]">close</span>
+                </button>
+            @endunless
+        </x-ui.badge>
+    </div>
+@endif
+
+@if($this->rangeInvalid)
+    <p wire:key="tasksheet-range-invalid" class="text-xs text-[var(--md-sys-color-error)] print:hidden">بازهٔ دلخواه نامعتبر است؛ آخرین بازهٔ معتبر نمایش داده می‌شود.</p>
+@endif
+
 @if($readOnly)
     <div class="flex items-center gap-2 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-low)] px-4 py-3 text-sm text-[var(--md-sys-color-on-surface-variant)]">
         <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]">visibility</span>

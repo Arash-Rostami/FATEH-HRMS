@@ -6,8 +6,6 @@ import initLivewireErrors from './core/livewire-errors.js';
 import initTooltip from './core/tooltip.js';
 import { initModulePrefetch } from './components/alpine/module-runtime.js';
 
-
-
 ThemeManager.init();
 initAlpine();
 initRecordFocus();

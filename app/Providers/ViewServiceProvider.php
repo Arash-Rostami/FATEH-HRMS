@@ -15,7 +15,7 @@ class ViewServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        View::composer('layouts.app', ModuleChunkComposer::class);
+        View::composer(['layouts.app', 'layouts::app'], ModuleChunkComposer::class);
 
         View::composer([
             'components.dashboard.modal.menu',

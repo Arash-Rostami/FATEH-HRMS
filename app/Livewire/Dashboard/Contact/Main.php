@@ -126,6 +126,7 @@ class Main extends Component
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
             'presence' => $user->presence,
+            'inactive' => !$user->isActive(),
         ])->values()->all();
     }
 
@@ -375,7 +376,7 @@ class Main extends Component
                     'body' => $m->replyTo->body,
                     'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
                 ] : null,
-                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false],
+                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false, 'inactive' => $m->sender && !$m->sender->isActive()],
             ])->values()->all();
     }
 
@@ -529,7 +530,7 @@ class Main extends Component
 
     private function invalidateMessageCache(): void
     {
-        unset($this->messages, $this->lastMessageId, $this->groupedMessages);
+        unset($this->messages, $this->groupedMessages);
     }
 
     private function resetAllStates(): void

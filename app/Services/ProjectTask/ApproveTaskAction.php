@@ -5,6 +5,7 @@ namespace App\Services\ProjectTask;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\TaskAccessPolicy;
+use Illuminate\Support\Facades\DB;
 
 final class ApproveTaskAction
 {
@@ -20,9 +21,9 @@ final class ApproveTaskAction
             return false;
         }
 
-        return $task->forceFill([
+        return DB::transaction(fn() => $task->forceFill([
             'approved_at' => now(),
             'approved_by' => $actor->id,
-        ])->save();
+        ])->save());
     }
 }

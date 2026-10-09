@@ -23,7 +23,7 @@
 
                     @if(!$isDraft)
                         <span wire:key="workflow-card-step-count-{{ $wf->id }}" class="inline-flex items-center justify-center h-[22px] px-2 rounded-md border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container)] text-[11px] font-bold text-[var(--md-sys-color-on-surface-variant)] tabular-nums shadow-sm">
-                            مرحله {{ convertToPersian($stepNumber) }} از {{ convertToPersian($totalSteps) }}
+                            مرحله {{ convertToPersian($stepNumber) }} از {{ convertToPersian($totalSteps) }}{{ ($estimatedEnd = $workflowPresenter->estimatedEnd($wf, $templateAverages ?? [])) ? ' · ' . $estimatedEnd : '' }}
                         </span>
                     @endif
 
@@ -198,6 +198,9 @@
                                     @endif
                                     @if($entry['forced'] ?? false)
                                         <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-warning)_15%,transparent)] text-[var(--md-sys-color-warning)] font-bold">اجباری</span>
+                                    @endif
+                                    @if(!empty($entry['event']))
+                                        <span class="inline-flex items-center h-4 px-1.5 rounded-sm bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_25%,transparent)] text-[var(--md-sys-color-on-surface-variant)] font-bold">{{ ['reassigned' => 'واگذاری مجدد', 'task_detached' => 'جداشدن وظیفه', 'project_deleted' => 'لغو با حذف پروژه', 'restored' => 'بازیابی'][$entry['event']] ?? $entry['event'] }}</span>
                                     @endif
                                     <span class="opacity-70 flex items-center gap-1 font-medium">
                                         <span class="material-symbols-rounded text-[12px]">schedule</span>

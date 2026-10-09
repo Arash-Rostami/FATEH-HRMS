@@ -22,7 +22,7 @@
             'icon' => 'delete',
             'label' => 'وظیفهٔ حذف‌شدهٔ نرم',
             'tag' => 'deleted_at',
-            'hint' => 'حذف، رکورد را برنمی‌دارد؛ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> را پر می‌کند. این صفحه بدون اسکوپ SoftDelete کوئری می‌زند، پس ردیف‌های حذف‌شده را هم می‌بینید و دکمهٔ «بازیابی» برایشان ظاهر می‌شود. پس از ' . convertToPersian('30') . ' روز، Prunable رکورد و فایل‌های پیوستش را برای همیشه پاک می‌کند.',
+            'hint' => 'حذف، رکورد را برنمی‌دارد؛ <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">deleted_at</code> را پر می‌کند. این صفحه بدون اسکوپ SoftDelete کوئری می‌زند، پس ردیف‌های حذف‌شده را هم می‌بینید و دکمهٔ «بازیابی» برایشان ظاهر می‌شود. پس از ' . convertToPersian('30') . ' روز، Prunable رکورد و فایل‌های پیوستش را برای همیشه پاک می‌کند. شمارنده‌های «سررسید گذشته» همین صفحه، ویجت‌های داشبورد و پنل کاربر همه از یک تعریف مشترک می‌آیند: مهلت قبل از امروز، به‌جز انجام‌شده، در انتظار، آرشیوشده، حذف‌شده و «توقف».',
         ],
     ];
 @endphp

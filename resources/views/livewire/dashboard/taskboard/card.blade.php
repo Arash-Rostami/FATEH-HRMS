@@ -18,6 +18,7 @@
 <div
     wire:key="task-card-{{ $taskId }}"
     data-rf="task-{{ $taskId }}"
+    data-ver="{{ $task['version'] ?? '' }}"
     draggable="{{ $canEdit ? 'true' : 'false' }}"
     x-on:dragstart="{{ $canEdit ? 'handleDragStart($event, ' . $taskId . ')' : 'event.preventDefault()' }}"
     x-on:dragend="handleDragEnd($event)"
@@ -257,14 +258,16 @@
                 @endforeach
 
                 @if($actionSourceChip)
-                    <span wire:key="taskboard-card-action-source" class="{{ $cb }} {{ $tone['neu'] }}"
+                    <{{ ($actionSourceChip['url'] ?? null) ? 'a' : 'span' }} wire:key="taskboard-card-action-source{{ ($actionSourceChip['url'] ?? null) ? '-cycle' : '' }}" class="{{ $cb }} {{ $tone['neu'] }}"
+                          @if($actionSourceChip['url'] ?? null) href="{{ $actionSourceChip['url'] }}" wire:navigate @endif
                           title="{{ collect([
+                              ($actionSourceChip['locked'] ?? false) ? 'مرحلهٔ جاری چرخه؛ حذف و انتقال پروژه قفل است' : null,
                               $actionSourceChip['source'] !== '' ? 'منشأ اقدام: ' . $actionSourceChip['source'] : null,
                               $actionSourceChip['domain'] !== '' ? 'حوزهٔ منشأ: ' . $actionSourceChip['domain'] : null,
                           ])->filter()->implode(' — ') }}">
-                        <span class="material-symbols-rounded text-[12px]">travel_explore</span>
+                        <span class="material-symbols-rounded text-[12px]">{{ ($actionSourceChip['locked'] ?? false) ? 'lock' : 'travel_explore' }}</span>
                         <span class="max-w-[120px] truncate" dir="auto">{{ $actionSourceChip['label'] }}</span>
-                    </span>
+                    </{{ ($actionSourceChip['url'] ?? null) ? 'a' : 'span' }}>
                 @endif
 
                 @if($ticketId)

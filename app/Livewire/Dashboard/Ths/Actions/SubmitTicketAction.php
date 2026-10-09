@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Models\Ticket;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -17,21 +18,33 @@ class SubmitTicketAction
     {
         $form->validate();
 
+        $key = 'ths:submit:' . auth()->id() . ':' . md5($form->subject);
+
+        if (!Cache::add($key, 1, 10)) {
+            return;
+        }
+
         $form->files = collect($form->files)->filter()->values()->all();
 
-        Ticket::create([
-            'request_type' => $form->requestType,
-            'request_area' => $form->requestArea,
-            'priority' => $form->priority,
-            'request_subject' => $form->subject,
-            'description' => $form->description,
-            'requester_files' => $this->storeFiles($form->files) ?: null,
-            'requester_id' => auth()->id(),
-            'extra' => [
-                'department' => $form->department ?? 'N/A',
-                'target_department' => empty($form->targetDepartment) || $form->targetDepartment === 'N/A' ? null : $form->targetDepartment
-            ]
-        ]);
+        try {
+            Ticket::create([
+                'request_type' => $form->requestType,
+                'request_area' => $form->requestArea,
+                'priority' => $form->priority,
+                'request_subject' => $form->subject,
+                'description' => $form->description,
+                'requester_files' => $this->storeFiles($form->files) ?: null,
+                'requester_id' => auth()->id(),
+                'extra' => [
+                    'department' => auth()->user()->profile?->department_id ?? 'N/A',
+                    'target_department' => empty($form->targetDepartment) || $form->targetDepartment === 'N/A' ? null : $form->targetDepartment
+                ]
+            ]);
+        } catch (Throwable $e) {
+            Cache::forget($key);
+
+            throw $e;
+        }
     }
 
     private function storeFiles(array $files): array

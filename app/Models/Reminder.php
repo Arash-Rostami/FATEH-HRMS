@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\ReminderRecurrence;
+use App\Jobs\ReconcileEdge;
+use App\Jobs\ReconcileNudge;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -190,6 +192,9 @@ class Reminder extends Model
             }
 
             $this->completed_at = $now;
+
+            dispatch(new ReconcileNudge('reminders-controller:due-nudge', static::class, $this->getKey()))->afterCommit();
+            dispatch(new ReconcileEdge('reminders-controller:due-today-edge', static::class, $this->getKey()))->afterCommit();
 
             if ($this->recurs !== ReminderRecurrence::None) {
                 static::create([

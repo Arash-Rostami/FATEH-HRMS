@@ -1,10 +1,10 @@
 @php
     $project = $this->activeProject;
     $summary = $this->reportSummary;
-    $memberCount = count($project->member_ids ?? []) + 1;
+    $memberCount = $this->projectMemberUsers->count();
     $riskChips = $this->presenter->headerRiskChips($project, $summary);
     $settingsSummary = $project->settingsSummary();
-    $otherSettings = $project->otherSettings();
+    $otherSettings = $project->otherSettingChips();
 @endphp
 
 <div class="flex items-start gap-2 md:gap-4">
@@ -91,11 +91,11 @@
 
         @if(!empty($otherSettings))
             <div class="mt-1 hidden md:flex flex-wrap items-center gap-0.5">
-                @foreach($otherSettings as $key => $value)
+                @foreach($otherSettings as $key => $chip)
                     <span class="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md text-[9px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]"
-                          title="{{ $key }}: {{ $value }}">
+                          title="{{ $chip['label'] }}: {{ $chip['text'] }}">
                         <span class="material-symbols-rounded text-[10px]">tune</span>
-                        <span class="max-w-[120px] truncate" dir="auto">{{ $key }}: {{ $value }}</span>
+                        <span class="max-w-[120px] truncate" dir="auto">{{ $chip['label'] }}: {{ $chip['text'] }}</span>
                     </span>
                 @endforeach
             </div>

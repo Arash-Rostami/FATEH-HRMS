@@ -19,6 +19,10 @@ class ApprovalRenderer implements ActivityLogRenderer
 
     public function getBody(Reply $reply): string
     {
+        if ($reply->payload['system'] ?? false) {
+            return 'تأیید خودکار توسط سیستم — الزام تأیید پروژه غیرفعال شد';
+        }
+
         return ($reply->payload['approved'] ?? false)
             ? 'وظیفه توسط مدیر پروژه تأیید شد.'
             : 'تأیید وظیفه برداشته شد.';

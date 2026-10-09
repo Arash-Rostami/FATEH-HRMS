@@ -8,6 +8,7 @@ use App\Livewire\Dashboard\Tasksheet\Presentation\TasksheetPresenter;
 use App\Models\User;
 use App\Services\ProjectTask\TasksheetService;
 use App\Services\ProjectTask\TasksheetShareService;
+use Carbon\Carbon;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -20,6 +21,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Lazy]
 class Main extends Component
 {
+    private const MAX_ACTIVITY = 200;
+
     private const PRESETS = ['this_month', 'last_month', 'this_quarter', 'custom'];
 
     private const GUARDED_WHEN_READ_ONLY = [
@@ -59,10 +62,14 @@ class Main extends Component
     #[Url(as: 'project')]
     public ?int $scopeProjectId = null;
 
+    #[Locked]
+    public ?array $goodRange = null;
+
     public bool $viewingBaseline = false;
 
     public bool $activityOpen = false;
 
+    #[Locked]
     public int $activityLimit = 50;
 
     public ?int $shareRecipientId = null;
@@ -76,22 +83,22 @@ class Main extends Component
 
     public function mount(?int $subject = null): void
     {
+        $viewer = auth()->user();
+        $privileged = $viewer->isAdmin() || $viewer->isDeveloper();
         $this->readOnly = $subject !== null;
-        $this->subjectUserId = $subject ?? (int) request()->query('user', auth()->id());
+        $this->subjectUserId = $subject ?? (int) request()->query('user', $viewer->id);
 
-        abort_unless(User::whereKey($this->subjectUserId)->active()->exists(), 404);
+        abort_unless(User::whereKey($this->subjectUserId)->when(!$privileged, fn($q) => $q->active())->exists(), 404);
 
         if (!$this->readOnly) {
-            $viewer = auth()->user();
-            $deptCode = $this->subject->profile?->department_id;
-            $manager = $deptCode ? User::highestRankingInDepartment($deptCode) : null;
-
             if ($this->subjectUserId !== $viewer->id) {
-                abort_unless($viewer->isAdmin() || $viewer->isDeveloper() || $manager?->is($viewer), 403);
+                abort_unless($privileged || TasksheetShareService::managersFor($this->subject)->contains('id', $viewer->id), 403);
             }
 
-            $this->shareRecipientId = $manager?->id;
+            $this->shareRecipientId = TasksheetShareService::managerFor($this->subject)?->id;
         }
+
+        $this->rememberRange();
     }
 
     #[Computed]
@@ -114,10 +121,7 @@ class Main extends Component
             return $window;
         }
 
-        return [
-            'start' => $window['start']->copy()->sub($window['start']->diffAsCarbonInterval($window['end'])),
-            'end' => $window['start']->copy()->subSecond(),
-        ];
+        return TasksheetService::baselineWindow($window['start'], $window['end']);
     }
 
     private function jalaliMonthWindow(Jalalian $month): array
@@ -144,7 +148,7 @@ class Main extends Component
     {
         $window = $this->window;
 
-        return app(TasksheetService::class)->report($this->subject, $window['start'], $window['end']);
+        return app(TasksheetService::class)->report($this->subject, $window['start'], $window['end'], auth()->user());
     }
 
     #[Computed]
@@ -152,7 +156,10 @@ class Main extends Component
     {
         $window = $this->window;
 
-        return app(TasksheetService::class)->activityFeed($this->subject, $window['start'], $window['end'], 1, $this->activityLimit);
+        $feed = app(TasksheetService::class)->activityFeed($this->subject, $window['start'], $window['end'], 1, $this->activityLimit, auth()->user());
+        $feed['has_more'] = $feed['has_more'] && $this->activityLimit < self::MAX_ACTIVITY;
+
+        return $feed;
     }
 
     public function setPreset(string $preset): void
@@ -185,8 +192,10 @@ class Main extends Component
 
         [$start, $end] = $parsed;
 
-        if ($start->diffInDays($end) > 365) {
-            $end = $start->copy()->addYear()->endOfDay();
+        $capped = $this->capRange($start, $end);
+
+        if (!$capped->equalTo($end)) {
+            $end = $capped;
             $endJalali = Jalalian::fromCarbon($end);
             $this->toYear = $endJalali->getYear();
             $this->toMonth = $endJalali->getMonth();
@@ -195,6 +204,7 @@ class Main extends Component
         }
 
         $this->preset = 'custom';
+        $this->goodRange = [$start->toIso8601String(), $end->toIso8601String()];
         $this->viewingBaseline = false;
         unset($this->window, $this->report, $this->activityFeed);
     }
@@ -234,7 +244,7 @@ class Main extends Component
 
     public function loadMoreActivity(): void
     {
-        $this->activityLimit += 50;
+        $this->activityLimit = min(self::MAX_ACTIVITY, $this->activityLimit + 50);
     }
 
     #[Computed]
@@ -250,16 +260,10 @@ class Main extends Component
         }
 
         if ($this->shareTarget === 'boss') {
-            $deptCode = $this->subject->profile?->department_id;
-            $recipient = $deptCode ? User::highestRankingInDepartment($deptCode) : null;
+            $recipient = TasksheetShareService::managerFor($this->subject);
 
             if (!$recipient) {
                 $this->dispatch('toast', message: 'مدیری برای این کاربر شناسایی نشد؛ «کاربر دیگر» را انتخاب کنید.', type: 'warning');
-                return;
-            }
-
-            if ($recipient->is($this->subject)) {
-                $this->dispatch('toast', message: 'خودتان بالاترین رتبهٔ بخش هستید؛ گیرندهٔ دیگری انتخاب کنید.', type: 'warning');
                 return;
             }
         } else {
@@ -284,7 +288,7 @@ class Main extends Component
 
         $window = $this->window;
 
-        return $action->execute($this->subject, $window['start'], $window['end']);
+        return $action->execute($this->subject, $window['start'], $window['end'], auth()->user());
     }
 
     private function customWindow(): array
@@ -292,16 +296,34 @@ class Main extends Component
         $parsed = $this->parseCustomRange();
 
         if ($parsed === null) {
-            return $this->jalaliMonthWindow(Jalalian::now());
+            return $this->goodRange
+                ? ['start' => Carbon::parse($this->goodRange[0]), 'end' => Carbon::parse($this->goodRange[1])]
+                : $this->jalaliMonthWindow(Jalalian::now());
         }
 
         [$start, $end] = $parsed;
 
-        if ($start->diffInDays($end) > 365) {
-            $end = $start->copy()->addYear()->endOfDay();
-        }
+        return ['start' => $start, 'end' => $this->capRange($start, $end)];
+    }
 
-        return ['start' => $start, 'end' => $end];
+    #[Computed]
+    public function rangeInvalid(): bool
+    {
+        return $this->preset === 'custom' && $this->parseCustomRange() === null;
+    }
+
+    private function capRange(Carbon $start, Carbon $end): Carbon
+    {
+        return $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1 > 365
+            ? $start->copy()->addDays(364)->endOfDay()
+            : $end;
+    }
+
+    private function rememberRange(): void
+    {
+        if ($this->preset === 'custom' && ($parsed = $this->parseCustomRange())) {
+            $this->goodRange = [$parsed[0]->toIso8601String(), $this->capRange(...$parsed)->toIso8601String()];
+        }
     }
 
     private function windowParams(): array

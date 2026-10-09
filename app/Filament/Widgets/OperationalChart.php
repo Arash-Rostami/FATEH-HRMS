@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Services\Cache\ModelCacheVersion;
+use App\Services\ProjectTask\TaskMetrics;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
 use Filament\Schemas\Schema;
@@ -95,9 +96,11 @@ class OperationalChart extends ChartWidget
                 ->join('users', 'users.id', '=', 'tasks.assigned_to')
                 ->join('profiles', 'profiles.user_id', '=', 'users.id')
                 ->where('users.type', '!=', UserType::Guest->value)
+                ->where('users.status', 'active')
                 ->select('profiles.department_id as code', DB::raw('COUNT(tasks.id) as pending_tasks'))
                 ->whereIn('tasks.status', ['todo', 'in-progress'])
                 ->groupBy('profiles.department_id');
+            TaskMetrics::active($tasksAgg, 'tasks.');
 
             $query = DB::table('departments')
                 ->select(

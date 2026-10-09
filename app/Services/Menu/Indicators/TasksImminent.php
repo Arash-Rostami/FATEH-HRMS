@@ -31,10 +31,11 @@ class TasksImminent implements MenuBadge
         }
 
         return Task::query()
-            ->forUser($user->id)
+            ->ownedBy($user->id)
             ->whereNotIn('status', ['done', 'pending'])
             ->whereNotNull('deadline')
             ->where('deadline', '<=', now()->addDays(3)->endOfDay())
+            ->with('detail:id,task_id,state')
             ->get(['id', 'status', 'deadline', 'updated_at'])
             ->contains(fn(Task $task) => in_array($task->urgency_state['kind'], ['overdue', 'due'], true));
     }

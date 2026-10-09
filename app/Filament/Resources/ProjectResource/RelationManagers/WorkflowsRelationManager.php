@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProjectResource\RelationManagers;
 
+use App\Filament\Resources\ProjectResource;
 use App\Livewire\Dashboard\Project\Actions\ApplyTemplateAction;
 use App\Models\Workflow;
 use App\Traits\FilamentActions;
@@ -32,6 +33,7 @@ class WorkflowsRelationManager extends RelationManager
                 Action::make('applyTemplate')
                     ->label(__('resources/project/strings.workflow.actions.apply_template'))
                     ->icon('heroicon-o-sparkles')
+                    ->visible(fn() => ProjectResource::canEdit($this->getOwnerRecord()))
                     ->schema([
                         Select::make('template_id')
                             ->label(__('resources/project/strings.workflow.fields.template'))
@@ -52,6 +54,8 @@ class WorkflowsRelationManager extends RelationManager
             ])
             ->recordActions([
                 self::viewAction(),
+                self::forceAdvanceWorkflowAction(),
+                self::reassignWorkflowStepAction(),
                 self::cancelWorkflowAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')

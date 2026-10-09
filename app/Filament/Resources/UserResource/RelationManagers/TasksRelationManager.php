@@ -119,8 +119,8 @@ class TasksRelationManager extends RelationManager
             ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
-                self::deleteAction()->visible(fn($record) => !$record->trashed()),
+                self::editAction()->visible(fn($record) => !$record->ticket_id),
+                self::deleteAction()->visible(fn($record) => !$record->trashed() && !$record->ticket_id),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->defaultSort('created_at', 'desc')

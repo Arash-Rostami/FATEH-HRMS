@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\TaskActivityType;
+use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\HandleWorkflowTransition;
+use App\Support\TaskAccessPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +19,8 @@ class Workflow extends Model
     public const STATUS_ACTIVE = 'active';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
+
+    public ?string $transitionReason = null;
 
     protected $fillable = [
         'name',
@@ -60,6 +65,26 @@ class Workflow extends Model
         return $query->where('project_id', $projectId);
     }
 
+    public static function averageDays(iterable $templateIds): array
+    {
+        $ids = collect($templateIds)->filter()->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        return static::instances()
+            ->where('status', self::STATUS_COMPLETED)
+            ->whereIn('template_id', $ids)
+            ->whereNotNull('started_at')
+            ->whereNotNull('completed_at')
+            ->selectRaw('template_id, AVG(TIMESTAMPDIFF(HOUR, started_at, completed_at)) / 24 as avg_days')
+            ->groupBy('template_id')
+            ->pluck('avg_days', 'template_id')
+            ->map(fn($days) => max(1, (int) round($days)))
+            ->all();
+    }
+
     public function projectWithTrashed(): ?Project
     {
         return $this->project()->withTrashed()->first();
@@ -102,6 +127,28 @@ class Workflow extends Model
         return $this->status === self::STATUS_CANCELLED;
     }
 
+    public function recordEvent(string $event, ?int $step, ?int $actorId, bool $log = true, array $extra = []): void
+    {
+        if ($log) {
+            $entries = $this->step_log ?? [];
+            $entries[] = ['step' => $step ?? 0, 'completed_by' => $actorId, 'completed_at' => now()->toISOString(), 'event' => $event];
+            $this->step_log = $entries;
+        }
+
+        $this->saveQuietly();
+
+        if ($project = $this->projectWithTrashed()) {
+            app(ActivityLogger::class)->system($project, $actorId ? User::find($actorId) : null, TaskActivityType::WorkflowStep, [
+                'event' => $event,
+                'step' => $step,
+                'label' => $step === null ? null : ($this->steps[$step]['label'] ?? null),
+                'cycle' => $this->name,
+                'workflow' => $this->id,
+                ...$extra,
+            ]);
+        }
+    }
+
     public static function sanitizeSteps(array $steps): array
     {
         $allIds = array_unique(array_merge([], ...array_map(fn ($s) => $s['assignee_user_ids'] ?? [], $steps)));
@@ -123,16 +170,7 @@ class Workflow extends Model
 
     public static function filterAssigneesBatch(array $stepsIds, ?Project $project, int $max = 20): array
     {
-        $allIds = array_unique(array_merge([], ...$stepsIds));
-        $query = User::whereIn('id', $allIds);
-
-        $userIds = $project
-            ? $query->with('profile:user_id,department_id')
-                ->get(['id'])
-                ->filter(fn (User $user) => $project->isVisibleTo($user))
-                ->pluck('id')
-                ->all()
-            : $query->pluck('id')->all();
+        $userIds = TaskAccessPolicy::assignableIds(array_merge([], ...$stepsIds), $project);
 
         return array_map(function (array $ids) use ($userIds, $max) {
             $ordered = array_intersect(array_unique($ids), $userIds);

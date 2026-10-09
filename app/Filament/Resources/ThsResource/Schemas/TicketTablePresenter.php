@@ -87,6 +87,7 @@ class TicketTablePresenter
         if ($record->completion_date) {
             return $record->completion_date->gt($record->completion_deadline) ? 'danger' : 'success';
         }
+        if ($record->status === 'closed') return 'success';
         return now()->gt($record->completion_deadline) ? 'danger' : 'primary';
     }
 
@@ -100,6 +101,8 @@ class TicketTablePresenter
                 ? "تأخیر: {$diff->days} روز و {$diff->h} ساعت"
                 : "زودتر از موعد: {$diff->days} روز و {$diff->h} ساعت";
         }
+
+        if ($record->status === 'closed') return null;
 
         $diff = now()->diff($record->completion_deadline);
         return now()->gt($record->completion_deadline)

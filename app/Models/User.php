@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PresenceStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
+use App\Jobs\ReconcileNudge;
 use App\Models\Concerns\HasAvatar as HasImage;
 use App\Models\Concerns\HasProfileHierarchy;
 use App\Services\Cache\ModelCacheVersion;
@@ -23,6 +24,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAutomaticCacheVersioning
 {
@@ -163,7 +165,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
     {
         return Cache::remember(ModelCacheVersion::key(self::class, "user_dept_options:{$dept}"),
             now()->addHours(6),
-            fn() => self::whereHas('profile', fn($q) => $q->where('department_id', $dept))->orderBy('name')->pluck('name', 'id')
+            fn() => self::visibleOnBoard()->whereHas('profile', fn($q) => $q->where('department_id', $dept))->orderBy('name')->pluck('name', 'id')
         );
     }
 
@@ -490,12 +492,63 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
             }
 
             self::forgetDynamicGroupCache();
+
+            if (!$user->wasRecentlyCreated && $user->wasChanged(['status', 'type'])
+                && $user->getOriginal('status') === 'active' && $user->getOriginal('type') !== UserType::Guest->value
+                && ($user->status !== 'active' || $user->type === UserType::Guest->value)) {
+                $user->releaseFromProjectWork();
+                $user->reconcileDepartmentTickets();
+            }
         });
 
         static::deleted(function () {
             static::bumpCacheVersion();
             self::forgetDynamicGroupCache();
         });
+    }
+
+    protected function releaseFromProjectWork(): void
+    {
+        try {
+            DB::transaction(function () {
+                Task::where('assigned_to', $this->id)
+                    ->where('status', '!=', 'done')
+                    ->whereNull('archived_at')
+                    ->whereNull('ticket_id')
+                    ->get()
+                    ->each->update(['assigned_to' => null]);
+
+                Ticket::where('assigned_to', $this->id)
+                    ->where('status', 'in-progress')
+                    ->get()
+                    ->each->update(['assigned_to' => null]);
+
+                Project::stripTaskPeople(Task::query(), [$this->id]);
+
+                Project::stripWorkflowAssignees(
+                    Workflow::where('steps', 'like', '%' . $this->id . '%'),
+                    [$this->id]
+                );
+
+                Project::where('owner_id', $this->id)->get()->each->ensureActiveOwner();
+            });
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    protected function reconcileDepartmentTickets(): void
+    {
+        $code = $this->profile()->value('department_id');
+
+        if (!$code) {
+            return;
+        }
+
+        Ticket::where('status', 'open')
+            ->targetedAt($code)
+            ->pluck('id')
+            ->each(fn($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
     }
 
     protected static function bumpCacheVersion(): void

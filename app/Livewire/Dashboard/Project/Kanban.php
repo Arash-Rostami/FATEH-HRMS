@@ -6,20 +6,21 @@ use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Livewire\Dashboard\Dms\Presentation\DmsPresenter;
 use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Department;
+use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
-use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProjectTask\BoardCollaboratorResolver;
+use App\Services\ProjectTask\CycleLinkResolver;
 use App\Services\ProjectTask\ApproveTaskAction;
 use App\Services\ProjectTask\CyclePriorityAction;
 use App\Services\ProjectTask\LastTouchResolver;
 use App\Services\ProjectTask\ReorderTaskAction;
 use App\Services\ProjectTask\ReportingService;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Services\ProjectTask\UpdateTaskStatusAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\UnarchiveTaskAction;
+use App\Support\TaskAccessPolicy;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
@@ -32,8 +33,6 @@ class Kanban extends Component
     private const KANBAN_COLUMNS = ['todo', 'in-progress', 'pending', 'done'];
     private const KANBAN_COLUMNS_TO_SELECT = ['id', 'title', 'description', 'status', 'deadline', 'created_at', 'updated_at', 'archived_at', 'approved_at', 'user_id', 'assigned_to', 'ticket_id', 'project_id', 'labels', 'priority', 'rank'];
     private const KANBAN_RELATIONS = ['assignee:id,name', 'creator:id,name', 'project:id,name,owner_id,settings', 'detail:id,task_id,checklist,attachments,state,collaborators,responsible_user_id,department_id,meta,action_source,action_source_domain', 'detail.responsibleUser:id,name'];
-    private const LABEL_OPTIONS_FRESH_SECONDS = 60;
-    private const LABEL_OPTIONS_STALE_SECONDS = 300;
 
     #[Locked]
     public ?int $activeProjectId = null;
@@ -73,10 +72,15 @@ class Kanban extends Component
     }
 
     #[Computed]
+    public function project(): ?Project
+    {
+        return $this->activeProjectId ? Project::find($this->activeProjectId, ['id', 'owner_id', 'member_ids', 'departments']) : null;
+    }
+
+    #[Computed]
     public function staffMembers(): array
     {
-        return User::getCachedActiveOptions()
-            ->except(auth()->id())
+        return collect($this->project?->charter()->rosterOptions() ?? [])
             ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name])
             ->values()
             ->toArray();
@@ -118,6 +122,7 @@ class Kanban extends Component
 
         $collaboratorLookup = app(BoardCollaboratorResolver::class)->resolve($tasks);
         $lastTouchLookup = app(LastTouchResolver::class)->resolve($tasks->pluck('id')->all());
+        $cycleLookup = app(CycleLinkResolver::class)->prime($tasks);
 
         $grouped = $empty;
 
@@ -133,7 +138,7 @@ class Kanban extends Component
         foreach (self::KANBAN_COLUMNS as $column) {
             $kanbanTotalCount[$column] = count($grouped[$column]);
 
-            $kanbanTasks[$column] = collect($grouped[$column])->map(function (Task $task) use ($collaboratorLookup, $lastTouchLookup) {
+            $kanbanTasks[$column] = collect($grouped[$column])->map(function (Task $task) use ($collaboratorLookup, $lastTouchLookup, $cycleLookup) {
                 $data = $task->toArray();
 
                 if ($data['detail'] !== null) {
@@ -145,6 +150,7 @@ class Kanban extends Component
                 }
 
                 $data['last_touched'] = $lastTouchLookup[$task->id] ?? null;
+                $data['cycle'] = $cycleLookup[$task->id] ?? null;
 
                 return $data;
             })->all();
@@ -186,13 +192,18 @@ class Kanban extends Component
                     ->when($this->kanbanSectionFilter, fn(Builder $q2) => $q2->where('section', $this->kanbanSectionFilter))
                 )
             )
-            ->when($this->kanbanAssigneeFilter, fn(Builder $q) => $q->where('assigned_to', $this->kanbanAssigneeFilter));
+            ->when($this->kanbanAssigneeFilter, fn(Builder $q) => $q->ownedBy($this->kanbanAssigneeFilter));
+    }
+
+    private function visibleTasks(): Builder
+    {
+        return Task::visibleTo(auth()->user())->where('project_id', $this->activeProjectId);
     }
 
     private function kanbanDeadlineFilterScope(): callable
     {
         return match ($this->kanbanDeadlineFilter) {
-            'overdue' => fn(Builder $q) => $q->where('deadline', '<', now()->startOfDay()),
+            'overdue' => fn(Builder $q) => TaskMetrics::overdue($q),
             'today' => fn(Builder $q) => $q->whereDate('deadline', now()->toDateString()),
             'week' => fn(Builder $q) => $q->whereBetween('deadline', [
                 now()->startOfWeek(Carbon::SATURDAY),
@@ -258,20 +269,7 @@ class Kanban extends Component
             return [];
         }
 
-        $projectId = $this->activeProjectId;
-        $key = sprintf('kanban:label_options:%d:t%s', $projectId, ModelCacheVersion::version(Task::class));
-
-        return Cache::flexible($key, [self::LABEL_OPTIONS_FRESH_SECONDS, self::LABEL_OPTIONS_STALE_SECONDS], fn() => Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
-            ->whereNotNull('labels')
-            ->pluck('labels')
-            ->flatten()
-            ->unique()
-            ->groupBy(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l))
-            ->map(fn($g) => $g->first())
-            ->sort()
-            ->values()
-            ->all());
+        return app(ReportingService::class)->labelOptions($this->projectTaskScope(), 'p' . $this->activeProjectId, $this->activeProjectId);
     }
 
     #[Computed]
@@ -285,18 +283,19 @@ class Kanban extends Component
             ->where('status', TaskStatus::Done->value)
             ->whereNotNull('archived_at')
             ->orderByDesc('archived_at')
-            ->get(['id', 'title', 'archived_at', 'user_id'])
+            ->with('project:id,owner_id')
+            ->get(['id', 'title', 'archived_at', 'user_id', 'assigned_to', 'project_id'])
             ->map(fn(Task $task) => [
                 'id' => $task->id,
                 'title' => $task->title,
                 'archived_at' => toJalaliRelative($task->archived_at),
-                'can_restore' => $task->user_id === auth()->id(),
+                'can_restore' => TaskAccessPolicy::canUnarchive($task, auth()->user()),
             ])->all();
     }
 
     public function unarchiveTask(UnarchiveTaskAction $action, int $taskId): void
     {
-        $task = Task::where('project_id', $this->activeProjectId)->find($taskId);
+        $task = $this->visibleTasks()->find($taskId);
 
         if (!$task || !$action->execute($taskId)) {
             return;
@@ -425,7 +424,7 @@ class Kanban extends Component
 
     public function cyclePriority(CyclePriorityAction $action, int $taskId): void
     {
-        $task = Task::where('project_id', $this->activeProjectId)->find($taskId);
+        $task = $this->visibleTasks()->find($taskId);
 
         if (!$task) {
             return;
@@ -438,7 +437,7 @@ class Kanban extends Component
 
     public function approveTask(ApproveTaskAction $action, int $taskId): void
     {
-        $task = Task::where('project_id', $this->activeProjectId)->find($taskId);
+        $task = $this->visibleTasks()->find($taskId);
 
         if (!$task) {
             return;
@@ -450,24 +449,29 @@ class Kanban extends Component
         }
     }
 
-    public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null): void
+    public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null, ?string $version = null): void
     {
-        $task = Task::where('project_id', $this->activeProjectId)->with('detail:id,task_id,state')->find($taskId);
+        $task = $this->visibleTasks()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 
-        if ($targetStatus === TaskStatus::Done->value && empty($task->detail?->state)) {
-            $this->dispatch('toast', message: 'برای انتقال به «انجام‌شده» ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+        if ($version !== null && $task->version !== $version) {
+            $this->loadKanbanBoard();
+            $this->dispatch('toast', message: 'این وظیفه تغییر کرده است؛ صفحه به‌روزرسانی شد.', type: 'error');
             return;
         }
 
-        $action->execute($task, $beforeTaskId, $targetStatus);
+        if (!$action->execute($task, $beforeTaskId, $targetStatus)) {
+            $this->dispatch('toast', message: 'برای جابه‌جایی ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            return;
+        }
+
         $this->loadKanbanBoard();
     }
 
-    public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn): void
+    public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn, ?string $version = null): void
     {
-        $task = Task::where('project_id', $this->activeProjectId)->with('detail:id,task_id,state')->find($taskId);
+        $task = $this->visibleTasks()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 
@@ -476,7 +480,13 @@ class Kanban extends Component
             return;
         }
 
-        if ($action->execute($taskId, $newColumn)) {
+        $moved = $action->execute($taskId, $newColumn, $version);
+
+        if ($moved === null) {
+            $this->dispatch('toast', message: 'این وظیفه تغییر کرده است؛ صفحه به‌روزرسانی شد.', type: 'error');
+        }
+
+        if ($moved !== false) {
             $this->loadKanbanBoard();
         }
     }

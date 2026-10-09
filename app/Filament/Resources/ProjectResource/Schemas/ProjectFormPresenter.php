@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\ProjectResource\Schemas;
 
+use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Models\Department;
 use App\Models\User;
+use App\Support\ProjectCharter;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -29,6 +32,7 @@ class ProjectFormPresenter
             ->relationship('owner', 'name')
             ->searchable()
             ->preload()
+            ->default(fn() => auth()->id())
             ->required();
     }
 
@@ -64,13 +68,30 @@ class ProjectFormPresenter
 
                 TextInput::make('settings.sla')
                     ->label(__('resources/project/strings.fields.sla'))
-                    ->numeric()
+                    ->integer()
                     ->minValue(1)
                     ->nullable()
                     ->helperText(__('resources/project/strings.hints.sla')),
 
+                TextInput::make('settings.auto_archive_days')
+                    ->label(__('resources/project/strings.fields.auto_archive_days'))
+                    ->integer()
+                    ->minValue(1)
+                    ->placeholder(45)
+                    ->nullable()
+                    ->helperText(__('resources/project/strings.hints.auto_archive_days')),
+
+                TagsInput::make('settings.labels')
+                    ->label(__('resources/project/strings.fields.labels'))
+                    ->rules(['array', 'max:30'])
+                    ->nestedRecursiveRules(['max:30'])
+                    ->dehydrateStateUsing(fn($state) => ProjectCharter::normalizeLabels($state ?? []))
+                    ->helperText(__('resources/project/strings.hints.labels'))
+                    ->columnSpanFull(),
+
                 DatePicker::make('settings.deadline')
                     ->label(__('resources/project/strings.fields.deadline'))
+                    ->minDate(fn($record) => min(today()->toDateString(), $record?->setting('deadline') ?? today()->toDateString()))
                     ->nullable()
                     ->helperText(__('resources/project/strings.hints.deadline')),
 
@@ -106,7 +127,9 @@ class ProjectFormPresenter
                     ->schema([
                         TextInput::make('key')
                             ->label(__('resources/project/strings.fields.extra_key'))
-                            ->maxLength(40),
+                            ->required()
+                            ->rules(ProjectForm::extraKeyRules())
+                            ->validationMessages(ProjectForm::EXTRA_KEY_MESSAGES),
                         TextInput::make('value')
                             ->label(__('resources/project/strings.fields.extra_value'))
                             ->maxLength(255),

@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Reply;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\TaskAccessPolicy;
 use Illuminate\Support\Facades\DB;
 
 class ToggleReplyReactionAction
@@ -55,13 +56,7 @@ class ToggleReplyReactionAction
             return false;
         }
 
-        if ($task->user_id === $userId
-            || $task->assigned_to === $userId
-            || in_array($userId, $task->detail?->collaborators ?? [], true)) {
-            return true;
-        }
-
-        return $task->project_id && $task->project?->isVisibleTo(User::findOrFail($userId));
+        return TaskAccessPolicy::canView($task, User::find($userId));
     }
 
     private function bumpHeartbeat(Reply $reply): void

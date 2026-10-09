@@ -8,6 +8,7 @@ use App\Filament\Resources\TaskResource\Schemas\TaskTablePresenter;
 use App\Models\Task;
 use App\Services\ProjectTask\ReportingService;
 use App\Traits\FilamentActions;
+use App\Traits\PreparesAdminTaskCreate;
 use Filament\Actions\CreateAction;
 use App\Filament\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TasksRelationManager extends RelationManager
 {
-    use FilamentActions;
+    use FilamentActions, PreparesAdminTaskCreate;
 
     protected static string $relationship = 'tasks';
 
@@ -142,12 +143,14 @@ class TasksRelationManager extends RelationManager
             ])
             ->filtersFormColumns(2)
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->mutateDataUsing(fn(array $data): array => $this->prepareTaskCreate([...$data, 'project_id' => $this->getOwnerRecord()->getKey()], [], 'mountedActions.0.data.assigned_to'))
+                    ->after(fn(Model $record) => $this->ensureTaskDetail($record)),
             ])
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
-                self::deleteAction()->visible(fn($record) => !$record->trashed()),
+                self::editAction()->visible(fn($record) => !$record->ticket_id),
+                self::deleteAction()->visible(fn($record) => !$record->trashed() && !$record->ticket_id),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->defaultSort('created_at', 'desc')

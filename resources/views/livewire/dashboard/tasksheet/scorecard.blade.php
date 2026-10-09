@@ -4,6 +4,7 @@
     $tiles = $d['tiles'];
     $plainTiles = $d['plainTiles'];
     $priorityChips = $d['priorityChips'];
+    $isPastWindow = $windowEnd->copy()->endOfDay()->isPast();
 @endphp
 
 <div class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm p-5 flex flex-col gap-4">
@@ -69,6 +70,9 @@
                 <div class="flex items-center gap-1.5 text-[11px] font-medium text-[var(--md-sys-color-on-surface-variant)]">
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">{{ $tile['icon'] }}</span>
                     {{ $tile['label'] }}
+                    @if($isPastWindow && !empty($tile['live']))
+                        <x-ui.badge wire:key="tasksheet-live-mark-{{ $loop->index }}" class="!px-1.5 !py-0.5 !text-[9px]">همین حالا</x-ui.badge>
+                    @endif
                 </div>
                 <span class="text-lg font-bold text-[var(--md-sys-color-on-surface)]">{{ convertToPersian($tile['value']) }}</span>
             </div>
@@ -87,10 +91,12 @@
         </div>
     @endif
 
-    <div class="flex items-center gap-2 rounded-xl bg-[var(--md-sys-color-surface-container-low)] px-3.5 py-2.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
-        <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)]">upcoming</span>
-        <span>{{ convertToPersian($sc['in_progress']) }} وظیفهٔ در حال انجام و {{ convertToPersian($sc['upcoming_deadline']) }} وظیفه با مهلت نزدیک، به بازهٔ بعد منتقل می‌شود.</span>
-    </div>
+    @unless($isPastWindow)
+        <div wire:key="tasksheet-carry-over" class="flex items-center gap-2 rounded-xl bg-[var(--md-sys-color-surface-container-low)] px-3.5 py-2.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-tertiary)]">upcoming</span>
+            <span>{{ convertToPersian($sc['in_progress']) }} وظیفهٔ در حال انجام و {{ convertToPersian($sc['upcoming_deadline']) }} وظیفه با مهلت نزدیک، به بازهٔ بعد منتقل می‌شود.</span>
+        </div>
+    @endunless
 
     <p class="text-sm leading-7 text-[var(--md-sys-color-on-surface)]">{{ $report['narrative'] }}</p>
 </div>

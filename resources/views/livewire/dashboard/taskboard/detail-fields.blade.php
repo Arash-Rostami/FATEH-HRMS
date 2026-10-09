@@ -40,6 +40,9 @@
             height="max-h-32"
             :disabled="$isReadOnly"
         />
+        @if($this->formProject)
+            <p wire:key="taskboard-responsible-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
+        @endif
     </div>
 
     <div class="w-full space-y-1.5">

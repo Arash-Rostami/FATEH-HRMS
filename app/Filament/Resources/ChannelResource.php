@@ -7,6 +7,7 @@ use App\Filament\Resources\ChannelResource\Pages\{CreateChannel, EditChannel, Li
 use App\Filament\Resources\ChannelResource\RelationManagers\{ChannelMembersRelationManager, ChannelMessagesRelationManager};
 use App\Filament\Resources\ChannelResource\Schemas\{ChannelFormPresenter, ChannelInfolistPresenter, ChannelTablePresenter};
 use App\Models\Channel;
+use App\Models\Project;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
@@ -168,12 +169,17 @@ class ChannelResource extends Resource
                 self::viewAction(),
                 self::editAction(),
                 self::restoreAction(),
-                self::deleteAction()->visible(fn($record) => !$record->trashed()),
+                self::deleteAction()->visible(fn($record) => !$record->trashed() && !in_array($record->id, self::projectChannelIds(), true)),
             ], RecordActionsPosition::AfterCells)
             ->groupedBulkActions(self::bulkActions(ChannelExporter::class))
             ->emptyStateIcon('heroicon-o-bookmark')
             ->defaultSort('created_at', 'desc')
             ->striped();
+    }
+
+    private static function projectChannelIds(): array
+    {
+        return once(fn() => Project::withTrashed()->whereNotNull('channel_id')->pluck('channel_id')->all());
     }
 
     public static function getRelations(): array

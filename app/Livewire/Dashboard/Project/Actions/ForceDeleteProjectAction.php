@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard\Project\Actions;
 
-use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelAction;
 use App\Models\Channel;
 use App\Models\Project;
 use App\Models\Task;
@@ -22,9 +21,7 @@ class ForceDeleteProjectAction
             }
 
             $channel = $project->channel_id ? Channel::find($project->channel_id) : null;
-            if ($channel) {
-                app(ForceDeleteChannelAction::class)->execute($channel);
-            }
+            $channel?->forceDelete();
 
             $project->replies->each->delete();
 

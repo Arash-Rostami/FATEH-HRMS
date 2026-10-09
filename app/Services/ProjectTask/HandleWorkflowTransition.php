@@ -44,7 +44,7 @@ class HandleWorkflowTransition
             $task = app(PopulateStepTaskAction::class)->execute($wf, $step, $project);
         }
 
-        if ($task->id !== $existingTaskId) {
+        if ($task && $task->id !== $existingTaskId) {
             $steps[$wf->current_step]['task_id'] = $task->id;
             $wf->steps = $steps;
             $wf->saveQuietly();
@@ -65,7 +65,16 @@ class HandleWorkflowTransition
             'step' => $fromIndex,
             'label' => $steps[$fromIndex]['label'] ?? null,
             'cycle' => $wf->name,
+            'workflow' => $wf->id,
         ];
+
+        if ($event === 'advanced' && ($lastLogEntry['forced'] ?? false)) {
+            $payload['forced'] = true;
+        }
+
+        if ($wf->transitionReason) {
+            $payload['reason'] = $wf->transitionReason;
+        }
 
         if (in_array($event, ['advanced', 'rejected'], true)) {
             $payload['to_step'] = $wf->current_step;

@@ -5,7 +5,6 @@ namespace App\Services\ProjectTask;
 use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\Project;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ChannelProvisioner
@@ -20,6 +19,14 @@ class ChannelProvisioner
     private function provision(Project $project): Channel
     {
         return DB::transaction(function () use ($project) {
+            $channelId = $project->newQueryWithoutScopes()->whereKey($project->getKey())->lockForUpdate()->value('channel_id');
+
+            if ($channelId && $existing = Channel::find($channelId)) {
+                $project->setAttribute('channel_id', $channelId)->syncOriginalAttribute('channel_id');
+
+                return $existing;
+            }
+
             $channel = Channel::create([
                 'name' => mb_substr($project->name, 0, 100),
                 'slug' => Project::generateSlug($project->name),
@@ -38,19 +45,15 @@ class ChannelProvisioner
 
     private function syncMembers(Channel $channel, Project $project): void
     {
-        $memberIds = collect($project->member_ids ?? [])
-            ->filter()
-            ->unique()
+        $memberIds = collect($project->charter()->rosterIds())
             ->reject(fn($id) => (int) $id === (int) $project->owner_id);
 
         if ($memberIds->isEmpty()) {
             return;
         }
 
-        $existingUserIds = User::whereIn('id', $memberIds)->pluck('id');
-
         $channel->memberUsers()->syncWithoutDetaching(
-            $existingUserIds->mapWithKeys(fn($id) => [$id => [
+            $memberIds->mapWithKeys(fn($id) => [$id => [
                 'joined_at' => now(),
                 'entered_at' => null,
                 'last_read_message_id' => null,

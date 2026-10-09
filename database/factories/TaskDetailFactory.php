@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskDetail;
 use App\Models\User;
@@ -10,6 +11,25 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class TaskDetailFactory extends Factory
 {
     protected $model = TaskDetail::class;
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (TaskDetail $detail) {
+            $projectId = Task::withTrashed()->whereKey($detail->task_id)->value('project_id');
+            $project = $projectId ? Project::find($projectId) : null;
+
+            if (!$project) {
+                return;
+            }
+
+            $members = $project->member_ids ?? [];
+            $missing = array_diff(array_filter([...($detail->collaborators ?? []), $detail->responsible_user_id]), [$project->owner_id], $members);
+
+            if ($missing !== []) {
+                $project->forceFill(['member_ids' => [...$members, ...$missing]])->saveQuietly();
+            }
+        });
+    }
 
     public function definition(): array
     {

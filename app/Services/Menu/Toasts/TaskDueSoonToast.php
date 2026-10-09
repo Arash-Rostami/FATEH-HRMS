@@ -28,7 +28,7 @@ class TaskDueSoonToast implements MenuEdge
 
     public function body($subject, User $user): string
     {
-        return "وظیفهٔ «{$subject->title}» کمتر از ۲۴ ساعت دیگر مهلت دارد.";
+        return "وظیفهٔ «{$subject->title}» کمتر از " . convertToPersian($this->hours($subject)) . ' ساعت دیگر مهلت دارد.';
     }
 
     public function icon($subject, User $user): string
@@ -42,7 +42,14 @@ class TaskDueSoonToast implements MenuEdge
             return false;
         }
 
-        return now()->diffInHours($subject->deadline) <= 24;
+        $subject->loadMissing('detail:id,task_id,state');
+
+        return !$subject->isSuspended() && now()->diffInHours($subject->deadline) <= $this->hours($subject);
+    }
+
+    private function hours($subject): int
+    {
+        return $subject->loadMissing('project:id,settings,owner_id')->project?->charter()->dueSoonHours() ?? 24;
     }
 
     public function url($subject): ?string

@@ -45,7 +45,7 @@ class EventSyncService
 
         $owner = $task->creator;
 
-        if (!$task->deadline || $task->archived_at !== null || !$owner) {
+        if (!$task->deadline || $task->archived_at !== null || $task->status === 'done' || !$owner) {
             $this->purge($task);
 
             return;
@@ -53,7 +53,7 @@ class EventSyncService
 
         $description = $this->description($task);
 
-        $event = Event::updateOrCreate(
+        $event = Event::syncingTask(fn() => Event::updateOrCreate(
             [
                 'user_id' => $owner->id,
                 'description' => $description,
@@ -64,7 +64,7 @@ class EventSyncService
                 'private' => true,
                 'remind_hours' => self::DEFAULT_REMIND_HOURS,
             ]
-        );
+        ));
 
         $this->pruneOtherOwners($description, $owner->id);
 
@@ -105,11 +105,11 @@ class EventSyncService
 
     private function deleteEvents(string $description, ?int $excludeUserId = null): void
     {
-        Event::query()
+        Event::syncingTask(fn() => Event::query()
             ->where('description', $description)
             ->when($excludeUserId, fn($q, $id) => $q->where('user_id', '!=', $id))
             ->get()
-            ->each(fn(Event $event) => $event->delete());
+            ->each(fn(Event $event) => $event->delete()));
     }
 
     private function description(Task $task): string

@@ -8,6 +8,7 @@ const OPACITY_NORMAL = "1";
 export default function kanbanDragMixin() {
     return {
         dragTask: null,
+        dragVersion: null,
         isDragging: false,
 
         initKanbanDrag() {
@@ -24,6 +25,7 @@ export default function kanbanDragMixin() {
 
         handleDragStart(event, taskId) {
             this.dragTask = taskId;
+            this.dragVersion = event.currentTarget?.dataset.ver || null;
             this.isDragging = true;
 
             const dt = event.dataTransfer;
@@ -70,7 +72,7 @@ export default function kanbanDragMixin() {
             this.dragTask = null;
             this.isDragging = false;
 
-            this.$wire.updateTaskStatus(taskId, status);
+            this.$wire.updateTaskStatus(taskId, status, this.dragVersion);
         },
 
         handleCardDrop(event, targetTaskId, targetStatus) {
@@ -84,7 +86,7 @@ export default function kanbanDragMixin() {
 
             if (taskId === targetTaskId) return;
 
-            this.$wire.reorderTask(taskId, targetTaskId, targetStatus);
+            this.$wire.reorderTask(taskId, targetTaskId, targetStatus, this.dragVersion);
         }
     };
 }

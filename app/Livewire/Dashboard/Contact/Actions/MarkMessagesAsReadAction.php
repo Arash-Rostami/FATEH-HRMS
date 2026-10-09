@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Contact\Actions;
 use App\Jobs\ReconcileNudge;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\Menu\NudgeService;
 use App\Services\Menu\StateService;
 use App\Services\Messaging\PollDigestService;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,8 @@ class MarkMessagesAsReadAction
         DB::afterCommit(fn() => StateService::flush());
 
         if ($count > 0) {
+            NudgeService::refreshBell();
+
             DB::afterCommit(function () use ($contactId, $viewerId) {
                 PollDigestService::bump("dm:sv:{$contactId}");
                 PollDigestService::bump("dm:sv:{$viewerId}");

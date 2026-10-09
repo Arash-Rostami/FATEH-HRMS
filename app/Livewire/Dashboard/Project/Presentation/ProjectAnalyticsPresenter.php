@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dashboard\Project\Presentation;
 
+use App\Services\ProjectTask\TaskMetrics;
+
 class ProjectAnalyticsPresenter
 {
     private const CHART_TAB = [
@@ -75,7 +77,7 @@ class ProjectAnalyticsPresenter
             'cycleDistribution' => [
                 'type' => 'bar',
                 'label' => 'توزیع مدت انجام',
-                'description' => 'وظایف تکمیل‌شده بر اساس مدت از ایجاد تا انجام — دنبالهٔ سنگین یعنی گلوگاه در جریان.',
+                'description' => 'وظایف تکمیل‌شده بر اساس مدت از ایجاد تا انجام (میانه، نه میانگین) — دنبالهٔ سنگین یعنی گلوگاه در جریان.',
                 'options' => [
                     'plugins' => ['legend' => ['display' => false]],
                     'scales' => ['x' => ['beginAtZero' => true], 'y' => []],
@@ -83,8 +85,8 @@ class ProjectAnalyticsPresenter
             ],
             'atRiskByPriority' => [
                 'type' => 'doughnut',
-                'label' => 'کارهای در معرض ریسک بر اساس اولویت',
-                'description' => 'وظایف ناتمام با مهلت سررسید یا نزدیک به سررسید، گروه‌بندی‌شده بر اساس اولویت.',
+                'label' => 'سررسید نزدیک بر اساس اولویت',
+                'description' => 'وظایف ناتمام با مهلت در ۳ روز آینده، گروه‌بندی‌شده بر اساس اولویت.',
                 'options' => ['plugins' => ['legend' => ['display' => true]]],
             ],
             'horizon' => [
@@ -244,7 +246,7 @@ class ProjectAnalyticsPresenter
 
         $flowVerdict = [];
         if (($flow['medianCycle'] ?? null) !== null) {
-            $flowVerdict[] = 'میانگین چرخهٔ انجام ' . $flow['medianCycle'] . ' روز است.';
+            $flowVerdict[] = 'میانهٔ چرخهٔ انجام ' . $flow['medianCycle'] . ' روز است.';
         }
         $idle = (int) ($flow['stale']['idle_30_plus'] ?? 0);
         if ($idle > 0) {
@@ -253,7 +255,7 @@ class ProjectAnalyticsPresenter
 
         $riskVerdict = [];
         if (($risk['atRiskCount'] ?? 0) > 0) {
-            $riskVerdict[] = $risk['atRiskCount'] . ' کار در معرض ریسک سررسید هستند.';
+            $riskVerdict[] = $risk['atRiskCount'] . ' کار ' . TaskMetrics::LABEL_DUE_SOON . ' دارند.';
         }
         $fire = count($risk['matrix']['fire'] ?? []);
         if ($fire > 0) {
@@ -281,7 +283,7 @@ class ProjectAnalyticsPresenter
     {
         $kpis = [];
         if (($flow['medianCycle'] ?? null) !== null) {
-            $kpis[] = ['label' => 'میانگین چرخه', 'value' => $flow['medianCycle'] . ' روز', 'icon' => 'timer', 'tone' => 'primary'];
+            $kpis[] = ['label' => 'میانهٔ چرخه', 'value' => $flow['medianCycle'] . ' روز', 'icon' => 'timer', 'tone' => 'primary'];
         }
         $kpis[] = ['label' => 'تکمیل این هفته', 'value' => (string) ($flow['doneThisWeek'] ?? 0), 'icon' => 'check_circle', 'tone' => 'tertiary'];
         $stale = $flow['stale'] ?? ['active' => 0, 'idle_7_14' => 0, 'idle_14_30' => 0, 'idle_30_plus' => 0];
@@ -296,7 +298,7 @@ class ProjectAnalyticsPresenter
     private function riskKpis(array $risk): array
     {
         $kpis = [];
-        $kpis[] = ['label' => 'در معرض ریسک', 'value' => (string) ($risk['atRiskCount'] ?? 0), 'icon' => 'warning', 'tone' => 'error'];
+        $kpis[] = ['label' => TaskMetrics::LABEL_DUE_SOON, 'value' => (string) ($risk['atRiskCount'] ?? 0), 'icon' => 'warning', 'tone' => 'error'];
         $adherence = $risk['adherence'] ?? null;
         if ($adherence !== null) {
             $kpis[] = ['label' => 'الزام به مهلت', 'value' => $adherence['onTime'] . ' از ' . $adherence['total'], 'icon' => 'verified', 'tone' => 'tertiary'];

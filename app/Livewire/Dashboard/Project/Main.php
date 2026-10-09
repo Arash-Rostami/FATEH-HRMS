@@ -19,6 +19,7 @@ use App\Services\ProjectTask\CreateProjectAction;
 use App\Services\ProjectTask\ProjectHeartbeat;
 use App\Services\ProjectTask\ProjectSettings;
 use App\Services\ProjectTask\ReportingService;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Traits\FocusOnRecord;
 use App\Traits\HasProjectMembers;
 use App\Traits\HasReportSummary;
@@ -45,7 +46,7 @@ class Main extends Component
         'channel_members.user_id as cm_user_id',
         'channel_members.entered_at',
     ];
-    private const TAB_DOMAIN = ['activity' => 'activity', 'teamChat' => 'chat', 'projectCalendar' => 'task', 'workflow' => 'task'];
+    private const TAB_DOMAIN = ['activity' => 'activity', 'teamChat' => 'chat', 'projectCalendar' => 'task', 'workflow' => 'task', 'kanban' => 'task', 'report' => 'task', 'analytics' => 'task'];
 
     #[Locked]
     public ?int $activeProjectId = null;
@@ -58,7 +59,7 @@ class Main extends Component
     public ProjectForm $projectForm;
     public bool $isFormOpen = false;
     public bool $isEditing = false;
-    public array $tabDirty = ['activity' => false, 'teamChat' => false, 'projectCalendar' => false];
+    public array $tabDirty = ['activity' => false, 'teamChat' => false, 'projectCalendar' => false, 'kanban' => false, 'report' => false, 'analytics' => false];
 
     #[Computed]
     protected function visibleProjectsWithMembership(): Collection
@@ -104,16 +105,14 @@ class Main extends Component
         return [
             'rows' => $page
                 ->map(function ($p) use ($counts, $workflows) {
-                    $byStatus = ($counts->get($p->id) ?? collect())->pluck('aggregate', 'status');
-                    $total = (int) $byStatus->sum();
-                    $done = (int) ($byStatus['done'] ?? 0);
+                    $totals = TaskMetrics::totals(($counts->get($p->id) ?? collect())->pluck('aggregate', 'status')->map(fn($n) => (int) $n)->all());
                     $cycles = $workflows->get($p->id) ?? collect();
 
                     return [
                         'id' => $p->id,
                         'name' => $p->name,
                         'pending' => (bool) ($p->channel_id && $p->cm_user_id && !$p->entered_at),
-                        'percent' => $total > 0 ? (int) round($done / $total * 100) : 0,
+                        'percent' => (int) round($totals['percent']),
                         'workflowCount' => $cycles->count(),
                         'workflowStep' => $cycles->count() === 1 ? $cycles->first()->current_step + 1 : null,
                         'workflowTotal' => $cycles->count() === 1 ? count($cycles->first()->steps) : null,
@@ -235,7 +234,7 @@ class Main extends Component
 
         $this->activeProjectId = $projectId;
         $this->activeTab = 'workflow';
-        $this->tabDirty = ['activity' => false, 'teamChat' => false, 'projectCalendar' => false];
+        $this->tabDirty = array_map(fn() => false, $this->tabDirty);
 
         $channel = $this->activeChannel;
         $this->markEntered($channel);
@@ -376,6 +375,34 @@ class Main extends Component
     }
 
     #[Computed]
+    public function hasDuplicateName(): bool
+    {
+        $name = trim($this->projectForm->name);
+
+        return $this->isFormOpen && $name !== '' && Project::where('owner_id', auth()->id())
+                ->where('name', $name)
+                ->when($this->isEditing, fn($query) => $query->whereKeyNot($this->activeProjectId))
+                ->exists();
+    }
+
+    #[Computed]
+    public function ownerCandidates(): array
+    {
+        $project = $this->activeProject;
+
+        if (!$project) {
+            return [];
+        }
+
+        return User::whereIn('id', [...($project->member_ids ?? []), $project->owner_id])
+            ->where(fn($q) => $q->visibleOnBoard()->orWhere('users.id', $project->owner_id))
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn($user) => ['id' => $user->id, 'name' => $user->name])
+            ->all();
+    }
+
+    #[Computed]
     public function availableDepartments(): array
     {
         return Department::getCachedOptions()->all();
@@ -398,6 +425,7 @@ class Main extends Component
         $this->projectForm->fill([
             'name' => $project->name,
             'memberIds' => $project->member_ids ?? [],
+            'ownerId' => $project->owner_id,
             'departments' => $project->departments ?? [],
             'updatedAt' => $project->updated_at?->timestamp,
         ]);

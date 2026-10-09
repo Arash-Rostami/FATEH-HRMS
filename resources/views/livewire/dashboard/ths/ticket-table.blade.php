@@ -72,6 +72,10 @@
                     <div wire:key="ths-empty-actionable" class="contents">
                         <x-ui.empty icon="task_alt" title="فعلاً موردی نیاز به اقدام شما ندارد." description="تیکت‌های بازِ واحد شما یا تیکت‌های محول‌شده به شما اینجا نمایش داده می‌شوند." variant="list" />
                     </div>
+                @elseif($listFilter === 'department')
+                    <div wire:key="ths-empty-department" class="contents">
+                        <x-ui.empty icon="inbox" title="تیکتی برای واحد شما یافت نشد." variant="list" />
+                    </div>
                 @elseif($this->dateSpanActive())
                     <div wire:key="ths-empty-datespan" class="contents">
                         <x-ui.empty icon="event_busy"

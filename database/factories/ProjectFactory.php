@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Channel;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +21,7 @@ class ProjectFactory extends Factory
             'owner_id' => User::factory(),
             'member_ids' => [],
             'departments' => [],
-            'channel_id' => Channel::factory(),
+            'channel_id' => null,
             'settings' => [],
             'archived_at' => null,
         ];

@@ -17,9 +17,9 @@ class ExportTasksheetAction
 {
     private const ROLE_LABELS = ['owner' => 'مالک', 'member' => 'عضو', 'collaborator' => 'همکار'];
 
-    public function execute(User $subject, Carbon $start, Carbon $end): StreamedResponse
+    public function execute(User $subject, Carbon $start, Carbon $end, ?User $viewer = null): StreamedResponse
     {
-        $report = app(TasksheetService::class)->report($subject, $start, $end);
+        $report = app(TasksheetService::class)->report($subject, $start, $end, $viewer);
         $presenter = new TasksheetPresenter();
 
         return response()->streamDownload(
@@ -61,22 +61,22 @@ class ExportTasksheetAction
     private function writeScorecard(Writer $writer, array $sc, Style $boldStyle): void
     {
         $writer->addRow(Row::fromValues(['خلاصه عملکرد'], $boldStyle));
-        $writer->addRow(Row::fromValues(['شاخص', 'مقدار', 'بازهٔ قبل', 'تغییر (٪)'], $boldStyle));
+        $writer->addRow(Row::fromValues(['شاخص', 'مقدار', 'بازهٔ قبل', 'تغییر'], $boldStyle));
 
         $rows = [
-            ['تکمیل‌شده', $sc['completed']['value'], $sc['completed']['previous'], $sc['completed']['delta_percent']],
-            ['به‌موقع (٪)', $sc['on_time_percent']['value'], $sc['on_time_percent']['previous'], $sc['on_time_percent']['delta_percent']],
-            ['میانگین مدت انجام (روز)', $sc['cycle_time_days']['avg'], null, null],
-            ['میانهٔ مدت انجام (روز)', $sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['delta_percent']],
-            ['تأییدیهٔ دریافتی', $sc['approvals_received']['value'], $sc['approvals_received']['previous'], $sc['approvals_received']['delta_percent']],
+            ['تکمیل‌شده', $sc['completed']['value'], $sc['completed']['previous'], $sc['completed']['delta_percent'], '٪'],
+            ['به‌موقع (٪)', $sc['on_time_percent']['value'], $sc['on_time_percent']['previous'], $sc['on_time_percent']['delta_percent'], ' امتیاز'],
+            ['میانگین مدت انجام (روز)', $sc['cycle_time_days']['avg'], null, null, '٪'],
+            ['میانهٔ مدت انجام (روز)', $sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['delta_percent'], '٪'],
+            ['تأییدیهٔ دریافتی', $sc['approvals_received']['value'], $sc['approvals_received']['previous'], $sc['approvals_received']['delta_percent'], '٪'],
         ];
 
-        foreach ($rows as [$label, $value, $previous, $deltaPercent]) {
+        foreach ($rows as [$label, $value, $previous, $delta, $unit]) {
             $writer->addRow(Row::fromValues([
                 $label,
                 $value ?? '—',
                 $previous ?? '—',
-                $deltaPercent !== null ? $deltaPercent . '٪' : '—',
+                $delta !== null ? ($delta > 0 ? '+' : '') . $delta . $unit : '—',
             ]));
         }
 
@@ -182,7 +182,7 @@ class ExportTasksheetAction
             foreach ($group['tasks'] as $row) {
                 $writer->addRow(Row::fromValues([
                     $row['task_id'],
-                    $row['title'] ?? '',
+                    ($row['title'] ?? '') . (!empty($row['trashed']) ? ' (حذف‌شده)' : ''),
                     TaskPriority::tryFrom((string) $row['priority'])?->getLabel() ?? '—',
                     TaskStatus::tryFrom((string) $row['status'])?->getLabel() ?? ($row['status'] ?? '—'),
                     $row['deadline'] ? toJalali($row['deadline'], 'Y/m/d') : '—',

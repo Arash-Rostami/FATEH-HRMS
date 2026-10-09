@@ -2,8 +2,8 @@
 
 namespace App\Services\ProjectTask;
 
-use App\Enums\TaskActivityType;
 use App\Filament\Resources\TaskResource\Enums\TaskPriority;
+use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Department;
 use App\Models\Project;
@@ -15,6 +15,7 @@ use App\Services\Cache\ModelCacheVersion;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +46,7 @@ class ReportingService
             })
             ->when($filters['project_id'] ?? null, fn(Builder $q, $v) => $q->where('project_id', $v))
             ->when($filters['department'] ?? null, fn(Builder $q, $v) => $q->whereHas('detail', fn(Builder $d) => $d->where('department_id', $v)))
-            ->when($filters['assignee_id'] ?? null, fn(Builder $q, $v) => $q->where('assigned_to', $v))
+            ->when($filters['assignee_id'] ?? null, fn(Builder $q, $v) => $q->ownedBy((int) $v))
             ->when($filters['status'] ?? null, fn(Builder $q, $v) => $q->where('status', $v))
             ->when($filters['priority'] ?? null, fn(Builder $q, $v) => $q->where('priority', $v))
             ->when($filters['label'] ?? null, fn(Builder $q, $v) => $q->whereJsonContains('labels', $v))
@@ -56,7 +57,7 @@ class ReportingService
                 $needle = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $v) . '%';
                 $q->where(fn(Builder $s) => $s->where('title', 'like', $needle)
                     ->orWhere('description', 'like', $needle)
-                    ->orWhereHas('detail', fn(Builder $d) => $d->where('description', 'like', $needle)));
+                    ->orWhereHas('detail', fn(Builder $d) => $d->where('meta', 'like', $needle)));
             })
             ->when($withCounts, fn(Builder $q) => $q
                 ->addSelect(['last_activity_at' => Reply::query()
@@ -92,53 +93,67 @@ class ReportingService
 
     public function summary(int $projectId, int $viewerId): array
     {
-        return Cache::remember("task-report:{$projectId}:{$viewerId}", now()->addMinutes(5), function () use ($projectId) {
-            $counts = Task::where('project_id', $projectId)
-                ->selectRaw('status, count(*) as aggregate')
-                ->groupBy('status')
-                ->pluck('aggregate', 'status');
+        $suffix = sprintf('task-report:%d:p%s:%s', $projectId, ModelCacheVersion::version(Project::class), now()->toDateString());
 
-            $total = (int) $counts->sum();
-            $done = (int) ($counts['done'] ?? 0);
-
-            $overdue = (int) Task::where('project_id', $projectId)
-                ->where('status', '<>', 'done')
-                ->where('deadline', '<', now())
-                ->count();
-
+        return ModelCacheVersion::remember(Task::class, $suffix, now()->addMinutes(5), function () use ($projectId) {
             $project = Project::find($projectId, ['id', 'settings']);
-            $sla = $project?->setting('sla');
-            $deadlineCap = $project?->setting('deadline');
+            $sla = $project?->charter()->slaHours();
+            $deadlineCap = $project?->charter()->cap();
 
-            $atRisk = 0;
-            if ($sla !== null || $deadlineCap !== null) {
-                $atRisk = (int) Task::where('project_id', $projectId)
-                    ->whereNotIn('status', ['done', 'pending'])
-                    ->where(function (Builder $q) use ($sla, $deadlineCap) {
-                        if ($sla !== null) {
-                            $q->orWhereRaw('TIMESTAMPDIFF(HOUR, created_at, NOW()) > ?', [(int) $sla]);
-                        }
-                        if ($deadlineCap !== null) {
-                            $q->orWhere('deadline', '>', Carbon::parse($deadlineCap)->endOfDay());
-                        }
-                    })
-                    ->count();
+            $active = "tasks.status NOT IN ('done', 'pending') AND tasks.archived_at IS NULL AND COALESCE(task_details.state, '') <> ?";
+            $breach = [];
+            $breachBindings = [];
+
+            if ($sla !== null) {
+                $breach[] = 'TIMESTAMPDIFF(HOUR, tasks.created_at, NOW()) > ?';
+                $breachBindings[] = (int) $sla;
             }
 
+            if ($deadlineCap !== null) {
+                $breach[] = 'tasks.deadline > ?';
+                $breachBindings[] = Carbon::parse($deadlineCap)->endOfDay();
+            }
+
+            $suspended = TaskState::Suspension->value;
+            $atRisk = $breach === [] ? '0' : "CASE WHEN {$active} AND (" . implode(' OR ', $breach) . ') THEN 1 ELSE 0 END';
+
+            $rows = Task::query()
+                ->leftJoin('task_details', 'task_details.task_id', '=', 'tasks.id')
+                ->where('tasks.project_id', $projectId)
+                ->selectRaw(
+                    "tasks.status, COUNT(*) as aggregate,
+                    SUM(CASE WHEN {$active} AND tasks.deadline < ? THEN 1 ELSE 0 END) as overdue,
+                    SUM(CASE WHEN {$active} AND tasks.deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) as due_soon,
+                    SUM({$atRisk}) as at_risk",
+                    [
+                        $suspended, now()->startOfDay(),
+                        $suspended, now()->startOfDay(), now()->addDays(TaskMetrics::DUE_SOON_DAYS)->endOfDay(),
+                        ...($breach === [] ? [] : [$suspended, ...$breachBindings]),
+                    ]
+                )
+                ->groupBy('tasks.status')
+                ->get();
+
+            $counts = $rows->pluck('aggregate', 'status')->map(fn($count) => (int) $count)->all();
+
             return [
-                'total' => $total,
-                'done' => $done,
-                'percent' => $total > 0 ? round($done / $total * 100, 1) : 0.0,
+                ...TaskMetrics::totals($counts),
                 'by_status' => [
                     'todo' => (int) ($counts['todo'] ?? 0),
                     'in-progress' => (int) ($counts['in-progress'] ?? 0),
                     'pending' => (int) ($counts['pending'] ?? 0),
-                    'done' => $done,
+                    'done' => (int) ($counts['done'] ?? 0),
                 ],
-                'overdue' => $overdue,
-                'at_risk' => $atRisk,
+                'overdue' => (int) $rows->sum('overdue'),
+                'due_soon' => (int) $rows->sum('due_soon'),
+                'at_risk' => (int) $rows->sum('at_risk'),
             ];
         });
+    }
+
+    public function statusCounts(User $user, array $filters = []): array
+    {
+        return TaskMetrics::statusCounts($this->query($user, Arr::except($filters, ['status', 'sort']), false));
     }
 
     public function filterOptions(int $projectId): array
@@ -155,7 +170,7 @@ class ReportingService
             [self::FILTER_OPTIONS_FRESH_SECONDS, self::FILTER_OPTIONS_STALE_SECONDS],
             function () use ($projectId) {
                 $rows = Task::where('project_id', $projectId)->toBase()->get(['assigned_to', 'user_id']);
-                $userIds = collect($rows)->flatMap(fn($t) => array_filter([$t->assigned_to, $t->user_id]))->unique()->all();
+                $userIds = collect($rows)->map(fn($t) => $t->assigned_to ?? $t->user_id)->filter()->unique()->all();
 
                 $departmentCodes = TaskDetail::whereHas('task', fn(Builder $q) => $q->where('project_id', $projectId))
                     ->whereNotNull('department_id')
@@ -263,6 +278,37 @@ class ReportingService
         );
     }
 
+    public function labelOptions(Closure $taskScope, string $scopeKey, ?int $projectId = null): array
+    {
+        $suffix = sprintf('label_options:%s:p%s', $scopeKey, ModelCacheVersion::version(Project::class));
+
+        return ModelCacheVersion::remember(
+            Task::class,
+            $suffix,
+            now()->addSeconds(ModelCacheVersion::defaultSeconds()),
+            function () use ($taskScope, $projectId) {
+                $vocabulary = $projectId ? (Project::find($projectId, ['id', 'settings'])?->charter()->labels() ?? []) : [];
+
+                if ($vocabulary !== []) {
+                    return array_values($vocabulary);
+                }
+
+                return Task::query()
+                    ->where($taskScope)
+                    ->whereNull('archived_at')
+                    ->whereNotNull('labels')
+                    ->pluck('labels')
+                    ->flatten()
+                    ->unique()
+                    ->groupBy(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l))
+                    ->map(fn($g) => $g->first())
+                    ->sort()
+                    ->values()
+                    ->all();
+            }
+        );
+    }
+
     private function boardCacheKey(string $suffix, string $scopeKey): string
     {
         return sprintf(
@@ -286,10 +332,10 @@ class ReportingService
         $weekEnd = $weekStart->copy()->addDays(6)->endOfDay();
 
         $row = (clone $base)->selectRaw('
-            SUM(CASE WHEN deadline < ? THEN 1 ELSE 0 END) as overdue,
+            SUM(CASE WHEN deadline < ? AND status <> ? AND NOT EXISTS (SELECT 1 FROM task_details WHERE task_details.task_id = tasks.id AND task_details.state = ?) THEN 1 ELSE 0 END) as overdue,
             SUM(CASE WHEN DATE(deadline) = ? THEN 1 ELSE 0 END) as today,
             SUM(CASE WHEN deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) as week
-        ', [now()->startOfDay(), $today, $weekStart, $weekEnd])->first();
+        ', [now()->startOfDay(), 'pending', TaskState::Suspension->value, $today, $weekStart, $weekEnd])->first();
 
         return [
             'overdue' => (int)($row->overdue ?? 0),
@@ -334,11 +380,11 @@ class ReportingService
     public function analyticsInsights(int $projectId): array
     {
         $key = sprintf(
-            'report:insights:%d:t%s:d%s:r%s',
+            'report:insights:%d:t%s:d%s:%s',
             $projectId,
             ModelCacheVersion::version(Task::class),
             ModelCacheVersion::version(TaskDetail::class),
-            ModelCacheVersion::version(Reply::class)
+            now()->toDateString()
         );
 
         return Cache::flexible($key, [self::FILTER_OPTIONS_FRESH_SECONDS, self::FILTER_OPTIONS_STALE_SECONDS], function () use ($projectId) {
@@ -366,33 +412,23 @@ class ReportingService
 
     private function totalTaskCount(int $projectId): int
     {
-        return (int) Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
-            ->count();
+        return Task::where('project_id', $projectId)->count();
     }
 
     private function doneEvents(int $projectId): array
     {
         return DB::table('tasks as t')
-            ->joinSub(
-                Reply::select('repliable_id', DB::raw('MAX(created_at) as done_at'))
-                    ->where('repliable_type', Task::class)
-                    ->where('type', TaskActivityType::StatusChange->value)
-                    ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.to')) = ?", [TaskStatus::Done->value])
-                    ->whereIn('repliable_id', fn($q) => $q->select('id')->from('tasks')->where('project_id', $projectId)->whereNull('deleted_at'))
-                    ->groupBy('repliable_id'),
-                'latest',
-                'latest.repliable_id',
-                '=',
-                't.id'
-            )
             ->where('t.project_id', $projectId)
             ->whereNull('t.deleted_at')
-            ->whereNull('t.archived_at')
             ->where('t.status', TaskStatus::Done->value)
-            ->orderBy('latest.done_at')
-            ->get(['latest.done_at', 't.created_at as task_created_at', 't.priority', 't.deadline'])
+            ->orderBy('done_at')
+            ->get([DB::raw('COALESCE(t.completed_at, t.approved_at, t.updated_at) as done_at'), 't.created_at as task_created_at', 't.priority', 't.deadline'])
             ->all();
+    }
+
+    private function cycleDays(object $row): int
+    {
+        return max(0, (int) Carbon::parse($row->task_created_at)->diffInDays(Carbon::parse($row->done_at), false));
     }
 
     private function flowMetrics(int $projectId, array $doneEvents, array $stale): array
@@ -441,7 +477,7 @@ class ReportingService
     {
         $buckets = [0, 0, 0, 0];
         foreach ($doneEvents as $row) {
-            $days = Carbon::parse($row->task_created_at)->diffInDays(Carbon::parse($row->done_at));
+            $days = $this->cycleDays($row);
             if ($days < 3) {
                 $buckets[0]++;
             } elseif ($days < 7) {
@@ -501,7 +537,7 @@ class ReportingService
 
     private function medianCycleDays(array $doneEvents): ?float
     {
-        $days = array_map(fn($row) => Carbon::parse($row->task_created_at)->diffInDays(Carbon::parse($row->done_at)), $doneEvents);
+        $days = array_map(fn($row) => $this->cycleDays($row), $doneEvents);
         sort($days);
         $n = count($days);
         if ($n === 0) {
@@ -544,25 +580,18 @@ class ReportingService
         $matrixRows = DB::table('tasks')
             ->where('project_id', $projectId)
             ->whereNull('deleted_at')
-            ->whereNull('archived_at')
             ->selectRaw('priority, status, count(*) as aggregate')
             ->groupBy('priority', 'status')
             ->get();
 
-        $atRisk = DB::table('tasks')
-            ->where('project_id', $projectId)
-            ->whereNull('deleted_at')
-            ->whereNull('archived_at')
-            ->whereNotIn('status', [TaskStatus::Done->value])
-            ->whereNotNull('deadline')
-            ->where('deadline', '<=', now()->addDays(3))
+        $atRisk = TaskMetrics::dueSoon(DB::table('tasks')->where('project_id', $projectId))
             ->selectRaw('priority, count(*) as aggregate')
             ->groupBy('priority')
             ->pluck('aggregate', 'priority');
 
         return [
             'matrix' => $this->buildMatrix($matrixRows),
-            'atRiskByPriority' => $this->priorityDoughnut($atRisk, 'در معرض ریسک'),
+            'atRiskByPriority' => $this->priorityDoughnut($atRisk, TaskMetrics::LABEL_DUE_SOON),
             'horizon' => $this->deadlineHorizon($projectId),
             'adherence' => $this->adherence($doneEvents),
             'atRiskCount' => (int) $atRisk->sum(),
@@ -634,16 +663,15 @@ class ReportingService
             ->whereNotIn('status', [TaskStatus::Done->value])
             ->selectRaw('
                 SUM(CASE WHEN deadline IS NULL THEN 1 ELSE 0 END) AS no_deadline,
-                SUM(CASE WHEN deadline IS NOT NULL AND deadline < ? THEN 1 ELSE 0 END) AS overdue,
                 SUM(CASE WHEN deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) AS this_week,
                 SUM(CASE WHEN deadline BETWEEN ? AND ? THEN 1 ELSE 0 END) AS next_week,
                 SUM(CASE WHEN deadline > ? THEN 1 ELSE 0 END) AS later
-            ', [now(), now(), $thisWeekEnd, $nextWeekStart, $nextWeekEnd, $nextWeekEnd])
+            ', [now()->startOfDay(), $thisWeekEnd, $nextWeekStart, $nextWeekEnd, $nextWeekEnd])
             ->first();
 
         $labels = ['سررسید گذشته', 'این هفته', 'هفتهٔ بعد', 'بعدتر', 'بدون مهلت'];
         $data = [
-            (int) ($row->overdue ?? 0),
+            TaskMetrics::overdue(Task::where('project_id', $projectId))->count(),
             (int) ($row->this_week ?? 0),
             (int) ($row->next_week ?? 0),
             (int) ($row->later ?? 0),
@@ -670,7 +698,7 @@ class ReportingService
         }
         $onTime = 0;
         foreach ($withDeadline as $row) {
-            if (Carbon::parse($row->done_at)->lessThanOrEqualTo(Carbon::parse($row->deadline))) {
+            if (Carbon::parse($row->done_at)->startOfDay()->lessThanOrEqualTo(Carbon::parse($row->deadline)->startOfDay())) {
                 $onTime++;
             }
         }
@@ -681,7 +709,6 @@ class ReportingService
     private function peopleMetrics(int $projectId): array
     {
         $rows = Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
             ->selectRaw('assigned_to, status, count(*) as aggregate')
             ->groupBy('assigned_to', 'status')
             ->get();
@@ -785,7 +812,6 @@ class ReportingService
     private function delegationRatio(int $projectId): float
     {
         $row = Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
             ->selectRaw('COUNT(*) AS total, SUM(CASE WHEN assigned_to IS NOT NULL AND user_id IS NOT NULL AND assigned_to <> user_id THEN 1 ELSE 0 END) AS delegated')
             ->first();
         $total = (int) ($row->total ?? 0);
@@ -799,7 +825,6 @@ class ReportingService
     private function labelsDistribution(int $projectId): ?array
     {
         $rows = Task::where('project_id', $projectId)
-            ->whereNull('archived_at')
             ->whereNotNull('labels')
             ->pluck('labels');
         $counts = [];
@@ -830,7 +855,6 @@ class ReportingService
             ->leftJoin('task_details', 'task_details.task_id', '=', 'tasks.id')
             ->where('tasks.project_id', $projectId)
             ->whereNull('tasks.deleted_at')
-            ->whereNull('tasks.archived_at')
             ->whereNotNull('task_details.department_id')
             ->selectRaw('task_details.department_id as department_id, tasks.status, count(*) as aggregate')
             ->groupBy('department_id', 'tasks.status')
@@ -933,5 +957,7 @@ class ReportingService
         } else {
             $query->orderBy($field, $dir);
         }
+
+        $query->orderBy('tasks.id');
     }
 }

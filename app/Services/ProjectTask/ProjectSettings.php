@@ -4,20 +4,25 @@ namespace App\Services\ProjectTask;
 
 use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Models\Project;
+use App\Support\ProjectCharter;
 use App\Traits\ResolvesTaskDeadline;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Morilog\Jalali\CalendarUtils;
 
 final class ProjectSettings
 {
     use ResolvesTaskDeadline;
 
-    public function bag(ProjectForm $form): array
+    public function bag(ProjectForm $form, ?string $currentDeadline = null): array
     {
-        $bag = array_filter([
+        $bag = Project::pruneSettings([
             'requires_approval' => $form->requiresApproval,
             'sla' => $form->slaHours,
-            'deadline' => $this->resolveDeadline($form)?->toDateString(),
-        ], fn($v) => $v !== null && $v !== false && $v !== '');
+            'deadline' => $this->guardedDeadline($form, $currentDeadline),
+            'labels' => ProjectCharter::normalizeLabels($form->labels),
+            'auto_archive_days' => $form->autoArchiveDays,
+        ]);
 
         if ($form->customSchema !== []) {
             $bag['custom_schema'] = collect($form->customSchema)
@@ -35,6 +40,34 @@ final class ProjectSettings
         }
 
         return $bag;
+    }
+
+    private function guardedDeadline(ProjectForm $form, ?string $currentDeadline): ?string
+    {
+        $filled = count(array_filter([$form->deadlineYear, $form->deadlineMonth, $form->deadlineDay]));
+
+        if ($filled === 0) return null;
+
+        if ($filled < 3) {
+            $this->failDeadline('تاریخ مهلت را کامل وارد کنید.');
+        }
+
+        try {
+            $date = $this->resolveDeadline($form)->toDateString();
+        } catch (InvalidArgumentException) {
+            $this->failDeadline('تاریخ واردشده معتبر نیست.');
+        }
+
+        if ($date !== $currentDeadline && $date < today()->toDateString()) {
+            $this->failDeadline('مهلت پروژه نمی‌تواند گذشته باشد.');
+        }
+
+        return $date;
+    }
+
+    private function failDeadline(string $message): never
+    {
+        throw ValidationException::withMessages(['projectForm.deadlineDay' => $message]);
     }
 
     public function mergeExtra(array $settings, array $rows): array
@@ -59,6 +92,8 @@ final class ProjectSettings
 
         $form->requiresApproval = (bool)($settings['requires_approval'] ?? false);
         $form->slaHours = $settings['sla'] ?? null;
+        $form->labels = $settings['labels'] ?? [];
+        $form->autoArchiveDays = $settings['auto_archive_days'] ?? null;
         $form->customSchema = collect($settings['custom_schema'] ?? [])
             ->map(fn($item, $key) => ['key' => $key, 'label' => $item['label'] ?? $key])
             ->values()

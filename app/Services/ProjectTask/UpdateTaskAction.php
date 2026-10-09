@@ -5,6 +5,8 @@ namespace App\Services\ProjectTask;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Project;
 use App\Models\Task;
+use App\Support\ProjectCharter;
+use App\Support\TaskAccessPolicy;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\ResolvesTaskDeadline;
 use App\Traits\StoresAttachedFiles;
@@ -21,19 +23,40 @@ class UpdateTaskAction
 
     public function execute(Task $task, TaskForm $form): void
     {
-        abort_if(!$task->can_change_status || $task->ticket_id, 403);
+        abort_if(!TaskAccessPolicy::canEdit($task, auth()->user()) || $task->ticket_id, 403);
 
         $form->validate();
         $form->validateAttachments();
-        $project = $this->guardProjectVisibility($task, $form);
-        $deadline = $this->resolveDeadline($form);
-        $this->guardProjectDeadline($deadline, $project);
 
-        DB::transaction(function () use ($task, $form, $deadline) {
+        if ($task->status === 'done' && empty($form->state) && !empty($task->detail?->state)) {
+            throw ValidationException::withMessages(['form.state' => 'برای تغییر تعیین تکلیف ابتدا وظیفه را بازگشایی کنید.']);
+        }
+
+        $project =$this->guardProjectVisibility($task, $form);
+        $people = [$form->selectedAssignee, $form->responsibleUserId, ...$form->collaborators];
+        $projectChanged = (int)$form->projectId !== (int)$task->project_id;
+        TaskAccessPolicy::assertAssignable(
+            $projectChanged
+                ? $people
+                : array_diff($people, [$task->assigned_to, $task->detail?->responsible_user_id, ...($task->detail?->collaborators ?? [])]),
+            $project
+        );
+        $deadline = $this->resolveTaskDeadline($form, $project, $task->deadline, $projectChanged);
+        $labels = ProjectCharter::normalizeLabels($form->labels);
+        $project?->charter()->assertLabels($labels, $projectChanged ? [] : ($task->labels ?? []), 'form.labels');
+
+        DB::transaction(function () use ($task, $form, $deadline, $labels) {
             $this->guardTaskNotStale($task, $form);
 
             $newProjectId = $form->projectId ?: $this->projects->resolvePendingProject($form);
-            $newAssignedTo = $form->selectedAssignee ?: null;
+            abort_if((int)$newProjectId !== (int)$task->project_id && !TaskAccessPolicy::canMoveProject($task, auth()->user()), 403);
+            $newAssignedTo = $form->selectedAssignee ? (int)$form->selectedAssignee : null;
+            abort_if(
+                $newAssignedTo !== $task->assigned_to
+                && !TaskAccessPolicy::canReassign($task, auth()->user(), $newAssignedTo)
+                && !TaskAccessPolicy::canUndoAssignment($task, auth()->user()),
+                403
+            );
             $newOwnerId = $newAssignedTo ?? $task->user_id;
             $oldOwnerId = $task->assigned_to ?? $task->user_id;
 
@@ -54,7 +77,7 @@ class UpdateTaskAction
                 'deadline'    => $deadline,
                 'assigned_to' => $newAssignedTo,
                 'project_id'  => $newProjectId,
-                'labels'      => array_map(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l), $form->labels),
+                'labels'      => $labels,
                 'priority'    => $form->priority,
                 'rank'        => $rank,
             ]);
@@ -74,7 +97,7 @@ class UpdateTaskAction
 
         $current = Task::query()->lockForUpdate()->find($task->id);
 
-        if ($current && $current->updated_at->timestamp !== $form->taskUpdatedAt) {
+        if ($current && ($current->updated_at->timestamp !== $form->taskUpdatedAt || ($form->taskVersion !== null && $current->version !== $form->taskVersion))) {
             throw ValidationException::withMessages([
                 'form' => 'این وظیفه توسط شخص دیگری تغییر کرده؛ لطفاً صفحه را بازخوانی کرده و دوباره تلاش کنید.',
             ]);
@@ -102,7 +125,7 @@ class UpdateTaskAction
 
         $project = Project::visibleTo(auth()->user())
             ->whereKey($form->projectId)
-            ->first(['id', 'settings']);
+            ->first(['id', 'settings', 'owner_id', 'member_ids', 'departments']);
 
         if (!$project) {
             abort(403);

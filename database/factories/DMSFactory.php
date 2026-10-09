@@ -21,7 +21,7 @@ class DMSFactory extends Factory
             'status' => fake()->randomElement(['live', 'under_review', 'obsolete']),
             'type' => fake()->boolean(),
             'owners' => [(Department::inRandomOrder()->value('code') ?? Department::factory()->create()->code) ?? 'ALL'],
-            'users' => array_filter([(string)(User::inRandomOrder()->value('id') ?? User::factory()->create()->id)]),
+            'users' => array_filter([(string)(User::active()->inRandomOrder()->value('id') ?? User::factory()->create()->id)]),
             'revision' => fake()->paragraph(),
             'combined_read_count' => 0,
             'extra' => [],

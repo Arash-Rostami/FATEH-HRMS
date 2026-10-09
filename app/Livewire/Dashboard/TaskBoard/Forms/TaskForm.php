@@ -79,6 +79,7 @@ class TaskForm extends Form
     public array $existingAttachments = [];
     public ?int $detailUpdatedAt = null;
     public ?int $taskUpdatedAt = null;
+    public ?string $taskVersion = null;
 
     #[Validate('nullable|integer|exists:users,id')]
     public ?int $selectedAssignee = null;

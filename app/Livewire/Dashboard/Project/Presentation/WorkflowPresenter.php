@@ -28,6 +28,15 @@ class WorkflowPresenter
         return Carbon::parse($activatedAt)->diffInDays(now()) >= $threshold;
     }
 
+    public function estimatedEnd(Workflow $workflow, array $averageDays): ?string
+    {
+        $days = $workflow->template_id ? ($averageDays[$workflow->template_id] ?? null) : null;
+
+        return $days && $workflow->started_at
+            ? 'پایان تخمینی ' . toJalali($workflow->started_at->copy()->addDays($days), 'j F')
+            : null;
+    }
+
     public function stepNumber(Workflow $workflow): int
     {
         return $workflow->current_step !== null ? $workflow->current_step + 1 : 0;

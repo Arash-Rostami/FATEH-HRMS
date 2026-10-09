@@ -9,10 +9,13 @@
     $gatedCharts = ['labelsDistribution', 'departmentCompletion'];
 @endphp
 
-<div class="flex flex-col gap-4" wire:key="analytics-{{ $activeProjectId }}">
+<div class="flex flex-col gap-4" wire:key="analytics-{{ $activeProjectId }}" @project-analytics-refresh.window="$wire.refreshAnalytics()">
     @if((int) ($summary['total'] ?? 0) === 0)
-        <x-ui.empty icon="monitoring" title="هنوز داده‌ای برای تحلیل نیست" description="بعد از ثبت وظیفه در این پروژه، نمودارها اینجا نمایش داده می‌شوند."/>
+        <div wire:key="analytics-empty" class="contents">
+            <x-ui.empty icon="monitoring" title="هنوز داده‌ای برای تحلیل نیست" description="بعد از ثبت وظیفه در این پروژه، نمودارها اینجا نمایش داده می‌شوند."/>
+        </div>
     @else
+        <div wire:key="analytics-populated" class="contents">
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-2 rounded-2xl bg-[var(--md-sys-color-surface-container-low)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-xs">
             <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors hover:bg-[var(--md-sys-color-surface-container-high)]">
                 <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
@@ -45,7 +48,7 @@
             </div>
         </div>
 
-        <section class="w-full flex flex-col gap-4"
+        <section class="w-full flex flex-col gap-4" wire:key="analytics-charts-{{ crc32(json_encode($jsChartData)) }}"
                  x-data="projectAnalytics(@js($jsChartData), @js($presenter->chartConfigMap()), @js($tabs), @js($presenter->drillParamMap()), {{ $activeProjectId }}, @js(route('tasks')))"
                  x-init="init()">
 
@@ -161,5 +164,6 @@
                 </div>
             @endforeach
         </section>
+        </div>
     @endif
 </div>

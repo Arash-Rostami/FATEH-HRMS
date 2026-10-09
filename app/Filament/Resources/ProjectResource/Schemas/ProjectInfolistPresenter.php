@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProjectResource\Schemas;
 use App\Models\Department;
 use App\Models\User;
 use App\Services\ProjectTask\ReportingService;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Traits\FilamentFormDivider;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Support\Enums\IconPosition;
@@ -94,7 +95,8 @@ class ProjectInfolistPresenter
                     'در حال انجام ' . convertToPersian((string) ($byStatus['in-progress'] ?? 0)),
                     'در انتظار / بازنگری ' . convertToPersian((string) ($byStatus['pending'] ?? 0)),
                     'فراتر از مهلت ' . convertToPersian((string) ($s['overdue'] ?? 0)),
-                    'در معرض ریسک ' . convertToPersian((string) ($s['at_risk'] ?? 0)),
+                    TaskMetrics::LABEL_BREACH . ' ' . convertToPersian((string) ($s['at_risk'] ?? 0)),
+                    TaskMetrics::LABEL_DUE_SOON . ' ' . convertToPersian((string) ($s['due_soon'] ?? 0)),
                 ];
 
                 return implode(' · ', $parts);

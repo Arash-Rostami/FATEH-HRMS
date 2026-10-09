@@ -17,7 +17,7 @@ class ExportTasksAction
     public function execute(int $userId): StreamedResponse
     {
         $scope = fn($q) => $q->where(fn($q2) => $q2
-            ->where('assigned_to', $userId)
+            ->ownedBy($userId)
             ->orWhere('user_id', $userId));
 
         $taskIds = Task::query()->where($scope)->pluck('id');

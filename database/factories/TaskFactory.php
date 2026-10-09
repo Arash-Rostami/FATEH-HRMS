@@ -16,7 +16,7 @@ class TaskFactory extends Factory
         return [
             'title' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
-            'status' => $this->faker->randomElement(['todo', 'in-progress', 'pending', 'done']),
+            'status' => 'todo',
             'deadline' => $this->faker->optional()->dateTimeBetween('now', '+1 month'),
             'user_id' => User::factory(),
             'assigned_to' => User::factory(),
@@ -24,6 +24,22 @@ class TaskFactory extends Factory
             'archived_at' => null,
             'project_id' => null,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Task $task) {
+            if (!$task->project_id || !$task->assigned_to) {
+                return;
+            }
+
+            $project = Project::find($task->project_id);
+            $members = $project?->member_ids ?? [];
+
+            if ($project && $task->assigned_to !== $project->owner_id && !in_array($task->assigned_to, $members)) {
+                $project->forceFill(['member_ids' => [...$members, $task->assigned_to]])->saveQuietly();
+            }
+        });
     }
 
     public function forProject(Project $project): static

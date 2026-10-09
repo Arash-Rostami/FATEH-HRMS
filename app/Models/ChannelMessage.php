@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Channel\Actions\ForceDeleteChannelMessageAction;
 use App\Models\Concerns\HasPrunableStatus;
 use App\Services\ContentSanitizerService;
 use App\Services\Messaging\PollDigestService;
+use App\Services\ProjectTask\ProjectHeartbeat;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -111,7 +112,13 @@ class ChannelMessage extends Model
     {
         static::forceDeleted(fn(self $message) => static::deleteStoredDirectory("channel_messages/{$message->channel_id}/{$message->id}"));
 
-        $bumpThread = fn(self $message) => DB::afterCommit(fn() => PollDigestService::bump("ch:tv:{$message->channel_id}"));
+        $bumpThread = fn(self $message) => DB::afterCommit(function () use ($message) {
+            PollDigestService::bump("ch:tv:{$message->channel_id}");
+
+            if ($projectId = Project::idForChannel($message->channel_id)) {
+                ProjectHeartbeat::bump($projectId, 'chat');
+            }
+        });
         static::created($bumpThread);
         static::updated($bumpThread);
         static::deleted($bumpThread);

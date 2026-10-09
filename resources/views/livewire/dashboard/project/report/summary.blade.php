@@ -2,10 +2,12 @@
 @php($percent = (int) round($s['percent']))
 <div class="flex flex-wrap items-center gap-3 justify-between rounded-2xl border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-container-low)] px-4 md:px-6 py-3 shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_8%,transparent)]">
     @if($s['total'] === 0)
-        <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هنوز وظیفه‌ای ثبت نشده</p>
-        <x-ui.decor.progress-ring :percent="0" :size="36" :stroke="4" :color="'var(--md-sys-color-on-surface-variant)'"/>
+        <div wire:key="report-summary-empty" class="contents">
+            <p class="text-xs text-[var(--md-sys-color-on-surface-variant)]">هنوز وظیفه‌ای ثبت نشده</p>
+            <x-ui.decor.progress-ring :percent="0" :size="36" :stroke="4" :color="'var(--md-sys-color-on-surface-variant)'"/>
+        </div>
     @else
-        @php($by = $s['by_status'])
+        <div wire:key="report-summary-populated" class="contents">
         @php($chips = [
             ['key' => 'todo',        'label' => 'انجام‌نشده',  'icon' => 'radio_button_unchecked', 'class' => 'bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]'],
             ['key' => 'in-progress', 'label' => 'در حال انجام', 'icon' => 'progress_activity',     'class' => 'bg-[var(--tool-sapphire-bg)] text-[var(--tool-sapphire-text)]'],
@@ -14,10 +16,10 @@
         ])
         <div class="flex items-center flex-wrap gap-2">
             @foreach($chips as $chip)
-                @php($count = (int) ($by[$chip['key']] ?? 0))
+                @php($count = (int) ($statusCounts[$chip['key']] ?? 0))
                 @php($isStatusActive = $reportStatusFilter === $chip['key'])
-                @if($count > 0)
-                    <button type="button" wire:click="setReportStatusFilter('{{ $chip['key'] }}')" aria-pressed="{{ $isStatusActive ? 'true' : 'false' }}"
+                @if($count > 0 || $isStatusActive)
+                    <button type="button" wire:key="report-status-chip-{{ $chip['key'] }}" wire:click="setReportStatusFilter('{{ $chip['key'] }}')" aria-pressed="{{ $isStatusActive ? 'true' : 'false' }}"
                             class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] {{ $chip['class'] }} hover:brightness-110 active:scale-95 transition {{ $isStatusActive ? 'ring-2 ring-[var(--md-sys-color-primary)] outline-none' : '' }}">
                         <span class="material-symbols-rounded text-[14px]">{{ $chip['icon'] }}</span>
                         <span>{{ convertToPersian($count) }}</span>
@@ -26,14 +28,14 @@
                 @endif
             @endforeach
             @if($s['overdue'] > 0)
-                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] hover:brightness-110 active:scale-95 transition">
+                <span wire:key="report-overdue-chip" class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)] hover:brightness-110 active:scale-95 transition">
                     <span class="material-symbols-rounded text-[14px]">notification_important</span>
                     <span>{{ convertToPersian((int) $s['overdue']) }}</span>
                     <span>سررسید گذشته</span>
                 </span>
             @endif
             @if($activeWorkflowCount > 0)
-                <button type="button" x-on:click="Livewire.dispatch('project-switch-tab', { tab: 'workflow' })"
+                <button type="button" wire:key="report-workflow-chip" x-on:click="Livewire.dispatch('project-switch-tab', { tab: 'workflow' })"
                         class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] bg-[var(--tool-sapphire-bg)] text-[var(--tool-sapphire-text)] hover:brightness-110 active:scale-95 transition">
                     <span class="material-symbols-rounded text-[14px]">conversion_path</span>
                     <span>{{ convertToPersian($activeWorkflowCount) }}</span>
@@ -47,6 +49,7 @@
                 <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">{{ convertToPersian($percent) }}٪</p>
                 <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]">{{ convertToPersian((int) $s['done']) }} از {{ convertToPersian((int) $s['total']) }} وظیفه</p>
             </div>
+        </div>
         </div>
     @endif
 </div>

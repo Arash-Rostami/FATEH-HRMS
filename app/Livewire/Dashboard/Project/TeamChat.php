@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard\Project;
 
 use App\Livewire\Dashboard\Channel\Actions\DownloadChannelAttachmentAction;
+use App\Livewire\Dashboard\Channel\Actions\MarkChannelReadAction;
 use App\Livewire\Dashboard\Channel\Actions\SendChannelMessageAction;
 use App\Livewire\Dashboard\Channel\Forms\ChannelMessageComposerForm;
 use App\Livewire\Dashboard\Project\Presentation\ProjectPresenter;
@@ -10,7 +11,6 @@ use App\Models\Channel;
 use App\Models\ChannelMessage;
 use App\Models\Project;
 use App\Services\ProjectTask\ChannelProvisioner;
-use App\Services\ProjectTask\ProjectHeartbeat;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -38,11 +38,23 @@ class TeamChat extends Component
         $this->activeProjectId = $activeProjectId;
         $this->activated = $initialActive;
         $this->chatComposer->fill(['body' => '', 'attachments' => [], 'replyToId' => null]);
+
+        if ($initialActive) {
+            $this->markRead();
+        }
     }
 
     public function activate(): void
     {
         $this->activated = true;
+        $this->markRead();
+    }
+
+    private function markRead(): void
+    {
+        if ($this->activeChannel) {
+            app(MarkChannelReadAction::class)->execute($this->activeChannel->id, (int) auth()->id());
+        }
     }
 
     #[Computed]
@@ -61,16 +73,22 @@ class TeamChat extends Component
     }
 
     #[Computed]
+    protected function isMember(): bool
+    {
+        return $this->channelMembersForMentions->contains('id', (int) auth()->id());
+    }
+
+    #[Computed]
     public function teamChatMessages(): array
     {
         $channel = $this->activeChannel;
-        if (!$channel) {
+        if (!$channel || !$this->isMember) {
             return ['rows' => [], 'hasMore' => false];
         }
 
         $messages = ChannelMessage::withoutTrashed()
             ->where('channel_id', $channel->id)
-            ->with(['sender:id,name,last_seen', 'sender.profile:id,user_id,image'])
+            ->with(['sender:id,name,last_seen,status', 'sender.profile:id,user_id,image', 'replyTo:id,body,sender_id', 'replyTo.sender:id,name'])
             ->latest('id')
             ->take($this->teamChatLimit + 1)
             ->get();
@@ -91,11 +109,16 @@ class TeamChat extends Component
                         'name' => $m->sender?->name ?? 'ناشناس',
                         'avatar' => $m->sender?->getProfileImageUrl(),
                         'online' => $m->sender?->isOnline() ?? false,
+                        'inactive' => $m->sender && !$m->sender->isActive(),
                     ],
-                    'reply_to_id' => null,
-                    'is_edited' => false,
-                    'deleted_at' => null,
-                    'reply_to' => null,
+                    'reply_to_id' => $m->reply_to_id,
+                    'is_edited' => (bool) $m->is_edited,
+                    'deleted_at' => $m->deleted_at?->toIso8601String(),
+                    'reply_to' => $m->replyTo ? [
+                        'id' => $m->replyTo->id,
+                        'body' => $m->replyTo->body,
+                        'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
+                    ] : null,
                     'created_at' => $m->created_at->toIso8601String(),
                 ])
                 ->all(),
@@ -123,7 +146,7 @@ class TeamChat extends Component
         }
 
         return $this->activeChannel->memberUsers()
-            ->select('users.id', 'users.name', 'users.presence')
+            ->select('users.id', 'users.name', 'users.presence', 'users.status')
             ->orderBy('users.name')
             ->get();
     }
@@ -144,6 +167,9 @@ class TeamChat extends Component
     {
         $out = [];
         foreach ($this->channelMembersForMentions as $user) {
+            if (!$user->isActive()) {
+                continue;
+            }
             $out[$user->name] = [
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
@@ -174,7 +200,7 @@ class TeamChat extends Component
 
     public function loadMentionMemberNames(): void
     {
-        $this->mentionMemberNames = array_keys($this->mentionMemberMap);
+        $this->mentionMemberNames = array_keys($this->mentionMemberPresence);
     }
 
     public function removeAttachment(int $index): void
@@ -203,13 +229,12 @@ class TeamChat extends Component
         $action->execute($this->chatComposer, $channel->id);
         $this->chatComposer->reset();
         unset($this->teamChatMessages, $this->groupedTeamChatMessages);
-
-        ProjectHeartbeat::bump($this->activeProjectId, 'chat');
     }
 
     public function refreshTeamChat(): void
     {
         unset($this->teamChatMessages, $this->groupedTeamChatMessages);
+        $this->markRead();
     }
 
     public function render(): View

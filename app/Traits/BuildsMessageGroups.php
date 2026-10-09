@@ -54,7 +54,7 @@ trait BuildsMessageGroups
                     $cursor = (int)($meta['cursor'] ?? 0);
                     if ($cursor >= (int)($msg['id'] ?? 0)) {
                         $readCount++;
-                        $readers[] = ['avatar' => $meta['avatar'] ?? null, 'name' => $meta['name'] ?? '—', 'read_at' => $meta['read_at'] ?? null];
+                        $readers[] = ['avatar' => $meta['avatar'] ?? null, 'name' => $meta['name'] ?? '—', 'read_at' => $meta['read_at'] ?? null, 'inactive' => $meta['inactive'] ?? false];
                     }
                 }
             }
@@ -80,7 +80,7 @@ trait BuildsMessageGroups
                     if ($meta === null) {
                         continue;
                     }
-                    $viewers[] = ['name' => $meta['name'] ?? '—', 'avatar' => $meta['avatar'] ?? null, 'viewed_at' => $timestamp];
+                    $viewers[] = ['name' => $meta['name'] ?? '—', 'avatar' => $meta['avatar'] ?? null, 'viewed_at' => $timestamp, 'inactive' => $meta['inactive'] ?? false];
                 }
                 if ($viewers) {
                     $attachments[$ai]['viewers'] = $viewers;
@@ -117,6 +117,7 @@ trait BuildsMessageGroups
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
                 'sender_online' => (bool) ($msg['sender']['online'] ?? false),
+                'sender_inactive' => (bool) ($msg['sender']['inactive'] ?? false),
                 'can_edit' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'attachments' => $attachments,

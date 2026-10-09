@@ -254,7 +254,10 @@ class TaskBoardPresenter
             'label' => $actionSource !== '' ? $actionSource : $actionSourceDomain,
             'source' => $actionSource,
             'domain' => $actionSourceDomain,
-        ] : null;
+        ] + (empty($task['cycle']) ? [] : [
+            'url' => route('projects', ['open' => $task['project_id'], 'tab' => 'workflow']),
+            'locked' => (bool) $task['cycle']['is_current'],
+        ]) : null;
 
         return [
             'urgency' => $urgency,

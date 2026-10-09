@@ -83,6 +83,29 @@
                         bordered="true"
                         class="mr-auto"
                     />
+
+                    @if($this->isHead)
+                        <div wire:key="ths-head-tools" class="contents">
+                            <x-ui.buttons.toggle
+                                wire:click="toggleDepartmentFilter"
+                                :checked="$listFilter === 'department'"
+                                title="تیکت‌های واحد من"
+                                name="deptFilter"
+                                bordered="true"
+                                class="mr-2"
+                            />
+                            @if($listFilter === 'department')
+                                <div wire:key="ths-status-filter" class="w-44 mr-2">
+                                    <x-ui.forms.select label="وضعیت" name="statusFilter" wire:model.live="statusFilter" icon="filter_list">
+                                        <option value="all">همه وضعیت‌ها</option>
+                                        <option value="open">باز</option>
+                                        <option value="in-progress">در حال بررسی</option>
+                                        <option value="closed">بسته‌شده</option>
+                                    </x-ui.forms.select>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                 @if($activeTab === 'log')

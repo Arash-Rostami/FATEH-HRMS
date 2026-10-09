@@ -80,9 +80,9 @@
                 @if($msg['is_last'])
                     <div class="relative flex-shrink-0 self-end mb-0.5">
                         <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']" icon="person" icon-size="text-base" />
                         </div>
-                        <x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>
+                        @unless($msg['sender_inactive'])<x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>@endunless
                     </div>
                 @else
                     <div class="flex-shrink-0 w-7" aria-hidden="true"></div>

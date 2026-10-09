@@ -45,6 +45,7 @@ class Main extends Component
     public string $listFilter = 'mine';
     public int $perPage = 10;
     public int $inboxPerPage = 10;
+    public string $statusFilter = 'all';
     public string $ticketSearch = '';
     public string $dateBasis = 'updated';
     public ?int $fromYear = null;
@@ -83,7 +84,7 @@ class Main extends Component
             return;
         }
 
-        if ($this->listFilter === 'actionable') {
+        if ($this->listFilter !== 'mine') {
             $this->inboxPerPage += 10;
         } else {
             $this->perPage += 10;
@@ -151,7 +152,7 @@ class Main extends Component
 
     public function setListFilter(string $filter): void
     {
-        if (!in_array($filter, ['mine', 'actionable'], true) || $this->listFilter === $filter) {
+        if (!in_array($filter, ['mine', 'actionable', 'department'], true) || $this->listFilter === $filter || ($filter === 'department' && !$this->isHead)) {
             return;
         }
 
@@ -165,10 +166,32 @@ class Main extends Component
         $this->setListFilter($this->listFilter === 'actionable' ? 'mine' : 'actionable');
     }
 
+    public function toggleDepartmentFilter(): void
+    {
+        $this->setListFilter($this->listFilter === 'department' ? 'mine' : 'department');
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->inboxPerPage = 10;
+    }
+
+    #[Computed]
+    public function isHead(): bool
+    {
+        $deptCode = auth()->user()->profile?->department_id;
+
+        return $deptCode && auth()->user()->isHeadOfDepartment($deptCode);
+    }
+
     #[Computed]
     public function activeTickets()
     {
-        return $this->listFilter === 'actionable' ? $this->inboxTickets : $this->tickets;
+        return match ($this->listFilter) {
+            'actionable' => $this->inboxTickets,
+            'department' => $this->departmentTickets,
+            default => $this->tickets,
+        };
     }
 
     public function mount(): void
@@ -182,6 +205,10 @@ class Main extends Component
         $this->ticketToRate = $this->unratedTicket();
 
         $this->appliedDateParts = $this->dateParts();
+
+        if ($this->listFilter === 'department' && !$this->isHead) {
+            $this->listFilter = 'mine';
+        }
 
         if ($this->ticketToRate) {
             $this->activeTab = 'rate';
@@ -284,6 +311,20 @@ class Main extends Component
     }
 
     #[Computed]
+    public function departmentTickets()
+    {
+        abort_unless($this->isHead, 403);
+
+        return Ticket::query()
+            ->with('assignee', 'requester')
+            ->withCount('replies')
+            ->targetedAt(auth()->user()->profile->department_id)
+            ->when(in_array($this->statusFilter, ['open', 'in-progress', 'closed'], true), fn($q) => $q->where('status', $this->statusFilter))
+            ->orderByDesc('created_at')
+            ->paginate($this->inboxPerPage, ['*'], 'inboxPage');
+    }
+
+    #[Computed]
     public function tickets()
     {
         return Ticket::query()
@@ -360,7 +401,7 @@ class Main extends Component
     #[On('ths-ticket-updated')]
     public function refreshSelectedTicket(): void
     {
-        unset($this->tickets, $this->inboxTickets, $this->activeTickets, $this->totalTickets);
+        unset($this->tickets, $this->inboxTickets, $this->departmentTickets, $this->activeTickets, $this->totalTickets);
 
         if ($this->selectedTicket === null) {
             return;
@@ -373,10 +414,7 @@ class Main extends Component
 
     private function unratedTicket(): ?Ticket
     {
-        return Ticket::where('requester_id', auth()->id())
-            ->where('status', 'closed')
-            ->whereNull('satisfaction_score')
-            ->first();
+        return Ticket::awaitingRatingBy(auth()->id())->first();
     }
 
     protected function recordFocusType(): string

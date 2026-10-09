@@ -81,7 +81,7 @@ class AdminPanelProvider extends PanelProvider
                 ->subNavigationPosition(SubNavigationPosition::End)
                 ->viteTheme('resources/css/core/filament.css')
                 ->databaseNotifications()
-                ->databaseNotificationsPolling('60s')
+                ->databaseNotificationsPolling(random_int(60, 75) . 's')
                 ->authMiddleware([Authenticate::class, EnsureHasPermission::class])
         );
     }

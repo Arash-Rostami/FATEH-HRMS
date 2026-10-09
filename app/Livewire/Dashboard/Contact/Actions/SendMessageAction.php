@@ -16,6 +16,8 @@ class SendMessageAction
 
     public function execute(MessageComposerForm $form, int $recipientId): Message
     {
+        abort_unless(auth()->user()?->isActive(), 403);
+
         $form->validate();
 
         User::visibleOnBoard()->findOrFail($recipientId);

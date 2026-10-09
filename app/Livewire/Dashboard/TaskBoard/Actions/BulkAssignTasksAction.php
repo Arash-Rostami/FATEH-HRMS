@@ -12,7 +12,13 @@ class BulkAssignTasksAction
     public function execute(array $taskIds, ?int $userId): int
     {
         $user = auth()->user();
-        $tasks = Task::whereIn('id', $taskIds)->get()->filter(fn(Task $task) => TaskAccessPolicy::canChangeStatus($task, $user) && !$task->ticket_id);
+        $valid = [];
+        $tasks = Task::whereIn('id', $taskIds)->with('project:id,owner_id,member_ids,departments,settings', 'detail:id,task_id,responsible_user_id')->get()
+            ->filter(function (Task $task) use ($user, $userId, &$valid) {
+                if (!TaskAccessPolicy::canReassign($task, $user, $userId) || $task->ticket_id) return false;
+
+                return !$userId || ($valid[$task->project_id ?? 0] ??= TaskAccessPolicy::assignableIds([$userId], $task->project) !== []);
+            });
 
         if ($tasks->isEmpty()) {
             return 0;

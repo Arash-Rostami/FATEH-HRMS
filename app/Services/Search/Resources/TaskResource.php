@@ -2,7 +2,6 @@
 
 namespace App\Services\Search\Resources;
 
-use App\Models\Project;
 use App\Models\Task;
 use App\Services\ProjectTask\BoardCollaboratorResolver;
 use App\Services\Search\Contracts\SearchContext;
@@ -28,13 +27,7 @@ class TaskResource extends SearchResource
 
     protected function scope(Builder $query): void
     {
-        $me = $this->me();
-
-        $query->where(fn (Builder $q) => $q
-            ->where('user_id', $me)
-            ->orWhere('assigned_to', $me)
-            ->orWhereIn('project_id', Project::visibleTo(auth()->user())->select('id'))
-        )->with('detail');
+        $query->visibleTo(auth()->user())->with('detail');
     }
 
     protected function rowsFetched($rows): void

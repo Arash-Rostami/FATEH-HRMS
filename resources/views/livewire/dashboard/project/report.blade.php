@@ -8,7 +8,7 @@
 @php($groupedReportRows = $projectPresenter->groupedReportRows($data['rows']))
 
 <div class="flex flex-col gap-4" wire:key="report-{{ $activeProjectId }}" @project-report-refresh.window="$wire.refreshReport()">
-    @include('livewire.dashboard.project.report.summary', ['summary' => $summary, 'activeWorkflowCount' => $activeWorkflowCount])
+    @include('livewire.dashboard.project.report.summary', ['summary' => $summary, 'statusCounts' => $this->reportStatusCounts, 'activeWorkflowCount' => $activeWorkflowCount])
     @include('livewire.dashboard.project.report.filters', ['options' => $options])
     @include('livewire.dashboard.project.report.scheme-progress', ['schemeProgress' => $schemeProgress])
     @include('livewire.dashboard.project.report.attachments', ['attachments' => $attachments, 'dmsPresenter' => $dmsPresenter])

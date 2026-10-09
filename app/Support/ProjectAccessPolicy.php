@@ -13,6 +13,11 @@ final class ProjectAccessPolicy
         return $user !== null && $project->isVisibleTo($user);
     }
 
+    public static function canManageTasks(Project $project, ?User $user): bool
+    {
+        return self::canManageAudience($project, $user);
+    }
+
     public static function canManageAudience(Project $project, ?User $user): bool
     {
         return $user !== null && ($project->owner_id === $user->id || Filament::getCurrentPanel()?->getId() === 'admin');

@@ -106,8 +106,10 @@
                 مدیریت اعضا
             </button>
 
-            @if((int) $header['members_count'] === 1)
-                <div>
+            @if((int) $header['members_count'] === 1 && $this->activeChannel->isProjectLinked())
+                <p wire:key="channel-info-project-linked" class="text-[11px] text-center text-[var(--md-sys-color-on-surface-variant)] opacity-80">گفتگوی پروژه است و با حذف پروژه حذف می‌شود.</p>
+            @elseif((int) $header['members_count'] === 1)
+                <div wire:key="channel-info-delete-group">
                     <div x-show="!confirmingDeleteChannel" style="display: none;">
                         <button type="button" x-on:click="confirmDeleteChannel()"
                                 class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all hover:brightness-110 active:scale-95 bg-[color-mix(in_srgb,var(--md-sys-color-error-container)_60%,transparent)] text-[var(--md-sys-color-on-error-container)]">

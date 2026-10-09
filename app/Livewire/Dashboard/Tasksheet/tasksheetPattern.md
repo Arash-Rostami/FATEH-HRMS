@@ -20,9 +20,11 @@ export, org hierarchy, notification bell) rather than inventing parallel machine
 past window — that would make a task completed-then-reopened silently vanish from a historical
 report generated today, even though it genuinely was done during that window. Instead, "completed
 in window" is derived from `TaskActivityType::StatusChange` activity rows (the latest done-event
-per task, within the window), and the completion is attributed to **the event's actor**
-(`replies.user_id`), never to the task's current `assigned_to` — so if person A closes a task and it
-is later reassigned to person B, A's historical report still shows that completion and B's does not.
+per task, within the window), and — since 2026-10-09 — the completion is credited to **the doer**:
+`ActivityLogger` stamps `payload['owner'] = assigned_to ?? user_id` on every `done` StatusChange, and
+`TasksheetService::creditedTo()` reads it, so a ticket close, a manager drag, a bulk move or a cycle
+advance credits the person who owned the work, not whoever moved the card (the former "event's actor"
+rule is gone). A done event later undone by a reopen inside the window no longer counts.
 This is the same reasoning `servicePattern.md` §4 gives for why `TasksheetService` is not just an
 extension of `ReportingService` (which is current-status-scoped by design, correct for a live board,
 wrong for a frozen-in-time window).
@@ -35,7 +37,7 @@ shape. `mount(?int $subject = null)` sets `readOnly = $subject !== null` and res
 `subjectUserId` from either the route parameter (signed share) or the `?user=` query param /
 `auth()->id()` (self or admin-entry-point). The `?user=` path is otherwise unauthenticated by
 routing/middleware, so `mount()` itself gates it: when `!$readOnly` and `subjectUserId !== auth()->id()`,
-the viewer must be `isAdmin()`, `isDeveloper()`, or the subject's `highestRankingInDepartment()` —
+the viewer must be `isAdmin()`, `isDeveloper()`, or one of `TasksheetShareService::managersFor($subject)` (his department's heads, or the parent department's heads when he is a head) —
 anything else is a 403. This does not apply to the signed-share path, which is already gated by the
 route's `signed` middleware. Two routes point at the same class:
 
@@ -87,8 +89,7 @@ The recipient-resolution and notification-send logic lives in its own class,
 ?User $requestedBy, array $windowParams)` — extracted out of `Main.php` because it has two real
 callers from day one (`Main::shareWithManager()` for the self-service picker, and the admin
 `UserResource`'s `shareTasksheet` record action), which clears `servicePattern.md` §1's promotion bar
-immediately. It resolves the recipient via `User::highestRankingInDepartment($subject->profile?->department_id)`
-(the existing `HasProfileHierarchy` trait) when no explicit `$recipient` is passed — there is no
+immediately. It resolves the recipient via `TasksheetShareService::managerFor($subject)` — the lowest-id of `managersFor()`: ALL heads of the subject's department (`User::headsOfDepartment`, ties kept), or, when the subject is himself a head, the heads of the PARENT department (`subordinate_to`) — when no explicit `$recipient` is passed — there is no
 `manager_id` field on `users`/`profiles`. This is consistent with the "no new schema for sharing"
 decision (the whole share flow rides on a Laravel signed URL, no `shares` table either). It is a
 known, accepted approximation: the highest-ranking person in a department is not guaranteed to be
@@ -133,8 +134,7 @@ established way: method early-return + the `GUARDED_WHEN_READ_ONLY` `updating()`
 
 `report()`'s top-level scorecard tiles (`completed`, `on_time_percent`, `cycle_time_days`,
 `approvals_received`, `still_overdue`, `in_progress`, `upcoming_deadline`) are scoped to tasks the
-subject **owns** (`assigned_to`, `user_id`, or listed as a `collaborators` entry on the task's
-`detail`) — never the wider candidate/touched set, which also includes tasks the subject merely
+subject **owns** (`Task::ownedBy`: assigned to him, created by him while unassigned, or listed in `collaborators` — so a delegator's sheet no longer carries the assignee's overdue/in-progress) — never the wider candidate/touched set, which also includes tasks the subject merely
 *commented on* without owning. `buildReport()` builds `$ownedSet = $ownedTaskIds->flip()` and filters
 both the events passed into `scorecardMetrics()` and the tasks passed into `taskStatusCounts()`
 through it (`baselineMetrics()` does the same for its own baseline-window scorecard). Without this,
@@ -265,3 +265,12 @@ same toggler `taskboard.blade.php`/`project.blade.php` already use between each 
 - `resources/views/livewire/dashboard/tasksheet.blade.php` — the primary view (parent level, per `viewPattern.md` §2's cardinal rule).
 - `resources/views/livewire/dashboard/tasksheet/` — its partials: `header`, `scorecard`, `highlights`, `projects-accordion`, `standalone-accordion`, `row-table`, `task-table`, `activity-accordion`, `legend`, `placeholder`.
 - `app/Traits/RiskEscalationChip.php` — the success→warning→error tone-class primitive, extracted out of `ProjectPresenter` so `TasksheetPresenter` reuses the exact same escalation logic instead of a second copy (see `traitPattern.md` §2.2).
+
+## Overhaul sync (2026-10-09)
+
+- **Credit** goes to the doer (`payload.owner`, see «Event-sourced»); approvals received count only real manager approvals in an approval-required project and only for the credited doer (no more inflated «every Done is an approval»); `still_overdue`/`in_progress` are live snapshots (`live` flag on the tiles, labeled «همین حالا») and use `TaskMetrics` rules (suspended «توقف», archived, trashed tasks are excluded).
+- **Median, not average:** the cycle tile and export label say «میانهٔ زمان انجام»; the delta column mixes units on purpose (`٪` for counts/times, « امتیاز» points for on-time %), and `baselineWindow()` is the one baseline math (previous window of the same length, ending one second before `start`).
+- **Privacy:** when the viewer is not the subject (`isRestricted`: manager share, admin) `report()`/`activityFeed()` pass through `restrict()` — comment bodies are dropped and tasks in projects the viewer cannot see are masked («وظیفهٔ محدود» / «پروژهٔ محدود», personal tasks «وظیفه شخصی»); the cache key is `tasksheet2:…`. Trashed tasks stay in history with «(حذف‌شده)».
+- **Window limits:** custom ranges cap at 365 days, an invalid custom range keeps the last good range and flags `rangeInvalid`, activity paging stops at `MAX_ACTIVITY` = 200.
+- **Access:** a privileged viewer (admin/developer) can open an inactive subject; the manager is a head of the subject's department or the parent department's head; the signed share link now lives 7 days (was 14).
+- **Project chip / highlights:** project groups carry the project id; highlights skip same-day completions for "fastest" and require at least one comment for "most collaborated".

@@ -8,6 +8,6 @@ class ForceDeleteChannelAction
 {
     public function execute(Channel $channel): bool|null
     {
-        return $channel->forceDelete();
+        return $channel->isProjectLinked() ? false : $channel->forceDelete();
     }
 }

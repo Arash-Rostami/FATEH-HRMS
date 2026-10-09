@@ -21,6 +21,7 @@ const TAB_DOMAIN = {
     projectCalendar: 'task',
     kanban: 'task',
     report: 'task',
+    analytics: 'task',
     workflow: 'task',
 };
 const TAB_REFRESH_EVENT = {
@@ -29,6 +30,7 @@ const TAB_REFRESH_EVENT = {
     projectCalendar: 'project-calendar-refresh',
     kanban: 'project-kanban-refresh',
     report: 'project-report-refresh',
+    analytics: 'project-analytics-refresh',
     workflow: 'project-workflow-refresh',
 };
 const WARMABLE_TABS = new Set(['report', 'analytics', 'projectCalendar', 'kanban', 'activity']);
@@ -260,11 +262,24 @@ export default function project() {
                 return;
             }
 
+            window.dispatchEvent(new CustomEvent('record-focus', { detail: { type: 'activity', id: Number(id) } }));
+
             const flashes = document.querySelectorAll('.' + CLASS_FLASH);
             for (let i = 0, len = flashes.length; i < len; i++) {
                 flashes[i].classList.remove(CLASS_FLASH);
             }
 
+            el.style.animation = 'none';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add(CLASS_FLASH);
+        },
+
+        scrollToMessage(id) {
+            if (!id) return;
+            const el = document.querySelector(`[data-rf="project-message-${id}"]`);
+            if (!el) return;
+
+            document.querySelectorAll('.' + CLASS_FLASH).forEach(n => n.classList.remove(CLASS_FLASH));
             el.style.animation = 'none';
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.classList.add(CLASS_FLASH);

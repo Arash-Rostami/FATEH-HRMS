@@ -310,7 +310,7 @@ class Main extends Component
                 'body' => $m->replyTo->body,
                 'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
             ] : null,
-            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false],
+            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false, 'inactive' => $m->sender && !$m->sender->isActive()],
         ])->values()->all();
     }
 
@@ -340,6 +340,7 @@ class Main extends Component
                 'name'    => $user->name ?? '—',
                 'avatar'  => $user->getProfileImageUrl(),
                 'read_at' => $user->pivot->updated_at?->toISOString(),
+                'inactive' => !$user->isActive(),
             ];
         }
 
@@ -354,7 +355,7 @@ class Main extends Component
         }
 
         return $this->activeChannel->memberUsers()
-            ->select('users.id', 'users.name', 'users.presence')
+            ->select('users.id', 'users.name', 'users.presence', 'users.status')
             ->orderBy('users.name')
             ->get();
     }
@@ -377,6 +378,7 @@ class Main extends Component
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
                 'is_online' => $user->isOnline(),
+                'inactive' => !$user->isActive(),
             ])
             ->sortByDesc('is_owner')
             ->values()
@@ -399,6 +401,9 @@ class Main extends Component
     {
         $out = [];
         foreach ($this->channelMembersForMentions as $user) {
+            if (!$user->isActive()) {
+                continue;
+            }
             $out[$user->name] = [
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
@@ -410,7 +415,7 @@ class Main extends Component
 
     public function loadMentionMemberNames(): void
     {
-        $this->mentionMemberNames = array_keys($this->mentionMemberMap);
+        $this->mentionMemberNames = array_keys($this->mentionMemberPresence);
     }
 
     #[Computed]

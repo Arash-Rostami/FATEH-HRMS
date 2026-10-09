@@ -3,11 +3,14 @@
 namespace App\Livewire\Dashboard\Ths;
 
 use App\Livewire\Dashboard\Ths\Actions\AssignTicketAction;
+use App\Livewire\Dashboard\Ths\Actions\ReleaseTicketAction;
+use App\Livewire\Dashboard\Ths\Actions\RerouteTicketAction;
 use App\Livewire\Dashboard\Ths\Actions\SetTicketEffectivenessAction;
 use App\Livewire\Dashboard\Ths\Actions\SubmitTicketReplyAction;
+use App\Livewire\Dashboard\Ths\Actions\WithdrawTicketAction;
 use App\Livewire\Dashboard\Ths\Forms\ReplyForm;
+use App\Models\Department;
 use App\Models\Ticket;
-use App\Models\User;
 use App\Support\TicketAccessPolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -23,14 +26,21 @@ class Workspace extends Component
 
     #[Locked]
     public int $ticketId;
+    #[Locked]
+    public string $seenStatus = '';
     public ReplyForm $replyForm;
     public string $assigneeId = '';
+    public string $rerouteTo = '';
 
     public function mount(int $ticketId): void
     {
         $this->ticketId = $ticketId;
 
-        abort_unless(TicketAccessPolicy::canView(Ticket::findOrFail($ticketId), auth()->user()), 403);
+        $ticket = Ticket::findOrFail($ticketId);
+
+        abort_unless(TicketAccessPolicy::canView($ticket, auth()->user()), 403);
+
+        $this->seenStatus = $ticket->status;
     }
 
     #[Computed]
@@ -42,44 +52,67 @@ class Workspace extends Component
     #[Computed]
     public function canReply(): bool
     {
-        return TicketAccessPolicy::canReply($this->ticket, auth()->user());
+        return $this->ticket && TicketAccessPolicy::canReply($this->ticket, auth()->user());
     }
 
     #[Computed]
     public function canAssign(): bool
     {
-        return TicketAccessPolicy::canAssign($this->ticket, auth()->user());
+        return $this->ticket && TicketAccessPolicy::canAssign($this->ticket, auth()->user());
     }
 
     #[Computed]
     public function canSetEffectiveness(): bool
     {
-        return TicketAccessPolicy::canSetEffectiveness($this->ticket, auth()->user());
+        return $this->ticket && TicketAccessPolicy::canSetEffectiveness($this->ticket, auth()->user());
     }
 
     #[Computed]
     public function canClose(): bool
     {
-        return TicketAccessPolicy::canClose($this->ticket, auth()->user());
+        return $this->ticket && TicketAccessPolicy::canClose($this->ticket, auth()->user());
+    }
+
+    #[Computed]
+    public function canWithdraw(): bool
+    {
+        return $this->ticket && TicketAccessPolicy::canWithdraw($this->ticket, auth()->user());
+    }
+
+    #[Computed]
+    public function canReroute(): bool
+    {
+        return $this->ticket && TicketAccessPolicy::canReroute($this->ticket, auth()->user());
+    }
+
+    #[Computed]
+    public function canRelease(): bool
+    {
+        return $this->ticket && TicketAccessPolicy::canRelease($this->ticket, auth()->user());
+    }
+
+    #[Computed]
+    public function departmentOptions(): Collection
+    {
+        return Department::getCachedOptions();
     }
 
     #[Computed]
     public function assignableUsers(): Collection
     {
-        $target = $this->ticket?->targetDepartmentId;
-
-        if (!$target) {
-            return collect();
-        }
-
-        return User::whereHas('profile', fn($q) => $q->where('department_id', $target))
+        return $this->ticket?->assignableUsers()
             ->with('profile')
             ->orderBy('name')
-            ->get(['id', 'name', 'presence']);
+            ->get(['id', 'name', 'presence']) ?? collect();
     }
 
     public function postReply(SubmitTicketReplyAction $action): void
     {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+            return;
+        }
+
         if (! $this->runGuarded(fn () => $action->execute($this->replyForm, $this->ticket, auth()->user()))) {
             return;
         }
@@ -103,18 +136,32 @@ class Workspace extends Component
             return;
         }
 
-        if (! $this->runGuarded(fn () => $action->execute($this->ticket, (int)$this->assigneeId, auth()->user()))) {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+            return;
+        }
+
+        if (! $this->runGuarded(fn () => $action->execute($this->ticket, (int)$this->assigneeId, auth()->user(), $this->seenStatus))) {
+            unset($this->ticket);
+            $this->seenStatus = $this->ticket?->status ?? '';
+            $this->dispatch('ths-ticket-updated');
             return;
         }
 
         $this->assigneeId = '';
         unset($this->ticket);
+        $this->seenStatus = $this->ticket->status;
         $this->dispatch('toast', message: 'تیکت با موفقیت تخصیص داده شد.', type: 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
     public function setEffectiveness(SetTicketEffectivenessAction $action, string $score): void
     {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+            return;
+        }
+
         if (! $this->runGuarded(fn () => $action->execute($this->ticket, $score, auth()->user()))) {
             return;
         }
@@ -126,21 +173,55 @@ class Workspace extends Component
 
     public function closeTicket(AssignTicketAction $action): void
     {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+            return;
+        }
+
         if (blank($this->ticket->effectiveness)) {
             $this->dispatch('toast', message: 'برای بستن تیکت ابتدا اثربخشی را ثبت کنید.', type: 'error');
             return;
         }
 
-        if (! $this->runGuarded(function () use ($action) {
-            abort_unless(TicketAccessPolicy::canClose($this->ticket, auth()->user()), 403);
-            $this->ticket->update(['status' => 'closed']);
-            $action->markLinkedTaskDone($this->ticket);
-        })) {
+        if (! $this->runGuarded(fn () => $action->close($this->ticket, auth()->user()))) {
             return;
         }
 
         unset($this->ticket);
         $this->dispatch('toast', message: 'تیکت با موفقیت بسته شد.', type: 'success');
+        $this->dispatch('ths-ticket-updated');
+    }
+
+    public function withdrawTicket(WithdrawTicketAction $action): void
+    {
+        $this->finishAction(fn () => $action->execute($this->ticket, auth()->user()), 'درخواست شما لغو شد.');
+    }
+
+    public function releaseTicket(ReleaseTicketAction $action): void
+    {
+        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, auth()->user()), 'تیکت به صف بازگردانده شد.');
+    }
+
+    public function rerouteTicket(RerouteTicketAction $action): void
+    {
+        $this->finishAction(fn () => $action->execute($this->replyForm, $this->ticket, $this->rerouteTo, auth()->user()), 'تیکت ارجاع داده شد.');
+    }
+
+    private function finishAction(callable $fn, string $message): void
+    {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+            return;
+        }
+
+        if (! $this->runGuarded($fn)) {
+            return;
+        }
+
+        $this->replyForm->reset();
+        $this->rerouteTo = '';
+        unset($this->ticket);
+        $this->dispatch('toast', message: $message, type: 'success');
         $this->dispatch('ths-ticket-updated');
     }
 
@@ -160,6 +241,10 @@ class Workspace extends Component
 
     public function render()
     {
+        if (! $this->ticket) {
+            $this->dispatch('ths-ticket-updated');
+        }
+
         return view('livewire.dashboard.ths.workspace');
     }
 }

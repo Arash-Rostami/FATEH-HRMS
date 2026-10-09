@@ -11,8 +11,10 @@ use App\Services\ProjectTask\DeleteReplyAction;
 use App\Services\ProjectTask\MentionResolver;
 use App\Services\ProjectTask\SaveEditReplyAction;
 use App\Services\ProjectTask\ToggleReplyReactionAction;
+use App\Support\ProjectAccessPolicy;
 use App\Traits\HasProjectMembers;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
@@ -92,7 +94,7 @@ class Activity extends Component
         $entries = $logger->feedFor($project)
             ->with([
                 'user.profile:id,user_id,image',
-                'repliable' => fn($morphTo) => $morphTo->morphWith([Task::class => ['detail:id,task_id,checklist']]),
+                'repliable' => fn($morphTo) => $morphTo->morphWith([Task::class => ['detail:id,task_id,checklist,state']]),
             ])
             ->reorder()
             ->orderByDesc('created_at')
@@ -135,6 +137,8 @@ class Activity extends Component
                         'can_modify' => $canModify,
                         'is_edited' => !empty(($reply->payload ?? [])['edited_at'] ?? null),
                         'task_progress' => $task && !empty($task->detail?->checklist) ? $task->progress_percent : null,
+                        'task_id' => $task?->id,
+                        'task_title' => $task?->title,
                     ];
                 })
                 ->all(),
@@ -155,9 +159,51 @@ class Activity extends Component
                     ? 'امروز'
                     : (Carbon::parse($date)->isYesterday() ? 'دیروز' : toJalali($date, 'j F Y')),
                 'entries' => $group->values()->all(),
+                'blocks' => $this->clusterTaskComments($group->values()->all()),
             ])
             ->values()
             ->all();
+    }
+
+    private function clusterTaskComments(array $entries): array
+    {
+        $blocks = [];
+
+        foreach ($entries as $entry) {
+            $last = array_key_last($blocks);
+            $taskId = $entry['type'] === 'comment' ? $entry['task_id'] : null;
+
+            if ($taskId !== null && $last !== null && $blocks[$last]['task_id'] === $taskId) {
+                $blocks[$last]['entries'][] = $entry;
+                continue;
+            }
+
+            $blocks[] = ['task_id' => $taskId, 'entries' => [$entry]];
+        }
+
+        return array_map(function (array $block) {
+            if (count($block['entries']) < 2) {
+                return $block;
+            }
+
+            $latest = end($block['entries']);
+
+            return $block + [
+                'task_title' => $latest['task_title'],
+                'count' => count($block['entries']),
+                'latest_author' => $latest['user_name'],
+                'latest_snippet' => Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $latest['body'])), 80),
+                'latest_at' => $latest['created_at'],
+            ];
+        }, $blocks);
+    }
+
+    #[Computed]
+    public function canPost(): bool
+    {
+        $project = $this->activeProject;
+
+        return $project && ProjectAccessPolicy::canManageTasks($project, auth()->user());
     }
 
     public function loadOlderActivity(): void
@@ -270,6 +316,8 @@ class Activity extends Component
         if (!$project) {
             return;
         }
+
+        abort_unless(ProjectAccessPolicy::canManageTasks($project, auth()->user()), 403);
 
         $this->activityComposer->validate();
         app(ActivityLogger::class)->comment($project, auth()->user(), $this->activityComposer->body, $this->activityComposer->files);

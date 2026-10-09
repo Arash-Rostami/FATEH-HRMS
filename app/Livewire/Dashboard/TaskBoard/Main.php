@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\TaskBoard\Actions\AssignTaskAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkAssignTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkDeleteTasksAction;
 use App\Livewire\Dashboard\TaskBoard\Actions\BulkMoveTasksAction;
+use App\Services\ProjectTask\CycleLinkResolver;
 use App\Services\ProjectTask\CyclePriorityAction;
 use App\Services\ProjectTask\LastTouchResolver;
 use App\Livewire\Dashboard\TaskBoard\Actions\DeleteTaskAction;
@@ -21,6 +22,7 @@ use App\Livewire\Dashboard\TaskBoard\Presentation\TaskBoardPresenter;
 use App\Models\Task;
 use App\Models\TaskDetail;
 use App\Services\ProjectTask\ReportingService;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Support\TaskAccessPolicy;
 use App\Traits\FocusOnRecord;
 use App\Traits\ManagesTaskModal;
@@ -128,32 +130,37 @@ class Main extends Component
 
     public function bulkAssign(BulkAssignTasksAction $action, ?int $userId): void
     {
-        $action->execute($this->selectedTasks, $userId);
-        $this->selectedTasks = [];
-        $this->loadTasks();
-        $this->dispatch('toast', message: 'وظایف انتخاب‌شده با موفقیت ارجاع داده شدند.', type: 'success');
+        $total = count($this->selectedTasks);
+        $this->bulkToast($action->execute($this->selectedTasks, $userId), $total, 'ارجاع داده شد');
     }
 
     public function bulkDelete(BulkDeleteTasksAction $action): void
     {
-        $action->execute($this->selectedTasks);
-        $this->selectedTasks = [];
-        $this->loadTasks();
-        $this->dispatch('toast', message: 'وظایف انتخاب‌شده با موفقیت حذف شدند.', type: 'success');
+        $total = count($this->selectedTasks);
+        $this->bulkToast($action->execute($this->selectedTasks), $total, 'حذف شد');
     }
 
     public function bulkMoveStatus(BulkMoveTasksAction $action, string $status): void
     {
+        $total = count($this->selectedTasks);
         $result = $action->execute($this->selectedTasks, $status);
+        $this->bulkToast($result['moved'], $total, 'منتقل شد', $result['skipped']);
+    }
+
+    private function bulkToast(int $count, int $total, string $verb, int $noState = 0): void
+    {
         $this->selectedTasks = [];
         $this->loadTasks();
 
-        if ($result['skipped'] > 0) {
-            $this->dispatch('toast', message: convertToPersian($result['skipped']) . ' وظیفه رد شد — تعیین تکلیف مشخص نشده.', type: 'error');
-            return;
+        $message = $count > 0
+            ? convertToPersian($count) . ' از ' . convertToPersian($total) . ' وظیفه ' . $verb . '.'
+            : 'هیچ وظیفه‌ای تغییر نکرد.';
+
+        if ($noState > 0) {
+            $message .= ' ' . convertToPersian($noState) . ' مورد بدون تعیین تکلیف.';
         }
 
-        $this->dispatch('toast', message: 'وظایف انتخاب‌شده با موفقیت منتقل شدند.', type: 'success');
+        $this->dispatch('toast', message: $message, type: $count > 0 && $noState === 0 ? 'success' : 'error');
     }
 
     public function cyclePriority(CyclePriorityAction $action, int $taskId): void
@@ -213,7 +220,10 @@ class Main extends Component
 
     public function deleteTask(DeleteTaskAction $action, int $taskId): void
     {
-        if (!$action->execute($taskId)) return;
+        if (!$action->execute($taskId)) {
+            $this->refuseIfCycleLocked(Task::find($taskId));
+            return;
+        }
 
         $this->loadTasks();
         $this->dispatch('toast', message: 'وظیفه با موفقیت حذف شد.', type: 'success');
@@ -242,7 +252,7 @@ class Main extends Component
     {
         $userId = auth()->id();
 
-        return fn(Builder $q) => $q->where('assigned_to', $userId)->orWhere('user_id', $userId);
+        return fn(Builder $q) => $q->where(fn(Builder $w) => $w->ownedBy($userId)->orWhere('user_id', $userId));
     }
 
     #[Computed]
@@ -300,7 +310,7 @@ class Main extends Component
 
         $doneQuery = (clone $baseQuery)->where('status', TaskStatus::Done->value)->tap($archivedScope);
 
-        $this->archivedCount = (clone $baseQuery)->where('status', TaskStatus::Done->value)->whereNotNull('archived_at')->count();
+        $this->archivedCount = $this->tabQuery()->where('status', TaskStatus::Done->value)->whereNotNull('archived_at')->count();
 
         if ($doneWindow === null) {
             $count = $doneQuery->count();
@@ -347,9 +357,10 @@ class Main extends Component
 
         $collaboratorLookup = $this->collaboratorLookup($allTasks);
         $lastTouchLookup = app(LastTouchResolver::class)->resolve($allTasks->pluck('id')->all());
+        $cycleLookup = app(CycleLinkResolver::class)->prime($allTasks);
 
         foreach ($this->columns as $column) {
-            $this->tasks[$column] = $columnResults[$column]->map(function (Task $task) use ($collaboratorLookup, $lastTouchLookup) {
+            $this->tasks[$column] = $columnResults[$column]->map(function (Task $task) use ($collaboratorLookup, $lastTouchLookup, $cycleLookup) {
                 $data = $task->toArray();
 
                 if ($data['detail'] !== null) {
@@ -360,6 +371,7 @@ class Main extends Component
                 }
 
                 $data['last_touched'] = $lastTouchLookup[$task->id] ?? null;
+                $data['cycle'] = $cycleLookup[$task->id] ?? null;
 
                 return $data;
             })->all();
@@ -401,18 +413,23 @@ class Main extends Component
             ->section('content');
     }
 
-    public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null): void
+    public function reorderTask(ReorderTaskAction $action, int $taskId, ?int $beforeTaskId, ?string $targetStatus = null, ?string $version = null): void
     {
-        $task = Task::query()->forUser(auth()->id())->with('detail:id,task_id,state')->find($taskId);
+        $task = Task::query()->visibleTo(auth()->user())->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task) return;
 
-        if ($targetStatus === TaskStatus::Done->value && empty($task->detail?->state)) {
-            $this->dispatch('toast', message: 'برای انتقال به «انجام‌شده» ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+        if ($version !== null && $task->version !== $version) {
+            $this->loadTasks();
+            $this->dispatch('toast', message: 'این وظیفه تغییر کرده است؛ صفحه به‌روزرسانی شد.', type: 'error');
             return;
         }
 
-        $action->execute($task, $beforeTaskId, $targetStatus);
+        if (!$action->execute($task, $beforeTaskId, $targetStatus)) {
+            $this->dispatch('toast', message: 'برای جابه‌جایی ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
+            return;
+        }
+
         $this->loadTasks();
     }
 
@@ -429,7 +446,7 @@ class Main extends Component
 
     public function switchTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        $this->activeTab = $tab === 'assigned-tasks' ? $tab : 'my-tasks';
         $this->page = array_fill_keys($this->columns, 1);
         $this->showAllDone = false;
         $this->showArchived = false;
@@ -483,14 +500,20 @@ class Main extends Component
         }
     }
 
-    public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn): void
+    public function updateTaskStatus(UpdateTaskStatusAction $action, int $taskId, string $newColumn, ?string $version = null): void
     {
         if ($newColumn === TaskStatus::Done->value && empty(TaskDetail::where('task_id', $taskId)->value('state'))) {
             $this->dispatch('toast', message: 'برای انتقال به «انجام‌شده» ابتدا تعیین تکلیف را مشخص کنید.', type: 'error');
             return;
         }
 
-        if ($action->execute($taskId, $newColumn)) $this->loadTasks();
+        $moved = $action->execute($taskId, $newColumn, $version);
+
+        if ($moved === null) {
+            $this->dispatch('toast', message: 'این وظیفه تغییر کرده است؛ صفحه به‌روزرسانی شد.', type: 'error');
+        }
+
+        if ($moved !== false) $this->loadTasks();
     }
 
     public function updatedLabelFilter(): void
@@ -601,7 +624,7 @@ class Main extends Component
     private function deadlineFilterScope(?string $filter = null): callable
     {
         return match ($filter ?? $this->deadlineFilter) {
-            'overdue' => fn(Builder $q) => $q->where('deadline', '<', now()->startOfDay()),
+            'overdue' => fn(Builder $q) => TaskMetrics::overdue($q),
             'today' => fn(Builder $q) => $q->whereDate('deadline', now()->toDateString()),
             'week' => fn(Builder $q) => $q->whereBetween('deadline', [
                 now()->startOfWeek(Carbon::SATURDAY),
@@ -622,10 +645,21 @@ class Main extends Component
         return fn(Builder $query) => $query->where('updated_at', '>=', $threshold);
     }
 
-    private function scopedQuery(bool $withDeadlineFilter = true): Builder
+    private function tabQuery(): Builder
     {
         $userId = auth()->id();
 
+        return Task::query()
+            ->when($this->activeTab !== 'assigned-tasks', fn($q) => $q->ownedBy($userId))
+            ->when($this->activeTab === 'assigned-tasks', fn($q) => $q
+                ->where('user_id', $userId)
+                ->whereNotNull('assigned_to')
+                ->where('assigned_to', '!=', $userId)
+            );
+    }
+
+    private function scopedQuery(bool $withDeadlineFilter = true): Builder
+    {
         if ($this->open) {
             $focusedTask = Task::with('detail')->find($this->open);
             $visible = $focusedTask && TaskAccessPolicy::canView($focusedTask, auth()->user());
@@ -633,16 +667,7 @@ class Main extends Component
             return Task::query()->where('id', $visible ? $this->open : 0);
         }
 
-        return Task::query()
-            ->when($this->activeTab === 'my-tasks', fn($q) => $q->where(fn($sub) => $sub
-                ->where('assigned_to', $userId)
-                ->orWhere(fn($sub2) => $sub2->where('user_id', $userId)->whereNull('assigned_to'))
-            ))
-            ->when($this->activeTab === 'assigned-tasks', fn($q) => $q
-                ->where('user_id', $userId)
-                ->whereNotNull('assigned_to')
-                ->where('assigned_to', '!=', $userId)
-            )
+        return $this->tabQuery()
             ->when($this->search !== '', fn($q) => $q->where(fn($sub) => $sub
                 ->where('title', 'like', "%{$this->search}%")
                 ->orWhere('description', 'like', "%{$this->search}%")

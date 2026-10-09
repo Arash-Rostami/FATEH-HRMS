@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\TaskBoard\Actions;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Task;
 use App\Services\Menu\StateService;
+use App\Services\ProjectTask\RankGenerator;
 use App\Support\TaskAccessPolicy;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,13 @@ class BulkMoveTasksAction
         }
 
         $user = auth()->user();
-        $tasks = Task::whereIn('id', $taskIds)->with(['detail:id,task_id,state', 'project:id,settings,owner_id'])->get()->filter(fn(Task $task) => TaskAccessPolicy::canChangeStatus($task, $user));
+        $tasks = Task::whereIn('id', $taskIds)
+            ->whereNull('archived_at')
+            ->whereNull('ticket_id')
+            ->where('status', '!=', $status)
+            ->with(['detail:id,task_id,state,collaborators,responsible_user_id', 'project:id,settings,owner_id'])
+            ->get()
+            ->filter(fn(Task $task) => TaskAccessPolicy::canChangeStatus($task, $user));
 
         $skipped = 0;
         if ($status === TaskStatus::Done->value) {
@@ -29,14 +36,18 @@ class BulkMoveTasksAction
             return ['moved' => 0, 'skipped' => $skipped];
         }
 
-        $payload = ['status' => $status];
-        if ($status !== TaskStatus::Done->value) {
-            $payload['archived_at'] = null;
-        }
+        DB::transaction(function () use ($tasks, $status) {
+            $ranks = [];
 
-        DB::transaction(function () use ($tasks, $payload) {
             foreach ($tasks as $task) {
-                $task->update($payload);
+                $ownerId = $task->assigned_to ?? $task->user_id;
+                $key = $task->project_id ?: 'u' . $ownerId;
+
+                $ranks[$key] = isset($ranks[$key])
+                    ? RankGenerator::between(null, $ranks[$key])
+                    : Task::nextRank($task->project_id, $ownerId, $status);
+
+                $task->update(['status' => $status, 'rank' => $ranks[$key]]);
             }
         });
 

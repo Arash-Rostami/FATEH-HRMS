@@ -7,6 +7,7 @@ use App\Filament\Resources\ProjectResource\RelationManagers\TasksRelationManager
 use App\Filament\Resources\ProjectResource\RelationManagers\WorkflowsRelationManager;
 use App\Filament\Resources\ProjectResource\Schemas\{ProjectFormPresenter, ProjectInfolistPresenter, ProjectTablePresenter};
 use App\Models\Project;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Traits\AuthorizesByPermission;
 use App\Traits\FilamentActions;
 use App\Traits\FilamentAdminGuide;
@@ -80,9 +81,7 @@ class ProjectResource extends Resource
             ->withoutGlobalScope(SoftDeletingScope::class)
             ->with(['owner', 'channel'])
             ->withCount('tasks')
-            ->withCount(['tasks as overdue_tasks_count' => fn(Builder $query) => $query
-                ->whereNotIn('status', ['done'])
-                ->where('deadline', '<', now())])
+            ->withCount(['tasks as overdue_tasks_count' => fn(Builder $query) => TaskMetrics::overdue($query)])
             ->withCount(['tasks as done_tasks_count' => fn(Builder $query) => $query
                 ->where('status', 'done')]);
     }

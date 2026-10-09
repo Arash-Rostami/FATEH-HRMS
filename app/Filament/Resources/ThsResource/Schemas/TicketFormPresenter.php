@@ -51,14 +51,17 @@ class TicketFormPresenter
     {
         return Select::make('assigned_to')
             ->label(__('resources/ths/strings.fields.assignee'))
-            ->options(function (Get $get): array {
-                $dept = $get('extra.target_department');
-                return $dept
-                    ? User::getCachedDepartmentOptions($dept)->toArray()
-                    : User::getCachedAllOptions()->toArray();
+            ->options(function (Get $get, $record): array {
+                $dept = $get('extra.target_department') ?: Ticket::defaultTargetDepartment();
+                $options = $dept ? User::getCachedDepartmentOptions($dept)->toArray() : [];
+
+                return $record?->assigned_to && !isset($options[$record->assigned_to])
+                    ? $options + [$record->assigned_to => $record->assignee?->name]
+                    : $options;
             })
             ->searchable()
             ->live()
+            ->required(fn(Get $get): bool => in_array($get('status'), [TicketStatus::InProgress, TicketStatus::InProgress->value], false))
             ->afterStateUpdated(function (?int $state, callable $set, callable $get) {
                 $currentValue = $get('status')?->value;
 
@@ -70,7 +73,6 @@ class TicketFormPresenter
                     $set('status', TicketStatus::InProgress->value);
                 }
             })
-            ->nullable()
             ->helperText(__('resources/ths/strings.hints.assigned_to'));
     }
 
@@ -107,6 +109,7 @@ class TicketFormPresenter
             label: __('resources/ths/strings.fields.deadline_date'),
             required: false,
             yearFrom: 1400,
+            yearTo: 1500,
             fullWidth: false,
         )
             ->helperText(__('resources/ths/strings.hints.completion_deadline_date'));
@@ -240,7 +243,7 @@ class TicketFormPresenter
     {
         return Select::make('requester_id')
             ->label(__('resources/ths/strings.fields.requester'))
-            ->relationship('requester', 'name')
+            ->relationship('requester', 'name', fn($query) => $query->visibleOnBoard())
             ->searchable()
             ->preload()
             ->required()
@@ -270,6 +273,7 @@ class TicketFormPresenter
             ->options(TicketStatus::class)
             ->required()
             ->default(TicketStatus::Open->value)
+            ->disabled(fn($record) => $record?->status === 'closed')
             ->helperText(function ($record) {
                 $completionDate = data_get($record, 'completion_date');
                 return filled($completionDate) ? (toJalali($completionDate, 'H:i Y/m/d ')) . '✅' : '';
@@ -277,6 +281,10 @@ class TicketFormPresenter
             ->live()
             ->afterStateUpdated(function (mixed $state, callable $set) {
                 $set('completion_date', $state?->value === 'closed' ? now()->format('Y-m-d H:i:s') : null);
+
+                if ($state?->value === 'open') {
+                    $set('assigned_to', null);
+                }
             });
     }
 

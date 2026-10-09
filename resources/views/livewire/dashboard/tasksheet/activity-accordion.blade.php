@@ -26,7 +26,14 @@
                                 <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)]">{{ $item['label'] }}</span>
                                 @if($item['task_title'])
                                     <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-70">·</span>
-                                    <a href="{{ route('tasks', ['open' => $item['task_id']]) }}" wire:navigate class="text-[10px] text-[var(--md-sys-color-primary)] hover:underline" dir="auto">{{ superClean($item['task_title']) }}</a>
+                                    @if($item['masked'])
+                                        <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)]" dir="auto">{{ $item['task_title'] }}</span>
+                                    @else
+                                        <a href="{{ route('tasks', ['open' => $item['task_id']]) }}" wire:navigate class="text-[10px] text-[var(--md-sys-color-primary)] hover:underline" dir="auto">{{ superClean($item['task_title']) }}</a>
+                                    @endif
+                                    @if($item['task_trashed'])
+                                        <x-ui.badge variant="danger" class="!px-1.5 !py-0.5 !text-[9px]">حذف‌شده</x-ui.badge>
+                                    @endif
                                 @endif
                             </div>
                             @if($item['body'])

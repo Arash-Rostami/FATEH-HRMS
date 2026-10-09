@@ -524,7 +524,9 @@ export default function menu(options = {}) {
                         resourceType: item.resourceType,
                         action: item.action,
                         disabled: !!item.resourceType && disabledTypes.has(item.resourceType),
-                        hasNotification: !!menuState[item.id],
+                        get hasNotification() {
+                            return globalThis.Alpine?.store('menuBadges')?.on(item.id, menuState[item.id]) ?? !!menuState[item.id];
+                        },
                         _searchKey: (title + ' ' + sub + ' ' + mod).toLowerCase()
                     };
 

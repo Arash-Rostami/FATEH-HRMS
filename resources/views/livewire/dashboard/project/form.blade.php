@@ -48,18 +48,35 @@
         @enderror
 
         <div x-show="tab === 'details'" class="space-y-5">
-            <x-ui.forms.input label="نام پروژه" name="projectForm.name" wire:model="projectForm.name" icon="workspaces"/>
+            <x-ui.forms.input label="نام پروژه" name="projectForm.name" wire:model.live.debounce.600ms="projectForm.name" icon="workspaces"/>
+            @if($this->hasDuplicateName)
+                <p wire:key="project-form-duplicate-name" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">پروژه‌ای با این نام دارید؛ می‌توانید ادامه دهید.</p>
+            @endif
 
             <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">اعضا</label>
 
             <x-dashboard.member-picker wire:key="project-form-members-candidates" model="projectForm.memberIds" :candidates="$this->memberCandidates" height="h-72"/>
             @error('projectForm.memberIds') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+            @unless($isEditing)
+                <p wire:key="project-form-members-hint" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">شما مدیر پروژه هستید و خودکار عضو گفتگوی پروژه می‌شوید.</p>
+            @endunless
+
+            @if($isEditing)
+                <div wire:key="project-form-owner" class="space-y-2">
+                    <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">مالک پروژه</label>
+                    <x-dashboard.member-picker model="projectForm.ownerId" mode="single" :candidates="$this->ownerCandidates" :search="false" height="h-40"/>
+                    @error('projectForm.ownerId') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+                </div>
+            @endif
 
             <x-ui.forms.select label="دپارتمان‌های ذی‌نفع" name="projectForm.departments" wire:model="projectForm.departments" icon="corporate_fare" multiple class="min-h-[160px]">
                 @foreach($this->availableDepartments as $code => $label)
                     <option value="{{ $code }}">{{ $label }}</option>
                 @endforeach
             </x-ui.forms.select>
+            @unless($isEditing)
+                <p wire:key="project-form-departments-hint" class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">همهٔ اعضای دپارتمان‌های انتخاب‌شده، پروژه و گفتگو را می‌بینند.</p>
+            @endunless
         </div>
 
         <div x-show="tab === 'settings'" class="space-y-5">
@@ -70,6 +87,28 @@
             @error('projectForm.requiresApproval') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
 
             <x-ui.forms.input label="سقف ساعت SLA" name="projectForm.slaHours" wire:model="projectForm.slaHours" icon="schedule" type="number"/>
+
+            <x-ui.forms.input label="آرشیو خودکار پس از (روز) · پیش‌فرض ۴۵" name="projectForm.autoArchiveDays" wire:model="projectForm.autoArchiveDays" icon="inventory_2" type="number"/>
+
+            <div class="space-y-2" x-data="{ items: @entangle('projectForm.labels'), draft: '', add() { const v = this.draft.trim(); this.draft = ''; if (v && !this.items.includes(v) && this.items.length < 30) this.items = [...this.items, v]; } }">
+                <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">برچسب‌های مجاز وظایف</label>
+                <input type="text" x-model="draft" @keydown.enter.prevent="add()" @blur="add()" maxlength="30"
+                       placeholder="برچسب را بنویسید و Enter بزنید…"
+                       class="w-full rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-lowest)] px-3 py-2 text-sm text-[var(--md-sys-color-on-surface)] placeholder-[var(--md-sys-color-outline)] outline-none focus:border-[var(--md-sys-color-primary)]"/>
+                <div class="flex flex-wrap gap-2" x-show="items.length">
+                    <template x-for="(item, i) in items" :key="item">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-container-high)] text-[var(--md-sys-color-on-surface)] border border-[var(--md-sys-color-outline-variant)]/40">
+                            <span x-text="item"></span>
+                            <button type="button" @click="items = items.filter((_, n) => n !== i)" aria-label="حذف"
+                                    class="w-4 h-4 flex items-center justify-center rounded-md hover:bg-[var(--md-sys-color-error-container)] hover:text-[var(--md-sys-color-error)] transition-colors">
+                                <span class="material-symbols-rounded text-[13px]">close</span>
+                            </button>
+                        </span>
+                    </template>
+                </div>
+                <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">اگر پر باشد، وظایف فقط از میان این برچسب‌ها انتخاب می‌کنند.</p>
+                @error('projectForm.labels') <p class="{{ $errorClass }}">{{ $message }}</p> @enderror
+            </div>
 
             <x-ui.forms.date
                 label="مهلت پروژه (سقف مهلت وظایف)"
@@ -114,7 +153,7 @@
             <div class="space-y-2">
                 <label class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-2 block">تنظیمات دیگر</label>
                 <p class="text-[11px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)]">
-                    هر کلید و مقدار دلخواهی که در گزینه‌های بالا نمی‌گنجد را اینجا اضافه کنید.
+                    هر کلید و مقدار دلخواهی که در گزینه‌های بالا نمی‌گنجد را اینجا اضافه کنید. کلیدهای آماده: escalation_days (ارجاع تأخیر به جوابگو، روز) و due_soon_hours (هشدار نزدیک سررسید، ساعت).
                 </p>
 
                 @foreach($projectForm->extraSettings as $i => $row)

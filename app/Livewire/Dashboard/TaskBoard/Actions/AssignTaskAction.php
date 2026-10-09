@@ -3,9 +3,8 @@
 namespace App\Livewire\Dashboard\TaskBoard\Actions;
 
 use App\Models\Task;
-use App\Models\User;
 use App\Support\TaskAccessPolicy;
-use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 
 class AssignTaskAction
 {
@@ -13,19 +12,15 @@ class AssignTaskAction
     {
         $task = Task::find($taskId);
 
-        if (!$task || !TaskAccessPolicy::canChangeStatus($task, auth()->user()) || $task->ticket_id) {
+        if (!$task || !TaskAccessPolicy::canReassign($task, auth()->user(), $userId) || $task->ticket_id) {
             return null;
         }
 
-        $task->update(['assigned_to' => $userId]);
-
-        if ($userId && $userId !== auth()->id() && $assignee = User::find($userId)) {
-            Notification::make()
-                ->title('وظیفه جدید به شما محول شد')
-                ->body("وظیفه «{$task->title}» توسط " . auth()->user()->name . " به شما ارجاع شد.")
-                ->success()
-                ->sendToDatabase($assignee);
+        if ($userId && TaskAccessPolicy::assignableIds([$userId], $task->project) === []) {
+            return null;
         }
+
+        DB::transaction(fn() => $task->update(['assigned_to' => $userId]));
 
         return $task;
     }

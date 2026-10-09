@@ -66,6 +66,12 @@ class Workflow extends Component
     }
 
     #[Computed]
+    public function ownerName(): ?string
+    {
+        return $this->project ? User::whereKey($this->project->owner_id)->value('name') : null;
+    }
+
+    #[Computed]
     public function isOwner(): bool
     {
         return $this->project && ProjectAccessPolicy::canManageAudience($this->project, auth()->user());
@@ -101,14 +107,22 @@ class Workflow extends Component
     #[Computed]
     public function templates(): Collection
     {
-        return WorkflowModel::templates()->where('owner_id', auth()->id())->get(['id', 'name']);
+        $templates = WorkflowModel::templates()->where('owner_id', auth()->id())->get(['id', 'name']);
+        $averages = WorkflowModel::averageDays($templates->pluck('id'));
+
+        return $templates->each(fn(WorkflowModel $template) => $template->avg_days = $averages[$template->id] ?? null);
+    }
+
+    #[Computed]
+    public function templateAverages(): array
+    {
+        return WorkflowModel::averageDays($this->activeWorkflows->pluck('template_id'));
     }
 
     #[Computed]
     public function memberCandidates(): array
     {
-        return User::getCachedActiveOptions()
-            ->except(auth()->id())
+        return collect($this->project?->charter()->rosterOptions() ?? [])
             ->map(fn ($name, $id) => ['id' => (int) $id, 'name' => $name])
             ->values()
             ->all();
@@ -175,7 +189,7 @@ class Workflow extends Component
 
     private function findWorkflow(int $id): ?WorkflowModel
     {
-        return WorkflowModel::forProject($this->activeProjectId)->find($id);
+        return $this->project ? WorkflowModel::forProject($this->activeProjectId)->find($id) : null;
     }
 
     private function firstError(ValidationException $e): string
@@ -251,7 +265,15 @@ class Workflow extends Component
         }
 
         unset($this->steps[$index]);
-        $this->steps = array_values($this->steps);
+        $this->steps = array_map(function (array $step) use ($index) {
+            $to = $step['reject_to_step'] ?? null;
+
+            if ($to !== null && $to !== '') {
+                $step['reject_to_step'] = (int) $to === $index ? null : ((int) $to > $index ? (int) $to - 1 : (int) $to);
+            }
+
+            return $step;
+        }, array_values($this->steps));
 
         unset($this->stepKeys[$index]);
         $this->stepKeys = array_values($this->stepKeys);
@@ -264,12 +286,16 @@ class Workflow extends Component
             return;
         }
 
-        $action->execute(
-            $project,
-            $this->normalizedSteps(),
-            $this->workflowName,
-            $this->editingWorkflowId ? $this->findWorkflow($this->editingWorkflowId) : null
-        );
+        $editing = $this->editingWorkflowId ? $this->findWorkflow($this->editingWorkflowId) : null;
+
+        if ($this->editingWorkflowId && !$editing?->isDraft()) {
+            $this->isEditorOpen = false;
+            $this->resetEditor();
+            $this->dispatch('toast', message: 'این چرخه تغییر کرده است؛ دوباره باز کنید.', type: 'error');
+            return;
+        }
+
+        $action->execute($project, $this->normalizedSteps(), $this->workflowName, $editing);
 
         $this->isEditorOpen = false;
         $this->resetEditor();
@@ -295,6 +321,8 @@ class Workflow extends Component
 
     public function advanceStep(AdvanceWorkflowStepAction $action, int $workflowId, int $expectedStep, bool $approved = true): void
     {
+        abort_unless($this->project, 403);
+
         $advanced = $action->execute($workflowId, (int) auth()->id(), $expectedStep, $approved, false, $this->stepNotes[$workflowId] ?? null);
 
         if ($advanced) {
@@ -307,6 +335,8 @@ class Workflow extends Component
 
     public function forceAdvance(AdvanceWorkflowStepAction $action, int $workflowId, int $expectedStep): void
     {
+        abort_unless($this->project, 403);
+
         $advanced = $action->execute($workflowId, (int) auth()->id(), $expectedStep, true, true);
 
         if ($advanced) {

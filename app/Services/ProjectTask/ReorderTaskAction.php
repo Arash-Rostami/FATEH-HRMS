@@ -10,14 +10,14 @@ use RuntimeException;
 
 class ReorderTaskAction
 {
-    public function execute(Task $task, ?int $beforeTaskId, ?string $targetStatus = null): void
+    public function execute(Task $task, ?int $beforeTaskId, ?string $targetStatus = null): bool
     {
         abort_unless($task->can_change_status && !$task->ticket_id, 403);
 
         $status = ($targetStatus && TaskStatus::tryFrom($targetStatus)) ? $targetStatus : $task->status;
 
         if ($status === TaskStatus::Done->value && empty($task->detail?->state)) {
-            return;
+            return false;
         }
 
         DB::transaction(function () use ($task, $beforeTaskId, $status) {
@@ -51,5 +51,7 @@ class ReorderTaskAction
 
             $task->update(['status' => $status, 'rank' => $rank]);
         });
+
+        return true;
     }
 }

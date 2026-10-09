@@ -5,7 +5,7 @@ namespace App\Services\ProjectTask;
 use App\Livewire\Dashboard\Project\Forms\ProjectForm;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Project;
-use App\Models\User;
+use App\Support\TaskAccessPolicy;
 use Illuminate\Support\Facades\DB;
 
 class CreateProjectAction
@@ -27,7 +27,7 @@ class CreateProjectAction
             'name' => trim($name),
             'slug' => Project::generateSlug($name),
             'owner_id' => auth()->id(),
-            'member_ids' => $this->filterExistingUserIds($memberIds),
+            'member_ids' => TaskAccessPolicy::assignableIds($memberIds),
             'departments' => array_values(array_unique($departments)),
             'settings' => $settings ?: null,
         ]));
@@ -40,10 +40,5 @@ class CreateProjectAction
         }
 
         return $this->create($form->pendingProjectName, $form->pendingProjectMemberIds, $form->pendingProjectDepartments)->id;
-    }
-
-    private function filterExistingUserIds(array $ids): array
-    {
-        return User::whereIn('id', array_unique($ids))->pluck('id')->all();
     }
 }

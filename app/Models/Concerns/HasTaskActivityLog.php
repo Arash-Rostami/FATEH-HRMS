@@ -5,6 +5,7 @@ namespace App\Models\Concerns;
 use App\Jobs\SyncTaskCalendarEventJob;
 use App\Models\Task;
 use App\Services\ProjectTask\ActivityLogger;
+use App\Services\ProjectTask\ProjectHeartbeat;
 use Illuminate\Database\Eloquent\Model;
 
 trait HasTaskActivityLog
@@ -20,6 +21,10 @@ trait HasTaskActivityLog
 
             if ($calendarRelevant) {
                 SyncTaskCalendarEventJob::dispatch($model instanceof Task ? $model->id : $model->task_id);
+            }
+
+            if ($model instanceof Task && $model->project_id && ($model->wasRecentlyCreated || $model->wasChanged(['title', 'description']))) {
+                ProjectHeartbeat::bump($model->project_id, 'task');
             }
 
             if ($model->wasRecentlyCreated) return;

@@ -9,6 +9,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Department;
+use App\Services\ProjectTask\TaskMetrics;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -854,9 +855,9 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
         $stats = DB::table('tasks')->selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN status = 'todo' THEN 1 ELSE 0 END) as todo,
-            SUM(CASE WHEN status = 'in-progress' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN deadline < NOW() AND status != 'done' THEN 1 ELSE 0 END) as overdue
+            SUM(CASE WHEN status = 'in-progress' THEN 1 ELSE 0 END) as in_progress
         ")->whereNull('deleted_at')->first();
+        $stats->overdue = TaskMetrics::overdue(DB::table('tasks'))->count();
 
         return [
             Stat::make(__('resources/task/strings.plural_label'), $stats->total)

@@ -15,11 +15,13 @@ use App\Services\ProjectTask\ActivityLogger;
 use App\Services\ProjectTask\ApproveTaskAction;
 use App\Services\ProjectTask\CreateTaskAction;
 use App\Services\ProjectTask\DuplicateTaskAction;
+use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\UpdateTaskAction;
 use App\Support\TaskAccessPolicy;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -56,7 +58,6 @@ trait ManagesTaskModal
     public function mountManagesTaskModal(): void
     {
         $this->staffMembers = User::getCachedActiveOptions()
-            ->except(auth()->id())
             ->map(fn($name, $id) => ['id' => $id, 'full_name' => $name])
             ->values()
             ->toArray();
@@ -77,6 +78,12 @@ trait ManagesTaskModal
     }
 
     #[Computed]
+    public function formProject(): ?Project
+    {
+        return $this->form->projectId ? Project::find($this->form->projectId) : null;
+    }
+
+    #[Computed]
     public function userPickerResults(): array
     {
         $selected = array_map('intval', array_values(array_unique(array_filter([
@@ -89,7 +96,9 @@ trait ManagesTaskModal
 
         $users = User::query()
             ->visibleOnBoard()
-            ->whereKeyNot(auth()->id())
+            ->when($this->formProject, fn(Builder $q, Project $project) => $q->where(fn(Builder $roster) => $roster
+                ->whereIn('users.id', $project->charter()->rosterIds())
+                ->orWhereIn('users.id', $selected)))
             ->where(function (Builder $q) use ($selected) {
                 $q->where(function (Builder $inner) {
                     $inner->when($this->userDept !== '',
@@ -130,28 +139,26 @@ trait ManagesTaskModal
     #[Computed]
     public function labelOptions(): array
     {
-        $userId = auth()->id();
+        if ($labels = $this->formProject?->charter()->labels()) {
+            return $labels;
+        }
 
-        return Task::query()
-            ->where(fn(Builder $q) => $q->where('assigned_to', $userId)->orWhere('user_id', $userId))
-            ->whereNull('archived_at')
-            ->whereNotNull('labels')
-            ->pluck('labels')
-            ->flatten()
-            ->unique()
-            ->groupBy(fn(string $l) => str_replace(['ي', 'ك'], ['ی', 'ک'], $l))
-            ->map(fn($g) => $g->first())
-            ->sort()
-            ->values()
-            ->all();
+        $userId = auth()->id();
+        $projectId = property_exists($this, 'projectFilter') ? $this->projectFilter : null;
+
+        return app(ReportingService::class)->labelOptions(
+            fn(Builder $q) => $q
+                ->when($projectId, fn(Builder $p) => $p->where('project_id', $projectId))
+                ->where(fn(Builder $o) => $o->ownedBy($userId)->orWhere('user_id', $userId)),
+            'u' . $userId . ($projectId ? 'p' . $projectId : ''),
+            $projectId
+        );
     }
 
     #[Computed]
     public function customSchema(): array
     {
-        if (!$this->form->projectId) return [];
-
-        return Project::find($this->form->projectId)?->setting('custom_schema') ?? [];
+        return $this->formProject?->charter()->customSchema() ?? [];
     }
 
     public function addMetaKey(): void
@@ -178,8 +185,7 @@ trait ManagesTaskModal
     {
         $task = $this->editingTask;
 
-        return $task && (in_array(auth()->id(), [$task->user_id, $task->assigned_to], true)
-            || in_array(auth()->id(), $task->detail?->collaborators ?? [], true));
+        return $task && TaskAccessPolicy::canReply($task, auth()->user());
     }
 
     #[Computed]
@@ -253,16 +259,14 @@ trait ManagesTaskModal
 
         if (!$task || !$task->can_change_status || $task->ticket_id || $task->is_archived) return;
 
+        if (!Cache::add('task-duplicate:' . auth()->id() . ':' . $taskId, 1, 5)) return;
+
         try {
             $action->execute($task, $this->form);
-        } catch (ValidationException|HttpException $e) {
-            throw $e;
-        } catch (InvalidArgumentException $e) {
-            $this->addError('form.deadline', 'تاریخ وارد شده معتبر نیست');
-            return;
         } catch (Exception $e) {
-            report($e);
-            $this->addError('form', 'عملیات با خطا مواجه شد؛ دوباره تلاش کنید.');
+            $this->form->reset();
+            $e instanceof ValidationException || report($e);
+            $this->dispatch('toast', message: $e instanceof ValidationException ? collect($e->errors())->flatten()->first() : 'عملیات با خطا مواجه شد؛ دوباره تلاش کنید.', type: 'error');
             return;
         }
 
@@ -294,13 +298,10 @@ trait ManagesTaskModal
     {
         if (!$this->editingTaskId) return null;
 
-        $userId = auth()->id();
-
-        return Task::with(['replies.user', 'detail:id,task_id,collaborators'])
-            ->where(fn(Builder $query) => $query->where('user_id', $userId)
-                ->orWhere('assigned_to', $userId)
-                ->orWhereHas('detail', fn(Builder $d) => $d->whereJsonContains('collaborators', $userId)))
+        $task = Task::with(['replies.user', 'detail:id,task_id,collaborators,responsible_user_id', 'project:id,owner_id,member_ids,departments'])
             ->find($this->editingTaskId);
+
+        return $task && TaskAccessPolicy::canView($task, auth()->user()) ? $task : null;
     }
 
     public function openCreateModal(): void
@@ -366,8 +367,7 @@ trait ManagesTaskModal
 
         if (!$task) return;
 
-        abort_unless(auth()->id() === $task->user_id || auth()->id() === $task->assigned_to
-            || in_array(auth()->id(), $task->detail?->collaborators ?? [], true), 403);
+        abort_unless(TaskAccessPolicy::canReply($task, auth()->user()), 403);
 
         $this->taskReplyForm->validate();
 
@@ -411,6 +411,8 @@ trait ManagesTaskModal
         $task = Task::find($this->editingTaskId);
         if (!$task) return;
 
+        if ((int) $this->form->projectId !== (int) $task->project_id && $this->refuseIfCycleLocked($task)) return;
+
         try {
             $action->execute($task, $this->form);
         } catch (ValidationException $e) {
@@ -434,6 +436,15 @@ trait ManagesTaskModal
         $this->isModalOpen = false;
         $this->refreshAfterTaskSave();
         $this->dispatch('toast', message: 'وظیفه با موفقیت بروزرسانی شد.', type: 'success');
+    }
+
+    protected function refuseIfCycleLocked(?Task $task): bool
+    {
+        if (!$task?->isCycleLocked()) return false;
+
+        $this->dispatch('toast', message: 'این وظیفه به مرحلهٔ جاری چرخه متصل است؛ ابتدا مرحله را پیش ببرید یا چرخه را لغو کنید.', type: 'error');
+
+        return true;
     }
 
     public function updatedFormDepartmentId(): void
@@ -465,6 +476,7 @@ trait ManagesTaskModal
         $this->form->newTitle = $task->title;
         $this->form->newDescription = $task->description;
         $this->form->taskUpdatedAt = $task->updated_at?->timestamp;
+        $this->form->taskVersion = $task->version;
         $this->form->selectedAssignee = $task->assigned_to;
         $this->form->projectId = $task->project_id;
         $this->form->pendingProjectName = null;

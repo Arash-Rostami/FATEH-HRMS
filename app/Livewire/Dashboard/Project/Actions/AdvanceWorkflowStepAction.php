@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Project\Actions;
 
+use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workflow;
@@ -29,9 +30,10 @@ class AdvanceWorkflowStepAction
             if (!$step) return false;
 
             if ($enforceGate) {
-                $isOwner = ProjectAccessPolicy::canManageAudience($project, User::find($userId));
-                if (!$force && !($wf->isAssignee($userId) || $isOwner)) abort(403);
-                if ($force && !$isOwner) abort(403);
+                $actor = User::find($userId);
+                $isOwner = ProjectAccessPolicy::canManageAudience($project, $actor);
+                abort_unless($isOwner || ($actor && $project->isVisibleTo($actor)), 403);
+                abort_unless($force ? $isOwner : ($wf->isAssignee($userId) || $isOwner), 403);
             }
 
             if ($step['populate_task'] ?? false) {
@@ -59,6 +61,7 @@ class AdvanceWorkflowStepAction
             $isLast = $wf->current_step >= count($wf->steps) - 1;
             $nextStep = $wf->current_step + 1;
             $steps = $wf->steps;
+            if ($force) $this->stopOpenTask($steps, $wf->current_step);
             if (!$isLast) $steps[$nextStep]['activated_at'] = now()->toISOString();
             $wf->update([
                 'step_log' => $log,
@@ -68,6 +71,44 @@ class AdvanceWorkflowStepAction
                 'completed_at' => $isLast ? now() : null,
             ]);
             return true;
+        });
+    }
+
+    public function stopOpenTask(array &$steps, int $index): void
+    {
+        $taskId = $steps[$index]['task_id'] ?? null;
+        $task = $taskId ? Task::with('detail')->find($taskId) : null;
+
+        if (!$task) {
+            $steps[$index]['task_id'] = null;
+            return;
+        }
+
+        if ($task->status === 'done') return;
+
+        $steps[$index]['task_id'] = null;
+        $task->detail?->update(['state' => TaskState::Suspension->value]);
+    }
+
+    public function detachStep(Task $task, ?int $projectId = null): void
+    {
+        $projectId ??= $task->project_id;
+        if (!$projectId) return;
+
+        DB::transaction(function () use ($task, $projectId) {
+            Workflow::forProject($projectId)
+                ->whereIn('status', [Workflow::STATUS_ACTIVE, Workflow::STATUS_DRAFT])
+                ->lockForUpdate()
+                ->get()
+                ->each(function (Workflow $wf) use ($task) {
+                    $steps = $wf->steps;
+                    $index = collect($steps)->search(fn (array $step) => (int) ($step['task_id'] ?? 0) === $task->id);
+                    if ($index === false) return;
+
+                    $steps[$index]['task_id'] = null;
+                    $wf->steps = $steps;
+                    $wf->recordEvent('task_detached', $index, auth()->id() ?? $wf->owner_id);
+                });
         });
     }
 

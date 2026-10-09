@@ -7,6 +7,7 @@ use App\Filament\Resources\TaskResource\Enums\TaskPriority;
 use App\Filament\Resources\TaskResource\Enums\TaskState;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Department;
+use App\Models\Project;
 use App\Models\User;
 use App\Rules\ProjectDeadlineCap;
 use App\Rules\TaskLabelLength;
@@ -25,6 +26,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class TaskFormPresenter
@@ -56,7 +58,7 @@ class TaskFormPresenter
         return Select::make('assigned_to')
             ->label(__('resources/task/strings.fields.assignee'))
             ->helperText(__('resources/task/strings.fields.assignee_hint'))
-            ->relationship('assignee', 'name')
+            ->relationship('assignee', 'name', fn($query, Get $get) => self::narrowToRoster($query->visibleOnBoard(), $get('project_id'), $get('assigned_to')))
             ->searchable()
             ->preload()
             ->nullable();
@@ -122,7 +124,9 @@ class TaskFormPresenter
         return Select::make('collaborators')
             ->label(__('resources/task/strings.fields.collaborators'))
             ->multiple()
-            ->options(fn() => User::getCachedActiveOptions())
+            ->options(fn(Get $get) => ($project = self::rosterProject($get('../project_id')))
+                ? self::rosterOptions($project, (array) $get('collaborators'))
+                : User::getCachedActiveOptions())
             ->searchable()
             ->preload()
             ->helperText(__('resources/task/strings.hints.collaborators'));
@@ -135,8 +139,12 @@ class TaskFormPresenter
             label: __('resources/task/strings.fields.deadline_date'),
             required: false,
             yearFrom: 1400,
+            yearTo: 1500,
             fullWidth: false,
-            carrierRule: fn(Get $get, $record) => new ProjectDeadlineCap($get('project_id') ?: $record?->project_id),
+            carrierRule: fn(Get $get, $record) => new ProjectDeadlineCap(
+                $projectId = $get('project_id') ?: $record?->project_id,
+                (int) $projectId === (int) $record?->project_id ? $record?->deadline : null,
+            ),
         )->columnSpanFull()
             ->helperText(__('resources/task/strings.hints.deadline_date'));
     }
@@ -182,6 +190,7 @@ class TaskFormPresenter
             ->relationship('project', 'name')
             ->searchable()
             ->preload()
+            ->live()
             ->nullable()
             ->helperText(__('resources/task/strings.hints.project_id'));
     }
@@ -191,8 +200,24 @@ class TaskFormPresenter
         return TagsInput::make('labels')
             ->label(__('resources/task/strings.fields.labels'))
             ->rules(['array', 'max:10', new TaskLabelLength()])
+            ->rule(self::labelsInVocabulary())
             ->nullable()
             ->helperText(__('resources/task/strings.hints.labels'));
+    }
+
+    public static function labelsInVocabulary(): Closure
+    {
+        return fn(Get $get, $record) => function (string $attribute, mixed $value, Closure $fail) use ($get, $record) {
+            $projectId = $get('project_id') ?: $record?->project_id;
+            $project = $projectId ? Project::find($projectId, ['id', 'settings']) : null;
+            $old = (int) $projectId === (int) $record?->project_id ? ($record?->labels ?? []) : [];
+
+            try {
+                $project?->charter()->assertLabels($value ?? [], $old, 'labels');
+            } catch (ValidationException $e) {
+                $fail($e->errors()['labels'][0]);
+            }
+        };
     }
 
     public static function meta(): KeyValue
@@ -230,7 +255,7 @@ class TaskFormPresenter
     {
         return Select::make('responsible_user_id')
             ->label(__('resources/task/strings.fields.responsible_user'))
-            ->relationship('responsibleUser', 'name')
+            ->relationship('responsibleUser', 'name', fn($query, Get $get) => self::narrowToRoster($query->visibleOnBoard(), $get('../project_id'), $get('responsible_user_id')))
             ->searchable()
             ->preload()
             ->nullable()
@@ -288,6 +313,10 @@ class TaskFormPresenter
             }
 
             if ($record && $record->status === TaskStatus::Done->value) {
+                if (!empty($record->detail?->state)) {
+                    $fail(__('resources/task/strings.validation.done_state_locked'));
+                }
+
                 return;
             }
 
@@ -318,11 +347,36 @@ class TaskFormPresenter
     {
         return Select::make('user_id')
             ->label(__('resources/task/strings.fields.creator'))
-            ->relationship('creator', 'name')
+            ->relationship('creator', 'name', fn($query) => $query->visibleOnBoard())
             ->searchable()
             ->preload()
+            ->disabledOn('edit')
             ->helperText(__('resources/task/strings.hints.user_id'))
             ->required();
+    }
+
+    private static function rosterProject(mixed $projectId): ?Project
+    {
+        return $projectId ? Project::find($projectId) : null;
+    }
+
+    private static function rosterOptions(Project $project, array $pinned): array
+    {
+        $options = $project->charter()->rosterOptions();
+        $missing = array_diff(array_map('intval', array_filter($pinned)), array_keys($options));
+
+        return $missing === [] ? $options : $options + User::whereIn('id', $missing)->pluck('name', 'id')->all();
+    }
+
+    private static function narrowToRoster($query, mixed $projectId, mixed $pinned)
+    {
+        $project = self::rosterProject($projectId);
+
+        return $project
+            ? $query->where(fn($roster) => $roster
+                ->whereIn('users.id', $project->charter()->rosterIds())
+                ->orWhereIn('users.id', array_filter((array) $pinned)))
+            : $query;
     }
 
     private static function acceptedMimeTypes(): array

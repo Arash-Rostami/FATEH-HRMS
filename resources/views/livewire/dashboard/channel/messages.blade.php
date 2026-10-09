@@ -105,9 +105,9 @@
                 @if($msg['is_last'])
                     <div class="relative flex-shrink-0 self-end mb-0.5">
                         <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']" icon="person" icon-size="text-base" />
                         </div>
-                        <x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>
+                        @unless($msg['sender_inactive'])<x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>@endunless
                     </div>
                 @else
                     <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -182,7 +182,7 @@
                                 </span>
                             @endif
                             @if(!$msg['is_mine'] && $msg['is_first'])
-                                <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)]">{{ $msg['sender_name'] }}</p>
+                                <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)] flex items-center gap-1">{{ $msg['sender_name'] }}@if($msg['sender_inactive'])<x-ui.badge class="!px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>@endif</p>
                             @endif
 
                             @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
@@ -228,7 +228,7 @@
                                                     <span class="flex -space-x-1">
                                                         @foreach($rs['shown'] as $r)
                                                             <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)]">
-                                                                <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
+                                                                <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" :inactive="$r['inactive']" icon="person" icon-size="text-[8px]" />
                                                             </span>
                                                         @endforeach
                                                     </span>
@@ -252,7 +252,7 @@
                                                             @foreach($msg['readers'] as $r)
                                                                 <div class="flex items-center gap-2">
                                                                     <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
-                                                                        <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" icon="person" icon-size="text-[8px]" />
+                                                                        <x-ui.avatar :existingImage="$r['avatar']" :alt="$r['name']" :inactive="$r['inactive']" icon="person" icon-size="text-[8px]" />
                                                                     </span>
                                                                     <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $r['name'] }}</span>
                                                                     @if($r['read_at'])
@@ -275,7 +275,7 @@
                                                                 @foreach($att['viewers'] as $viewer)
                                                                     <div class="flex items-center gap-2">
                                                                         <span class="w-4 h-4 rounded-md overflow-hidden ring-2 ring-[var(--md-sys-color-surface)] flex-shrink-0">
-                                                                            <x-ui.avatar :existingImage="$viewer['avatar']" :alt="$viewer['name']" icon="person" icon-size="text-[8px]" />
+                                                                            <x-ui.avatar :existingImage="$viewer['avatar']" :alt="$viewer['name']" :inactive="$viewer['inactive']" icon="person" icon-size="text-[8px]" />
                                                                         </span>
                                                                         <span class="text-[11px] font-medium text-[var(--md-sys-color-on-surface)] truncate flex-1 min-w-0">{{ $viewer['name'] }}</span>
                                                                         <span class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60 flex-shrink-0" dir="ltr">{{ toJalali($viewer['viewed_at'], 'Y/m/d H:i') }}</span>

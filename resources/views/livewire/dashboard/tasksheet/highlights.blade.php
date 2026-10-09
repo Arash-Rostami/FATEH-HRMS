@@ -8,10 +8,17 @@
                     <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">{{ $card['icon'] }}</span>
                     {{ $card['label'] }}
                 </div>
-                <a href="{{ route('tasks', ['open' => $card['item']['task_id']]) }}" wire:navigate dir="auto"
-                   class="font-bold text-sm text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] transition-colors truncate">
-                    {{ superClean($card['item']['title']) }}
-                </a>
+                @if(!empty($card['item']['masked']))
+                    <span dir="auto" class="font-bold text-sm text-[var(--md-sys-color-on-surface-variant)] truncate">{{ $card['item']['title'] }}</span>
+                @else
+                    <a href="{{ route('tasks', ['open' => $card['item']['task_id']]) }}" wire:navigate dir="auto"
+                       class="font-bold text-sm text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] transition-colors truncate">
+                        {{ superClean($card['item']['title']) }}
+                    </a>
+                @endif
+                @if(!empty($card['item']['trashed']))
+                    <x-ui.badge variant="danger" class="self-start !px-1.5 !py-0.5 !text-[9px]">حذف‌شده</x-ui.badge>
+                @endif
                 <div class="flex flex-wrap items-center gap-2 text-xs text-[var(--md-sys-color-on-surface-variant)]">
                     @if($card['kind'] === 'hardest_close')
                         <span>{{ convertToPersian(number_format($card['item']['cycle_time_days'], 1)) }} روز</span>

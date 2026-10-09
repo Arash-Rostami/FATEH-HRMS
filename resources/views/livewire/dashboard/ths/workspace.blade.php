@@ -1,5 +1,5 @@
 <div class="space-y-5"
-     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['closeTicket' => false]) }}">
+     x-on:confirmation-confirmed.window="{{ confirmDialogListener(['closeTicket' => false, 'withdrawTicket' => false, 'releaseTicket' => false, 'rerouteTicket' => false]) }}">
     @if($this->ticket)
         <div wire:key="ths-workspace-ticket" class="contents">
         <div class="flex items-center justify-end">
@@ -69,6 +69,50 @@
                 </div>
             @endif
         </div>
+
+        @if($this->canWithdraw || $this->canRelease || $this->canReroute)
+            <div wire:key="ths-workspace-actions" class="flex flex-wrap items-end gap-3 bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm">
+                @if($this->canReroute)
+                    <div wire:key="ths-workspace-reroute" class="flex items-end gap-2 flex-wrap">
+                        <div class="w-56">
+                            <x-ui.forms.select label="واحد مقصد" name="rerouteTo" wire:model="rerouteTo" icon="domain">
+                                <option value="">انتخاب واحد...</option>
+                                @foreach($this->departmentOptions as $code => $name)
+                                    <option value="{{ $code }}">{{ $name }}</option>
+                                @endforeach
+                            </x-ui.forms.select>
+                        </div>
+                        <x-ui.buttons.form type="button" loading="rerouteTicket" variant="tonal"
+                                wire:click="rerouteTicket" wire:confirm="این تیکت به واحد انتخاب‌شده ارجاع شود؟"
+                                x-bind:disabled="!$wire.rerouteTo || !$wire.replyForm.body.trim()"
+                                class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
+                            ارجاع به واحد دیگر
+                        </x-ui.buttons.form>
+                    </div>
+                @endif
+
+                @if($this->canRelease)
+                    <x-ui.buttons.form wire:key="ths-release-ticket" type="button" loading="releaseTicket" variant="tonal"
+                            wire:click="releaseTicket" wire:confirm="این تیکت به صف بازگردانده شود؟"
+                            x-bind:disabled="!$wire.replyForm.body.trim()"
+                            class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
+                        بازگشت به صف
+                    </x-ui.buttons.form>
+                @endif
+
+                @if($this->canWithdraw)
+                    <x-ui.buttons.form wire:key="ths-withdraw-ticket" type="button" loading="withdrawTicket" variant="tonal"
+                            wire:click="withdrawTicket" wire:confirm="درخواست شما لغو شود؟"
+                            class="!h-auto !px-4 !py-2 rounded-xl text-xs font-bold">
+                        لغو درخواست
+                    </x-ui.buttons.form>
+                @endif
+
+                @if($this->canReroute || $this->canRelease)
+                    <p wire:key="ths-workspace-actions-hint" class="w-full text-[11px] text-[var(--md-sys-color-on-surface-variant)]">توضیح را در کادر «گفتگو» بنویسید.</p>
+                @endif
+            </div>
+        @endif
 
         {{-- Effectiveness card --}}
         @if($this->canSetEffectiveness || $this->ticket->effectiveness)

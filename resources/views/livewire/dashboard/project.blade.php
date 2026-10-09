@@ -82,9 +82,9 @@
                                         ['id' => 'activity', 'icon' => 'timeline', 'label' => 'فعالیت‌ها و نظرات', 'description' => 'رویدادهای سیستمی وظایف به‌همراه نظرات باز؛ قابل مشاهده و مشارکت برای همهٔ اعضای پروژه', 'unread' => $this->tabDirty['activity'] ? 1 : 0],
                                         ['id' => 'teamChat', 'icon' => 'forum', 'label' => 'چت زندهٔ تیم', 'description' => 'پیام‌رسانی آنی بین همهٔ اعضای پروژه، مثل یک گروه گفتگوی گروهی', 'unread' => $this->tabDirty['teamChat'] ? 1 : 0],
                                         ['id' => 'projectCalendar', 'icon' => 'calendar_month', 'label' => 'تقویم', 'unread' => $this->tabDirty['projectCalendar'] ? 1 : 0],
-                                        ['id' => 'kanban', 'icon' => 'view_kanban', 'label' => 'برد وظایف'],
-                                        ['id' => 'report', 'icon' => 'summarize', 'label' => 'گزارش'],
-                                        ['id' => 'analytics', 'icon' => 'monitoring', 'label' => 'تحلیل‌ها'],
+                                        ['id' => 'kanban', 'icon' => 'view_kanban', 'label' => 'برد وظایف', 'unread' => ($this->tabDirty['kanban'] ?? false) ? 1 : 0],
+                                        ['id' => 'report', 'icon' => 'summarize', 'label' => 'گزارش', 'unread' => ($this->tabDirty['report'] ?? false) ? 1 : 0],
+                                        ['id' => 'analytics', 'icon' => 'monitoring', 'label' => 'تحلیل‌ها', 'unread' => ($this->tabDirty['analytics'] ?? false) ? 1 : 0],
                                     ]"
                                 />
 

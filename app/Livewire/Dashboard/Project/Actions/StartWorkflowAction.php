@@ -15,38 +15,39 @@ class StartWorkflowAction
 
         abort_if(!$project || $project->trashed(), 403);
         abort_unless(ProjectAccessPolicy::canManageAudience($project, auth()->user()), 403);
-        abort_unless($workflow->isDraft(), 422);
+        return DB::transaction(function () use ($workflow, $project) {
+            $wf = Workflow::query()->lockForUpdate()->find($workflow->id);
+            abort_unless($wf?->isDraft(), 422);
 
-        $steps = $workflow->steps;
+            $steps = $wf->steps;
 
-        if ($steps === []) {
-            throw ValidationException::withMessages(['steps' => 'چرخه باید حداقل یک مرحله داشته باشد.']);
-        }
-
-        $filteredPerStep = Workflow::filterAssigneesBatch(
-            array_map(fn (array $step) => $step['assignee_user_ids'] ?? [], $steps),
-            $project
-        );
-
-        foreach ($steps as $index => $step) {
-            if ($filteredPerStep[$index] === []) {
-                throw ValidationException::withMessages(["steps.{$index}.assignee_user_ids" => 'حداقل یک مسئول معتبر باید انتخاب شود.']);
+            if ($steps === []) {
+                throw ValidationException::withMessages(['steps' => 'چرخه باید حداقل یک مرحله داشته باشد.']);
             }
 
-            $steps[$index]['assignee_user_ids'] = $filteredPerStep[$index];
-        }
+            $filteredPerStep = Workflow::filterAssigneesBatch(
+                array_map(fn (array $step) => $step['assignee_user_ids'] ?? [], $steps),
+                $project
+            );
 
-        $steps[0]['activated_at'] = now()->toISOString();
+            foreach ($steps as $index => $step) {
+                if ($filteredPerStep[$index] === []) {
+                    throw ValidationException::withMessages(["steps.{$index}.assignee_user_ids" => 'حداقل یک مسئول معتبر باید انتخاب شود.']);
+                }
 
-        return DB::transaction(function () use ($workflow, $steps) {
-            $workflow->update([
+                $steps[$index]['assignee_user_ids'] = $filteredPerStep[$index];
+            }
+
+            $steps[0]['activated_at'] = now()->toISOString();
+
+            $wf->update([
                 'steps' => $steps,
                 'current_step' => 0,
                 'status' => Workflow::STATUS_ACTIVE,
                 'started_at' => now(),
             ]);
 
-            return $workflow;
+            return $wf;
         });
     }
 }

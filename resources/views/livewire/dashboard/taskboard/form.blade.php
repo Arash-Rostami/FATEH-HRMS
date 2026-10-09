@@ -109,10 +109,13 @@
                     height="max-h-40"
                     :disabled="$isReadOnly"
                 />
+                @if($this->formProject)
+                    <p wire:key="taskboard-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-ui.forms.select label="پروژه (اختیاری)" name="form.projectId" wire:model="form.projectId"
+                <x-ui.forms.select label="پروژه (اختیاری)" name="form.projectId" wire:model.live="form.projectId"
                                    icon="folder" :disabled="$isReadOnly">
                     <option value="">بدون پروژه</option>
                     @foreach($this->projectOptions as $id => $name)
@@ -184,6 +187,9 @@
                     :endYear="jNow() + 5"
                     :disabled="$isReadOnly"
                 />
+                @if(!$isReadOnly && blank($form->deadlineYear) && ($sla = $this->formProject?->charter()->slaHours()))
+                    <p wire:key="taskboard-sla-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">خالی بگذارید تا بر اساس SLA پروژه ({{ convertToPersian($sla) }} ساعت) تعیین شود.</p>
+                @endif
                 @error('form.deadline')
                 <div class="{{ $errorClass }}">
                     <span class="material-symbols-rounded text-sm">error</span>

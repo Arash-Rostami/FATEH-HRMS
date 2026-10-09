@@ -43,6 +43,11 @@ class Channel extends Model
             ->withPivot(['joined_at', 'entered_at', 'last_read_message_id', 'created_at', 'updated_at']);
     }
 
+    public function isProjectLinked(): bool
+    {
+        return Project::idForChannel($this->id) !== null;
+    }
+
     public static function invitedUserIds(int $channelId): array
     {
         return DB::table('channel_members')
@@ -100,6 +105,14 @@ class Channel extends Model
                 ]);
             }
         });
+
+        static::saving(function (self $channel) {
+            if ($channel->exists && $channel->isDirty('type') && $channel->type === ChannelType::Open && $channel->isProjectLinked()) {
+                $channel->type = ChannelType::Private;
+            }
+        });
+
+        static::deleting(fn(self $channel) => !($channel->isProjectLinked() && !$channel->isForceDeleting()));
 
         static::forceDeleted(fn(self $channel) => static::deleteStoredDirectory("channel_messages/{$channel->id}"));
 

@@ -278,6 +278,9 @@
                 :disabled="$isReadOnly"
                 :emptyTitle="$userSearch !== '' || $userDept !== '' ? 'کاربری با این جست‌وجو یافت نشد.' : 'کاربر فعال دیگری برای افزودن وجود ندارد.'"
             />
+            @if($this->formProject)
+                <p wire:key="taskboard-collaborators-roster-hint" class="text-[11px] text-[var(--md-sys-color-on-surface-variant)] px-1 mt-1">فقط اعضای پروژه نمایش داده می‌شوند.</p>
+            @endif
         </div>
 
         <div class="md:col-span-2">

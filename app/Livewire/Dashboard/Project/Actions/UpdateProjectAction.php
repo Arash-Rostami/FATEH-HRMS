@@ -25,13 +25,32 @@ class UpdateProjectAction
         DB::transaction(function () use ($project, $form) {
             $this->guardNotStale($project, $form);
 
-            $project->update([
+            $project->fill([
                 'name' => trim($form->name),
-                'member_ids' => $this->filterExistingUserIds($form->memberIds),
+                'member_ids' => $form->memberIds,
                 'departments' => array_values(array_unique($form->departments)),
-                'settings' => $this->settings->bag($form) ?: null,
+                'settings' => $this->settings->bag($form, $project->settings['deadline'] ?? null) ?: null,
             ]);
+
+            $this->applyOwner($project, $form->ownerId);
+
+            $project->save();
         });
+    }
+
+    private function applyOwner(Project $project, ?int $ownerId): void
+    {
+        if (!$ownerId || $ownerId === $project->owner_id) return;
+
+        $candidate = User::visibleOnBoard()->with('profile:user_id,department_id')->find($ownerId);
+
+        if (!$candidate || !$project->isVisibleTo($candidate)) {
+            throw ValidationException::withMessages([
+                'projectForm.ownerId' => 'مالک جدید باید عضو فعال این پروژه باشد.',
+            ]);
+        }
+
+        $project->owner_id = $ownerId;
     }
 
     private function guardNotStale(Project $project, ProjectForm $form): void
@@ -45,10 +64,5 @@ class UpdateProjectAction
                 'form' => 'این پروژه توسط شخص دیگری تغییر کرده؛ لطفاً صفحه را بازخوانی کرده و دوباره تلاش کنید.',
             ]);
         }
-    }
-
-    private function filterExistingUserIds(array $ids): array
-    {
-        return User::whereIn('id', array_unique($ids))->pluck('id')->all();
     }
 }

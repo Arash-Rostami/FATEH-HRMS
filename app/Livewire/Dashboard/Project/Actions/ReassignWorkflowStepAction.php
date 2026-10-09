@@ -5,8 +5,9 @@ namespace App\Livewire\Dashboard\Project\Actions;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workflow;
+use App\Services\ProjectTask\CycleLinkResolver;
+use App\Services\ProjectTask\PopulateStepTaskAction;
 use App\Support\ProjectAccessPolicy;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -21,8 +22,10 @@ class ReassignWorkflowStepAction
             $project = $wf->projectWithTrashed();
             if (!$project || $project->trashed()) return;
 
-            $isOwner = ProjectAccessPolicy::canManageAudience($project, User::find($userId));
+            $actor = User::find($userId);
+            $isOwner = ProjectAccessPolicy::canManageAudience($project, $actor);
 
+            abort_unless($isOwner || ($actor && $project->isVisibleTo($actor)), 403);
             abort_unless($wf->isAssignee($userId) || $isOwner, 403);
 
             $filtered = Workflow::filterAssignees($newIds, $project, PHP_INT_MAX);
@@ -39,39 +42,47 @@ class ReassignWorkflowStepAction
             if (!$step) return;
 
             $currentIds = $step['assignee_user_ids'] ?? [];
+            $unchanged = collect($currentIds)->unique()->sort()->values()->all() === collect($filtered)->unique()->sort()->values()->all();
+            $populates = $step['populate_task'] ?? false;
+            $task = $populates && !empty($step['task_id']) ? Task::with('detail')->where('project_id', $wf->project_id)->find($step['task_id']) : null;
+            $needsTask = $populates && !$task;
 
-            if (collect($currentIds)->unique()->sort()->values()->all() === collect($filtered)->unique()->sort()->values()->all()) {
+            if ($unchanged && !$needsTask) {
                 return;
             }
 
+            $index = $wf->current_step;
             $steps = $wf->steps;
-            $steps[$wf->current_step]['assignee_user_ids'] = $filtered;
-            $wf->update(['steps' => $steps]);
+            $steps[$index]['assignee_user_ids'] = $filtered;
 
-            if ($step['populate_task'] ?? false) {
-                $this->syncTask($step['task_id'] ?? null, $filtered);
+            if ($needsTask) {
+                $steps[$index]['task_id'] = app(PopulateStepTaskAction::class)->execute($wf, $steps[$index], $project)?->id;
+            } elseif ($populates && !$unchanged) {
+                CycleLinkResolver::withoutSync(fn() => $this->syncTask($task, $currentIds, $filtered));
             }
 
-            $actorName = User::find($userId)?->name;
-
-            foreach (User::whereIn('id', array_diff($filtered, $currentIds))->get() as $user) {
-                Notification::make()
-                    ->title('واگذاری مرحله چرخه کاری')
-                    ->body("مرحله «{$step['label']}» در چرخه «{$wf->name}» توسط {$actorName} به شما واگذار شد.")
-                    ->success()
-                    ->sendToDatabase($user);
-            }
+            $wf->steps = $steps;
+            $wf->recordEvent('reassigned', $index, $userId, true, [
+                'added' => array_values(array_diff($filtered, $currentIds)),
+                'removed' => array_values(array_diff($currentIds, $filtered)),
+            ]);
         });
     }
 
-    private function syncTask(?int $taskId, array $newIds): void
+    private function syncTask(Task $task, array $oldIds, array $newIds): void
     {
-        if (!$taskId) return;
+        if ($task->isGenuinelyDone()) return;
 
-        $task = Task::with('detail')->find($taskId);
-        if (!$task || $task->isGenuinelyDone()) return;
+        $moved = $task->assigned_to !== $newIds[0];
+        $attributes = ['assigned_to' => $newIds[0]];
 
-        $task->update(['assigned_to' => $newIds[0]]);
-        $task->detail?->update(['collaborators' => array_slice($newIds, 1) ?: null]);
+        if ($moved) {
+            $attributes['rank'] = Task::rankForPriority($task->project_id, $newIds[0], $task->status, $task->priority?->value, $task->id);
+        }
+
+        $task->update($attributes);
+
+        $collaborators = array_values(array_unique([...array_diff($task->detail?->collaborators ?? [], $oldIds, [$newIds[0]]), ...array_slice($newIds, 1)]));
+        $task->detail?->update(['collaborators' => $collaborators ?: null]);
     }
 }

@@ -10,6 +10,10 @@ class JoinChannelAction
 {
     public function execute(int $channelId, int $userId): bool
     {
+        if (!auth()->user()?->isActive()) {
+            return false;
+        }
+
         $channel = Channel::withoutTrashed()->find($channelId);
 
         if (!$channel || $channel->type !== ChannelType::Open) {

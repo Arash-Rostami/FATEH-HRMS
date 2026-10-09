@@ -3,6 +3,7 @@
 namespace App\Services\ProjectTask\Renderers;
 
 use App\Models\Reply;
+use App\Models\User;
 use App\Services\ProjectTask\Contracts\ActivityLogRenderer;
 
 class SettingsChangeRenderer implements ActivityLogRenderer
@@ -12,6 +13,8 @@ class SettingsChangeRenderer implements ActivityLogRenderer
         'sla' => 'SLA',
         'deadline' => 'سقف مهلت',
         'custom_schema' => 'فیلدهای سفارشی',
+        'labels' => 'برچسب‌های مجاز وظایف',
+        'auto_archive_days' => 'آرشیو خودکار',
     ];
 
     public function getIcon(Reply $reply): string
@@ -26,6 +29,16 @@ class SettingsChangeRenderer implements ActivityLogRenderer
 
     public function getBody(Reply $reply): string
     {
+        if ($reply->payload['created'] ?? false) {
+            return 'پروژه توسط ' . ($reply->payload['owner_name'] ?? 'کاربر') . ' ایجاد شد.';
+        }
+
+        $ownerId = $reply->payload['owner_id'] ?? null;
+
+        if ($ownerId) {
+            return 'مالک پروژه به ' . ($reply->payload['owner_name'] ?? User::whereKey($ownerId)->value('name') ?? 'کاربر') . ' منتقل شد.';
+        }
+
         $keys = $reply->payload['changed'] ?? [];
 
         $labels = array_map(

@@ -269,7 +269,7 @@
                                                                 <span class="material-symbols-rounded text-[20px] sm:text-[22px] text-[var(--md-sys-color-primary)] transition-colors duration-200"
                                                                       :class="item.disabled ? '' : 'group-hover:text-[var(--md-sys-color-on-primary)]'"
                                                                       x-text="item.icon"></span>
-                                                                <template x-if="@js($menuState)[item.id]">
+                                                                <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
                                                                     <x-ui.notification-badge />
                                                                 </template>
                                                                 <template x-if="item.disabled">

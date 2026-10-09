@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Models\Concerns\HasCountdown;
 use App\Models\Concerns\HasMenuState;
+use App\Services\ProjectTask\EventSyncService;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +48,28 @@ class Event extends Model
         'date_jalali',
         'date_time_part',
     ];
+
+    private static bool $taskSyncing = false;
+
+    protected static function booted(): void
+    {
+        $guard = fn(self $event) => self::$taskSyncing || !EventSyncService::isTaskEvent($event->getOriginal('description'));
+
+        static::updating($guard);
+        static::deleting($guard);
+    }
+
+    public static function syncingTask(Closure $callback): mixed
+    {
+        $previous = self::$taskSyncing;
+        self::$taskSyncing = true;
+
+        try {
+            return $callback();
+        } finally {
+            self::$taskSyncing = $previous;
+        }
+    }
 
     public static function hasImminentSharedFor(User $user): bool
     {

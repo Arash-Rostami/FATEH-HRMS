@@ -17,6 +17,8 @@ class SendChannelMessageAction
 
     public function execute(ChannelMessageComposerForm $form, int $channelId): ChannelMessage
     {
+        abort_unless(auth()->user()?->isActive(), 403);
+
         $form->validate();
 
         $senderId = auth()->id();

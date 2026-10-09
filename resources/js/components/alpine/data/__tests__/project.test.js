@@ -108,3 +108,24 @@ describe('project() last-open-project persistence + maximize sequencing (added 2
         c.destroy()
     })
 })
+
+describe('project.scrollToMessage (added 2026-10-09)', () => {
+    afterEach(() => { document.body.innerHTML = '' })
+
+    test('flashes and scrolls the matching chat row and clears a previous flash', () => {
+        document.body.innerHTML = '<div data-rf="project-message-1" class="record-focus-flash"></div><div data-rf="project-message-2"></div>'
+        const target = document.querySelector('[data-rf="project-message-2"]')
+        target.scrollIntoView = vi.fn()
+
+        project().scrollToMessage(2)
+
+        expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+        expect(target.classList.contains('record-focus-flash')).toBe(true)
+        expect(document.querySelector('[data-rf="project-message-1"]').classList.contains('record-focus-flash')).toBe(false)
+    })
+
+    test('ignores a missing id or a row that is not rendered', () => {
+        expect(() => project().scrollToMessage(0)).not.toThrow()
+        expect(() => project().scrollToMessage(99)).not.toThrow()
+    })
+})

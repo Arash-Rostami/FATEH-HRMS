@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\TaskResource\Pages;
 
 use App\Filament\Resources\TaskResource;
-use App\Traits\{FilamentDateHandler, FilamentPageBehavior};
+use App\Traits\{FilamentDateHandler, FilamentPageBehavior, PreparesAdminTaskCreate};
 use App\Filament\Pages\CreateRecord;
 
 class CreateTask extends CreateRecord
 {
-    use FilamentPageBehavior, FilamentDateHandler;
+    use FilamentPageBehavior, FilamentDateHandler, PreparesAdminTaskCreate;
 
     protected static string $resource = TaskResource::class;
 
@@ -21,6 +21,16 @@ class CreateTask extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        return $this->mergeDeadline($data);
+        $detail = $this->form->getRawState()['detail'] ?? [];
+
+        return $this->prepareTaskCreate(
+            $this->mergeDeadline($data),
+            [$detail['responsible_user_id'] ?? null, ...($detail['collaborators'] ?? [])]
+        );
+    }
+
+    protected function afterCreate(): void
+    {
+        $this->ensureTaskDetail($this->record);
     }
 }

@@ -65,9 +65,16 @@
                         data-cycle="{{ $task['cycle_time_days'] !== null ? sprintf('%015.4f', $task['cycle_time_days']) : '' }}"
                         class="hover:bg-[var(--md-sys-color-surface-container-low)] transition-colors">
                         <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-right align-middle">
-                            <a href="{{ route('tasks', ['open' => $task['task_id']]) }}" wire:navigate dir="auto" class="font-medium text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] hover:underline transition-colors">
-                                {{ superClean($task['title']) }}
-                            </a>
+                            @if(!empty($task['masked']))
+                                <span dir="auto" class="font-medium text-[var(--md-sys-color-on-surface-variant)]">{{ $task['title'] }}</span>
+                            @else
+                                <a href="{{ route('tasks', ['open' => $task['task_id']]) }}" wire:navigate dir="auto" class="font-medium text-[var(--md-sys-color-on-surface)] hover:text-[var(--md-sys-color-primary)] hover:underline transition-colors">
+                                    {{ superClean($task['title']) }}
+                                </a>
+                            @endif
+                            @if(!empty($task['trashed']))
+                                <x-ui.badge variant="danger" class="ms-1 !px-1.5 !py-0.5 !text-[9px]">حذف‌شده</x-ui.badge>
+                            @endif
                         </td>
                         <td class="border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-4 text-center align-middle">
                             @if($priorityChip)

@@ -1,7 +1,8 @@
 @php($meAvatar = auth()->user()?->getProfileImageUrl())
 
 <div class="flex flex-col gap-4" wire:key="activity-{{ $activeProjectId }}" x-on:project-activity-refresh.window="$wire.refreshActivity()">
-    <form wire:submit.prevent="postComment"
+    @if($this->canPost)
+    <form wire:key="project-activity-composer" wire:submit.prevent="postComment"
           class="rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] shadow-sm p-4 flex flex-col gap-3"
           x-data="projectComposer(@entangle('activityComposer.body').live, @js($this->mentionCandidates->pluck('name')))">
         <div class="flex items-center gap-2.5">
@@ -91,6 +92,12 @@
         @error('activityComposer.files') <p class="text-xs text-[var(--md-sys-color-error)] -mt-1">{{ $message }}</p> @enderror
         @error('activityComposer.body')  <p class="text-xs text-[var(--md-sys-color-error)] -mt-1">{{ $message }}</p> @enderror
     </form>
+    @else
+        <p wire:key="project-activity-composer-hint" class="flex items-center gap-1.5 px-1 text-xs text-[var(--md-sys-color-on-surface-variant)]">
+            <span class="material-symbols-rounded text-[16px]">info</span>
+            برای گفتگو از چت تیم و برای بحث دربارهٔ وظیفه از گفتگوی همان وظیفه استفاده کنید.
+        </p>
+    @endif
 
     @php($allEntryPairs = $presenter->activityPairs($this->activityFeed['rows']))
 
@@ -163,9 +170,33 @@
                     <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent))]"></div>
                 </div>
 
-                @foreach($group['entries'] as $entry)
+                @foreach($group['blocks'] as $block)
+                @php($cluster = isset($block['count']))
+                <div wire:key="activity-block-{{ $block['entries'][0]['id'] }}" class="contents" x-data="{ open: false }"
+                     x-on:record-focus.window="if ($event.detail.type === 'activity' && $el.querySelector('[data-rf=activity-' + $event.detail.id + ']')) { open = true; $nextTick(() => $el.querySelector('[data-rf=activity-' + $event.detail.id + ']')?.scrollIntoView({ behavior: 'smooth', block: 'center' })) }">
+                @if($cluster)
+                    <div wire:key="activity-cluster-summary" class="relative animate-bubble-in"
+                         x-show="activitySearch === '' && !activityPinnedOnly && activityTypeFilter === ''">
+                        <span class="absolute top-3 right-[13px] w-[11px] h-[11px] rounded-full border-2 border-[var(--md-sys-color-surface)] z-10 bg-[var(--md-sys-color-outline-variant)]"></span>
+                        <div class="mr-7 flex flex-col items-center gap-1">
+                            <div class="flex max-w-full items-center gap-1">
+                                <button type="button" x-on:click="Livewire.dispatch('project-open-task', { taskId: {{ (int) $block['task_id'] }} })"
+                                        class="inline-flex min-w-0 items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold border bg-[var(--md-sys-color-surface-container-highest)] text-[var(--md-sys-color-on-surface-variant)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_50%,transparent)] hover:brightness-110 transition">
+                                    <span class="material-symbols-rounded text-[13px]">chat_bubble_outline</span>
+                                    <span dir="auto" class="truncate">{{ convertToPersian($block['count']) }} پیام در وظیفه «{{ $block['task_title'] }}» · آخرین: {{ $block['latest_author'] }}: {{ $block['latest_snippet'] }}</span>
+                                </button>
+                                <button type="button" x-on:click="open = !open" :aria-expanded="open ? 'true' : 'false'" aria-label="نمایش پیام‌ها"
+                                        class="shrink-0 flex items-center justify-center w-6 h-6 rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-variant)]/60 transition">
+                                    <span class="material-symbols-rounded text-[16px] transition-transform" :class="open ? 'rotate-180' : ''">expand_more</span>
+                                </button>
+                            </div>
+                            <span class="block text-[10px] text-[var(--md-sys-color-on-surface-variant)] opacity-60" title="{{ toJalali($block['latest_at']) }}">{{ toJalaliRelative($block['latest_at']) }}</span>
+                        </div>
+                    </div>
+                @endif
+                @foreach($block['entries'] as $entry)
                     <div class="relative animate-bubble-in" data-rf="activity-{{ $entry['id'] }}" wire:key="activity-entry-{{ $entry['id'] }}"
-                         x-show="matchesActivityFilter(@js($entry['id']), @js(strip_tags($entry['body_html'] ?? $entry['body'] ?? '')), @js($entry['type']))">
+                         x-show="matchesActivityFilter(@js($entry['id']), @js(strip_tags($entry['body_html'] ?? $entry['body'] ?? '')), @js($entry['type'])){{ $cluster ? " && (open || activitySearch !== '' || activityPinnedOnly || activityTypeFilter !== '')" : '' }}">
                         <span @class([
                             'absolute top-3 right-[13px] w-[11px] h-[11px] rounded-full border-2 border-[var(--md-sys-color-surface)] z-10',
                             'bg-[var(--md-sys-color-primary)]'                  => $entry['type'] === 'comment' && !($entry['mentions_you'] ?? false),
@@ -367,6 +398,8 @@
                             </div>
                         @endif
                     </div>
+                @endforeach
+                </div>
                 @endforeach
             @empty
                 <div wire:key="project-activity-empty" class="contents">

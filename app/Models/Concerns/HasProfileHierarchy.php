@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -101,6 +102,27 @@ trait HasProfileHierarchy
             ->get()
             ->groupBy(fn(self $u) => $u->profile->department_id)
             ->map(fn($users) => $users->sortBy(fn(self $u) => $u->rank())->first());
+    }
+
+    public static function headsOfDepartment(string $departmentCode): Collection
+    {
+        return ModelCacheVersion::remember(static::class, "dept_heads:{$departmentCode}", now()->addHour(), function () use ($departmentCode) {
+            $users = static::active()->with('profile')
+                ->whereHas('profile', fn(Builder $q) => $q
+                    ->where('department_id', $departmentCode)
+                    ->whereIn('position', array_keys(static::RANKS))
+                )
+                ->get();
+
+            $top = $users->min(fn(self $u) => $u->rank());
+
+            return $users->filter(fn(self $u) => $u->rank() === $top)->values();
+        });
+    }
+
+    public function isHeadOfDepartment(string $departmentCode): bool
+    {
+        return static::headsOfDepartment($departmentCode)->contains('id', $this->id);
     }
 
     public static function highestRankingInDepartment(string $departmentCode): ?self

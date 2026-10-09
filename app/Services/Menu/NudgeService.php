@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 
 class NudgeService
 {
@@ -172,6 +173,13 @@ class NudgeService
                         ->afterCommit();
                 });
             }
+        }
+    }
+
+    public static function refreshBell(): void
+    {
+        if ($component = Livewire::current()) {
+            $component->dispatch('databaseNotificationsSent');
         }
     }
 

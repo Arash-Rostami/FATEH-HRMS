@@ -109,9 +109,9 @@
                         'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]' => $activeUserId !== $contact['id'],
                     ])>
                         <x-ui.avatar :image="null" :existingImage="$contact['avatar']"
-                                     :alt="$contact['name']" icon-size="text-xl" class="rounded-xl"/>
+                                     :alt="$contact['name']" :inactive="$contact['inactive']" icon-size="text-xl" class="rounded-xl"/>
                     </div>
-                    <x-ui.presence-dot :online="$contact['is_online']" size="w-2.5 h-2.5"/>
+                    @unless($contact['inactive'])<x-ui.presence-dot :online="$contact['is_online']" size="w-2.5 h-2.5"/>@endunless
                 </div>
 
                 <div class="flex-1 min-w-0">
@@ -124,6 +124,9 @@
                             ])>
                                 {{ $contact['name'] }}
                             </span>
+                            @if($contact['inactive'])
+                                <x-ui.badge class="!px-1.5 !py-0.5 !text-[10px] shrink-0">غیرفعال</x-ui.badge>
+                            @endif
                             @if($contact['occasion'])
                                 <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-medium leading-none shrink-0 select-none {{ $contact['occasion_tone']['chip'] ?? 'bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]' }}">
                                     <span class="material-symbols-rounded text-[11px] shrink-0 leading-none animate-pulse-slow">auto_awesome</span>

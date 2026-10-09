@@ -639,7 +639,7 @@ describe('channel() DOM read helpers', () => {
         expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
     });
 
-    test('syncPushNotify does NOT play the unscoped incoming sound while a channel IS open (fixed 2026-10-05: was double-firing alongside _pollTick\'s own scoped play for the same message) — the push notification itself still fires', () => {
+    test('syncPushNotify leaves the sound to _pollTick while a channel IS open (the open-thread rule owns it)', () => {
         const c = channel();
         c.$wire = { activeChannelId: 9 };
         c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
@@ -653,6 +653,41 @@ describe('channel() DOM read helpers', () => {
 
         expect(c.$store.push.notify).toHaveBeenCalledOnce();
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+    });
+
+    test('the incoming sound cannot play twice within 1500 ms across syncPushNotify and _pollTick, and plays again afterwards', async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(10_000);
+        const c = channel();
+        c.$wire = createWireMock({ activeChannelId: 9 });
+        c.$store = { push: { notify: vi.fn() }, sound: { playIncoming: vi.fn() } };
+        const el = document.createElement('div');
+        el.setAttribute('data-total-unread', '1');
+        document.body.appendChild(el);
+        const vp = document.createElement('div');
+        vp.innerHTML = '<div data-rf="channel-message-1" class="justify-start"></div>';
+        document.body.appendChild(vp);
+        c._msgViewportEl = vp;
+        c.$wire._islands.messages = {
+            refreshActive: vi.fn(() => {
+                vp.innerHTML = '<div data-rf="channel-message-1" class="justify-start"></div><div data-rf="channel-message-2" class="justify-end"></div>';
+                return Promise.resolve();
+            }),
+        };
+
+        c.syncPushNotify();
+        el.setAttribute('data-total-unread', '2');
+        c.syncPushNotify();
+        await c._pollTick();
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        c._ringIncoming(9);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledOnce();
+
+        vi.setSystemTime(11_600);
+        c._ringIncoming(9);
+        expect(c.$store.sound.playIncoming).toHaveBeenCalledTimes(2);
+        vi.useRealTimers();
     });
 
     test('_lastMessageIsMine reads the last row\'s justify-start class (the is_mine convention)', () => {

@@ -2,16 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Models\Profile;
 use App\Models\Project;
-use App\Models\User;
 use App\Services\ProjectTask\ChannelProvisioner;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class SyncProjectChannelMembershipJob implements ShouldQueue
 {
@@ -21,7 +19,10 @@ class SyncProjectChannelMembershipJob implements ShouldQueue
 
     public array $backoff = [10, 30];
 
-    public function __construct(public int $projectId) { }
+    public function __construct(public int $projectId)
+    {
+        $this->afterCommit();
+    }
 
     public function handle(ChannelProvisioner $provisioner): void
     {
@@ -31,37 +32,38 @@ class SyncProjectChannelMembershipJob implements ShouldQueue
 
         $channel = $provisioner->resolve($project);
 
-        $targetIds = $this->resolveAudienceUserIds($project);
+        $ownerChanged = $project->owner_id && $channel->owner_id !== $project->owner_id;
+
+        if ($ownerChanged) {
+            $channel->update(['owner_id' => $project->owner_id]);
+        }
+
+        $targetIds = collect($project->charter()->rosterIds());
         $currentIds = $channel->memberUsers()->pluck('users.id');
 
         $toAdd = $targetIds->diff($currentIds);
-        $toRemove = $currentIds->diff($targetIds);
+        $toRemove = $currentIds->diff($targetIds)->reject(fn($id) => (int) $id === (int) $project->owner_id);
 
         if ($toAdd->isNotEmpty()) {
             $channel->memberUsers()->syncWithoutDetaching(
                 $toAdd->mapWithKeys(fn($id) => [$id => [
                     'joined_at' => now(),
-                    'entered_at' => null,
+                    'entered_at' => (int) $id === (int) $project->owner_id ? now() : null,
                     'last_read_message_id' => null,
                 ]])->all()
             );
         }
 
+        if ($ownerChanged && $currentIds->contains($project->owner_id)) {
+            DB::table('channel_members')
+                ->where('channel_id', $channel->id)
+                ->where('user_id', $project->owner_id)
+                ->whereNull('entered_at')
+                ->update(['entered_at' => now()]);
+        }
+
         if ($toRemove->isNotEmpty()) {
             $channel->memberUsers()->detach($toRemove->all());
         }
-    }
-
-    private function resolveAudienceUserIds(Project $project): Collection
-    {
-        $ids = collect($project->member_ids ?? [])->push($project->owner_id);
-
-        if (!empty($project->departments)) {
-            $ids = $ids->merge(
-                Profile::whereIn('department_id', $project->departments)->pluck('user_id')
-            );
-        }
-
-        return User::whereIn('id', $ids->filter()->unique())->pluck('id');
     }
 }

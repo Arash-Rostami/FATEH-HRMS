@@ -24,11 +24,26 @@ class AssignmentRenderer implements ActivityLogRenderer
     public function getBody(Reply $reply): string
     {
         $payload = $reply->payload ?? [];
+
+        if ($payload['created'] ?? false) {
+            return $this->createdBody($reply, $payload);
+        }
+
         $audienceKeys = ['added', 'removed', 'added_departments', 'removed_departments'];
 
         return array_intersect_key($payload, array_flip($audienceKeys)) !== []
             ? $this->audienceBody($payload)
             : $this->taskAssignmentBody($payload);
+    }
+
+    private function createdBody(Reply $reply, array $payload): string
+    {
+        $body = ($this->userName($reply->user_id) ?? 'کاربر') . ' وظیفه را ایجاد کرد';
+        $to = $payload['to'] ?? null;
+
+        return $to && (int) $to !== (int) $reply->user_id && ($name = $this->userName($to))
+            ? "{$body} و آن را به {$name} محول کرد"
+            : $body;
     }
 
     private function taskAssignmentBody(array $payload): string

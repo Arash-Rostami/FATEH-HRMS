@@ -7,7 +7,7 @@
         این گروه هنگام ایجاد پروژه به‌صورت خودکار ساخته می‌شود و از همان زیرساخت ماژول «گروه‌ها» استفاده می‌کند — نوعی «خصوصی» دارد و در فهرست عمومی گروه‌ها نمایان نیست. اگر به هر دلیلی گروه یک پروژه از بین برود (مثلاً حذف دستی)، سیستم در اولین باز شدن گفتگوی پروژه به‌صورت خودکار یک گروه جدید می‌سازد — تاریخچهٔ پیام‌های قبلی در این حالت بازیابی نمی‌شود.
     </p>
     <p class="text-[12.5px] text-[var(--md-sys-color-on-surface-variant)] leading-7 font-medium px-1">
-        حذف کامل (Force Delete) یک پروژه، گروه متصل آن را هم حذف کامل می‌کند و وظایف مرتبط را بدون حذف، فقط از پروژه جدا می‌کند.
+        اعضای گروه همیشه با فهرست اعضای فعال پروژه (مالک + اعضا + دپارتمان‌ها) همگام می‌شوند؛ کاربر پنل کاربر نمی‌تواند این گروه را حذف یا عمومی کند. حذف کامل (Force Delete) یک پروژه، گروه متصل آن را هم حذف کامل می‌کند و وظایف مرتبط را بدون حذف، فقط از پروژه جدا می‌کند.
     </p>
     <div class="flex flex-col rounded-2xl bg-[var(--md-sys-color-surface)] shadow-md shadow-[var(--md-sys-color-shadow)]/5 overflow-hidden">
         <div class="px-5 py-3.5 bg-[var(--md-sys-color-tertiary-container)] flex items-center gap-2">
@@ -17,7 +17,7 @@
         <div class="p-5 flex flex-col gap-2">
             <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">چت زندهٔ تیم</span> (همین برگه) — همان گروه بالا؛ پیام‌رسانی آنی برای همهٔ اعضای پروژه.</p>
             <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">فعالیت‌ها و نظرات</span> (برگهٔ «فعالیت‌ها» در صفحهٔ پروژهٔ کاربر) — سابقهٔ رسمی رویدادهای سیستمی (تغییر وضعیت، ارجاع، آرشیو) به‌همراه نظرات باز؛ باز و قابل‌مشاهده برای همهٔ اعضای پروژه.</p>
-            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">گفتگوی وظیفه</span> (تب گفتگوی هر کارتِ برد وظایف) — خصوصی و محدود به سه نقشِ همان یک وظیفه: ایجادکننده، مسئول انجام و همکاران؛ در «فعالیت‌ها» یا «چت زندهٔ تیم» دیده نمی‌شود.</p>
+            <p class="text-[12px] text-[var(--md-sys-color-on-surface-variant)] leading-6 font-medium"><span class="font-black text-[var(--md-sys-color-on-surface)]">گفتگوی وظیفه</span> (تب گفتگوی هر کارتِ برد وظایف) — مخصوص همان یک وظیفه؛ ایجادکننده، مسئول انجام، همکاران، جوابگو و مدیر و اعضای پروژه آن را می‌بینند و پاسخ می‌دهند؛ در «فعالیت‌ها» یا «چت زندهٔ تیم» نمی‌آید.</p>
         </div>
     </div>
 </div>

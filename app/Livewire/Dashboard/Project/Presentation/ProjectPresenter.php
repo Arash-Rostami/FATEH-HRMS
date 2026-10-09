@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\Project\Presentation;
 use App\Filament\Resources\TaskResource\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Workflow;
+use App\Services\ProjectTask\TaskMetrics;
 use App\Traits\BuildsMessageGroups;
 use App\Traits\RiskEscalationChip;
 use Carbon\Carbon;
@@ -205,7 +206,15 @@ class ProjectPresenter
         if (($summary['at_risk'] ?? 0) > 0) {
             $chips[] = [
                 'icon' => 'warning',
-                'text' => $summary['at_risk'] . ' در معرض تأخیر',
+                'text' => $summary['at_risk'] . ' ' . TaskMetrics::LABEL_BREACH,
+                'classes' => $this->riskToneClasses('warning'),
+            ];
+        }
+
+        if (($summary['due_soon'] ?? 0) > 0) {
+            $chips[] = [
+                'icon' => 'event_upcoming',
+                'text' => $summary['due_soon'] . ' ' . TaskMetrics::LABEL_DUE_SOON,
                 'classes' => $this->riskToneClasses('warning'),
             ];
         }
@@ -219,7 +228,7 @@ class ProjectPresenter
 
     private function deadlineCountdownChip(Project $project): ?array
     {
-        $deadlineSetting = $project->setting('deadline');
+        $deadlineSetting = $project->charter()->cap();
         if (!$deadlineSetting) {
             return null;
         }
@@ -289,6 +298,8 @@ class ProjectPresenter
                 'errors' => [
                     'projectForm.requiresApproval',
                     'projectForm.slaHours',
+                    'projectForm.labels',
+                    'projectForm.autoArchiveDays',
                     'projectForm.deadlineYear',
                     'projectForm.deadlineMonth',
                     'projectForm.deadlineDay',

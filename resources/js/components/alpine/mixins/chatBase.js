@@ -11,6 +11,7 @@ const DIR_RE = /([A-Za-z])|[؀-ۿ]/;
 
 const SCROLL_TO_BOTTOM_PX = 999999;
 const POLL_BASE_MS = 10000;
+const INCOMING_DEDUPE_MS = 1500;
 
 const EVENT_TOAST = 'toast';
 const ID_VIEWPORT = 'msg-viewport';
@@ -38,6 +39,13 @@ export default function chatBase(scope) {
 
     return {
         ...highlightMatchMixin(),
+        _lastIncomingAt: 0,
+        _ringIncoming(id) {
+            const now = Date.now();
+            if (now - this._lastIncomingAt < INCOMING_DEDUPE_MS) return;
+            this._lastIncomingAt = now;
+            this.$store.sound?.playIncoming(id, scope);
+        },
         showScrollFab: false,
         showInfo: false,
         searchMessages: false,

@@ -8,16 +8,20 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateTaskStatusAction
 {
-    public function execute(int $taskId, string $status): bool
+    public function execute(int $taskId, string $status, ?string $version = null): ?bool
     {
         if (!TaskStatus::tryFrom($status)) {
             return false;
         }
 
-        $task = Task::query()->with('detail:id,task_id,state')->find($taskId);
+        $task = Task::query()->with('project:id,owner_id', 'detail:id,task_id,state,collaborators,responsible_user_id')->find($taskId);
 
         if (!$task?->can_change_status || $task->ticket_id) {
             return false;
+        }
+
+        if ($version !== null && $task->version !== $version) {
+            return null;
         }
 
         if ($status === TaskStatus::Done->value && empty($task->detail?->state)) {

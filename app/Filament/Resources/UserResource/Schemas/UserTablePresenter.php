@@ -237,9 +237,7 @@ class UserTablePresenter
             ->modalWidth(Width::Small)
             ->modalSubmitActionLabel('ارسال')
             ->form(function (?Model $record) {
-                $boss = ($dept = $record?->profile?->department_id)
-                    ? User::highestRankingInDepartment($dept)
-                    : null;
+                $boss = $record ? TasksheetShareService::managerFor($record) : null;
 
                 return [
                     Radio::make('target')
@@ -267,8 +265,7 @@ class UserTablePresenter
             })
             ->action(function (User $record, array $data) {
                 if (($data['target'] ?? 'boss') === 'boss') {
-                    $dept = $record->profile?->department_id;
-                    $recipient = $dept ? User::highestRankingInDepartment($dept) : null;
+                    $recipient = TasksheetShareService::managerFor($record);
 
                     if (!$recipient) {
                         Notification::make()

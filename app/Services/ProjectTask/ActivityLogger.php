@@ -93,10 +93,17 @@ class ActivityLogger
             $payload = $this->resolvePayload($field, $source->getOriginal($field), $source->getAttribute($field));
             if ($payload === null) continue;
 
+            if ($type === TaskActivityType::StatusChange && ($payload['to'] ?? null) === 'done' && $repliable instanceof Task) {
+                $payload['owner'] = $repliable->assigned_to ?? $repliable->user_id;
+            }
+
+            $system = $field === 'approved_at' && ($source->systemApproval ?? false);
+            if ($system) $payload += ['system' => true, 'reason' => 'approval_disabled'];
+
             $rows[] = [
                 'repliable_type' => $repliable->getMorphClass(),
                 'repliable_id' => $repliable->getKey(),
-                'user_id' => $actor?->id,
+                'user_id' => $system ? null : $actor?->id,
                 'body' => null,
                 'files' => json_encode([]),
                 'type' => $type->value,
@@ -112,7 +119,7 @@ class ActivityLogger
         ModelCacheVersion::bump(Reply::class);
         $this->bumpHeartbeat($repliable, affectsTaskDomain: true);
 
-        if ($repliable instanceof Task && !($source instanceof Task)) {
+        if ($repliable instanceof Task) {
             dispatch(new ReconcileNudge((new TaskNudge())->getKey(), Task::class, $repliable->id))->afterCommit();
         }
     }
@@ -144,6 +151,11 @@ class ActivityLogger
         return $reply;
     }
 
+    public function taskCreated(Task $task, ?User $actor): Reply
+    {
+        return $this->system($task, $actor, TaskActivityType::Assignment, ['created' => true, 'to' => $task->assigned_to]);
+    }
+
     private function bumpHeartbeat(Model $repliable, bool $affectsTaskDomain = false): void
     {
         $projectId = $repliable instanceof Project ? $repliable->id : ($repliable instanceof Task ? $repliable->project_id : null);
@@ -171,7 +183,7 @@ class ActivityLogger
         }
 
         if ($field === 'approved_at') {
-            return ['approved' => $after !== null];
+            return $after === null ? null : ['approved' => true];
         }
 
         if ($field === 'meta') {

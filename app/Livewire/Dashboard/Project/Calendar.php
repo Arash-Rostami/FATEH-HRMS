@@ -11,7 +11,6 @@ use App\Models\Workflow;
 use App\Services\Cache\ModelCacheVersion;
 use App\Values\CalendarRange;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Defer;
@@ -51,13 +50,13 @@ class Calendar extends Component
         $this->selectedCalendarDay = $today;
     }
 
-    private function calendarBucketsCacheKey(int $projectId, string $navDate): string
+    private function calendarBucketsCacheSuffix(int $projectId, string $navDate): string
     {
         return sprintf(
-            'project-calendar:%d:%s:t%s:r%s:w%s',
+            'project-calendar:%d:%s:%s:r%s:w%s',
             $projectId,
             $navDate,
-            ModelCacheVersion::version(Task::class),
+            now()->toDateString(),
             ModelCacheVersion::version(Reply::class),
             ModelCacheVersion::version(Workflow::class)
         );
@@ -77,8 +76,9 @@ class Calendar extends Component
         }
 
         try {
-            return $this->calendarBucketsCache[$key] = Cache::remember(
-                $this->calendarBucketsCacheKey($projectId, $navDate),
+            return $this->calendarBucketsCache[$key] = ModelCacheVersion::remember(
+                Task::class,
+                $this->calendarBucketsCacheSuffix($projectId, $navDate),
                 now()->addSeconds(ModelCacheVersion::defaultSeconds()),
                 fn() => $this->buildCalendarBuckets($projectId, $navDate)
             );
@@ -238,9 +238,13 @@ class Calendar extends Component
             $isOpen = $task->status !== 'done' && $task->archived_at === null;
             $hasDeadline = $task->deadline !== null;
 
-            $visible = ($hasDeadline && $task->deadline->gte($rangeStart) && $task->created_at->lte($range->end))
-                || (!$hasDeadline && $isOpen)
-                || ($hasDeadline && $isOpen && $task->deadline->lt($rangeStart));
+            $spanEnd = $hasDeadline && $task->completed_at?->gt($task->deadline) ? $task->completed_at : $task->deadline;
+
+            $visible = match (true) {
+                $isOpen => $task->created_at->lte($range->end),
+                !$hasDeadline => (bool) $task->completed_at?->between($rangeStart, $range->end),
+                default => $spanEnd->gte($rangeStart) && $task->created_at->lte($range->end),
+            };
 
             if (!$visible) {
                 continue;
@@ -321,7 +325,7 @@ class Calendar extends Component
         $projectDeadlineIndex = null;
 
         try {
-            $deadlineSetting = Project::query()->find($projectId)?->setting('deadline');
+            $deadlineSetting = Project::query()->find($projectId)?->charter()->cap();
             if ($deadlineSetting) {
                 $deadlineCarbon = Carbon::parse($deadlineSetting)->startOfDay();
                 $projectDeadline = Jalalian::fromCarbon($deadlineCarbon)->format('Y-m-d');

@@ -8,6 +8,8 @@ use App\Models\Concerns\HasAvatar as HasImage;
 use App\Models\Concerns\HasDateHelpers;
 use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasOccasions;
+use App\Jobs\ReconcileNudge;
+use App\Jobs\SyncProjectChannelMembershipJob;
 use App\Services\Cache\ModelCacheVersion;
 use App\Services\ProfileDetailCatalog;
 use App\Traits\CleansAttachedFiles;
@@ -180,9 +182,31 @@ class Profile extends Model
         });
 
         static::saved(function (self $profile) {
-            if ($profile->wasChanged('department_id')) {
-                ModelCacheVersion::bump(User::class);
+            $moved = $profile->wasChanged('department_id');
+
+            if (!$moved && !$profile->wasChanged('position')) {
+                return;
             }
+
+            ModelCacheVersion::bump(User::class);
+
+            $codes = array_filter([$profile->getOriginal('department_id'), $profile->department_id]);
+
+            if (!$codes) {
+                return;
+            }
+
+            if ($moved) {
+                Project::whereNotNull('channel_id')
+                    ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhereJsonContains('departments', $code)))
+                    ->pluck('id')
+                    ->each(fn($id) => SyncProjectChannelMembershipJob::dispatch($id));
+            }
+
+            Ticket::where('status', 'open')
+                ->where(fn($q) => collect($codes)->each(fn($code) => $q->orWhere(fn($sq) => $sq->targetedAt($code))))
+                ->pluck('id')
+                ->each(fn($id) => ReconcileNudge::dispatch('ths-controller:nudge', Ticket::class, $id));
         });
     }
 }

@@ -28,7 +28,10 @@ class WorkflowStepRenderer implements ActivityLogRenderer
             'advanced' => "مرحله «{$label}» در چرخه «{$cycle}» تکمیل شد.",
             'rejected' => "مرحله «{$label}» در چرخه «{$cycle}» رد شد.",
             'completed' => "چرخه «{$cycle}» تکمیل شد.",
-            'cancelled' => "چرخه «{$cycle}» لغو شد.",
+            'cancelled' => ($reply->payload['reason'] ?? null) === 'project_deleted' ? 'چرخه به دلیل حذف پروژه لغو شد' : "چرخه «{$cycle}» لغو شد.",
+            'restored' => "چرخه «{$cycle}» پس از بازیابی پروژه به پیش‌نویس بازگشت.",
+            'reassigned' => "مسئولان مرحله «{$label}» در چرخه «{$cycle}» تغییر کرد.",
+            'task_detached' => "وظیفه مرحله «{$label}» از چرخه «{$cycle}» جدا شد.",
             default => "تغییری در چرخه «{$cycle}» ثبت شد.",
         };
 

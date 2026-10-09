@@ -17,29 +17,44 @@ class AssignTicketAction
         private readonly TicketPresenter $presenter,
     ) {}
 
-    public function execute(Ticket $ticket, int $assigneeId, User $actor): Ticket
+    public function execute(Ticket $ticket, int $assigneeId, User $actor, ?string $seenStatus = null): Ticket
     {
         abort_unless(TicketAccessPolicy::canAssign($ticket, $actor), 403);
-        abort_unless($ticket->status !== 'closed', 422, 'امکان تغییر مسئول تیکت بسته‌شده وجود ندارد.');
 
-        $target = $ticket->targetDepartmentId ?: Ticket::defaultTargetDepartment();
-        $isValidAssignee = User::whereKey($assigneeId)
-            ->when($target, fn ($q) => $q->whereHas('profile', fn ($pq) => $pq->where('department_id', $target)))
-            ->exists();
+        return DB::transaction(function () use ($ticket, $assigneeId, $actor, $seenStatus) {
+            $locked = Ticket::lockForUpdate()->findOrFail($ticket->id);
 
-        abort_unless($isValidAssignee, 422, 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.');
+            abort_unless($locked->status !== 'closed', 422, 'امکان تغییر مسئول تیکت بسته‌شده وجود ندارد.');
+            abort_if(($seenStatus ?? $ticket->status) === 'open' && $locked->status !== 'open', 422, 'این تیکت قبلاً محول شده است.');
+            abort_unless(TicketAccessPolicy::canAssign($locked, $actor), 403);
+            abort_unless($locked->assignableUsers()->whereKey($assigneeId)->exists(), 422, 'کاربر انتخاب‌شده متعلق به این واحد سازمانی نیست.');
 
-        DB::transaction(function () use ($ticket, $assigneeId) {
-            $ticket->update(['assigned_to' => $assigneeId]);
-            $this->syncLinkedTask($ticket, $assigneeId);
+            $locked->update(['assigned_to' => $assigneeId]);
+
+            return $locked->fresh();
         });
+    }
 
-        return $ticket->fresh();
+    public function close(Ticket $ticket, User $actor): void
+    {
+        DB::transaction(function () use ($ticket, $actor) {
+            $locked = Ticket::lockForUpdate()->find($ticket->id);
+
+            abort_unless($locked && TicketAccessPolicy::canClose($locked, $actor), 403);
+
+            $locked->update(['status' => 'closed']);
+        });
     }
 
     public function syncForAdmin(Ticket $ticket, ?int $assigneeId): void
     {
-        DB::transaction(fn () => $this->syncLinkedTask($ticket, $assigneeId));
+        DB::transaction(function () use ($ticket, $assigneeId) {
+            $locked = Ticket::lockForUpdate()->find($ticket->id);
+
+            if ($locked && $locked->status !== 'closed') {
+                $this->syncLinkedTask($locked, $assigneeId);
+            }
+        });
     }
 
     public function markLinkedTaskDone(Ticket $ticket): void
@@ -51,7 +66,7 @@ class AssignTicketAction
                 return;
             }
 
-            $task->update([
+            Task::syncingFromTicket(fn() => $task->update([
                 'status' => 'done',
                 'rank' => Task::rankForPriority(
                     $task->project_id,
@@ -60,18 +75,37 @@ class AssignTicketAction
                     $task->priority?->value,
                     $task->id
                 ),
-            ]);
+            ]));
         });
     }
 
     private function syncLinkedTask(Ticket $ticket, ?int $assigneeId): void
     {
-        $task = $this->findLinkedTask($ticket, ['id', 'project_id', 'user_id', 'priority', 'status']);
+        Task::syncingFromTicket(fn() => $this->applyLinkedTask($ticket, $assigneeId));
+    }
+
+    private function applyLinkedTask(Ticket $ticket, ?int $assigneeId): void
+    {
+        $task = $this->findLinkedTask($ticket, ['*'], true);
         $priority = $this->mapTicketPriority($ticket);
-        $status = $assigneeId !== null ? 'in-progress' : 'todo';
+
+        if ($task && $assigneeId === null) {
+            $task->trashed() || $task->delete();
+            return;
+        }
 
         if ($task) {
+            if ($task->status === 'done') {
+                return;
+            }
+
+            $status = !$task->trashed() && $assigneeId === $task->assigned_to ? $task->status : 'todo';
+            $task->trashed() && $task->restore();
             $payload = ['assigned_to' => $assigneeId, 'status' => $status];
+
+            if ($ticket->completion_deadline) {
+                $payload['deadline'] = $ticket->completion_deadline;
+            }
 
             if ($task->priority?->value !== $priority || $task->status !== $status) {
                 $payload['priority'] = $priority;
@@ -95,20 +129,29 @@ class AssignTicketAction
         $task = Task::create([
             'title' => Str::limit($ticket->request_subject, 180),
             'description' => $this->buildTaskDescription($ticket),
-            'status' => $status,
+            'status' => 'todo',
+            'deadline' => $ticket->completion_deadline,
             'user_id' => $ticket->requester_id,
             'assigned_to' => $assigneeId,
             'ticket_id' => $ticket->id,
             'priority' => $priority,
-            'rank' => Task::rankForPriority(null, $assigneeId, $status, $priority),
+            'rank' => Task::rankForPriority(null, $assigneeId, 'todo', $priority),
         ]);
 
-        $task->detail()->create([]);
+        $task->detail()->create([
+            'department_id' => User::whereKey($assigneeId)->with('profile:user_id,department_id')->first(['id'])?->profile?->department_id,
+            'action_source_domain' => 'تیکت',
+            'action_source' => Str::limit($ticket->request_subject, 120, ''),
+        ]);
     }
 
-    private function findLinkedTask(Ticket $ticket, array $columns): ?Task
+    private function findLinkedTask(Ticket $ticket, array $columns, bool $withTrashed = false): ?Task
     {
-        return Task::where('ticket_id', $ticket->id)->first($columns);
+        return Task::query()
+            ->when($withTrashed, fn ($q) => $q->withTrashed())
+            ->where('ticket_id', $ticket->id)
+            ->lockForUpdate()
+            ->first($columns);
     }
 
     private function mapTicketPriority(Ticket $ticket): string

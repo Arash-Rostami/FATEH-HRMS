@@ -321,7 +321,8 @@ class TaskResource extends Resource
                     ->iconButton()
                     ->color('success')
                     ->tooltip(__('resources/task/strings.actions.approve'))
-                    ->visible(fn($record) => $record->isPendingApproval()
+                    ->visible(fn($record) => static::permits('update')
+                        && $record->isPendingApproval()
                         && TaskAccessPolicy::canApprove($record, auth()->user()))
                     ->action(function (Model $record) {
                         if (app(ApproveTaskAction::class)->execute($record, auth()->user())) {
@@ -338,10 +339,13 @@ class TaskResource extends Resource
                     ->url(fn($record) => route('tasksheet', ['user' => $record->assigned_to ?? $record->user_id]))
                     ->openUrlInNewTab(),
                 self::viewAction(),
-                self::editAction(),
-                self::deleteAction()->visible(fn($record) => !$record->trashed()),
+                self::editAction()->visible(fn($record) => !$record->ticket_id),
+                self::deleteAction()->visible(fn($record) => !$record->trashed() && !$record->ticket_id),
             ], RecordActionsPosition::AfterCells)
-            ->groupedBulkActions(self::bulkActions(TaskExporter::class))
+            ->groupedBulkActions([
+                self::bulkDeleteAction()->using(fn($records) => $records->reject(fn($record) => $record->ticket_id)->each->delete()),
+                self::bulkExportAction(TaskExporter::class),
+            ])
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->defaultSort('created_at', 'desc')
             ->striped();

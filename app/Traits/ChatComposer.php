@@ -36,13 +36,6 @@ trait ChatComposer
             ->all();
     }
 
-    #[Computed]
-    public function lastMessageId(): ?int
-    {
-        $id = collect($this->messages)->max('id');
-        return $id === null ? null : (int) $id;
-    }
-
     #[Js]
     public function cancelReply()
     {

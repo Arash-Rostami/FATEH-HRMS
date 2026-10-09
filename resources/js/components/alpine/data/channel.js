@@ -240,6 +240,7 @@ export default function channel() {
             const lastBefore = open ? this._readLastMessageMarker() : null;
             const typingBefore = open ? this._readTypingMarker() : null;
             let changed = false;
+            let unreadRose = false;
 
             try {
                 const d = await this.$wire.pollDigest();
@@ -248,15 +249,17 @@ export default function channel() {
                     await this._sidebar();
                     this.syncChannelCount();
                     digest = d;
-                    changed = this._readUnread() !== unreadBefore;
+                    const unreadAfter = this._readUnread();
+                    changed = unreadAfter !== unreadBefore;
+                    unreadRose = unreadAfter > unreadBefore;
                 }
 
                 if (open) {
                     await this._isl().refreshActive();
                     const lastAfter = this._readLastMessageMarker();
-                    if (lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null && !this._lastMessageIsMine()) {
-                        this.$store.sound?.playIncoming(this.$wire.activeChannelId, SCOPE);
-                    }
+                    const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null;
+                    if (threadChanged && !this._lastMessageIsMine()) this._ringIncoming(this.$wire.activeChannelId);
+                    else if (unreadRose && !threadChanged) this._ringIncoming(null);
                     changed ||= lastAfter !== lastBefore || this._readTypingMarker() !== typingBefore;
                 }
             } catch {}
@@ -288,7 +291,7 @@ export default function channel() {
             const now = this._readUnread();
             if (this._lastUnread !== undefined && now > this._lastUnread) {
                 this.$store.push.notify('پیام جدید', 'یک گروه پیام جدید دارد', SCOPE);
-                if (!this.$wire.activeChannelId) this.$store.sound?.playIncoming(null, SCOPE);
+                if (!this.$wire.activeChannelId) this._ringIncoming(null);
             }
             this._lastUnread = now;
         },

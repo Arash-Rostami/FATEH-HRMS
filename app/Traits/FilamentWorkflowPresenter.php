@@ -2,15 +2,20 @@
 
 namespace App\Traits;
 
+use App\Filament\Resources\ProjectResource;
+use App\Livewire\Dashboard\Project\Actions\AdvanceWorkflowStepAction;
 use App\Livewire\Dashboard\Project\Actions\CancelWorkflowAction;
+use App\Livewire\Dashboard\Project\Actions\ReassignWorkflowStepAction;
 use App\Models\Workflow;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 trait FilamentWorkflowPresenter
 {
@@ -70,7 +75,7 @@ trait FilamentWorkflowPresenter
             ->icon('heroicon-m-x-circle')
             ->color('danger')
             ->iconButton()
-            ->visible(fn(Workflow $record) => $record->isActive())
+            ->visible(fn(Workflow $record) => ProjectResource::canEdit($record) && $record->isActive())
             ->requiresConfirmation()
             ->modalHeading(__('resources/project/strings.workflow.actions.cancel_confirm'))
             ->action(function (Workflow $record) {
@@ -78,6 +83,59 @@ trait FilamentWorkflowPresenter
 
                 Notification::make()
                     ->title(__('resources/project/strings.workflow.actions.cancel_success'))
+                    ->success()
+                    ->send();
+            });
+    }
+
+    public static function forceAdvanceWorkflowAction(): Action
+    {
+        return Action::make('forceAdvance')
+            ->label(__('resources/project/strings.workflow.actions.force_advance'))
+            ->icon('heroicon-m-forward')
+            ->color('warning')
+            ->iconButton()
+            ->visible(fn(Workflow $record) => ProjectResource::canEdit($record) && $record->isActive())
+            ->requiresConfirmation()
+            ->modalHeading(__('resources/project/strings.workflow.actions.force_advance_confirm'))
+            ->action(function (Workflow $record) {
+                $advanced = app(AdvanceWorkflowStepAction::class)
+                    ->execute($record->id, (int)auth()->id(), (int)$record->current_step, true, true);
+
+                Notification::make()
+                    ->title(__('resources/project/strings.workflow.actions.' . ($advanced ? 'force_advance_success' : 'force_advance_failed')))
+                    ->color($advanced ? 'success' : 'warning')
+                    ->send();
+            });
+    }
+
+    public static function reassignWorkflowStepAction(): Action
+    {
+        return Action::make('reassignStep')
+            ->label(__('resources/project/strings.workflow.actions.reassign'))
+            ->icon('heroicon-m-user-group')
+            ->iconButton()
+            ->visible(fn(Workflow $record) => ProjectResource::canEdit($record) && $record->isActive())
+            ->fillForm(fn(Workflow $record) => ['assignees' => $record->currentStep()['assignee_user_ids'] ?? []])
+            ->schema([
+                Select::make('assignees')
+                    ->label(__('resources/project/strings.workflow.actions.reassign'))
+                    ->options(fn(Workflow $record) => $record->project->charter()->rosterQuery()->pluck('name', 'id'))
+                    ->multiple()
+                    ->required()
+                    ->native(false)
+                    ->searchable(),
+            ])
+            ->action(function (Workflow $record, array $data) {
+                try {
+                    app(ReassignWorkflowStepAction::class)->execute($record, (int)auth()->id(), array_map('intval', $data['assignees']));
+                } catch (ValidationException $e) {
+                    Notification::make()->title(collect($e->errors())->flatten()->first())->danger()->send();
+                    return;
+                }
+
+                Notification::make()
+                    ->title(__('resources/project/strings.workflow.actions.reassign_success'))
                     ->success()
                     ->send();
             });

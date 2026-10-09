@@ -8,9 +8,7 @@
 
     <span class="material-symbols-rounded text-[22px]">notifications</span>
 
-    @if(auth()->user()->unreadNotifications()->count() > 0)
-        <span class="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-[var(--md-sys-color-error)] rounded-full ring-2 ring-[var(--md-sys-color-primary)]"></span>
-    @endif
+    <span x-data="{ lit: @js(auth()->user()->unreadNotifications()->exists()) }" x-on:bell-unread.window="lit = $event.detail.lit" x-show="lit" x-cloak class="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-[var(--md-sys-color-error)] rounded-full ring-2 ring-[var(--md-sys-color-primary)]"></span>
 
     <x-ui.modals.tooltip :text="$title" position="bottom" />
 </button>

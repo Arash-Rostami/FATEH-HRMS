@@ -7,6 +7,7 @@
     $memberNames = collect($memberCandidates)->pluck('name', 'id');
     $batchedTasks = $this->batchedTasks;
     $batchedUserNames = $this->batchedUserNames;
+    $templateAverages = $this->templateAverages;
 @endphp
 
 <div class="flex flex-col gap-4" wire:key="workflow-{{ $activeProjectId }}" @project-workflow-refresh.window="$wire.refreshWorkflow()">
@@ -24,7 +25,7 @@
                             <x-ui.forms.select label="اعمال الگو" name="selectedTemplateId" wire:model="selectedTemplateId">
                                 <option value=""></option>
                                 @foreach($templates as $template)
-                                    <option value="{{ $template->id }}">{{ $template->name }}</option>
+                                    <option value="{{ $template->id }}">{{ $template->name }}{{ $template->avg_days ? ' · میانگین ' . convertToPersian($template->avg_days) . ' روز' : '' }}</option>
                                 @endforeach
                             </x-ui.forms.select>
                         </div>
@@ -46,7 +47,7 @@
     @if($activeWorkflows->isEmpty() && !$isEditorOpen)
         <div wire:key="workflow-active-empty" class="contents">
             <x-ui.empty icon="conversion_path" title="هنوز چرخهٔ کاری‌ای برای این پروژه تعریف نشده"
-                        description="{{ $isOwner ? 'با دکمهٔ «چرخه جدید» یک توالی از مراحل تحویل کار بسازید یا الگویی را اعمال کنید.' : 'مدیر پروژه می‌تواند یک چرخهٔ کاری تعریف کند.' }}"/>
+                        description="{{ $isOwner ? 'با دکمهٔ «چرخه جدید» یک توالی از مراحل تحویل کار بسازید یا الگویی را اعمال کنید.' : 'مدیر پروژه' . ($this->ownerName ? " ({$this->ownerName})" : '') . ' می‌تواند یک چرخهٔ کاری تعریف کند. گفتگوی تیم و وظایف را از برگه‌های بالا ببینید.' }}"/>
         </div>
     @else
         <div wire:key="workflow-active-list" class="space-y-3">
@@ -60,6 +61,7 @@
                     'batchedUserNames' => $batchedUserNames,
                     'taskBoardPresenter' => $taskBoardPresenter,
                     'workflowPresenter' => $workflowPresenter,
+                    'templateAverages' => $templateAverages,
                 ])
             @endforeach
         </div>

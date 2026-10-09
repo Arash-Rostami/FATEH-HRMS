@@ -16,13 +16,13 @@
                     <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
                 </div>
                 @foreach($group['messages'] as $msg)
-                    <div @class(['flex items-end gap-2 animate-bubble-in', 'justify-start' => $msg['is_mine'], 'justify-end' => !$msg['is_mine'], $msg['gap_class']]) wire:key="chat-msg-{{ $msg['id'] }}" style="animation-delay: {{ $msg['animation_delay'] }}s">
+                    <div @class(['flex items-end gap-2 animate-bubble-in', 'justify-start' => $msg['is_mine'], 'justify-end' => !$msg['is_mine'], $msg['gap_class']]) wire:key="chat-msg-{{ $msg['id'] }}" data-rf="project-message-{{ $msg['id'] }}" style="animation-delay: {{ $msg['animation_delay'] }}s">
                         @if($msg['is_last'])
                             <div class="relative flex-shrink-0 self-end mb-0.5">
                                 <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                                    <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" icon="person" icon-size="text-base" />
+                                    <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']" icon="person" icon-size="text-base" />
                                 </div>
-                                <x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>
+                                @unless($msg['sender_inactive'])<x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>@endunless
                             </div>
                         @else
                             <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -38,8 +38,9 @@
                                     <span class="flex items-center gap-1 text-[10px] font-bold mb-1 text-[var(--md-sys-color-tertiary)]"><span class="material-symbols-rounded text-[13px]">alternate_email</span> اشاره به شما</span>
                                 @endif
                                 @if(!$msg['is_mine'] && $msg['is_first'])
-                                    <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)]">{{ $msg['sender_name'] }}</p>
+                                    <p class="text-[10px] font-bold mb-1 text-[var(--md-sys-color-primary)] flex items-center gap-1">{{ $msg['sender_name'] }}@if($msg['sender_inactive'])<x-ui.badge class="!px-1.5 !py-0.5 !text-[10px]">غیرفعال</x-ui.badge>@endif</p>
                                 @endif
+                                @include('livewire.dashboard.messaging.reply-quote', ['msg' => $msg])
                                 @if($msg['body'] !== '')
                                     <span class="break-words">{!! $msg['body_html'] !!}</span>
                                 @endif
@@ -47,6 +48,9 @@
                             </div>
                             @if($msg['is_last'])
                                 <div class="flex items-center gap-1.5 mt-1 {{ $msg['is_mine'] ? 'justify-start pl-1' : 'justify-end pr-1' }}">
+                                    @if($msg['is_edited'])
+                                        <span wire:key="project-teamchat-edited" class="text-[9px] tracking-wide font-medium italic text-[var(--md-sys-color-on-surface-variant)] opacity-45">ویرایش‌شده</span>
+                                    @endif
                                     <time class="text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] opacity-60" datetime="{{ $msg['datetime'] }}" dir="ltr">{{ $msg['time'] }}</time>
                                 </div>
                             @endif

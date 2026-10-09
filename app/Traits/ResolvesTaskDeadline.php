@@ -25,12 +25,26 @@ trait ResolvesTaskDeadline
         );
     }
 
-    private function guardProjectDeadline(?Carbon $deadline, ?Project $project): void
+    private function resolveTaskDeadline(Form $form, ?Project $project, ?Carbon $current = null, bool $projectChanged = false, bool $creating = false): ?Carbon
     {
-        if ($project?->deadlineCapExceeded($deadline)) {
-            throw ValidationException::withMessages([
-                'form.deadline' => __('resources/task/strings.validation.project_deadline_cap'),
-            ]);
+        $deadline = $this->resolveDeadline($form);
+
+        if (!$deadline) return $creating || $projectChanged ? $project?->charter()->defaultDeadline() : null;
+
+        if (!$current?->isSameDay($deadline)) {
+            if ((int) $form->deadlineYear < 1400 || (int) $form->deadlineYear > 1500) {
+                throw new InvalidArgumentException(__('resources/task/strings.validation.invalid_deadline'));
+            }
+
+            if ($deadline->isBefore(today())) {
+                throw ValidationException::withMessages([
+                    'form.deadline' => __('resources/task/strings.validation.deadline_past'),
+                ]);
+            }
         }
+
+        $project?->charter()->assertDeadline($deadline, $projectChanged ? null : $current, 'form.deadline');
+
+        return $deadline;
     }
 }

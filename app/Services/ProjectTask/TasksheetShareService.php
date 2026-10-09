@@ -2,21 +2,42 @@
 
 namespace App\Services\ProjectTask;
 
+use App\Models\Department;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\URL;
 
 class TasksheetShareService
 {
+    public static function managersFor(User $subject): Collection
+    {
+        $code = $subject->profile?->department_id;
+
+        if (!$code) {
+            return collect();
+        }
+
+        $heads = User::headsOfDepartment($code);
+
+        if (!$heads->contains('id', $subject->id)) {
+            return $heads;
+        }
+
+        $parent = Department::getCachedModels()->get($code)?->subordinate_to;
+
+        return $parent ? User::headsOfDepartment($parent) : collect();
+    }
+
+    public static function managerFor(User $subject): ?User
+    {
+        return self::managersFor($subject)->sortBy('id')->first();
+    }
+
     public function shareWithManager(User $subject, ?User $recipient = null, ?User $requestedBy = null, array $windowParams = []): array
     {
-        $manager = $recipient;
-
-        if (!$manager) {
-            $deptCode = $subject->profile?->department_id;
-            $manager = $deptCode ? User::highestRankingInDepartment($deptCode) : null;
-        }
+        $manager = $recipient ?? self::managerFor($subject);
 
         if (!$manager) {
             return [
@@ -36,7 +57,7 @@ class TasksheetShareService
 
         $signedUrl = URL::temporarySignedRoute(
             'tasksheet.shared',
-            now()->addDays(14),
+            now()->addDays(7),
             array_merge(['subject' => $subject->id], $windowParams)
         );
 

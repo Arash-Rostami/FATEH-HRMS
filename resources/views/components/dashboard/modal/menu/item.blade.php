@@ -17,7 +17,7 @@
     <div class="relative w-9 h-9 shrink-0 rounded-lg flex items-center justify-center bg-[color-mix(in_srgb,var(--md-sys-color-primary)_8%,var(--md-sys-color-surface))] border border-[color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"
          :class="pinEditMode ? 'animate-shiver' : ''">
         <span class="material-symbols-rounded text-[18px] text-[var(--md-sys-color-primary)]" x-text="item.icon"></span>
-        <template x-if="@js($menuState)[item.id]">
+        <template x-if="$store.menuBadges.on(item.id, @js($menuState)[item.id])">
             <x-ui.notification-badge />
         </template>
         <template x-if="item.disabled">

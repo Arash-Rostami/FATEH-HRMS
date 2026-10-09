@@ -33,14 +33,14 @@ class TasksheetPresenter
 
         $tiles = [
             ['icon' => 'task_alt', 'label' => 'تکمیل‌شده', 'value' => convertToPersian($sc['completed']['value']), 'chip' => $this->deltaChip($sc['completed']['value'], $sc['completed']['previous']), 'ring' => null, 'spark' => $this->spark($sc['completed']['previous'], $sc['completed']['value'])],
-            ['icon' => 'speed', 'label' => 'به‌موقع بودن', 'value' => $sc['on_time_percent']['value'] !== null ? convertToPersian($sc['on_time_percent']['value']) . '٪' : '—', 'chip' => $this->deltaChip($sc['on_time_percent']['value'], $sc['on_time_percent']['previous']), 'ring' => $sc['on_time_percent']['value'], 'spark' => $this->spark($sc['on_time_percent']['previous'], $sc['on_time_percent']['value'])],
-            ['icon' => 'schedule', 'label' => 'میانگین زمان انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median']), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
+            ['icon' => 'speed', 'label' => 'به‌موقع بودن', 'value' => $sc['on_time_percent']['value'] !== null ? convertToPersian($sc['on_time_percent']['value']) . '٪' : '—', 'chip' => $this->pointsChip($this->deltaChip($sc['on_time_percent']['value'], $sc['on_time_percent']['previous']), $sc['on_time_percent']['delta_percent']), 'ring' => $sc['on_time_percent']['value'], 'spark' => $this->spark($sc['on_time_percent']['previous'], $sc['on_time_percent']['value'])],
+            ['icon' => 'schedule', 'label' => 'میانهٔ زمان انجام', 'value' => $sc['cycle_time_days']['median'] !== null ? convertToPersian(number_format($sc['cycle_time_days']['median'], 1)) . ' روز' : '—', 'chip' => $this->deltaChip($sc['cycle_time_days']['median'], $sc['cycle_time_days']['previous_median']), 'ring' => null, 'spark' => $this->spark($sc['cycle_time_days']['previous_median'], $sc['cycle_time_days']['median'])],
             ['icon' => 'verified', 'label' => 'تأییدیهٔ دریافتی', 'value' => convertToPersian($sc['approvals_received']['value']), 'chip' => $this->deltaChip($sc['approvals_received']['value'], $sc['approvals_received']['previous']), 'ring' => null, 'spark' => $this->spark($sc['approvals_received']['previous'], $sc['approvals_received']['value'])],
         ];
 
         $plainTiles = [
-            ['icon' => 'warning', 'label' => 'همچنان معوق', 'value' => convertToPersian($sc['still_overdue'])],
-            ['icon' => 'autorenew', 'label' => 'در حال انجام', 'value' => convertToPersian($sc['in_progress'])],
+            ['icon' => 'warning', 'label' => 'همچنان معوق', 'value' => convertToPersian($sc['still_overdue']), 'live' => true],
+            ['icon' => 'autorenew', 'label' => 'در حال انجام', 'value' => convertToPersian($sc['in_progress']), 'live' => true],
         ];
 
         $priorityCounts = collect($report['projects'])
@@ -76,6 +76,17 @@ class TasksheetPresenter
             ->map(fn (array $item, string $kind) => $kinds[$kind] + ['kind' => $kind, 'item' => $item])
             ->values()
             ->all();
+    }
+
+    private function pointsChip(?array $chip, ?float $points): ?array
+    {
+        if ($chip === null || $points === null) {
+            return $chip;
+        }
+
+        $chip['text'] .= ' · ' . ($points > 0 ? '+' : ($points < 0 ? '−' : '')) . $this->formatNumber(abs($points));
+
+        return $chip;
     }
 
     private function spark(mixed $previous, mixed $current): ?array

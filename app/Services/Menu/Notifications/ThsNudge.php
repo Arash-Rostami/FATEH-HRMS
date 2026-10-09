@@ -12,7 +12,7 @@ class ThsNudge implements MenuNudge
 {
     public function body($subject, User $user): string
     {
-        if ($subject->currentActionRecipient()?->is($user)) {
+        if ($subject->isActionRecipient($user)) {
             return match ($subject->status) {
                 'open' => 'تیکت جدیدی به واحد شما ارجاع شده است؛ برای بررسی به بخش تیکتینگ مراجعه کنید.',
                 'in-progress' => 'تیکتی به شما محول شده است؛ برای اقدام به بخش تیکتینگ مراجعه کنید.',
@@ -26,13 +26,11 @@ class ThsNudge implements MenuNudge
 
     public function for($subject): Collection
     {
-        $recipients = collect();
+        $recipients = $subject->currentActionRecipients();
 
-        if ($lifecycle = $subject->currentActionRecipient()) {
-            $recipients->push($lifecycle);
-        }
-
-        $otherPartyIds = $subject->otherReplyParticipants([$subject->requester_id, $subject->assigned_to]);
+        $otherPartyIds = $subject->status === 'closed'
+            ? []
+            : $subject->otherReplyParticipants([$subject->requester_id, $subject->assigned_to]);
 
         if ($otherPartyIds) {
             $recipients = $recipients->merge(User::whereIn('id', $otherPartyIds)->get());
@@ -58,10 +56,14 @@ class ThsNudge implements MenuNudge
 
     public function show($subject, User $user): bool
     {
+        if ($subject->status === 'closed' && $subject->satisfaction_score !== null) {
+            return false;
+        }
+
         $latestReply = $subject->latestReply();
 
         if ($latestReply && (int)$latestReply->user_id === $user->id) {
-            return (bool)$subject->currentActionRecipient()?->is($user);
+            return $subject->isActionRecipient($user);
         }
 
         return true;
@@ -69,7 +71,7 @@ class ThsNudge implements MenuNudge
 
     public function title($subject, User $user): string
     {
-        if ($subject->currentActionRecipient()?->is($user)) {
+        if ($subject->isActionRecipient($user)) {
             return match ($subject->status) {
                 'open' => 'تیکت جدید ارجاع‌شده به واحد شما',
                 'in-progress' => 'تیکت محول‌شده به شما',
