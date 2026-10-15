@@ -13,5 +13,9 @@ class EditDms extends EditRecord
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = DmsResource::class;
-}
 
+    protected function trackedFileColumns(): array
+    {
+        return ['file' => [], 'extra_files' => []];
+    }
+}

@@ -6,6 +6,7 @@ use App\Enums\ResourceType;
 use App\Enums\ResourceTypeIcon;
 use App\Filament\Resources\ResourceResource\Enums\ResourceStatus;
 use App\Filament\Resources\ResourceResource\Schemas\Helper\TypeProvisioner;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use App\Traits\FilamentIconOptions;
 use Filament\Forms\Components\CheckboxList;
@@ -16,6 +17,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ResourceFormPresenter
 {
@@ -107,6 +109,9 @@ class ResourceFormPresenter
             ->disk('public')
             ->directory('resources')
             ->maxSize(config('file_upload_limits.image'))
+            ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('resource', $file)
+            )
             ->nullable()
             ->helperText(__('resources/resource/strings.hints.image'))
             ->columnSpanFull();

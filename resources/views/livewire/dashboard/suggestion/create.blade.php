@@ -253,12 +253,12 @@
     </div>
 
     <div class="flex justify-center gap-3 pb-8">
-        <x-ui.buttons.form class="w-40 justify-center" icon="send" loading="submit" wire:click="submit">
-            ارسال
+        <x-ui.buttons.form class="w-40 justify-center" variant="ghost" wire:click="$set('panel', 'empty')">
+            انصراف
         </x-ui.buttons.form>
 
-        <x-ui.buttons.form class="w-40 justify-center !bg-[var(--md-sys-color-error)] !text-[var(--md-sys-color-on-primary)]" variant="ghost" wire:click="$set('panel', 'empty')">
-            انصراف
+        <x-ui.buttons.form class="w-40 justify-center" icon="send" loading="submit" wire:click="submit">
+            ارسال
         </x-ui.buttons.form>
     </div>
 

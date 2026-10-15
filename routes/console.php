@@ -37,3 +37,13 @@ Schedule::command('edges:prune-stale')
 Schedule::command('reminders:prune-completed')
     ->daily()
     ->withoutOverlapping();
+
+Schedule::command('exports:prune-old')
+    ->daily()
+    ->at('03:30')
+    ->withoutOverlapping();
+
+Schedule::command('presence:reset-stale')
+    ->daily()
+    ->at('04:00')
+    ->withoutOverlapping();

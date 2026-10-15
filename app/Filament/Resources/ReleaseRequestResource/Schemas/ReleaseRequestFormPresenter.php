@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReleaseRequestResource\Schemas;
 
 use App\Enums\ReleaseRequestStatus;
 use App\Enums\ReleaseRequestType;
+use App\Support\FileNamer;
 use App\Traits\StoresAttachedFiles;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -14,7 +15,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ReleaseRequestFormPresenter
@@ -65,12 +65,7 @@ class ReleaseRequestFormPresenter
 
     private static function fileName(TemporaryUploadedFile $file): string
     {
-        return sprintf(
-            'RR-%s-%s.%s',
-            now()->format('Ymd'),
-            Str::random(10),
-            $file->getClientOriginalExtension()
-        );
+        return FileNamer::stored('release_request', $file);
     }
 
     public static function body(): Textarea

@@ -167,6 +167,26 @@ describe('maximizeMixin persistence — storage key scoping', () => {
     });
 });
 
+describe('maximizeMixin.initMaximize deferred restore', () => {
+    test('with $nextTick the restore waits until the DOM has settled, so lazily inserted widgets are found and the stored key is not wiped', () => {
+        withUid('7')
+        localStorage.setItem('max:energy:7', 'score')
+        const m = maximizeMixin('energy')
+        const queue = []
+        m.$nextTick = (cb) => queue.push(cb)
+        m.restoreMaximize = vi.fn()
+
+        m.initMaximize()
+
+        expect(m.restoreMaximize).not.toHaveBeenCalled()
+        expect(localStorage.getItem('max:energy:7')).toBe('score')
+
+        queue.shift()()
+        expect(m.restoreMaximize).toHaveBeenCalledWith('score')
+        localStorage.removeItem('max:energy:7')
+    })
+})
+
 describe('maximizeMixin.initMaximize', () => {
     test('with no stored value, max stays false and no layout classes are applied', () => {
         withLayoutDom();

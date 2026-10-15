@@ -4,6 +4,7 @@ namespace App\Filament\Resources\FeedResource\Schemas;
 
 use App\Filament\Resources\FeedResource\Enums\FeedCategory;
 use App\Models\Feed;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -15,7 +16,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class FeedFormPresenter
@@ -80,7 +80,7 @@ class FeedFormPresenter
             ->openable()
             ->acceptedFileTypes(['image/*'])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('feed', $file)
             )
             ->image()
             ->imagePreviewHeight('80')
@@ -111,7 +111,7 @@ class FeedFormPresenter
                 'video/x-flv',
             ])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('feed', $file)
             )
             ->columnSpanFull()
             ->reorderable()

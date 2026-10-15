@@ -204,6 +204,27 @@ describe('reservation.destroy', () => {
     })
 })
 
+describe('reservation.toggleMaximize', () => {
+    test('opens with layout hidden, then closes through maxLeaving before max drops', () => {
+        document.body.innerHTML = '<div id="header"></div><div id="content-shell"></div>'
+        const r = reservation()
+        r.$nextTick = (cb) => cb()
+
+        r.toggleMaximize()
+        expect(r.max).toBe(true)
+        expect(document.getElementById('header').classList.contains('layout-hidden')).toBe(true)
+
+        r.toggleMaximize()
+        expect(r.maxLeaving).toBe(true)
+        expect(r.max).toBe(true)
+        expect(document.getElementById('header').classList.contains('layout-hidden')).toBe(false)
+
+        vi.advanceTimersByTime(400)
+        expect(r.max).toBe(false)
+        expect(r.maxLeaving).toBe(false)
+    })
+})
+
 describe('reservation.scrollNext / scrollPrev', () => {
     test('scrollNext scrolls the PREVIOUS sibling container leftward (negative)', () => {
         const r = reservation()

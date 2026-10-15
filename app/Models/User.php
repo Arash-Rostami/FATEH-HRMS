@@ -13,6 +13,7 @@ use App\Services\User\UserKeyGrouper;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,6 +33,12 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         Notifiable,
         HasProfileHierarchy,
         HasImage;
+
+    public const ONLINE_MINUTES = 10;
+
+    public const TOUCH_MINUTES = 3;
+
+    public const INDEFINITE_FOCUS_MINUTES = 525600;
 
     protected static ?array $todaysDeskCache = null;
     protected static ?array $todaysReservationsCache = null;
@@ -62,7 +69,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         'type' => 'employee',
         'role' => 'user',
         'status' => 'active',
-        'presence' => PresenceStatus::Remote->value,
+        'presence' => PresenceStatus::Onsite->value,
     ];
 
     public function assignedTasks(): HasMany
@@ -286,9 +293,34 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $this->presence === PresenceStatus::Busy && ($this->focus_until?->isFuture() ?? false);
     }
 
-    public function isOnline(int $minutes = 5): bool
+    public function focusLabel(): ?string
     {
-        return $this->last_seen && $this->last_seen->gte(now()->subMinutes($minutes));
+        if (!$this->isFocusing()) {
+            return null;
+        }
+
+        return $this->focus_until->gt(now()->addDay())
+            ? 'حالت تمرکز فعال'
+            : 'متمرکز تا ' . toJalali($this->focus_until, 'H:i');
+    }
+
+    public function isOnline(): bool
+    {
+        return $this->last_seen !== null && $this->last_seen->gte(static::onlineSince());
+    }
+
+    public function lastSeenLabel(): string
+    {
+        return match (true) {
+            $this->isOnline() => 'آنلاین',
+            $this->last_seen === null => 'هرگز',
+            default => toJalaliRelative($this->last_seen),
+        };
+    }
+
+    public static function onlineSince(): Carbon
+    {
+        return now()->subMinutes(static::ONLINE_MINUTES);
     }
 
     public function latestEnergyTest(): HasOne
@@ -382,9 +414,9 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         return $query->where('type', $type);
     }
 
-    public function scopeOnline(Builder $query, int $minutes = 5): Builder
+    public function scopeOnline(Builder $query): Builder
     {
-        return $query->where('last_seen', '>=', now()->subMinutes($minutes));
+        return $query->where('users.last_seen', '>=', static::onlineSince());
     }
 
     public function scopeSearch(Builder $query, string $term): void
@@ -451,7 +483,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, SkipsAuto
         $was = $this->timestamps;
         $this->timestamps = false;
         try {
-            $this->forceFill(['last_seen' => now()->subMinutes(16)])->saveQuietly();
+            $this->forceFill(['last_seen' => now()->subMinutes(static::ONLINE_MINUTES + 1)])->saveQuietly();
             Cache::forget('last_seen:' . $this->id);
         } finally {
             $this->timestamps = $was;

@@ -12,6 +12,50 @@ enum PresenceStatus: string
     case Angry = 'angry';
     case Leave = 'leave';
 
+    public static function default(): self
+    {
+        return self::Onsite;
+    }
+
+    public static function unreachableValues(): array
+    {
+        return array_map(
+            fn(self $s) => $s->value,
+            array_filter(self::cases(), fn(self $s) => !$s->isReachable())
+        );
+    }
+
+    public static function moodValues(): array
+    {
+        return [self::Busy->value, self::Grumpy->value, self::Angry->value];
+    }
+
+    public function isReachable(): bool
+    {
+        return match ($this) {
+            self::Leave, self::Mission => false,
+            default => true,
+        };
+    }
+
+    public function tip(): string
+    {
+        return $this->label() . ' — ' . trim($this->sublabel());
+    }
+
+    public function badgeBgClass(): string
+    {
+        return match ($this) {
+            self::Onsite => 'bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950',
+            self::Remote => 'bg-blue-500 text-white dark:bg-blue-400 dark:text-blue-950',
+            self::Mission => 'bg-amber-500 text-white dark:bg-amber-400 dark:text-amber-950',
+            self::Busy => 'bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950',
+            self::Grumpy => 'bg-violet-600 text-white dark:bg-violet-400 dark:text-violet-950',
+            self::Angry => 'bg-red-600 text-white dark:bg-red-400 dark:text-red-950',
+            self::Leave => 'bg-gray-500 text-white dark:bg-gray-400 dark:text-gray-950',
+        };
+    }
+
     public function activeClass(): string
     {
         return match ($this) {
@@ -189,7 +233,7 @@ enum PresenceStatus: string
             self::Mission => '#FE9900',
             self::Busy    => '#B00000',
             self::Grumpy  => '#7C3AED',
-            self::Angry   => '#B00000',
+            self::Angry   => '#FF3B30',
             self::Leave   => '#6B7280',
         };
     }

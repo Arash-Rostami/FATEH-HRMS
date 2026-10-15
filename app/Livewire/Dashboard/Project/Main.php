@@ -189,10 +189,12 @@ class Main extends Component
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'avatar_url' => $user->getProfileImageUrl(),
+                    'avatar_url' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
                     'is_owner' => $user->id === $project->owner_id,
                     'presence_label' => $user->presence?->label(),
                     'presence_class' => $user->presence?->activeClass(),
+                    'presence' => $user->presence,
+                    'focus' => $user->focusLabel(),
                     'is_online' => $user->isOnline(),
                     'occasion' => $occasionType ? \App\Models\Profile::occasionTone($occasionType) : null,
                     'org_title' => trim(collect([$profile?->unit, $profile?->section])->filter()->implode(' › ')),
@@ -253,6 +255,21 @@ class Main extends Component
         );
 
         return true;
+    }
+
+    public function closeProject(): void
+    {
+        $this->activeProjectId = null;
+
+        unset(
+            $this->activeProject,
+            $this->activeChannel,
+            $this->projectMembers,
+            $this->projectMemberIds,
+            $this->projectMemberUsers,
+            $this->mentionCandidates,
+            $this->reportSummary
+        );
     }
 
     public function refreshSidebar(): void

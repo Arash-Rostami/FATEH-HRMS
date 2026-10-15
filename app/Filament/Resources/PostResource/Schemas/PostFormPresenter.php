@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PostResource\Schemas;
 
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -9,7 +10,6 @@ use Filament\Forms\Components\RichEditor\TextColor;
 use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PostFormPresenter
@@ -64,7 +64,7 @@ class PostFormPresenter
             ->maxSize(config('file_upload_limits.image'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('post', $file)
             )
             ->image()
             ->imagePreviewHeight('160')

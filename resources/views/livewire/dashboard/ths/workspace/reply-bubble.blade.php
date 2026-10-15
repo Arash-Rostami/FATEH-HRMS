@@ -4,12 +4,8 @@
 
 <div wire:key="reply-{{ $reply->id }}" class="flex items-start gap-2.5 {{ $isMine ? 'flex-row-reverse' : '' }} {{ ($animateIn ?? false) ? 'animate-slide-up-fade' : '' }}">
     @if($reply->user)
-        <div class="relative flex-shrink-0">
-            <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                <x-ui.avatar :existingImage="$reply->user->getProfileImageUrl() ?? $reply->user->getInitialsAvatarUrl()"
-                             :alt="$reply->user->name" icon-size="text-[11px]" class="rounded-lg"/>
-            </div>
-            <x-ui.presence-dot :online="$reply->user?->isOnline() ?? false" size="w-2 h-2"/>
+        <div class="flex-shrink-0">
+            <x-dashboard.user-avatar :user="$reply->user" size="sm"/>
         </div>
     @else
         <div class="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden shadow-sm">

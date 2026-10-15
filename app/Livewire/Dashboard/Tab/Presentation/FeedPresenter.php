@@ -90,14 +90,8 @@ class FeedPresenter
 
     public function commentMeta(Comment $comment, ?int $editingCommentId): array
     {
-        $user      = $comment?->user;
-        $avatarUrl = $user?->getProfileImageUrl() ?? $user?->getInitialsAvatarUrl();
-
         return [
-            'user'      => $user,
-            'avatarUrl' => $avatarUrl ? (string) $avatarUrl : null,
-            'hasPhoto'  => !empty($avatarUrl),
-            'isOnline'  => $user?->isOnline() ?? false,
+            'user'      => $comment?->user,
             'isOwner'   => auth()->id() === $comment->user_id,
             'isEditing' => $editingCommentId === ($comment?->id ?? null),
         ];
@@ -180,9 +174,7 @@ class FeedPresenter
         $authUser = auth()?->user();
 
         return [
-            'authUser'     => $authUser,
-            'authHasPhoto' => !empty($authUser?->profile?->image),
-            'authOnline'   => $authUser?->isOnline() ?? false,
+            'authUser' => $authUser,
         ];
     }
 }

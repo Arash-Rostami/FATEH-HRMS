@@ -13,4 +13,9 @@ class EditPost extends EditRecord
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = PostResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['image' => []];
+    }
 }

@@ -1,19 +1,12 @@
-<div class="flex items-center justify-end w-full">
-    <button type="button"
-            @click="toggleSettings()"
-            title="تنظیمات جدول"
-            :class="openSettings
-                    ? 'text-[var(--md-sys-color-primary)] bg-[var(--md-sys-color-primary-container)]'
-                    : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'"
-            class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-        <span class="material-symbols-rounded text-[18px]">tune</span>
-    </button>
-
-    <button type="button"
-            @click="toggleMaximize()"
-            :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-            :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': max, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !max }"
-            class="inline-flex items-center justify-center p-1 pr-3 rounded-lg transition-colors normal-case">
-        <span class="material-symbols-rounded text-[18px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
-    </button>
-</div>
+@php
+    $columns = $this->presenter->columns();
+    $sortOptions = $this->presenter->sortOptions();
+    $sortIsDefault = $this->presenter->sortIsDefault($sort, $sortDir);
+@endphp
+<x-ui.table.tools>
+    <x-ui.table.density-toggle/>
+    <x-ui.table.sort-popover :options="$sortOptions" :sort="$sort" :sortDir="$sortDir" :isDefault="$sortIsDefault"/>
+    <x-ui.table.col-toggle :scope="'dms'" :columns="$columns"/>
+    <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"
+                                 :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1"/>
+</x-ui.table.tools>

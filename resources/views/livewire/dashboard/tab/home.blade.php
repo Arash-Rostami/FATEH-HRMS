@@ -45,25 +45,20 @@
                     @php($mobileRemainder = max(0, $teamPulse->count() - 5))
                     @php($desktopRemainder = max(0, $teamPulse->count() - $visiblePulse->count()))
                     <div wire:key="home-team-pulse" class="shrink-0 flex items-center gap-2 h-7 -my-1 rounded-lg pl-2 pr-1">
-                            <span class="flex items-center -space-x-1 rtl:space-x-reverse">
+                            <span class="flex items-center gap-0.5">
                                 @foreach($visiblePulse as $member)
-                                    @php($mp = presence($member->presence))
                                     <span class="shrink-0 {{ $loop->iteration > 5 ? 'hidden sm:inline-flex' : 'inline-flex' }}">
                                     <x-ui.hover-popover wire:key="home-team-pulse-{{ $member->id }}" width="w-48">
                                         <x-slot:trigger>
-                                            <span class="relative block" title="{{ $member->casual_name }}">
-                                                <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
-                                                     alt="{{ $member->name }}" loading="lazy"
-                                                     class="w-6 h-6 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
-                                                <span
-                                                    class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-{{ $mp->color() }}-500 border-2 border-[var(--md-sys-color-primary-container)]"></span>
+                                            <span class="flex rounded-[28%] ring-2 ring-[var(--md-sys-color-primary-container)]" title="{{ $member->casual_name }}">
+                                                <x-dashboard.user-avatar :user="$member" size="xs" :badge="false"/>
                                             </span>
                                         </x-slot:trigger>
                                         <x-slot:body>
                                             <div class="p-3 flex flex-col items-center gap-2 text-center">
-                                                <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
-                                                     alt="{{ $member->name }}"
-                                                     class="w-10 h-10 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                                <span class="flex rounded-[28%] ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                                    <x-dashboard.user-avatar :user="$member" size="md"/>
+                                                </span>
                                                 <div>
                                                     <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">{{ $member->casual_name }}</p>
                                                     <p class="text-[10px] text-[var(--md-sys-color-on-surface-variant)] mt-0.5">می‌خواهید گفتگو را شروع کنید؟</p>
@@ -117,12 +112,8 @@
                             <a wire:key="home-team-search-{{ $member->id }}"
                                href="{{ route('contact', ['open' => $member->id]) }}" wire:navigate
                                class="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--md-sys-color-surface-variant)] transition-colors">
-                                <span class="relative shrink-0">
-                                    <img src="{{ $member->getProfileImageUrl() ?? $member->getInitialsAvatarUrl() }}"
-                                         alt="{{ $member->name }}" loading="lazy"
-                                         class="w-8 h-8 rounded-md object-cover ring-2 ring-[var(--md-sys-color-primary-container)]">
-                                    <span
-                                        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-{{ $mp->color() }}-500 border-2 border-[var(--md-sys-color-surface)]"></span>
+                                <span class="flex shrink-0 rounded-[28%] ring-2 ring-[var(--md-sys-color-primary-container)]">
+                                    <x-dashboard.user-avatar :user="$member" size="sm"/>
                                 </span>
                                 <span class="flex-1 min-w-0">
                                     <span class="block text-sm font-bold text-[var(--md-sys-color-on-surface)] truncate">{{ $member->casual_name }}</span>

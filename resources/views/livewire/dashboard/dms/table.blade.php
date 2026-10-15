@@ -1,32 +1,6 @@
 <div class="relative">
     <x-ui.table tableClass="dms-doc-table min-w-full w-full border-separate border-spacing-0 text-sm">
         <x-slot:head>
-                <tr x-show="openSettings" x-collapse>
-                    <th colspan="7" class="px-5 pb-3 pt-2">
-                        <div class="flex justify-end border-b border-[var(--md-sys-color-outline-variant)]/30 bg-transparent" @click.stop>
-                            @php
-                                $columns = $this->presenter->columns();
-                                $sortIsDefault = $this->presenter->sortIsDefault($sort, $sortDir);
-                            @endphp
-                            <div class="inline-flex items-center gap-1">
-                                <x-ui.table.density-toggle/>
-
-                                <button type="button"
-                                        wire:click="resetSort"
-                                        {{ $sortIsDefault ? 'disabled' : '' }}
-                                        title="بازنشانی ترتیب"
-                                        class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case {{ $sortIsDefault ? 'text-[var(--md-sys-color-outline)] cursor-default' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]' }}">
-                                    <span class="material-symbols-rounded text-[18px]">restart_alt</span>
-                                </button>
-
-                                <x-ui.table.col-toggle :scope="'dms'" :columns="$columns"/>
-
-                                <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"
-                                                             :endYear="\Morilog\Jalali\Jalalian::now()->getYear() + 1"/>
-                            </div>
-                        </div>
-                    </th>
-                </tr>
                 <tr>
                     <th data-col="title" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
                         <button type="button" wire:click="sortBy('title')" class="flex w-full items-center justify-start gap-1.5 transition-colors hover:text-[var(--md-sys-color-primary)] {{ $sort === 'title' ? 'text-[var(--md-sys-color-primary)]' : '' }}">

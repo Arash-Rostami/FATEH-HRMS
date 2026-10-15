@@ -1,4 +1,5 @@
 import maximizeMixin from "../mixins/maximize.js";
+import tableToolsMixin from "../mixins/tableTools.js";
 import settings from "./settings.js";
 
 const RECENT_KEY = 'fateh_dms_recent';
@@ -7,12 +8,13 @@ const RECENT_MAX = 6;
 export default function dms() {
     return {
         ...maximizeMixin('dms'),
+        ...tableToolsMixin('dms'),
         baseUrl: window.location.origin + '/',
-        openSettings: false,
         recent: [],
 
         init() {
             this.initMaximize();
+            this.initTableTools();
             try {
                 this.recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
             } catch (e) {
@@ -20,8 +22,8 @@ export default function dms() {
             }
         },
 
-        toggleSettings() {
-            this.openSettings = !this.openSettings;
+        destroy() {
+            this.destroyTableTools();
         },
 
         initPattern() {

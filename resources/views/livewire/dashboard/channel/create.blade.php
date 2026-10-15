@@ -64,15 +64,15 @@
             </div>
 
             <div class="flex items-center gap-2 pt-1">
+                <button x-on:click="closeCreate()"
+                        class="px-4 py-2.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-95 active:scale-95 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
+                    انصراف
+                </button>
                 <x-ui.buttons.form x-on:click="createChannel()" wire:loading.attr="disabled" wire:target="createChannel"
                         loading="createChannel"
                         class="flex-shrink-0 px-5 py-2.5 h-auto rounded-lg text-[12px] font-semibold transition-all hover:brightness-110 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                     ساخت گروه
                 </x-ui.buttons.form>
-                <button x-on:click="closeCreate()"
-                        class="px-4 py-2.5 rounded-lg text-[12px] font-semibold transition-all hover:brightness-95 active:scale-95 bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">
-                    انصراف
-                </button>
             </div>
         </div>
     </div>

@@ -30,13 +30,18 @@ export default function maximizeMixin(scope) {
 
             if (stored === null) return;
 
-            if (typeof this.restoreMaximize === 'function') {
-                this.restoreMaximize(stored);
-                return;
-            }
+            const restore = () => {
+                if (typeof this.restoreMaximize === 'function') {
+                    this.restoreMaximize(stored);
+                    return;
+                }
 
-            this.max = true;
-            this.applyMaximize(true);
+                this.max = true;
+                this.applyMaximize(true);
+            };
+
+            if (typeof this.$nextTick === 'function') this.$nextTick(restore);
+            else restore();
         },
 
         _persistMaximize(value) {

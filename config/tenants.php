@@ -20,6 +20,7 @@
  * @var string|null APP_LOGO_DARK
  * @var string|null APP_FAVICON
  * @var string|null APP_BACKGROUND_IMAGE
+ * @var string|null APP_OFFICE_PHONE
  * @var string|null APP_INSTAGRAM
  * @var string|null APP_LINKEDIN
  * @var bool|string|null AI_ASSISTANT_ACCESS  Overrides the active tenant's own 'ai_assistant.access' key (true|false|'lock').
@@ -59,6 +60,7 @@ return [
             'name' => 'شرکت توسعه معادن و صنایع معدنی فاتح',
             'name_en' => 'Fateh',
             'logo' => tenantAsset('fateh', 'img', 'logo', 'build/assets/img/logo.svg'),
+            'phone' => '',
             'social' => [
                 'instagram' => 'https://www.instagram.com/fatehsanat/',
                 'linkedin' => 'https://www.linkedin.com/company/fatehgroup',
@@ -113,6 +115,7 @@ return [
             'name' => 'گروه شرکـت های پرسـال',
             'name_en' => 'Persol Holding Corporation',
             'logo' => tenantAsset('persol', 'img', 'logo', 'build/assets/img/logo.png'),
+            'phone' => '021-26208352',
             'social' => [
                 'instagram' => 'https://www.instagram.com/persol_co/',
                 'linkedin' => 'https://www.linkedin.com/company/persol/',

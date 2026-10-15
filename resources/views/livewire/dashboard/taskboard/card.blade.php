@@ -118,7 +118,7 @@
                 <div class="flex flex-col gap-1">
                     <h3 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] leading-snug line-clamp-2" dir="auto">{{ superClean($task['title']) }}</h3>
                     @if(!empty($task['description']))
-                        <p class="taskboard-card-description text-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed" dir="auto">{{ superClean($task['description']) }}</p>
+                        <p data-col="description" class="taskboard-card-descriptiontext-[11px] text-[var(--md-sys-color-on-surface-variant)] line-clamp-2 leading-relaxed" dir="auto">{{ superClean($task['description']) }}</p>
                     @endif
                 </div>
             </x-slot:trigger>
@@ -136,7 +136,7 @@
             <div wire:key="taskboard-card-chips" class="flex flex-wrap items-center gap-1.5">
                 {{-- signals --}}
                 @if($chip = $presenter->priorityChip($task['priority'] ?? null))
-                    <button wire:key="taskboard-card-priority" type="button"
+                    <button wire:key="taskboard-card-priority" data-col="priority" type="button"
                             title="{{ $canCyclePriority ? 'تغییر اولویت' : $chip['label'] }}"
                             x-on:click="{{ $canCyclePriority ? '$wire.cyclePriority(' . $taskId . ')' : 'event.preventDefault()' }}"
                             class="{{ $cb }} {{ $bd }} {{ $chip['class'] }} {{ $canCyclePriority ? 'hover:brightness-110 active:scale-95 transition cursor-pointer' : 'cursor-default' }}">
@@ -153,7 +153,7 @@
                 @endif
 
                 @if($hasDeadline)
-                    <x-ui.hover-popover wire:key="taskboard-card-deadline" :alignment="$pop" width="w-52" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-deadline" data-col="deadline" :alignment="$pop" width="w-52" surface="default">
                         <x-slot:trigger>
                             <div class="{{ $cb }} {{ isPast($task['deadline']) && $task['status'] !== 'done' ? $tone['over'] : $tone['neu'] }}">
                                 <span class="material-symbols-rounded text-[12px]">schedule</span>
@@ -167,7 +167,7 @@
                 @endif
 
                 @if($urgencyChip)
-                    <div wire:key="taskboard-urgency-{{ $kind === 'project-deadline-exceeded' ? 'project' : $kind }}" class="{{ $cb }} {{ $tone[$urgencyChip[1]] }}">
+                    <div wire:key="taskboard-urgency-{{ $kind === 'project-deadline-exceeded' ? 'project' : $kind }}" data-col="deadline" class="{{ $cb }} {{ $tone[$urgencyChip[1]] }}">
                         <span class="material-symbols-rounded text-[12px]">{{ $urgencyChip[0] }}</span>
                         <span>{{ $urgency['label'] }}</span>
                     </div>
@@ -193,14 +193,14 @@
 
                 {{-- people --}}
                 @if($assignee)
-                    <div wire:key="taskboard-assignee-{{ $assignee[0] }}" title="{{ $assignee[3] }}" class="{{ $cb }} {{ $tone[$assignee[2]] }}">
+                    <div wire:key="taskboard-assignee-{{ $assignee[0] }}" data-col="people" title="{{ $assignee[3] }}" class="{{ $cb }} {{ $tone[$assignee[2]] }}">
                         <span class="material-symbols-rounded text-[12px]">{{ $assignee[1] }}</span>
                         <span class="max-w-[140px] truncate" dir="auto">{{ $assignee[3] }}</span>
                     </div>
                 @endif
 
                 @if($responsibleUser)
-                    <div wire:key="taskboard-card-responsible" title="جوابگو: {{ $responsibleUser['name'] }}" class="{{ $cb }} {{ $tone['sec'] }}">
+                    <div wire:key="taskboard-card-responsible" data-col="people" title="جوابگو: {{ $responsibleUser['name'] }}" class="{{ $cb }} {{ $tone['sec'] }}">
                         <span class="material-symbols-rounded text-[12px]">support_agent</span>
                         <span class="max-w-[140px] truncate" dir="auto">{{ $responsibleUser['name'] }}</span>
                     </div>
@@ -208,7 +208,7 @@
 
                 {{-- context --}}
                 @if($departmentLabel)
-                    <x-ui.hover-popover wire:key="taskboard-card-department" :alignment="$pop" width="w-56" surface="default">
+                    <x-ui.hover-popover wire:key="taskboard-card-department" data-col="context" :alignment="$pop" width="w-56" surface="default">
                         <x-slot:trigger>
                             <div class="{{ $cb }} {{ $tone['ter'] }}">
                                 <span class="material-symbols-rounded text-[12px]">corporate_fare</span>
@@ -240,7 +240,7 @@
 
                 @foreach(($task['labels'] ?? []) as $label)
                     @php $t = ['amethyst', 'sapphire', 'sage', 'gold'][crc32($label) % 4]; @endphp
-                    <button wire:key="taskboard-card-label-{{ crc32($label) }}" type="button" title="{{ $label }}"
+                    <button wire:key="taskboard-card-label-{{ crc32($label) }}" data-col="labels" type="button" title="{{ $label }}"
                             wire:click="{{ $labelFilterMethod }}({{ \Illuminate\Support\Js::from($label) }})"
                             class="{{ $cb }} {{ $bd }} hover:brightness-110 active:scale-95 transition"
                             style="background: var(--tool-{{ $t }}-bg); color: var(--tool-{{ $t }}-text);">
@@ -250,7 +250,7 @@
                 @endforeach
 
                 @foreach($metaChips as $metaChip)
-                    <span wire:key="taskboard-meta-chip-{{ crc32($metaChip['label'] . $metaChip['value']) }}" title="{{ $metaChip['label'] }}: {{ $metaChip['value'] }}" class="{{ $cb }} {{ $tone['neu'] }}">
+                    <span wire:key="taskboard-meta-chip-{{ crc32($metaChip['label'] . $metaChip['value']) }}" data-col="context" title="{{ $metaChip['label'] }}: {{ $metaChip['value'] }}" class="{{ $cb }} {{ $tone['neu'] }}">
                         <span class="material-symbols-rounded text-[12px]">database</span>
                         <span class="max-w-[100px] truncate" dir="auto">{{ $metaChip['label'] }}</span>
                         <span class="max-w-[120px] truncate" dir="auto">{{ $metaChip['value'] }}</span>
@@ -258,7 +258,7 @@
                 @endforeach
 
                 @if($actionSourceChip)
-                    <{{ ($actionSourceChip['url'] ?? null) ? 'a' : 'span' }} wire:key="taskboard-card-action-source{{ ($actionSourceChip['url'] ?? null) ? '-cycle' : '' }}" class="{{ $cb }} {{ $tone['neu'] }}"
+                    <{{ ($actionSourceChip['url'] ?? null) ? 'a' : 'span' }} wire:key="taskboard-card-action-source{{ ($actionSourceChip['url'] ?? null) ? '-cycle' : '' }}" data-col="context" class="{{ $cb }} {{ $tone['neu'] }}"
                           @if($actionSourceChip['url'] ?? null) href="{{ $actionSourceChip['url'] }}" wire:navigate @endif
                           title="{{ collect([
                               ($actionSourceChip['locked'] ?? false) ? 'مرحلهٔ جاری چرخه؛ حذف و انتقال پروژه قفل است' : null,
@@ -271,7 +271,7 @@
                 @endif
 
                 @if($ticketId)
-                    <a href="{{ route('ths', ['open' => $ticketId]) }}" wire:navigate title="مشاهده تیکت مرتبط" class="{{ $cb }} {{ $tone['pri'] }} hover:brightness-110 transition">
+                    <a href="{{ route('ths', ['open' => $ticketId]) }}" data-col="context" wire:navigate title="مشاهده تیکت مرتبط" class="{{ $cb }} {{ $tone['pri'] }} hover:brightness-110 transition">
                         <span class="material-symbols-rounded text-[12px]">support_agent</span>
                         <span>از تیکت</span>
                     </a>
@@ -279,7 +279,7 @@
 
                 @if($checklistTotal > 0)
                     @php $isComplete = $task['progress_percent'] === 100; @endphp
-                    <x-ui.hover-popover wire:key="taskboard-card-checklist" :alignment="$pop" width="w-56" surface="tertiary">
+                    <x-ui.hover-popover wire:key="taskboard-card-checklist" data-col="checklist" :alignment="$pop" width="w-56" surface="tertiary">
                         <x-slot:trigger>
                             <div class="inline-flex items-center px-1 py-0.5 rounded-lg border {{ $isComplete ? "$bd bg-[var(--md-sys-color-tertiary-container)]" : $tone['neu'] }}">
                                 <x-ui.decor.progress-ring
@@ -308,7 +308,7 @@
     {{-- FOOTER --}}
     <div class="flex items-center justify-between gap-1 pt-2.5 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">
         @if(!empty($collaboratorUsers))
-            <x-ui.decor.avatar-stack wire:key="taskboard-card-collaborators" :users="$collaboratorUsers"
+            <x-ui.decor.avatar-stack wire:key="taskboard-card-collaborators" data-col="collaborators" :users="$collaboratorUsers"
                                      title="همکاران: {{ implode('، ', array_column($collaboratorUsers, 'name')) }}"/>
         @else
             <span wire:key="taskboard-card-collaborators-empty"></span>

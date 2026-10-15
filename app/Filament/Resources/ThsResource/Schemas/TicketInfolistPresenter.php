@@ -151,8 +151,9 @@ class TicketInfolistPresenter
     {
         return TextEntry::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => RequestType::tryFrom($record->request_type))
-            ->badge();
+            ->getStateUsing(fn($record) => Ticket::getCustomRequestTypeLabel($record->request_type, $record->extra['target_department'] ?? null))
+            ->badge()
+            ->color(fn($record) => RequestType::tryFrom($record->request_type)?->getColor() ?? 'gray');
     }
 
     public static function requester(): TextEntry

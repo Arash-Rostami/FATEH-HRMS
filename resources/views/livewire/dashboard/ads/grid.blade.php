@@ -6,7 +6,7 @@
                  x-data
                  @record-focus.window="if ($event.detail.type === 'ad' && $event.detail.id === {{ $ad->id }}) $refs.flip{{ $ad->id }}.checked = true"
                  class="ad-flip-card group relative min-h-[380px] h-auto w-full max-w-[400px] mx-auto"
-                 style="animation: slide-up-fade 0.45s both; animation-delay: {{ $loop->index * 0.05 }}s;">
+                 style="animation: slideUpFade 0.45s both; animation-delay: {{ $loop->index * 0.05 }}s;">
 
                 <input x-ref="flip{{ $ad->id }}" type="checkbox" id="flip-{{ $ad->id }}" class="ad-flip-toggle hidden">
 

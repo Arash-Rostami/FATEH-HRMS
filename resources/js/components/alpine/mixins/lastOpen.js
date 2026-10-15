@@ -19,6 +19,15 @@ export default function lastOpenMixin(scope) {
             } catch (e) {}
         },
 
+        _clearLastOpen() {
+            const key = this._lastOpenStorageKey;
+            if (key === null) return;
+
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {}
+        },
+
         _readLastOpenId() {
             const key = this._lastOpenStorageKey;
             if (key === null) return null;

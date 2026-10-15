@@ -27,15 +27,12 @@
                                 x-on:click.outside="open = false"
                                 class="flex items-center gap-2 text-xs rounded-xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] pr-2 pl-3 py-1.5 text-[var(--md-sys-color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)] min-w-[170px]">
                             @if($selectedAssignee)
-                                <div wire:key="ths-assignee-selected" class="relative flex-shrink-0">
-                                    <div class="w-6 h-6 rounded-lg overflow-hidden">
-                                        <x-ui.avatar :existingImage="$selectedAssignee->getProfileImageUrl() ?? $selectedAssignee->getInitialsAvatarUrl()"
-                                                     :alt="$selectedAssignee->name" icon-size="text-xs" class="rounded-lg"/>
-                                    </div>
-                                    <x-ui.presence-dot :online="$selectedAssignee->isOnline()" size="w-2.5 h-2.5"/>
+                                <div wire:key="ths-assignee-selected" class="flex-shrink-0">
+                                    <x-dashboard.user-avatar :user="$selectedAssignee" size="xs"/>
                                 </div>
                             @endif
                             <span class="truncate">{{ $selectedAssignee?->name ?? 'انتخاب کارشناس...' }}</span>
+                            @if($selectedAssignee)<x-ui.presence-tag wire:key="ths-assignee-tag" :status="$selectedAssignee->presence"/>@endif
                             <span class="material-symbols-rounded text-[16px] mr-auto text-[var(--md-sys-color-on-surface-variant)]">expand_more</span>
                         </button>
 
@@ -48,14 +45,11 @@
                                                 wire:click="$set('assigneeId', '{{ $candidate->id }}')"
                                                 x-on:click="open = false"
                                                 class="w-full flex items-center gap-2 text-right px-3 py-2 text-xs hover:bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface)] transition-colors {{ $candidate->id === (int) $assigneeId ? 'bg-[var(--md-sys-color-primary-container)]/50 font-bold' : '' }}">
-                                            <div class="relative flex-shrink-0">
-                                                <div class="w-7 h-7 rounded-lg overflow-hidden">
-                                                    <x-ui.avatar :existingImage="$candidate->getProfileImageUrl() ?? $candidate->getInitialsAvatarUrl()"
-                                                                 :alt="$candidate->name" icon-size="text-xs" class="rounded-lg"/>
-                                                </div>
-                                                <x-ui.presence-dot :online="$candidate->isOnline()" size="w-2.5 h-2.5"/>
+                                            <div class="flex-shrink-0">
+                                                <x-dashboard.user-avatar :user="$candidate" size="sm"/>
                                             </div>
                                             <span class="truncate">{{ $candidate->name }}</span>
+                                            <x-ui.presence-tag :status="$candidate->presence" class="mr-auto"/>
                                         </button>
                                     </li>
                                 @endforeach

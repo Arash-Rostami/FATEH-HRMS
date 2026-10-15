@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OnboardingResource\Schemas;
 
 use App\Filament\Resources\OnboardingResource\Schemas\Helper\ExtrasTemplate;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -15,7 +16,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class OnboardingFormPresenter
@@ -90,7 +90,7 @@ class OnboardingFormPresenter
                     ->helperText(__('resources/onboarding/strings.hints.guides_file'))
                     ->maxSize(config('file_upload_limits.document'))
                     ->getUploadedFileNameForStorageUsing(
-                        fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                        fn(TemporaryUploadedFile $file): string => FileNamer::stored('onboarding', $file)
                     ),
                 TextInput::make('ext')->hidden()->dehydrated(),
                 TextInput::make('size')->hidden()->dehydrated(),
@@ -173,7 +173,7 @@ class OnboardingFormPresenter
                     ->helperText(__('resources/onboarding/strings.hints.videos_file'))
                     ->maxSize(config('file_upload_limits.video'))
                     ->getUploadedFileNameForStorageUsing(
-                        fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                        fn(TemporaryUploadedFile $file): string => FileNamer::stored('onboarding', $file)
                     ),
 
                 FileUpload::make('thumbnail')
@@ -187,7 +187,7 @@ class OnboardingFormPresenter
                     ->image()
                     ->imagePreviewHeight('60')
                     ->getUploadedFileNameForStorageUsing(
-                        fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                        fn(TemporaryUploadedFile $file): string => FileNamer::stored('onboarding', $file)
                     )
                     ->nullable(),
 

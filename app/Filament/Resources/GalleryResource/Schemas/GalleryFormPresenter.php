@@ -6,6 +6,7 @@ namespace App\Filament\Resources\GalleryResource\Schemas;
 use App\Models\Department;
 use App\Rules\FileSizeByType;
 use App\Services\PersianDateFieldService;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -14,7 +15,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class GalleryFormPresenter
@@ -92,7 +92,7 @@ class GalleryFormPresenter
                 'video/quicktime',
             ])
             ->getUploadedFileNameForStorageUsing(
-                fn(TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('gallery', $file)
             )
             ->imagePreviewHeight('100')
             ->panelLayout('grid')

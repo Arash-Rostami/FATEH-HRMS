@@ -2,6 +2,7 @@
     placeholder="جستجو بر اساس عنوان، کد یا نسخه..."
     searchModel="search"
     filterTitle="فیلترها"
+    :declutterHide="true"
 >
     <div class="flex flex-col gap-4 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/30">
         @foreach($this->filterGroups as $key => $values)

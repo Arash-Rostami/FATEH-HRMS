@@ -6,6 +6,7 @@ export default function status(view) {
     return {
         view,
         collapsed: {},
+        openId: null,
         down: false,
         dragged: false,
         startX: 0,
@@ -42,6 +43,10 @@ export default function status(view) {
 
         toggleDept(code) {
             this.collapsed[code] = !this.collapsed[code];
+        },
+
+        toggleCard(id) {
+            this.openId = this.openId === id ? null : id;
         },
 
         openTools(e) {

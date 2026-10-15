@@ -568,6 +568,7 @@ describe('contact() DOM read helpers + push notify', () => {
         await c._pollTick();
 
         expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(5, 'contact');
+        expect(c.$wire.markRead).toHaveBeenCalledExactlyOnceWith(5);
     });
 
     test('_pollTick does NOT play the incoming sound when the new last message is mine (own just-sent message, already covered by the message-sent/playOutgoing path)', async () => {
@@ -589,6 +590,7 @@ describe('contact() DOM read helpers + push notify', () => {
         await c._pollTick();
 
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+        expect(c.$wire.markRead).not.toHaveBeenCalled();
     });
 
     test('_pollTick does NOT play the incoming sound on the first tick after opening a thread (lastBefore is null — ambiguous "just loaded" vs "new message")', async () => {
@@ -759,6 +761,16 @@ describe('contact() last-open-contact persistence + maximize sequencing (added 2
         c.selectContact(5);
 
         expect(localStorage.getItem(KEY)).toBe('5');
+    });
+
+    test('backToList (the header close / mobile back button) forgets the stored id so a reload does not reopen the conversation', () => {
+        localStorage.setItem(KEY, '5');
+        const c = contact();
+        c.$wire = createWireMock();
+
+        c.backToList();
+
+        expect(localStorage.getItem(KEY)).toBeNull();
     });
 
     test('init restores a stored id via selectContact when no conversation is active server-side', () => {

@@ -397,7 +397,7 @@
                                         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_40%,transparent)] text-[var(--md-sys-color-on-surface-variant)] transition-all duration-300 hover:bg-[color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)] active:scale-95"
                                         :class="declutter ? 'shadow-md' : ''"
                                         :style="declutter ? 'background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: transparent;' : ''">
-                                    <span class="material-symbols-rounded text-[16px] leading-none transition-colors" :class="declutter ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-primary)]'" x-text="declutter ? 'top_panel_open' : 'top_panel_close'"></span>
+                                    <span class="material-symbols-rounded text-[16px] leading-none rotate-90 transition-colors" :class="declutter ? 'text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-primary)]'" x-text="declutter ? 'unfold_more' : 'unfold_less'"></span>
                                 </button>
 
                                 <button type="button"

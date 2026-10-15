@@ -58,6 +58,13 @@
                     @if($this->activeContact)
                         <div wire:key="pane-active" class="contents">
                             @include('livewire.dashboard.contact.header')
+                            <button type="button" x-on:click="toggleHeaderDeclutter()" :aria-pressed="headerDeclutter"
+                                    :aria-label="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'"
+                                    :title="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'"
+                                    class="absolute top-4 end-5 z-30 h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all duration-200 ease-out active:scale-95"
+                                    :class="headerDeclutter ? 'flex' : 'hidden'">
+                                <span class="material-symbols-rounded text-base rotate-90">unfold_more</span>
+                            </button>
 
                             <x-ui.decor.chat-pattern x-show="backgroundPattern === 'on'"/>
 

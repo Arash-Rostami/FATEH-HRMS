@@ -126,6 +126,7 @@ class Main extends Component
             'unread_count' => (int)($user->unread_count ?? 0),
             'is_online' => $user->isOnline() ?? false,
             'presence' => $user->presence,
+            'focus' => $user->focusLabel(),
             'inactive' => !$user->isActive(),
         ])->values()->all();
     }
@@ -215,6 +216,46 @@ class Main extends Component
         );
     }
 
+    #[Renderless]
+    public function days(): array
+    {
+        if (!$this->activeUserId) {
+            return [];
+        }
+
+        return app(SearchMessagesAction::class)->days(
+            (int) $this->activeUserId,
+            (int) auth()->id(),
+        );
+    }
+
+    #[Renderless]
+    public function bookmarks(array $ids): array
+    {
+        if (!$this->activeUserId) {
+            return [];
+        }
+
+        return app(SearchMessagesAction::class)->bookmarks(
+            (int) $this->activeUserId,
+            $ids,
+            (int) auth()->id(),
+        );
+    }
+
+    #[Renderless]
+    public function files(): array
+    {
+        if (!$this->activeUserId) {
+            return [];
+        }
+
+        return app(SearchMessagesAction::class)->files(
+            (int) $this->activeUserId,
+            (int) auth()->id(),
+        );
+    }
+
     public function focusMessage(int $id): bool
     {
         if (!$this->activeUserId || $id <= 0) {
@@ -265,6 +306,18 @@ class Main extends Component
         }
 
         return false;
+    }
+
+    public function clearFocus(): void
+    {
+        if ($this->focusAnchorId === null && $this->messagesLimit === 10) {
+            return;
+        }
+
+        $this->focusAnchorId = null;
+        $this->focusOlder = 5;
+        $this->messagesLimit = 10;
+        $this->invalidateMessageCache();
     }
 
     public function loadMoreMessages(): void
@@ -376,7 +429,7 @@ class Main extends Component
                     'body' => $m->replyTo->body,
                     'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
                 ] : null,
-                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false, 'inactive' => $m->sender && !$m->sender->isActive()],
+                'sender' => ['name' => $m->sender?->name ?? '', 'avatar' => $m->sender?->getProfileImageUrl() ?? $m->sender?->getInitialsAvatarUrl(), 'online' => $m->sender?->isOnline() ?? false, 'presence' => $m->sender?->presence, 'focus' => $m->sender?->focusLabel(), 'inactive' => $m->sender && !$m->sender->isActive()],
             ])->values()->all();
     }
 

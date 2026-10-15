@@ -25,4 +25,9 @@ class EditOnboarding extends EditRecord
     {
         return OnboardingFormPresenter::hydrateGuidesWithFileMeta($data);
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['guides' => ['url'], 'videos' => ['url', 'thumbnail']];
+    }
 }

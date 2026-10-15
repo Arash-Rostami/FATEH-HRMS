@@ -6,7 +6,7 @@
 <div x-show="{{ count($chipNames) }} > 1 || typeFilterOpen || typeFilter" x-cloak
      x-on:mouseenter="revealChips(); syncChipScroll()"
      x-on:mouseleave="scheduleChipsFade()"
-     :class="chipsVisible || typeFilterOpen || typeFilter ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'"
+     :class="[chipsVisible || typeFilterOpen || typeFilter ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none', headerDeclutter ? 'h-0! py-0! opacity-0! overflow-hidden! border-b-0! pointer-events-none!' : '']"
      class="flex-shrink-0 sticky top-0 z-10 px-3 md:px-6 py-1.5 md:py-2 bg-[var(--md-sys-color-surface)] border-b border-[var(--md-sys-color-outline-variant)]/20 transition-all duration-300">
     <div class="flex flex-row-reverse items-center gap-1.5 md:gap-2.5 min-w-0" :class="chipsVisible || typeFilterOpen || typeFilter ? '' : 'pointer-events-none'">
 
@@ -79,11 +79,14 @@
             $group = $p->messageGroup($date, $rawMessages, auth()->id(), $this->editTimeLimit, $readersMap, $this->mentionMemberMap);
         @endphp
 
-        <div wire:key="date-{{ $date }}" class="flex items-center gap-3 py-4" role="heading" aria-level="3" aria-label="{{ $group['label'] }}">
+        <div wire:key="date-{{ $date }}" data-day="{{ $date }}" class="flex items-center gap-3 py-4" role="heading" aria-level="3" aria-label="{{ $group['label'] }}">
             <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]" aria-hidden="true"></div>
-            <span class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)]" aria-hidden="true">
-                {{ $group['label'] }}
-            </span>
+            <button type="button" x-on:click="toggleDays()" title="فهرست روزها" class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_85%,transparent)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)]">
+                <span class="flex flex-col items-center gap-0.5 leading-tight">
+                    <span>{{ $group['label'] }}</span>
+                    <span class="text-[9px] font-normal opacity-70">({{ $group['relative'] }})</span>
+                </span>
+            </button>
             <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]" aria-hidden="true"></div>
         </div>
 
@@ -103,11 +106,10 @@
                  ]) style="animation-delay: {{ $msg['animation_delay'] }}s">
 
                 @if($msg['is_last'])
-                    <div class="relative flex-shrink-0 self-end mb-0.5">
-                        <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                            <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']" icon="person" icon-size="text-base" />
-                        </div>
-                        @unless($msg['sender_inactive'])<x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>@endunless
+                    <div class="flex-shrink-0 self-end mb-0.5">
+                        <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']"
+                                     size="sm" icon="person" icon-size="text-base"
+                                     :online="$msg['sender_online']" :status="$msg['sender_presence']" :focus="$msg['sender_focus']"/>
                     </div>
                 @else
                     <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -311,11 +313,7 @@
 
 </div>
 
-<button x-show="showScrollFab" x-transition x-on:click="scrollToBottom()"
-        class="absolute bottom-28 left-8 z-20 w-10 h-10 rounded-lg flex items-center justify-center shadow-xl transition-all hover:scale-110 active:scale-95 bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_35%,transparent)]"
-        aria-label="اسکرول به پایین">
-    <span class="material-symbols-rounded text-[18px]" aria-hidden="true">keyboard_arrow_down</span>
-</button>
+@include('livewire.dashboard.messaging.latest-button', ['show' => 'showScrollFab || $wire.focusAnchorId != null', 'position' => 'absolute bottom-28 left-8 z-20'])
 
 <div x-show="showUndo"
      x-transition:leave="transition ease-in duration-300"

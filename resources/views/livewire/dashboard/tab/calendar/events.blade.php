@@ -40,7 +40,9 @@
                 <div class="flex gap-4">
                     <div class="shrink-0 relative">
                         @if(!empty($event['avatar']))
-                            <img src="{{ $event['avatar'] }}" class="w-12 h-12 rounded-[1rem] object-cover ring-2 ring-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_80%,transparent)]">
+                            <span class="flex w-12 h-12 rounded-[28%] ring-2 ring-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_80%,transparent)]">
+                                <x-ui.avatar :existingImage="$event['avatar']" alt="" class="!rounded-[28%]"/>
+                            </span>
                             @if(($event['type'] ?? '') === 'birthday')
                                 <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--tool-amethyst-container,var(--md-sys-color-tertiary-container))] text-[var(--tool-amethyst-on-container,var(--md-sys-color-on-tertiary-container))] rounded-xl flex items-center justify-center border border-[var(--md-sys-color-surface)] shadow-sm">
                                     <span class="material-symbols-rounded text-[12px]" style="font-variation-settings: 'FILL' 1;">cake</span>

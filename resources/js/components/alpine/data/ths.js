@@ -1,14 +1,16 @@
 import maximizeMixin from "../mixins/maximize.js";
 import clipboardMixin from "../mixins/clipboard.js";
+import tableToolsMixin from "../mixins/tableTools.js";
 import settings from "./settings.js";
 
 export default function ths() {
     return {
         ...maximizeMixin('ths'),
         ...clipboardMixin(),
-        openSearch: false,
+        ...tableToolsMixin('ths'),
         init() {
             this.initMaximize();
+            this.initTableTools();
             this.$wire.on('ths-reply-posted', () => {
                 this.$nextTick(() => {
                     const el = document.getElementById('ths-reply-thread');
@@ -16,8 +18,8 @@ export default function ths() {
                 });
             });
         },
-        toggleSearch() {
-            this.openSearch = !this.openSearch;
+        destroy() {
+            this.destroyTableTools();
         },
         initPattern() {
             const settingInstance = settings();

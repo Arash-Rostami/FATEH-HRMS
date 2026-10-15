@@ -60,6 +60,7 @@
                     $endorserItems = $endorsers->map(fn($endorser) => [
                         'avatar_url' => $endorser->getProfileImageUrl() ?? $endorser->getInitialsAvatarUrl(),
                         'name' => $endorser->name,
+                        'online' => $endorser->isOnline(),
                     ])->all();
                 @endphp
                 <div class="pt-1">

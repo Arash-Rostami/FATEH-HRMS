@@ -33,4 +33,9 @@ class EditSuggestion extends EditRecord
     {
         $this->record->load('reviews')->syncStage();
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['attachment' => []];
+    }
 }

@@ -724,6 +724,7 @@ describe('channel() DOM read helpers', () => {
         await c._pollTick();
 
         expect(c.$store.sound.playIncoming).toHaveBeenCalledExactlyOnceWith(9, 'channel');
+        expect(c.$wire.markRead).toHaveBeenCalledExactlyOnceWith(9);
     });
 
     test('_pollTick does NOT play the incoming sound when the new last message is mine (own just-sent message, already covered by the message-sent/playOutgoing path)', async () => {
@@ -766,6 +767,7 @@ describe('channel() DOM read helpers', () => {
         await c._pollTick();
 
         expect(c.$store.sound.playIncoming).not.toHaveBeenCalled();
+        expect(c.$wire.markRead).not.toHaveBeenCalled();
     });
 
     test('_pollTick does NOT play the incoming sound on the first tick after opening a thread (lastBefore is null — ambiguous "just loaded" vs "new message")', async () => {
@@ -820,6 +822,16 @@ describe('channel() last-open-channel persistence + maximize sequencing (added 2
         c.selectChannel(5);
 
         expect(localStorage.getItem(KEY)).toBe('5');
+    });
+
+    test('backToList (the header close / mobile back button) forgets the stored id so a reload does not reopen the channel', () => {
+        localStorage.setItem(KEY, '5');
+        const c = channel();
+        c.$wire = createWireMock();
+
+        c.backToList();
+
+        expect(localStorage.getItem(KEY)).toBeNull();
     });
 
     test('init restores a stored id via selectChannel when no channel is active server-side', () => {

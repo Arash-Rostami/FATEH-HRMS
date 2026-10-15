@@ -2,12 +2,12 @@
     $allProjectIds = collect($this->myProjects['rows'])->pluck('id')->map(fn($id) => (int) $id)->values()->toJson();
 @endphp
 <aside class="flex-shrink-0 flex flex-col border-l overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] md:flex w-full md:w-[320px] lg:w-[360px] bg-[var(--md-sys-color-surface)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"
-       :class="{ 'hidden': mobileShowChat }"
+       :class="{ 'hidden': mobileShowChat, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
        aria-label="لیست پروژه‌ها">
 
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
+        <div class="sb-head flex items-center justify-between">
+            <div class="sb-fade flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                     <span class="material-symbols-rounded text-[18px] font-fill">workspaces</span>
                 </div>
@@ -21,30 +21,31 @@
                     </span>
                 @endif
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="sb-cluster ms-auto flex items-center gap-1.5">
+                @include('livewire.dashboard.messaging.sidebar-toggle', ['margin' => 'ms-0'])
                 @if(count($this->myProjects['rows']))
                     <button type="button"
                             x-on:click="$store.sound.toggleAll({{ $allProjectIds }}, 'project')"
                             :aria-pressed="$store.sound.isAllMuted({{ $allProjectIds }}, 'project')"
                             :aria-label="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
                             :title="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'باصدا کردن همه پروژه‌ها' : 'بی‌صدا کردن همه پروژه‌ها'"
-                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                             :class="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
-                        <span class="material-symbols-rounded text-[18px]" x-text="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'volume_off' : 'volume_up'"></span>
+                        <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allProjectIds }}, 'project') ? 'volume_off' : 'volume_up'"></span>
                     </button>
                 @endif
                 <a href="{{ route('tasksheet', ['project' => $activeProjectId]) }}" target="_blank" rel="noopener noreferrer" title="تسک‌شیت" aria-label="تسک‌شیت"
-                   class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
-                    <span class="material-symbols-rounded text-[18px]">assignment_turned_in</span>
+                   class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
+                    <span class="material-symbols-rounded text-[14px]">assignment_turned_in</span>
                 </a>
                 <button type="button" x-on:click="$wire.openCreate()" title="ایجاد پروژه جدید" aria-label="ایجاد پروژه جدید"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
-                    <span class="material-symbols-rounded text-[18px]">add</span>
+                        class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary)] hover:text-[var(--md-sys-color-on-primary)] active:scale-90">
+                    <span class="material-symbols-rounded text-[14px]">add</span>
                 </button>
             </div>
         </div>
 
-        <div class="mt-3">
+        <div class="sb-fold mt-3">
             <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
                                      placeholder="جستجوی پروژه..." aria-label="جستجوی پروژه" overlay-title="جستجوی پروژه"
                                      show-label />
@@ -59,11 +60,11 @@
                     x-on:click="selectProject({{ $project['id'] }})"
                     x-on:keydown.enter.prevent="selectProject({{ $project['id'] }})"
                     x-on:keydown.space.prevent="selectProject({{ $project['id'] }})"
-                    data-rf="project-{{ $project['id'] }}"
+                    data-rf="project-{{ $project['id'] }}" title="{{ $project['name'] }}"
                     role="option" tabindex="0" aria-selected="{{ $activeProjectId === $project['id'] ? 'true' : 'false' }}"
                     :style="{ order: $store.pinned.isPinned({{ $project['id'] }}, 'project') ? -1 : 0 }"
                     @class([
-                        'group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                        'sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                         'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeProjectId === $project['id'],
                         'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeProjectId !== $project['id'],
                     ])>
@@ -78,7 +79,7 @@
                     @endif
                 </span>
 
-                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                <div class="sb-fade flex items-center gap-1.5 flex-1 min-w-0">
                     <span @class([
                             'truncate text-[13px] leading-tight',
                             'font-bold text-[var(--md-sys-color-on-surface)]' => $activeProjectId === $project['id'],
@@ -112,7 +113,7 @@
 
         @if($this->myProjects['hasMore'])
             <x-ui.buttons.load-more action="loadMoreProjects" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
-                                     class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
+                                     class="sb-fold mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
         @endif
     </div>
 </aside>

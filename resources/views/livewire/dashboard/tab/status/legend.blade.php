@@ -106,7 +106,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">نشان رزرو امروز</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری امروز میز کار، پارکینگ یا اتاق جلسه‌ای را رزرو کرده باشد، این نشان روی کارتش ظاهر می‌شود؛ برای میز کار، شمارهٔ داخلی مستقیماً روی کارت نمایش داده می‌شود و برای پارکینگ/اتاق جلسه فقط نشانگر. نگه‌داشتن نشانگر روی آن جزئیات کامل منبع (طبقه/واحد/داخلی برای میز کار، یا کارت پارکینگ، یا ظرفیت و برنامهٔ اتاق جلسه) را در راهنما نشان می‌دهد.</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری امروز میز کار، پارکینگ یا اتاق جلسه‌ای را رزرو کرده باشد، رزرو او در صفحهٔ جزئیات کارت (علامت +) در ردیف «رزرو» دیده می‌شود، و برای میز کار شمارهٔ داخلی هم در ردیف «داخلی» می‌آید؛ دکمهٔ تماس آن ابتدا شمارهٔ دفتر را می‌گیرد و بعد داخلی را وارد می‌کند (اگر شمارهٔ دفتر تنظیم نشده باشد، دکمهٔ تماس داخلی نمایش داده نمی‌شود)، و دکمهٔ کپی شمارهٔ کامل را برمی‌دارد.</p>
             </div>
         </div>
 
@@ -116,7 +116,27 @@
             </div>
             <div class="min-w-0">
                 <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">نشان حالت تمرکز</p>
-                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری حالت تمرکز را در تنظیمات خودش فعال کرده باشد، آیکون نقطهٔ وضعیتِ او (روی کارت و نمودار سازمانی) به‌جای نشانِ معمولِ «مشغول» به این آیکون تغییر می‌کند؛ نگه‌داشتن نشانگر روی آن، ساعتِ پایانِ تمرکز را نشان می‌دهد.</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">وقتی همکاری حالت تمرکز را در تنظیمات خودش فعال کرده باشد، آیکون نشان وضعیتِ او به‌جای نشانِ معمولِ «مشغول» به آیکون یوگا تغییر می‌کند — نه فقط اینجا، بلکه روی آواتارِ او در همهٔ ماژول‌ها (پیام‌رسان، گروه‌ها، پروژه، تیکت، نظرات و خانه). نگه‌داشتن نشانگر یا لمس آن، ساعتِ پایانِ تمرکز («متمرکز تا ۱۵:۳۰») یا «حالت تمرکز فعال» (برای تمرکزِ بدون مدت) را نشان می‌دهد.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)]">
+                <span class="material-symbols-rounded text-[16px]">radio_button_checked</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">نقطهٔ آنلاین و نشان وضعیت</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">گوشهٔ بالا-چپ آواتار، نقطهٔ آنلاین است: پر یعنی در ۱۰ دقیقهٔ اخیر فعال بوده، توخالی یعنی آفلاین. گوشهٔ پایین-راست، نشان وضعیتی است که خودِ همکار انتخاب کرده. این دو مستقل‌اند و هر دو با نگه‌داشتن یا لمس، توضیح می‌دهند. رنگ کادر کارت هم از همان وضعیت می‌آید. «مرخصی» و «مأموریت» برچسب «پاسخ‌گو نیست» می‌گیرند و در نوار «حاضر» خانه نمی‌آیند.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl border border-[var(--md-sys-color-outline-variant)]/40 bg-[var(--md-sys-color-surface-container-low)] px-4 py-3">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">
+                <span class="material-symbols-rounded text-[16px]">add</span>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[12px] font-bold text-[var(--md-sys-color-on-surface)] mb-0.5">جزئیات کارت</p>
+                <p class="text-[12px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">کارت‌ها همیشه هم‌اندازه و مربع‌اند. با زدن خط جداکنندهٔ پایین کارت (علامت +)، صفحهٔ جزئیات از پایین بالا می‌آید: سابقه، سازمان، مهارت، رزرو امروز، موبایل (تماس و پیامک)، داخلی (تماس از طریق شمارهٔ دفتر و کپی) و پیام (گفتگو و ایمیل). فقط یک کارت هم‌زمان باز است؛ با دکمهٔ بستن یا Esc بسته می‌شود. در وضعیت «بی‌حوصله» اطلاعات تماس پنهان می‌ماند.</p>
             </div>
         </div>
     </div>

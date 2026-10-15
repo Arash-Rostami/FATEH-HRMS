@@ -12,17 +12,19 @@
             @forelse($this->groupedTeamChatMessages as $group)
                 <div class="flex items-center gap-3 py-3" wire:key="date-{{ $group['date'] }}">
                     <div class="flex-1 h-px bg-[linear-gradient(to_left,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
-                    <span class="text-[10px] font-bold tracking-widest px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)]">{{ $group['label'] }}</span>
+                    <span class="text-[10px] font-bold tracking-widest px-2 py-1 rounded-lg bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] flex flex-col items-center gap-0.5 leading-tight">
+                        <span>{{ $group['label'] }}</span>
+                        <span class="text-[9px] font-normal opacity-70">({{ $group['relative'] }})</span>
+                    </span>
                     <div class="flex-1 h-px bg-[linear-gradient(to_right,transparent,color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent))]"></div>
                 </div>
                 @foreach($group['messages'] as $msg)
                     <div @class(['flex items-end gap-2 animate-bubble-in', 'justify-start' => $msg['is_mine'], 'justify-end' => !$msg['is_mine'], $msg['gap_class']]) wire:key="chat-msg-{{ $msg['id'] }}" data-rf="project-message-{{ $msg['id'] }}" style="animation-delay: {{ $msg['animation_delay'] }}s">
                         @if($msg['is_last'])
-                            <div class="relative flex-shrink-0 self-end mb-0.5">
-                                <div class="w-7 h-7 rounded-lg overflow-hidden shadow-sm">
-                                    <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']" icon="person" icon-size="text-base" />
-                                </div>
-                                @unless($msg['sender_inactive'])<x-ui.presence-dot :online="$msg['sender_online']" size="w-2 h-2"/>@endunless
+                            <div class="flex-shrink-0 self-end mb-0.5">
+                                <x-ui.avatar :existingImage="$msg['sender_avatar']" :alt="$msg['sender_name']" :inactive="$msg['sender_inactive']"
+                                             size="sm" icon="person" icon-size="text-base"
+                                             :online="$msg['sender_online']" :status="$msg['sender_presence']" :focus="$msg['sender_focus']"/>
                             </div>
                         @else
                             <div class="flex-shrink-0 w-7" aria-hidden="true"></div>
@@ -80,7 +82,7 @@
         <span class="material-symbols-rounded text-[18px]" aria-hidden="true">keyboard_arrow_down</span>
     </button>
 
-    <footer class="flex-shrink-0 border-t border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] bg-[var(--md-sys-color-surface)]">
+    <footer class="flex-shrink-0 border-t max-md:border-t-0! border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)] bg-[var(--md-sys-color-surface)] max-md:bg-transparent">
         <div class="relative">
             <div x-show="mentionOpen" x-cloak x-transition x-on:click.outside="mentionOpen = false"
                  class="absolute bottom-full end-2 mb-2 p-1.5 rounded-xl z-40 min-w-[220px] max-h-[240px] overflow-y-auto bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_35%,transparent)] shadow-[0_12px_32px_color-mix(in_srgb,var(--md-sys-color-scrim)_22%,transparent)]"
@@ -93,6 +95,7 @@
                         <span class="material-symbols-rounded text-[15px] text-[var(--md-sys-color-primary)]">alternate_email</span>
                         <span class="truncate" x-text="name"></span>
                         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="$wire.mentionMemberPresence[name]?.presence_class" :title="$wire.mentionMemberPresence[name]?.presence_label"></span>
+                        <span x-show="$wire.mentionMemberPresence[name]?.reachable === false" x-cloak class="ms-auto shrink-0 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold leading-none">پاسخ‌گو نیست</span>
                     </button>
                 </template>
             </div>

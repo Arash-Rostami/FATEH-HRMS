@@ -1,4 +1,5 @@
 let booted = false
+let reloading419 = false
 
 function register() {
     if (booted || !window.Livewire) return
@@ -6,7 +7,17 @@ function register() {
 
     window.Livewire.hook('request', ({ fail }) => {
         fail(({ status, content, preventDefault }) => {
-            if (status === 422 || status === 419) return
+            if (status === 419) {
+                preventDefault()
+                if (reloading419) return
+                reloading419 = true
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { message: 'نشست شما به پایان رسید؛ در حال بارگذاری مجدد…', type: 'error' },
+                }))
+                setTimeout(() => window.location.reload(), 1200)
+                return
+            }
+            if (status === 422) return
 
             preventDefault()
 

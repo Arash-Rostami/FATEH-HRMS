@@ -103,7 +103,7 @@ class Workspace extends Component
         return $this->ticket?->assignableUsers()
             ->with('profile')
             ->orderBy('name')
-            ->get(['id', 'name', 'presence']) ?? collect();
+            ->get(['id', 'name', 'presence', 'status', 'last_seen', 'focus_until']) ?? collect();
     }
 
     public function postReply(SubmitTicketReplyAction $action): void

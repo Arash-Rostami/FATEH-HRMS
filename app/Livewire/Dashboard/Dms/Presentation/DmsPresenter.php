@@ -19,6 +19,11 @@ class DmsPresenter
         ];
     }
 
+    public function sortOptions(): array
+    {
+        return ['updated' => 'بروزرسانی', 'title' => 'عنوان سند', 'code' => 'نسخه'];
+    }
+
     public function sortIsDefault(string $sort, string $sortDir): bool
     {
         return $sort === 'updated' && $sortDir === 'desc';
@@ -71,7 +76,7 @@ class DmsPresenter
 
         return [
             'icon' => $icon['icon'],
-            'label' => $icon['label'],
+            'label' => $icon['label'] . (($rendition['of'] ?? 1) > 1 ? ' ' . convertToPersian($rendition['n']) : ''),
             'bg' => $icon['bg'],
             'text' => $icon['text'],
             'route' => $rendition['path'] === $docFile

@@ -173,6 +173,20 @@ class TaskBoardPresenter
         ];
     }
 
+    public function cardFieldOptions(): array
+    {
+        return [
+            'description' => 'توضیحات',
+            'priority' => 'اولویت',
+            'deadline' => 'مهلت',
+            'people' => 'افراد',
+            'labels' => 'برچسب‌ها',
+            'checklist' => 'چک‌لیست',
+            'context' => 'دپارتمان و منبع',
+            'collaborators' => 'همکاران',
+        ];
+    }
+
     public function toolbarSurface(): string
     {
         return 'rounded-xl bg-[var(--md-sys-color-surface)] shadow-[0_8px_24px_color-mix(in_srgb,var(--md-sys-color-shadow)_6%,transparent)]';
@@ -181,13 +195,6 @@ class TaskBoardPresenter
     public function toolbarButtonClass(): string
     {
         return 'shrink-0 ripple-effect';
-    }
-
-    public function utilityClass(bool $active): string
-    {
-        return $active
-            ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_1px_3px_color-mix(in_srgb,var(--md-sys-color-primary)_25%,transparent)]'
-            : 'bg-[var(--md-sys-color-surface-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]';
     }
 
     public function columnButtonBase(): string

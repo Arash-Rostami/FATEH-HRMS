@@ -178,7 +178,7 @@ class UserFormPresenter
                 })->toArray()
             )
             ->allowHtml()
-            ->default(PresenceStatus::Onsite->value)
+            ->default(PresenceStatus::default()->value)
             ->required()
             ->native(false)
             ->helperText(__('resources/user/strings.hints.presence'));

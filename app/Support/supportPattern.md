@@ -41,7 +41,11 @@ The project governs people, dates and labels for its tasks. Zero migrations: eve
 - `Project::KNOWN_SETTING_KEYS` = requires_approval, sla, deadline, custom_schema, labels, auto_archive_days; `Project::SETTING_LABELS` names the extra keys (`escalation_days`, `due_soon_hours`) for the settings chips; `Project::pruneSettings` drops empty values on save.
 - Null project (personal task) means the caller skips the charter entirely.
 
-## 5. Rules
+## 5. `FileNamer` (2026-10-14) — the one upload-naming standard
+
+`FileNamer::prefix()` = `strtoupper(config('app.tenant'))` (the `config/tenants.php` array key, never a hardcoded brand). `FileNamer::stored($module, $file)` returns `{PREFIX}-{MODULE}-{Ymd}-{random12}-{time}.{ext}` with the ext mime-guessed (`extension()`, client ext only as fallback) — the variables are defined first, the return composes them, and callers pass it as the `$fileName` closure of `storeAttachment()`/`storeAttachments()` (resolved BEFORE `storeAs()`, per livewirePattern.md's metadata-before-store rule) or from a Filament `getUploadedFileNameForStorageUsing`. `FileNamer::download($ext, ...$parts)` builds the ASCII-safe name a user receives (`PERSOL-CODE-v2-excel-2.xlsx`), derived at serve time so old files get it too. Adopted by DMS (prefix only — `DmsFormPresenter::forgeFileName` keeps its own variable block plus slug), THS, release request, report, suggestion, task, resource, feed, gallery, post, link, onboarding. Deliberately NOT applied to private uploads (profile docs/images, chat attachments). Never rename or rewrite stored paths: old records keep their old names.
+
+## 6. Rules
 
 - A new "who may do X" question becomes a policy verb here first, then every caller (Livewire action, Kanban, bulk action, Filament page/action, search) uses it. Filament actions additionally require the panel's `update` permission (`filamentPattern.md`).
 - Never read `settings.deadline|sla|labels|auto_archive_days` directly; go through the charter.

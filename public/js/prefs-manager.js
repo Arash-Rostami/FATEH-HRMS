@@ -9,11 +9,11 @@
             document.documentElement.classList.toggle('max-restore', ls.getItem(`max:${maxScope}:${uid}`) !== null);
         }
 
-        const keys = ['dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden'];
-        const tables = ['.dms-doc-table', '.ths-ticket-table', '.reservation-command-table'];
+        const keys = ['dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden'];
+        const tables = ['.dms-doc-table', '.ths-ticket-table', '.reservation-command-table', '.taskboard-card'];
         let css = '';
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < keys.length; i++) {
             const val = ls.getItem(keys[i]);
 
             if (val !== null && val.length > 2) {

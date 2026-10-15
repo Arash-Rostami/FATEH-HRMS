@@ -5,15 +5,11 @@
     $key = $key ?? ('orgc-node-' . $user->id);
     $d = $statusPresenter->nodeData($user, $tier);
     $p = $d['p'];
-    $focusUntil = $d['focusUntil'];
     $obscured = $d['obscured'];
-    $img = $d['img'];
     $position = $d['position'];
     $deptName = $d['deptName'];
     $rankMeta = $d['rankMeta'];
     $tierConfig = $d['tierConfig'];
-    $presenceBg = $d['presenceBg'];
-    $presenceText = $d['presenceText'];
     $aboutPayload = $d['aboutPayload'];
 @endphp
 
@@ -41,23 +37,8 @@
         </button>
     @endif
 
-    <div class="relative mb-2.5 {{ $obscured ? 'opacity-50 grayscale' : '' }} transition-[opacity,filter] duration-200">
-        <div class="relative {{ $tierConfig['avatar'] }} rounded-full p-[2px] ring-1 {{ $tierConfig['ring'] }} group-hover:ring-[var(--md-sys-color-primary)]/50 transition-[box-shadow,ring-color] duration-200 shadow-sm">
-            <img
-                src="{{ $img }}"
-                alt="{{ $user->name }}"
-                class="w-full h-full rounded-full object-cover bg-[var(--md-sys-color-surface-container)] {{ $p->imageClasses() }}"
-                loading="lazy"
-            >
-            <x-ui.presence-dot :online="$user->isOnline()" position="absolute -top-0.5 -right-0.5" size="w-2.5 h-2.5"/>
-        </div>
-
-        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full {{ $presenceBg }} ring-[2.5px] ring-[var(--md-sys-color-surface)] flex items-center justify-center shadow-sm">
-            <span class="material-symbols-rounded {{ $presenceText }} text-[8px] font-bold leading-none">{{ $focusUntil ? 'self_improvement' : $p->icon() }}</span>
-            @if($focusUntil)
-                <x-ui.modals.tooltip text="متمرکز تا {{ $focusUntil }}" position="top"/>
-            @endif
-        </span>
+    <div class="relative mb-2.5 {{ $tierConfig['avatar'] }} {{ $obscured ? 'opacity-50 grayscale' : '' }} transition-[opacity,filter] duration-200">
+        <x-dashboard.user-avatar :user="$user" :size="null" class="{{ $p->imageClasses() }}"/>
     </div>
 
     <div class="w-full text-center space-y-1.5 {{ $obscured ? 'opacity-60 blur-[1.5px]' : '' }} transition-[opacity,filter] duration-200 group-hover:opacity-100 group-hover:blur-none">

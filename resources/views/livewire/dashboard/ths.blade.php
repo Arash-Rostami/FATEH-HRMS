@@ -73,7 +73,7 @@
              x-transition:enter="animate-fade"
              class="w-full">
             <x-ui.modals.max-backdrop/>
-            <div :class="{ 'max-widget': max || maxLeaving, 'max-widget-leaving': maxLeaving }">
+            <div>
                 <div class="flex mb-4">
                     <x-ui.buttons.toggle
                         wire:click="toggleActionableFilter"
@@ -110,6 +110,13 @@
 
                 @if($activeTab === 'log')
                     <div wire:key="ths-log-panel" class="contents">
+                        @if($listFilter === 'mine')
+                            <div wire:key="ths-search-filters" class="contents">
+                                <x-ui.forms.filters placeholder="جستجو در تیکت‌ها..." searchModel="ticketSearch"
+                                                    activeCondition="false" clearAction='this.$wire.set("ticketSearch", "")'
+                                                    :filters="false" :declutterHide="true"/>
+                            </div>
+                        @endif
                         @include('livewire.dashboard.ths.ticket-table', ['tickets' => $this->activeTickets])
                     </div>
                 @endif

@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\Ticket;
 use App\Support\TicketAccessPolicy;
 use App\Traits\FocusOnRecord;
+use App\Traits\HasDateSpan;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -26,7 +27,15 @@ use Livewire\WithFileUploads;
 class Main extends Component
 {
     use FocusOnRecord;
+    use HasDateSpan;
     use WithFileUploads;
+
+    private const SORT_COLUMNS = [
+        'created' => 'created_at',
+        'subject' => 'request_subject',
+        'status' => 'status',
+        'priority' => 'priority',
+    ];
 
     public TicketForm $ticket;
     public RatingForm $rating;
@@ -47,17 +56,8 @@ class Main extends Component
     public int $inboxPerPage = 10;
     public string $statusFilter = 'all';
     public string $ticketSearch = '';
-    public string $dateBasis = 'updated';
-    public ?int $fromYear = null;
-    public ?int $fromMonth = null;
-    public ?int $fromDay = null;
-    public ?int $toYear = null;
-    public ?int $toMonth = null;
-    public ?int $toDay = null;
-    #[Locked]
-    public array $appliedDateParts = [];
-    #[Locked]
-    public string $appliedBasis = 'updated';
+    public string $sort = 'created';
+    public string $sortDir = 'desc';
 
     public function addFileInput(): void
     {
@@ -91,63 +91,9 @@ class Main extends Component
         }
     }
 
-    public function setDateBasis(string $basis): void
+    protected function afterDateSpanChange(): void
     {
-        if (!in_array($basis, ['created', 'updated'], true) || $this->dateBasis === $basis) {
-            return;
-        }
-
-        $this->dateBasis = $basis;
-
-        if ($this->dateSpan() !== null && $this->appliedBasis !== $basis) {
-            $this->appliedBasis = $basis;
-            $this->perPage = 10;
-        }
-    }
-
-    public function applyDateSpan(): void
-    {
-        if (jalaliSpanFromParts($this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay) === null) {
-            $this->dispatch('toast', message: 'بازهٔ انتخاب‌شده نامعتبر است.', type: 'warning');
-            return;
-        }
-
         $this->perPage = 10;
-        $this->appliedBasis = $this->dateBasis;
-        $this->appliedDateParts = $this->dateParts();
-    }
-
-    public function clearDateSpan(): void
-    {
-        if ($this->fromYear === null && $this->fromMonth === null && $this->fromDay === null
-            && $this->toYear === null && $this->toMonth === null && $this->toDay === null) {
-            return;
-        }
-
-        $this->fromYear = $this->fromMonth = $this->fromDay = $this->toYear = $this->toMonth = $this->toDay = null;
-        $this->perPage = 10;
-        $this->appliedDateParts = $this->dateParts();
-    }
-
-    public function dateSpanActive(): bool
-    {
-        return $this->dateSpan() !== null;
-    }
-
-    private function dateParts(): array
-    {
-        return [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay];
-    }
-
-    private function dateSpan(): ?array
-    {
-        if (count($this->appliedDateParts) < 6) {
-            return null;
-        }
-
-        $span = jalaliSpanFromParts(...$this->appliedDateParts);
-
-        return $span === null ? null : [$this->appliedBasis === 'created' ? 'created_at' : 'updated_at', ...$span];
     }
 
     public function setListFilter(string $filter): void
@@ -159,6 +105,38 @@ class Main extends Component
         $this->listFilter = $filter;
         $this->perPage = 10;
         $this->inboxPerPage = 10;
+    }
+
+    public function sortBy(string $column): void
+    {
+        if (!array_key_exists($column, self::SORT_COLUMNS)) {
+            return;
+        }
+
+        if ($this->sort === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sort = $column;
+            $this->sortDir = 'asc';
+        }
+
+        $this->perPage = 10;
+    }
+
+    private function sortExpression(): string
+    {
+        return match ($this->sort) {
+            'priority' => "FIELD(priority, 'low', 'medium', 'high')",
+            'status' => "FIELD(status, 'open', 'in-progress', 'closed')",
+            default => self::SORT_COLUMNS[$this->sort] ?? 'created_at',
+        };
+    }
+
+    public function resetSort(): void
+    {
+        $this->sort = 'created';
+        $this->sortDir = 'desc';
+        $this->perPage = 10;
     }
 
     public function toggleActionableFilter(): void
@@ -338,7 +316,8 @@ class Main extends Component
                     ->orWhereRaw("CONCAT(UPPER(COALESCE(NULLIF(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(extra, '$.target_department')), ''), 'null'), 'T')), '-', DATE_FORMAT(created_at, '%y%m'), '-', LPAD(id, GREATEST(4, LENGTH(id)), '0')) LIKE ?", [$term]);
             }))
             ->when($this->dateSpan(), fn($query, $span) => $query->whereBetween($span[0], [$span[1], $span[2]]))
-            ->orderByDesc('created_at')
+            ->orderByRaw($this->sortExpression() . ($this->sortDir === 'asc' ? ' asc' : ' desc'))
+            ->orderByDesc('id')
             ->paginate($this->perPage);
     }
 

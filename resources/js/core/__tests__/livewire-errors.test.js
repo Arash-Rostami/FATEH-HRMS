@@ -70,16 +70,26 @@ describe('livewire-errors — the fail handler', () => {
         window.removeEventListener('toast', toastSpy)
     })
 
-    test('ignores expired-session errors (419)', () => {
+    test('on expired session (419) prevents default, toasts once, and schedules exactly one reload', () => {
         arm()
+        const reload = vi.fn()
+        vi.stubGlobal('location', { reload })
         const preventDefault = vi.fn()
         const toastSpy = vi.fn()
         window.addEventListener('toast', toastSpy)
 
+        vi.useFakeTimers()
+        hookFailCallback({ status: 419, content: {}, preventDefault })
         hookFailCallback({ status: 419, content: {}, preventDefault })
 
-        expect(preventDefault).not.toHaveBeenCalled()
-        expect(toastSpy).not.toHaveBeenCalled()
+        expect(preventDefault).toHaveBeenCalledTimes(2)
+        expect(toastSpy).toHaveBeenCalledTimes(1)
+        expect(toastSpy.mock.calls[0][0].detail.message).toContain('نشست شما به پایان رسید')
+        expect(reload).not.toHaveBeenCalled()
+        vi.advanceTimersByTime(1200)
+        expect(reload).toHaveBeenCalledTimes(1)
+        vi.useRealTimers()
+        vi.unstubAllGlobals()
         window.removeEventListener('toast', toastSpy)
     })
 

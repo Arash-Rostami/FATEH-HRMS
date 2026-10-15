@@ -495,7 +495,7 @@ class CalendarPresenter
                 'time' => '00:00',
                 'is_owner' => false,
                 'private' => false,
-                'avatar' => $p->getImageUrl(),
+                'avatar' => $p->getImageUrl() ?? $p->getInitialsAvatarUrl(),
             ]);
 
         $anniversaries = $profiles->filter(fn($p) => $p->start_date?->month === $month && $p->start_date?->day === $day)
@@ -509,7 +509,7 @@ class CalendarPresenter
                     'time' => '00:00',
                     'is_owner' => false,
                     'private' => false,
-                    'avatar' => $p->getImageUrl(),
+                    'avatar' => $p->getImageUrl() ?? $p->getInitialsAvatarUrl(),
                 ];
             });
 
@@ -1055,7 +1055,7 @@ class CalendarPresenter
                     'is_owner' => false,
                     'locked' => true,
                     'date' => $jalaliKey,
-                    'avatar' => $p->getImageUrl(),
+                    'avatar' => $p->getImageUrl() ?? $p->getInitialsAvatarUrl(),
                 ];
             }
 
@@ -1069,7 +1069,7 @@ class CalendarPresenter
                     'is_owner' => false,
                     'locked' => true,
                     'date' => $jalaliKey,
-                    'avatar' => $p->getImageUrl(),
+                    'avatar' => $p->getImageUrl() ?? $p->getInitialsAvatarUrl(),
                 ];
             }
         }

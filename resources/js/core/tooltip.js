@@ -109,7 +109,19 @@ export default function initTooltip() {
         });
     };
 
+    let lastTouch = 0;
+
+    document.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') return;
+        if (e.target.closest?.('a[href], button')) return;
+        lastTouch = Date.now();
+        const res = resolve(e.target);
+        if (!res || (active && res.holder === active.holder)) return hide();
+        show(res);
+    }, true);
+
     document.addEventListener('mouseover', (e) => {
+        if (Date.now() - lastTouch < 600) return;
         if (active && !active.holder.isConnected) hide();
         const res = resolve(e.target);
         if (!res) return hide();

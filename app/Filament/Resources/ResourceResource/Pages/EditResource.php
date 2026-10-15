@@ -19,4 +19,9 @@ class EditResource extends EditRecord
     {
         return ResourceFormPresenter::normalizeMetadata($data);
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['image' => []];
+    }
 }

@@ -57,6 +57,7 @@ return [
             'active' => 'کاربران فعال',
             'admins' => 'ادمین‌ها',
             'online' => 'کاربران آنلاین',
+            'available' => 'آنلاین و در دسترس',
         ],
 
         'departments' => [

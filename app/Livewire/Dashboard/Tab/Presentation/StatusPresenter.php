@@ -140,7 +140,6 @@ class StatusPresenter
                 'border' => 'border-[var(--md-sys-color-primary)]/45 hover:border-[var(--md-sys-color-primary)]',
                 'accent' => 'bg-gradient-to-r from-[var(--md-sys-color-primary)] via-[var(--md-sys-color-tertiary)] to-[var(--md-sys-color-primary)]',
                 'shadow' => 'shadow-[0_8px_28px_-8px_color-mix(in_srgb,var(--md-sys-color-primary)_28%,transparent)]',
-                'ring' => 'ring-[var(--md-sys-color-primary)]/30',
                 'spacing' => '',
             ],
             'head' => [
@@ -150,7 +149,6 @@ class StatusPresenter
                 'border' => 'border-[var(--md-sys-color-secondary)]/40 hover:border-[var(--md-sys-color-secondary)]',
                 'accent' => 'bg-[var(--md-sys-color-secondary)]',
                 'shadow' => 'shadow-[0_5px_18px_-5px_color-mix(in_srgb,var(--md-sys-color-secondary)_20%,transparent)]',
-                'ring' => 'ring-[var(--md-sys-color-secondary)]/25',
                 'spacing' => '',
             ],
             'tier2' => [
@@ -160,7 +158,6 @@ class StatusPresenter
                 'border' => 'border-[var(--md-sys-color-outline-variant)]/65 hover:border-[var(--md-sys-color-outline)]',
                 'accent' => 'bg-transparent',
                 'shadow' => 'shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)]',
-                'ring' => 'ring-[var(--md-sys-color-outline-variant)]/40',
                 'spacing' => 'mt-5',
             ],
             default => [
@@ -170,38 +167,17 @@ class StatusPresenter
                 'border' => 'border-[var(--md-sys-color-outline-variant)]/65 hover:border-[var(--md-sys-color-outline)]',
                 'accent' => 'bg-transparent',
                 'shadow' => 'shadow-[0_2px_10px_-3px_rgba(0,0,0,0.06)]',
-                'ring' => 'ring-[var(--md-sys-color-outline-variant)]/40',
                 'spacing' => '',
             ],
         };
 
-        $presenceBg = match ($p->color()) {
-            'green', 'emerald', 'success' => 'bg-emerald-500 dark:bg-emerald-400',
-            'amber', 'yellow', 'warning' => 'bg-amber-500 dark:bg-amber-400',
-            'red', 'rose', 'danger' => 'bg-rose-500 dark:bg-rose-400',
-            'blue', 'sky', 'info' => 'bg-sky-500 dark:bg-sky-400',
-            default => 'bg-slate-400',
-        };
-
-        $presenceText = match ($p->color()) {
-            'green', 'emerald', 'success' => 'text-white dark:text-emerald-950',
-            'amber', 'yellow', 'warning' => 'text-white dark:text-amber-950',
-            'red', 'rose', 'danger' => 'text-white dark:text-rose-950',
-            'blue', 'sky', 'info' => 'text-white dark:text-sky-950',
-            default => 'text-white dark:text-slate-950',
-        };
-
         return [
             'p' => $p,
-            'focusUntil' => $user->isFocusing() ? toJalali($user->focus_until, 'H:i') : null,
             'obscured' => $p->isObscured(),
-            'img' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
             'position' => $position,
             'deptName' => $user->profile?->department?->displayLabel(),
             'rankMeta' => $rankMeta,
             'tierConfig' => $tierConfig,
-            'presenceBg' => $presenceBg,
-            'presenceText' => $presenceText,
             'aboutPayload' => $this->aboutPayload($user),
         ];
     }
@@ -226,20 +202,49 @@ class StatusPresenter
         $details = $user->profile?->detailsMap();
         $orgTitle = collect([$deptName, $details?->get('unit'), $details?->get('section')])->filter()->implode(' › ');
 
+        $office = $this->dialable(config('app.office_phone'));
+        $extDigits = $this->dialable($ext);
+
         return [
             'p' => $p,
-            'focusUntil' => $user->isFocusing() ? toJalali($user->focus_until, 'H:i') : null,
+            'focusUntil' => $user->focusLabel(),
             'obscured' => $obscured,
-            'sms' => $sms,
-            'ext' => $ext,
+            'sms' => $obscured ? null : $sms,
+            'ext' => $obscured ? null : $ext,
             'reserved' => $reserved,
             'summary' => $summary,
             'skillTier' => $skillTier,
-            'hasBar' => $obscured || $sms || $ext || $reserved || $skillTier !== null,
-            'hasCall' => !$obscured && ($sms || $ext),
             'orgTitle' => $orgTitle,
+            'tenure' => $this->tenureLabel($user->profile?->start_date),
+            'email' => $obscured ? null : $user->email,
+            'smsTel' => $obscured || !$sms ? null : $this->dialable($sms),
+            'extTel' => $obscured || !$extDigits || !$office ? null : $office . ',' . $extDigits,
+            'extCopy' => $obscured || !$ext ? null : trim(($office ? convertToPersian($office) . '، ' : '') . 'داخلی ' . convertToPersian($ext)),
+            'chatUrl' => $user->id === auth()->id() ? null : route('contact', ['open' => $user->id]),
             'aboutPayload' => $this->aboutPayload($user),
         ];
+    }
+
+    private function dialable(mixed $value): ?string
+    {
+        $clean = preg_replace('/[^\d+]/', '', (string) $value);
+
+        return $clean === '' ? null : $clean;
+    }
+
+    private function tenureLabel(?\Carbon\Carbon $start): ?string
+    {
+        if (!$start || $start->isFuture()) {
+            return null;
+        }
+
+        $diff = $start->diff(now());
+        $parts = array_filter([
+            $diff->y ? convertToPersian($diff->y) . ' سال' : null,
+            $diff->m ? convertToPersian($diff->m) . ' ماه' : null,
+        ]);
+
+        return $parts ? implode(' و ', $parts) : 'کمتر از یک ماه';
     }
 
     private function groupByUnit(Collection $members): array

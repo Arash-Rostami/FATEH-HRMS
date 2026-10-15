@@ -160,8 +160,8 @@
                                 <x-dashboard.member-picker wire:key="workflow-reassign-picker-{{ $wf->id }}" model="reassignSelection.{{ $wf->id }}" :candidates="$memberCandidates" :search="false" rounded="rounded-md" py="py-1.5"/>
                             </div>
                             <div class="flex items-center gap-2 pt-1">
-                                <x-ui.buttons.form wire:click="reassignStep({{ $wf->id }})" variant="tonal" icon="check" class="flex-1 justify-center">ثبت واگذاری</x-ui.buttons.form>
                                 <x-ui.buttons.form wire:click="closeReassign" variant="ghost" class="flex-1 justify-center bg-[var(--md-sys-color-surface)] border border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)]">انصراف</x-ui.buttons.form>
+                                <x-ui.buttons.form wire:click="reassignStep({{ $wf->id }})" variant="tonal" icon="check" class="flex-1 justify-center">ثبت واگذاری</x-ui.buttons.form>
                             </div>
                         </div>
                     @else

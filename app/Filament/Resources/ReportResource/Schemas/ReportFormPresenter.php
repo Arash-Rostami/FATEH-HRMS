@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ReportResource\Schemas;
 
 use App\Models\Department;
 use App\Services\PersianDateFieldService;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ReportFormPresenter
 {
@@ -39,6 +41,9 @@ class ReportFormPresenter
             ->directory('reports/covers')
             ->imageEditor()
             ->maxSize(config('file_upload_limits.image'))
+            ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('report', $file)
+            )
             ->nullable()
             ->helperText(__('resources/report/strings.hints.cover_image'));
     }
@@ -152,6 +157,9 @@ class ReportFormPresenter
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ])
             ->maxSize(config('file_upload_limits.document'))
+            ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('report', $file)
+            )
             ->required()
             ->helperText(__('resources/report/strings.hints.file_path'));
     }

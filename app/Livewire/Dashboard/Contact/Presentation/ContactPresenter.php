@@ -26,11 +26,12 @@ class ContactPresenter
         return [
             'id'       => $c['id'],
             'name'     => $c['name'],
-            'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null),
+            'avatar'   => $this->resolveImageUrl($c['profile']['image'] ?? null) ?? $this->generateInitialsAvatar($c['name'] ?? null),
             'position' => $c['display_position'] ?? ($c['profile']['position'] ?? 'عضو سازمان'),
             'is_online' => (bool) ($c['is_online'] ?? false),
             'inactive'  => (bool) ($c['inactive'] ?? false),
             'presence'  => ($c['presence'] ?? null) instanceof PresenceStatus ? $c['presence'] : null,
+            'focus'     => $c['focus'] ?? null,
             'unread'    => $unread,
             'occasion'  => $c['occasion'] ?? null,
             'occasion_tone' => ($c['occasion'] ?? null) ? Profile::occasionTone($c['occasion']) : null,
@@ -68,6 +69,7 @@ class ContactPresenter
         return [
             'date'  => $date,
             'label' => $label,
+            'relative' => toJalaliRelative($messages[0]['created_at'] ?? $date, false, PHP_INT_MAX),
             'messages' => $this->messages($messages, $authId, $editTimeLimit, $firstUnreadId),
         ];
     }
@@ -100,6 +102,8 @@ class ContactPresenter
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
                 'sender_online' => (bool) ($msg['sender']['online'] ?? false),
+                'sender_presence' => ($msg['sender']['presence'] ?? null) instanceof PresenceStatus ? $msg['sender']['presence'] : null,
+                'sender_focus' => $msg['sender']['focus'] ?? null,
                 'sender_inactive' => (bool) ($msg['sender']['inactive'] ?? false),
                 'can_edit'   => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,

@@ -547,6 +547,8 @@ export default function menu(options = {}) {
 
             this.sortAlpha = !!this._loadState(SORT_ALPHA_KEY, false);
             this.declutter = !!this._loadState(DECLUTTER_KEY, false);
+            this._declutterListener = (e) => { this.declutter = !!e?.detail?.on; };
+            window.addEventListener('declutter', this._declutterListener);
 
             if (window.ThemeManager && window.ThemeManager.getUserMode) {
                 this.isDark = window.ThemeManager.getUserMode() === 'dark';
@@ -579,6 +581,9 @@ export default function menu(options = {}) {
         },
 
         destroy() {
+            if (this._declutterListener) {
+                window.removeEventListener('declutter', this._declutterListener);
+            }
             if (this._mql && this._mediaListener) {
                 this._mql.removeEventListener('change', this._mediaListener);
             }

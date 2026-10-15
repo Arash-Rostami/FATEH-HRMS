@@ -7,12 +7,12 @@ use App\Models\Department;
 use App\Models\Review;
 use App\Models\Suggestion;
 use App\Services\Menu\StateService;
+use App\Support\FileNamer;
 use App\Support\SuggestionAccessPolicy;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateSuggestionAction
@@ -50,7 +50,7 @@ class CreateSuggestionAction
                     ? static::storeAttachment(
                         $form->attachment,
                         'suggestions',
-                        fn ($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                        fn ($f) => FileNamer::stored('suggestion', $f)
                     )['path']
                     : null,
                 'self_fill'   => $form->selfFill,

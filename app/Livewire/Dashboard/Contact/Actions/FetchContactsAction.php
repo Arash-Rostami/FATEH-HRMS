@@ -46,7 +46,7 @@ class FetchContactsAction
                 )
             )
             ->when($filter === 'unread', fn($q) => $q->where('uc.unread_count', '>', 0))
-            ->when($filter === 'online', fn($q) => $q->where('users.last_seen', '>=', now()->subMinutes(5)))
+            ->when($filter === 'online', fn($q) => $q->online())
             ->orderByDesc('lm.last_message_id')
             ->orderBy('users.name')
             ->when($limit !== null, fn($q) => $q->limit($limit))

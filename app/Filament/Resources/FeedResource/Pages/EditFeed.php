@@ -24,4 +24,9 @@ class EditFeed extends EditRecord
     {
         return FeedFormPresenter::packPollSettings(FeedFormPresenter::mergeMediaPaths($data));
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['media_paths' => []];
+    }
 }

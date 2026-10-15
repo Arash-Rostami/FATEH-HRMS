@@ -44,6 +44,11 @@
 
     <aside @mouseenter="expand"
            @mouseleave="collapse"
+           x-data="{ fl: 0, upd() { const f = document.getElementById('footer'); if (!f) return; const gap = f.getBoundingClientRect().top; const nat = this.$el.getBoundingClientRect().bottom + this.fl; this.fl = Math.max(0, Math.round(nat - gap + 8)); } }"
+           x-init="upd()"
+           @scroll.window.passive="upd()"
+           @resize.window.passive="upd()"
+           :style="`transform: translateY(-${fl}px); transition-property: width, opacity`"
            :class="{'w-[84px]': isExpanded, 'w-[8px] md:w-[12px] lg:w-[52px]': !isExpanded, 'focus-dim': $store.focus.active}"
            class="fixed left-0 z-50 flex flex-col shrink-0 gap-0.5 pt-8 md:gap-1 md:pt-10 top-[128px] lg:top-[148px] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]">
 

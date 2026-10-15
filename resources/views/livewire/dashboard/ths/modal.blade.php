@@ -234,8 +234,8 @@
                                         <div class="bg-[var(--md-sys-color-surface-container-low)] rounded-2xl p-4 md:p-6 border border-[var(--md-sys-color-outline-variant)]/30 shadow-sm max-w-2xl mx-auto">
                                             <h5 class="text-sm font-bold text-[var(--md-sys-color-on-surface)] mb-4 text-center">ارزیابی ثبت شده شما</h5>
 
-                                            <div class="flex justify-center gap-2 ltr-direction flex-row-reverse mb-4">
-                                                @for($i = 5; $i >= 1; $i--)
+                                            <div class="flex justify-center gap-2 mb-4" dir="ltr">
+                                                @for($i = 1; $i <= 5; $i++)
                                                     <span class="material-symbols-rounded text-4xl transition-transform hover:scale-110 {{ $selectedTicket['satisfaction_score'] >= $i ? 'text-[#FFB300] font-variation-fill drop-shadow-md' : 'text-[var(--md-sys-color-outline-variant)]/40' }}">star</span>
                                                 @endfor
                                             </div>

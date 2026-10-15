@@ -5,6 +5,8 @@
     'clearAction'     => 'this.$wire.set("activeFilter", "all"); this.$wire.set("search", "");',
     'filterTitle'     => 'فیلترها',
     'open'            => false,
+    'filters'         => true,
+    'declutterHide'   => false,
 ])
 
 <div
@@ -15,7 +17,8 @@
     <template x-teleport="body">
         <div dir="rtl">
             <div
-                x-show="isDocked"
+                x-show="isDocked{{ $declutterHide ? ' && !headerDeclutter' : '' }}"
+                @if($declutterHide) data-declutter-hide @endif
                 x-transition:enter="animate-pop"
                 x-transition:leave="animate-fade-out"
                 class="fixed bottom-24 left-6 md:bottom-10 md:left-13 z-50 group flex items-center justify-center"
@@ -49,6 +52,7 @@
                         <span class="material-symbols-rounded text-[20px]">close_fullscreen</span>
                     </button>
 
+                    @if($filters)
                     <button
                         @click="showFilters = !showFilters"
                         class="h-12 px-4 sm:px-6 shrink-0 rounded-xl transition-colors duration-200 relative flex items-center justify-center gap-2 font-medium text-sm border outline-none focus:ring-2 focus:ring-[var(--md-sys-color-primary)]/50"
@@ -63,6 +67,7 @@
                         <span x-show="hasActiveFilters" x-cloak
                               class="absolute top-2 right-2 w-2.5 h-2.5 rounded-md bg-[var(--md-sys-color-error)] border-2 border-[var(--md-sys-color-surface)]"></span>
                     </button>
+                    @endif
 
                     <div class="relative flex-1 group">
                         <span
@@ -87,6 +92,7 @@
                     </div>
                 </div>
 
+                @if($filters)
                 <div
                     x-show="showFilters"
                     x-transition:enter="animate-slide-down"
@@ -115,6 +121,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
     </template>

@@ -9,6 +9,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\SkillRequestStatus;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Models\Department;
+use App\Models\User;
 use App\Services\ProjectTask\TaskMetrics;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -904,14 +905,19 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
     #[Computed(seconds: 300, cache: true)]
     public function usersData(): array
     {
+        $since = User::onlineSince();
+        $unreachable = PresenceStatus::unreachableValues();
+        $marks = implode(',', array_fill(0, count($unreachable), '?'));
+
         $stats = DB::table('users')
             ->where('type', '!=', UserType::Guest->value)
             ->selectRaw("
             COUNT(*) as total,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
             COUNT(CASE WHEN role IN ('admin', 'developer') THEN 1 END) as admins,
-            COUNT(CASE WHEN presence IN (?, ?) AND last_seen >= ? THEN 1 END) as online
-        ", [PresenceStatus::Onsite->value, PresenceStatus::Remote->value, now()->subMinutes(15)])->first();
+            COUNT(CASE WHEN last_seen >= ? THEN 1 END) as online,
+            COUNT(CASE WHEN last_seen >= ? AND presence NOT IN ({$marks}) THEN 1 END) as available
+        ", [$since, $since, ...$unreachable])->first();
 
         return [
             Stat::make(__('resources/dashboard/strings.analytics.users.total'), $stats->total)
@@ -926,6 +932,9 @@ class ModuleAnalyticsWidget extends Widget implements HasSchemas
             Stat::make(__('resources/dashboard/strings.analytics.users.online'), $stats->online)
                 ->icon('heroicon-o-signal')
                 ->color('info'),
+            Stat::make(__('resources/dashboard/strings.analytics.users.available'), $stats->available)
+                ->icon('heroicon-o-user-circle')
+                ->color('success'),
         ];
     }
 }

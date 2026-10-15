@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Rules\ProjectDeadlineCap;
 use App\Rules\TaskLabelLength;
 use App\Services\PersianDateFieldService;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use App\Traits\StoresAttachedFiles;
 use Filament\Forms\Components\FileUpload;
@@ -25,7 +26,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -393,11 +393,6 @@ class TaskFormPresenter
 
     private static function fileName(TemporaryUploadedFile $file): string
     {
-        return sprintf(
-            'TASK-%s-%s.%s',
-            now()->format('Ymd'),
-            Str::random(10),
-            $file->getClientOriginalExtension()
-        );
+        return FileNamer::stored('task', $file);
     }
 }

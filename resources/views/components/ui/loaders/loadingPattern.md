@@ -40,6 +40,7 @@ Do not delete `page-transition.blade.php` or its render hook when doing dashboar
 - The hand-rolled `border-b-2 animate-spin rounded-full` CSS ring (formerly duplicated independently in `dms/legend.blade.php` and `tab/faqs.blade.php`) — superseded by `spin-badge` (category 2).
 - Bare Material Symbols `progress_activity` + `animate-spin` hand-rolled inline on buttons (Channel/Contact/Profile/Energy/Suggestion) — superseded by `<x-ui.buttons.form loading="">`'s built-in spinner (category 4).
 - `wire:loading.attr="disabled"` with no visual spinner (TaskBoard, Ths) and `wire:loading.class` dimming with no spinner (TaskBoard's column) — both get a real spinner via category 4, dimming/disabling can stay as a *supplement*, never the only cue.
+- `messaging/files.blade.php`'s pane-level `progress_activity` + `animate-spin` + caption block (the «پیوست‌ها» tab pane of both info slideovers) — swapped to `<x-ui.loaders.spin-badge>` 2026-10-15 (category 2, in-place tab refresh; the one hand-rolled escape that slipped in with the two-tab slideover work).
 
 ## Shared skeleton primitives (`components/ui/loaders/skeleton/`)
 

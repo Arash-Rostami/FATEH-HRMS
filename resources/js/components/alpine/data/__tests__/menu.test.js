@@ -609,3 +609,26 @@ describe('menu.toggleDeclutter', () => {
         expect(events[1].detail.on).toBe(false)
     })
 })
+
+describe('menu declutter event sync', () => {
+    function booted() {
+        const m = menu()
+        m.$watch = vi.fn()
+        m.initFancybox = vi.fn()
+        vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+        m.init()
+        return m
+    }
+
+    test('toggle state follows an external declutter event until destroyed', () => {
+        const m = booted()
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }))
+        expect(m.declutter).toBe(true)
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }))
+        expect(m.declutter).toBe(false)
+        m.destroy()
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }))
+        expect(m.declutter).toBe(false)
+        vi.unstubAllGlobals()
+    })
+})

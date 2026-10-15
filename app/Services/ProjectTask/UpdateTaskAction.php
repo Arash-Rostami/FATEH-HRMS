@@ -5,8 +5,10 @@ namespace App\Services\ProjectTask;
 use App\Livewire\Dashboard\TaskBoard\Forms\TaskForm;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskDetail;
 use App\Support\ProjectCharter;
 use App\Support\TaskAccessPolicy;
+use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\ResolvesTaskDeadline;
 use App\Traits\StoresAttachedFiles;
@@ -45,7 +47,9 @@ class UpdateTaskAction
         $labels = ProjectCharter::normalizeLabels($form->labels);
         $project?->charter()->assertLabels($labels, $projectChanged ? [] : ($task->labels ?? []), 'form.labels');
 
-        DB::transaction(function () use ($task, $form, $deadline, $labels) {
+        $dropped = [];
+
+        DB::transaction(function () use ($task, $form, $deadline, $labels, &$dropped) {
             $this->guardTaskNotStale($task, $form);
 
             $newProjectId = $form->projectId ?: $this->projects->resolvePendingProject($form);
@@ -82,13 +86,18 @@ class UpdateTaskAction
                 'rank'        => $rank,
             ]);
 
-            $this->guardDetailNotStale($task, $form);
+            $stored = $this->guardDetailNotStale($task, $form)?->attachments ?? [];
+            $keptPaths = array_column($form->existingAttachments, 'path');
+            [$kept, $dropped] = collect($stored)->partition(fn($attachment) => in_array($attachment['path'] ?? null, $keptPaths, true));
+            $dropped = $dropped->values()->all();
 
             $task->detail()->updateOrCreate([], [
                 ...$form->detailAttributes(),
-                'attachments' => [...$form->existingAttachments, ...$this->storeAttachments($form->attachments, 'task/attachments')],
+                'attachments' => [...$kept->values()->all(), ...$this->storeAttachments($form->attachments, 'task/attachments', fn($file) => FileNamer::stored('task', $file))],
             ]);
         });
+
+        static::deleteStoredFiles($dropped);
     }
 
     private function guardTaskNotStale(Task $task, TaskForm $form): void
@@ -104,17 +113,17 @@ class UpdateTaskAction
         }
     }
 
-    private function guardDetailNotStale(Task $task, TaskForm $form): void
+    private function guardDetailNotStale(Task $task, TaskForm $form): ?TaskDetail
     {
-        if ($form->detailUpdatedAt === null) return;
+        $detail = $task->detail()->lockForUpdate()->first();
 
-        $currentUpdatedAt = $task->detail()->lockForUpdate()->first()?->updated_at;
-
-        if ($currentUpdatedAt !== null && $currentUpdatedAt->timestamp !== $form->detailUpdatedAt) {
+        if ($form->detailUpdatedAt !== null && $detail?->updated_at !== null && $detail->updated_at->timestamp !== $form->detailUpdatedAt) {
             throw ValidationException::withMessages([
                 'form' => 'همکاران یا پیوست‌های این وظیفه توسط شخص دیگری تغییر کرده‌اند؛ لطفاً صفحه را بازخوانی کرده و دوباره تلاش کنید.',
             ]);
         }
+
+        return $detail;
     }
 
     private function guardProjectVisibility(Task $task, TaskForm $form): ?Project

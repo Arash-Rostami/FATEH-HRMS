@@ -74,6 +74,30 @@
                         <span class="{{ $badgeBase }} {{ $badgeInactive }}">{{ $unread > 99 ? '⁹⁹⁺' : $unread }}</span>
                     @endif
                 </a>
+            @elseif(isset($tab['alpine']))
+                <button
+                    wire:key="tab-{{ $tab['id'] }}"
+                    data-tab-pill="{{ $tab['id'] }}"
+                    type="button"
+                    x-on:click="{{ $tab['alpine'] }}"
+                    @if($hasA11y) role="tab" tabindex="-1" @endif
+                    :aria-selected="{{ $tab['activeExpr'] }}"
+                    @if(!empty($tab['description'])) title="{{ $tab['description'] }}" @endif
+                    :class="{{ $tab['activeExpr'] }}
+                        ? '{{ $buttonBaseClass }} {{ $buttonActiveClass }}'
+                        : '{{ $buttonBaseClass }} {{ $buttonInactiveClass }}'"
+                >
+                    <span class="{{ $iconBaseClass }}">{{ $tab['icon'] }}</span>
+                    {{ $tab['label'] }}
+                    @if(isset($tab['countExpr']))
+                        <span x-cloak
+                              x-show="{{ $tab['countExpr'] }}"
+                              x-text="({{ $tab['countExpr'] }}).toLocaleString('fa-IR')"
+                              :class="{{ $tab['activeExpr'] }}
+                                  ? 'flex-shrink-0 min-w-[18px] h-[18px] px-1 rounded-md text-[10px] font-bold flex items-center justify-center bg-[var(--md-sys-color-on-primary)]/15 text-[var(--md-sys-color-on-primary)]'
+                                  : 'flex-shrink-0 min-w-[18px] h-[18px] px-1 rounded-md text-[10px] font-bold flex items-center justify-center bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]'"></span>
+                    @endif
+                </button>
             @else
                 <button
                     wire:key="tab-{{ $tab['id'] }}"

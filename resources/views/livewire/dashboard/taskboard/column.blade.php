@@ -60,6 +60,16 @@
             </div>
         </div>
 
+        @if($isTodoColumn)
+            <div wire:key="taskboard-todo-create" class="flex flex-1 items-center justify-center">
+                <button type="button" wire:click="openCreateModal"
+                        title="افزودن وظیفه جدید" aria-label="افزودن وظیفه جدید"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_6px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--md-sys-color-primary)_50%,transparent)] active:scale-95">
+                    <span class="material-symbols-rounded text-[22px] leading-none">add</span>
+                </button>
+            </div>
+        @endif
+
         <div class="flex items-center gap-0.5">
             @if($isDoneColumn)
                 <x-ui.hover-popover alignment="top-full left-0 mt-2 origin-top-left" width="w-56" surface="tertiary">
@@ -136,16 +146,6 @@
                 >expand_more</span>
             </button>
 
-            @if($isTodoColumn)
-                <button
-                    wire:click="openCreateModal"
-                    class="{{ $presenter->columnButtonBase() }} text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-primary-container)] hover:text-[var(--md-sys-color-on-primary-container)] ml-0.5"
-                    title="افزودن سریع"
-                    style="background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);"
-                >
-                    <span class="material-symbols-rounded text-[16px] text-[var(--md-sys-color-primary)]">add</span>
-                </button>
-            @endif
         </div>
     </div>
 

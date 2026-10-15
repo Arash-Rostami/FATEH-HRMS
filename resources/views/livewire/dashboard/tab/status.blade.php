@@ -1,5 +1,6 @@
 <div class="animate-fade w-full max-w-[88rem] mx-auto flex flex-col gap-4"
      x-data="status(@js($view))"
+     x-on:keydown.escape.window="openId = null"
      wire:ignore.self>
 
     <div dir="rtl">

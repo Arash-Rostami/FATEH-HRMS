@@ -13,4 +13,9 @@ class EditGallery extends EditRecord
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = GalleryResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['path' => []];
+    }
 }

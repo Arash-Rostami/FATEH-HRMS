@@ -7,6 +7,7 @@
                 <x-ui.forms.filters
                     placeholder="جستجو در رزروها..."
                     searchModel="gridSearch"
+                    :declutterHide="true"
                     filterTitle="وضعیت رزرو"
                     activeCondition="this.$wire.get('historyShowAll') !== true"
                     clearAction="this.$wire.call('showAllHistory'); this.$wire.set('gridSearch', '')"
@@ -58,13 +59,13 @@
                     <th data-col="resource" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold first:rounded-tr-2xl">
                         <div class="flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">meeting_room</span>
-                            <span>منبع</span>
+                            <x-ui.table.sort-label column="resource" :sort="$gridSort" :sortDir="$gridSortDir">منبع</x-ui.table.sort-label>
                         </div>
                     </th>
                     <th data-col="time" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-right font-bold">
                         <div class="flex items-center gap-1.5">
                             <span class="material-symbols-rounded text-[18px]">calendar_today</span>
-                            <span>زمان</span>
+                            <x-ui.table.sort-label column="time" :sort="$gridSort" :sortDir="$gridSortDir">زمان</x-ui.table.sort-label>
                         </div>
                     </th>
                     <th data-col="status" class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold">
@@ -75,21 +76,13 @@
                     </th>
                     <th class="whitespace-nowrap border-b border-[var(--md-sys-color-outline-variant)] px-4 md:px-6 py-3.5 text-center font-bold last:rounded-tl-2xl">
                         @php($gridColumns = ['resource' => 'منبع', 'time' => 'زمان', 'status' => 'وضعیت'])
-                        <div class="flex items-center justify-end w-full gap-1">
-                            <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="null"/>
-
+                        <x-ui.table.tools>
                             <x-ui.table.density-toggle/>
-
+                            <x-ui.table.sort-popover :options="['time' => 'زمان', 'resource' => 'منبع']"
+                                                     :sort="$gridSort" :sortDir="$gridSortDir" :isDefault="$gridSort === ''"/>
                             <x-ui.table.col-toggle :scope="'reservation'" :columns="$gridColumns"/>
-
-                            <button type="button"
-                                    @click="toggleMaximize()"
-                                    :title="max ? 'کوچک کردن' : 'بزرگ کردن'"
-                                    :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': max, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !max }"
-                                    class="inline-flex items-center justify-center p-1 pr-3 rounded-lg transition-colors normal-case">
-                                <span class="material-symbols-rounded text-[18px]" x-text="max ? 'close_fullscreen' : 'open_in_full'"></span>
-                            </button>
-                        </div>
+                            <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :basisOptions="null"/>
+                        </x-ui.table.tools>
                     </th>
                 </tr>
             </x-slot:head>

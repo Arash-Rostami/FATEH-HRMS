@@ -1,6 +1,7 @@
 import settings from "./settings.js";
 import deckMixin from "../mixins/deck.js";
 import maximizeMixin from "../mixins/maximize.js";
+import tableToolsMixin from "../mixins/tableTools.js";
 
 const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 const DIGIT_REGEX = /[0-9]/g;
@@ -15,6 +16,7 @@ export default function reservation() {
     return {
         ...deckMixin(),
         ...maximizeMixin('reservation'),
+        ...tableToolsMixin('reservation'),
         view: 'classic',
         start: null,
         end: null,
@@ -26,6 +28,16 @@ export default function reservation() {
         init() {
             this.view = this.$wire.get('view') || 'classic';
             this.initMaximize();
+            const dropStaleMax = () => {
+                if (this.max && !this.$el.querySelector('.reservation-command-table')) {
+                    this.max = false;
+                    this._persistMaximize(false);
+                    this.applyMaximize(false);
+                }
+            };
+            if (typeof this.$nextTick === 'function') this.$nextTick(dropStaleMax);
+            else dropStaleMax();
+            this.initTableTools();
             this.deckSyncFromDom();
             this.deckReconcileOpen();
             this.syncTimePreview();
@@ -154,6 +166,7 @@ export default function reservation() {
         },
 
         destroy() {
+            this.destroyTableTools();
             if (typeof this._morphHook === 'function') {
                 this._morphHook();
                 this._morphHook = null;

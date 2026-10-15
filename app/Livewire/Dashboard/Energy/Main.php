@@ -27,6 +27,7 @@ class Main extends Component
     public array $sections = [];
     public array $answers = [];
 
+    #[\Livewire\Attributes\Session]
     #[Url(as: 'tab')]
     public string $activeTab = 'survey';
 

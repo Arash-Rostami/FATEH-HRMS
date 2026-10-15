@@ -8,7 +8,7 @@
 @endphp
 <div class="absolute inset-0 -z-10 rounded-md pointer-events-none transition-colors duration-200"
      :style="{ 'background-color': $store.tagged.tagBg(@js($id), @js($scope)) }"></div>
-<div class="absolute top-1.5 end-1.5 z-10 flex items-center gap-1 pointer-events-none">
+<div class="sb-fade absolute top-1.5 end-1.5 z-10 flex items-center gap-1 pointer-events-none">
     <button type="button"
             x-on:click.stop="$store.pinned.togglePin(@js($id), @js($scope))"
             x-on:keydown.enter.stop

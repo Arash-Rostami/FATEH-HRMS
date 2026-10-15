@@ -28,6 +28,32 @@ describe('project.selectProject — race-condition guard (fixed 2026-10-05)', ()
     })
 })
 
+describe('project.closeProject (desktop back arrow)', () => {
+    afterEach(() => {
+        delete document.documentElement.dataset.uid
+        localStorage.removeItem('last:project:9')
+    })
+
+    test('closes the workspace server-side, refreshes the sidebar highlight, and forgets the stored project so a reload does not reopen it', async () => {
+        document.documentElement.dataset.uid = '9'
+        localStorage.setItem('last:project:9', '5')
+        const c = project()
+        c.$wire = createWireMock()
+        c.mobileShowChat = true
+        c._lastVersion = { v: 1 }
+        c.$wire._islands.workspace = { closeProject: vi.fn(() => Promise.resolve()) }
+
+        c.closeProject()
+        for (let i = 0; i < 4; i++) await Promise.resolve()
+
+        expect(c.mobileShowChat).toBe(false)
+        expect(c._lastVersion).toBeNull()
+        expect(localStorage.getItem('last:project:9')).toBeNull()
+        expect(c.$wire._islands.workspace.closeProject).toHaveBeenCalledOnce()
+        expect(c.$wire._islands.sidebar.refreshSidebar).toHaveBeenCalledOnce()
+    })
+})
+
 describe('project() last-open-project persistence + maximize sequencing (added 2026-10-05)', () => {
     const KEY = 'last:project:9'
     const MAX_KEY = 'max:project:9'

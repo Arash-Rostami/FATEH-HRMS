@@ -25,6 +25,7 @@ use App\Services\ProjectTask\ReportingService;
 use App\Services\ProjectTask\TaskMetrics;
 use App\Support\TaskAccessPolicy;
 use App\Traits\FocusOnRecord;
+use App\Traits\HasDateSpan;
 use App\Traits\ManagesTaskModal;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -41,14 +42,27 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class Main extends Component
 {
     use FocusOnRecord;
+    use HasDateSpan;
     use ManagesTaskModal;
     use WithFileUploads;
 
     private const DONE_WINDOW_DAYS = 45;
+
+    private const SORT_COLUMNS = [
+        'created' => 'created_at',
+        'updated' => 'updated_at',
+        'deadline' => 'deadline',
+        'priority' => 'priority',
+        'title' => 'title',
+    ];
+
+    public string $sort = '';
+    public string $sortDir = 'asc';
     public array $tasks = ['todo' => [], 'in-progress' => [], 'pending' => [], 'done' => []];
     public array $totalCount = ['todo' => 0, 'in-progress' => 0, 'pending' => 0, 'done' => 0];
     public array $doneTotalCount = ['done' => 0];
     public array $page = ['todo' => 1, 'in-progress' => 1, 'pending' => 1, 'done' => 1];
+    #[\Livewire\Attributes\Session]
     #[Url(as: 'tab')]
     public string $activeTab = 'my-tasks';
     public int $perPage = 4;
@@ -180,8 +194,10 @@ class Main extends Component
         return $this->activeTab === 'my-tasks';
     }
 
-    #[Computed]
-    public function activeFilterCount(): int
+    #[\Livewire\Attributes\Locked]
+    public int $activeFilterCount = 0;
+
+    private function computeActiveFilterCount(): int
     {
         return collect([
             $this->deadlineFilter !== '',
@@ -197,6 +213,56 @@ class Main extends Component
             $this->actionSourceDomainFilter !== '',
             $this->actionSourceFilter !== '',
         ])->filter()->count();
+    }
+
+    public function sortBy(string $column): void
+    {
+        if (!array_key_exists($column, self::SORT_COLUMNS)) {
+            return;
+        }
+
+        if ($this->sort === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sort = $column;
+            $this->sortDir = 'asc';
+        }
+
+        $this->page = array_fill_keys($this->columns, 1);
+        $this->loadTasks();
+    }
+
+    public function resetSort(): void
+    {
+        $this->sort = '';
+        $this->sortDir = 'asc';
+        $this->page = array_fill_keys($this->columns, 1);
+        $this->loadTasks();
+    }
+
+    private function orderColumn(Builder $query, bool $isDone): void
+    {
+        if (!array_key_exists($this->sort, self::SORT_COLUMNS)) {
+            $isDone
+                ? $query->orderBy($this->showArchived ? 'archived_at' : 'updated_at', 'desc')
+                : $query->orderByRaw('`rank` IS NULL, `rank`')->orderBy('created_at', 'desc');
+
+            return;
+        }
+
+        $expression = $this->sort === 'priority'
+            ? "FIELD(priority, 'low', 'medium', 'high', 'urgent')"
+            : self::SORT_COLUMNS[$this->sort];
+
+        $query->when($this->sort === 'deadline', fn($q) => $q->orderByRaw('`deadline` IS NULL'))
+            ->orderByRaw($expression . ($this->sortDir === 'desc' ? ' desc' : ' asc'))
+            ->orderByDesc('id');
+    }
+
+    protected function afterDateSpanChange(): void
+    {
+        $this->page = array_fill_keys($this->columns, 1);
+        $this->loadTasks();
     }
 
     public function clearFilters(): void
@@ -344,8 +410,7 @@ class Main extends Component
                 ->where('status', $column)
                 ->when($isDone, $archivedScope)
                 ->when($isDone && $doneWindow, $doneWindow)
-                ->when($isDone, fn($q) => $q->orderBy($this->showArchived ? 'archived_at' : 'updated_at', 'desc'))
-                ->when(!$isDone, fn($q) => $q->orderByRaw('`rank` IS NULL, `rank`')->orderBy('created_at', 'desc'))
+                ->tap(fn($q) => $this->orderColumn($q, $isDone))
                 ->skip(($this->page[$column] - 1) * $this->perPage)
                 ->take($this->perPage)
                 ->withCount('replies')
@@ -380,6 +445,10 @@ class Main extends Component
 
     public function mount(): void
     {
+        if (!in_array($this->activeTab, ['my-tasks', 'assigned-tasks'], true)) {
+            $this->activeTab = 'my-tasks';
+        }
+
         $this->loadTasks();
     }
 
@@ -401,6 +470,8 @@ class Main extends Component
 
     public function render()
     {
+        $this->activeFilterCount = $this->computeActiveFilterCount();
+
         return view('livewire.dashboard.taskboard', ['presenter' => new TaskBoardPresenter(), 'dmsPresenter' => new DmsPresenter()])
             ->extends('layouts.app')
             ->section('content');
@@ -672,6 +743,7 @@ class Main extends Component
                 ->where('title', 'like', "%{$this->search}%")
                 ->orWhere('description', 'like', "%{$this->search}%")
             ))
+            ->when($this->dateSpan(), fn($q, $span) => $q->whereBetween($span[0], [$span[1], $span[2]]))
             ->when($withDeadlineFilter && $this->deadlineFilter !== '', fn($q) => $q
                 ->whereNotNull('deadline')
                 ->whereNull('archived_at')

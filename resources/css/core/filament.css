@@ -319,15 +319,20 @@
         white-space: nowrap !important;
         overflow: hidden !important;
 
-        transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1),
-        background-color 250ms ease,
-        box-shadow 250ms ease,
-        padding 600ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-        will-change: width, background-color;
+        /* Elastic geometry lives ONLY on the closed state below — transition plays when collapsing
+        (target = closed) and never when uncollapsing (target = open has no geometry transition) */
+        transition: background-color 250ms ease,
+        box-shadow 250ms ease !important;
+        will-change: background-color;
     }
 
     .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item > a {
         @apply !w-full;
+        transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1),
+        padding 600ms cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 250ms ease,
+        box-shadow 250ms ease !important;
+        will-change: width, background-color;
         padding-left: 0.875rem !important;
         padding-right: 0.875rem !important;
     }
@@ -1084,6 +1089,14 @@
 @media (min-width: 768px) {
     .fi-sidebar {
         animation: slideInRight 0.5s cubic-bezier(0.32, 0.72, 0, 1) 0.1s both !important;
+    }
+
+    /* Target state fi-sidebar-open lands instantly, collapse still animates */
+    .fi-sidebar.fi-sidebar-open,
+    .fi-sidebar.fi-sidebar-open .fi-sidebar-item > a,
+    .fi-sidebar.fi-sidebar-open .fi-sidebar-item > a .fi-sidebar-item-label,
+    .fi-sidebar.fi-sidebar-open .fi-sidebar-group-items {
+        transition: none !important;
     }
 }
 

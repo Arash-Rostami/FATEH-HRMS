@@ -50,11 +50,15 @@ class Main extends Component
 
     public bool $deckOnly = false;
 
+    #[\Livewire\Attributes\Session]
     #[Url(as: 'tab')]
     public $activeTab = 'seat';
+    #[\Livewire\Attributes\Session]
     public $activeHistoryTab = 'upcoming';
     public bool $historyShowAll = true;
     public string $gridSearch = '';
+    public string $gridSort = '';
+    public string $gridSortDir = 'asc';
     public array $gridPinned = [];
     public int $gridLimit = self::GRID_PER_PAGE;
     public ?int $fromYear = null;
@@ -77,6 +81,7 @@ class Main extends Component
     public $recurPattern = 'daily';
     public $recurCount = 4;
     public string $view = 'classic';
+    #[\Livewire\Attributes\Session]
     public string $canvasTab = 'booking';
     public int $currentYear;
     public int $currentMonth;
@@ -428,6 +433,31 @@ class Main extends Component
         return $this->historyGroups()->take($this->gridLimit);
     }
 
+    public function sortBy(string $column): void
+    {
+        if (!in_array($column, ['time', 'resource'], true)) {
+            return;
+        }
+
+        if ($this->gridSort === $column) {
+            $this->gridSortDir = $this->gridSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->gridSort = $column;
+            $this->gridSortDir = 'asc';
+        }
+
+        $this->gridLimit = self::GRID_PER_PAGE;
+        unset($this->gridReservations);
+    }
+
+    public function resetSort(): void
+    {
+        $this->gridSort = '';
+        $this->gridSortDir = 'asc';
+        $this->gridLimit = self::GRID_PER_PAGE;
+        unset($this->gridReservations);
+    }
+
     public function loadMoreGrid(): void
     {
         $this->gridLimit += self::GRID_PER_PAGE;
@@ -459,7 +489,7 @@ class Main extends Component
             };
         }
 
-        return $query->limit(self::HISTORY_QUERY_CAP)->get()
+        $groups = $query->limit(self::HISTORY_QUERY_CAP)->get()
             ->groupBy(fn(Reservation $r) => $r->parent_id ?? $r->id)
             ->map(function ($group) use ($showAll) {
                 $rep = $group->first();
@@ -473,6 +503,21 @@ class Main extends Component
                 return $rep;
             })
             ->values();
+
+        if ($this->view !== 'avantgarde' || $this->gridSort === '') {
+            return $groups;
+        }
+
+        $pinned = array_flip(array_map('intval', array_slice($this->gridPinned, 0, 50)));
+        $key = $this->gridSort === 'resource'
+            ? fn(Reservation $r) => mb_strtolower((string) ($r->resource->name ?? ''))
+            : fn(Reservation $r) => $r->start_time;
+
+        $dir = $this->gridSortDir === 'desc' ? -1 : 1;
+
+        return $groups->sort(
+            fn(Reservation $a, Reservation $b) => (isset($pinned[$b->id]) <=> isset($pinned[$a->id])) ?: (($key($a) <=> $key($b)) * $dir)
+        )->values();
     }
 
     private function cancelWarningFor(Reservation $rep, int $count): ?string
@@ -576,6 +621,13 @@ class Main extends Component
     {
         $view = session('reservation_view_mode', 'classic');
         $this->view = in_array($view, self::VIEWS, true) ? $view : 'classic';
+
+        if (!isset(self::HISTORY_TAB_IDS[$this->activeHistoryTab])) {
+            $this->activeHistoryTab = 'upcoming';
+        }
+        if (!in_array($this->canvasTab, self::CANVAS_TABS, true)) {
+            $this->canvasTab = 'booking';
+        }
 
         $this->ensurePermittedTab();
         $this->resetMonthCursor();

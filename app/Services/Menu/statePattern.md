@@ -71,7 +71,7 @@ App\Services\Menu\
 ├── StateService.php                cache + version + sync orchestration (badge side)
 ├── BadgeSyncService.php            one-row-per-indicator reconcile (badge side)
 ├── NudgeService.php          registry + dumb engine (nudge side); register(MenuNudge) adapts a nudge into the rule array the engine consumes
-└── EdgeService.php           registry + reconcile engine (edge side); register(MenuEdge) adapts a toast, reconcile() lock-diff upserts/prunes the edges table, forUser() reads it (payload carries localRoute), dismiss() snoozes by dismissRule()
+└── EdgeService.php           registry + reconcile engine (edge side); register(MenuEdge) adapts a toast, reconcile() lock-diff upserts/prunes the edges table, forUser() reads it (payload carries localRoute), dismiss() snoozes by dismissRule(), keys() lists registered rule keys (used by edges:prune-stale)
 
 App\Jobs\ReconcileNudge.php            queued unit of work for a per-record reconcile (nudge side)
 App\Jobs\ReconcileEdge.php             queued unit of work for a per-(toast×user×subject) reconcile (edge side); $tries=3, $backoff=[10,30], afterCommit(), carries only primitives
@@ -1401,6 +1401,22 @@ pull to render.
 and `ProjectToast` currently use the default (forever) — the `'1month'` override was a test and removed.
 A toast opts into a snooze window by returning a non-forever key; the snoozed card returns after the
 window elapses (re-included by `scopeVisible`).
+
+### Pruning — `edges:prune-stale` (prune = reconcile)
+
+`App\Console\Commands\PruneStaleEdges` (`edges:prune-stale {--days=30}`, daily) never deletes a
+registered rule's dismissed row on age alone: a forever-dismissed row is the only memory of the
+dismissal, and `reconcile()` treats "no row" as "create" — deleting it let the next trigger resurrect
+the card for rules whose eligibility outlives 30 days (`ChannelToast`/`ProjectToast`: un-accepted
+invite, unread mention). Instead the command (1) deletes rows whose `edge_key` is no longer in
+`EdgeService::keys()` (skipped when the registry is empty), then (2) dispatches one `ReconcileEdge`
+per distinct `(edge_key, subject_type, subject_id)` among `dismissed_at < now-N days` rows. Reconcile
+is the single eligibility evaluator: ineligible rows (subject gone, user left `for()`, `show()` false)
+are deleted by its existing branches; still-eligible ones survive with `dismissed_at` intact, so
+nothing is re-inserted and the row count never grows. Active and snoozed rows are untouched
+(`snooze()` nulls `dismissed_at`). Consequence: a dismissed row for a still-eligible subject is
+re-evaluated every day and lives as long as its subject stays eligible; the time-gated rules
+(`TaskDueSoonToast`, `ReminderDueTodayEdge`) shed their rows through reconcile as soon as `show()` turns false.
 
 ---
 

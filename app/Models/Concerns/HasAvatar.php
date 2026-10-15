@@ -52,7 +52,7 @@ trait HasAvatar
         $escapedInitials = htmlspecialchars($initials, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $svg = <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-    <rect width="128" height="128" rx="64" fill="#0D8ABC"/>
+    <rect width="128" height="128" rx="36" fill="#0D8ABC"/>
     <text x="50%" y="50%" dy=".35em" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="700">{$escapedInitials}</text>
 </svg>
 SVG;

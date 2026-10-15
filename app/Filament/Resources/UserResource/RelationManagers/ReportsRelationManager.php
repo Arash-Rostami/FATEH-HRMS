@@ -118,7 +118,7 @@ class ReportsRelationManager extends RelationManager
             ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
+                self::editAction()->using(fn (Model $record, array $data): Model => $this->updateDeletingDroppedFiles($record, $data, ['cover_image' => [], 'file_path' => []])),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-bookmark')

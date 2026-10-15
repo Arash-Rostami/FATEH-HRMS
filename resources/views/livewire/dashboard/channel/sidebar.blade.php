@@ -12,12 +12,12 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768 }"
+]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
    aria-label="لیست گروه‌ها" data-channel-count="{{ count($this->allChannelIds) }}" data-total-unread="{{ $totalUnread }}">
 
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2.5">
+        <div class="sb-head flex items-center justify-between mb-4">
+            <div class="sb-fade flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                     <span class="material-symbols-rounded text-[18px] font-fill">campaign</span>
                 </div>
@@ -36,9 +36,10 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="sb-cluster ms-auto flex items-center gap-1.5">
+                @include('livewire.dashboard.messaging.sidebar-toggle', ['margin' => 'ms-0'])
                 @if($totalUnread)
-                    <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
+                    <span class="sb-fade min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
                                  bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
                           aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
                         {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
@@ -50,7 +51,7 @@
                             :aria-pressed="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel')"
                             :aria-label="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
                             :title="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'باصدا کردن همه گروه‌ها' : 'بی‌صدا کردن همه گروه‌ها'"
-                            class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                             :class="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                         <span class="material-symbols-rounded text-[14px]" x-text="$store.sound.isAllMuted({{ $allChannelIds }}, 'channel') ? 'volume_off' : 'volume_up'"></span>
                     </button>
@@ -60,21 +61,23 @@
                         :aria-pressed="$store.push.isEnabled('channel')"
                         :aria-label="$store.push.isEnabled('channel') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
                         :title="$store.push.isEnabled('channel') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
-                        class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                        class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                         :class="$store.push.isEnabled('channel') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                     <span class="material-symbols-rounded text-[14px]" x-text="$store.push.isEnabled('channel') ? 'notifications_active' : 'notifications_off'"></span>
                 </button>
             </div>
         </div>
 
-        <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
-                                 placeholder="جستجوی گروه..." aria-label="جستجوی گروه" overlay-title="جستجوی گروه"
-                                 refresh-sidebar-on-close show-label />
+        <div class="sb-fold">
+            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+                                     placeholder="جستجوی گروه..." aria-label="جستجوی گروه" overlay-title="جستجوی گروه"
+                                     refresh-sidebar-on-close show-label />
+        </div>
     </div>
 
     <div class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
 
-    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5">
+    <div class="sb-fold flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5">
         <div role="tablist" aria-label="فیلتر گروه‌ها" class="flex items-center gap-1.5">
             @foreach([['all','همه'],['unread','خوانده‌نشده']] as $f)
                 <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
@@ -115,8 +118,9 @@
                     tabindex="0"
                     aria-selected="{{ $activeChannelId === $ch['id'] ? 'true' : 'false' }}"
                     :style="{ order: $store.pinned.isPinned({{ $ch['id'] }}, 'channel') ? -1 : 0 }"
+                    title="{{ $ch['name'] }}"
                 @class([
-                    'group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeChannelId === $ch['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeChannelId !== $ch['id'],
                 ])>
@@ -131,9 +135,12 @@
                     ])>
                         <span class="material-symbols-rounded text-[18px]">{{ $ch['type'] === 'private' ? 'lock' : 'campaign' }}</span>
                     </div>
+                    @if($ch['unread'])
+                        <span class="sb-rail-dot absolute -top-1 -end-1 min-w-[16px] h-4 px-1 rounded-md text-[9px] font-bold items-center justify-center ring-2 ring-[var(--md-sys-color-surface)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">{{ $ch['unread'] > 99 ? '⁹⁹⁺' : $ch['unread'] }}</span>
+                    @endif
                 </div>
 
-                <div class="flex-1 min-w-0">
+                <div class="sb-fade flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-1">
                         <p @class([
                             'text-[13px] truncate flex items-center gap-1.5 cursor-pointer',
@@ -197,7 +204,7 @@
 
         @if($hasMoreChannels)
             <x-ui.buttons.load-more action="loadMoreChannels" island="sidebar" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
-                                     class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
+                                     class="sb-fold mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
         @endif
     </div>
 </aside>

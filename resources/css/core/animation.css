@@ -1591,6 +1591,27 @@
     }
 }
 
+@keyframes sidebarSlide {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-sidebar-slide > * {
+    animation: sidebarSlide 0.26s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-sidebar-slide > * {
+        animation: none !important;
+    }
+}
+
 @keyframes shiver {
     0%, 100% {
         transform: rotate(-5deg) translateX(-1px);

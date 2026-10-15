@@ -172,7 +172,7 @@ if (!function_exists('presence')) {
             return $p;
         }
 
-        return PresenceStatus::tryFrom((string)$p) ?? PresenceStatus::Onsite;
+        return PresenceStatus::tryFrom((string)$p) ?? PresenceStatus::default();
     }
 }
 
@@ -337,7 +337,7 @@ if (!function_exists('toJalaliSmart')) {
 }
 
 if (!function_exists('toJalaliRelative')) {
-    function toJalaliRelative(mixed $date, bool $short = false): string
+    function toJalaliRelative(mixed $date, bool $short = false, int $dateAfterDays = 30): string
     {
         if (blank($date)) {
             return '';
@@ -379,6 +379,17 @@ if (!function_exists('toJalaliRelative')) {
             $weeks = intdiv($days, 7);
             $pWeeks = convertToPersian($weeks);
             return $short ? $pWeeks . 'ه' : $pWeeks . ' هفته پیش';
+        }
+
+        if ($dateAfterDays === 0 || $days < $dateAfterDays) {
+            $months = intdiv($days, 30);
+            if ($months < 12) {
+                $pMonths = convertToPersian($months);
+                return $short ? $pMonths . 'م' : $pMonths . ' ماه پیش';
+            }
+
+            $pYears = convertToPersian(intdiv($days, 365));
+            return $short ? $pYears . 'س' : $pYears . ' سال پیش';
         }
 
         return toJalali($carbon, 'Y/m/d');

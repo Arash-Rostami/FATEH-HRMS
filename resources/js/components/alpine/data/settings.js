@@ -30,11 +30,20 @@ const RESET_RELOAD_DELAY = 500;
 const TOAST_VISIBLE_MS = 1500;
 const TOAST_FADE_MS = 200;
 
+const TABLE_MODULES = [
+    { id: 'dms', label: 'مدیریت اسناد', cols: true },
+    { id: 'ths', label: 'تیکت‌های پشتیبانی', cols: true },
+    { id: 'reservation', label: 'رزرو امکانات', cols: true },
+    { id: 'taskboard', label: 'تسک‌بورد', cols: true, colsLabel: 'بخش کارت' }
+];
+
 const EXPORT_KEYS = [
     'user-theme', 'user-mode', 'app-density',
     'backgroundEnabled', 'patternEnabled', 'activePattern',
     'fontSizeLevel', 'readingRuler', 'doubleClickCopy',
-    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden',
+    'dms-col-hidden', 'ths-col-hidden', 'reservation-col-hidden', 'taskboard-col-hidden',
+    'table-tools:dms', 'table-tools:ths', 'table-tools:reservation', 'table-tools:taskboard',
+    'menu_declutter',
     'chat-muted-channels', 'chat-muted-contacts', 'chat-muted-projects',
     'chat-push-channel', 'chat-push-contact', 'chat-push-project'
 ];
@@ -53,6 +62,8 @@ export default function settings() {
         currentPresence: 'onsite',
 
         _isDestroyed: false,
+        tableModules: TABLE_MODULES,
+        tableState: { modules: {}, compact: false, menuDeclutter: false },
 
         get fontSizeLevel() { return this.$store.accessibility.fontSizeLevel; },
         get minScale() { return this.$store.accessibility.minScale; },
@@ -69,13 +80,15 @@ export default function settings() {
             this.currentPresence = this.$root?.dataset?.currentPresence || 'onsite';
 
             this.initFocusFromSnapshot();
+            this.refreshTableState();
 
             if (!this.$store.focus.active) {
                 const serverUntil = parseInt(this.$root?.dataset?.focusUntil || '', 10);
                 if (serverUntil && serverUntil > Date.now()) {
+                    const endsAt = serverUntil - Date.now() > 86400000 ? null : serverUntil;
                     this.$store.focus.active = true;
-                    this.$store.focus.until = serverUntil;
-                    this.$store.focus.schedule(serverUntil);
+                    this.$store.focus.until = endsAt;
+                    this.$store.focus.schedule(endsAt);
                 }
             }
 
@@ -196,10 +209,63 @@ export default function settings() {
             ['channel', 'contact', 'project'].forEach(scope => this.$store.sound?.clearAll(scope));
         },
 
+        _readFlag(key, expected) {
+            try {
+                const value = localStorage.getItem(key);
+                return expected === undefined ? value !== null : value === expected;
+            } catch { return false; }
+        },
+
+        _maxKey(id) {
+            const uid = document.documentElement.dataset.uid;
+            return uid ? `max:${id}:${uid}` : null;
+        },
+
+        refreshTableState() {
+            const modules = {};
+            TABLE_MODULES.forEach(({ id, cols }) => {
+                const maxKey = this._maxKey(id);
+                modules[id] = {
+                    hiddenCols: cols ? (this.$store.colVisibility?.maps?.[id]?.length ?? 0) : 0,
+                    toolbarCollapsed: this._readFlag(`table-tools:${id}`, 'true'),
+                    maximized: !!maxKey && this._readFlag(maxKey)
+                };
+            });
+            this.tableState = {
+                modules,
+                compact: !!this.$store.density?.compact,
+                menuDeclutter: this._readFlag('menu_declutter', 'true')
+            };
+        },
+
+        resetTableModule(id) {
+            const mod = TABLE_MODULES.find(m => m.id === id);
+            if (!mod) return;
+            if (mod.cols) this.$store.colVisibility?.reset(id);
+            const maxKey = this._maxKey(id);
+            [`table-tools:${id}`, maxKey].forEach(k => {
+                if (!k) return;
+                try { localStorage.removeItem(k); } catch {}
+            });
+            this.refreshTableState();
+        },
+
+        resetDensity() {
+            if (this.$store.density?.compact) this.$store.density.toggle();
+            this.refreshTableState();
+        },
+
+        resetDeclutter() {
+            try { localStorage.setItem('menu_declutter', 'false'); } catch {}
+            document.documentElement.classList.remove('declutter');
+            window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+            this.refreshTableState();
+        },
+
         resetTables() {
-            this.$store.colVisibility?.reset('dms');
-            this.$store.colVisibility?.reset('ths');
-            this.$store.colVisibility?.reset('reservation');
+            TABLE_MODULES.forEach(({ id }) => this.resetTableModule(id));
+            this.resetDensity();
+            this.resetDeclutter();
         },
 
         exportSettings() {

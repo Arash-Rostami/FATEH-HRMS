@@ -310,7 +310,7 @@ class Main extends Component
                 'body' => $m->replyTo->body,
                 'sender' => ['name' => $m->replyTo->sender?->name ?? 'ناشناس'],
             ] : null,
-            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl(), 'online' => $m->sender?->isOnline() ?? false, 'inactive' => $m->sender && !$m->sender->isActive()],
+            'sender' => ['name' => $m->sender?->name ?? 'ناشناس', 'avatar' => $m->sender?->getProfileImageUrl() ?? $m->sender?->getInitialsAvatarUrl(), 'online' => $m->sender?->isOnline() ?? false, 'presence' => $m->sender?->presence, 'focus' => $m->sender?->focusLabel(), 'inactive' => $m->sender && !$m->sender->isActive()],
         ])->values()->all();
     }
 
@@ -338,7 +338,7 @@ class Main extends Component
             $map[(int) $user->id] = [
                 'cursor'  => (int) ($user->pivot->last_read_message_id ?? 0),
                 'name'    => $user->name ?? '—',
-                'avatar'  => $user->getProfileImageUrl(),
+                'avatar'  => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
                 'read_at' => $user->pivot->updated_at?->toISOString(),
                 'inactive' => !$user->isActive(),
             ];
@@ -373,10 +373,12 @@ class Main extends Component
             ->map(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'avatar_url' => $user->getProfileImageUrl(),
+                'avatar_url' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
                 'is_owner' => $ownerId !== null && $user->id === $ownerId,
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
+                'presence' => $user->presence,
+                'focus' => $user->focusLabel(),
                 'is_online' => $user->isOnline(),
                 'inactive' => !$user->isActive(),
             ])
@@ -407,6 +409,7 @@ class Main extends Component
             $out[$user->name] = [
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
+                'reachable' => $user->presence?->isReachable() ?? true,
             ];
         }
 
@@ -434,6 +437,46 @@ class Main extends Component
         return app(SearchChannelMessagesAction::class)->execute(
             (int) $this->activeChannelId,
             $this->messageSearch,
+            (int) auth()->id(),
+        );
+    }
+
+    #[Renderless]
+    public function days(): array
+    {
+        if (!$this->activeChannelId) {
+            return [];
+        }
+
+        return app(SearchChannelMessagesAction::class)->days(
+            (int) $this->activeChannelId,
+            (int) auth()->id(),
+        );
+    }
+
+    #[Renderless]
+    public function bookmarks(array $ids): array
+    {
+        if (!$this->activeChannelId) {
+            return [];
+        }
+
+        return app(SearchChannelMessagesAction::class)->bookmarks(
+            (int) $this->activeChannelId,
+            $ids,
+            (int) auth()->id(),
+        );
+    }
+
+    #[Renderless]
+    public function files(): array
+    {
+        if (!$this->activeChannelId) {
+            return [];
+        }
+
+        return app(SearchChannelMessagesAction::class)->files(
+            (int) $this->activeChannelId,
             (int) auth()->id(),
         );
     }

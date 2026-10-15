@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Models\Reply;
 use App\Models\User;
+use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -62,6 +63,10 @@ trait HasReplies
     private function storeReplyFiles(array $files, int $replyId): array
     {
         $directory = Str::snake(class_basename($this)) . "/replies/{$this->getKey()}/{$replyId}";
+        $module = match (class_basename($this)) {
+            'Ticket' => 'ths',
+            default => Str::snake(class_basename($this)),
+        };
         $stored = [];
 
         try {
@@ -69,7 +74,7 @@ trait HasReplies
                 $stored[] = static::storeAttachment(
                     $file,
                     $directory,
-                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                    fn($f) => FileNamer::stored($module, $f)
                 );
             }
         } catch (\Throwable $e) {

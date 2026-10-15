@@ -23,4 +23,9 @@ class EditTask extends EditRecord
     {
         return $this->mergeDeadline($data);
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['detail.attachments' => ['path']];
+    }
 }

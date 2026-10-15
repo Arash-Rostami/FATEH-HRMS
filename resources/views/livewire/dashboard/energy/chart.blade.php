@@ -1,6 +1,5 @@
 <section class="w-full h-full flex flex-col gap-5 lg:gap-6" dir="rtl"
          x-data="energyChart(@js($history), @js($companyAverages), @js($sections), @js($latestTest ?? []))"
-         x-init="init()"
          @keydown.escape.window="if(maximizedWidget) toggleMaximize(null)">
     @if(empty($latestTest))
         <div wire:key="energy-chart-empty"

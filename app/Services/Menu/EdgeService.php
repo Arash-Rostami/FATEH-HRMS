@@ -166,6 +166,11 @@ class EdgeService
         $edge->snooze($optionKey);
     }
 
+    public static function keys(): array
+    {
+        return array_keys(self::$rules);
+    }
+
     public static function reset(): void
     {
         self::$rules = [];

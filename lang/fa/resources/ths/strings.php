@@ -30,6 +30,8 @@ return [
         'action_result' => 'نتیجه اقدام',
         'additional_notes' => 'یادداشت‌های تکمیلی',
         'assignee_files' => 'فایل‌های مسئول',
+        'replies' => 'گفتگو و پاسخ‌ها',
+        'satisfaction_comment' => 'توضیح رضایت',
         'file' => 'فایل',
         'created_at' => 'تاریخ ثبت',
         'updated_at' => 'آخرین بروزرسانی',

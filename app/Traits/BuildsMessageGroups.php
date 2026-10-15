@@ -19,6 +19,7 @@ trait BuildsMessageGroups
         return [
             'date' => $date,
             'label' => $label,
+            'relative' => toJalaliRelative($messages[0]['created_at'] ?? $date, false, PHP_INT_MAX),
             'messages' => $this->messages($messages, $authId, $editTimeLimit, $readersMap, $mentionMap),
         ];
     }
@@ -117,6 +118,8 @@ trait BuildsMessageGroups
                 'sender_name' => $msg['sender']['name'] ?? 'ناشناس',
                 'sender_avatar' => $msg['sender']['avatar'] ?? null,
                 'sender_online' => (bool) ($msg['sender']['online'] ?? false),
+                'sender_presence' => $msg['sender']['presence'] ?? null,
+                'sender_focus' => $msg['sender']['focus'] ?? null,
                 'sender_inactive' => (bool) ($msg['sender']['inactive'] ?? false),
                 'can_edit' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,
                 'can_delete' => $isMine && empty($msg['deleted_at']) && $createdAt->diffInSeconds(now()) <= $editTimeLimit,

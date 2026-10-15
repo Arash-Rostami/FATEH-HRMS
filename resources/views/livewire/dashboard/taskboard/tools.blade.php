@@ -1,146 +1,87 @@
-<div class="flex w-full flex-col gap-3">
-    <section class="{{ $presenter->toolbarSurface() }}">
+<div class="relative flex w-full flex-col gap-3">
+    <section class="relative z-30 {{ $presenter->toolbarSurface() }} transition-all duration-300"
+             :class="headerDeclutter ? 'h-0! py-0! overflow-hidden! pointer-events-none! shadow-none!' : ''">
         <div class="flex w-full flex-col">
-            <div class="flex min-h-[64px] w-full flex-wrap items-center gap-3 px-3 py-2.5 lg:px-4">
-                <div class="min-w-0 flex-1 basis-full md:basis-44">
-                    <x-ui.forms.search
-                        model="search"
-                        placeholder="جستجو در وظایف..."
-                    />
-                </div>
+            <x-ui.forms.filters placeholder="جستجو در وظایف..." searchModel="search"
+                                activeCondition="false" clearAction='this.$wire.set("search", "")'
+                                :filters="false" :declutterHide="true"/>
+            <div class="flex w-full items-center justify-end px-3 py-2 lg:px-4">
+                    <x-ui.table.tools :maximize="false" class="!w-auto">
+                        <button type="button"
+                                @click="toggleFilters()" :aria-expanded="filtersOpen"
+                                title="فیلترهای بیشتر" aria-label="فیلترهای بیشتر"
+                                :class="filtersOpen ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'"
+                                class="relative inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
+                            <span class="material-symbols-rounded text-[18px] leading-none">tune</span>
+                            @if($this->activeFilterCount > 0)
+                                <span wire:key="taskboard-filter-count" class="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--md-sys-color-error)] px-1 text-[9px] font-bold text-white">{{ $this->activeFilterCount > 9 ? '9+' : $this->activeFilterCount }}</span>
+                            @endif
+                        </button>
 
-                <div class="flex shrink-0 items-center gap-1.5">
-                    <x-ui.buttons.form
-                        wire:click="openCreateModal"
-                        aria-label="ایجاد وظیفه جدید"
-                        title="ایجاد وظیفه جدید"
-                        icon="add"
-                        class="{{ $presenter->toolbarButtonClass() }} whitespace-nowrap"
-                    >
-                        <span class="hidden md:inline">وظیفه جدید</span>
-                    </x-ui.buttons.form>
-                </div>
-
-                <div class="flex shrink-0 items-center gap-1.5">
-                    <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/30 mx-1.5"></div>
-
-                    <x-ui.buttons.form
-                        variant="tonal"
-                        wire:click="switchTab('{{ $this->isMyTasks ? 'assigned-tasks' : 'my-tasks' }}')"
-                        title="{{ $this->isMyTasks ? 'نمایش وظایف محول‌شده' : 'نمایش وظایف من' }}"
-                        aria-label="{{ $this->isMyTasks ? 'نمایش وظایف محول‌شده' : 'نمایش وظایف من' }}"
-                        class="{{ $presenter->toolbarButtonClass() }} whitespace-nowrap"
-                    >
-                        <span class="material-symbols-rounded text-[19px] leading-none">
-                            {{ $this->isMyTasks ? 'person' : 'assignment_ind' }}
-                        </span>
-
-                        <span class="hidden md:inline">
-                            {{ $this->isMyTasks ? 'وظایف من' : 'محول شده' }}
-                        </span>
-                    </x-ui.buttons.form>
-
-                    <x-ui.buttons.form
-                        variant="{{ $selectionMode ? 'primary' : 'tonal' }}"
-                        wire:click="toggleSelectionMode"
-                        title="انتخاب گروهی"
-                        aria-label="انتخاب گروهی"
-                        class="{{ $presenter->toolbarButtonClass() }} whitespace-nowrap px-2.5"
-                    >
-                        <span class="material-symbols-rounded text-[20px] leading-none">
-                            {{ $selectionMode ? 'close' : 'checklist' }}
-                        </span>
-
-                        @if($selectionMode)
-                            <span wire:key="taskboard-selection-count" class="ms-1 text-xs">
-                                {{ convertToPersian(count($selectedTasks ?? [])) }}
-                            </span>
-                        @endif
-                    </x-ui.buttons.form>
-                </div>
-
-                <div class="flex shrink-0 items-center gap-1.5">
-                    <div class="h-7 w-px bg-[var(--md-sys-color-outline-variant)]/30 mx-1.5"></div>
-
-                    <div class="hidden md:flex items-center gap-1.5">
-                        <x-ui.buttons.form
-                            variant="tonal"
-                            size="icon"
-                            @click="$store.density.toggle()"
-                            x-bind:class="$store.density.compact ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
-                            x-bind:title="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
-                            x-bind:aria-label="$store.density.compact ? 'نمایش فشرده' : 'نمایش عادی'"
-                            class="{{ $presenter->toolbarButtonClass() }}"
-                        >
-                            <span
-                                class="material-symbols-rounded text-[20px] leading-none"
-                                x-text="$store.density.compact ? 'view_compact' : 'view_comfy'"
-                            ></span>
-                        </x-ui.buttons.form>
-
-                        <x-ui.buttons.form
-                            variant="tonal"
-                            size="icon"
-                            @click="toggleFavoritesOnly"
-                            x-bind:class="showFavoritesOnly ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
-                            title="فقط پین‌شده‌ها"
-                            aria-label="فقط پین‌شده‌ها"
-                            icon="push_pin"
-                            class="{{ $presenter->toolbarButtonClass() }}"
-                        />
-
-                        <x-ui.buttons.form
-                            variant="tonal"
-                            size="icon"
-                            wire:click="exportTasks"
-                            title="دریافت خروجی وظایف"
-                            aria-label="دریافت خروجی وظایف"
-                            icon="download"
-                            class="{{ $presenter->toolbarButtonClass() }}"
-                        />
-                    </div>
-
-                    <a
-                        href="{{ route('tasksheet') }}"
-                        target="_blank"
-                        title="گزارش تسک‌شیت"
-                        aria-label="گزارش تسک‌شیت"
-                        class="relative inline-flex items-center justify-center transition-all duration-200 transform active:scale-95 bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-highest)] rounded-xl w-10 h-10 p-0 gap-0 {{ $presenter->toolbarButtonClass() }}"
-                    >
-                        <span class="material-symbols-rounded text-[20px] leading-none shrink-0">
-                            assignment_turned_in
-                        </span>
-                    </a>
-
-                    <span class="relative inline-flex">
-                        <x-ui.buttons.form
-                            variant="tonal"
-                            size="icon"
-                            @click="toggleFilters()"
-                            x-bind:class="filtersOpen ? '{{ $presenter->utilityClass(true) }}' : '{{ $presenter->utilityClass(false) }}'"
-                            title="فیلترهای بیشتر"
-                            aria-label="فیلترهای بیشتر"
-                            icon="tune"
-                            class="{{ $presenter->toolbarButtonClass() }}"
-                        />
                         @if($this->activeFilterCount > 0)
-                            <span wire:key="taskboard-filter-count" class="absolute -top-1 -left-1 flex h-4 w-4 min-w-[16px] items-center justify-center rounded-sm bg-[var(--md-sys-color-tertiary)] px-1 text-[9px] font-bold leading-none text-[var(--md-sys-color-on-tertiary)] shadow ring-2 ring-[var(--md-sys-color-surface)]">{{ $this->activeFilterCount > 9 ? '9+' : $this->activeFilterCount }}</span>
+                            <button type="button" wire:key="taskboard-clear-filters"
+                                    wire:click="clearFilters"
+                                    title="پاک‌کردن همهٔ فیلترها" aria-label="پاک‌کردن همهٔ فیلترها"
+                                    class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-error)] hover:bg-[var(--md-sys-color-error-container)]">
+                                <span class="material-symbols-rounded text-[18px] leading-none">filter_alt_off</span>
+                            </button>
                         @endif
-                    </span>
 
-                    @if($this->activeFilterCount > 0)
-                        <x-ui.buttons.form
-                            wire:key="taskboard-clear-filters"
-                            variant="tonal"
-                            size="icon"
-                            wire:click="clearFilters"
-                            title="پاک‌کردن همهٔ فیلترها"
-                            aria-label="پاک‌کردن همهٔ فیلترها"
-                            icon="filter_alt_off"
-                            class="{{ $presenter->toolbarButtonClass() }}"
-                        />
-                    @endif
-                </div>
+                        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-[var(--md-sys-color-outline-variant)]/40 max-sm:hidden"></span>
+
+                        <x-ui.table.density-toggle/>
+
+                        <x-ui.table.sort-popover :options="['created' => 'تاریخ ایجاد', 'updated' => 'آخرین بروزرسانی', 'deadline' => 'مهلت', 'priority' => 'اولویت', 'title' => 'عنوان']"
+                                                 :sort="$sort" :sortDir="$sortDir" :isDefault="$sort === ''"/>
+
+                        <x-ui.table.col-toggle :scope="'taskboard'" icon="dashboard_customize" title="نمایش و مخفی کردن بخش‌های کارت" heading="بخش‌های کارت" :columns="$presenter->cardFieldOptions()"/>
+
+                        <x-ui.forms.date-span-popover :active="$this->dateSpanActive()" :currentBasis="$dateBasis"/>
+
+                        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-[var(--md-sys-color-outline-variant)]/40 max-sm:hidden"></span>
+
+                        <button type="button"
+                                wire:click="toggleSelectionMode"
+                                title="انتخاب گروهی" aria-label="انتخاب گروهی" aria-pressed="{{ $selectionMode ? 'true' : 'false' }}"
+                                class="inline-flex items-center justify-center gap-0.5 p-1 rounded-lg transition-colors normal-case {{ $selectionMode ? 'bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]' }}">
+                            <span class="material-symbols-rounded text-[18px] leading-none">{{ $selectionMode ? 'close' : 'checklist' }}</span>
+                            @if($selectionMode)
+                                <span wire:key="taskboard-selection-count" class="text-[10px] font-bold leading-none">{{ convertToPersian(count($selectedTasks ?? [])) }}</span>
+                            @endif
+                        </button>
+
+                        <button type="button"
+                                wire:click="exportTasks" wire:loading.attr="disabled" wire:target="exportTasks"
+                                title="دریافت خروجی وظایف" aria-label="دریافت خروجی وظایف"
+                                class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
+                            <span class="material-symbols-rounded text-[18px] leading-none">download</span>
+                        </button>
+
+                        <a href="{{ route('tasksheet') }}" target="_blank" rel="noopener noreferrer"
+                           title="گزارش تسک‌شیت" aria-label="گزارش تسک‌شیت"
+                           class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]">
+                            <span class="material-symbols-rounded text-[18px] leading-none">assignment_turned_in</span>
+                        </a>
+
+                        <span aria-hidden="true" class="mx-1 h-4 w-px shrink-0 bg-[var(--md-sys-color-outline-variant)]/40 max-sm:hidden"></span>
+
+                        <button type="button"
+                                wire:click="switchTab('{{ $this->isMyTasks ? 'assigned-tasks' : 'my-tasks' }}')"
+                                title="{{ $this->isMyTasks ? 'نمایش وظایف محول‌شده' : 'نمایش وظایف من' }}"
+                                aria-label="{{ $this->isMyTasks ? 'نمایش وظایف محول‌شده' : 'نمایش وظایف من' }}"
+                                class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case {{ $this->isMyTasks ? 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]' : 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' }}">
+                            <span class="material-symbols-rounded text-[18px] leading-none">{{ $this->isMyTasks ? 'person' : 'assignment_ind' }}</span>
+                        </button>
+
+                        <button type="button"
+                                @click="toggleFavoritesOnly()" :aria-pressed="showFavoritesOnly"
+                                :title="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط پین‌شده‌ها'"
+                                :aria-label="showFavoritesOnly ? 'نمایش همهٔ وظایف' : 'نمایش فقط پین‌شده‌ها'"
+                                :class="showFavoritesOnly ? 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]' : 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]'"
+                                class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
+                            <span class="material-symbols-rounded text-[18px] leading-none" :class="{ 'font-fill': showFavoritesOnly }">push_pin</span>
+                        </button>
+                    </x-ui.table.tools>
             </div>
 
             <div
@@ -418,6 +359,14 @@
             </div>
         </div>
     </section>
+
+    <button type="button" x-on:click="toggleHeaderDeclutter()" :aria-pressed="headerDeclutter"
+            :aria-label="headerDeclutter ? 'نمایش نوار ابزار' : 'خلوت‌سازی سربرگ'"
+            :title="headerDeclutter ? 'نمایش نوار ابزار' : 'خلوت‌سازی سربرگ'"
+            class="absolute top-2 md:-top-8 end-5 z-30 h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all duration-200 ease-out active:scale-95"
+            :class="headerDeclutter ? 'flex' : 'hidden'">
+        <span class="material-symbols-rounded text-base rotate-90">unfold_more</span>
+    </button>
 
     <div
         x-show="!swipeHintDismissed"

@@ -183,7 +183,9 @@ class TicketTablePresenter
     {
         return TextColumn::make('request_area')
             ->label(__('resources/ths/strings.fields.request_area'))
-            ->formatStateUsing(fn($record) => Ticket::$requestAreaOptions[$record->request_type][$record->request_area] ?? $record->request_area)
+            ->formatStateUsing(fn($record) => $record->request_area
+                ? Ticket::getCustomRequestAreaLabel($record->request_type, $record->request_area, $record->extra['target_department'] ?? null)
+                : null)
             ->searchable()
             ->icon(fn($record) => Ticket::getCustomHeroiconForArea($record->request_area, $record->extra['target_department'] ?? null))
             ->toggleable(isToggledHiddenByDefault: true);
@@ -193,8 +195,10 @@ class TicketTablePresenter
     {
         return TextColumn::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->getStateUsing(fn($record) => RequestType::tryFrom($record->request_type))
+            ->getStateUsing(fn($record) => Ticket::getCustomRequestTypeLabel($record->request_type, $record->extra['target_department'] ?? null))
             ->badge()
+            ->color(fn($record) => RequestType::tryFrom($record->request_type)?->getColor() ?? 'gray')
+            ->icon(fn($record) => RequestType::tryFrom($record->request_type)?->getIcon())
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: false);
     }
@@ -297,7 +301,17 @@ class TicketTablePresenter
     {
         return SelectFilter::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
-            ->options(RequestType::class);
+            ->options(fn() => Ticket::allRequestTypeOptions())
+            ->multiple();
+    }
+
+    public static function areaFilter(): SelectFilter
+    {
+        return SelectFilter::make('request_area')
+            ->label(__('resources/ths/strings.fields.request_area'))
+            ->options(fn() => Ticket::allRequestAreaOptions())
+            ->searchable()
+            ->multiple();
     }
 
     public static function typeGroup(): Group
@@ -305,8 +319,7 @@ class TicketTablePresenter
         return Group::make('request_type')
             ->label(__('resources/ths/strings.fields.request_type'))
             ->getTitleFromRecordUsing(
-                fn($record): string => RequestType::tryFrom($record?->request_type)?->getLabel()
-                    ?? (string)$record?->request_type
+                fn($record): string => Ticket::getCustomRequestTypeLabel($record?->request_type, $record?->extra['target_department'] ?? null)
             )
             ->titlePrefixedWithLabel(false)
             ->collapsible();

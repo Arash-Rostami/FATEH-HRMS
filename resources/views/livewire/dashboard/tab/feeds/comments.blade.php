@@ -12,31 +12,12 @@
             @php
                 $c = $presenter->composerState();
                 $authUser     = $c['authUser'];
-                $authHasPhoto = $c['authHasPhoto'];
-                $authOnline   = $c['authOnline'];
             @endphp
 
             <div class="shrink-0 mx-1 mt-1 mb-3 bg-[var(--md-sys-color-surface)] border border-[var(--md-sys-color-outline-variant)]/50 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-[var(--md-sys-color-primary)]/60 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--md-sys-color-primary)_10%,transparent)]">
                 {{-- Row 1: Avatar + label --}}
                 <div class="flex items-center gap-2 px-3 py-2 bg-[var(--md-sys-color-surface-variant)]/40 border-b border-[var(--md-sys-color-outline-variant)]/30">
-                    <div class="relative shrink-0">
-                        @if($authHasPhoto)
-                            <x-ui.avatar
-                                title="تصویر پروفایل"
-                                :existingImage="$authUser?->getProfileImageUrl() ?? $feed->user?->getInitialsAvatarUrl()"
-                                :alt="$authUser?->name ?? 'کاربر'"
-                                class="!w-6 !h-6 !rounded-md"
-                            />
-                        @else
-                            <div class="w-6 h-6 rounded-md bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
-                                <span class="material-symbols-rounded text-[13px] text-[var(--md-sys-color-on-primary-container)]">person</span>
-                            </div>
-                        @endif
-
-                        @if($authOnline)
-                            <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 border border-[var(--md-sys-color-surface)] rounded-full"></div>
-                        @endif
-                    </div>
+                    <x-dashboard.user-avatar :user="$authUser" size="xs" :badge="false"/>
 
                     <span class="material-symbols-rounded text-[14px] text-[var(--md-sys-color-on-surface-variant)]">edit_note</span>
                     <span class="text-[11.5px] font-medium text-[var(--md-sys-color-on-surface-variant)] tracking-wide">نظر خود را بنویسید</span>
@@ -161,22 +142,13 @@
             <div class="flex flex-col gap-1.5 group" wire:key="comment-{{ $comment?->id ?? 'unknown' }}">
                 <div class="flex gap-2.5">
                     {{-- Avatar --}}
-                    <div class="relative shrink-0 mt-1">
-                        @if($meta['hasPhoto'])
-                            <x-ui.avatar
-                                title="تصویر پروفایل"
-                                :existingImage="$meta['avatarUrl']"
-                                :alt="$meta['user']?->name"
-                                class="!w-8 !h-8 !rounded-lg shadow-md group-hover:scale-105 transition-all hover:grayscale duration-500"
-                            />
+                    <div class="shrink-0 mt-1">
+                        @if($meta['user'])
+                            <x-dashboard.user-avatar :user="$meta['user']" size="sm" class="group-hover:scale-105 transition-all duration-500"/>
                         @else
-                            <div class="w-8 h-8 !rounded-lg border-2 border-[var(--md-sys-color-primary)]/20 bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-[28%] border-2 border-[var(--md-sys-color-primary)]/20 bg-[var(--md-sys-color-primary-container)] flex items-center justify-center">
                                 <span class="material-symbols-rounded text-sm text-[var(--md-sys-color-on-primary-container)]">person</span>
                             </div>
-                        @endif
-
-                        @if($meta['user'])
-                            <x-ui.presence-dot :online="$meta['isOnline']" position="absolute top-0 -right-0.5" size="w-2.5 h-2.5"/>
                         @endif
                     </div>
 

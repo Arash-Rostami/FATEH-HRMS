@@ -12,13 +12,13 @@
     'md:flex w-full md:w-[320px] lg:w-[360px]',
     'bg-[var(--md-sys-color-surface)]',
     'border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]'
-]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768 }"
+]) x-bind:class="{ 'hidden': $wire.mobileShowChat, 'flex': !$wire.mobileShowChat, 'animate-slide-from-left': !$wire.mobileShowChat && window.innerWidth < 768, 'sb-collapsed': sbCollapsed, 'animate-sidebar-slide': sbSlide }"
    aria-label="لیست مکالمات" data-total-unread="{{ $totalUnread }}">
 
     {{-- Header --}}
     <div class="flex-shrink-0 px-4 pt-4 pb-3">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2.5">
+        <div class="sb-head flex items-center justify-between mb-4">
+            <div class="sb-fade flex items-center gap-2.5">
                 <div
                     class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)]">
                     <span class="material-symbols-rounded text-[18px] font-fill">forum</span>
@@ -30,9 +30,10 @@
                         اطلاعات مخاطبین</p>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="sb-cluster ms-auto flex items-center gap-1.5">
+                @include('livewire.dashboard.messaging.sidebar-toggle', ['margin' => 'ms-0'])
                 @if($totalUnread)
-                    <span class="min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
+                    <span class="sb-fade min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center
                                  bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]"
                           aria-label="{{ $totalUnread }} پیام خوانده‌نشده">
                         {{ $totalUnread > 99 ? '⁹⁹⁺' : $totalUnread }}
@@ -44,7 +45,7 @@
                             :aria-pressed="$store.sound.isAllMuted({{ $allContactIds }}, 'contact')"
                             :aria-label="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
                             :title="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'باصدا کردن همه مخاطبین' : 'بی‌صدا کردن همه مخاطبین'"
-                            class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                            class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                             :class="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                         <span class="material-symbols-rounded text-[14px]"
                               x-text="$store.sound.isAllMuted({{ $allContactIds }}, 'contact') ? 'volume_off' : 'volume_up'"></span>
@@ -55,7 +56,7 @@
                         :aria-pressed="$store.push.isEnabled('contact')"
                         :aria-label="$store.push.isEnabled('contact') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
                         :title="$store.push.isEnabled('contact') ? 'غیرفعال کردن اعلان مرورگر' : 'فعال کردن اعلان مرورگر'"
-                        class="w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
+                        class="sb-fade w-6 h-6 rounded-lg flex items-center justify-center transition-all bg-[var(--md-sys-color-surface-variant)] text-[var(--md-sys-color-on-surface-variant)] active:scale-90"
                         :class="$store.push.isEnabled('contact') ? '!bg-[var(--md-sys-color-primary)] !text-[var(--md-sys-color-on-primary)]' : 'hover:brightness-95'">
                     <span class="material-symbols-rounded text-[14px]"
                           x-text="$store.push.isEnabled('contact') ? 'notifications_active' : 'notifications_off'"></span>
@@ -63,16 +64,18 @@
             </div>
         </div>
 
-        <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
-                                 placeholder="جستجوی همکاران..." aria-label="جستجوی همکاران" overlay-title="جستجوی همکاران"
-                                 refresh-sidebar-on-close show-label />
+        <div class="sb-fold">
+            <x-ui.forms.search-field model="search" name="search" id="search" debounce="200"
+                                     placeholder="جستجوی همکاران..." aria-label="جستجوی همکاران" overlay-title="جستجوی همکاران"
+                                     refresh-sidebar-on-close show-label />
+        </div>
     </div>
 
     <div
         class="h-px mx-4 flex-shrink-0 bg-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]"></div>
 
     {{-- Filters --}}
-    <div class="flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5" role="tablist" aria-label="فیلتر مخاطبین">
+    <div class="sb-fold flex-shrink-0 px-4 pt-2.5 pb-2 flex items-center gap-1.5" role="tablist" aria-label="فیلتر مخاطبین">
         @foreach([['all','همه'],['unread','خوانده‌نشده'],['online','آنلاین'],['archived','آرشیو']] as $f)
             <button wire:click="setFilter('{{ $f[0] }}')" role="tab"
                     aria-controls="contact-list"
@@ -94,8 +97,9 @@
                  data-rf="people-{{ $contact['id'] }}" role="option" tabindex="0"
                  aria-selected="{{ $activeUserId === $contact['id'] ? 'true' : 'false' }}"
                  :style="{ order: $store.pinned.isPinned({{ $contact['id'] }}, 'contact') ? -1 : 0 }"
+                 title="{{ $contact['name'] }}"
                 @class([
-                    'group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
+                    'sb-row group ripple-effect relative isolate w-full shrink-0 flex items-center gap-3 px-4 py-2.5 text-right transition-all duration-200 cursor-pointer rounded-md',
                     'bg-[color-mix(in_srgb,var(--md-sys-color-primary-container)_40%,transparent)] border-r-2 border-[var(--md-sys-color-primary)]' => $activeUserId === $contact['id'],
                     'hover:bg-[var(--md-sys-color-surface-variant)]' => $activeUserId !== $contact['id'],
                 ])>
@@ -103,18 +107,15 @@
                 <x-ui.row-actions :id="$contact['id']" scope="contact" pin-noun="گفتگو" mute-noun="مخاطب"/>
 
                 <div class="relative flex-shrink-0">
-                    <div @class([
-                        'w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center text-sm font-bold select-none shadow-sm ring-1',
-                        'bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] ring-[var(--md-sys-color-tertiary)]' => $activeUserId === $contact['id'],
-                        'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_30%,transparent)]' => $activeUserId !== $contact['id'],
-                    ])>
-                        <x-ui.avatar :image="null" :existingImage="$contact['avatar']"
-                                     :alt="$contact['name']" :inactive="$contact['inactive']" icon-size="text-xl" class="rounded-xl"/>
-                    </div>
-                    @unless($contact['inactive'])<x-ui.presence-dot :online="$contact['is_online']" size="w-2.5 h-2.5"/>@endunless
+                    <x-ui.avatar :image="null" :existingImage="$contact['avatar']" :alt="$contact['name']"
+                                 :inactive="$contact['inactive']" size="md" icon-size="text-xl"
+                                 :online="$contact['is_online']" :status="$contact['presence']" :focus="$contact['focus']"/>
+                    @if($contact['unread'])
+                        <span class="sb-rail-dot absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-md text-[9px] font-bold items-center justify-center ring-2 ring-[var(--md-sys-color-surface)] bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)]">{{ $contact['unread'] > 99 ? '⁹⁹⁺' : $contact['unread'] }}</span>
+                    @endif
                 </div>
 
-                <div class="flex-1 min-w-0">
+                <div class="sb-fade flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-2 min-w-0">
                         <div class="flex items-center gap-1.5 min-w-0">
                             <span @class([
@@ -186,7 +187,7 @@
 
         @if($hasMoreContacts)
             <x-ui.buttons.load-more action="loadMoreContacts" island="sidebar" text="نمایش بیشتر" loading-text="در حال بارگذاری…"
-                                     class="mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
+                                     class="sb-fold mx-auto my-2 px-4 py-2 rounded-xl text-xs font-medium bg-[var(--md-sys-color-surface-variant)]/50 text-[var(--md-sys-color-on-surface-variant)]"/>
         @endif
     </div>
 </aside>

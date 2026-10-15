@@ -29,8 +29,8 @@
                         امتیاز شما به نحوه رسیدگی:
                     </label>
 
-                    <div class="flex items-center justify-center gap-2 sm:gap-4 ltr-direction flex-row-reverse" @mouseleave="resetHover()">
-                        @for($i = 5; $i >= 1; $i--)
+                    <div class="flex items-center justify-center gap-2 sm:gap-4" dir="ltr" @mouseleave="resetHover()">
+                        @for($i = 1; $i <= 5; $i++)
                             <button type="button"
                                     @mouseover="setHover({{ $i }})"
                                     @click="rate({{ $i }})"

@@ -131,43 +131,52 @@
     @endif
 
     @if($activeSection === 'tables')
-    <div wire:key="profile-settings-section-tables" class="space-y-5 mt-5">
+    <div wire:key="profile-settings-section-tables" x-init="refreshTableState()" class="space-y-5 mt-5">
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">مدیریت اسناد</p>
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span x-text="$store.colVisibility.maps.dms.length"></span> ستون مخفی</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <template x-for="mod in tableModules" :key="mod.id">
+                <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
+                    <div class="space-y-1.5">
+                        <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]" x-text="mod.label"></p>
+                        <div class="flex flex-wrap gap-1.5 text-[11px] text-[var(--md-sys-color-on-surface-variant)]">
+                            <span x-show="mod.cols" class="px-2 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/60"><span x-text="(tableState.modules[mod.id]?.hiddenCols ?? 0) + ' ' + (mod.colsLabel ?? 'ستون') + ' مخفی'"></span></span>
+                            <span class="px-2 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/60" x-text="'نوار ابزار: ' + (tableState.modules[mod.id]?.toolbarCollapsed ? 'جمع‌شده' : 'باز')"></span>
+                            <span class="px-2 py-0.5 rounded-full bg-[var(--md-sys-color-surface-variant)]/60" x-text="'تمام‌صفحه: ' + (tableState.modules[mod.id]?.maximized ? 'روشن' : 'خاموش')"></span>
+                        </div>
+                    </div>
+                    <button type="button" @click="resetTableModule(mod.id)"
+                            class="text-[11px] px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/20 transition-colors whitespace-nowrap">
+                        بازنشانی
+                    </button>
                 </div>
-                <button type="button" @click="$store.colVisibility.reset('dms')"
+            </template>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
+                <div class="space-y-1.5">
+                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">چگالی فشرده</p>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="tableState.compact ? 'روشن' : 'خاموش'"></p>
+                </div>
+                <button type="button" @click="resetDensity()"
                         class="text-[11px] px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/20 transition-colors whitespace-nowrap">
-                    بازنشانی ستون‌ها
+                    بازنشانی
                 </button>
             </div>
             <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">تیکت‌های پشتیبانی</p>
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span x-text="$store.colVisibility.maps.ths.length"></span> ستون مخفی</p>
+                <div class="space-y-1.5">
+                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">حالت خلوت منو</p>
+                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]" x-text="tableState.menuDeclutter ? 'روشن' : 'خاموش'"></p>
                 </div>
-                <button type="button" @click="$store.colVisibility.reset('ths')"
+                <button type="button" @click="resetDeclutter()"
                         class="text-[11px] px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/20 transition-colors whitespace-nowrap">
-                    بازنشانی ستون‌ها
-                </button>
-            </div>
-            <div class="p-3 rounded-xl bg-[var(--md-sys-color-surface-container)]/40 border border-[var(--md-sys-color-outline-variant)]/30 flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-xs font-bold text-[var(--md-sys-color-on-surface)]">رزرو امکانات</p>
-                    <p class="text-[11px] text-[var(--md-sys-color-on-surface-variant)]"><span x-text="$store.colVisibility.maps.reservation.length"></span> ستون مخفی</p>
-                </div>
-                <button type="button" @click="$store.colVisibility.reset('reservation')"
-                        class="text-[11px] px-2.5 py-1 rounded-lg bg-[var(--md-sys-color-primary)]/10 text-[var(--md-sys-color-primary)] hover:bg-[var(--md-sys-color-primary)]/20 transition-colors whitespace-nowrap">
-                    بازنشانی ستون‌ها
+                    بازنشانی
                 </button>
             </div>
         </div>
 
         <x-ui.buttons.form @click="resetTables()" variant="tonal" icon="restart_alt">
-            بازنشانی همه ستون‌ها
+            بازنشانی همه (جدول‌ها، چگالی و حالت خلوت)
         </x-ui.buttons.form>
     </div>
     @endif

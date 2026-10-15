@@ -90,7 +90,7 @@ export default function tabSelector() {
                 const len = children.length;
                 for (let i = 0; i < len; i++) {
                     const c = children[i];
-                    if (c !== bar && c.offsetParent !== null) {
+                    if (c !== bar && c.offsetParent !== null && getComputedStyle(c).position !== 'absolute') {
                         cap -= c.offsetWidth + this._gap;
                     }
                 }

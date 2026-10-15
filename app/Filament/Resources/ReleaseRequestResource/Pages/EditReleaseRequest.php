@@ -13,4 +13,9 @@ class EditReleaseRequest extends EditRecord
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = ReleaseRequestResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['attachments' => ['path']];
+    }
 }

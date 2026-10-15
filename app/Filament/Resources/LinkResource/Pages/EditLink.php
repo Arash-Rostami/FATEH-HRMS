@@ -12,4 +12,9 @@ class EditLink extends EditRecord
 {
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
     protected static string $resource = LinkResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['icon' => [], 'image' => []];
+    }
 }

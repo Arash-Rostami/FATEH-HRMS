@@ -124,7 +124,8 @@ class Activity extends Component
                         'type' => $reply->type?->value ?? 'comment',
                         'user_id' => (int) ($reply->user_id ?? 0),
                         'user_name' => $reply->user?->name ?? 'سیستم',
-                        'avatar_url' => $reply->user?->getProfileImageUrl(),
+                        'avatar_url' => $reply->user?->getProfileImageUrl() ?? $reply->user?->getInitialsAvatarUrl(),
+                        'online' => $reply->user?->isOnline(),
                         'files' => $this->chatPresenter->attachments($reply->files ?? []),
                         'reactions' => collect($reply->reactions ?? [])->map(fn(array $r) => [
                             ...$r,

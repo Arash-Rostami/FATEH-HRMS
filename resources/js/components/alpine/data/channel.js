@@ -1,5 +1,6 @@
 import maximizeMixin from "../mixins/maximize.js";
 import lastOpenMixin from "../mixins/lastOpen.js";
+import sidebarRailMixin from "../mixins/sidebarRail.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -37,6 +38,7 @@ export default function channel() {
     return {
         ...maximizeMixin('channel'),
         ...lastOpenMixin('channel'),
+        ...sidebarRailMixin('channel'),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -57,14 +59,8 @@ export default function channel() {
 
         init() {
             this.initFancybox();
-
-            const saved = localStorage.getItem(`chat-settings:${SCOPE}`);
-            if (saved) try {
-                const d = JSON.parse(saved);
-                this.isHighlighted = d.isHighlighted ?? false;
-                this.backgroundPattern = d.backgroundPattern ?? 'off';
-                this.backgroundPatternType = d.backgroundPatternType ?? 'mesh';
-            } catch {}
+            this._loadChatSettings();
+            this.headerDeclutterMenuBridge();
 
             this.syncChannelCount();
             this.syncPushNotify();
@@ -258,7 +254,9 @@ export default function channel() {
                     await this._isl().refreshActive();
                     const lastAfter = this._readLastMessageMarker();
                     const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null;
-                    if (threadChanged && !this._lastMessageIsMine()) this._ringIncoming(this.$wire.activeChannelId);
+                    const incoming = threadChanged && !this._lastMessageIsMine();
+                    if (incoming && !document.hidden && this.$wire.focusAnchorId == null) this.$wire.markRead(this.$wire.activeChannelId);
+                    if (incoming) this._ringIncoming(this.$wire.activeChannelId);
                     else if (unreadRose && !threadChanged) this._ringIncoming(null);
                     changed ||= lastAfter !== lastBefore || this._readTypingMarker() !== typingBefore;
                 }
@@ -401,6 +399,8 @@ export default function channel() {
         closeOverlays() {
             this.showInfo = false;
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
             this.replyingTo = null;
             this.deletingId = null;
             this.openActionsId = null;
@@ -469,6 +469,8 @@ export default function channel() {
             this.deletingId = null;
             this.openActionsId = null;
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
             this.confirmingDeleteChannel = false;
             this._clearEdit();
 
@@ -509,6 +511,9 @@ export default function channel() {
 
         backToList() {
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
+            this._clearLastOpen();
             this.activeSender = null;
             this.openActionsId = null;
             this._msgViewportEl = null;

@@ -105,6 +105,28 @@ describe('colVisibility.reset', () => {
     })
 })
 
+describe('colVisibility taskboard scope', () => {
+    test('restores, persists to taskboard-col-hidden, renders the card rule and resets', async () => {
+        localStorage.setItem('taskboard-col-hidden', JSON.stringify(['labels']))
+        const s = fresh()
+        s.init()
+        expect(s.maps.taskboard).toEqual(['labels'])
+
+        s.toggle('people', 'taskboard')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('taskboard-col-hidden'))).toEqual(['labels', 'people'])
+
+        await flushRaf()
+        const css = document.getElementById('dms-col-visibility-style').textContent
+        expect(css).toContain('.taskboard-card [data-col="labels"]{display:none!important}')
+        expect(css).toContain('.taskboard-card [data-col="people"]{display:none!important}')
+
+        s.reset('taskboard')
+        await flushMicrotask()
+        expect(JSON.parse(localStorage.getItem('taskboard-col-hidden'))).toEqual([])
+    })
+})
+
 describe('colVisibility.render — multi-domain rule building', () => {
     test('builds one display:none rule per hidden column across all three scoped tables, skipping empty domains', async () => {
         const s = fresh()

@@ -36,6 +36,7 @@
                     <span class="material-symbols-rounded text-[15px] flex-shrink-0 text-[var(--md-sys-color-primary)]">alternate_email</span>
                     <span class="truncate" x-text="name"></span>
                     <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="$wire.mentionMemberPresence[name]?.presence_class" :title="$wire.mentionMemberPresence[name]?.presence_label"></span>
+                    <span x-show="$wire.mentionMemberPresence[name]?.reachable === false" x-cloak class="ms-auto shrink-0 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold leading-none">پاسخ‌گو نیست</span>
                 </button>
             </template>
             <p x-show="mentionOpen && mentionMatches.length === 0" class="px-2.5 py-2 text-[11px] text-[var(--md-sys-color-on-surface-variant)] opacity-60">کاربری یافت نشد</p>

@@ -164,7 +164,7 @@ class TicketsRelationManager extends RelationManager
             ->filtersFormColumns(2)
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
+                self::editAction()->using(fn (\Illuminate\Database\Eloquent\Model $record, array $data): \Illuminate\Database\Eloquent\Model => $this->updateDeletingDroppedFiles($record, $data, ['requester_files' => ['file'], 'assignee_files' => ['file']])),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->emptyStateIcon('heroicon-o-ticket')

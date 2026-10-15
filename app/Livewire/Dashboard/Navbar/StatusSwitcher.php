@@ -17,7 +17,7 @@ class StatusSwitcher extends Component
         if (!$statusEnum) return;
 
         $user = Auth::user();
-        $user->update(['presence' => $statusEnum]);
+        $user->update(['presence' => $statusEnum, 'focus_until' => null]);
         $this->status = $statusEnum->value;
         $this->dispatch('statusSwitcher-updated', status: $val);
     }

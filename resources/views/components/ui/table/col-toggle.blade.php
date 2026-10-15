@@ -1,21 +1,15 @@
-@props(['scope', 'columns'])
+@props(['scope', 'columns', 'icon' => 'view_column', 'title' => 'نمایش و مخفی کردن ستون‌ها', 'heading' => 'ستون‌ها'])
 
-@php
-    $hiddenGetter = match ($scope) {
-        'ths' => 'thsHidden',
-        'reservation' => 'reservationHidden',
-        default => 'hidden',
-    };
-@endphp
-
-<div x-data="{ open: false }" @click.away="open = false" class="relative">
+<div x-data="{ open: false }" @click.away="open = false" @keydown.escape.window="open = false" class="relative">
     <button type="button"
             @click="open = !open"
-            title="نمایش و مخفی کردن ستون‌ها"
+            title="{{ $title }}"
+            :aria-expanded="open"
+            aria-label="{{ $title }}"
             :class="{ 'bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)]': open, 'text-[var(--md-sys-color-on-surface-variant)] hover:bg-[var(--md-sys-color-surface-container-high)]': !open }"
             class="inline-flex items-center justify-center p-1 rounded-lg transition-colors normal-case">
-        <span class="material-symbols-rounded text-[18px]">view_column</span>
-        <span x-show="$store.colVisibility.{{ $hiddenGetter }}.length > 0" class="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--md-sys-color-error)] px-1 text-[9px] font-bold text-white" x-text="$store.colVisibility.{{ $hiddenGetter }}.length" style="display: none;"></span>
+        <span class="material-symbols-rounded text-[18px] leading-none">{{ $icon }}</span>
+        <span x-show="$store.colVisibility.maps[@js($scope)].length > 0" class="absolute -left-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--md-sys-color-error)] px-1 text-[9px] font-bold text-white" x-text="$store.colVisibility.maps[@js($scope)].length" style="display: none;"></span>
     </button>
 
     <div x-show="open"
@@ -23,10 +17,10 @@
          style="display: none;"
          class="absolute left-0 top-11 z-30 w-60 rounded-2xl border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface)] p-2 shadow-2xl">
         <div class="mb-1.5 flex items-center justify-between px-1.5">
-            <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">ستون‌ها</span>
+            <span class="text-[11px] font-bold text-[var(--md-sys-color-on-surface)]">{{ $heading }}</span>
             <button type="button"
                     @click="$store.colVisibility.reset(@js($scope))"
-                    :disabled="$store.colVisibility.{{ $hiddenGetter }}.length === 0"
+                    :disabled="$store.colVisibility.maps[@js($scope)].length === 0"
                     class="text-[10px] font-semibold text-[var(--md-sys-color-primary)] transition-opacity hover:opacity-70 disabled:opacity-40 disabled:no-underline">
                 نمایش همه
             </button>

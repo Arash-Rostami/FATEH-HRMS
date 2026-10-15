@@ -13,6 +13,8 @@
         <x-ui.buttons.tab-selector
             :tabs="$historyTabs"
             :activeTab="$activeHistoryTab"
+            buttonBaseClass="relative px-3 py-2 sm:px-6 sm:py-2.5 lg:px-2 lg:py-2 xl:px-3 rounded-xl text-xs sm:text-sm lg:text-xs font-bold transition-all duration-300 z-10 flex items-center gap-1.5 sm:gap-2 lg:gap-1 shrink-0 whitespace-nowrap"
+            iconBaseClass="material-symbols-rounded text-base sm:text-lg lg:text-base"
         />
     </div>
 

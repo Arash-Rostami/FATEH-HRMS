@@ -7,6 +7,7 @@ use App\Enums\LinkIcon;
 use App\Filament\Resources\LinkResource\Enums\LinkType;
 use App\Models\Link;
 use App\Rules\ExtraRequiresInternalUrl;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
@@ -15,7 +16,6 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class LinkFormPresenter
@@ -54,7 +54,7 @@ class LinkFormPresenter
             ->maxSize(config('file_upload_limits.icon'))
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
-                fn (TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn (TemporaryUploadedFile $file): string => FileNamer::stored('link', $file)
             )
             ->image()
             ->imagePreviewHeight('80')
@@ -106,7 +106,7 @@ class LinkFormPresenter
             ->previewable()
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
             ->getUploadedFileNameForStorageUsing(
-                fn (TemporaryUploadedFile $file): string => Str::random(12) . '-' . time() . '.' . $file->getClientOriginalExtension()
+                fn (TemporaryUploadedFile $file): string => FileNamer::stored('link', $file)
             )
             ->image()
             ->imagePreviewHeight('120')

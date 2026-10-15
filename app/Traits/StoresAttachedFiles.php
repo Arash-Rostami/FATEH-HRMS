@@ -33,13 +33,13 @@ trait StoresAttachedFiles
         ];
     }
 
-    protected function storeAttachments(array $files, string $directory): array
+    protected function storeAttachments(array $files, string $directory, Closure|string|null $fileName = null): array
     {
         $stored = [];
 
         try {
             foreach ($files as $file) {
-                $stored[] = static::storeAttachment($file, $directory);
+                $stored[] = static::storeAttachment($file, $directory, $fileName);
             }
         } catch (Throwable $e) {
             static::deleteStoredFiles($stored);

@@ -65,12 +65,38 @@
                     </div>
                     @if($this->activeProject)
                         <div wire:key="pane-active" class="contents">
-                        <div class="relative z-20 flex-shrink-0 border-b px-3 md:px-5 py-3 transition-all duration-300 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]">
+                        <div class="relative z-20 flex-shrink-0 border-b max-md:border-b-0! px-3 md:px-5 py-3 transition-all duration-300 bg-[color-mix(in_srgb,var(--md-sys-color-surface)_92%,transparent)] border-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_60%,transparent)] shadow-[0_8px_32px_color-mix(in_srgb,var(--md-sys-color-primary)_15%,transparent)]"
+                             :class="headerDeclutter ? 'h-0! py-0! overflow-hidden! border-b-0! shadow-none! pointer-events-none!' : ''">
                             @include('livewire.dashboard.project.header')
                         </div>
+                        <button type="button" x-on:click="toggleHeaderDeclutter()" :aria-pressed="headerDeclutter"
+                                :aria-label="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'"
+                                :title="headerDeclutter ? 'نمایش سربرگ' : 'خلوت‌سازی سربرگ'"
+                                class="absolute top-4 end-5 z-30 h-8 w-8 items-center justify-center rounded-xl bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] shadow-[0_4px_16px_color-mix(in_srgb,var(--md-sys-color-primary)_40%,transparent)] transition-all duration-200 ease-out active:scale-95"
+                                :class="headerDeclutter ? 'flex' : 'hidden'">
+                            <span class="material-symbols-rounded text-base rotate-90">unfold_more</span>
+                        </button>
+
+                        @if($activeTab === 'teamChat' && $this->activeChannel)
+                            <a wire:key="project-open-channel-float" href="{{ route('channels', ['open' => $this->activeChannel->id]) }}" target="_blank" rel="noopener noreferrer"
+                               title="مشاهده در گروه کامل (پیوست فایل، ویرایش، حذف، پاسخ و امکانات بیشتر)"
+                               class="absolute top-13 end-5 z-30 items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors"
+                               :class="headerDeclutter ? 'flex md:hidden' : 'hidden'">
+                                <span class="material-symbols-rounded text-base">open_in_new</span>
+                            </a>
+                        @endif
+
+                        @if($activeTab === 'kanban')
+                            <a wire:key="project-open-taskboard-float" href="{{ route('tasks', array_filter(['project' => $this->activeProjectId, 'open' => $editingTaskId])) }}" target="_blank" rel="noopener noreferrer"
+                               title="مشاهده در برد کامل (آرشیو، محول‌کردن، حذف و امکانات بیشتر)"
+                               class="absolute top-13 end-5 z-30 items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors"
+                               :class="headerDeclutter ? 'flex md:hidden' : 'hidden'">
+                                <span class="material-symbols-rounded text-base">open_in_new</span>
+                            </a>
+                        @endif
 
                         <div class="flex-1 min-h-0 flex flex-col overflow-hidden p-4 md:p-6">
-                            <div class="flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-shrink-0">
+                            <div class="relative flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 flex-shrink-0">
                                 <x-ui.buttons.tab-selector
                                     :active-tab="$activeTab"
                                     has-a11y
@@ -91,7 +117,8 @@
                                 @if($activeTab === 'teamChat' && $this->activeChannel)
                                     <a wire:key="project-open-channel" href="{{ route('channels', ['open' => $this->activeChannel->id]) }}" target="_blank" rel="noopener noreferrer"
                                        title="مشاهده در گروه کامل (پیوست فایل، ویرایش، حذف، پاسخ و امکانات بیشتر)"
-                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
+                                       class="max-md:absolute max-md:top-1 max-md:end-0 md:ms-auto md:me-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors"
+                                       :class="headerDeclutter ? 'max-md:hidden' : ''">
                                         <span class="material-symbols-rounded text-base">open_in_new</span>
                                     </a>
                                 @endif
@@ -99,7 +126,8 @@
                                 @if($activeTab === 'kanban')
                                     <a wire:key="project-open-taskboard" href="{{ route('tasks', array_filter(['project' => $this->activeProjectId, 'open' => $editingTaskId])) }}" target="_blank" rel="noopener noreferrer"
                                        title="مشاهده در برد کامل (آرشیو، محول‌کردن، حذف و امکانات بیشتر)"
-                                       class="ms-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors">
+                                       class="max-md:absolute max-md:top-1 max-md:end-0 md:ms-auto md:me-auto flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-xl shadow-sm bg-[var(--md-sys-color-tertiary-container)] text-[var(--md-sys-color-on-tertiary-container)] hover:brightness-110 transition-colors"
+                                       :class="headerDeclutter ? 'max-md:hidden' : ''">
                                         <span class="material-symbols-rounded text-base">open_in_new</span>
                                     </a>
                                 @endif

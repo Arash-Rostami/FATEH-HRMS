@@ -3,7 +3,7 @@
         [
             'icon' => 'person_add',
             'label' => 'ثبت تیکت — واحد درخواست‌دهنده خودکار پر می‌شود',
-            'hint' => 'با انتخاب «درخواست‌دهنده»، فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.department</code> از روی پروفایلِ او خودکار پر می‌شود. انتخاب «واحد هدف» فهرست «نوع درخواست» و «حوزه درخواست» را فیلتر و مسئولِ قبلی را پاک می‌کند. فایل‌های ضمیمه تا سقف ' . convertToPersian('3') . ' فایل و ' . convertToPersian('10') . ' مگابایت با پیشوند <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">THS-</code> ذخیره می‌شوند و فقط در ثبت اولیه قابل ارسال‌اند.',
+            'hint' => 'با انتخاب «درخواست‌دهنده»، فیلد <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">extra.department</code> از روی پروفایلِ او خودکار پر می‌شود. انتخاب «واحد هدف» فهرست «نوع درخواست» و «حوزه درخواست» را فیلتر و مسئولِ قبلی را پاک می‌کند. فایل‌های ضمیمه تا سقف ' . convertToPersian('3') . ' فایل و ' . convertToPersian('10') . ' مگابایت با پیشوند <code class="px-1.5 py-0.5 rounded-md font-mono text-[11px] bg-[var(--md-sys-color-secondary-container)] text-[var(--md-sys-color-on-secondary-container)]">TENANT-THS-</code> (پیشوند = کلید مستأجر، مثلاً PERSOL) ذخیره می‌شوند و فقط در ثبت اولیه قابل ارسال‌اند.',
         ],
         [
             'icon' => 'sync',
@@ -28,7 +28,7 @@
         [
             'icon' => 'download',
             'label' => 'خروجی اکسل',
-            'hint' => 'با اکشن گروهی «خروجی Excel» می‌توانید تیکت‌های انتخاب‌شده را صادر کنید — شامل شناسه، وضعیت، اولویت، نوع، حوزه، درخواست‌دهنده، واحد، موضوع، مسئول، مهلت، تکمیل، اثربخشی، رضایت، نتیجهٔ اقدام و تاریخ ثبت.',
+            'hint' => 'دکمهٔ «خروجی Excel» بالای فهرست همهٔ تیکت‌های فهرستِ فعلی (با فیلترها و زبانهٔ انتخابی، همهٔ واحدها) را کامل صادر می‌کند و اکشن گروهی «خروجی Excel» فقط تیکت‌های انتخاب‌شده را؛ حوزه و نوع اختصاصی با برچسب واقعی، واحدها، شرح، گفتگو و پیوست‌ها هم در خروجی هستند. ستون‌ها: شناسه، وضعیت، اولویت، نوع، حوزه، درخواست‌دهنده، واحد، واحد هدف، موضوع، شرح، یادداشت‌ها، مسئول، مهلت، تکمیل، اثربخشی، رضایت و توضیح آن، نتیجهٔ اقدام، گفتگو، پیوست‌ها و تاریخ ثبت/بروزرسانی. فرمت‌های Excel و CSV هر دو در دسترس‌اند.',
         ],
     ];
 @endphp

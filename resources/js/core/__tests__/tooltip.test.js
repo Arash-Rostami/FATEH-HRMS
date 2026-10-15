@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest'
+import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import '../tooltip.js'
 
 function hover(el) {
@@ -237,6 +237,79 @@ describe('tooltip — opacity reveal is debounced across two animation frames', 
 
         await new Promise((r) => setTimeout(r, 0))
         expect(tipEl().style.opacity).toBe('1')
+    })
+})
+
+describe('tooltip — touch (tap) toggling', () => {
+    afterEach(() => new Promise((r) => setTimeout(r, 650)))
+
+    function tap(el) {
+        const e = new Event('pointerdown', { bubbles: true })
+        e.pointerType = 'touch'
+        el.dispatchEvent(e)
+    }
+
+    test('a touch tap shows the tooltip and a second tap on the same holder hides it', async () => {
+        document.body.innerHTML = '<div id="wrap"><span data-tip="Tap me"></span></div>'
+        const wrap = document.getElementById('wrap')
+        vi.spyOn(wrap, 'getBoundingClientRect').mockReturnValue(rect())
+
+        tap(wrap)
+        await flushReveal()
+        expect(tipEl().textContent).toBe('Tap me')
+        expect(tipEl().style.opacity).toBe('1')
+
+        tap(wrap)
+        expect(tipEl().style.opacity).toBe('0')
+    })
+
+    test('tapping elsewhere (no tooltip target) hides the active tooltip', async () => {
+        document.body.innerHTML = '<div id="wrap"><span data-tip="Tap me"></span></div><div id="plain"></div>'
+        const wrap = document.getElementById('wrap')
+        vi.spyOn(wrap, 'getBoundingClientRect').mockReturnValue(rect())
+        tap(wrap)
+        await flushReveal()
+
+        tap(document.getElementById('plain'))
+
+        expect(tipEl().style.opacity).toBe('0')
+    })
+
+    test('the emulated mouseover that follows a touch tap does not re-show a just-hidden tooltip', async () => {
+        document.body.innerHTML = '<div id="wrap"><span data-tip="Tap me"></span></div>'
+        const wrap = document.getElementById('wrap')
+        vi.spyOn(wrap, 'getBoundingClientRect').mockReturnValue(rect())
+        tap(wrap)
+        await flushReveal()
+
+        tap(wrap)
+        hover(wrap)
+        await flushReveal()
+
+        expect(tipEl().style.opacity).toBe('0')
+    })
+
+    test('tapping a link or button never opens a tooltip so the action is not obstructed', async () => {
+        document.body.innerHTML = '<a id="lnk" href="/x" title="Go"><span id="inner">x</span></a><button id="btn" title="Act">y</button>'
+
+        tap(document.getElementById('inner'))
+        tap(document.getElementById('btn'))
+        await flushReveal()
+
+        expect(tipEl()).toBeNull()
+    })
+
+    test('a mouse pointerdown is ignored by the touch branch', async () => {
+        document.body.innerHTML = '<div id="wrap"><span data-tip="Tap me"></span></div>'
+        const wrap = document.getElementById('wrap')
+        vi.spyOn(wrap, 'getBoundingClientRect').mockReturnValue(rect())
+
+        const e = new Event('pointerdown', { bubbles: true })
+        e.pointerType = 'mouse'
+        wrap.dispatchEvent(e)
+        await flushReveal()
+
+        expect(tipEl()).toBeNull()
     })
 })
 

@@ -7,6 +7,7 @@ use App\Filament\Resources\DmsResource\Schemas\Action\GenerateOwnerPreview;
 use App\Models\Department;
 use App\Models\User;
 use App\Rules\UniqueLiveDocument;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Closure;
 use Filament\Forms\Components\FileUpload;
@@ -203,7 +204,7 @@ class DmsFormPresenter
 
     private static function forgeFileName(TemporaryUploadedFile $file): string
     {
-        $prefix = 'FATEH-DMS';
+        $prefix = FileNamer::prefix() . '-DMS';
         $date = now()->format('Ymd');
         $unique = Str::random(12) . '-' . time();
         $ext = $file->getClientOriginalExtension();

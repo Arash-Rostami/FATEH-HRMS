@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard\Tab\Presentation;
 
+use App\Enums\PresenceStatus;
 use App\Models\ChannelMessage;
 use App\Models\DMS;
 use App\Models\Event;
@@ -25,7 +26,8 @@ class TabPresenter
     {
         return ModelCacheVersion::rememberGlobal('home_team_pulse', fn(): Collection =>
             User::active()
-                ->where('last_seen', '>=', now()->subMinutes(5))
+                ->online()
+                ->whereNotIn('presence', PresenceStatus::unreachableValues())
                 ->with(['profile', 'profile.details' => fn($q) => $q->where('key', 'display_name')])
                 ->get()
                 ->sortBy(fn(User $u) => $u->rank())

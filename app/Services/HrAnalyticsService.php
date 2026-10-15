@@ -7,6 +7,7 @@ use App\Filament\Resources\ProfileResource\Enums\Degree;
 use App\Filament\Resources\ProfileResource\Enums\Position;
 use App\Filament\Resources\UserResource\Enums\UserType;
 use App\Filament\Widgets\Concerns\DepartmentAxis;
+use App\Models\User;
 use App\Services\Cache\ModelCacheVersion;
 use Illuminate\Support\Facades\DB;
 
@@ -771,10 +772,11 @@ class HrAnalyticsService
             ->join('users', 'profiles.user_id', '=', 'users.id')
             ->where('users.type', '!=', UserType::Guest->value)
             ->whereIn('profiles.department_id', $codes)
-            ->select('profiles.department_id', DB::raw("
+            ->select('profiles.department_id')
+            ->selectRaw("
                 SUM(CASE WHEN users.status = 'active' THEN 1 ELSE 0 END) as active,
-                SUM(CASE WHEN users.last_seen >= DATE_SUB(NOW(), INTERVAL 15 MINUTE) THEN 1 ELSE 0 END) as online
-            "))->groupBy('profiles.department_id')->get();
+                SUM(CASE WHEN users.last_seen >= ? THEN 1 ELSE 0 END) as online
+            ", [User::onlineSince()])->groupBy('profiles.department_id')->get();
 
         $size = count($codes);
         $active = array_fill(0, $size, 0);
@@ -793,7 +795,7 @@ class HrAnalyticsService
         return [
             'datasets' => [
                 ['label' => 'فعال', 'data' => $active, 'backgroundColor' => '#10b981'],
-                ['label' => 'آنلاین (۱۵ دقیقه)', 'data' => $online, 'backgroundColor' => '#0ea5e9'],
+                ['label' => 'آنلاین (' . convertToPersian(User::ONLINE_MINUTES) . ' دقیقه)', 'data' => $online, 'backgroundColor' => '#0ea5e9'],
             ],
             'labels' => $labels,
         ];

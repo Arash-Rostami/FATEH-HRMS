@@ -8,6 +8,7 @@ use App\Models\DMS;
 use App\Models\Read;
 use App\Services\Cache\ModelCacheVersion;
 use App\Traits\FocusOnRecord;
+use App\Traits\HasDateSpan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 class Main extends Component
 {
     use FocusOnRecord;
+    use HasDateSpan;
 
     private const FILTER_LABELS = ['type' => 'دسته بندی'];
 
@@ -42,17 +44,6 @@ class Main extends Component
     public string $sort = 'updated';
     public string $sortDir = 'desc';
     public ?string $pendingFilter = null;
-    public string $dateBasis = 'updated';
-    public ?int $fromYear = null;
-    public ?int $fromMonth = null;
-    public ?int $fromDay = null;
-    public ?int $toYear = null;
-    public ?int $toMonth = null;
-    public ?int $toDay = null;
-    #[Locked]
-    public array $appliedDateParts = [];
-    #[Locked]
-    public string $appliedBasis = 'updated';
     public int $perPage = 10;
     public bool $hasMorePages = true;
     #[Locked]
@@ -157,7 +148,7 @@ class Main extends Component
             return $this->notFound();
         }
 
-        return $this->serveFile(Storage::disk('public')->path($doc->file));
+        return $this->serveFile(Storage::disk('public')->path($doc->file), $doc->downloadNameFor($doc->file));
     }
 
     public function getAuthorizedExtraFile(string $filename): Response
@@ -177,7 +168,7 @@ class Main extends Component
             return $this->notFound();
         }
 
-        return $this->serveFile($filePath);
+        return $this->serveFile($filePath, $doc->downloadNameFor($filename));
     }
 
     public function incrementRead(int $docId, ConfirmReadAction $action): void
@@ -233,47 +224,9 @@ class Main extends Component
         $this->resetAndReload();
     }
 
-    public function setDateBasis(string $basis): void
+    protected function afterDateSpanChange(): void
     {
-        if (!in_array($basis, ['created', 'updated'], true) || $this->dateBasis === $basis) {
-            return;
-        }
-
-        $this->dateBasis = $basis;
-
-        if ($this->dateSpan() !== null && $this->appliedBasis !== $basis) {
-            $this->appliedBasis = $basis;
-            $this->resetAndReload();
-        }
-    }
-
-    public function applyDateSpan(): void
-    {
-        if (jalaliSpanFromParts($this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay) === null) {
-            $this->dispatch('toast', message: 'بازهٔ انتخاب‌شده نامعتبر است.', type: 'warning');
-            return;
-        }
-
-        $this->appliedBasis = $this->dateBasis;
-        $this->appliedDateParts = $this->dateParts();
         $this->resetAndReload();
-    }
-
-    public function clearDateSpan(): void
-    {
-        if ($this->fromYear === null && $this->fromMonth === null && $this->fromDay === null
-            && $this->toYear === null && $this->toMonth === null && $this->toDay === null) {
-            return;
-        }
-
-        $this->fromYear = $this->fromMonth = $this->fromDay = $this->toYear = $this->toMonth = $this->toDay = null;
-        $this->appliedDateParts = $this->dateParts();
-        $this->resetAndReload();
-    }
-
-    public function dateSpanActive(): bool
-    {
-        return $this->dateSpan() !== null;
     }
 
     public function loadInitialDocs(): void
@@ -282,11 +235,6 @@ class Main extends Component
         $this->docIds = array_slice($ids, 0, $this->perPage);
         $this->hasMorePages = count($ids) > $this->perPage;
         unset($this->docs);
-    }
-
-    private function dateParts(): array
-    {
-        return [$this->fromYear, $this->fromMonth, $this->fromDay, $this->toYear, $this->toMonth, $this->toDay];
     }
 
     public function loadMore(): void
@@ -506,17 +454,6 @@ class Main extends Component
         ) ASC";
     }
 
-    private function dateSpan(): ?array
-    {
-        if (count($this->appliedDateParts) < 6) {
-            return null;
-        }
-
-        $span = jalaliSpanFromParts(...$this->appliedDateParts);
-
-        return $span === null ? null : [$this->appliedBasis === 'created' ? 'created_at' : 'updated_at', ...$span];
-    }
-
     private function validSort(): array
     {
         $col = self::SORT_COLUMNS[$this->sort] ?? 'updated_at';
@@ -580,14 +517,14 @@ class Main extends Component
         $this->loadInitialDocs();
     }
 
-    private function serveFile(string $filePath): Response
+    private function serveFile(string $filePath, string $name): Response
     {
         if (!file_exists($filePath) || !is_file($filePath)) {
             return $this->notFound();
         }
 
         return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf'
-            ? response()->file($filePath)
-            : response()->download($filePath);
+            ? response()->file($filePath)->setContentDisposition('inline', $name)
+            : response()->download($filePath, $name);
     }
 }

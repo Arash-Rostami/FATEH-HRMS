@@ -88,7 +88,7 @@ class TeamChat extends Component
 
         $messages = ChannelMessage::withoutTrashed()
             ->where('channel_id', $channel->id)
-            ->with(['sender:id,name,last_seen,status', 'sender.profile:id,user_id,image', 'replyTo:id,body,sender_id', 'replyTo.sender:id,name'])
+            ->with(['sender:id,name,last_seen,status,presence,focus_until', 'sender.profile:id,user_id,image', 'replyTo:id,body,sender_id', 'replyTo.sender:id,name'])
             ->latest('id')
             ->take($this->teamChatLimit + 1)
             ->get();
@@ -107,8 +107,10 @@ class TeamChat extends Component
                     'attachments' => $m->attachments ?? [],
                     'sender' => [
                         'name' => $m->sender?->name ?? 'ناشناس',
-                        'avatar' => $m->sender?->getProfileImageUrl(),
+                        'avatar' => $m->sender?->getProfileImageUrl() ?? $m->sender?->getInitialsAvatarUrl(),
                         'online' => $m->sender?->isOnline() ?? false,
+                        'presence' => $m->sender?->presence,
+                        'focus' => $m->sender?->focusLabel(),
                         'inactive' => $m->sender && !$m->sender->isActive(),
                     ],
                     'reply_to_id' => $m->reply_to_id,
@@ -173,6 +175,7 @@ class TeamChat extends Component
             $out[$user->name] = [
                 'presence_label' => $user->presence?->label(),
                 'presence_class' => $user->presence?->activeClass(),
+                'reachable' => $user->presence?->isReachable() ?? true,
             ];
         }
 

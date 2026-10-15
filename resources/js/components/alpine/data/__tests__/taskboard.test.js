@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest'
+import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import taskboard from '../taskboard.js'
 
 const FAVORITES_KEY = 'taskboard-favorites'
@@ -216,6 +216,83 @@ describe('taskboard.init', () => {
         c.$watch = vi.fn()
         c.init()
         expect(c.$watch).toHaveBeenCalledWith('dragTask', expect.any(Function))
+    })
+})
+
+describe('taskboard header declutter', () => {
+    const SETTINGS_KEY = 'table-tools:taskboard'
+    const instance = () => {
+        const c = taskboard()
+        c.$watch = vi.fn()
+        return c
+    }
+
+    afterEach(() => vi.useRealTimers())
+
+    test('manual collapse persists after the 400ms exit window and round-trips through init', () => {
+        vi.useFakeTimers()
+        localStorage.setItem(SETTINGS_KEY, 'false')
+
+        const c = instance()
+        c.init()
+        expect(c.headerDeclutter).toBe(false)
+
+        c.toggleHeaderDeclutter()
+        expect(c.headerDeclutterExit).toBe(true)
+        vi.advanceTimersByTime(400)
+        expect(c.headerDeclutter).toBe(true)
+        expect(localStorage.getItem(SETTINGS_KEY)).toBe('true')
+
+        const c2 = instance()
+        c2.init()
+        expect(c2.headerDeclutter).toBe(true)
+    })
+
+    test('manual expand persists immediately; corrupt stored settings fall back to expanded', () => {
+        localStorage.setItem(SETTINGS_KEY, '{not json')
+
+        const c = instance()
+        c.init()
+        expect(c.headerDeclutter).toBe(false)
+
+        localStorage.removeItem(SETTINGS_KEY)
+        c.headerDeclutter = true
+        c.toggleHeaderDeclutter()
+        expect(c.headerDeclutter).toBe(false)
+        expect(localStorage.getItem(SETTINGS_KEY)).toBe('false')
+    })
+
+    test('the hamburger-menu bridge forces collapse without persisting; OFF persists and clears _menuForced', () => {
+        const c = instance()
+        c.init()
+
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }))
+        expect(c.headerDeclutter).toBe(true)
+        expect(localStorage.getItem(SETTINGS_KEY)).toBeNull()
+
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }))
+        expect(c.headerDeclutter).toBe(false)
+        expect(localStorage.getItem(SETTINGS_KEY)).toBe('false')
+
+        c.toggleHeaderDeclutter()
+        expect(c.headerDeclutter).toBe(false)
+
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }))
+        c.toggleHeaderDeclutter()
+        expect(c.headerDeclutter).toBe(false)
+        expect(localStorage.getItem(SETTINGS_KEY)).toBe('false')
+
+        c.destroy()
+        window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }))
+        expect(c.headerDeclutter).toBe(false)
+    })
+
+    test('on boot it syncs collapsed from the persisted menu_declutter pref', () => {
+        localStorage.setItem('menu_declutter', 'true')
+        const c = instance()
+        c.init()
+        expect(c.headerDeclutter).toBe(true)
+        localStorage.removeItem('menu_declutter')
     })
 })
 

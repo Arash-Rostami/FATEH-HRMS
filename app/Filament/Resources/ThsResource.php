@@ -252,6 +252,7 @@ class ThsResource extends Resource
                 TicketTablePresenter::departmentFilter(),
                 TicketTablePresenter::priorityFilter(),
                 TicketTablePresenter::typeFilter(),
+                TicketTablePresenter::areaFilter(),
                 TicketTablePresenter::assigneeFilter(),
                 TicketTablePresenter::requesterFilter(),
                 TicketTablePresenter::unassignedFilter(),

@@ -13,4 +13,9 @@ class EditReport extends EditRecord
     use FilamentEditHeading, FilamentHeaderActions, FilamentPageBehavior;
 
     protected static string $resource = ReportResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['cover_image' => [], 'file_path' => []];
+    }
 }

@@ -45,6 +45,7 @@ return [
         'images' => [], 'mode' => 'time', 'opacity' => 0.85,
         'blur' => 0, 'brightness' => 1, 'contrast' => 1, 'grayscale' => 0, 'width' => '100%',
     ],
+    'office_phone' => env('APP_OFFICE_PHONE', $tenant['company']['phone'] ?? ''),
     'instagram' => env('APP_INSTAGRAM', $tenant['company']['social']['instagram'] ?? null),
     'linkedin' => env('APP_LINKEDIN', $tenant['company']['social']['linkedin'] ?? null),
     'version' => env('APP_VERSION', $latestVersion),

@@ -4,10 +4,10 @@ namespace App\Livewire\Dashboard\Ths\Actions;
 
 use App\Livewire\Dashboard\Ths\Forms\TicketForm;
 use App\Models\Ticket;
+use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Throwable;
 
 class SubmitTicketAction
@@ -56,7 +56,7 @@ class SubmitTicketAction
                 $meta = static::storeAttachment(
                     $file,
                     'ticket/requester',
-                    fn($f) => time() . '_' . Str::random(10) . '.' . $f->extension()
+                    fn($f) => FileNamer::stored('ths', $f)
                 );
 
                 $stored[] = [

@@ -1,9 +1,11 @@
 import maximizeMixin from '../mixins/maximize.js';
 import lastOpenMixin from '../mixins/lastOpen.js';
+import sidebarRailMixin from '../mixins/sidebarRail.js';
 import clipboardMixin from '../mixins/clipboard.js';
 import mentionMixin from '../mixins/mention.js';
 import kanbanDragMixin from '../mixins/kanbanDrag.js';
 import taskFormMixin from '../mixins/taskForm.js';
+import headerDeclutterMixin from '../mixins/headerDeclutter.js';
 
 const BASE_INTERVAL_MS = 10000;
 const MAX_INTERVAL_MS = 60000;
@@ -40,9 +42,11 @@ export default function project() {
     const workspace = {
         ...maximizeMixin('project'),
         ...lastOpenMixin('project'),
+        ...sidebarRailMixin('project'),
         ...clipboardMixin(),
         ...mentionMixin(),
         ...kanbanDragMixin(),
+        ...headerDeclutterMixin(),
         _timer: null,
         _intervalMs: BASE_INTERVAL_MS,
         _lastVersion: null,
@@ -87,10 +91,12 @@ export default function project() {
                     this.isHighlighted = data.isHighlighted ?? false;
                     this.backgroundPattern = data.backgroundPattern ?? 'off';
                     this.backgroundPatternType = data.backgroundPatternType ?? 'mesh';
+                    this.headerDeclutter = data.headerDeclutter ?? false;
                 } catch {}
             }
 
             this._setupPulseChannel();
+            this.headerDeclutterMenuBridge();
 
             const wire = this.$wire;
             this._electLeaderFor(wire.activeProjectId);
@@ -315,7 +321,8 @@ export default function project() {
                 localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify({
                     isHighlighted: this.isHighlighted,
                     backgroundPattern: this.backgroundPattern,
-                    backgroundPatternType: this.backgroundPatternType
+                    backgroundPatternType: this.backgroundPatternType,
+                    headerDeclutter: this.headerDeclutter && !this._menuForced
                 }));
             } catch {}
         },
@@ -449,6 +456,15 @@ export default function project() {
 
         backToList() {
             this.mobileShowChat = false;
+        },
+
+        closeProject() {
+            this.mobileShowChat = false;
+            this._clearLastOpen();
+            this._electLeaderFor(null);
+            this._lastVersion = null;
+            const wire = this.$wire;
+            wire.$island('workspace').closeProject().then(() => wire.$island('sidebar').refreshSidebar());
         },
 
         selectProject(id) {

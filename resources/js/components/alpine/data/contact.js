@@ -2,6 +2,7 @@ import settings from "./settings.js";
 
 import maximizeMixin from "../mixins/maximize.js";
 import lastOpenMixin from "../mixins/lastOpen.js";
+import sidebarRailMixin from "../mixins/sidebarRail.js";
 import clipboardMixin from "../mixins/clipboard.js";
 import pasteImageMixin from "../mixins/pasteImage.js";
 import chatBase from "../mixins/chatBase.js";
@@ -22,7 +23,6 @@ const MSG_TEXTAREA_ID = 'msg-ta';
 const TOTAL_UNREAD_ATTR = 'data-total-unread';
 const DATA_RF_MESSAGE_PREFIX = 'message';
 const INPUT_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
-const LS_SETTINGS_KEY = `chat-settings:${SCOPE}`;
 const SEARCH_FOCUS_PARAM = 'focus_msg';
 const POLL_FALLBACK_EVERY = 10;
 const TOO_LONG_MSG = 'متن پیام نباید بیشتر از ۲۰۰۰ کاراکتر باشد.';
@@ -38,6 +38,7 @@ export default function contact() {
     return {
         ...maximizeMixin('contact'),
         ...lastOpenMixin('contact'),
+        ...sidebarRailMixin('contact'),
         ...clipboardMixin(),
         ...pasteImageMixin(),
         ...chatBase(SCOPE),
@@ -54,13 +55,8 @@ export default function contact() {
             unreadObs = new MutationObserver(() => this.syncPushNotify());
             unreadObs.observe(document.body, { subtree: true, attributes: true, attributeFilter: [TOTAL_UNREAD_ATTR] });
 
-            const saved = localStorage.getItem(LS_SETTINGS_KEY);
-            if (saved) try {
-                const d = JSON.parse(saved);
-                this.isHighlighted = d.isHighlighted ?? false;
-                this.backgroundPattern = d.backgroundPattern ?? 'off';
-                this.backgroundPatternType = d.backgroundPatternType ?? 'mesh';
-            } catch {}
+            this._loadChatSettings();
+            this.headerDeclutterMenuBridge();
 
             this.startPolling();
 
@@ -202,7 +198,9 @@ export default function contact() {
                     await this._isl().refreshActive();
                     const lastAfter = this._readLastMessageMarker();
                     const threadChanged = lastAfter !== lastBefore && lastBefore !== null && lastAfter !== null;
-                    if (threadChanged && !this._lastMessageIsMine()) this._ringIncoming(this.$wire.activeUserId);
+                    const incoming = threadChanged && !this._lastMessageIsMine();
+                    if (incoming && !document.hidden && this.$wire.focusAnchorId == null) this.$wire.markRead(this.$wire.activeUserId);
+                    if (incoming) this._ringIncoming(this.$wire.activeUserId);
                     else if (unreadRose && !threadChanged) this._ringIncoming(null);
                     changed ||= lastAfter !== lastBefore || this._readTypingMarker() !== typingBefore;
                 }
@@ -259,6 +257,8 @@ export default function contact() {
         closeOverlays() {
             this.showInfo = false;
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
             this.emojiOpen = false;
             this.cancelReply();
             this.cancelEdit();
@@ -298,6 +298,8 @@ export default function contact() {
             this.resetUI();
             this.openActionsId = null;
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
 
             this.$wire.cancelReply();
             return this._isl().selectContact(id)
@@ -320,6 +322,9 @@ export default function contact() {
 
         backToList() {
             this.searchMessages = false;
+            this.bookmarksOpen = false;
+            this.daysOpen = false;
+            this._clearLastOpen();
             this.resetUI();
             this.openActionsId = null;
             this._msgViewportEl = null;

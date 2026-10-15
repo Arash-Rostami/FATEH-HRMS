@@ -16,11 +16,12 @@ class BoardCollaboratorResolver
             return [];
         }
 
-        return User::whereIn('id', $ids)->with('profile')->get(['id', 'name'])
+        return User::whereIn('id', $ids)->with('profile')->get(['id', 'name', 'last_seen'])
             ->mapWithKeys(fn(User $user) => [$user->id => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'avatar_url' => $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl(),
+                'online' => $user->isOnline(),
             ]])
             ->all();
     }

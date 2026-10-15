@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SuggestionResource\Schemas;
 use App\Models\Department;
 use App\Models\Suggestion;
 use App\Rules\SuggestionSubmitterNotFromMaOrMg;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class SuggestionFormPresenter
 {
@@ -30,6 +32,9 @@ class SuggestionFormPresenter
             ->previewable()
             ->acceptedFileTypes(['application/pdf', 'image/png', 'image/jpeg'])
             ->maxSize(config('file_upload_limits.document'))
+            ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => FileNamer::stored('suggestion', $file)
+            )
             ->helperText(__('resources/suggestion/strings.hints.attachment'))
             ->columnSpanFull();
     }

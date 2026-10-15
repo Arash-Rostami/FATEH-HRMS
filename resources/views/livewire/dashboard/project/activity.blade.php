@@ -1,4 +1,3 @@
-@php($meAvatar = auth()->user()?->getProfileImageUrl())
 
 <div class="flex flex-col gap-4" wire:key="activity-{{ $activeProjectId }}" x-on:project-activity-refresh.window="$wire.refreshActivity()">
     @if($this->canPost)
@@ -7,13 +6,7 @@
           x-data="projectComposer(@entangle('activityComposer.body').live, @js($this->mentionCandidates->pluck('name')))">
         <div class="flex items-center gap-2.5">
             @auth
-                <div class="shrink-0 w-9 h-9 rounded-full overflow-hidden ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center text-sm font-bold">
-                    @if($meAvatar)
-                        <img src="{{ $meAvatar }}" class="w-full h-full object-cover" alt="" dir="auto">
-                    @else
-                        <span dir="auto">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
-                    @endif
-                </div>
+                <x-dashboard.user-avatar :user="auth()->user()" size="md" :badge="false"/>
             @endauth
 
             <div class="relative flex-1 min-w-0">
@@ -211,13 +204,7 @@
                                 'border-[var(--md-sys-color-error)]/40 bg-[var(--md-sys-color-error-container)]/15 ring-1 ring-inset ring-[var(--md-sys-color-error)]/25' => $entry['mentions_you'] ?? false,
                             ])>
                                 <div class="flex items-start gap-3">
-                                    <div class="shrink-0 w-9 h-9 rounded-full overflow-hidden ring-1 ring-[color-mix(in_srgb,var(--md-sys-color-outline-variant)_40%,transparent)] bg-[var(--md-sys-color-primary-container)] text-[var(--md-sys-color-on-primary-container)] flex items-center justify-center text-sm font-bold">
-                                        @if(!empty($entry['avatar_url']))
-                                            <img src="{{ $entry['avatar_url'] }}" class="w-full h-full object-cover" alt="" dir="auto">
-                                        @else
-                                            <span dir="auto">{{ superClean(mb_substr($entry['user_name'] ?? '?', 0, 1)) }}</span>
-                                        @endif
-                                    </div>
+                                    <x-ui.avatar :existingImage="$entry['avatar_url'] ?? null" :alt="$entry['user_name'] ?? ''" size="md" :online="$entry['online'] ?? null"/>
 
                                     <div class="flex-1 min-w-0">
                                         <header class="flex items-center flex-wrap gap-x-2 gap-y-1 mb-1">

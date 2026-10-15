@@ -2,6 +2,7 @@ import maximizeMixin from "../mixins/maximize.js";
 import kanbanDragMixin from "../mixins/kanbanDrag.js";
 import taskFormMixin from "../mixins/taskForm.js";
 import spotlightMixin from "../mixins/spotlight.js";
+import tableToolsMixin from "../mixins/tableTools.js";
 import settings from "./settings.js";
 
 const COLUMN_SELECTOR = "[data-column]";
@@ -15,6 +16,7 @@ export default function taskboard() {
         ...maximizeMixin('taskboard'),
         ...kanbanDragMixin(),
         ...spotlightMixin({ storageKey: "taskboard-spotlight" }),
+        ...tableToolsMixin('taskboard'),
 
         maximizedColumn: null,
         collapsed: {},
@@ -31,6 +33,8 @@ export default function taskboard() {
             this.initSpotlight();
             this.filtersOpen = localStorage.getItem(FILTERS_OPEN_STORAGE_KEY) === "1";
             this.swipeHintDismissed = localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === "1";
+
+            this.initTableTools();
 
             const columns = document.querySelectorAll(COLUMN_SELECTOR);
 
@@ -98,6 +102,10 @@ export default function taskboard() {
         toggleFilters() {
             this.filtersOpen = !this.filtersOpen;
             try { localStorage.setItem(FILTERS_OPEN_STORAGE_KEY, this.filtersOpen ? "1" : "0"); } catch {}
+        },
+
+        destroy() {
+            this.destroyTableTools();
         },
 
         dismissSwipeHint() {

@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\PersianDateFieldService;
+use App\Support\FileNamer;
 use App\Traits\FilamentFormDivider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -16,7 +17,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class TicketFormPresenter
@@ -325,11 +325,6 @@ class TicketFormPresenter
 
     private static function fileName(TemporaryUploadedFile $file): string
     {
-        return sprintf(
-            'THS-%s-%s.%s',
-            now()->format('Ymd'),
-            Str::random(10),
-            $file->getClientOriginalExtension()
-        );
+        return FileNamer::stored('ths', $file);
     }
 }

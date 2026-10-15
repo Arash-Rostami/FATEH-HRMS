@@ -22,14 +22,11 @@
                     class="group !cursor-help flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-2xl border border-[var(--md-sys-color-outline-variant)]/30
                            shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade"
                 >
-                    <div class="relative w-9 h-9 shrink-0">
-                        <img
-                            src="{{ $user->getProfileImageUrl() ?? $user->getInitialsAvatarUrl() }}"
-                            alt="{{ $user->name }}"
-                            loading="lazy"
-                            class="w-9 h-9 rounded-full object-cover ring-2 {{ $tone['ring'] }} ring-offset-2 ring-offset-[var(--md-sys-color-surface)]"
-                        >
-                        <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full {{ $tone['chip'] }} flex items-center justify-center
+                    <div class="relative shrink-0">
+                        <span class="flex rounded-[28%] ring-2 {{ $tone['ring'] }} ring-offset-2 ring-offset-[var(--md-sys-color-surface)]">
+                            <x-dashboard.user-avatar :user="$user" size="md"/>
+                        </span>
+                        <div class="absolute -top-1 -right-1 w-5 h-5 rounded-md {{ $tone['chip'] }} flex items-center justify-center
                                     border-2 border-[var(--md-sys-color-surface)] shadow-sm">
                             <span class="material-symbols-rounded leading-none text-[11px] animate-pulse">{{ $tone['icon'] }}</span>
                         </div>

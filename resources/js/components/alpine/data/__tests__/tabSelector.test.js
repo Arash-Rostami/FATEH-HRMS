@@ -146,6 +146,40 @@ describe('tabSelector._avail — walking up past a sole-child wrapper', () => {
     })
 })
 
+describe('tabSelector._avail — absolutely-positioned siblings', () => {
+    test('does not bill an absolute sibling (floating redirect anchor) to the tab budget', () => {
+        document.body.innerHTML = `
+            <nav id="row" style="display:flex;column-gap:8px">
+                <div id="bar"></div>
+                <button id="sibling" style="position:absolute"></button>
+            </nav>
+        `
+        const row = document.getElementById('row')
+        const bar = document.getElementById('bar')
+        const sibling = document.getElementById('sibling')
+
+        Object.defineProperty(row, 'clientWidth', { value: 280, configurable: true })
+        Object.defineProperty(sibling, 'offsetParent', { value: row, configurable: true })
+        Object.defineProperty(sibling, 'offsetWidth', { value: 32, configurable: true })
+        Object.defineProperty(bar, 'clientWidth', { value: 999, configurable: true })
+
+        const widths = [70, 70, 70]
+        widths.forEach((w, i) => {
+            const el = document.createElement('button')
+            el.dataset.tabPill = 'p' + (i + 1)
+            if (i === 0) el.setAttribute('data-active', '')
+            bar.appendChild(el)
+            Object.defineProperty(el, 'offsetWidth', { value: w, configurable: true })
+        })
+
+        const t = tabSelector()
+        t.$el = bar
+        t._fit()
+
+        expect(t.hidden).toEqual([])
+    })
+})
+
 describe('tabSelector._schedule — rAF coalescing', () => {
     beforeEach(() => {
         global.requestAnimationFrame = (cb) => setTimeout(cb, 0)

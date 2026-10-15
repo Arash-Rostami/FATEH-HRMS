@@ -216,7 +216,7 @@ class ProfileRelationManager extends RelationManager
             ])
             ->recordActions([
                 self::viewAction(),
-                self::editAction(),
+                self::editAction()->using(fn (\Illuminate\Database\Eloquent\Model $record, array $data): \Illuminate\Database\Eloquent\Model => $this->updateDeletingDroppedFiles($record, $data, ['image' => [], 'attachments' => ['path']])),
                 self::deleteAction(),
             ], RecordActionsPosition::AfterCells)
             ->striped()

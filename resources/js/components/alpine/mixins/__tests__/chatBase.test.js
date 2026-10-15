@@ -234,11 +234,135 @@ describe('chatBase localStorage persistence', () => {
         c.isHighlighted = true;
         c.backgroundPattern = 'on';
         c.backgroundPatternType = 'mesh';
+        c.headerDeclutter = true;
 
         c._persistChatSettings();
 
         const saved = JSON.parse(localStorage.getItem('chat-settings:contact'));
-        expect(saved).toEqual({ isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'mesh' });
+        expect(saved).toEqual({ isHighlighted: true, backgroundPattern: 'on', backgroundPatternType: 'mesh', headerDeclutter: true });
+    });
+
+    test('_loadChatSettings restores every persisted key including headerDeclutter, and tolerates a corrupt payload', () => {
+        const c = chatBase('contact');
+        c.isHighlighted = true;
+        c.backgroundPattern = 'on';
+        c.backgroundPatternType = 'doodle';
+        c.headerDeclutter = true;
+        c._persistChatSettings();
+
+        const fresh = chatBase('contact');
+        fresh._loadChatSettings();
+        expect(fresh.isHighlighted).toBe(true);
+        expect(fresh.backgroundPattern).toBe('on');
+        expect(fresh.backgroundPatternType).toBe('doodle');
+        expect(fresh.headerDeclutter).toBe(true);
+
+        localStorage.setItem('chat-settings:contact', '{broken');
+        const safe = chatBase('contact');
+        expect(() => safe._loadChatSettings()).not.toThrow();
+        expect(safe.isHighlighted).toBe(false);
+        expect(safe.headerDeclutter).toBe(false);
+    });
+});
+
+describe('chatBase header declutter', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    test('collapse plays the exit slide-out, then hides and persists; expand is a plain flip (buttons re-emerge with the header, no separate slide)', async () => {
+        const c = chatBase('contact');
+        c.toggleHeaderDeclutter();
+        expect(c.headerDeclutter).toBe(false);
+        expect(c.headerDeclutterExit).toBe(true);
+        vi.advanceTimersByTime(400);
+        expect(c.headerDeclutter).toBe(true);
+        expect(c.headerDeclutterExit).toBe(false);
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).headerDeclutter).toBe(true);
+
+        c.toggleHeaderDeclutter();
+        expect(c.headerDeclutter).toBe(false);
+        expect(c.headerDeclutterExit).toBe(false);
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).headerDeclutter).toBe(false);
+    });
+
+    test('clicking the toggle mid-collapse cancels the collapse', () => {
+        const c = chatBase('contact');
+        c.toggleHeaderDeclutter();
+        expect(c.headerDeclutterExit).toBe(true);
+        c.toggleHeaderDeclutter();
+        expect(c.headerDeclutterExit).toBe(false);
+        expect(c.headerDeclutter).toBe(false);
+        vi.advanceTimersByTime(400);
+        expect(c.headerDeclutter).toBe(false);
+    });
+
+    test('headerBtnClass mirrors the responsive contract: exit animates (desktop-only), open wins, declutter hides, default has no enter slide', () => {
+        const c = chatBase('contact');
+        expect(c.headerBtnClass(false)).toBe('hidden md:flex');
+        expect(c.headerBtnClass(false, 'block')).toBe('hidden md:block');
+        expect(c.headerBtnClass(true)).toBe('flex');
+
+        c.headerDeclutterExit = true;
+        expect(c.headerBtnClass(false)).toBe('md:flex animate-slide-fade-to-left');
+        expect(c.headerBtnClass(false, 'block')).toBe('md:block animate-slide-fade-to-left');
+        expect(c.headerBtnClass(true)).toBe('md:flex animate-slide-fade-to-left');
+        c.headerDeclutterExit = false;
+
+        c.headerDeclutter = true;
+        expect(c.headerBtnClass(false)).toBe('hidden');
+        expect(c.headerBtnClass(false, 'block')).toBe('hidden');
+        expect(c.headerBtnClass(true)).toBe('hidden');
+        c.headerDeclutter = false;
+    });
+
+    test('the hamburger-menu declutter bridge is unconditional both ways and persists, cancelling a mid-exit timer', async () => {
+        localStorage.removeItem('menu_declutter');
+        const c = chatBase('contact');
+        c.headerDeclutterMenuBridge();
+        const on = () => window.dispatchEvent(new CustomEvent('declutter', { detail: { on: true } }));
+        const off = () => window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+
+        c.headerDeclutter = true;
+        on();
+        expect(c.headerDeclutter).toBe(true);
+        off();
+        expect(c.headerDeclutter).toBe(false);
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).headerDeclutter).toBe(false);
+        on();
+        expect(c.headerDeclutter).toBe(true);
+        c.setPatternType('mesh');
+        vi.advanceTimersByTime(0);
+        await Promise.resolve();
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).headerDeclutter).toBe(false);
+
+        c.headerDeclutter = false;
+        c.toggleHeaderDeclutter();
+        expect(c.headerDeclutterExit).toBe(true);
+        off();
+        expect(c.headerDeclutterExit).toBe(false);
+        expect(c.headerDeclutter).toBe(false);
+        vi.advanceTimersByTime(400);
+        expect(c.headerDeclutter).toBe(false);
+    });
+
+    test('on boot it syncs collapsed from the persisted menu_declutter pref; a remounted instance stays consistent', () => {
+        localStorage.setItem('menu_declutter', 'true');
+        const off = () => window.dispatchEvent(new CustomEvent('declutter', { detail: { on: false } }));
+
+        const a = chatBase('contact');
+        a.headerDeclutterMenuBridge();
+        expect(a.headerDeclutter).toBe(true);
+
+        const b = chatBase('contact');
+        b._loadChatSettings();
+        b.headerDeclutterMenuBridge();
+        expect(b.headerDeclutter).toBe(true);
+
+        off();
+        expect(b.headerDeclutter).toBe(false);
+        expect(JSON.parse(localStorage.getItem('chat-settings:contact')).headerDeclutter).toBe(false);
+        localStorage.removeItem('menu_declutter');
     });
 });
 
@@ -307,6 +431,185 @@ describe('chatBase search/filter panel toggles', () => {
     });
 });
 
+describe('chatBase backToLatest', () => {
+    test('in a jumped-to (anchor) window it reloads the newest messages via clearFocus before scrolling down', async () => {
+        const c = chatBase('contact');
+        c.$wire = createWireMock({ focusAnchorId: 42 });
+        c.$nextTick = (cb) => cb();
+        c.scrollToBottom = vi.fn();
+
+        c.backToLatest();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(c.$wire._islands.messages.clearFocus).toHaveBeenCalledOnce();
+        expect(c.scrollToBottom).toHaveBeenCalledOnce();
+    });
+
+    test('outside an anchor window it only scrolls smoothly, with no server call', () => {
+        const c = chatBase('contact');
+        c.$wire = createWireMock({ focusAnchorId: null });
+        c.scrollToBottom = vi.fn();
+
+        c.backToLatest();
+
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+        expect(c.scrollToBottom).toHaveBeenCalledWith(true);
+    });
+});
+
+describe('chatBase day list', () => {
+    const setup = (hasOlder) => {
+        const c = chatBase('contact');
+        c.$wire = createWireMock({ hasOlder });
+        document.body.innerHTML = '<div id="msg-viewport">'
+            + '<div data-day="2026-10-10"></div><div data-rf="message-5"></div>'
+            + '<div data-day="2026-10-11"></div><div data-rf="new-x"></div><div data-rf="message-9"></div></div>';
+        return c;
+    };
+
+    test('lists loaded days from the DOM newest-first with no server call when nothing older exists', () => {
+        const c = setup(false);
+
+        c.toggleDays();
+
+        expect(c.dayList).toEqual([{ day: '2026-10-11', id: 9 }, { day: '2026-10-10', id: 5 }]);
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+    });
+
+    test('with older history it asks the server, merges unseen days and keeps each day\'s true first message id', async () => {
+        const c = setup(true);
+        c.$wire.$island('messages').days.mockResolvedValue([{ day: '2026-10-10', id: 2 }, { day: '2026-10-01', id: 1 }]);
+
+        c.toggleDays();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(c.$wire._islands.messages.days).toHaveBeenCalledWith();
+        expect(c.dayList.map(d => d.day)).toEqual(['2026-10-11', '2026-10-10', '2026-10-01']);
+        expect(c.dayList.find(d => d.day === '2026-10-10').id).toBe(2);
+        expect(c.dayRows.filter(r => r.header).length).toBe(1);
+    });
+
+    test('reopening within the TTL reuses the in-browser copy instead of calling the server again', async () => {
+        const c = setup(true);
+        c.$wire.$island('messages').days.mockResolvedValue([{ day: '2026-10-01', id: 1 }]);
+
+        c.toggleDays();
+        await Promise.resolve();
+        await Promise.resolve();
+        c.toggleDays();
+        c.toggleDays();
+
+        expect(c.$wire._islands.messages.days).toHaveBeenCalledTimes(1);
+        expect(c.dayList.map(d => d.day)).toContain('2026-10-01');
+    });
+
+    test('in a jumped-to (anchor) window it also asks the server, since newer days are not loaded either', () => {
+        const c = setup(false);
+        c.$wire.focusAnchorId = 5;
+
+        c.toggleDays();
+
+        expect(c.$wire._islands.messages.days).toHaveBeenCalledOnce();
+    });
+
+    test('jumpToDay closes the panel and scrolls to that day\'s first message', () => {
+        const c = setup(false);
+        c.scrollToMessage = vi.fn();
+        c.daysOpen = true;
+
+        c.jumpToDay({ day: '2026-10-10', id: 5 });
+
+        expect(c.daysOpen).toBe(false);
+        expect(c.scrollToMessage).toHaveBeenCalledWith(5);
+    });
+});
+
+describe('chatBase toggleFiles (shared attachment gallery)', () => {
+    const setup = () => {
+        const c = chatBase('contact');
+        c.$wire = createWireMock();
+        return c;
+    };
+
+    test('a fresh open fetches once and caches; re-opening within the TTL never calls the server again', async () => {
+        const c = setup();
+        c.$wire.$island('messages').files.mockResolvedValue([
+            { key: '9:0', msg_id: 9, index: 0, kind: 'doc', url: '/a.pdf', name: 'a.pdf', size_label: '4 KB', time: '' },
+            { key: '7:0', msg_id: 7, index: 0, kind: 'image', url: '/b.png', name: 'b.png', size_label: '2 KB', time: '' },
+        ]);
+
+        c.toggleFiles();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(c.filesList).toHaveLength(2);
+        expect(c.filesLoading).toBe(false);
+
+        c.toggleFiles(); // closes
+        c.toggleFiles(); // reopens → cache branch, zero refetch
+
+        expect(c.$wire._islands.messages.files).toHaveBeenCalledTimes(1);
+        expect(c.filesList).toHaveLength(2);
+    });
+
+    test('switching conversation empties the list immediately and refetches (conv-keyed cache)', async () => {
+        const c = setup();
+        c.$wire.$island('messages').files.mockResolvedValue([
+            { key: '9:0', msg_id: 9, index: 0, kind: 'doc', url: '/a.pdf', name: 'a.pdf', size_label: '4 KB', time: '' },
+        ]);
+
+        c.toggleFiles();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        c.$wire.activeUserId = 42;
+        c.toggleFiles(); // closes (was open)
+        c.toggleFiles(); // reopens → conv switch detected
+
+        expect(c.filesList).toEqual([]);
+        expect(c.filesLoading).toBe(true);
+    });
+});
+
+describe('chatBase toggleBookmarks', () => {
+    const setup = (pinned) => {
+        const c = chatBase('contact');
+        c.$wire = createWireMock();
+        c.$store = { pinned: { getPinned: () => pinned, isPinned: (id) => pinned.includes(id) } };
+        document.body.innerHTML = '<div data-rf="message-7"><button data-sender="Ali" data-body="hello"></button></div>';
+        return c;
+    };
+
+    test('resolves loaded messages from the DOM and never calls the server', () => {
+        const c = setup([7]);
+        c.searchMessages = true;
+
+        c.toggleBookmarks();
+
+        expect(c.bookmarksOpen).toBe(true);
+        expect(c.searchMessages).toBe(false);
+        expect(c.bookmarkList).toEqual([{ id: 7, body: 'hello', sender_name: 'Ali', time: '' }]);
+        expect(c.$wire.$island).not.toHaveBeenCalled();
+    });
+
+    test('asks the server only for ids missing from the DOM and merges newest-first', async () => {
+        const c = setup([7, 3]);
+        const row = { id: 3, body: 'old', sender_name: 'Sara', time: '1d', is_mine: false };
+        c.$wire.$island('messages').bookmarks.mockResolvedValue([row]);
+        c.$wire.$island.mockClear();
+
+        c.toggleBookmarks();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(c.$wire._islands.messages.bookmarks).toHaveBeenCalledWith([3]);
+        expect(c.bookmarkList.map(b => b.id)).toEqual([7, 3]);
+    });
+});
+
 describe('chatBase insertEmoji', () => {
     test('splices the emoji at the cursor, sets composer.body on $wire, and moves the caret past it', () => {
         const c = chatBase('contact');
@@ -324,7 +627,7 @@ describe('chatBase insertEmoji', () => {
         c.insertEmoji('😀');
 
         expect(c.$wire.set).toHaveBeenCalledWith('composer.body', 'hi 😀!');
-        expect(c.emojiOpen).toBe(false);
+        expect(c.emojiOpen).toBe(true);
         expect(ta.focus).toHaveBeenCalledOnce();
     });
 

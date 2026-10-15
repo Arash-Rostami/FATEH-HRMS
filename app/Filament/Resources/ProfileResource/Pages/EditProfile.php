@@ -15,4 +15,9 @@ class EditProfile extends EditRecord
     use FilamentEditHeading, FilamentPageBehavior, FilamentHeaderActions;
 
     protected static string $resource = ProfileResource::class;
+
+    protected function trackedFileColumns(): array
+    {
+        return ['image' => [], 'attachments' => ['path']];
+    }
 }

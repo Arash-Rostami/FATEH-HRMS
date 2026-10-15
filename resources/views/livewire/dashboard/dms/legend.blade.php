@@ -48,6 +48,10 @@
             <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر فایل سند باز نمی‌شود (صفحهٔ ۴۰۴)، آن سند برای واحد شما منتشر نشده یا فعال نیست — دسترسی فایل از مسیر امن بررسی می‌شود.</p>
         </div>
         <div class="flex items-start gap-2 px-1">
+            <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">file_present</span>
+            <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر سندی چند فایل هم‌فرمت دارد (مثلاً دو Excel)، در فهرست نسخه‌ها با شماره می‌آیند («فایل اکسل ۱»، «فایل اکسل ۲») و فایل دریافتی هم همان شماره را در نامش دارد؛ مفهوم هر شماره را در توضیحات بازبینی سند ببینید.</p>
+        </div>
+        <div class="flex items-start gap-2 px-1">
             <span class="material-symbols-rounded text-[15px] mt-0.5 text-[var(--md-sys-color-on-surface-variant)] opacity-70">visibility</span>
             <p class="text-[11.5px] leading-6 text-[var(--md-sys-color-on-surface-variant)]">اگر بیش از یک‌بار سندی را مطالعه کرده باشید، زیر دکمهٔ «مشاهده مجدد» تعداد دفعات («بازدید شما: N بار») نمایش داده می‌شود.</p>
         </div>

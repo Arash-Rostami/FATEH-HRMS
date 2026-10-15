@@ -9,6 +9,7 @@ use App\Models\Concerns\HasMenuState;
 use App\Models\Concerns\HasReminders;
 use App\Models\Concerns\HasUserHelpers;
 use App\Services\Dms\DmsKeyGrouper;
+use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -149,15 +150,54 @@ class DMS extends Model
 
     public function renditions(): array
     {
-        return collect([$this->file, ...($this->extra_files ?? [])])
+        $renditions = collect([$this->file, ...($this->extra_files ?? [])])
             ->filter()
             ->unique()
             ->values()
             ->map(fn($path) => [
                 'path' => $path,
-                'ext' => strtolower(pathinfo($path, PATHINFO_EXTENSION)),
-            ])
+                'ext' => $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION)),
+                'kind' => static::renditionKind($ext),
+            ]);
+
+        $totals = $renditions->countBy('kind');
+        $seen = [];
+
+        return $renditions
+            ->map(function (array $rendition) use ($totals, &$seen) {
+                $kind = $rendition['kind'];
+                $seen[$kind] = ($seen[$kind] ?? 0) + 1;
+
+                return $rendition + ['n' => $seen[$kind], 'of' => $totals[$kind]];
+            })
             ->all();
+    }
+
+    public function downloadNameFor(string $path): string
+    {
+        $rendition = collect($this->renditions())->firstWhere('path', $path);
+
+        if (!$rendition) {
+            return basename($path);
+        }
+
+        return FileNamer::download(
+            $rendition['ext'],
+            $this->code,
+            $this->version ? 'v' . $this->version : null,
+            $rendition['kind'],
+            $rendition['of'] > 1 ? $rendition['n'] : null,
+        );
+    }
+
+    public static function renditionKind(?string $ext): string
+    {
+        return match (strtolower($ext ?? '')) {
+            'pdf' => 'pdf',
+            'xlsx', 'xls', 'csv' => 'excel',
+            'docx', 'doc' => 'word',
+            default => 'file',
+        };
     }
 
     protected function readerNamesTooltip(): Attribute

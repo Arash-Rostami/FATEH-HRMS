@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Support\ProjectCharter;
 use App\Support\TaskAccessPolicy;
+use App\Support\FileNamer;
 use App\Traits\CleansAttachedFiles;
 use App\Traits\ResolvesTaskDeadline;
 use App\Traits\StoresAttachedFiles;
@@ -51,7 +52,7 @@ class CreateTaskAction
 
             $task->detail()->create([
                 ...$form->detailAttributes(),
-                'attachments' => $this->storeAttachments($form->attachments, 'task/attachments'),
+                'attachments' => $this->storeAttachments($form->attachments, 'task/attachments', fn($file) => FileNamer::stored('task', $file)),
             ]);
 
             return $task;

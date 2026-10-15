@@ -1,17 +1,17 @@
 const STYLE_ID = 'dms-col-visibility-style';
-const DOMAINS = ['dms', 'ths', 'reservation'];
-const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden' };
-const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table' };
+const DOMAINS = ['dms', 'ths', 'reservation', 'taskboard'];
+const KEYS = { dms: 'dms-col-hidden', ths: 'ths-col-hidden', reservation: 'reservation-col-hidden', taskboard: 'taskboard-col-hidden' };
+const SCOPES = { dms: '.dms-doc-table', ths: '.ths-ticket-table', reservation: '.reservation-command-table', taskboard: '.taskboard-card' };
 
 let styleEl = null;
 
 export default function colVisibility(Alpine) {
     Alpine.store('colVisibility', {
-        maps: { dms: [], ths: [], reservation: [] },
+        maps: { dms: [], ths: [], reservation: [], taskboard: [] },
         _renderRaf: null,
 
         init() {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < DOMAINS.length; i++) {
                 const d = DOMAINS[i];
                 try {
                     const saved = JSON.parse(localStorage.getItem(KEYS[d]));
@@ -91,7 +91,7 @@ export default function colVisibility(Alpine) {
 
                 let rules = '';
 
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < DOMAINS.length; i++) {
                     const d = DOMAINS[i];
                     const arr = Alpine.raw(this.maps[d]);
                     const len = arr ? arr.length : 0;

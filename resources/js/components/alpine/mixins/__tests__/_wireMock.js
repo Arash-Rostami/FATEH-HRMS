@@ -19,6 +19,7 @@ export function createWireMock(props = {}) {
         cancelReply: vi.fn(),
         cancelEdit: vi.fn(),
         replyTo: vi.fn(),
+        markRead: vi.fn(),
         pollDigest: vi.fn(() => Promise.resolve('digest-1')),
         editMessage: vi.fn(),
         openManageMembers: vi.fn(() => Promise.resolve()),

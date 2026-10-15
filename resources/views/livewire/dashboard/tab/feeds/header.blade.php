@@ -1,12 +1,10 @@
 <div class="flex items-center justify-between gap-3 mb-4 p-5" dir="rtl">
     <div class="flex min-w-0 items-center gap-3">
-        <div class="relative shrink-0">
-            <img
-                class="h-10 w-10 rounded-xl object-cover ring-1 ring-[var(--md-sys-color-outline-variant)]"
-                src="{{ $presenter->avatarUrl($feed->user) }}"
-                alt="{{ $feed->user?->name ?? 'Guest' }}"
-            >
-        </div>
+        @if($feed->user)
+            <x-dashboard.user-avatar :user="$feed->user" size="md"/>
+        @else
+            <x-ui.avatar :existingImage="$presenter->avatarUrl(null)" alt="Guest" size="md"/>
+        @endif
 
         <div class="min-w-0">
             <div class="flex items-center gap-2">

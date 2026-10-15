@@ -138,6 +138,49 @@ trait HasTicketOptions
         return $types ?: $defaults;
     }
 
+    public static function getCustomRequestTypeLabel(?string $requestType, ?string $departmentCode = null): string
+    {
+        return self::getCustomRequestTypeOptions($departmentCode)[$requestType]
+            ?? self::$requestTypeOptions[$requestType]
+            ?? (string)$requestType;
+    }
+
+    public static function allRequestTypeOptions(): array
+    {
+        $types = self::$requestTypeOptions;
+
+        foreach (Department::getCachedModels() as $department) {
+            foreach ($department->ticket_options ?? [] as $opt) {
+                if (!empty($opt['request_type'])) {
+                    $types[$opt['request_type']] ??= $opt['request_type'];
+                }
+            }
+        }
+
+        return $types;
+    }
+
+    public static function allRequestAreaOptions(): array
+    {
+        $areas = [];
+
+        foreach (self::$requestAreaOptions as $options) {
+            $areas += array_filter($options, fn($label, $key) => $key !== '', ARRAY_FILTER_USE_BOTH);
+        }
+
+        foreach (Department::getCachedModels() as $department) {
+            foreach ($department->ticket_options ?? [] as $opt) {
+                if (!empty($opt['area_key'])) {
+                    $areas[$opt['area_key']] ??= $opt['area_label'] ?? $opt['area_key'];
+                }
+            }
+        }
+
+        asort($areas);
+
+        return $areas;
+    }
+
     public static function getHeroiconForArea(?string $area): string
     {
         static $icons = [

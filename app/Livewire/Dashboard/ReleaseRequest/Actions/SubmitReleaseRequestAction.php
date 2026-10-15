@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard\ReleaseRequest\Actions;
 use App\Enums\ReleaseRequestStatus;
 use App\Livewire\Dashboard\ReleaseRequest\Forms\ReleaseRequestForm;
 use App\Models\ReleaseRequest;
+use App\Support\FileNamer;
 use App\Traits\StoresAttachedFiles;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -73,7 +74,7 @@ class SubmitReleaseRequestAction
     private function storeAttachments(ReleaseRequestForm $form): array
     {
         return collect($form->attachments)
-            ->map(fn($file) => static::storeAttachment($file, 'release_request/attachments'))
+            ->map(fn($file) => static::storeAttachment($file, 'release_request/attachments', fn($f) => FileNamer::stored('release_request', $f)))
             ->values()
             ->all();
     }

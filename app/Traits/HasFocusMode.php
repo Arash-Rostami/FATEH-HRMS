@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Enums\PresenceStatus;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 trait HasFocusMode
@@ -11,7 +12,7 @@ trait HasFocusMode
 
     public function activateFocusMode(?int $minutes = null): void
     {
-        $until = $minutes ? now()->addMinutes(min(max($minutes, 1), self::MAX_FOCUS_MINUTES)) : null;
+        $until = now()->addMinutes($minutes ? min(max($minutes, 1), self::MAX_FOCUS_MINUTES) : User::INDEFINITE_FOCUS_MINUTES);
 
         Auth::user()->update([
             'presence' => PresenceStatus::Busy,
@@ -23,7 +24,7 @@ trait HasFocusMode
 
     public function deactivateFocusMode(?string $restorePresence = null): void
     {
-        $presence = PresenceStatus::tryFrom($restorePresence ?? '') ?? PresenceStatus::Onsite;
+        $presence = PresenceStatus::tryFrom($restorePresence ?? '') ?? PresenceStatus::default();
 
         Auth::user()->update([
             'presence' => $presence,

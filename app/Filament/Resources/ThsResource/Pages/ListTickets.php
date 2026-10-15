@@ -3,17 +3,32 @@
 namespace App\Filament\Resources\ThsResource\Pages;
 
 use App\Filament\Resources\ThsResource;
+use App\Filament\Resources\ThsResource\Exports\ThsExporter;
 use App\Models\Ticket;
 use App\Traits\FilamentHeaderActions;
 use App\Filament\Pages\ListRecords;
+use Filament\Actions\ExportAction;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListTickets extends ListRecords
 {
-    use FilamentHeaderActions;
+    use FilamentHeaderActions {
+        getHeaderActions as private baseHeaderActions;
+    }
 
     protected static string $resource = ThsResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ...$this->baseHeaderActions(),
+            ExportAction::make()
+                ->icon('heroicon-o-arrow-down-tray')
+                ->label(__('resources/general/strings.table.bulk_export'))
+                ->exporter(ThsExporter::class),
+        ];
+    }
 
     public function getTabs(): array
     {

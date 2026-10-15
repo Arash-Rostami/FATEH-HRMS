@@ -23,4 +23,9 @@ class EditTicket extends EditRecord
     {
         return $this->mergeDeadline($data);
     }
+
+    protected function trackedFileColumns(): array
+    {
+        return ['requester_files' => ['file'], 'assignee_files' => ['file']];
+    }
 }
